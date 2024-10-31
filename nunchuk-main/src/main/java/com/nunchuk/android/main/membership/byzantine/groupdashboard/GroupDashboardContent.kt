@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
@@ -123,10 +122,9 @@ fun GroupDashboardContent(
             ((uiState.myRole.isKeyHolderLimited.not() && uiState.myRole.isObserver.not() && uiState.myRole.isFacilitatorAdmin.not())
                     && (uiState.groupChat != null || uiState.group?.isPendingWallet() == false || uiState.myRole == AssistedWalletRole.MASTER))
 
-    NunchukTheme(statusBarColor = colorResource(id = R.color.nc_grey_light)) {
+    NunchukTheme {
         Scaffold(
-            modifier = Modifier
-                .statusBarsPadding(),
+            modifier = Modifier,
             topBar = {
                 NcTopAppBar(
                     backgroundColor = colorResource(id = R.color.nc_grey_light),

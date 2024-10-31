@@ -39,6 +39,9 @@ val ColorScheme.border: Color
 val ColorScheme.greyLight: Color
     get() = if (isDark) Color(0xFF2C2C2C) else Color(0xFFF5F5F5)
 
+val ColorScheme.lightGray: Color
+    get() = greyLight
+
 val ColorScheme.greyDark: Color
     get() = NcColor.greyDark
 

@@ -125,8 +125,6 @@ object NunchukTheme {
 @Composable
 fun NunchukTheme(
     isSetStatusBar: Boolean = true,
-    statusBarColor: Color = Color.Transparent,
-    darkIcon: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val view = LocalView.current
@@ -134,8 +132,6 @@ fun NunchukTheme(
         NunchukThemeContent(
             isDark = isSystemInDarkTheme(),
             isSetStatusBar = isSetStatusBar,
-            statusBarColor = statusBarColor,
-            darkIcon = darkIcon,
             content = content
         )
     } else {
@@ -150,8 +146,6 @@ fun NunchukTheme(
             NunchukThemeContent(
                 isDark = isDark,
                 isSetStatusBar = isSetStatusBar,
-                statusBarColor = statusBarColor,
-                darkIcon = darkIcon,
                 content = content
             )
         }
@@ -162,8 +156,6 @@ fun NunchukTheme(
 private fun NunchukThemeContent(
     isDark: Boolean,
     isSetStatusBar: Boolean,
-    statusBarColor: Color,
-    darkIcon: Boolean,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = if (isDark) DarkColors else LightColors
@@ -241,9 +233,13 @@ private fun NunchukThemeContent(
         labelMedium = defaultTypography.labelMedium.copy(fontFamily = latoRegular),
         labelSmall = defaultTypography.labelSmall.copy(fontFamily = latoRegular)
     )
-    if (isSetStatusBar && !isDark) {
+    if (isSetStatusBar) {
         val systemUiController = rememberSystemUiController()
-        systemUiController.setSystemBarsColor(color = statusBarColor, darkIcons = darkIcon)
+        if (isDark) {
+            systemUiController.setSystemBarsColor(color = Color.Black, darkIcons = false)
+        } else {
+            systemUiController.setSystemBarsColor(color = Color.White, darkIcons = true)
+        }
     }
     CompositionLocalProvider(
         LocalNunchukTypography provides nunchukTypography,

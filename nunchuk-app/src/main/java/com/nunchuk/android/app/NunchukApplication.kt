@@ -34,7 +34,7 @@ import com.nunchuk.android.usecase.darkmode.ConfigThemeUseCase
 import com.nunchuk.android.util.FileHelper
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.runBlocking
 import org.matrix.android.sdk.api.Matrix
 import timber.log.Timber
@@ -91,10 +91,7 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
         fileHelper.getOrCreateNunchukRootDir()
         registerActivityLifecycleCallbacks(ActivityManager)
         registerAppForegroundListener()
-        applicationScope.launch {
-            configThemeUseCase(Unit)
-                .collect {}
-        }
+        configThemeUseCase(Unit).launchIn(applicationScope)
     }
 
     private fun registerAppForegroundListener() {

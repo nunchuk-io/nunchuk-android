@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetDisplayUnitSettingUseCase
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
+import com.nunchuk.android.model.ThemeMode
 import com.nunchuk.android.usecase.GetUseLargeFontHomeBalancesUseCase
 import com.nunchuk.android.usecase.SetUseLargeFontHomeBalancesUseCase
+import com.nunchuk.android.usecase.darkmode.GetDarkModeUseCase
+import com.nunchuk.android.usecase.darkmode.SetDarkModeUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +24,8 @@ class DisplaySettingsViewModel @Inject constructor(
     private val getUseLargeFontHomeBalancesUseCase: GetUseLargeFontHomeBalancesUseCase,
     private val setUseLargeFontHomeBalancesUseCase: SetUseLargeFontHomeBalancesUseCase,
     private val getDisplayUnitSettingUseCase: GetDisplayUnitSettingUseCase,
+    private val getDarkModeUseCase: GetDarkModeUseCase,
+    private val setDarkModeUseCase: SetDarkModeUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DisplaySettingsUiState())
@@ -31,6 +36,12 @@ class DisplaySettingsViewModel @Inject constructor(
             getUseLargeFontHomeBalancesUseCase(Unit)
                 .collect { result ->
                     _state.update { it.copy(largeFont = result.getOrDefault(false)) }
+                }
+        }
+        viewModelScope.launch {
+            getDarkModeUseCase(Unit)
+                .collect { result ->
+                    _state.update { it.copy(themeMode = result.getOrDefault(ThemeMode.System)) }
                 }
         }
     }
@@ -55,9 +66,19 @@ class DisplaySettingsViewModel @Inject constructor(
                 }
         }
     }
+
+    fun setThemeMode(mode: ThemeMode) {
+        viewModelScope.launch {
+            setDarkModeUseCase(mode.value)
+                .onSuccess {
+                    _state.update { it.copy(themeMode = mode) }
+                }
+        }
+    }
 }
 
 data class DisplaySettingsUiState(
     val largeFont: Boolean = false,
     val unit: Int = CURRENT_DISPLAY_UNIT_TYPE,
+    val themeMode: ThemeMode = ThemeMode.System
 )

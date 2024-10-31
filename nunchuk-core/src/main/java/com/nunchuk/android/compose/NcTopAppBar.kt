@@ -48,6 +48,7 @@ import com.nunchuk.android.core.R
 @Composable
 fun NcTopAppBar(
     title: String,
+    modifier: Modifier = Modifier,
     textStyle: TextStyle = NunchukTheme.typography.titleSmall,
     actions: @Composable RowScope.() -> Unit = {
         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
@@ -59,6 +60,7 @@ fun NcTopAppBar(
 ) {
     val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current
     CenterAlignedTopAppBar(
+        modifier = modifier,
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = backgroundColor),
         navigationIcon = {
             IconButton(onClick = { if (onBackPress != null) onBackPress.invoke() else onBackPressOwner?.onBackPressedDispatcher?.onBackPressed() }) {
