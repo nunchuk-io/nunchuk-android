@@ -55,8 +55,8 @@ val ColorScheme.everglade: Color
 val ColorScheme.ming: Color
     get() = Color(0xFF2F766D)
 
-val ColorScheme.yellowishOrange: Color
-    get() = Color(0xFFFDEBD2)
+val ColorScheme.fillBeewax: Color
+    get() = if (isDark) Color(0xFFa66800) else Color(0xFFFDEBD2)
 
 val ColorScheme.quickSilver: Color
     get() = Color(0xFFA6A6A6)

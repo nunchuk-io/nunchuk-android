@@ -1,6 +1,5 @@
 package com.nunchuk.android.main.membership.byzantine.groupdashboard
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,11 +15,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcCircleImage
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
 import com.nunchuk.android.core.signer.SignerModel
@@ -38,10 +37,9 @@ fun LazyListScope.HealthCheckStatusView(onOpenHealthCheckScreen: () -> Unit = {}
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Row {
-                Image(
+                NcIcon(
                     painter = painterResource(id = R.drawable.ic_health_check),
                     contentDescription = "image description",
-                    contentScale = ContentScale.None
                 )
                 Text(
                     modifier = Modifier.padding(start = 8.dp),

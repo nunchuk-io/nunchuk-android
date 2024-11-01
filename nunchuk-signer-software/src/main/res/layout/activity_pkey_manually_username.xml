@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@color/nc_white_color"
+    android:background="@color/nc_background"
     android:fitsSystemWindows="true">
 
     <androidx.appcompat.widget.Toolbar

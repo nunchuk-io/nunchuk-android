@@ -4,13 +4,12 @@
     <color name="nc_primary_dark_color">#FF000000</color>
     <color name="nc_primary_light_color">#2F466C</color>
     <color name="nc_accent_color">#C1C1C1</color>
-    <color name="nc_white_color">#FFFFFF</color>
 
     <color name="nc_blue_color">#1A9CB7</color>
     <color name="nc_grey_dark_color">#595959</color>
     <color name="nc_grey_color">#808080</color>
     <color name="nc_grey_light">#2C2C2C</color>
-    <color name="nc_whisper_color">#393939</color>
+    <color name="nc_bg_mid_gray">#393939</color>
     <color name="nc_red_color">#D2232A</color>
     <color name="nc_green_color">#A7F0BA</color>
     <color name="nc_orange_color">#CF4018</color>
@@ -24,7 +23,7 @@
     <color name="nc_beeswax_dark">#A66800</color>
     <color name="nc_boulder_color">#757575</color>
 
-    <color name="nc_edit_text_stroke_color">#CCCCCC</color>
+    <color name="nc_stroke_primary">#595959</color>
     <color name="nc_edit_text_stroke_error_color">#FFD7D9</color>
 
     <color name="nc_button_press_state_color">@color/nc_blue_color</color>
@@ -36,7 +35,7 @@
     <color name="nc_red_tint_color">#FFD7D9</color>
     <color name="nc_orange_dark_color">#CF4018</color>
     <color name="nc_denim_tint_color">#D0E2FF</color>
-    <color name="nc_dialog_background">#70000000</color>
+    <color name="nc_dialog_background">#50000000</color>
     <color name="nc_wallet_premium_bg">#1C4A21</color>
     <color name="nc_slime_dark">#3bbe59</color>
     <color name="nc_tealish_green">#A7F0BA</color>
@@ -50,4 +49,8 @@
     <color name="nc_fill_primary">#FFFFFF</color>
     <color name="nc_background_primary">#1C1C1E</color>
     <color name="nc_popup_bg">#393939</color>
+    <color name="nc_background">#1c1c1e</color>
+    <color name="nc_control_state_activated">#FFCB2E</color>
+    <color name="nc_fill_beewax">#a66800</color>
+    <color name="nc_fill_denim">#2F466C</color>
 </resources>

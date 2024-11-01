@@ -65,7 +65,7 @@ fun BackingUpContent(
                     .height(8.dp)
                     .fillMaxWidth(),
                 color = MaterialTheme.colorScheme.primary,
-                trackColor = colorResource(id = R.color.nc_whisper_color),
+                trackColor = colorResource(id = R.color.nc_bg_mid_gray),
             )
             val label = when {
                 isError -> stringResource(R.string.nc_upload_failed)

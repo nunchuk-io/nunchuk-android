@@ -52,7 +52,7 @@
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_4"
         android:background="@null"
-        android:backgroundTint="@color/nc_whisper_color"
+        android:backgroundTint="@color/nc_bg_mid_gray"
         android:gravity="start|top"
         android:hint="@string/nc_text_type_name_here"
         android:inputType="textEmailAddress"

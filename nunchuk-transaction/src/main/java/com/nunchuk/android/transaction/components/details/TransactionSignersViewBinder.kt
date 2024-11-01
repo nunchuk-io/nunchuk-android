@@ -128,7 +128,7 @@ internal class TransactionSignersViewBinder(
             binding.xpf.setTextColor(ContextCompat.getColor(context, R.color.nc_beeswax_dark))
         } else {
             binding.xpf.isVisible = true
-            binding.xpf.setTextColor(ContextCompat.getColor(context, R.color.nc_grey_dark_color))
+            binding.xpf.setTextColor(ContextCompat.getColor(context, R.color.nc_text_secondary))
             binding.xpf.text = model.getXfpOrCardIdLabel()
         }
     }

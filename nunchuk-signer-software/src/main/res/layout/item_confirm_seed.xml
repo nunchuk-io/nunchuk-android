@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/nc_white_color"
+    android:background="@color/nc_background"
     android:paddingBottom="@dimen/nc_text_size_16">
 
     <com.nunchuk.android.widget.NCFontTextView

@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.R
 
 @Composable
@@ -53,7 +54,7 @@ fun NcLoadingDialog(
                 CircularProgressIndicator(
                     modifier = Modifier
                         .width(48.dp),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.textPrimary,
                     trackColor = MaterialTheme.colorScheme.background,
                 )
 

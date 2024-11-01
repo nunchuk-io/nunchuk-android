@@ -146,7 +146,7 @@ fun ThemeCard(
             modifier = Modifier.align(Alignment.TopEnd),
             colors = RadioButtonDefaults.colors(
                 selectedColor = MaterialTheme.colorScheme.textPrimary,
-                unselectedColor = MaterialTheme.colorScheme.textSecondary
+                unselectedColor = MaterialTheme.colorScheme.textPrimary
             )
         )
     }

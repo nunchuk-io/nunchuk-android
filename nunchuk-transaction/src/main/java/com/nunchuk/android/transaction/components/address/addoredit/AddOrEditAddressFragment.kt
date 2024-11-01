@@ -54,7 +54,6 @@ import com.nunchuk.android.core.util.SavedAddressFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.widget.NCWarningDialog

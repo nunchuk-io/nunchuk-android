@@ -67,6 +67,7 @@ import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.fillDenim
+import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.coin.TagFlow
@@ -270,7 +271,7 @@ private fun CoinDetailContent(
 ) {
     NunchukTheme {
         val backgroundColor =
-            if (isSpentCoin) MaterialTheme.colorScheme.whisper else MaterialTheme.colorScheme.fillDenim
+            if (isSpentCoin) MaterialTheme.colorScheme.lightGray else MaterialTheme.colorScheme.fillDenim
         Scaffold(topBar = {
             Box(
                 modifier = Modifier

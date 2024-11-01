@@ -58,7 +58,7 @@
         android:max="100"
         app:indicatorColor="@color/nc_red_color"
         app:layout_constraintTop_toTopOf="@+id/barcodeView"
-        app:trackColor="@color/nc_whisper_color"
+        app:trackColor="@color/nc_bg_mid_gray"
         tools:progress="50" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

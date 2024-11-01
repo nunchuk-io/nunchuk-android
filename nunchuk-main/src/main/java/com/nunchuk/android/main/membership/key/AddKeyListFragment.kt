@@ -638,7 +638,7 @@ fun AddKeyCard(
                         NcTag(
                             label = item.signer.toReadableSignerType(context = LocalContext.current),
                             backgroundColor = colorResource(
-                                id = R.color.nc_whisper_color
+                                id = R.color.nc_bg_mid_gray
                             ),
                         )
                         if (item.signer.isShowAcctX()) {
@@ -646,7 +646,7 @@ fun AddKeyCard(
                                 modifier = Modifier.padding(start = 4.dp),
                                 label = stringResource(R.string.nc_acct_x, item.signer.index),
                                 backgroundColor = colorResource(
-                                    id = R.color.nc_whisper_color
+                                    id = R.color.nc_bg_mid_gray
                                 ),
                             )
                         }
@@ -723,7 +723,7 @@ private fun ConfigItem(
                     NcTag(
                         label = stringResource(R.string.nc_inheritance),
                         backgroundColor = colorResource(
-                            id = R.color.nc_whisper_color
+                            id = R.color.nc_bg_mid_gray
                         ),
                     )
                 }
@@ -732,7 +732,7 @@ private fun ConfigItem(
                         modifier = Modifier.padding(start = if (item.type == MembershipStep.HONEY_ADD_INHERITANCE_KEY) 4.dp else 0.dp),
                         label = stringResource(R.string.nc_acct_x, item.signer.index),
                         backgroundColor = colorResource(
-                            id = R.color.nc_whisper_color
+                            id = R.color.nc_bg_mid_gray
                         ),
                     )
                 }

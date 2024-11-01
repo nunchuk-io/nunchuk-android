@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/nc_white_color"
+    android:background="@color/nc_background"
     android:fitsSystemWindows="true">
 
     <androidx.appcompat.widget.Toolbar
@@ -72,7 +72,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/nc_padding_12"
                     android:text="@string/nc_transaction_sending_to"
-                    android:textColor="@color/nc_black_color"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/status" />
 
@@ -107,7 +106,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginTop="@dimen/nc_padding_24"
-                    android:background="@color/nc_whisper_color"
+                    android:background="@color/nc_bg_mid_gray"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/sendingBTC" />
 
@@ -131,7 +130,7 @@
                 android:id="@+id/transactionDetailsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/nc_white_color"
+                android:background="@color/nc_background"
                 android:visibility="gone"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/transactionInfoContainer"
@@ -141,7 +140,7 @@
                     android:id="@+id/sendToAddress"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@color/nc_whisper_color"
+                    android:background="@color/nc_bg_mid_gray"
                     android:padding="@dimen/nc_padding_16"
                     android:text="@string/nc_transaction_send_to_address"
                     android:textColor="@color/nc_primary_dark_color"
@@ -203,7 +202,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_margin="@dimen/nc_padding_16"
-                    android:background="@color/nc_whisper_color"
+                    android:background="@color/nc_bg_mid_gray"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/sendAddressBarrier" />
 

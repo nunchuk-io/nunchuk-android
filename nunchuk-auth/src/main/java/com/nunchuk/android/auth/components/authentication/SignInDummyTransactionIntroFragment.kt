@@ -58,7 +58,9 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.model.Amount
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SignInDummyTransactionIntroFragment : Fragment() {
     private val activityViewModel by activityViewModels<SignInAuthenticationViewModel>()
 

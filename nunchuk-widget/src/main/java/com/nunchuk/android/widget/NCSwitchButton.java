@@ -36,6 +36,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Checkable;
 
+import androidx.core.content.ContextCompat;
+
 public class NCSwitchButton extends View implements Checkable {
     private static final int DEFAULT_WIDTH = dp2pxInt(58);
     private static final int DEFAULT_HEIGHT = dp2pxInt(36);
@@ -284,7 +286,7 @@ public class NCSwitchButton extends View implements Checkable {
 
         uncheckColor = optColor(typedArray, R.styleable.SwitchButton_sb_uncheck_color, 0XffDDDDDD);//0XffDDDDDD;
 
-        checkedColor = optColor(typedArray, R.styleable.SwitchButton_sb_checked_color, 0Xff51d367);//0Xff51d367;
+        checkedColor = ContextCompat.getColor(context, R.color.nc_control_state_activated);
 
         borderWidth = optPixelSize(typedArray, R.styleable.SwitchButton_sb_border_width, dp2pxInt(1));//dp2pxInt(1);
 

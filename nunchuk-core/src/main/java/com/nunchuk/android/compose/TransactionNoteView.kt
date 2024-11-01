@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,11 +56,10 @@ fun TransactionNoteView(modifier: Modifier = Modifier, note: String) {
         modifier = modifier
             .clickable(onClick = onTextClick),
     ) {
-        Icon(
+        NcIcon(
             modifier = Modifier
                 .border(1.dp, color = MaterialTheme.colorScheme.strokePrimary, shape = CircleShape)
                 .padding(4.dp),
-            tint = MaterialTheme.colorScheme.primary,
             painter = painterResource(id = R.drawable.ic_transaction_note),
             contentDescription = "Transaction Note"
         )

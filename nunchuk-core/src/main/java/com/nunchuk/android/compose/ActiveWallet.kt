@@ -144,7 +144,7 @@ fun getWalletColors(
     walletStatus: String
 ): List<Color> {
     val colors = if (inviterName.isNotEmpty() || walletsExtended == null) {
-        listOf(MaterialTheme.colorScheme.yellowishOrange, MaterialTheme.colorScheme.yellowishOrange)
+        listOf(MaterialTheme.colorScheme.fillBeewax, MaterialTheme.colorScheme.fillBeewax)
     } else if ((group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name) || isLocked
         || walletStatus == WalletStatus.LOCKED.name
         || walletStatus == WalletStatus.REPLACED.name

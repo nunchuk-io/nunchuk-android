@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.appearance.ThemeViewModel
 import com.nunchuk.android.model.ThemeMode
@@ -69,6 +68,7 @@ private val LightColors = lightColorScheme(
 private val DarkColors = darkColorScheme(
     primary = Color.Black,
     onPrimary = Color.White,
+    background = Color(0xFF1c1c1e),
 )
 
 @Immutable
@@ -124,14 +124,12 @@ object NunchukTheme {
 
 @Composable
 fun NunchukTheme(
-    isSetStatusBar: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val view = LocalView.current
     if (view.isInEditMode) {
         NunchukThemeContent(
             isDark = isSystemInDarkTheme(),
-            isSetStatusBar = isSetStatusBar,
             content = content
         )
     } else {
@@ -145,7 +143,6 @@ fun NunchukTheme(
             }
             NunchukThemeContent(
                 isDark = isDark,
-                isSetStatusBar = isSetStatusBar,
                 content = content
             )
         }
@@ -155,7 +152,6 @@ fun NunchukTheme(
 @Composable
 private fun NunchukThemeContent(
     isDark: Boolean,
-    isSetStatusBar: Boolean,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = if (isDark) DarkColors else LightColors
@@ -193,7 +189,7 @@ private fun NunchukThemeContent(
         bodySmall = TextStyle(fontSize = 12.sp, fontFamily = latoRegular, color = textColor),
         caption = TextStyle(
             fontSize = 12.sp,
-            fontFamily = latoRegular,
+            fontFamily = latoBold,
             color = textColor,
             fontWeight = FontWeight.Medium
         ),
@@ -233,14 +229,6 @@ private fun NunchukThemeContent(
         labelMedium = defaultTypography.labelMedium.copy(fontFamily = latoRegular),
         labelSmall = defaultTypography.labelSmall.copy(fontFamily = latoRegular)
     )
-    if (isSetStatusBar) {
-        val systemUiController = rememberSystemUiController()
-        if (isDark) {
-            systemUiController.setSystemBarsColor(color = Color.Black, darkIcons = false)
-        } else {
-            systemUiController.setSystemBarsColor(color = Color.White, darkIcons = true)
-        }
-    }
     CompositionLocalProvider(
         LocalNunchukTypography provides nunchukTypography,
     ) {

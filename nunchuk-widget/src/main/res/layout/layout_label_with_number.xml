@@ -14,7 +14,6 @@
         android:layout_gravity="center_vertical"
         android:background="@drawable/nc_bg_black_stroke_circle"
         android:gravity="center"
-        android:textColor="@color/nc_black_color"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/guideline"
         tools:text="1" />
@@ -26,7 +25,6 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/nc_padding_12"
         android:gravity="start"
-        android:textColor="@color/nc_black_color"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/tvDes1"
         app:layout_constraintTop_toTopOf="@+id/tvDes1"

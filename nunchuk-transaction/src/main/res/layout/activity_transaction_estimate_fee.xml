@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/nc_white_color"
     android:fitsSystemWindows="true">
 
     <androidx.appcompat.widget.Toolbar
@@ -137,7 +136,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_margin="@dimen/nc_padding_16"
-                    android:background="@color/nc_whisper_color"
+                    android:background="@color/nc_bg_mid_gray"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/totalAmountUSD" />
 
@@ -192,7 +191,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:layout_marginTop="@dimen/nc_padding_16"
-                        android:background="@color/nc_whisper_color"
+                        android:background="@color/nc_bg_mid_gray"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/subtractFeeDesc" />
 

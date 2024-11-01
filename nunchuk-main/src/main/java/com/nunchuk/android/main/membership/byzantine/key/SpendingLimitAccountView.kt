@@ -96,7 +96,7 @@ fun SpendingLimitAccountView(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
-                            .background(color = colorResource(id = R.color.nc_whisper_color)),
+                            .background(color = colorResource(id = R.color.nc_bg_mid_gray)),
                         contentAlignment = Alignment.Center
                     ) {
                         Image(

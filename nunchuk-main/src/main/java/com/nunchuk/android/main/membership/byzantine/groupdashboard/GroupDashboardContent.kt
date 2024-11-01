@@ -30,9 +30,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -57,15 +57,18 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.nunchuk.android.compose.NcColor
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.controlFillSecondary
 import com.nunchuk.android.compose.pullrefresh.PullRefreshIndicator
 import com.nunchuk.android.compose.pullrefresh.pullRefresh
 import com.nunchuk.android.compose.pullrefresh.rememberPullRefreshState
 import com.nunchuk.android.compose.strokePrimary
+import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.formatDate
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
 import com.nunchuk.android.core.util.shorten
@@ -139,17 +142,15 @@ fun GroupDashboardContent(
                         if (isKeyholderLimited.not()) {
                             val isWalletCreated = uiState.wallet.name.isNotEmpty()
                             IconButton(onClick = onWalletClick, enabled = isWalletCreated) {
-                                Icon(
+                                NcIcon(
                                     painter = painterResource(id = R.drawable.ic_wallets),
                                     contentDescription = "Wallet icon",
-                                    tint = if (isWalletCreated) colorResource(id = R.color.nc_primary_color) else colorResource(
-                                        id = R.color.nc_boulder_color
-                                    )
+                                    tint = if (isWalletCreated) MaterialTheme.colorScheme.textPrimary else MaterialTheme.colorScheme.controlFillSecondary
                                 )
                             }
                             if (isShowMore && uiState.walletStatus != WalletStatus.LOCKED.name) {
                                 IconButton(onClick = onMoreClick) {
-                                    Icon(
+                                    NcIcon(
                                         painter = painterResource(id = R.drawable.ic_more),
                                         contentDescription = "More icon"
                                     )
@@ -186,7 +187,7 @@ fun GroupDashboardContent(
                                         if (isEnableStartGroupChat) onGroupChatClick()
                                     },
                                     containerColor = if (isEnableStartGroupChat) MaterialTheme.colorScheme.secondary else colorResource(
-                                        id = R.color.nc_whisper_color
+                                        id = R.color.nc_bg_mid_gray
                                     ),
                                     text = {
                                         Text(
@@ -284,7 +285,7 @@ private fun LazyListScope.alertListView(
                     end = 16.dp
                 )
             ) {
-                Image(
+                NcIcon(
                     painter = painterResource(id = R.drawable.ic_alert),
                     contentDescription = ""
                 )
@@ -324,13 +325,13 @@ private fun LazyListScope.memberListView(
         Row(
             modifier = Modifier
                 .padding(top = padTop)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row {
-                Image(
+                NcIcon(
                     painter = painterResource(id = R.drawable.ic_account_member),
                     contentDescription = ""
                 )
@@ -373,10 +374,10 @@ private fun LazyListScope.memberListView(
     }
 
     item {
-        Divider(
-            color = colorResource(id = R.color.nc_whisper_color),
+        HorizontalDivider(
+            color = colorResource(id = R.color.nc_bg_mid_gray),
             modifier = Modifier
-                .background(color = Color.White)
+                .background(color = MaterialTheme.colorScheme.background)
                 .padding(8.dp)
         )
     }
@@ -407,9 +408,11 @@ private fun AlertView(
             .fillMaxWidth()
             .clip(shape = RoundedCornerShape(12.dp))
             .border(
-                width = 1.dp, color = MaterialTheme.colorScheme.strokePrimary, shape = RoundedCornerShape(12.dp)
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.strokePrimary,
+                shape = RoundedCornerShape(12.dp)
             )
-            .background(color = NcColor.white)
+            .background(color = MaterialTheme.colorScheme.background)
             .padding(12.dp)
             .clickable {
                 onViewClick()
@@ -429,7 +432,7 @@ private fun AlertView(
                 }
                 Text(
                     text = timeText,
-                    style = NunchukTheme.typography.bodySmall.copy(colorResource(id = R.color.nc_grey_dark_color))
+                    style = NunchukTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.textSecondary)
                 )
             }
 
@@ -459,7 +462,7 @@ private fun ContactMemberView(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(color = Color.White)
+            .background(color = MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Row(
@@ -528,7 +531,7 @@ private fun ContactMemberView(
                             modifier = Modifier
                                 .size(48.dp, 48.dp)
                                 .clip(CircleShape)
-                                .background(color = colorResource(id = R.color.nc_whisper_color)),
+                                .background(color = colorResource(id = R.color.nc_bg_mid_gray)),
                             contentAlignment = Alignment.Center
                         ) {
                             Image(

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -40,12 +41,15 @@ fun DisplaySettingsContent(
         ThemeMode.System -> stringResource(id = R.string.nc_automatic)
     }
     NunchukTheme {
-        Scaffold(topBar = {
-            NcTopAppBar(
-                title = stringResource(id = R.string.nc_display_settings),
-                textStyle = NunchukTheme.typography.titleLarge
-            )
-        }) { innerPadding ->
+        Scaffold(
+            modifier = Modifier.statusBarsPadding(),
+            topBar = {
+                NcTopAppBar(
+                    title = stringResource(id = R.string.nc_display_settings),
+                    textStyle = NunchukTheme.typography.titleLarge
+                )
+            },
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)

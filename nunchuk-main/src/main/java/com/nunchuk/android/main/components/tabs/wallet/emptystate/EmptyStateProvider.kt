@@ -16,7 +16,7 @@ data class WizardData(
     val buttonText: String,
     val buttonAction: () -> Unit,
     val imageResId: Int,
-    val backgroundColor: Long
+    val backgroundColor: Int
 )
 
 data class KeyWalletEntryData(

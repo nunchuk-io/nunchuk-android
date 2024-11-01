@@ -24,7 +24,9 @@ import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ByzantineSetupServerKeySuccessFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,

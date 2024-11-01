@@ -67,7 +67,9 @@ import com.nunchuk.android.main.membership.authentication.WalletAuthenticationVi
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.share.result.GlobalResultKey
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class DummyTransactionIntroFragment : Fragment() {
     private val activityViewModel by activityViewModels<WalletAuthenticationViewModel>()
 

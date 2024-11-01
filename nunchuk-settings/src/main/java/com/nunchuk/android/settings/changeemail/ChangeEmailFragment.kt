@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,6 +30,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
@@ -37,7 +38,6 @@ import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideLoading
-import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.nav.NunchukNavigator
@@ -45,7 +45,6 @@ import com.nunchuk.android.settings.R
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.widget.NCInfoDialog
-import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -178,12 +177,12 @@ fun ChangeEmailScreen(
 @Composable
 fun ChangeEmailScreenContent(
     email: String = "",
-    isValidEmail : Boolean = false,
+    isValidEmail: Boolean = false,
     onEmailChangeClick: (String) -> Unit = {},
     onInputChange: (String) -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold(
+        NcScaffold(
             modifier = Modifier
                 .navigationBarsPadding()
                 .statusBarsPadding(),
@@ -193,7 +192,8 @@ fun ChangeEmailScreenContent(
                     textStyle = NunchukTheme.typography.titleLarge,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
-                    })
+                    },
+                )
             }
         ) { innerPadding ->
             Column(

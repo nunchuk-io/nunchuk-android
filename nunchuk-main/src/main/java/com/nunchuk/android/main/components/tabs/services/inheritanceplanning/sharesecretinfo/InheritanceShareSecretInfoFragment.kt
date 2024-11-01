@@ -56,7 +56,6 @@ import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.LabelNumberAndDesc
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcClickableText
-import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar

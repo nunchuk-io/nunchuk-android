@@ -555,7 +555,7 @@ private fun MemberView(
                                 modifier = Modifier
                                     .size(48.dp, 48.dp)
                                     .clip(CircleShape)
-                                    .background(color = colorResource(id = R.color.nc_whisper_color)),
+                                    .background(color = colorResource(id = R.color.nc_bg_mid_gray)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Image(
@@ -665,7 +665,7 @@ private fun MemberView(
                     title = stringResource(id = R.string.nc_role),
                     value = role.toTitle(stringResource(id = R.string.nc_select_a_role)),
                     enabled = false,
-                    disableBackgroundColor = if (isMaster) colorResource(id = R.color.nc_whisper_color) else MaterialTheme.colorScheme.surface,
+                    disableBackgroundColor = if (isMaster) colorResource(id = R.color.nc_bg_mid_gray) else MaterialTheme.colorScheme.surface,
                     onClick = {
                         if (isMaster.not()) onSelectRoleClick()
                     },

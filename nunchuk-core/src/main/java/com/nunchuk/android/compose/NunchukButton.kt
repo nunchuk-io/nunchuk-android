@@ -84,7 +84,7 @@ fun NcPrimaryDarkButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = color,
             contentColor = colorResource(R.color.nc_control_text_primary),
-            disabledContainerColor = colorResource(id = R.color.nc_whisper_color)
+            disabledContainerColor = colorResource(id = R.color.nc_bg_mid_gray)
         )
     )
 }

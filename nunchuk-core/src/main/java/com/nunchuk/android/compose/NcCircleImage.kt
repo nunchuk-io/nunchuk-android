@@ -43,8 +43,8 @@ fun NcCircleImage(
     modifier: Modifier = Modifier,
     size: Dp = 48.dp,
     iconSize: Dp = 0.dp,
-    iconTintColor: Color = MaterialTheme.colorScheme.primary,
-    color: Color = colorResource(id = R.color.nc_whisper_color),
+    iconTintColor: Color = MaterialTheme.colorScheme.textPrimary,
+    color: Color = colorResource(id = R.color.nc_bg_mid_gray),
     @DrawableRes resId: Int,
 ) {
     Box(
@@ -54,7 +54,7 @@ fun NcCircleImage(
         contentAlignment = Alignment.Center
     ) {
         if (iconSize > 0.dp) {
-            Icon(
+            NcIcon(
                 modifier = Modifier.size(iconSize),
                 painter = painterResource(id = resId),
                 tint = iconTintColor,
@@ -75,7 +75,7 @@ fun NcCircleImage2(
     modifier: Modifier = Modifier,
     size: Dp = 48.dp,
     iconSize: Dp = 0.dp,
-    color: Color = colorResource(id = R.color.nc_whisper_color),
+    color: Color = colorResource(id = R.color.nc_bg_mid_gray),
     @DrawableRes resId: Int,
 ) {
     Box(

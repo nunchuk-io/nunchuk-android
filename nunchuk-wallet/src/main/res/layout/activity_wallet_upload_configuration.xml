@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/nc_white_color"
     android:fitsSystemWindows="true"
     tools:ignore="ContentDescription">
 
@@ -65,7 +64,7 @@
 
     <LinearLayout
         android:id="@+id/btnQRCode"
-        style="@style/NCOutlineButton.Dark"
+        style="@style/NCPrimaryButton.Dark"
         android:layout_width="match_parent"
         android:layout_height="@dimen/nc_height_48"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
@@ -77,7 +76,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_qr"
-            app:tint="@color/nc_white_color" />
+            app:tint="@color/nc_control_text_primary" />
 
         <com.nunchuk.android.widget.NCFontTextView
             style="@style/NCOutlineButton.Text"

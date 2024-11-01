@@ -28,7 +28,7 @@
         android:id="@+id/editWalletName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTint="@color/nc_whisper_color"
+        android:backgroundTint="@color/nc_bg_mid_gray"
         android:textColor="@color/nc_primary_color"
         android:textSize="@dimen/nc_text_size_16"
         android:layout_marginTop="@dimen/nc_padding_16"

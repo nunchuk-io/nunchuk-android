@@ -181,7 +181,7 @@ internal fun ColdCardVerifyRecoveredKeyScreen(
                     modifier = Modifier
                         .padding(top = 8.dp)
                         .background(
-                            color = colorResource(R.color.nc_whisper_color),
+                            color = colorResource(R.color.nc_bg_mid_gray),
                             shape = RoundedCornerShape(12.dp)
                         )
                 ) {

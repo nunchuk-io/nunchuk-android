@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/nc_white_color"
     android:fitsSystemWindows="true">
 
     <androidx.appcompat.widget.Toolbar
@@ -55,7 +54,7 @@
             android:padding="@dimen/nc_padding_12"
             android:scrollHorizontally="false"
             android:singleLine="false"
-            android:textColor="@color/nc_black_color"
+            android:textColor="@color/nc_text_primary"
             android:textCursorDrawable="@null"
             android:textSize="@dimen/nc_text_size_16"
             app:layout_constraintEnd_toStartOf="@+id/receiptInputDropdown"
@@ -159,7 +158,7 @@
         android:padding="@dimen/nc_padding_12"
         android:scrollHorizontally="false"
         android:singleLine="false"
-        android:textColor="@color/nc_black_color"
+        android:textColor="@color/nc_text_primary"
         android:textCursorDrawable="@null"
         android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintStart_toStartOf="parent"

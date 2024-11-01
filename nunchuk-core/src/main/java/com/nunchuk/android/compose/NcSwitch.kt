@@ -19,9 +19,9 @@ fun NcSwitch(
     thumbContent: (@Composable () -> Unit)? = null,
     enabled: Boolean = true,
     colors: SwitchColors = SwitchDefaults.colors(
-        uncheckedThumbColor = Color.White,
+        uncheckedThumbColor = MaterialTheme.colorScheme.border,
         checkedThumbColor = Color.White,
-        uncheckedTrackColor = MaterialTheme.colorScheme.controlDefault,
+        uncheckedTrackColor = Color.Transparent,
         checkedTrackColor = MaterialTheme.colorScheme.controlActivated,
         uncheckedBorderColor = MaterialTheme.colorScheme.border,
         checkedBorderColor = MaterialTheme.colorScheme.controlActivated,

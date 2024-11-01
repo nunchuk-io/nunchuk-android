@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.components.tabs.wallet.emptystate
 
 import android.app.Activity
+import androidx.core.content.ContextCompat
 import com.nunchuk.android.main.R
 import com.nunchuk.android.nav.NunchukNavigator
 
@@ -21,7 +22,7 @@ class EmptyStateFreeGuestUser(
                     navigator.openWalletIntermediaryScreen(activityContext, true)
                 },
                 imageResId = R.drawable.bg_empty_state_free_account,
-                backgroundColor = 0xFFD0E2FF
+                backgroundColor = ContextCompat.getColor(activityContext, R.color.nc_fill_denim)
             )
         }
         return WizardData( // hot wallet
@@ -36,7 +37,7 @@ class EmptyStateFreeGuestUser(
                 navigator.openSignerIntroScreen(activityContext)
             },
             imageResId = R.drawable.bg_empty_state_free_account,
-            backgroundColor = 0xFFFDEBD2
+            backgroundColor = ContextCompat.getColor(activityContext, R.color.nc_fill_beewax)
         )
     }
 

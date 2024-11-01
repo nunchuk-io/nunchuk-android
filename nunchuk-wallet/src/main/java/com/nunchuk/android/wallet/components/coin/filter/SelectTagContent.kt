@@ -102,13 +102,12 @@ fun SelectTagContent(
                 items(tags) { tag ->
                     TagItem(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        id = tag.coinTag.id,
                         name = tag.coinTag.name,
                         color = tag.coinTag.color,
                         numCoins = tag.numCoins,
                         checked = selectedCoinTags.contains(tag.coinTag.id),
-                        onTagClick = { },
                         tagFlow = TagFlow.ADD,
+                        onTagClick = { },
                         onCheckedChange = {
                             onCheckedChange(tag.coinTag.id, it)
                         })

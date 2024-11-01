@@ -27,8 +27,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nunchuk.android.core.R
 import com.nunchuk.android.core.util.toColor
 import com.nunchuk.android.core.util.toName
 import com.nunchuk.android.model.UnspentOutput
@@ -47,6 +49,7 @@ fun CoinStatusBadge(output: UnspentOutput) {
                 .padding(horizontal = 8.dp),
             text = name,
             style = NunchukTheme.typography.caption.copy(fontSize = 10.sp),
+            color = colorResource(R.color.nc_blue_primary)
         )
     }
 }

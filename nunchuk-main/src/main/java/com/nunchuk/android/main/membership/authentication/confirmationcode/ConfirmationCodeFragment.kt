@@ -149,7 +149,7 @@ fun ConfirmChangeScreenContent(
             ) {
                 Card(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
-                    colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.nc_whisper_color)),
+                    colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.nc_bg_mid_gray)),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Row(

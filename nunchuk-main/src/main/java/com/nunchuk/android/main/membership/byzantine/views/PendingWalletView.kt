@@ -39,6 +39,7 @@ import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.getWalletColors
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.fromMxcUriToMatrixDownloadUrl
@@ -114,13 +115,13 @@ fun PendingWalletView(
                 Text(
                     text = stringResource(R.string.nc_wallet_invitation),
                     style = NunchukTheme.typography.title,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.textPrimary
                 )
             } else if (walletsExtended == null) {
                 Text(
                     text = stringResource(R.string.nc_pending_wallet),
                     style = NunchukTheme.typography.title,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.textPrimary
                 )
             } else {
                 ActiveWallet(
@@ -265,7 +266,8 @@ fun AssistedWalletBottomContent(
                             resId = it.toReadableDrawableResId(),
                             size = 36.dp,
                             iconSize = 18.dp,
-                            color = status[it.fingerPrint]?.lastHealthCheckTimeMillis.healthCheckTimeColor()
+                            color = status[it.fingerPrint]?.lastHealthCheckTimeMillis.healthCheckTimeColor(),
+                            iconTintColor = colorResource(R.color.nc_grey_g7)
                         )
                     }
                 }
@@ -339,7 +341,7 @@ fun RowScope.ByzantineBottomContent(
             Text(
                 text = stringResource(id = R.string.nc_lockdown_in_progress),
                 style = NunchukTheme.typography.caption,
-                color = Color(0xFF031F2B)
+                color = colorResource(R.color.nc_blue_primary)
             )
         }
     } else if (inviterName.isNotEmpty()) {
@@ -491,7 +493,7 @@ fun LockedBadge() {
             .padding(horizontal = 10.dp, vertical = 4.dp),
         text = stringResource(id = R.string.nc_locked),
         style = NunchukTheme.typography.caption,
-        color = Color(0xFF031F2B)
+        color = colorResource(R.color.nc_blue_primary)
     )
 }
 
@@ -537,7 +539,7 @@ fun AvatarView(
                     modifier = Modifier
                         .size(36.dp, 36.dp)
                         .clip(CircleShape)
-                        .background(color = colorResource(id = R.color.nc_whisper_color)),
+                        .background(color = colorResource(id = R.color.nc_bg_mid_gray)),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(

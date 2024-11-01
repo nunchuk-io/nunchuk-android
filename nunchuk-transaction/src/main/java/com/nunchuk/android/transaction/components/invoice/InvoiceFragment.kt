@@ -201,7 +201,7 @@ fun InvoiceScreenContent(
                                 style = NunchukTheme.typography.titleSmall,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(color = colorResource(id = R.color.nc_whisper_color))
+                                    .background(color = colorResource(id = R.color.nc_bg_mid_gray))
                                     .padding(horizontal = 16.dp, vertical = 12.dp)
                             )
 
@@ -216,7 +216,7 @@ fun InvoiceScreenContent(
                                 style = NunchukTheme.typography.titleSmall,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(color = colorResource(id = R.color.nc_whisper_color))
+                                    .background(color = colorResource(id = R.color.nc_bg_mid_gray))
                                     .padding(horizontal = 16.dp, vertical = 12.dp)
                             )
 
@@ -312,7 +312,7 @@ fun InvoiceScreenContent(
                                     style = NunchukTheme.typography.titleSmall,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(color = colorResource(id = R.color.nc_whisper_color))
+                                        .background(color = colorResource(id = R.color.nc_bg_mid_gray))
                                         .padding(horizontal = 16.dp, vertical = 12.dp)
                                 )
 
@@ -345,7 +345,7 @@ fun InvoiceScreenContent(
                                 style = NunchukTheme.typography.titleSmall,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(color = colorResource(id = R.color.nc_whisper_color))
+                                    .background(color = colorResource(id = R.color.nc_bg_mid_gray))
                                     .padding(horizontal = 16.dp, vertical = 12.dp)
                             )
 

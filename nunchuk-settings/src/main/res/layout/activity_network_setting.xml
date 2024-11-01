@@ -44,27 +44,27 @@
                     android:layout_height="48dp"
                     android:layout_marginHorizontal="@dimen/nc_padding_16"
                     android:background="@drawable/nc_edit_text_bg"
+                    android:ellipsize="end"
                     android:gravity="start|center_vertical"
+                    android:maxLines="1"
                     android:paddingVertical="@dimen/nc_padding_12"
                     android:paddingStart="@dimen/nc_padding_12"
                     android:paddingEnd="@dimen/nc_padding_48"
-                    android:maxLines="1"
-                    android:ellipsize="end"
                     app:layout_constraintEnd_toStartOf="@+id/rbMainNet"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tvMainNetSeverTitle"
                     tools:text="mainset.5001" />
-                
+
                 <ImageView
                     android:id="@+id/ivMainNetArrow"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_arrow"
                     android:padding="16.dp"
+                    android:src="@drawable/ic_arrow"
+                    app:layout_constraintBottom_toBottomOf="@+id/tvMainNetHost"
                     app:layout_constraintEnd_toEndOf="@+id/tvMainNetHost"
                     app:layout_constraintTop_toTopOf="@+id/tvMainNetHost"
-                    app:layout_constraintBottom_toBottomOf="@+id/tvMainNetHost"
-                    />
+                    app:tint="@color/nc_text_primary" />
 
                 <androidx.appcompat.widget.AppCompatTextView
                     android:id="@+id/tvMainNetSeverTitle"
@@ -214,7 +214,7 @@
                     android:id="@+id/groupSigNetExplorer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:constraint_referenced_ids="exploreAddressSwitch,edtExploreAddressSigNetHost,tvExploreAddressSigNet"/>
+                    app:constraint_referenced_ids="exploreAddressSwitch,edtExploreAddressSigNetHost,tvExploreAddressSigNet" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <com.nunchuk.android.widget.NCFontTextView
@@ -258,21 +258,22 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginBottom="@dimen/nc_padding_16"
         android:background="@drawable/nc_rounded_whisper_background"
         android:drawablePadding="@dimen/nc_padding_16"
+        android:drawableTint="@color/nc_text_primary"
         android:gravity="center_vertical"
         android:padding="@dimen/nc_padding_16"
-        android:layout_marginBottom="@dimen/nc_padding_16"
-        app:layout_constraintBottom_toTopOf="@+id/barrier"
+        android:text="@string/nc_account_delete_account_information"
         app:drawableStartCompat="@drawable/ic_info"
-        android:text="@string/nc_account_delete_account_information" />
+        app:layout_constraintBottom_toTopOf="@+id/barrier" />
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/barrier"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="top"
-        app:constraint_referenced_ids="btnSave, btnSaveDisable"/>
+        app:constraint_referenced_ids="btnSave, btnSaveDisable" />
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnSave"

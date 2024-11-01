@@ -79,7 +79,7 @@ fun CollectionItem(
             )
         } else {
             if (collectionFlow != CollectionFlow.MOVE) {
-                Checkbox(checked = checked, onCheckedChange = onCheckedChange)
+                NcCheckBox(checked = checked, onCheckedChange = onCheckedChange)
             } else {
                 RadioButton(selected = checked, onClick = {
                     onCheckedChange(true)

@@ -25,17 +25,22 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -47,6 +52,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.manager.NcToastManager
@@ -108,10 +114,12 @@ private fun LocalCurrencyContent(
     onSaveClick: () -> Unit = { },
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        NcScaffold(
+            modifier = Modifier.systemBarsPadding()
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
-                    .navigationBarsPadding()
+                    .padding(innerPadding)
                     .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
             ) {
@@ -157,7 +165,7 @@ private fun CurrencyItem(
     selected: Boolean,
     onSelectCurrency: () -> Unit = {}
 ) {
-    val backgroundColor = if (selected) colorResource(id = R.color.nc_grey_light) else Color.White
+    val backgroundColor = if (selected) colorResource(id = R.color.nc_grey_light) else MaterialTheme.colorScheme.background
     Row(
         modifier = Modifier
             .background(color = backgroundColor)

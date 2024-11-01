@@ -39,7 +39,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/nc_whisper_color" />
+            android:background="@color/nc_bg_mid_gray" />
 
         <com.nunchuk.android.widget.NonSwipeViewPager
             android:id="@+id/pagers"

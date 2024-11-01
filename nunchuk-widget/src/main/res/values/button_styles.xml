@@ -8,7 +8,7 @@
         <item name="android:textSize">@dimen/nc_text_size_16</item>
         <item name="fontTextStyle">semi_bold</item>
         <item name="android:height">@dimen/nc_height_48</item>
-        <item name="android:textColor">@color/nc_primary_color</item>
+        <item name="android:textColor">@color/nc_text_primary</item>
     </style>
 
     <style name="NCPrimaryButton.Small" parent="NCPrimaryButton">
@@ -59,7 +59,7 @@
         <item name="android:orientation">horizontal</item>
         <item name="fontTextStyle">semi_bold</item>
         <item name="android:height">@dimen/nc_height_48</item>
-        <item name="android:textColor">@color/nc_primary_color</item>
+        <item name="android:textColor">@color/nc_text_primary</item>
     </style>
 
     <style name="NCOutlineButton.Small" parent="NCOutlineButton">

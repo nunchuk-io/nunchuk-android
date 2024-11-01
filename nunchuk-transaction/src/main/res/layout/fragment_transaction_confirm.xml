@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/nc_white_color"
     android:fitsSystemWindows="true">
 
     <androidx.appcompat.widget.Toolbar
@@ -40,7 +39,7 @@
                 android:id="@+id/sendToAddress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/nc_whisper_color"
+                android:background="@color/nc_bg_mid_gray"
                 android:padding="@dimen/nc_padding_16"
                 android:text="@string/nc_transaction_send_to_address"
                 android:textColor="@color/nc_primary_dark_color"
@@ -101,7 +100,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_margin="@dimen/nc_padding_16"
-                android:background="@color/nc_whisper_color"
+                android:background="@color/nc_bg_mid_gray"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/sendAddressBarrier" />
 
@@ -190,7 +189,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/nc_padding_24"
-                android:background="@color/nc_whisper_color"
+                android:background="@color/nc_bg_mid_gray"
                 android:padding="@dimen/nc_padding_16"
                 android:text="@string/nc_transaction_change_address"
                 android:textColor="@color/nc_primary_dark_color"
@@ -251,7 +250,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/nc_padding_24"
-                android:background="@color/nc_whisper_color"
+                android:background="@color/nc_bg_mid_gray"
                 android:padding="@dimen/nc_padding_16"
                 android:text="@string/nc_transaction_note"
                 android:textColor="@color/nc_primary_dark_color"
@@ -277,7 +276,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/nc_padding_24"
-                android:background="@color/nc_whisper_color"
+                android:background="@color/nc_bg_mid_gray"
                 android:padding="@dimen/nc_padding_16"
                 android:text="@string/nc_input_coins"
                 android:textColor="@color/nc_primary_dark_color"

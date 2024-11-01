@@ -37,7 +37,7 @@ import com.nunchuk.android.core.R
 fun NcTag(
     modifier: Modifier = Modifier,
     label: String,
-    backgroundColor: Color = colorResource(id = R.color.nc_whisper_color)
+    backgroundColor: Color = colorResource(id = R.color.nc_bg_mid_gray)
 ) {
     Text(
         modifier = modifier

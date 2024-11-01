@@ -318,7 +318,8 @@
                             android:id="@+id/addressText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/nc_padding_8"
+                            android:layout_marginTop="@dimen/nc_padding_16"
+                            android:gravity="center"
                             android:paddingHorizontal="@dimen/nc_padding_16"
                             android:paddingVertical="@dimen/nc_padding_4"
                             android:textColor="@color/nc_text_primary"
@@ -332,7 +333,7 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/nc_padding_32">
+                    android:layout_marginTop="@dimen/nc_padding_16">
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/copyAddressLayout"
@@ -357,14 +358,15 @@
                             android:src="@drawable/ic_copy"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toStartOf="@+id/btnCopyAddress"
-                            app:layout_constraintTop_toTopOf="parent" />
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:tint="@color/nc_text_primary" />
 
                         <com.nunchuk.android.widget.NCFontTextView
                             android:id="@+id/btnCopyAddress"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/nc_address_copy"
-                            android:textColor="@color/nc_black_color"
+                            android:textColor="@color/nc_text_primary"
                             android:textSize="@dimen/nc_text_size_12"
                             app:fontTextStyle="semi_bold"
                             app:layout_constraintBottom_toBottomOf="parent"
@@ -396,7 +398,8 @@
                             android:src="@drawable/ic_share"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toStartOf="@+id/btnShare"
-                            app:layout_constraintTop_toTopOf="parent" />
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:tint="@color/nc_control_text_primary" />
 
                         <com.nunchuk.android.widget.NCFontTextView
                             android:id="@+id/btnShare"
@@ -404,7 +407,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/nc_padding_6"
                             android:text="@string/nc_address_share"
-                            android:textColor="@color/nc_white_color"
+                            android:textColor="@color/nc_control_text_primary"
                             android:textSize="@dimen/nc_text_size_12"
                             app:fontTextStyle="semi_bold"
                             app:layout_constraintBottom_toBottomOf="parent"

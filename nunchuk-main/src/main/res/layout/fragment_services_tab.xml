@@ -33,7 +33,7 @@
             android:id="@+id/claim_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/nc_denim_tint_color"
+            android:background="@color/nc_fill_denim"
             android:paddingHorizontal="@dimen/nc_padding_18"
             android:paddingVertical="@dimen/nc_padding_16"
             android:visibility="gone"
@@ -56,7 +56,8 @@
                 android:src="@drawable/ic_arrow"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@color/nc_text_primary" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

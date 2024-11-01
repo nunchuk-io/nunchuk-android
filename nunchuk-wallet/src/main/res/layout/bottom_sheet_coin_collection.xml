@@ -37,7 +37,7 @@
             android:id="@+id/take_picture"
             android:layout_width="@dimen/nc_padding_36"
             android:layout_height="@dimen/nc_padding_36"
-            android:background="@color/nc_white_color"
+            android:background="@color/nc_background"
             android:gravity="center"
             android:shape="ring"
             app:cardCornerRadius="@dimen/nc_padding_18"

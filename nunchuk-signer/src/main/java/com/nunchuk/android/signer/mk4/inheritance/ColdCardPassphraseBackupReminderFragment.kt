@@ -31,9 +31,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.mk4.Mk4ViewModel
-import com.nunchuk.android.type.SignerType
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

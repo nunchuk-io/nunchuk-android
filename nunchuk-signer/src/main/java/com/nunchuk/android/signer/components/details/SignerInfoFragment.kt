@@ -651,7 +651,7 @@ private fun SignerInfoContent(
                             modifier = Modifier
                                 .padding(start = 8.dp)
                                 .background(
-                                    color = colorResource(id = R.color.nc_whisper_color),
+                                    color = colorResource(id = R.color.nc_bg_mid_gray),
                                     shape = RoundedCornerShape(20.dp)
                                 )
                                 .padding(horizontal = 8.dp),
