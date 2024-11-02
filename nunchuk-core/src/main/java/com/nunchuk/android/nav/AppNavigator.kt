@@ -44,7 +44,8 @@ interface AppNavigator {
         walletId: String? = null,
         groupId: String? = null,
         isPersonalWallet: Boolean = false,
-        walletType: GroupWalletType? = null
+        walletType: GroupWalletType? = null,
+        isClearTop: Boolean = false
     )
 
     fun openMembershipActivity(

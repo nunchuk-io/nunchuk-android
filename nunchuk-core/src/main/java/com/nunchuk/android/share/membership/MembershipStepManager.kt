@@ -30,6 +30,7 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.isPersonalPlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
@@ -346,6 +347,8 @@ class MembershipStepManager @Inject constructor(
     private fun calculateRemainTime(stepFlows: Collection<MembershipStepFlow>) =
         stepFlows.sumOf { (it.totalStep - it.currentStep).coerceAtLeast(0) * DURATION_EACH_STEP }
             .roundToInt()
+
+    fun isPersonalWallet() = localMembershipPlan.isPersonalPlan()
 
     companion object {
         private const val DURATION_EACH_STEP = 0.5

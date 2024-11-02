@@ -268,10 +268,11 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private fun openRequestAddDesktopKey(tag: SignerTag) {
         membershipStepManager.currentStep?.let { step ->
-            navigator.openAddDesktopKey(
-                activity = requireActivity(),
-                signerTag = tag,
-                step = step
+            findNavController().navigate(
+                AddKeyListFragmentDirections.actionAddKeyListFragmentToAddDesktopKeyFragment(
+                    tag,
+                    step
+                )
             )
         }
     }

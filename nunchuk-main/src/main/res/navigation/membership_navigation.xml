@@ -83,6 +83,27 @@
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <action
+            android:id="@+id/action_addKeyListFragment_to_addDesktopKeyFragment"
+            app:destination="@id/add_desktop_key_navigation"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+            <argument
+                android:name="signer_tag"
+                app:argType="com.nunchuk.android.type.SignerTag" />
+
+            <argument
+                android:name="step"
+                app:argType="com.nunchuk.android.model.MembershipStep" />
+
+            <argument
+                android:name="group_id"
+                android:defaultValue="@null"
+                app:argType="string"
+                app:nullable="true" />
+        </action>
+        <action
             android:id="@+id/action_addKeyListFragment_to_customKeyAccountFragmentFragment"
             app:destination="@id/customKeyAccountFragmentFragment"
             app:enterAnim="@anim/nav_default_enter_anim"

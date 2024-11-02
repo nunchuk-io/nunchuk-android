@@ -202,6 +202,7 @@ interface AppNavigatorDelegate : AppNavigator {
         groupId: String?,
         isPersonalWallet: Boolean,
         walletType: GroupWalletType?,
+        isClearTop: Boolean
     ) {
         val intent = MembershipActivity.buildIntent(
             activity = activityContext,
@@ -209,8 +210,12 @@ interface AppNavigatorDelegate : AppNavigator {
             walletId = walletId,
             groupId = groupId,
             isPersonalWallet = isPersonalWallet,
-            walletType = walletType
-        )
+            walletType = walletType,
+        ).apply {
+            if (isClearTop) {
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            }
+        }
         activityContext.startActivity(intent)
     }
 
