@@ -26,6 +26,7 @@ import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.GetElectrumServersUseCase
 import com.nunchuk.android.core.domain.InitAppSettingsUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
+import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.model.AppSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,6 +43,7 @@ internal class NetworkSettingViewModel @Inject constructor(
     private val appScope: CoroutineScope,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
     private val getElectrumServersUseCase: GetElectrumServersUseCase,
+    private val signInModeHolder: SignInModeHolder,
 ) : NunchukViewModel<NetworkSettingState, NetworkSettingEvent>() {
 
     override val initialState = NetworkSettingState()
@@ -111,6 +113,7 @@ internal class NetworkSettingViewModel @Inject constructor(
     fun signOut() {
         appScope.launch {
             event(NetworkSettingEvent.LoadingEvent(true))
+            signInModeHolder.clear()
             clearInfoSessionUseCase(Unit)
             sendSignOutUseCase(Unit)
             event(NetworkSettingEvent.SignOutSuccessEvent)
