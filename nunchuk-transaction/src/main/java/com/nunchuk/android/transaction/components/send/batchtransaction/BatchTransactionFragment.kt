@@ -48,8 +48,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,6 +61,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -133,11 +136,12 @@ class BatchTransactionFragment : Fragment() {
                         viewModel.setInteractingIndex(index)
                         WalletComposeBottomSheet.show(
                             childFragmentManager,
-                            exclusiveAssistedWalletIds = arrayListOf(args.walletId) + viewModel.getRecipients().map { it.walletId },
+                            exclusiveAssistedWalletIds = arrayListOf(args.walletId) + viewModel.getRecipients()
+                                .map { it.walletId },
                             configArgs = WalletComposeBottomSheet.ConfigArgs(
-                              flags = WalletComposeBottomSheet.fromFlags(
-                                  WalletComposeBottomSheet.SHOW_ADDRESS,
-                              )
+                                flags = WalletComposeBottomSheet.fromFlags(
+                                    WalletComposeBottomSheet.SHOW_ADDRESS,
+                                )
                             ),
                             exclusiveAddresses = viewModel.getRecipients().map { it.address }
                         )
@@ -173,7 +177,7 @@ class BatchTransactionFragment : Fragment() {
                     BatchTransactionEvent.InsufficientFundsLockedCoinEvent -> showUnlockCoinBeforeSend()
                     is BatchTransactionEvent.CheckAddressSuccess -> {
                         if (event.isCustomTx) {
-                            openEstimatedFeeScreen()
+                            openEstimatedFeeScreen(event.subtractFeeFromAmount)
                         } else {
                             estimatedFeeViewModel.init(
                                 EstimatedFeeArgs(
@@ -181,7 +185,7 @@ class BatchTransactionFragment : Fragment() {
                                     txReceipts = viewModel.getTxReceiptList(),
                                     availableAmount = args.availableAmount.toDouble(),
                                     privateNote = viewModel.getNote(),
-                                    subtractFeeFromAmount = false,
+                                    subtractFeeFromAmount = event.subtractFeeFromAmount,
                                     slots = emptyList(),
                                     inputs = args.unspentOutputs.toList()
                                 )
@@ -237,14 +241,14 @@ class BatchTransactionFragment : Fragment() {
             .showDialog(message = getString(R.string.nc_send_all_locked_coin_msg))
     }
 
-    private fun openEstimatedFeeScreen() {
+    private fun openEstimatedFeeScreen(subtractFeeFromAmount: Boolean) {
         navigator.openEstimatedFeeScreen(
             activityContext = requireActivity(),
             walletId = args.walletId,
             availableAmount = args.availableAmount.toDouble(),
             txReceipts = viewModel.getTxReceiptList(),
             privateNote = viewModel.getNote(),
-            subtractFeeFromAmount = false,
+            subtractFeeFromAmount = subtractFeeFromAmount,
             slots = emptyList(),
             inputs = args.unspentOutputs.toList()
         )
@@ -299,11 +303,14 @@ private fun BatchTransactionScreen(
         onAddRecipient = viewModel::addRecipient,
         onRemoveRecipient = viewModel::removeRecipient,
         onCreateTransactionClick = {
-            viewModel.createTransaction(false)
+            viewModel.createTransaction(false, it)
         },
         onDropdownClick = onDropdownClick,
         onCustomizeTransactionClick = {
-            viewModel.createTransaction(true)
+            viewModel.createTransaction(true, it)
+        },
+        onSendAllRemainingClick = {
+            viewModel.sendAllRemaining(it)
         }
     )
 }
@@ -318,16 +325,20 @@ private fun BatchTransactionContent(
     onAddRecipient: () -> Unit = {},
     onRemoveRecipient: (Int) -> Unit = {},
     onInputNoteChange: (String) -> Unit = {},
-    onCreateTransactionClick: () -> Unit = {},
-    onCustomizeTransactionClick: () -> Unit = {},
+    onCreateTransactionClick: (Boolean) -> Unit = {},
+    onCustomizeTransactionClick: (Boolean) -> Unit = {},
     onInputAmountChange: (Int, String) -> Unit = { _, _ -> },
     onScanClick: (Int) -> Unit = {},
     onSwitchBtcAndCurrency: (Int, Boolean) -> Unit = { _, _ -> },
     onInputAddressChange: (Int, String) -> Unit = { _, _ -> },
     onDropdownClick: (Int, Int) -> Unit = { _, _ -> },
+    onSendAllRemainingClick: (Int) -> Unit = { _ -> }
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
+
+    var isSendAllRemainingClicked by remember { mutableStateOf(false) }
+
     NunchukTheme {
         Scaffold { innerPadding ->
             Column(modifier = Modifier) {
@@ -372,6 +383,10 @@ private fun BatchTransactionContent(
                             },
                             onInputAddressChange = {
                                 onInputAddressChange(index, it)
+                            },
+                            onSendAllRemainingClick = {
+                                isSendAllRemainingClicked = true
+                                onSendAllRemainingClick(index)
                             })
                     }
                     item {
@@ -425,7 +440,10 @@ private fun BatchTransactionContent(
                     modifier = Modifier
                         .bringIntoViewRequester(bringIntoViewRequester)
                         .fillMaxWidth()
-                        .padding(16.dp), onCreateTransactionClick,
+                        .padding(16.dp),
+                    onClick = {
+                        onCreateTransactionClick(isSendAllRemainingClicked)
+                    },
                     enabled = isEnableCreateTransaction
                 ) {
                     Text(text = stringResource(id = R.string.nc_create_transaction))
@@ -436,7 +454,9 @@ private fun BatchTransactionContent(
                         .padding(horizontal = 16.dp)
                         .padding(bottom = 16.dp)
                         .height(48.dp),
-                    onClick = onCustomizeTransactionClick,
+                    onClick = {
+                        onCustomizeTransactionClick(isSendAllRemainingClicked)
+                    },
                     enabled = isEnableCreateTransaction
                 ) {
                     Text(text = stringResource(R.string.nc_customize_transaction))
@@ -462,7 +482,8 @@ private fun RecipientView(
     onDropdownClick: () -> Unit = {},
     onInputAmountChange: (String) -> Unit = {},
     onInputAddressChange: (String) -> Unit = {},
-    onSwitchBtcAndCurrency: (Boolean) -> Unit = {}
+    onSwitchBtcAndCurrency: (Boolean) -> Unit = {},
+    onSendAllRemainingClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -564,7 +585,9 @@ private fun RecipientView(
                                     .clickable {
                                         onDropdownClick()
                                     },
-                                painter = if (selectAddressType == SelectAddressType.ADDRESS.ordinal) painterResource(id = R.drawable.ic_saved_address)
+                                painter = if (selectAddressType == SelectAddressType.ADDRESS.ordinal) painterResource(
+                                    id = R.drawable.ic_saved_address
+                                )
                                 else painterResource(id = R.drawable.ic_wallet_small),
                                 contentDescription = ""
                             )
@@ -595,7 +618,17 @@ private fun RecipientView(
                     isBtc = isBtc,
                     currencyValue = amount,
                     onSwitchBtcAndCurrency = onSwitchBtcAndCurrency,
-                    onValueChange = onInputAmountChange
+                    onValueChange = onInputAmountChange,
+                    secondTitle = {
+                        Text(
+                            text = stringResource(id = R.string.nc_send_all_remaining),
+                            style = NunchukTheme.typography.bodySmall.copy(fontWeight = FontWeight.W500),
+                            textDecoration = TextDecoration.Underline,
+                            modifier = Modifier.clickable {
+                                onSendAllRemainingClick()
+                            }
+                        )
+                    }
                 )
             }
         }

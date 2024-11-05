@@ -47,6 +47,7 @@ fun InputSwitchCurrencyView(
     title: String,
     isBtc: Boolean,
     currencyValue: String,
+    secondTitle: @Composable (() -> Unit)? = null,
     onSwitchBtcAndCurrency: (Boolean) -> Unit,
     onValueChange: (String) -> Unit
 ) {
@@ -75,7 +76,7 @@ fun InputSwitchCurrencyView(
         ),
         rightContent = {
             SwitchAmount(isBtc, onSwitchBtcAndCurrency = onSwitchBtcAndCurrency)
-        })
+        }, secondTitle = secondTitle)
 }
 
 @Composable

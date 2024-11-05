@@ -25,10 +25,14 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
+import com.nunchuk.android.core.util.fromBTCToCurrency
+import com.nunchuk.android.core.util.fromBTCtoSAT
 import com.nunchuk.android.core.util.fromCurrencyToBTC
 import com.nunchuk.android.core.util.fromSATtoBTC
+import com.nunchuk.android.core.util.getBTCAmountWithoutSat
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.transaction.components.utils.privateNote
 import com.nunchuk.android.usecase.CheckAddressValidUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
@@ -115,7 +119,7 @@ class BatchTransactionViewModel @Inject constructor(
         }
     }
 
-    fun createTransaction(isCustomTx: Boolean) = viewModelScope.launch {
+    fun createTransaction(isCustomTx: Boolean, subtractFeeFromAmount: Boolean) = viewModelScope.launch {
         val amount = getTotalAmount()
         if (amount <= 0 || amount > args.availableAmount) {
             _event.emit(BatchTransactionEvent.InsufficientFundsEvent)
@@ -136,7 +140,7 @@ class BatchTransactionViewModel @Inject constructor(
                     }
             }
             if (isAllValidAddress) {
-                _event.emit(BatchTransactionEvent.CheckAddressSuccess(isCustomTx))
+                _event.emit(BatchTransactionEvent.CheckAddressSuccess(isCustomTx, subtractFeeFromAmount))
             }
         }
     }
@@ -248,4 +252,22 @@ class BatchTransactionViewModel @Inject constructor(
     fun getInteractingIndex() = _state.value.interactingIndex
 
     fun getRecipients() = _state.value.recipients
+
+    fun sendAllRemaining(index: Int) = viewModelScope.launch {
+        val remainingAmount = args.availableAmount - getTotalAmount()
+        if (remainingAmount <= 0) return@launch
+        if (remainingAmount > availableAmountWithoutUnlocked && !isFromSelectedCoin) {
+            _event.emit(BatchTransactionEvent.InsufficientFundsLockedCoinEvent)
+            return@launch
+        }
+        val recipient = _state.value.recipients[index]
+        val isBtc = recipient.isBtc
+        val amount = if (isBtc) {
+            if (CURRENT_DISPLAY_UNIT_TYPE == SAT) remainingAmount.fromBTCtoSAT()
+            else remainingAmount.getBTCAmountWithoutSat()
+        } else {
+            remainingAmount.fromBTCToCurrency()
+        }
+        updateRecipient(index = index, amount = amount.toString())
+    }
 }

@@ -95,8 +95,9 @@ fun NcTextField(
     inputBoxHeight: Dp = Dp.Unspecified,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onFocusEvent: (Boolean) -> Unit = {},
-    borderColor : Color = Color(0xFFDEDEDE),
+    borderColor: Color = Color(0xFFDEDEDE),
     textStyle: TextStyle = NunchukTheme.typography.body,
+    secondTitle: @Composable (() -> Unit)? = null,
     onValueChange: (value: String) -> Unit,
 ) {
     var backgroundErrorColor = textFieldColor
@@ -136,7 +137,9 @@ fun NcTextField(
                     )
                 }
             }
-            if (enableMaxLength) {
+            if (secondTitle != null) {
+                secondTitle()
+            } else if (enableMaxLength) {
                 Text(
                     modifier = Modifier.padding(bottom = 4.dp),
                     text = "${value.length}/$maxLength",
@@ -196,7 +199,8 @@ fun NcTextField(
             },
         )
         if (!error.isNullOrEmpty() || !hint.isNullOrEmpty()) {
-            val color = if (hasError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.greyDark
+            val color =
+                if (hasError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.greyDark
             CompositionLocalProvider(LocalContentColor provides color) {
                 BottomText(error ?: hint)
             }
@@ -372,7 +376,13 @@ fun NcTextFieldMaxLengthPreview() {
                 title = "Title here",
                 value = "Value here",
                 maxLength = 100,
-                enableMaxLength = true
+                enableMaxLength = true,
+                secondTitle = {
+                    Text(
+                        text = "Second title",
+                        style = NunchukTheme.typography.titleSmall
+                    )
+                }
             ) {
 
             }
