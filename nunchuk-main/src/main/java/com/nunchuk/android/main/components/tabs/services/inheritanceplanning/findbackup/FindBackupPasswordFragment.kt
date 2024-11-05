@@ -40,6 +40,8 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
@@ -52,7 +54,9 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceKeyType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
@@ -77,7 +81,8 @@ class FindBackupPasswordFragment : MembershipFragment() {
                 val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
                 val uiState by inheritanceViewModel.state.collectAsStateWithLifecycle()
                 FindBackupPasswordContent(remainTime = remainTime,
-                    inheritanceKeyType = uiState.keyTypes[args.stepNumber - 1],
+                    inheritanceKeyType = if (uiState.keyTypes.isNotEmpty()) uiState.keyTypes[args.stepNumber - 1] else InheritanceKeyType.TAPSIGNER,
+                    preKeyType = if (uiState.keyTypes.isNotEmpty()) uiState.keyTypes[0] else InheritanceKeyType.TAPSIGNER,
                     numOfKeys = uiState.keyTypes.size,
                     stepNumber = args.stepNumber,
                     groupWalletType = inheritanceViewModel.getGroupWalletType()) {
@@ -103,18 +108,24 @@ private fun FindBackupPasswordContent(
     remainTime: Int = 0,
     groupWalletType: GroupWalletType? = null,
     inheritanceKeyType: InheritanceKeyType = InheritanceKeyType.TAPSIGNER,
+    preKeyType: InheritanceKeyType = InheritanceKeyType.TAPSIGNER,
     stepNumber: Int = 1,
     numOfKeys: Int = 1,
     onContinueClicked: () -> Unit = {},
 ) {
-    val isTwoOfFiveInheritance = groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE
     val desc = when {
         numOfKeys == 1 && inheritanceKeyType == InheritanceKeyType.TAPSIGNER -> stringResource(id = R.string.nc_find_backup_password_desc)
         numOfKeys == 1 -> stringResource(id = R.string.nc_record_your_backup_password_desc)
         inheritanceKeyType == InheritanceKeyType.TAPSIGNER && stepNumber == 1 -> stringResource(id = R.string.nc_find_backup_password_desc_1)
         inheritanceKeyType == InheritanceKeyType.TAPSIGNER -> stringResource(id = R.string.nc_find_backup_password_desc_2)
-        stepNumber == 1 -> stringResource(id = R.string.nc_record_your_backup_password_desc_1)
-        else -> stringResource(id = R.string.nc_find_backup_password_desc_2)
+        inheritanceKeyType == InheritanceKeyType.COLDCARD && stepNumber == 1 -> stringResource(id = R.string.nc_record_your_backup_password_desc_1)
+        else -> {
+            if (preKeyType == InheritanceKeyType.TAPSIGNER) {
+                stringResource(id = R.string.nc_record_your_backup_password_desc_2_tapsigner)
+            } else {
+                stringResource(id = R.string.nc_record_your_backup_password_desc_2)
+            }
+        }
     }
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -143,10 +154,14 @@ private fun FindBackupPasswordContent(
                     text = if (inheritanceKeyType == InheritanceKeyType.TAPSIGNER) stringResource(id = R.string.nc_find_backup_passwords) else stringResource(R.string.nc_record_your_backup_password),
                     style = NunchukTheme.typography.heading
                 )
-                NcHighlightText(
+                NcSpannedText(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     text = desc,
-                    style = NunchukTheme.typography.body
+                    baseStyle = NunchukTheme.typography.body,
+                    styles = mapOf(
+                        SpanIndicator('A') to SpanStyle(fontWeight = FontWeight.Bold),
+                        SpanIndicator('B') to SpanStyle(fontWeight = FontWeight.Bold),
+                    )
                 )
                 Spacer(modifier = Modifier.weight(1.0f))
                 NcPrimaryDarkButton(

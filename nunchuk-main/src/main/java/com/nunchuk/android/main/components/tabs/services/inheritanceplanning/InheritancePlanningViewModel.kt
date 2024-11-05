@@ -6,11 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.wallet.GetServerWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,10 +27,12 @@ import javax.inject.Inject
 class InheritancePlanningViewModel @Inject constructor(
     private val getGroupUseCase: GetGroupUseCase,
     private val getServerWalletUseCase: GetServerWalletUseCase,
+    private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val groupId = savedStateHandle.get<String>(MembershipFragment.EXTRA_GROUP_ID).orEmpty()
-    private val walletId = savedStateHandle.get<String>(InheritancePlanningActivity.EXTRA_WALLET_ID).orEmpty()
+    private val walletId =
+        savedStateHandle.get<String>(InheritancePlanningActivity.EXTRA_WALLET_ID).orEmpty()
 
     private val _state = MutableStateFlow(
         InheritancePlanningState(
@@ -55,20 +59,30 @@ class InheritancePlanningViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            getServerWalletUseCase(walletId).onSuccess { wallet ->
-                val keyTypes = mutableListOf<InheritanceKeyType>()
-                wallet.signers.filter { it.tags.contains(SignerTag.INHERITANCE.name) }
-                    .forEach { key ->
-                        if (key.type == SignerType.NFC) {
-                            keyTypes.add(InheritanceKeyType.TAPSIGNER)
-                        } else {
-                            keyTypes.add(InheritanceKeyType.COLDCARD)
-                        }
-                    }
-                _state.update {
-                    it.copy(keyTypes = keyTypes)
+            if (groupId.isNotEmpty()) {
+                syncGroupWalletUseCase(groupId).onSuccess { wallet ->
+                    updateKeyTypes(wallet)
+                }
+            } else {
+                getServerWalletUseCase(walletId).onSuccess { wallet ->
+                    updateKeyTypes(wallet)
                 }
             }
+        }
+    }
+
+    private fun updateKeyTypes(wallet: WalletServer) {
+        val keyTypes = mutableListOf<InheritanceKeyType>()
+        wallet.signers.filter { it.tags.contains(SignerTag.INHERITANCE.name) }
+            .forEach { key ->
+                if (key.type == SignerType.NFC) {
+                    keyTypes.add(0, InheritanceKeyType.TAPSIGNER)
+                } else {
+                    keyTypes.add(InheritanceKeyType.COLDCARD)
+                }
+            }
+        _state.update {
+            it.copy(keyTypes = keyTypes)
         }
     }
 
