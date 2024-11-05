@@ -37,7 +37,9 @@ import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.toString
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.SignerTag
@@ -54,12 +56,19 @@ class RequestAddKeySuccessFragment : MembershipFragment() {
                 RequestAddKeySuccessContent(
                     remainingTime = remainingTime,
                     tag = args.signerTag,
-                    onContinueClick = {
-                        requireActivity().finish()
-                    },
+                    onContinueClick = ::handleBack,
+                    onBackClicked = ::handleBack,
                     onMoreClicked = ::handleShowMore
                 )
             }
+        }
+    }
+
+    private fun handleBack() {
+        if (requireActivity() is MembershipActivity) {
+            findNavController().popBackStack()
+        } else {
+            ActivityManager.popUntil(MembershipActivity::class.java)
         }
     }
 }
@@ -70,6 +79,7 @@ private fun RequestAddKeySuccessContent(
     tag: SignerTag = SignerTag.LEDGER,
     onContinueClick: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
+    onBackClicked: () -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold(
@@ -99,6 +109,7 @@ private fun RequestAddKeySuccessContent(
                             )
                         }
                     },
+                    onBackPress = onBackClicked
                 )
             }
         ) { innerPadding ->
