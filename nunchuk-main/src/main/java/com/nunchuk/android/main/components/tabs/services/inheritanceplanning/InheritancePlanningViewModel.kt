@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning
 
+import androidx.annotation.Keep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -76,7 +77,7 @@ class InheritancePlanningViewModel @Inject constructor(
         wallet.signers.filter { it.tags.contains(SignerTag.INHERITANCE.name) }
             .forEach { key ->
                 if (key.type == SignerType.NFC) {
-                    keyTypes.add(0, InheritanceKeyType.TAPSIGNER)
+                    keyTypes.add(InheritanceKeyType.TAPSIGNER)
                 } else {
                     keyTypes.add(InheritanceKeyType.COLDCARD)
                 }
@@ -103,6 +104,7 @@ data class InheritancePlanningState(
     val keyTypes: List<InheritanceKeyType> = emptyList(),
 )
 
+@Keep
 enum class InheritanceKeyType {
     TAPSIGNER, COLDCARD
 }

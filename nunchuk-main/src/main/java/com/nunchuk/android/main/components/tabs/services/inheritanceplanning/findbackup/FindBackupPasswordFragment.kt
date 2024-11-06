@@ -82,8 +82,8 @@ class FindBackupPasswordFragment : MembershipFragment() {
                 val uiState by inheritanceViewModel.state.collectAsStateWithLifecycle()
                 FindBackupPasswordContent(remainTime = remainTime,
                     inheritanceKeyType = if (uiState.keyTypes.isNotEmpty()) uiState.keyTypes[args.stepNumber - 1] else InheritanceKeyType.TAPSIGNER,
-                    preKeyType = if (uiState.keyTypes.isNotEmpty()) uiState.keyTypes[0] else InheritanceKeyType.TAPSIGNER,
                     numOfKeys = uiState.keyTypes.size,
+                    keyTypes = uiState.keyTypes,
                     stepNumber = args.stepNumber,
                     groupWalletType = inheritanceViewModel.getGroupWalletType()) {
                     if (uiState.keyTypes.size == 2 && args.stepNumber == 1) {
@@ -107,25 +107,48 @@ class FindBackupPasswordFragment : MembershipFragment() {
 private fun FindBackupPasswordContent(
     remainTime: Int = 0,
     groupWalletType: GroupWalletType? = null,
+    keyTypes: List<InheritanceKeyType> = emptyList(),
     inheritanceKeyType: InheritanceKeyType = InheritanceKeyType.TAPSIGNER,
-    preKeyType: InheritanceKeyType = InheritanceKeyType.TAPSIGNER,
     stepNumber: Int = 1,
     numOfKeys: Int = 1,
     onContinueClicked: () -> Unit = {},
 ) {
-    val desc = when {
-        numOfKeys == 1 && inheritanceKeyType == InheritanceKeyType.TAPSIGNER -> stringResource(id = R.string.nc_find_backup_password_desc)
-        numOfKeys == 1 -> stringResource(id = R.string.nc_record_your_backup_password_desc)
-        inheritanceKeyType == InheritanceKeyType.TAPSIGNER && stepNumber == 1 -> stringResource(id = R.string.nc_find_backup_password_desc_1)
-        inheritanceKeyType == InheritanceKeyType.TAPSIGNER -> stringResource(id = R.string.nc_find_backup_password_desc_2)
-        inheritanceKeyType == InheritanceKeyType.COLDCARD && stepNumber == 1 -> stringResource(id = R.string.nc_record_your_backup_password_desc_1)
-        else -> {
-            if (preKeyType == InheritanceKeyType.TAPSIGNER) {
-                stringResource(id = R.string.nc_record_your_backup_password_desc_2_tapsigner)
+    val desc = if (keyTypes.size == 1) {
+        if (inheritanceKeyType == InheritanceKeyType.TAPSIGNER) {
+            stringResource(id = R.string.nc_find_backup_password_desc)
+        } else {
+            stringResource(id = R.string.nc_record_your_backup_password_desc)
+        }
+    } else if (keyTypes.size == 2) {
+        val firstType = keyTypes[0]
+        val secondType = keyTypes[1]
+        if (firstType == InheritanceKeyType.TAPSIGNER && secondType == InheritanceKeyType.TAPSIGNER) {
+            if (stepNumber == 1) {
+                stringResource(id = R.string.nc_find_backup_password_desc_1)
             } else {
-                stringResource(id = R.string.nc_record_your_backup_password_desc_2)
+                stringResource(id = R.string.nc_find_backup_password_desc_2, "another")
+            }
+        } else if (firstType == InheritanceKeyType.COLDCARD && secondType == InheritanceKeyType.COLDCARD) {
+            if (stepNumber == 1) {
+                stringResource(id = R.string.nc_record_your_backup_password_desc_1)
+            } else {
+                stringResource(id = R.string.nc_record_your_backup_password_desc_2, "another")
+            }
+        } else if (inheritanceKeyType == InheritanceKeyType.TAPSIGNER) {
+            if (stepNumber == 1) {
+                stringResource(id = R.string.nc_find_backup_password_desc_1)
+            } else {
+                stringResource(id = R.string.nc_find_backup_password_desc_2, "a")
+            }
+        } else {
+            if (stepNumber == 1) {
+                stringResource(id = R.string.nc_record_your_backup_password_desc_1)
+            } else {
+                stringResource(id = R.string.nc_record_your_backup_password_desc_2, "a")
             }
         }
+    } else {
+        ""
     }
     NunchukTheme {
         Scaffold { innerPadding ->

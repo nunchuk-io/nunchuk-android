@@ -23,6 +23,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -75,6 +76,45 @@ fun NCLabelWithIndex(
                 text = label,
                 style = style
             )
+        }
+    }
+}
+
+@Composable
+fun NCLabelWithIndex(
+    modifier: Modifier = Modifier,
+    index: Int,
+    label: String? = null,
+    style: TextStyle = NunchukTheme.typography.body,
+    title: @Composable ColumnScope.() -> Unit,
+) {
+    Row(modifier = modifier) {
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .border(
+                    width = 2.dp,
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "$index",
+                style = NunchukTheme.typography.titleSmall.copy(fontWeight = FontWeight.W900)
+            )
+        }
+        Column(
+            modifier = Modifier.padding(start = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            title()
+            label?.let {
+                NcHighlightText(
+                    text = label,
+                    style = style
+                )
+            }
         }
     }
 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
@@ -52,38 +53,34 @@ private fun InheritanceBackUpDownloadContent(
     onContinueClicked: () -> Unit = {}
 ) {
     NunchukTheme {
-        Scaffold(
-            topBar = {
-                NcTopAppBar(
-                    title = ""
-                )
-            }
-        ) { innerPadding ->
+        Scaffold() { innerPadding ->
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
+                    .statusBarsPadding()
                     .navigationBarsPadding()
+                    .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
+
+                NcTopAppBar(title = "")
                 Text(
-                    modifier = Modifier.padding(top = 24.dp),
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp),
                     text = "The Backup Password",
                     style = NunchukTheme.typography.heading
                 )
                 NcHighlightText(
-                    modifier = Modifier.padding(top = 16.dp),
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     text = "The Backup Password for the encrypted backup, which can be found on the device designated for inheritance.",
                     style = NunchukTheme.typography.body
                 )
                 NCLabelWithIndex(
-                    modifier = Modifier.padding(top = 16.dp),
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 1,
                     title = "TAPSIGNER",
                     label = "The Backup Password can be found on the back of the TAPSIGNER designated for inheritance. (It might be listed under “Backup key”).",
                 )
                 NCLabelWithIndex(
-                    modifier = Modifier.padding(top = 16.dp),
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 2,
                     title = "COLDCARD",
                     label = "The Backup Password (12 words) that was displayed on the COLDCARD device when you created the backup file.",
@@ -92,7 +89,7 @@ private fun InheritanceBackUpDownloadContent(
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp),
+                        .padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
                     onClick = onContinueClicked,
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_got_it))

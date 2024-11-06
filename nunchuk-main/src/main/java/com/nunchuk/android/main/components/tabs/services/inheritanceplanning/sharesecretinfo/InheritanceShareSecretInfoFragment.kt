@@ -27,6 +27,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -181,7 +182,7 @@ private fun InheritanceShareSecretInfoContent(
                             ""
                         }
                         NcImageAppBar(
-                            backgroundRes = R.drawable.nc_bg_tap_signer_explain,
+                            backgroundRes = R.drawable.nc_bg_backup_password_share_secret,
                             title = title,
                         )
                         val typeDesc = when (type) {
@@ -229,14 +230,12 @@ private fun InheritanceShareSecretInfoContent(
                             }
                         }
 
-                        LabelNumberAndDesc(
+                        NCLabelWithIndex(
                             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                             index = 2,
-                            title = stringResource(id = com.nunchuk.android.signer.R.string.nc_init_coldcard),
-                            titleStyle = NunchukTheme.typography.title,
                         ) {
                             NcClickableText(
-                                modifier = Modifier.padding(top = 8.dp, start = 36.dp),
+                                modifier = Modifier.padding(top = 0.dp),
                                 messages = listOf(
                                     ClickAbleText(content = stringResource(id = R.string.nc_inheritance_share_secret_info_2)),
                                     ClickAbleText(
@@ -247,6 +246,8 @@ private fun InheritanceShareSecretInfoContent(
                                 style = NunchukTheme.typography.body
                             )
                         }
+
+                        Spacer(modifier = Modifier.height(20.dp))
                     }
                 }
 
