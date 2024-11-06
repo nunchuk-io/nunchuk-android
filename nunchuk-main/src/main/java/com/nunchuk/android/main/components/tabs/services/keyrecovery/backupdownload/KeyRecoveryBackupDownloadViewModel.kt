@@ -23,7 +23,7 @@ import android.util.Base64
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.ImportTapsignerMasterSignerContentUseCase
+import com.nunchuk.android.core.domain.ImportBackupKeyContentUseCase
 import com.nunchuk.android.core.domain.membership.MarkRecoverStatusUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.util.orUnknownError
@@ -42,7 +42,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class KeyRecoveryBackupDownloadViewModel @Inject constructor(
-    private val importTapsignerMasterSignerContentUseCase: ImportTapsignerMasterSignerContentUseCase,
+    private val importBackupKeyContentUseCase: ImportBackupKeyContentUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val masterSignerMapper: MasterSignerMapper,
     private val markRecoverStatusUseCase: MarkRecoverStatusUseCase,
@@ -62,8 +62,8 @@ class KeyRecoveryBackupDownloadViewModel @Inject constructor(
         if (stateValue.password.isBlank()) return@launch
         val backupData = Base64.decode(args.backupKey.keyBackUpBase64, Base64.DEFAULT)
         if (ChecksumUtil.verifyChecksum(backupData, args.backupKey.keyCheckSum)) {
-            val resultImport = importTapsignerMasterSignerContentUseCase(
-                ImportTapsignerMasterSignerContentUseCase.Param(
+            val resultImport = importBackupKeyContentUseCase(
+                ImportBackupKeyContentUseCase.Param(
                     backupData,
                     stateValue.password,
                     stateValue.keyName

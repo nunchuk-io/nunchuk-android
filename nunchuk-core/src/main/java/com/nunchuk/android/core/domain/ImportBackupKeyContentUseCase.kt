@@ -26,10 +26,10 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class ImportTapsignerMasterSignerContentUseCase @Inject constructor(
+class ImportBackupKeyContentUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val nunchukNativeSdk: NunchukNativeSdk,
-) : UseCase<ImportTapsignerMasterSignerContentUseCase.Param, MasterSigner>(dispatcher) {
+) : UseCase<ImportBackupKeyContentUseCase.Param, MasterSigner>(dispatcher) {
     override suspend fun execute(parameters: Param): MasterSigner {
         return nunchukNativeSdk.importBackupKeyContent(
             content = parameters.content,
