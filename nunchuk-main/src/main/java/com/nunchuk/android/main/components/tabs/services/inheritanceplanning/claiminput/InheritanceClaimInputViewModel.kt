@@ -95,7 +95,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
                     )
                     if (resultImport.isSuccess) {
                         importMasterSigners.add(resultImport.getOrThrow())
-                    } 
+                    }
                 }
             }
             if (importMasterSigners.size != stateValue.backupPasswords.size) {

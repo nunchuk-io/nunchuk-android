@@ -37,6 +37,7 @@ import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -55,18 +56,30 @@ class ColdCardIntroFragment : MembershipFragment() {
         ColdCardIntroScreen(remainTime) {
             when (it) {
                 ColdCardAction.NFC -> findNavController().navigate(
-                    ColdCardIntroFragmentDirections.actionColdCardIntroFragmentToMk4InfoFragment(isMembershipFlow = true, isAddInheritanceKey = true)
+                    ColdCardIntroFragmentDirections.actionColdCardIntroFragmentToMk4InfoFragment(
+                        isMembershipFlow = true,
+                        isAddInheritanceKey = true
+                    )
                 )
+
                 ColdCardAction.USB -> {
-                    membershipStepManager.currentStep?.let { step ->
-                        navigator.openAddDesktopKey(
-                            requireActivity(),
-                            signerTag = SignerTag.COLDCARD,
-                            groupId = (requireActivity() as Mk4Activity).groupId,
-                            step = step
-                        )
+                    if ((requireActivity() as? Mk4Activity)?.replacedXfp.isNullOrEmpty().not()) {
+                        NCInfoDialog(requireActivity())
+                            .showDialog(
+                                message = getString(R.string.nc_info_hardware_key_not_supported),
+                            )
+                    } else {
+                        membershipStepManager.currentStep?.let { step ->
+                            navigator.openAddDesktopKey(
+                                requireActivity(),
+                                signerTag = SignerTag.COLDCARD,
+                                groupId = (requireActivity() as Mk4Activity).groupId,
+                                step = step
+                            )
+                        }
                     }
                 }
+
                 ColdCardAction.QR, ColdCardAction.FILE -> findNavController().navigate(
                     ColdCardIntroFragmentDirections.actionColdCardIntroFragmentToColdcardRecoverFragment(
                         isMembershipFlow = true, scanQrCode = it == ColdCardAction.QR,
@@ -158,7 +171,8 @@ private fun ActionItem(
     onClick: () -> Unit = {}
 ) {
     Row(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 12.dp)
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {

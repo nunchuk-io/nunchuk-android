@@ -791,4 +791,5 @@
     <string name="nc_address_change_successfully">Address change successful.</string>
     <string name="nc_we_send_email_confirm_reward_address">We\'ll send you an email to confirm (or change) the reward address each time there\'s a successful referral.</string>
     <string name="nc_send_all_remaining">Send all remaining</string>
+    <string name="nc_info_hardware_key_not_supported">Please use the desktop app to add this key.</string>
 </resources>
