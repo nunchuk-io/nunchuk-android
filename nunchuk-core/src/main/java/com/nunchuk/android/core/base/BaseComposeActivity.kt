@@ -21,6 +21,7 @@ package com.nunchuk.android.core.base
 
 import android.content.Context
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.guestmode.SignInMode
@@ -116,5 +117,14 @@ abstract class BaseComposeActivity : AppCompatActivity(), LoadingDialog {
     override fun onDestroy() {
         super.onDestroy()
         creator.cancel()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
     }
 }

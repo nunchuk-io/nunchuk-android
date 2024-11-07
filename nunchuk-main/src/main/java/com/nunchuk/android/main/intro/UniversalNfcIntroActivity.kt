@@ -25,7 +25,6 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,12 +44,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class UniversalNfcIntroActivity : AppCompatActivity() {
+class UniversalNfcIntroActivity : BaseComposeActivity() {
     private val viewModel: UniversalNfcIntroViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {

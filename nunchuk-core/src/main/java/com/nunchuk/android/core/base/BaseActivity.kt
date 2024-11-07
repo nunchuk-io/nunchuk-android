@@ -21,6 +21,7 @@ package com.nunchuk.android.core.base
 
 import android.content.Context
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.R
@@ -119,6 +120,15 @@ abstract class BaseActivity<Binding : ViewBinding> : AppCompatActivity(), Loadin
                 newWalletId = it.newWalletId,
                 newWalletName = it.newWalletName
             )
+        }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
     }
 
