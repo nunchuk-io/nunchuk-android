@@ -8,15 +8,15 @@ class EmptyStateFreeGuestUser(
     private val navigator: NunchukNavigator,
     private val activityContext: Activity
 ) :
-    EmptyStateFactory {
+    EmptyStateProvider {
     override fun getWizardData(conditionInfo: ConditionInfo): WizardData? {
         if (conditionInfo !is ConditionInfo.FreeGuestUser) return null
         if (conditionInfo.hasSigner) {
             return WizardData(
-                title = "Welcome to Nunchuk!",
-                subtitle = "Continue creating your first wallet, or add another key.",
+                title = activityContext.getString(R.string.nc_welcome_to_nunchuk),
+                subtitle = activityContext.getString(R.string.nc_continue_creating_first_wallet_or_add_another_key),
                 instructions = emptyList(),
-                buttonText = "Create new wallet",
+                buttonText = activityContext.getString(R.string.nc_text_create_new_wallet),
                 buttonAction = {
                     navigator.openWalletIntermediaryScreen(activityContext, true)
                 },
@@ -25,13 +25,13 @@ class EmptyStateFreeGuestUser(
             )
         }
         return WizardData( // hot wallet
-            title = "Welcome to Nunchuk!",
-            subtitle = "To get started:",
+            title = activityContext.getString(R.string.nc_welcome_to_nunchuk),
+            subtitle = activityContext.getString(R.string.nc_to_get_started),
             instructions = listOf(
-                "Add a key (or multiple keys if using multisig), then create your wallet.",
-                "Or quickly create a hot wallet for immediate use, then back it up later."
+                activityContext.getString(R.string.nc_empty_state_free_user_step_1),
+                activityContext.getString(R.string.nc_empty_state_free_user_step_2),
             ),
-            buttonText = "Add Key",
+            buttonText = activityContext.getString(R.string.nc_add_key),
             buttonAction = {
                 navigator.openSignerIntroScreen(activityContext)
             },
@@ -44,7 +44,7 @@ class EmptyStateFreeGuestUser(
         if (conditionInfo !is ConditionInfo.FreeGuestUser) return null
         if (conditionInfo.hasSigner) {
             return KeyWalletEntryData(
-                title = "Add another key",
+                title = activityContext.getString(R.string.nc_add_another_key),
                 buttonAction = {
                     navigator.openSignerIntroScreen(activityContext)
                 },
@@ -52,7 +52,7 @@ class EmptyStateFreeGuestUser(
             )
         }
         return KeyWalletEntryData(
-            title = "Create hot wallet",
+            title = activityContext.getString(R.string.nc_create_hot_wallet),
             buttonAction = {
                 navigator.openHotWalletScreen(null, activityContext, false)
             },

@@ -1,6 +1,6 @@
 package com.nunchuk.android.main.components.tabs.wallet.emptystate
 
-class EmptyStateNone : EmptyStateFactory {
+class EmptyStateNone : EmptyStateProvider {
     override fun getWizardData(conditionInfo: ConditionInfo): WizardData? {
         return null
     }
