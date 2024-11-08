@@ -453,11 +453,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     btnYes = getString(R.string.nc_text_yes),
                     btnInfo = getString(R.string.nc_text_no),
                     onYesClick = {
-                        walletsViewModel.setShouldShowExistingKeyDialog(true)
                         openSignerInfoScreen(event.key.localSigner.toModel(), event.key)
                     },
                     onInfoClick = {
-                        walletsViewModel.setShouldShowExistingKeyDialog(true)
                         walletsViewModel.updateExistingKey(event.key)
                     }
                 )
@@ -795,7 +793,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             retrieveData()
             updateBadge()
             getKeyHealthStatus()
-            checkAndShowExistingKey()
         }
     }
 

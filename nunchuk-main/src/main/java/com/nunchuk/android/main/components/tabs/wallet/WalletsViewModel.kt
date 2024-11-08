@@ -147,7 +147,6 @@ internal class WalletsViewModel @Inject constructor(
     private val cardIdManager: CardIdManager,
     private val getUseLargeFontHomeBalancesUseCase: GetUseLargeFontHomeBalancesUseCase,
     private val getPersonalMembershipStepUseCase: GetPersonalMembershipStepUseCase,
-    private val checkWalletsExistingKeyUseCase: CheckWalletsExistingKeyUseCase,
     private val updateExistingKeyUseCase: UpdateExistingKeyUseCase,
     private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
     private val getLocalCurrentCampaignUseCase: GetLocalCurrentCampaignUseCase,
@@ -170,9 +169,6 @@ internal class WalletsViewModel @Inject constructor(
     private var isRetrievingData = AtomicBoolean(false)
     private var isRetrievingAlert = AtomicBoolean(false)
     private var isRetrievingKeyHealthStatus = AtomicBoolean(false)
-    private var shouldShowExistingKeyDialog = AtomicBoolean(true)
-
-    private var signersExistingMap = ConcurrentHashMap<String, WalletsExistingKey>()
 
     private var walletsRequestKey = ""
 
@@ -348,7 +344,6 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             syncGroupWalletsUseCase(Unit).onSuccess { shouldReload ->
                 if (shouldReload) retrieveData()
-                checkWalletsExistingKey(true)
             }
         }
     }
@@ -402,7 +397,6 @@ internal class WalletsViewModel @Inject constructor(
                 } else {
                     mapGroupWalletUi()
                 }
-                checkWalletsExistingKey(false)
             } else {
                 updateState { copy(plans = emptyList()) }
             }
@@ -413,33 +407,6 @@ internal class WalletsViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    private fun checkWalletsExistingKey(isGroupWallet: Boolean) {
-        viewModelScope.launch {
-            checkWalletsExistingKeyUseCase(isGroupWallet).onSuccess { result ->
-                result.forEach { key ->
-                    key.signerServer.xfp?.let { xfp ->
-                        signersExistingMap[xfp] = key
-                    }
-                }
-            }
-            checkAndShowExistingKey()
-        }
-    }
-
-    fun checkAndShowExistingKey() {
-        if (shouldShowExistingKeyDialog.get().not()) return
-        val key = signersExistingMap.values.firstOrNull()
-        key?.let {
-            signersExistingMap.remove(it.signerServer.xfp)
-            setEvent(WalletsEvent.ShowExistingKeyDialog(key))
-            shouldShowExistingKeyDialog.set(false)
-        }
-    }
-
-    fun setShouldShowExistingKeyDialog(shouldShow: Boolean) {
-        shouldShowExistingKeyDialog.set(shouldShow)
     }
 
     fun updateExistingKey(key: WalletsExistingKey) {
