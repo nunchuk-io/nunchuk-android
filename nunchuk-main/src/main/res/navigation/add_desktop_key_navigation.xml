@@ -22,6 +22,11 @@
             app:argType="string"
             app:nullable="true" />
 
+        <argument
+            android:name="is_add_inheritance_key"
+            android:defaultValue="false"
+            app:argType="boolean" />
+
         <action
             android:id="@+id/action_addDesktopKeyFragment_to_waitingDesktopKeyFragment"
             app:destination="@id/waitingDesktopKeyFragment"

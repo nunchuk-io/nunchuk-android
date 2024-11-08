@@ -159,6 +159,7 @@ import com.nunchuk.android.model.membership.GroupConfig
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.model.toMembershipPlan
+import com.nunchuk.android.model.toVerifyType
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
@@ -1825,7 +1826,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                             step = localRequest.step,
                             masterSignerId = key.xfp.orEmpty(),
                             plan = plan,
-                            verifyType = VerifyType.APP_VERIFIED,
+                            verifyType = if (key.tags?.contains(SignerTag.INHERITANCE.name) == true) {
+                                key.userKey?.verificationType.toVerifyType()
+                            } else {
+                                VerifyType.APP_VERIFIED
+                            },
                             extraData = gson.toJson(
                                 SignerExtra(
                                     derivationPath = key.derivationPath.orEmpty(),

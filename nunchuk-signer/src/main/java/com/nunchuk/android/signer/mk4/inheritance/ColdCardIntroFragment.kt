@@ -74,7 +74,8 @@ class ColdCardIntroFragment : MembershipFragment() {
                                 requireActivity(),
                                 signerTag = SignerTag.COLDCARD,
                                 groupId = (requireActivity() as Mk4Activity).groupId,
-                                step = step
+                                step = step,
+                                isInheritanceKey = true
                             )
                         }
                     }

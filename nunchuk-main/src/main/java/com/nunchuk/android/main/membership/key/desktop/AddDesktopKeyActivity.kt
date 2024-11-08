@@ -32,6 +32,7 @@ class AddDesktopKeyActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_SIGNER_TAG = "signer_tag"
         private const val EXTRA_GROUP_ID = "group_id"
         private const val EXTRA_MEMBERSHIP_STEP = "step"
+        private const val EXTRA_INHERITANCE_KEY = "is_add_inheritance_key"
 
         fun navigate(
             launcher: ActivityResultLauncher<Intent>? = null,
@@ -39,11 +40,13 @@ class AddDesktopKeyActivity : BaseActivity<ActivityNavigationBinding>() {
             signerTag: SignerTag,
             groupId: String?,
             step: MembershipStep,
+            isAddInheritanceKey: Boolean = false
         ) {
             val intent = Intent(activity, AddDesktopKeyActivity::class.java)
                 .putExtra(EXTRA_SIGNER_TAG, signerTag)
                 .putExtra(EXTRA_GROUP_ID, groupId)
                 .putExtra(EXTRA_MEMBERSHIP_STEP, step)
+                .putExtra(EXTRA_INHERITANCE_KEY, isAddInheritanceKey)
             if (launcher != null) {
                 launcher.launch(intent)
             } else {
