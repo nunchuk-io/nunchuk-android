@@ -172,7 +172,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                             listOf(SignerTag.INHERITANCE.name)
                         }
 
-                        SignerType.COLDCARD_NFC.name, SignerType.AIRGAP.name -> {
+                        SignerType.COLDCARD_NFC.name, SignerType.AIRGAP.name, SignerType.HARDWARE.name -> {
                             listOf(SignerTag.INHERITANCE.name, SignerTag.COLDCARD.name)
                         }
 
@@ -319,7 +319,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                         listOf(SignerTag.INHERITANCE.name)
                     }
 
-                    SignerType.COLDCARD_NFC.name, SignerType.AIRGAP.name -> {
+                    SignerType.COLDCARD_NFC.name, SignerType.AIRGAP.name, SignerType.HARDWARE.name -> {
                         listOf(SignerTag.INHERITANCE.name, SignerTag.COLDCARD.name)
                     }
 

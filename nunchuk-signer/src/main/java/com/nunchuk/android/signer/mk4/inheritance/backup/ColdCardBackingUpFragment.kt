@@ -76,7 +76,7 @@ class ColdCardBackingUpFragment : MembershipFragment() {
                         mk4ViewModel.coldCardBackUpParam.copy(
                             filePath = viewModel.getServerFilePath(),
                             backUpFileName = viewModel.getBackUpFileName(),
-                            keyId = if (replacedXfp.isNullOrEmpty().not()) mk4ViewModel.coldCardBackUpParam.keyId else ""
+                            keyId = if (replacedXfp.isNullOrEmpty().not()) mk4ViewModel.coldCardBackUpParam.keyId.ifEmpty { viewModel.getKeyId() } else ""
                         )
                     )
                     findNavController().navigate(

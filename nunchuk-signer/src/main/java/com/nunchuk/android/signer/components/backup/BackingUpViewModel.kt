@@ -144,7 +144,7 @@ class BackingUpViewModel @Inject constructor(
 
                         is KeyUpload.Data -> {
                             _state.update { state ->
-                                state.copy(serverFilePath = content.filePath, backUpFileName = content.backUpFileName)
+                                state.copy(serverFilePath = content.filePath, backUpFileName = content.backUpFileName, keyId = content.keyId)
                             }
                         }
 
@@ -162,6 +162,7 @@ class BackingUpViewModel @Inject constructor(
 
     fun getServerFilePath(): String = state.value.serverFilePath
     fun getBackUpFileName(): String = state.value.backUpFileName
+    fun getKeyId(): String = state.value.keyId
 
     fun onContinueClicked() {
         viewModelScope.launch {
@@ -179,7 +180,8 @@ data class BackingUpState(
     val percent: Int = 0,
     val isError: Boolean = false,
     val serverFilePath: String = "",
-    val backUpFileName: String = ""
+    val backUpFileName: String = "",
+    val keyId: String = ""
 )
 
 sealed class BackingUpEvent {
