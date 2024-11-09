@@ -207,4 +207,7 @@ dependencies {
 
     def multidex_version = "2.0.1"
     implementation "androidx.multidex:multidex:$multidex_version"
+
+    implementation "io.branch.sdk.android:library:5.8.0"
+    implementation 'com.google.android.gms:play-services-ads-identifier:18.1.0'
 }

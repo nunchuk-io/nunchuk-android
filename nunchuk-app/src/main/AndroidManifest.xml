@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.NFC" />
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="29" />
@@ -55,12 +56,39 @@
         <activity
             android:name=".app.splash.SplashActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:screenOrientation="portrait"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <intent-filter>
+                <data android:scheme="nunchuk" android:host="open" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
+
+            <!-- Branch App Links - Test App -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="nunchuk.test-app.link" />
+                <data android:scheme="https" android:host="nunchuk-alternate.test-app.link" />
+            </intent-filter>
+
+            <!-- Branch App Links - Live App -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="nunchuk.app.link" />
+                <data android:scheme="https" android:host="nunchuk-alternate.app.link" />
+            </intent-filter>
+
         </activity>
         <activity android:name="com.nunchuk.android.app.wallet.QuickWalletActivity"
             android:label="@string/nc_wallet_add_wallet_title"
@@ -97,6 +125,10 @@
             android:resource="@drawable/ic_logo_notification" />
 
         <meta-data android:name="firebase_analytics_collection_deactivated" android:value="true" />
+
+        <meta-data android:name="io.branch.sdk.BranchKey" android:value="key_live_oCp9dJYhKIafHZZpZgwOymdmEtaYOVHY" />
+        <meta-data android:name="io.branch.sdk.BranchKey.test" android:value="key_test_axo4dQZkPOjgJW1o5dELLjbnDug0OL5a" />
+        <meta-data android:name="io.branch.sdk.TestMode" android:value="false" />
 
     </application>
 

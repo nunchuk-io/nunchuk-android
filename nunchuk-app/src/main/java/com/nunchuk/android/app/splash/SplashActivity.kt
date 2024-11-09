@@ -21,6 +21,7 @@ package com.nunchuk.android.app.splash
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.core.util.flowObserver
@@ -30,6 +31,8 @@ import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import io.branch.referral.Branch
+import io.branch.referral.validators.IntegrationValidator
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -39,9 +42,43 @@ internal class SplashActivity : AppCompatActivity() {
 
     private val viewModel: SplashViewModel by viewModels()
 
+    override fun onStart() {
+        super.onStart()
+        IntegrationValidator.validate(this)
+        Branch.sessionBuilder(this).withCallback { branchUniversalObject, linkProperties, error ->
+            if (error != null) {
+                Log.e("BranchSDK_Tester", "branch init failed. Caused by -" + error.message)
+            } else {
+                Log.e("BranchSDK_Tester", "branch init complete!")
+                if (branchUniversalObject != null) {
+                    Log.e("BranchSDK_Tester", "title " + branchUniversalObject.title)
+                    Log.e("BranchSDK_Tester", "CanonicalIdentifier " + branchUniversalObject.canonicalIdentifier)
+                    Log.e("BranchSDK_Tester", "metadata " + branchUniversalObject.contentMetadata.convertToJson())
+                }
+                if (linkProperties != null) {
+                    Log.e("BranchSDK_Tester", "Channel " + linkProperties.channel)
+                    Log.e("BranchSDK_Tester", "control params " + linkProperties.controlParams)
+                }
+            }
+        }.withData(this.intent.data).init()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        this.intent = intent
+        if (intent.hasExtra("branch_force_new_session") && intent.getBooleanExtra("branch_force_new_session",false)) {
+            Branch.sessionBuilder(this).withCallback { referringParams, error ->
+                if (error != null) {
+                    Log.e("BranchSDK_Tester", error.message)
+                } else if (referringParams != null) {
+                    Log.e("BranchSDK_Tester", referringParams.toString())
+                }
+            }.reInit()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setTransparentStatusBar()
         subscribeEvents()
     }

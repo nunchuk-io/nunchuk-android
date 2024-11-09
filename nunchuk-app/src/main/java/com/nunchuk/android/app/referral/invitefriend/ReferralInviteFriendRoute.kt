@@ -40,7 +40,6 @@ import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -65,10 +64,9 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.html.HtmlText
-import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.core.referral.ReferralArgs
-import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.model.campaigns.CampaignType
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.utils.EmailValidator
 import com.skydoves.landscapist.ImageOptions
@@ -188,6 +186,7 @@ fun ReferralInviteFriendScreen(
     var email by remember { mutableStateOf(state.localReferrerCode?.email.orEmpty()) }
     var showDismissCampaignSheet by remember { mutableStateOf(false) }
     var showDismissCampaignDialog by remember { mutableStateOf(false) }
+    val isDownloadCampaignType = args.campaign.type == CampaignType.DOWNLOAD
 
     val context = LocalLifecycleOwner.current
 
@@ -299,97 +298,99 @@ fun ReferralInviteFriendScreen(
                 }
             )
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.nc_receive_reward_via),
-                    style = NunchukTheme.typography.title,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                )
-
-                Image(
-                    painter = painterResource(id = R.drawable.ic_edit),
-                    contentDescription = "",
-                    modifier = Modifier
-                        .size(14.dp)
-                        .clickable {
-                            onChangeAddress()
-                        }
-                )
-                Text(
-                    modifier = Modifier
-                        .padding(start = 6.dp)
-                        .clickable {
-                            onChangeAddress()
-                        },
-                    text = "Change",
-                    style = NunchukTheme.typography.captionTitle
-                )
-            }
-
-            if (isPickTempAddress.not() && state.isHideAddress()) {
+            if (isDownloadCampaignType.not()) {
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "●●●●●●",
-                        style = NunchukTheme.typography.body,
-                        fontSize = 20.sp
+                        text = stringResource(R.string.nc_receive_reward_via),
+                        style = NunchukTheme.typography.title,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
                     )
 
                     Image(
-                        painter = painterResource(id = R.drawable.ic_eye),
+                        painter = painterResource(id = R.drawable.ic_edit),
                         contentDescription = "",
                         modifier = Modifier
-                            .size(18.dp)
-                            .padding(start = 4.dp, top = 2.dp)
+                            .size(14.dp)
                             .clickable {
-                                onViewReferralAddress()
+                                onChangeAddress()
                             }
                     )
+                    Text(
+                        modifier = Modifier
+                            .padding(start = 6.dp)
+                            .clickable {
+                                onChangeAddress()
+                            },
+                        text = "Change",
+                        style = NunchukTheme.typography.captionTitle
+                    )
                 }
-            } else {
-                Box(
-                    Modifier
-                        .padding(top = 8.dp)
-                        .border(
-                            width = 1.dp,
-                            color = Color(0xFFDEDEDE),
-                            shape = RoundedCornerShape(8.dp),
+
+                if (isPickTempAddress.not() && state.isHideAddress()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "●●●●●●",
+                            style = NunchukTheme.typography.body,
+                            fontSize = 20.sp
                         )
-                        .fillMaxWidth()
-                        .padding(horizontal = 18.dp, vertical = 8.dp)
-                ) {
-                    Column {
-                        if (isPickTempAddress) {
-                            Text(
-                                text = state.receiveWalletTemp?.wallet?.name.orEmpty(),
-                                style = NunchukTheme.typography.title
+
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_eye),
+                            contentDescription = "",
+                            modifier = Modifier
+                                .size(18.dp)
+                                .padding(start = 4.dp, top = 2.dp)
+                                .clickable {
+                                    onViewReferralAddress()
+                                }
+                        )
+                    }
+                } else {
+                    Box(
+                        Modifier
+                            .padding(top = 8.dp)
+                            .border(
+                                width = 1.dp,
+                                color = Color(0xFFDEDEDE),
+                                shape = RoundedCornerShape(8.dp),
                             )
-                            Text(
-                                text = simplifyAddress(state.receiveWalletTemp?.receiveAddress.orEmpty()),
-                                style = NunchukTheme.typography.body
-                            )
-                        } else {
-                            if (state.wallet?.name.isNullOrEmpty().not()) {
+                            .fillMaxWidth()
+                            .padding(horizontal = 18.dp, vertical = 8.dp)
+                    ) {
+                        Column {
+                            if (isPickTempAddress) {
                                 Text(
-                                    text = state.wallet?.name.orEmpty(),
+                                    text = state.receiveWalletTemp?.wallet?.name.orEmpty(),
                                     style = NunchukTheme.typography.title
                                 )
+                                Text(
+                                    text = simplifyAddress(state.receiveWalletTemp?.receiveAddress.orEmpty()),
+                                    style = NunchukTheme.typography.body
+                                )
+                            } else {
+                                if (state.wallet?.name.isNullOrEmpty().not()) {
+                                    Text(
+                                        text = state.wallet?.name.orEmpty(),
+                                        style = NunchukTheme.typography.title
+                                    )
+                                }
+                                Text(
+                                    text = state.getDisplayAddress(),
+                                    style = NunchukTheme.typography.body
+                                )
                             }
-                            Text(
-                                text = state.getDisplayAddress(),
-                                style = NunchukTheme.typography.body
-                            )
                         }
                     }
                 }
@@ -446,6 +447,20 @@ fun ReferralInviteFriendScreen(
                     )
                 }
                 Text(text = state.localReferrerCode.email, style = NunchukTheme.typography.body)
+            }
+
+            if (isDownloadCampaignType && state.localReferrerCode != null && state.forceShowInputEmail.not()) {
+                Row(modifier = Modifier.padding(top = if (state.isLoginByEmail) 8.dp else 16.dp)) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = stringResource(R.string.nc_friend_downloaded),
+                        style = NunchukTheme.typography.title,
+                    )
+                    Text(
+                        text = state.localReferrerCode.getDisplayDownloaded(),
+                        style = NunchukTheme.typography.body,
+                    )
+                }
             }
 
             if (state.localReferrerCode?.link.isNullOrEmpty()

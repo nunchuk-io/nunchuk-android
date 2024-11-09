@@ -11,6 +11,7 @@ import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.campaigns.Campaign
+import com.nunchuk.android.model.campaigns.CampaignType
 import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.usecase.GetWalletsUseCase
@@ -60,30 +61,37 @@ class ReferralInviteFriendViewModel @Inject constructor(
     private var isInitialized = false
     private var currentData = ConfirmationCodeResultData.empty
 
+    private var campaignType: CampaignType = CampaignType.GENERAL
+
     fun init(campaign: Campaign, localReferrerCode: ReferrerCode?) {
         if (isInitialized) return
         isInitialized = true
+        campaignType = campaign.type
         _state.update {
             it.copy(campaign = campaign, localReferrerCode = localReferrerCode)
         }
         val accountInfo = accountManager.getAccount()
         val isLoginByEmail = accountInfo.loginType == SignInMode.EMAIL.value
         _state.update { it.copy(isLoginByEmail = isLoginByEmail) }
-        if (localReferrerCode != null) {
-            checkReferrerCodeByEmail(localReferrerCode.email)
-            getWalletInfo(
-                walletId = localReferrerCode.localWalletId,
-                receiveAddress = localReferrerCode.receiveAddress
-            )
+        if (isDownloadCampaign()) {
+            getReferrerCodeByEmail(accountInfo.email)
         } else {
-            if (isLoginByEmail) {
-                getReferrerCodeByEmail(accountInfo.email)
-            } else { // guest mode or primary key
-                pickWallet()
+            if (localReferrerCode != null) {
+                checkReferrerCodeByEmail(localReferrerCode.email)
+                getWalletInfo(
+                    walletId = localReferrerCode.localWalletId,
+                    receiveAddress = localReferrerCode.receiveAddress
+                )
+            } else {
+                if (isLoginByEmail) {
+                    getReferrerCodeByEmail(accountInfo.email)
+                } else { // guest mode or primary key
+                    pickWallet()
+                }
             }
-        }
-        if (isLoginByEmail.not()) { // in case user change email and receive address is hidden
-            getReceiveWalletAddressTemp()
+            if (isLoginByEmail.not()) { // in case user change email and receive address is hidden
+                getReceiveWalletAddressTemp()
+            }
         }
         viewModelScope.launch {
             getLocalReferrerCodeUseCase(Unit)
@@ -123,7 +131,7 @@ class ReferralInviteFriendViewModel @Inject constructor(
     }
 
     private fun getWalletById(walletId: String) {
-        if (walletId.isEmpty()) return
+        if (walletId.isEmpty() || isDownloadCampaign()) return
         viewModelScope.launch {
             getWalletDetail2UseCase(walletId)
                 .onSuccess { wallet ->
@@ -135,6 +143,7 @@ class ReferralInviteFriendViewModel @Inject constructor(
     }
 
     private fun pickWallet() = viewModelScope.launch {
+        if (isDownloadCampaign()) return@launch
         val wallets = getMostRecentlyUsedWalletsUseCase(Unit).getOrNull().orEmpty()
         getAssistedWalletsFlowUseCase(Unit).collect { result ->
             val assistedWallets = result.getOrDefault(emptyList())
@@ -152,7 +161,7 @@ class ReferralInviteFriendViewModel @Inject constructor(
     }
 
     private fun getFirstUnusedAddress() {
-        if (getWalletId().isEmpty()) return
+        if (getWalletId().isEmpty() || isDownloadCampaign()) return
         viewModelScope.launch {
             getUnusedWalletAddressUseCase(getWalletId()).onSuccess { addresses ->
                 val address = addresses.first()
@@ -169,6 +178,7 @@ class ReferralInviteFriendViewModel @Inject constructor(
     fun getReferrerCodeByEmail(email: String, resultData: ConfirmationCodeResultData? = null) {
         if (resultData != null && resultData == currentData) return
         currentData = resultData ?: ConfirmationCodeResultData.empty
+        if (email.isEmpty()) return
         viewModelScope.launch {
             getReferrerCodeByEmailUseCase(
                 GetReferrerCodeByEmailUseCase.Param(
@@ -183,6 +193,9 @@ class ReferralInviteFriendViewModel @Inject constructor(
                     val newReferrerCode = referrerCode.copy(email = email)
                     updateLocalReferrerCode(newReferrerCode)
                 } ?: run {
+                    if (isDownloadCampaign() && _state.value.isLoginByEmail && _state.value.localReferrerCode == null) {
+                        createReferrerCodeByEmail(email)
+                    }
                     pickWallet()
                 }
             }.onFailure { error ->
@@ -194,7 +207,7 @@ class ReferralInviteFriendViewModel @Inject constructor(
     }
 
     private fun getWalletByAddress(address: String) {
-        if (address.isEmpty()) return
+        if (address.isEmpty() || isDownloadCampaign()) return
         viewModelScope.launch {
             getWalletsUseCase.execute()
                 .onException {}
@@ -254,7 +267,9 @@ class ReferralInviteFriendViewModel @Inject constructor(
             _state.update { it.copy(showNoInternet = true) }
             return
         }
-        val receiveAddress = if (isPickTempAddress()) {
+        val receiveAddress = if (isDownloadCampaign()) {
+            ""
+        } else if (isPickTempAddress()) {
             _state.value.receiveWalletTemp?.receiveAddress ?: return
         } else if (_state.value.pickReceiveAddress.isNullOrEmpty().not()) {
             _state.value.pickReceiveAddress!!
@@ -266,7 +281,9 @@ class ReferralInviteFriendViewModel @Inject constructor(
                 CreateReferrerCodeByEmailUseCase.Params(
                     email = email,
                     receiveAddress = receiveAddress,
-                    walletId = if (isPickTempAddress()) {
+                    walletId = if (isDownloadCampaign()) {
+                        ""
+                    } else if (isPickTempAddress()) {
                         _state.value.receiveWalletTemp?.wallet?.id.orEmpty()
                     } else {
                         getWalletId()
@@ -425,6 +442,10 @@ class ReferralInviteFriendViewModel @Inject constructor(
                     _state.update { it.copy(errorMsg = it.errorMsg.orUnknownError()) }
                 }
         }
+    }
+
+    private fun isDownloadCampaign(): Boolean {
+        return campaignType == CampaignType.DOWNLOAD
     }
 }
 

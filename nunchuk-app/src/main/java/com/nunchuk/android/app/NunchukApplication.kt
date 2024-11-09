@@ -32,6 +32,7 @@ import com.nunchuk.android.log.FileLogTree
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.util.FileHelper
 import dagger.hilt.android.HiltAndroidApp
+import io.branch.referral.Branch
 import kotlinx.coroutines.runBlocking
 import org.matrix.android.sdk.api.Matrix
 import timber.log.Timber
@@ -64,6 +65,8 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
         if (BuildConfig.DEBUG) {
             Timber.plant(FileLogTree(this))
         }
+        Branch.enableLogging()
+        Branch.getAutoInstance(this)
         runBlocking {
             matrixInitializerUseCase(Unit)
             val account = accountManager.getAccount()

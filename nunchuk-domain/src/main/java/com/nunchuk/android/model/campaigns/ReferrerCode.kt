@@ -12,5 +12,12 @@ data class ReferrerCode(
     val textTemplate: String = "",
     val campaign: Campaign,
     val localWalletId: String = "",
-    val email: String = ""
-) : Parcelable
+    val email: String = "",
+    val metaData: ReferrerMetaData?,
+) : Parcelable {
+    fun getDisplayDownloaded(): String {
+        val currentDownloaded = metaData?.currentDownloaded ?: 0
+        val requiredDownloaded = metaData?.requiredDownloaded ?: 0
+        return "$currentDownloaded/$requiredDownloaded"
+    }
+}

@@ -453,7 +453,7 @@ internal class WalletsViewModel @Inject constructor(
                 }.collect {
                     updateState { copy(wallets = it) }
                     mapGroupWalletUi()
-                    if (it.isNotEmpty()) getCampaign()
+                    getCampaign()
                 }
         }
     }

@@ -13,5 +13,6 @@ data class CampaignResponse(
     @SerializedName("referrer_banner_url") val referrerBannerUrl: String?,
     @SerializedName("cta") val cta: String?,
     @SerializedName("dismissible") val dismissible: Boolean?,
-    @SerializedName("is_dismissed") val isDismissed: Boolean?
+    @SerializedName("is_dismissed") val isDismissed: Boolean?,
+    @SerializedName("type") val type: String?,
 )

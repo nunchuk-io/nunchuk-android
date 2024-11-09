@@ -109,6 +109,7 @@ import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.campaigns.Campaign
+import com.nunchuk.android.model.campaigns.CampaignType
 import com.nunchuk.android.model.isByzantineOrFinney
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.signer.satscard.SatsCardActivity
@@ -555,8 +556,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showCampaign(campaign: Campaign?, isHasWallet: Boolean = false) {
-        binding.llCampaigns.isVisible =
-            campaign?.isValid() == true && isHasWallet && campaign.isDismissed.not()
+        binding.llCampaigns.isVisible = campaign?.isValid() == true && campaign.isDismissed.not() && (campaign.type == CampaignType.DOWNLOAD || isHasWallet)
         binding.tvCampaigns.text = campaign?.cta
     }
 

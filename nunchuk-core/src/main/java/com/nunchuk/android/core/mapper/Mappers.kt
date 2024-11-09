@@ -10,6 +10,7 @@ import com.nunchuk.android.core.data.model.byzantine.SignatureDto
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.campaigns.CampaignResponse
 import com.nunchuk.android.core.data.model.campaigns.ReferrerCodeResponse
+import com.nunchuk.android.core.data.model.campaigns.ReferrerMetaDataResponse
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceDto
 import com.nunchuk.android.core.data.model.membership.PeriodResponse
@@ -41,7 +42,9 @@ import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.byzantine.toAlertType
 import com.nunchuk.android.model.campaigns.Campaign
+import com.nunchuk.android.model.campaigns.CampaignType
 import com.nunchuk.android.model.campaigns.ReferrerCode
+import com.nunchuk.android.model.campaigns.ReferrerMetaData
 import com.nunchuk.android.model.transaction.AlertPayload
 import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.entity.AlertEntity
@@ -337,7 +340,8 @@ internal fun CampaignResponse.toModel() = Campaign(
     referrerBannerUrl = referrerBannerUrl.orEmpty(),
     cta = cta.orEmpty(),
     dismissible = dismissible.orFalse(),
-    isDismissed = isDismissed.orFalse()
+    isDismissed = isDismissed.orFalse(),
+    type = CampaignType.valueOf(type.orEmpty())
 )
 
 internal fun ReferrerCodeResponse.toModel() = ReferrerCode(
@@ -346,5 +350,12 @@ internal fun ReferrerCodeResponse.toModel() = ReferrerCode(
     receiveAddress = receiveAddress.orEmpty(),
     receiveAddressHash = receiveAddressHash.orEmpty(),
     textTemplate = textTemplate.orEmpty(),
-    campaign = campaign?.toModel() ?: Campaign.empty()
+    campaign = campaign?.toModel() ?: Campaign.empty(),
+    metaData = metaData?.toModel()
+)
+
+internal fun ReferrerMetaDataResponse.toModel() = ReferrerMetaData(
+    redirectUrl = redirectUrl.orEmpty(),
+    currentDownloaded = currentDownloaded ?: 0,
+    requiredDownloaded = requiredDownloaded ?: 0
 )

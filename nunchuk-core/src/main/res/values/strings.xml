@@ -785,6 +785,7 @@
     <string name="nc_dismiss_from_home_screen">Dismiss from home screen</string>
     <string name="nc_copy">Copy</string>
     <string name="nc_referrer_email">Referrer email</string>
+    <string name="nc_friend_downloaded">Friends downloaded</string>
     <string name="nc_your_email">Your email</string>
     <string name="nc_invite_friends">Invite Friends</string>
     <string name="nc_generate_referral_link">Generate referral link</string>
