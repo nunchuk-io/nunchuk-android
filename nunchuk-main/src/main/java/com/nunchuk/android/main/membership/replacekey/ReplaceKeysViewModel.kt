@@ -209,7 +209,9 @@ class ReplaceKeysViewModel @Inject constructor(
                                     .getOrDefault(0)
                             )
                         },
-                        backUpFileName = status.signers.map { entry ->
+                        coldCardBackUpFileName = status.signers.filter {
+                            it.value.tags.contains(SignerTag.INHERITANCE.name) && it.value.type != SignerType.NFC
+                        }.map { entry ->
                             entry.value.xfp.orEmpty() to entry.value.userBackUpFileName.orEmpty()
                         }.toMap(),
                         verifiedSigners = verifiedSigners,
@@ -454,7 +456,7 @@ class ReplaceKeysViewModel @Inject constructor(
 
     fun getFilePath(xfp: String) = nfcFileManager.buildFilePath(getKeyId(xfp))
 
-    fun getBackUpFileName(xfp: String) = _uiState.value.backUpFileName[xfp].orEmpty()
+    fun getBackUpFileName(xfp: String) = _uiState.value.coldCardBackUpFileName[xfp].orEmpty()
 
     val replacedXfp: String
         get() = savedStateHandle.get<String>(REPLACE_XFP).orEmpty()
@@ -491,5 +493,5 @@ data class ReplaceKeysUiState(
     val inheritanceXfps: Set<String> = emptySet(),
     val isActiveAssistedWallet: Boolean = false,
     val isMultiSig: Boolean = false,
-    val backUpFileName: Map<String, String> = emptyMap()
+    val coldCardBackUpFileName: Map<String, String> = emptyMap()
 )

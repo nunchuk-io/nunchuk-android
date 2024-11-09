@@ -43,6 +43,7 @@ class UploadReplaceBackupFileKeyUseCase @Inject constructor(
             signerIndex = parameters.signerIndex,
             walletId = parameters.walletId,
             groupId = parameters.groupId,
+            isRequestReplaceKey = parameters.isRequestReplaceKey
         )
     data class Param(
         val replacedXfp: String,
@@ -55,5 +56,6 @@ class UploadReplaceBackupFileKeyUseCase @Inject constructor(
         val signerIndex: Int,
         val walletId: String,
         val groupId: String,
+        val isRequestReplaceKey: Boolean = true
     )
 }

@@ -38,7 +38,8 @@ interface KeyRepository {
         isAddNewKey: Boolean,
         plan: MembershipPlan,
         groupId: String,
-        newIndex: Int
+        newIndex: Int,
+        isRequestAddKey: Boolean
     ): Flow<KeyUpload>
 
     fun uploadReplaceBackupKey(
@@ -52,6 +53,7 @@ interface KeyRepository {
         signerIndex: Int,
         walletId: String,
         groupId: String,
+        isRequestReplaceKey: Boolean
     ): Flow<KeyUpload>
 
     suspend fun setKeyVerified(

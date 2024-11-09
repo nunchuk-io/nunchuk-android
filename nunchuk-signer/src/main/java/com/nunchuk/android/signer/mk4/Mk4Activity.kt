@@ -67,7 +67,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.mk4_navigation)
-        viewModel.setOrUpdate(ColdCardBackUpParam(xfp = xfp, keyType = signerType, filePath = backUpFilePath, keyName = keyName, backUpFileName = backUpFileName, keyId = keyId))
+        viewModel.setOrUpdate(ColdCardBackUpParam(xfp = xfp, keyType = signerType, filePath = backUpFilePath, keyName = keyName, backUpFileName = backUpFileName, keyId = keyId, isRequestAddOrReplaceKey = action != ColdcardAction.UPLOAD_BACKUP))
         when (action) {
             ColdcardAction.CREATE -> graph.setStartDestination(R.id.mk4InfoFragment)
             ColdcardAction.RECOVER_KEY -> graph.setStartDestination(R.id.coldcardRecoverFragment)
@@ -79,6 +79,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
 
             ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION -> graph.setStartDestination(R.id.coldCardPassphraseQuestionFragment)
             ColdcardAction.VERIFY_KEY -> graph.setStartDestination(R.id.coldCardVerifyBackUpOptionFragment)
+            ColdcardAction.UPLOAD_BACKUP -> graph.setStartDestination(R.id.coldCardBackUpIntroFragment)
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
         navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->

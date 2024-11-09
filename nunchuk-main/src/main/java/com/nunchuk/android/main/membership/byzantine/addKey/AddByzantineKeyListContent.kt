@@ -53,6 +53,7 @@ fun AddByzantineKeyListContent(
     refresh: () -> Unit = { },
     onMoreClicked: () -> Unit = {},
     keys: List<AddKeyData> = emptyList(),
+    missingBackupKeys: List<AddKeyData> = emptyList(),
     remainingTime: Int,
     isRefreshing: Boolean = false,
     isAddOnly: Boolean = false,
@@ -136,7 +137,8 @@ fun AddByzantineKeyListContent(
                                 item = key,
                                 onAddClicked = onAddClicked,
                                 onVerifyClicked = onVerifyClicked,
-                                isDisabled = role.isFacilitatorAdmin
+                                isDisabled = role.isFacilitatorAdmin,
+                                isMissingBackup = missingBackupKeys.contains(key),
                             )
                         }
                     }

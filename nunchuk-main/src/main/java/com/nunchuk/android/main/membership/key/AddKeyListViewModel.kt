@@ -119,6 +119,7 @@ class AddKeyListViewModel @Inject constructor(
         viewModelScope.launch {
             membershipStepState.combine(key) { _, keys -> keys }
                 .collect { keys ->
+                    val missingBackupKeys = arrayListOf<AddKeyData>()
                     val news = keys.map { addKeyData ->
                         val info = getStepInfo(addKeyData.type)
                         val extra = runCatching {
@@ -140,9 +141,18 @@ class AddKeyListViewModel @Inject constructor(
                                 verifyType = info.verifyType
                             )
                         }
-                        addKeyData.copy(verifyType = info.verifyType)
+                        val newKeyData = addKeyData.copy(verifyType = info.verifyType)
+                        // Check if Coldcard Inheritance signer is missing backup key
+                        if (newKeyData.signer?.tags.orEmpty().contains(SignerTag.INHERITANCE)
+                            && newKeyData.signer?.type != SignerType.NFC) {
+                            if (extra != null && extra.userKeyFileName.isEmpty()) {
+                                missingBackupKeys.add(newKeyData)
+                            }
+                        }
+                        return@map newKeyData
                     }
                     _keys.value = news
+                    _state.update { it.copy(missingBackupKeys = missingBackupKeys) }
                 }
         }
         viewModelScope.launch {
@@ -347,5 +357,6 @@ sealed class AddKeyListEvent {
 data class AddKeyListState(
     val isLoading: Boolean = false,
     val isRefresh: Boolean = false,
-    val signers: List<SignerModel> = emptyList()
+    val signers: List<SignerModel> = emptyList(),
+    val missingBackupKeys: List<AddKeyData> = emptyList()
 )

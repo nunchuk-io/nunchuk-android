@@ -60,7 +60,8 @@ class ColdCardBackingUpFragment : MembershipFragment() {
             masterSignerId = mk4ViewModel.coldCardBackUpParam.xfp,
             filePath = args.filePath,
             signerType = mk4ViewModel.coldCardBackUpParam.keyType,
-            keyName = mk4ViewModel.coldCardBackUpParam.keyName
+            keyName = mk4ViewModel.coldCardBackUpParam.keyName,
+            isRequestAddOrReplaceKey = mk4ViewModel.coldCardBackUpParam.isRequestAddOrReplaceKey
         )
     }
 

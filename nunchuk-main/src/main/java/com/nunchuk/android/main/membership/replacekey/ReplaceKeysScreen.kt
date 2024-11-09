@@ -177,8 +177,10 @@ private fun ReplaceKeysContent(
                             isNeedVerify = uiState.isActiveAssistedWallet &&
                                     !uiState.verifiedSigners.contains(item.fingerPrint) &&
                                     !uiState.verifiedSigners.contains(uiState.replaceSigners[item.fingerPrint]?.fingerPrint) &&
-                                    (uiState.replaceSigners[item.fingerPrint]?.type == SignerType.NFC || uiState.replaceSigners[item.fingerPrint]?.tags.orEmpty().contains(SignerTag.INHERITANCE)),
+                                    (uiState.replaceSigners[item.fingerPrint]?.type == SignerType.NFC || uiState.replaceSigners[item.fingerPrint]?.tags.orEmpty()
+                                        .contains(SignerTag.INHERITANCE)),
                             onVerifyClicked = onVerifyClicked,
+                            isMissingBackup = uiState.coldCardBackUpFileName[uiState.replaceSigners[item.fingerPrint]?.fingerPrint].isNullOrEmpty(),
                             isReplaced = uiState.replaceSigners.containsKey(item.fingerPrint)
                         )
                     }
@@ -237,6 +239,7 @@ fun ReplaceKeyCard(
     modifier: Modifier = Modifier,
     isReplaced: Boolean = false,
     isNeedVerify: Boolean = false,
+    isMissingBackup: Boolean = false,
     onReplaceClicked: (data: SignerModel) -> Unit = {},
     onVerifyClicked: (data: SignerModel) -> Unit = {},
 ) {
@@ -297,7 +300,11 @@ fun ReplaceKeyCard(
                             modifier = Modifier.height(36.dp),
                             onClick = { onVerifyClicked(item) },
                         ) {
-                            Text(text = stringResource(R.string.nc_verify_backup))
+                            Text(
+                                text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
+                                    R.string.nc_upload_backup
+                                )
+                            )
                         }
                     }
                 } else {

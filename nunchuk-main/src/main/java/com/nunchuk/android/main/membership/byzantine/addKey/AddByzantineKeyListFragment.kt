@@ -494,7 +494,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             backUpFilePath = event.filePath,
             xfp = event.signer.fingerPrint,
             groupId = (activity as MembershipActivity).groupId,
-            action = ColdcardAction.VERIFY_KEY,
+            action = if (event.backUpFileName.isNotEmpty()) ColdcardAction.VERIFY_KEY else ColdcardAction.UPLOAD_BACKUP,
             signerType = event.signer.type,
             keyName = event.signer.name,
             backUpFileName = event.backUpFileName
@@ -544,6 +544,7 @@ fun AddKeyListScreen(
         onAddClicked = viewModel::onAddKeyClicked,
         onVerifyClicked = viewModel::onVerifyClicked,
         keys = keys,
+        missingBackupKeys = state.missingBackupKeys,
         remainingTime = remainingTime,
         onMoreClicked = onMoreClicked,
         refresh = viewModel::refresh,

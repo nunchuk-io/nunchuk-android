@@ -93,7 +93,8 @@ internal class KeyRepositoryImpl @Inject constructor(
         isAddNewKey: Boolean,
         plan: MembershipPlan,
         groupId: String,
-        newIndex: Int
+        newIndex: Int,
+        isRequestAddKey: Boolean
     ): Flow<KeyUpload> {
         return callbackFlow {
             val file = File(filePath)
@@ -199,18 +200,20 @@ internal class KeyRepositoryImpl @Inject constructor(
                     tags = tags,
                     index = step.toIndex()
                 )
-                val keyResponse = if (groupId.isNotEmpty()) {
-                    userWalletApiManager.groupWalletApi.addKeyToServer(
-                        groupId = groupId,
-                        payload = payload,
-                    )
-                } else {
-                    userWalletApiManager.walletApi.addKeyToServer(
-                        payload = payload,
-                    )
-                }
-                if (keyResponse.isSuccess.not()) {
-                    throw keyResponse.error
+                if (isRequestAddKey) {
+                    val keyResponse = if (groupId.isNotEmpty()) {
+                        userWalletApiManager.groupWalletApi.addKeyToServer(
+                            groupId = groupId,
+                            payload = payload,
+                        )
+                    } else {
+                        userWalletApiManager.walletApi.addKeyToServer(
+                            payload = payload,
+                        )
+                    }
+                    if (keyResponse.isSuccess.not()) {
+                        throw keyResponse.error
+                    }
                 }
                 membershipDao.updateOrInsert(info)
                 send(KeyUpload.Progress(100))
@@ -248,6 +251,7 @@ internal class KeyRepositoryImpl @Inject constructor(
         signerIndex: Int,
         walletId: String,
         groupId: String,
+        isRequestRepalceKey: Boolean
     ): Flow<KeyUpload> {
         return callbackFlow {
             val file = File(filePath)
@@ -342,27 +346,29 @@ internal class KeyRepositoryImpl @Inject constructor(
                 } else null,
                 tags = tags,
             )
-            val replaceResponse = if (groupId.isNotEmpty()) {
-                userWalletApiManager.groupWalletApi.replaceKey(
-                    verifyToken = verifyToken,
-                    groupId = groupId,
-                    walletId = walletId,
-                    xfp = replacedXfp,
-                    payload = payload
-                )
-            } else {
-                userWalletApiManager.walletApi.replaceKey(
-                    verifyToken = verifyToken,
-                    walletId = walletId,
-                    xfp = replacedXfp,
-                    payload = payload
-                )
+            if (isRequestRepalceKey) {
+                val replaceResponse = if (groupId.isNotEmpty()) {
+                    userWalletApiManager.groupWalletApi.replaceKey(
+                        verifyToken = verifyToken,
+                        groupId = groupId,
+                        walletId = walletId,
+                        xfp = replacedXfp,
+                        payload = payload
+                    )
+                } else {
+                    userWalletApiManager.walletApi.replaceKey(
+                        verifyToken = verifyToken,
+                        walletId = walletId,
+                        xfp = replacedXfp,
+                        payload = payload
+                    )
+                }
+
+                if (replaceResponse.isSuccess.not()) {
+                    throw replaceResponse.error
+                }
             }
             send(KeyUpload.Progress(100))
-
-            if (replaceResponse.isSuccess.not()) {
-                throw replaceResponse.error
-            }
 
             if (result.isSuccess) {
                 val serverKeyFilePath = nfcFileManager.storeServerBackupKeyToFile(
@@ -401,7 +407,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                 ?: throw NullPointerException("Can not mark key verified $masterSignerId")
         val response = if (groupId.isEmpty()) {
             userWalletApiManager.walletApi.setKeyVerified(
-                stepInfo.keyIdInServer,
+                stepInfo.keyIdInServer.ifEmpty { stepInfo.masterSignerId },
                 KeyVerifiedRequest(
                     stepInfo.checkSum,
                     if (isAppVerify) "APP_VERIFIED" else "SELF_VERIFIED"
@@ -410,7 +416,7 @@ internal class KeyRepositoryImpl @Inject constructor(
         } else {
             userWalletApiManager.groupWalletApi.setKeyVerified(
                 groupId,
-                stepInfo.keyIdInServer,
+                stepInfo.keyIdInServer.ifEmpty { stepInfo.masterSignerId },
                 KeyVerifiedRequest(
                     stepInfo.checkSum,
                     if (isAppVerify) "APP_VERIFIED" else "SELF_VERIFIED"

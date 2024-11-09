@@ -23,5 +23,6 @@ data class ColdCardBackUpParam(
     val filePath: String,
     val keyName: String,
     val backUpFileName: String,
-    val keyId: String
+    val keyId: String,
+    val isRequestAddOrReplaceKey: Boolean
 )

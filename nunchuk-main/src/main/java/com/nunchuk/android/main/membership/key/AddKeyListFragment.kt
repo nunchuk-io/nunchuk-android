@@ -437,7 +437,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             fromMembershipFlow = true,
             backUpFilePath = event.filePath,
             xfp = event.signer.fingerPrint,
-            action = ColdcardAction.VERIFY_KEY,
+            action = if (event.backUpFileName.isNotEmpty()) ColdcardAction.VERIFY_KEY else ColdcardAction.UPLOAD_BACKUP,
             keyName = event.signer.name,
             signerType = event.signer.type,
             backUpFileName = event.backUpFileName,
@@ -488,7 +488,8 @@ fun AddKeyListScreen(
         remainingTime = remainingTime,
         onMoreClicked = onMoreClicked,
         refresh = viewModel::refresh,
-        isRefreshing = uiState.isRefresh
+        isRefreshing = uiState.isRefresh,
+        missingBackupKeys = uiState.missingBackupKeys,
     )
 }
 
@@ -499,6 +500,7 @@ fun AddKeyListContent(
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
     keys: List<AddKeyData> = emptyList(),
+    missingBackupKeys: List<AddKeyData> = emptyList(),
     onVerifyClicked: (data: AddKeyData) -> Unit = {},
     onAddClicked: (data: AddKeyData) -> Unit = {},
     refresh: () -> Unit = { },
@@ -580,6 +582,7 @@ fun AddKeyListContent(
                             item = key,
                             onAddClicked = onAddClicked,
                             onVerifyClicked = onVerifyClicked,
+                            isMissingBackup = missingBackupKeys.contains(key)
                         )
                     }
                 }
@@ -593,6 +596,7 @@ fun AddKeyListContent(
 @Composable
 fun AddKeyCard(
     item: AddKeyData,
+    isMissingBackup: Boolean = false,
     modifier: Modifier = Modifier,
     onAddClicked: (data: AddKeyData) -> Unit = {},
     onVerifyClicked: (data: AddKeyData) -> Unit = {},
@@ -668,7 +672,7 @@ fun AddKeyCard(
                         modifier = Modifier.height(36.dp),
                         onClick = { onVerifyClicked(item) },
                     ) {
-                        Text(text = stringResource(R.string.nc_verify_backup))
+                        Text(text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(R.string.nc_upload_backup))
                     }
                 }
             }

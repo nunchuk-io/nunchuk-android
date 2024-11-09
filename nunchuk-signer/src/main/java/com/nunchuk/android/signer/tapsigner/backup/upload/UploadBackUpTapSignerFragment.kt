@@ -69,7 +69,8 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
             replacedXfp = replacedXfp,
             walletId = walletId,
             masterSignerId = args.masterSignerId,
-            filePath = args.filePath
+            filePath = args.filePath,
+            isRequestAddOrReplaceKey = true
         )
     }
 

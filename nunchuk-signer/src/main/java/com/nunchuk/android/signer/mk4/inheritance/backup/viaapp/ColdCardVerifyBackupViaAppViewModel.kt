@@ -102,7 +102,7 @@ class ColdCardVerifyBackupViaAppViewModel @Inject constructor(
                 val apiResult =
                     setReplaceKeyVerifiedUseCase(
                         SetReplaceKeyVerifiedUseCase.Param(
-                            keyId = keyId,
+                            keyId = keyId.ifEmpty { masterSignerId },
                             checkSum = getChecksum(filePath),
                             isAppVerified = true,
                             groupId = groupId,

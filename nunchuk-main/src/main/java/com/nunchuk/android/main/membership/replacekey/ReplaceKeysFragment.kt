@@ -104,16 +104,19 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                                 keyId = viewModel.getKeyId(signer.id),
                             )
                         } else {
+                            val backUpFileName = viewModel.getBackUpFileName(signer.fingerPrint)
                             navigator.openSetupMk4(
                                 activity = requireActivity(),
                                 fromMembershipFlow = true,
                                 backUpFilePath = viewModel.getFilePath(signer.id),
                                 xfp = signer.fingerPrint,
-                                action = ColdcardAction.VERIFY_KEY,
+                                action = if (backUpFileName.isNotEmpty()) ColdcardAction.VERIFY_KEY else ColdcardAction.UPLOAD_BACKUP,
                                 keyName = signer.name,
                                 signerType = signer.type,
                                 keyId = viewModel.getKeyId(signer.id),
-                                backUpFileName = viewModel.getBackUpFileName(signer.fingerPrint),
+                                backUpFileName = backUpFileName,
+                                groupId = args.groupId,
+                                walletId = args.walletId
                             )
                         }
                     }

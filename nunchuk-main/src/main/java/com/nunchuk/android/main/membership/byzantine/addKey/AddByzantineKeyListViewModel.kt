@@ -156,22 +156,33 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private suspend fun updateKeyData() {
         if (key.value.isEmpty()) return
         val signers = _state.value.signers
+        val missingBackupKeys = mutableListOf<AddKeyData>()
         val news = key.value.map { addKeyData ->
             val info = getStepInfo(addKeyData.type)
             var signer =
                 if (info.masterSignerId.isNotEmpty()) signers.find { it.fingerPrint == info.masterSignerId } else null
+            var isMissingBackup = false
             if (signer != null) {
                 runCatching {
                     val extra = gson.fromJson(info.extraData, SignerExtra::class.java)
+                    if (extra != null && extra.userKeyFileName.isEmpty()) {
+                        isMissingBackup = true
+                    }
                     signer = signer?.copy(
                         index = getIndexFromPathUseCase(extra.derivationPath).getOrDefault(0)
                     )
                 }
             }
-            addKeyData.copy(
+            val newKeyData = addKeyData.copy(
                 signer = signer,
                 verifyType = info.verifyType
             )
+            // Check if Coldcard Inheritance signer is missing backup key
+            if (isMissingBackup && newKeyData.signer?.tags.orEmpty().contains(SignerTag.INHERITANCE)
+                && newKeyData.signer?.type != SignerType.NFC) {
+                missingBackupKeys.add(newKeyData)
+            }
+            return@map newKeyData
         }
         _keys.value = news
     }
@@ -361,4 +372,5 @@ data class AddKeyListState(
     val similarGroups: Map<String, String> = emptyMap(),
     val shouldShowKeyAdded: Boolean = false,
     val groupWalletType: GroupWalletType? = null,
+    val missingBackupKeys: List<AddKeyData> = emptyList()
 )

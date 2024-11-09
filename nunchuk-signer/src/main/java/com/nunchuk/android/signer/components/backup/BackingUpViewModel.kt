@@ -64,6 +64,7 @@ class BackingUpViewModel @Inject constructor(
     private var masterSignerId = ""
     private var signerType = SignerType.NFC
     private var keyName = ""
+    private var isRequestAddOrReplaceKey = true
 
     fun init(
         isAddNewKey: Boolean,
@@ -75,6 +76,7 @@ class BackingUpViewModel @Inject constructor(
         masterSignerId: String,
         signerType: SignerType = SignerType.NFC,
         keyName: String = "",
+        isRequestAddOrReplaceKey: Boolean
     ) {
         this.isAddNewKey = isAddNewKey
         this.groupId = groupId
@@ -85,6 +87,7 @@ class BackingUpViewModel @Inject constructor(
         this.masterSignerId = masterSignerId
         this.signerType = signerType
         this.keyName = keyName
+        this.isRequestAddOrReplaceKey = isRequestAddOrReplaceKey
     }
 
     fun upload() {
@@ -105,7 +108,8 @@ class BackingUpViewModel @Inject constructor(
                         signerIndex = signerIndex,
                         groupId = groupId,
                         replacedXfp = replacedXfp,
-                        walletId = walletId
+                        walletId = walletId,
+                        isRequestReplaceKey = isRequestAddOrReplaceKey
                     )
                 )
             } else {
@@ -123,6 +127,7 @@ class BackingUpViewModel @Inject constructor(
                             ?: MembershipPlan.BYZANTINE,
                         groupId = groupId,
                         signerIndex = signerIndex,
+                        isRequestAddKey = isRequestAddOrReplaceKey
                     )
                 )
             }.collect {
