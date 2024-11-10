@@ -472,6 +472,11 @@ class ReplaceKeysViewModel @Inject constructor(
 
     fun isInheritanceXfp(xfp: String) = _uiState.value.inheritanceXfps.contains(xfp)
 
+    fun getReplaceSignerXfp(xfp: String): String {
+        val replaceSigners = _uiState.value.replaceSigners
+        return replaceSigners.entries.find { it.value.fingerPrint == xfp }?.key.orEmpty()
+    }
+
     companion object {
         const val REPLACE_XFP = "REPLACE_XFP"
     }

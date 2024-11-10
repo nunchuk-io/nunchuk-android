@@ -116,7 +116,8 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                                 keyId = viewModel.getKeyId(signer.id),
                                 backUpFileName = backUpFileName,
                                 groupId = args.groupId,
-                                walletId = args.walletId
+                                walletId = args.walletId,
+                                replacedXfp = viewModel.getReplaceSignerXfp(signer.id)
                             )
                         }
                     }
