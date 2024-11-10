@@ -477,6 +477,13 @@ class ReplaceKeysViewModel @Inject constructor(
         return replaceSigners.entries.find { it.value.fingerPrint == xfp }?.key.orEmpty()
     }
 
+    fun isEnableContinueButton(): Boolean {
+        val coldCardInheritanceKeys = _uiState.value.replaceSigners.values.filter {
+            it.tags.contains(SignerTag.INHERITANCE) && it.type != SignerType.NFC
+        }
+        return _uiState.value.replaceSigners.isNotEmpty() && (coldCardInheritanceKeys.isEmpty() || coldCardInheritanceKeys.all { _uiState.value.verifiedSigners.contains(it.fingerPrint) })
+    }
+
     companion object {
         const val REPLACE_XFP = "REPLACE_XFP"
     }

@@ -85,6 +85,7 @@ fun ReplaceKeysScreen(
 
     ReplaceKeysContent(
         uiState = uiState,
+        isEnableCreateWallet = viewModel.isEnableContinueButton(),
         snackState = snackState,
         onReplaceKeyClicked = onReplaceKeyClicked,
         onReplaceInheritanceClicked = onReplaceInheritanceClicked,
@@ -99,6 +100,7 @@ fun ReplaceKeysScreen(
 @Composable
 private fun ReplaceKeysContent(
     uiState: ReplaceKeysUiState = ReplaceKeysUiState(),
+    isEnableCreateWallet: Boolean = false,
     onReplaceKeyClicked: (SignerModel) -> Unit = {},
     onReplaceInheritanceClicked: (SignerModel) -> Unit = {},
     snackState: SnackbarHostState = remember { SnackbarHostState() },
@@ -136,7 +138,7 @@ private fun ReplaceKeysContent(
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = onCreateWalletClicked,
-                    enabled = uiState.replaceSigners.isNotEmpty()
+                    enabled = isEnableCreateWallet
                 ) {
                     Text(text = stringResource(R.string.nc_continue_to_create_a_new_wallet))
                 }
