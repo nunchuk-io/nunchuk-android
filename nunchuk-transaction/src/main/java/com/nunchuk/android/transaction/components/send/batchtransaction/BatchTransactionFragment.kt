@@ -622,7 +622,7 @@ private fun RecipientView(
                     secondTitle = {
                         Text(
                             text = stringResource(id = R.string.nc_send_all_remaining),
-                            style = NunchukTheme.typography.bodySmall.copy(fontWeight = FontWeight.W500),
+                            style = NunchukTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                             textDecoration = TextDecoration.Underline,
                             modifier = Modifier.clickable {
                                 onSendAllRemainingClick()
