@@ -73,6 +73,7 @@ interface NfcNavigator {
         masterSignerId: String,
         groupId: String = "",
         keyId: String = "",
+        walletId: String,
     )
 
     fun openCreateBackUpTapSigner(

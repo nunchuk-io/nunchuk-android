@@ -182,7 +182,8 @@ private fun ReplaceKeysContent(
                                     (uiState.replaceSigners[item.fingerPrint]?.type == SignerType.NFC || uiState.replaceSigners[item.fingerPrint]?.tags.orEmpty()
                                         .contains(SignerTag.INHERITANCE)),
                             onVerifyClicked = onVerifyClicked,
-                            isMissingBackup = uiState.coldCardBackUpFileName[uiState.replaceSigners[item.fingerPrint]?.fingerPrint].isNullOrEmpty(),
+                            isMissingBackup = uiState.coldCardBackUpFileName[uiState.replaceSigners[item.fingerPrint]?.fingerPrint].isNullOrEmpty() &&
+                                    uiState.replaceSigners[item.fingerPrint]?.type != SignerType.NFC,
                             isReplaced = uiState.replaceSigners.containsKey(item.fingerPrint)
                         )
                     }

@@ -83,7 +83,16 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                CheckBackUpBySelfScreen(viewModel, membershipStepManager) {
+                CheckBackUpBySelfScreen(
+                    viewModel,
+                    membershipStepManager,
+                    onDownloadBackUpClicked = {
+                        viewModel.onBtnClicked(OnDownloadBackUpClicked(
+                            groupId = (requireActivity() as NfcSetupActivity).groupId,
+                            walletId = (requireActivity() as NfcSetupActivity).walletId,
+                            keyId = (requireActivity() as NfcSetupActivity).keyId
+                        ))
+                    }) {
                     requireActivity().openExternalLink("https://nunchuk.io/start")
                 }
             }
@@ -97,7 +106,7 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
                 .collect { event ->
                     when (event) {
                         OnExitSelfCheck -> requireActivity().finish()
-                        OnDownloadBackUpClicked -> Unit
+                        is OnDownloadBackUpClicked -> Unit
                         OnVerifiedBackUpClicked -> NCWarningDialog(requireActivity())
                             .showDialog(
                                 title = getString(R.string.nc_confirmation),
@@ -105,9 +114,11 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
                                 onYesClick = {
                                     val keyId = (activity as NfcSetupActivity).keyId
                                     if (keyId.isNotEmpty()) {
-                                        viewModel.setReplaceKeyVerified(keyId = keyId,
+                                        viewModel.setReplaceKeyVerified(
+                                            keyId = keyId,
                                             groupId = (requireActivity() as NfcSetupActivity).groupId,
-                                            walletId = (requireActivity() as NfcSetupActivity).walletId)
+                                            walletId = (requireActivity() as NfcSetupActivity).walletId
+                                        )
                                     } else {
                                         viewModel.setKeyVerified(
                                             (requireActivity() as NfcSetupActivity).groupId,
@@ -129,6 +140,7 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
 private fun CheckBackUpBySelfScreen(
     viewModel: CheckBackUpBySelfViewModel = viewModel(),
     membershipStepManager: MembershipStepManager,
+    onDownloadBackUpClicked: () -> Unit = {},
     onLinkClicked: () -> Unit,
 ) {
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
@@ -136,6 +148,7 @@ private fun CheckBackUpBySelfScreen(
         onBtnClicked = viewModel::onBtnClicked,
         remainingTime = remainingTime,
         onLinkClicked = onLinkClicked,
+        onDownloadBackUpClicked = onDownloadBackUpClicked
     )
 }
 
@@ -144,6 +157,7 @@ private fun CheckBackUpBySelfContent(
     remainingTime: Int = 0,
     onBtnClicked: (event: CheckBackUpBySelfEvent) -> Unit = {},
     onLinkClicked: () -> Unit = {},
+    onDownloadBackUpClicked: () -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold(
@@ -211,7 +225,7 @@ private fun CheckBackUpBySelfContent(
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth(),
-                    onClick = { onBtnClicked(OnDownloadBackUpClicked) },
+                    onClick = { onDownloadBackUpClicked() },
                 ) {
                     Text(text = stringResource(R.string.nc_download_backup_file))
                 }

@@ -483,7 +483,8 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             fromMembershipFlow = true,
             backUpFilePath = event.filePath,
             masterSignerId = event.signer.id,
-            groupId = (activity as MembershipActivity).groupId
+            groupId = (activity as MembershipActivity).groupId,
+            walletId = (activity as MembershipActivity).walletId,
         )
     }
 

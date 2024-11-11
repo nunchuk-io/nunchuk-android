@@ -44,6 +44,7 @@ import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
+import com.nunchuk.android.type.SignerType
 
 @Composable
 fun AddByzantineKeyListContent(
@@ -138,7 +139,7 @@ fun AddByzantineKeyListContent(
                                 onAddClicked = onAddClicked,
                                 onVerifyClicked = onVerifyClicked,
                                 isDisabled = role.isFacilitatorAdmin,
-                                isMissingBackup = missingBackupKeys.contains(key),
+                                isMissingBackup = missingBackupKeys.contains(key) && key.signer?.type != SignerType.NFC,
                             )
                         }
                     }

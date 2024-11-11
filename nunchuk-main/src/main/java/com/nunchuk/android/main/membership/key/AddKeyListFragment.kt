@@ -89,6 +89,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.addKey.getKeyOptions
 import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
@@ -428,6 +429,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             fromMembershipFlow = true,
             backUpFilePath = event.filePath,
             masterSignerId = event.signer.id,
+            walletId = (activity as MembershipActivity).walletId,
         )
     }
 
@@ -582,7 +584,7 @@ fun AddKeyListContent(
                             item = key,
                             onAddClicked = onAddClicked,
                             onVerifyClicked = onVerifyClicked,
-                            isMissingBackup = missingBackupKeys.contains(key)
+                            isMissingBackup = missingBackupKeys.contains(key) && key.signer?.type != SignerType.NFC
                         )
                     }
                 }

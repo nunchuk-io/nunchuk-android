@@ -102,6 +102,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                                 masterSignerId = signer.id,
                                 groupId = (activity as MembershipActivity).groupId,
                                 keyId = viewModel.getKeyId(signer.id),
+                                walletId = args.walletId
                             )
                         } else {
                             val backUpFileName = viewModel.getBackUpFileName(signer.fingerPrint)

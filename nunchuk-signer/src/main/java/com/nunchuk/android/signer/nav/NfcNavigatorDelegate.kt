@@ -116,6 +116,7 @@ interface NfcNavigatorDelegate : NfcNavigator {
         masterSignerId: String,
         groupId: String,
         keyId: String,
+        walletId: String
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
@@ -126,6 +127,7 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 masterSignerId = masterSignerId,
                 groupId = groupId,
                 keyId = keyId,
+                walletId = walletId,
             )
         )
     }
