@@ -92,6 +92,7 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
         flowObserver(viewModel.event) {
             when (it) {
                 BackingUpEvent.OnContinueClicked -> {
+                    (requireActivity() as NfcSetupActivity).keyId = if ((requireActivity() as NfcSetupActivity).replacedXfp.isNotEmpty()) viewModel.getKeyId() else ""
                     findNavController().navigate(
                         UploadBackUpTapSignerFragmentDirections.actionUploadBackUpTapSignerFragmentToTapSignerBackUpExplainFragment(
                             viewModel.getServerFilePath(),
