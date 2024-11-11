@@ -48,7 +48,8 @@
                 android:src="@drawable/ic_key"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@color/nc_text_primary" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/desc"
@@ -115,7 +116,8 @@
                         android:src="@drawable/ic_split"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:tint="@color/nc_text_primary" />
 
                     <com.nunchuk.android.widget.NCFontTextView
                         android:id="@+id/title"

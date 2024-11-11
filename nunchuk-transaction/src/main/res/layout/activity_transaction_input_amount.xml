@@ -65,7 +65,7 @@
                         android:inputType="numberDecimal"
                         android:maxLength="20"
                         android:minWidth="50dp"
-                        android:textColor="@color/nc_primary_dark_color"
+                        android:textColor="@color/nc_text_primary"
                         android:textCursorDrawable="@null"
                         android:textSize="@dimen/nc_text_size_44"
                         android:visibility="visible"
@@ -98,7 +98,7 @@
                         android:id="@+id/mainCurrencyLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/nc_primary_dark_color"
+                        android:textColor="@color/nc_text_primary"
                         android:textSize="@dimen/nc_text_size_44"
                         app:fontTextStyle="semi_bold"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -113,6 +113,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/nc_padding_4"
+                    android:textColor="@color/nc_text_primary"
                     tools:text="$0" />
             </LinearLayout>
 
@@ -125,6 +126,7 @@
                 android:foreground="?android:attr/selectableItemBackground"
                 android:padding="@dimen/nc_padding_16"
                 android:text="@string/nc_transaction_send_all"
+                android:textColor="@color/nc_text_primary"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/currencyContainer" />
 
@@ -136,10 +138,12 @@
                 android:layout_marginEnd="@dimen/nc_padding_16"
                 android:drawableStart="@drawable/ic_switch"
                 android:drawablePadding="@dimen/nc_padding_8"
+                android:drawableTint="@color/nc_text_primary"
                 android:foreground="?android:attr/selectableItemBackground"
                 android:paddingHorizontal="@dimen/nc_padding_8"
                 android:paddingVertical="@dimen/nc_padding_16"
                 android:text="@string/nc_transaction_switch_to_btc"
+                android:textColor="@color/nc_text_primary"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/currencyContainer" />
 
@@ -150,6 +154,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/nc_padding_24"
                 android:text="@string/nc_transaction_balance"
+                android:textColor="@color/nc_text_primary"
                 app:fontTextStyle="semi_bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -161,6 +166,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/nc_padding_4"
+                android:textColor="@color/nc_text_primary"
                 app:fontTextStyle="semi_bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -173,6 +179,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/nc_padding_4"
+                android:textColor="@color/nc_text_primary"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/amountBTC"

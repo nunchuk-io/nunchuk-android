@@ -22,7 +22,7 @@
             android:layout_height="48dp"
             android:layout_gravity="center_horizontal"
             android:indeterminate="true"
-            android:indeterminateTint="@color/nc_primary_color"
+            android:indeterminateTint="@color/nc_text_primary"
             android:indeterminateTintMode="src_in" />
 
         <com.nunchuk.android.widget.NCFontTextView

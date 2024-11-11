@@ -90,3 +90,8 @@ val ColorScheme.controlDefault: Color
 
 val ColorScheme.controlFillSecondary: Color
     get() = if (isDark) Color(0xFF393939) else Color(0xFF032b3c)
+
+val ColorScheme.fillInputText: Color
+    get() = if (isDark) Color(0x2c2c2e1a) else Color(0xFFFFFFFF)
+
+

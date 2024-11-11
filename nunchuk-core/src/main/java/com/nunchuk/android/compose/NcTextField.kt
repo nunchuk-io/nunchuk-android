@@ -61,7 +61,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
@@ -78,7 +78,6 @@ fun NcTextField(
     error: String? = null,
     hint: String? = null,
     hasError: Boolean = !error.isNullOrEmpty(),
-    showErrorMessageOnly: Boolean = false,
     onClick: () -> Unit = {},
     placeholder: @Composable (() -> Unit)? = null,
     minLines: Int = 1,
@@ -89,24 +88,16 @@ fun NcTextField(
     disableBackgroundColor: Color = MaterialTheme.colorScheme.background,
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
-    textFieldColor: Color = MaterialTheme.colorScheme.background,
     maxLength: Int = Int.MAX_VALUE,
     enableMaxLength: Boolean = false,
     colors: TextFieldColors = TextFieldDefaults.colors(),
     inputBoxHeight: Dp = Dp.Unspecified,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onFocusEvent: (Boolean) -> Unit = {},
-    borderColor: Color = Color(0xFFDEDEDE),
     textStyle: TextStyle = NunchukTheme.typography.body,
     secondTitle: @Composable (() -> Unit)? = null,
     onValueChange: (value: String) -> Unit,
 ) {
-    var backgroundErrorColor = textFieldColor
-    var borderErrorColor = borderColor
-    if (hasError && showErrorMessageOnly.not()) {
-        backgroundErrorColor = colorResource(id = R.color.nc_red_tint_color)
-        borderErrorColor = colorResource(id = R.color.nc_orange_color)
-    }
     val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
 
@@ -151,7 +142,7 @@ fun NcTextField(
         BasicTextField(
             modifier = Modifier
                 .background(
-                    color = if (enabled.not()) disableBackgroundColor else backgroundErrorColor,
+                    color = if (enabled.not()) disableBackgroundColor else MaterialTheme.colorScheme.fillInputText,
                     shape = RoundedCornerShape(8.dp)
                 )
                 .defaultMinSize(
@@ -192,7 +183,11 @@ fun NcTextField(
                         Box(
                             Modifier.border(
                                 width = 1.dp,
-                                color = borderErrorColor,
+                                color = if (hasError) {
+                                    colorResource(R.color.nc_orange_color)
+                                } else {
+                                    colorResource(R.color.nc_text_primary)
+                                },
                                 shape = RoundedCornerShape(8.dp),
                             )
                         )
@@ -202,7 +197,7 @@ fun NcTextField(
         )
         if (!error.isNullOrEmpty() || !hint.isNullOrEmpty()) {
             val color =
-                if (hasError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.greyDark
+                if (hasError) colorResource(R.color.nc_orange_color) else MaterialTheme.colorScheme.greyDark
             CompositionLocalProvider(LocalContentColor provides color) {
                 BottomText(error ?: hint)
             }
@@ -251,7 +246,7 @@ fun NcTextField(
             BasicTextField(
                 modifier = Modifier
                     .background(
-                        color = if (hasError) colorResource(id = R.color.nc_red_tint_color) else MaterialTheme.colorScheme.background,
+                        color = if (hasError) colorResource(id = R.color.nc_red_tint_color) else MaterialTheme.colorScheme.fillInputText,
                         shape = RoundedCornerShape(8.dp)
                     )
                     .defaultMinSize(
@@ -290,9 +285,11 @@ fun NcTextField(
                             Box(
                                 Modifier.border(
                                     width = 1.dp,
-                                    color = if (hasError) colorResource(id = R.color.nc_orange_color) else Color(
-                                        0xFFDEDEDE
-                                    ),
+                                    color = if (hasError) {
+                                        colorResource(R.color.nc_orange_color)
+                                    } else {
+                                        colorResource(R.color.nc_text_primary)
+                                    },
                                     shape = RoundedCornerShape(8.dp),
                                 )
                             )
@@ -304,7 +301,9 @@ fun NcTextField(
             rightContent()
         }
         if (hasError) {
-            BottomText(error)
+            CompositionLocalProvider(LocalContentColor provides colorResource(R.color.nc_orange_color)) {
+                BottomText(error)
+            }
         }
     }
 }
@@ -330,7 +329,7 @@ private fun BottomText(error: String?) {
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 fun NcTextFieldPreview() {
     NunchukTheme {
@@ -345,7 +344,7 @@ fun NcTextFieldPreview() {
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 fun NcTextFieldErrorPreview() {
     NunchukTheme {
@@ -370,7 +369,7 @@ fun NcTextFieldErrorPreview() {
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 fun NcTextFieldMaxLengthPreview() {
     NunchukTheme {

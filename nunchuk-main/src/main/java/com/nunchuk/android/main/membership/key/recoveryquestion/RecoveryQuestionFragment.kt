@@ -409,7 +409,6 @@ fun QuestionRow(
                 value = question.customQuestion.orEmpty(),
                 onValueChange = onInputCustomQuestionTextChange,
                 error = error,
-                showErrorMessageOnly = true
             )
         }
         val vi =

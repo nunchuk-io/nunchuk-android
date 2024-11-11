@@ -50,6 +50,10 @@ fun NcHintMessage(
         HighlightMessageType.WARNING -> colorResource(id = R.color.nc_beeswax_tint)
         HighlightMessageType.HINT -> colorResource(id = R.color.nc_bg_mid_gray)
     }
+    val contentColor = when(type) {
+        HighlightMessageType.WARNING -> colorResource(id = R.color.nc_grey_g7)
+        HighlightMessageType.HINT -> colorResource(id = R.color.nc_text_primary)
+    }
     val icon =  when(type) {
         HighlightMessageType.HINT -> painterResource(id = R.drawable.ic_info)
         HighlightMessageType.WARNING -> painterResource(id = R.drawable.ic_warning_amber)
@@ -65,12 +69,13 @@ fun NcHintMessage(
             NcIcon(
                 modifier = Modifier.size(36.dp),
                 painter = icon,
-                contentDescription = "Info icon"
+                contentDescription = "Info icon",
+                tint = contentColor
             )
             NcClickableText(
                 modifier = Modifier.padding(start = 8.dp),
                 messages = messages,
-                style = textStyle
+                style = textStyle.copy(color = contentColor)
             )
         }
     }

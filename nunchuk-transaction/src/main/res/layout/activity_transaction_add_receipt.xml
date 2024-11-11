@@ -138,7 +138,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:padding="@dimen/nc_padding_4"
-        android:textColor="@color/nc_grey_dark_color"
+        android:textColor="@color/nc_text_secondary"
         android:textSize="@dimen/nc_text_size_12"
         app:layout_constraintBottom_toBottomOf="@+id/nameTitle"
         app:layout_constraintEnd_toEndOf="parent"
@@ -169,7 +169,7 @@
         android:id="@+id/container_private_note"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="optional, nameTitle, privateNoteCounter, privateNoteInput" />
+        app:constraint_referenced_ids="nameTitle, privateNoteCounter, privateNoteInput" />
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btn_create_transaction"

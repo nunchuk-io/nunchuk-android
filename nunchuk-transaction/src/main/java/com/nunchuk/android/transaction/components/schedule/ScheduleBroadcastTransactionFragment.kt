@@ -92,25 +92,26 @@ class ScheduleBroadcastTransactionFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle).collect { event ->
-                    when (event) {
-                        ScheduleBroadcastTransactionEvent.OnSelectDateEvent -> showDatePicker()
-                        ScheduleBroadcastTransactionEvent.OnSelectTimeEvent -> showTimePicker()
-                        ScheduleBroadcastTransactionEvent.OnSelectTimeZoneEvent -> findNavController().navigate(
-                            ScheduleBroadcastTransactionFragmentDirections.actionScheduleBroadcastTransactionFragmentToSelectTimeZoneFragment()
-                        )
-                        is ScheduleBroadcastTransactionEvent.ShowError -> showError(event.message)
-                        is ScheduleBroadcastTransactionEvent.Loading -> showOrHideLoading(event.isLoading)
-                        is ScheduleBroadcastTransactionEvent.ScheduleBroadcastSuccess -> {
-                            requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
-                                putExtra(
-                                    ScheduleBroadcastTransactionActivity.EXTRA_SCHEDULE_BROADCAST_TIME,
-                                    event.serverTransaction
-                                )
-                            })
-                            requireActivity().finish()
-                        }
+                when (event) {
+                    ScheduleBroadcastTransactionEvent.OnSelectDateEvent -> showDatePicker()
+                    ScheduleBroadcastTransactionEvent.OnSelectTimeEvent -> showTimePicker()
+                    ScheduleBroadcastTransactionEvent.OnSelectTimeZoneEvent -> findNavController().navigate(
+                        ScheduleBroadcastTransactionFragmentDirections.actionScheduleBroadcastTransactionFragmentToSelectTimeZoneFragment()
+                    )
+
+                    is ScheduleBroadcastTransactionEvent.ShowError -> showError(event.message)
+                    is ScheduleBroadcastTransactionEvent.Loading -> showOrHideLoading(event.isLoading)
+                    is ScheduleBroadcastTransactionEvent.ScheduleBroadcastSuccess -> {
+                        requireActivity().setResult(Activity.RESULT_OK, Intent().apply {
+                            putExtra(
+                                ScheduleBroadcastTransactionActivity.EXTRA_SCHEDULE_BROADCAST_TIME,
+                                event.serverTransaction
+                            )
+                        })
+                        requireActivity().finish()
                     }
                 }
+            }
         }
         setFragmentResultListener(SelectTimeZoneFragment.REQUEST_KEY) { _, bundle ->
             val timeZone = bundle.parcelable<TimeZoneDetail>(SelectTimeZoneFragment.EXTRA_TIME_ZONE)
@@ -151,7 +152,8 @@ class ScheduleBroadcastTransactionFragment : Fragment() {
 @Composable
 private fun ScheduleBroadcastTransactionScreen(viewModel: ScheduleBroadcastTransactionViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    ScheduleBroadcastTransactionContent(time = state.time,
+    ScheduleBroadcastTransactionContent(
+        time = state.time,
         timeZone = state.timeZone,
         onDateSelect = {
             viewModel.onSelectEvent(ScheduleBroadcastTransactionEvent.OnSelectDateEvent)
@@ -176,9 +178,22 @@ private fun ScheduleBroadcastTransactionContent(
     onSaveClicked: () -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
-            Column(modifier = Modifier) {
+        Scaffold(
+            topBar = {
                 NcTopAppBar(title = "", isBack = false)
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = onSaveClicked,
+                ) {
+                    Text(stringResource(id = R.string.nc_text_save))
+                }
+            }
+        ) { innerPadding ->
+            Column(modifier = Modifier.padding(innerPadding)) {
                 Text(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
                     text = stringResource(id = R.string.nc_schedule_broadcast),
@@ -232,14 +247,6 @@ private fun ScheduleBroadcastTransactionContent(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     messages = listOf(ClickAbleText(content = stringResource(R.string.nc_schedule_broadcast_hint)))
                 )
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onSaveClicked,
-                ) {
-                    Text(stringResource(id = R.string.nc_text_save))
-                }
             }
         }
     }

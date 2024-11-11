@@ -24,10 +24,12 @@ package com.nunchuk.android.compose
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -62,7 +64,7 @@ fun NcImageAppBar(
                 modifier = Modifier.fillMaxWidth(),
                 painter = painterResource(id = backgroundRes),
                 contentScale = ContentScale.Crop,
-                contentDescription = "Background"
+                contentDescription = "Background",
             )
             CenterAlignedTopAppBar(title = {
                 if (title != null) {
@@ -76,7 +78,7 @@ fun NcImageAppBar(
                 }
             }, navigationIcon = {
                 IconButton(onClick = onClick) {
-                    Icon(
+                    NcIcon(
                         painter = painterResource(id = backIconRes),
                         contentDescription = "Back Icon"
                     )

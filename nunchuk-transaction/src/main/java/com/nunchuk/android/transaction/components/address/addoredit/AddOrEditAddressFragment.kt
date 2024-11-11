@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -43,11 +42,13 @@ import androidx.navigation.fragment.navArgs
 import com.journeyapps.barcodescanner.ScanContract
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcHintMessage
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.SavedAddressFlow
@@ -245,9 +246,7 @@ fun AddOrEditAddressScreenContent(
                         Text(
                             text = stringResource(id = R.string.nc_enter_a_label),
                             style = NunchukTheme.typography.body.copy(
-                                color = colorResource(
-                                    id = com.nunchuk.android.core.R.color.nc_boulder_color
-                                )
+                                color = MaterialTheme.colorScheme.textSecondary
                             )
                         )
                     },
@@ -267,14 +266,12 @@ fun AddOrEditAddressScreenContent(
                             Text(
                                 text = "Enter an address",
                                 style = NunchukTheme.typography.body.copy(
-                                    color = colorResource(
-                                        id = com.nunchuk.android.core.R.color.nc_boulder_color
-                                    )
+                                    color = MaterialTheme.colorScheme.textSecondary
                                 )
                             )
                         },
                         rightContent = {
-                            Image(
+                            NcIcon(
                                 modifier = Modifier
                                     .padding(end = 12.dp)
                                     .clickable {

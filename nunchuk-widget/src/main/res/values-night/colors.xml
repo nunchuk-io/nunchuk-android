@@ -53,4 +53,5 @@
     <color name="nc_control_state_activated">#FFCB2E</color>
     <color name="nc_fill_beewax">#a66800</color>
     <color name="nc_fill_denim">#2F466C</color>
+    <color name="nc_fill_input_text">#2c2c2e1a</color>
 </resources>

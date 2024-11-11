@@ -24,10 +24,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.MODE_VIEW_ONLY
@@ -51,7 +51,7 @@ fun TransactionCoinSelection(
             inputs.forEach {
                 PreviewCoinCard(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-                        .background(color = Color.White, shape = RoundedCornerShape(12.dp)),
+                        .background(color = MaterialTheme.colorScheme.background, shape = RoundedCornerShape(12.dp)),
                     output = it,
                     mode = MODE_VIEW_ONLY,
                     tags = allTags

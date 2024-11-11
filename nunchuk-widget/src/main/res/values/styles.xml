@@ -112,8 +112,8 @@
         <item name="android:windowExitAnimation">@android:anim/fade_out</item>
     </style>
 
-    <style name="NunchukDateTimePicker" parent="Theme.MaterialComponents.DayNight.Dialog">
-        <item name="colorAccent">@color/nc_primary_color</item>
+    <style name="NunchukDateTimePicker" parent="Theme.AppCompat.DayNight.Dialog">
+        <item name="colorAccent">@color/nc_text_primary</item>
         <item name="android:buttonBarNegativeButtonStyle">
             @style/DatePickerTheme.ButtonBarNegativeButtonStyle
         </item>
@@ -123,7 +123,7 @@
     </style>
 
     <style name="DatePickerTheme.ButtonBarNegativeButtonStyle" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
-        <item name="android:textColor">@color/nc_primary_color</item>
+        <item name="android:textColor">@color/nc_text_primary</item>
     </style>
 
 </resources>
