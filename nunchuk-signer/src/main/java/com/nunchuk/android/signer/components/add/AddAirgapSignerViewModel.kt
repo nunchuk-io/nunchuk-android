@@ -334,7 +334,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                 if (result.isSuccess) {
                     val signers = result.getOrThrow()
                     updateSigners(signers)
-                    if (chain == Chain.MAIN && _signers.any { isTestNetPath(it.derivationPath) }) {
+                    if (isMembershipFlow && chain == Chain.MAIN && _signers.any { isTestNetPath(it.derivationPath) }) {
                         setEvent(ErrorMk4TestNet)
                     } else {
                         setEvent(ParseKeystoneAirgapSignerSuccess(_signers))
