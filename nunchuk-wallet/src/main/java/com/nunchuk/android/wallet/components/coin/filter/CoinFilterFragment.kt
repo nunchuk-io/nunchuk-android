@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.wallet.components.coin.filter
 
-import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -66,6 +65,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
+import com.google.android.material.datepicker.MaterialDatePicker
 import com.nunchuk.android.compose.InputSwitchCurrencyView
 import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -85,6 +85,7 @@ import com.nunchuk.android.wallet.components.coin.filter.tag.FilterByTagFragment
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Calendar
 import java.util.Date
+import java.util.TimeZone
 
 @AndroidEntryPoint
 class CoinFilterFragment : Fragment() {
@@ -116,22 +117,21 @@ class CoinFilterFragment : Fragment() {
                         )
                     },
                     onSelectDate = { isStart ->
-                        val time =
-                            if (isStart) viewModel.startTime.value else viewModel.endTime.value
-                        val actualTime = if (time < 0L) System.currentTimeMillis() else time
-                        val calendar = Calendar.getInstance().apply {
+                        val oldCalUtc = Calendar.getInstance().apply {
+                            val time =
+                                if (isStart) viewModel.startTime.value else viewModel.endTime.value
+                            val actualTime = if (time < 0L) System.currentTimeMillis() else time
                             timeInMillis = actualTime
+                            timeZone = TimeZone.getTimeZone("UTC")
                         }
-                        val dialog = DatePickerDialog(
-                            requireContext(), R.style.NunchukDateTimePicker,
-                            { _, year, month, dayOfMonth ->
-                                viewModel.setDate(isStart, year, month, dayOfMonth)
-                            },
-                            calendar.get(Calendar.YEAR),
-                            calendar.get(Calendar.MONTH),
-                            calendar.get(Calendar.DAY_OF_MONTH),
-                        )
-                        dialog.show()
+                        val materialDatePicker = MaterialDatePicker.Builder.datePicker()
+                            .setTheme(R.style.NcMaterialCalendar)
+                            .setSelection(oldCalUtc.timeInMillis)
+                            .build()
+                        materialDatePicker.addOnPositiveButtonClickListener { timeInMillis ->
+                            viewModel.setDate(isStart, timeInMillis)
+                        }
+                        materialDatePicker.show(childFragmentManager, "MaterialDatePicker")
                     },
                     onApplyFilter = { min, isMinBtc, max, isMaxBtc, showLockedCoin, showUnlockedCoin, isDescending ->
                         setFragmentResult(

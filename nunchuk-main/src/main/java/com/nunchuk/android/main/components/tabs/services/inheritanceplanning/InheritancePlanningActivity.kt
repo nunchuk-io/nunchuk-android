@@ -22,6 +22,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
@@ -57,7 +58,6 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
             membershipStepManager.initStep("", GroupWalletType.TWO_OF_FOUR_MULTISIG)
         }
         membershipStepManager.setCurrentStep(MembershipStep.SETUP_INHERITANCE)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
@@ -144,7 +144,9 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
     }
 
     override fun initializeBinding(): ActivityNavigationBinding {
-        return ActivityNavigationBinding.inflate(layoutInflater)
+        return ActivityNavigationBinding.inflate(layoutInflater).also {
+            enableEdgeToEdge()
+        }
     }
 
     companion object {

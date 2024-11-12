@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -29,7 +30,11 @@ import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.healthCheckTimeColor
 
-fun LazyListScope.HealthCheckStatusView(onOpenHealthCheckScreen: () -> Unit = {}, signers: List<SignerModel>, status: Map<String, KeyHealthStatus>) {
+fun LazyListScope.HealthCheckStatusView(
+    onOpenHealthCheckScreen: () -> Unit = {},
+    signers: List<SignerModel>,
+    status: Map<String, KeyHealthStatus>
+) {
     item {
         Column(
             modifier = Modifier
@@ -65,7 +70,13 @@ fun LazyListScope.HealthCheckStatusView(onOpenHealthCheckScreen: () -> Unit = {}
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 items(signers.filter { it.type != SignerType.SERVER }) {
-                    NcCircleImage(resId = it.toReadableDrawableResId(), size = 36.dp, iconSize = 18.dp, color = status[it.fingerPrint]?.lastHealthCheckTimeMillis.healthCheckTimeColor())
+                    NcCircleImage(
+                        resId = it.toReadableDrawableResId(),
+                        size = 36.dp,
+                        iconSize = 18.dp,
+                        color = status[it.fingerPrint]?.lastHealthCheckTimeMillis.healthCheckTimeColor(),
+                        iconTintColor = colorResource(id = R.color.nc_grey_g7)
+                    )
                 }
             }
         }

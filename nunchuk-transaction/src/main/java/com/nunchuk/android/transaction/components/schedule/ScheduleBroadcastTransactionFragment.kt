@@ -20,8 +20,6 @@
 package com.nunchuk.android.transaction.components.schedule
 
 import android.app.Activity
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -52,6 +50,8 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.android.material.timepicker.MaterialTimePicker
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -71,6 +71,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
+import java.util.TimeZone
 
 @AndroidEntryPoint
 class ScheduleBroadcastTransactionFragment : Fragment() {
@@ -121,31 +122,33 @@ class ScheduleBroadcastTransactionFragment : Fragment() {
     }
 
     private fun showDatePicker() {
-        val calendar = Calendar.getInstance().apply {
+        val oldCalUtc = Calendar.getInstance().apply {
             timeInMillis = viewModel.state.value.time
+            timeZone = TimeZone.getTimeZone("UTC")
         }
-        val dialog = DatePickerDialog(
-            requireContext(), R.style.NunchukDateTimePicker,
-            { _, year, month, dayOfMonth ->
-                viewModel.setDate(year, month, dayOfMonth)
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH),
-        )
-        dialog.show()
+        val materialDatePicker = MaterialDatePicker.Builder.datePicker()
+            .setTheme(R.style.NcMaterialCalendar)
+            .setSelection(oldCalUtc.timeInMillis)
+            .build()
+        materialDatePicker.addOnPositiveButtonClickListener { timeInMillis ->
+            viewModel.setDate(timeInMillis)
+        }
+        materialDatePicker.show(childFragmentManager, "MaterialDatePicker")
     }
 
     private fun showTimePicker() {
-        val calendar = Calendar.getInstance().apply {
+        val oldCalUtc = Calendar.getInstance().apply {
             timeInMillis = viewModel.state.value.time
         }
-        val dialog = TimePickerDialog(
-            requireContext(), R.style.NunchukDateTimePicker, { _, hourOfDay, minute ->
-                viewModel.setTime(hourOfDay, minute)
-            }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false
-        )
-        dialog.show()
+        val materialTimePicker = MaterialTimePicker.Builder()
+            .setTheme(R.style.NcMaterialTimePicker)
+            .setHour(oldCalUtc.get(Calendar.HOUR_OF_DAY))
+            .setMinute(oldCalUtc.get(Calendar.MINUTE))
+            .build()
+        materialTimePicker.addOnPositiveButtonClickListener {
+            viewModel.setTime(materialTimePicker.hour, materialTimePicker.minute)
+        }
+        materialTimePicker.show(childFragmentManager, "MaterialTimePicker")
     }
 }
 

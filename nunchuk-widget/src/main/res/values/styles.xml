@@ -5,7 +5,6 @@
         <item name="colorPrimaryDark">@color/nc_primary_dark_color</item>
         <item name="colorSecondary">@color/nc_primary_color</item>
         <item name="colorControlNormal">@color/nc_text_primary</item>
-        <item name="android:datePickerStyle">@style/NunchukDateTimePicker</item>
         <item name="cardViewStyle">@style/NcCardView</item>
         <item name="floatingActionButtonStyle">@style/Widget.App.FloatingActionButton</item>
         <item name="extendedFloatingActionButtonStyle">@style/Widget.App.ExtendedFloatingActionButton</item>
@@ -112,18 +111,15 @@
         <item name="android:windowExitAnimation">@android:anim/fade_out</item>
     </style>
 
-    <style name="NunchukDateTimePicker" parent="Theme.AppCompat.DayNight.Dialog">
-        <item name="colorAccent">@color/nc_text_primary</item>
-        <item name="android:buttonBarNegativeButtonStyle">
-            @style/DatePickerTheme.ButtonBarNegativeButtonStyle
-        </item>
-        <item name="android:buttonBarPositiveButtonStyle">
-            @style/DatePickerTheme.ButtonBarNegativeButtonStyle
-        </item>
+    <style name="NcMaterialCalendar" parent="ThemeOverlay.MaterialComponents.MaterialCalendar">
+        <!-- just override the colors used in the default style -->
+        <item name="colorOnPrimary">@color/nc_control_text_primary</item>
+        <item name="colorPrimary">@color/nc_control_state_activated</item>
     </style>
 
-    <style name="DatePickerTheme.ButtonBarNegativeButtonStyle" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
-        <item name="android:textColor">@color/nc_text_primary</item>
+    <style name="NcMaterialTimePicker" parent="ThemeOverlay.MaterialComponents.TimePicker">
+        <item name="colorOnPrimary">@color/nc_control_text_primary</item>
+        <item name="colorPrimary">@color/nc_control_state_activated</item>
     </style>
 
 </resources>
