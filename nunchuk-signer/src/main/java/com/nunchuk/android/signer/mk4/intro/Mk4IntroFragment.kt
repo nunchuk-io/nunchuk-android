@@ -61,6 +61,9 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
+import com.nunchuk.android.core.util.isRecommendedSingleSigPath
+import com.nunchuk.android.core.util.isTestNetSigner
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showOrHideNfcLoading
@@ -305,7 +308,24 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
         if (signer.isNotEmpty()) {
             val fragment = BottomSheetOption.newInstance(signer.mapIndexed { index, singleSigner ->
                 SheetOption(
-                    type = index + SIGNER_OFFSET, label = singleSigner.derivationPath
+                    type = index + SIGNER_OFFSET,
+                    label = if (singleSigner.derivationPath.isTestNetSigner) {
+                        "${singleSigner.derivationPath} (${getString(R.string.nc_testnet)})"
+                    } else if (singleSigner.derivationPath.isRecommendedMultiSigPath) {
+                        "${singleSigner.derivationPath} (${
+                            getString(
+                                R.string.nc_recommended_for_multisig
+                            )
+                        })"
+                    } else if (singleSigner.derivationPath.isRecommendedSingleSigPath) {
+                        "${singleSigner.derivationPath} (${
+                            getString(
+                                R.string.nc_recommended_for_single_sig
+                            )
+                        })"
+                    } else {
+                        singleSigner.derivationPath
+                    }
                 )
             }, title = getString(R.string.nc_mk4_signer_title))
             fragment.show(childFragmentManager, "BottomSheetOption")

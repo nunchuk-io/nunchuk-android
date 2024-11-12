@@ -217,11 +217,7 @@ class Mk4IntroViewModel @Inject constructor(
                         clear()
                         addAll(result.getOrThrow())
                     }
-                    if (chain == Chain.MAIN && _mk4Signers.any { isTestNetPath(it.derivationPath) }) {
-                        _event.emit(Mk4IntroViewEvent.ErrorMk4TestNet)
-                    } else {
-                        _event.emit(Mk4IntroViewEvent.LoadMk4SignersSuccess(_mk4Signers))
-                    }
+                    _event.emit(Mk4IntroViewEvent.LoadMk4SignersSuccess(_mk4Signers))
                 }
             } else {
                 _event.emit(Mk4IntroViewEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
