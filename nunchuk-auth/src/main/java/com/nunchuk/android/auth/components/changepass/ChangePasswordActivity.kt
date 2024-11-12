@@ -29,7 +29,9 @@ import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.view.View
+import android.widget.TextView
 import androidx.activity.viewModels
+import androidx.core.content.ContextCompat
 import androidx.core.text.buildSpannedString
 import androidx.core.text.inSpans
 import androidx.core.view.isVisible
@@ -46,12 +48,14 @@ import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.NewPas
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.OldPasswordRequiredEvent
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.OldPasswordValidEvent
 import com.nunchuk.android.auth.components.changepass.ChangePasswordEvent.ShowEmailSentEvent
+import com.nunchuk.android.auth.components.changepass.ChangePasswordViewModel.Companion.SPECIAL_CHARACTERS
 import com.nunchuk.android.auth.databinding.ActivityChangePasswordBinding
 import com.nunchuk.android.core.account.SignInType
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -105,11 +109,6 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
                     NCToastMessage(this).showMessage(getString(R.string.nc_resend_request_submitted))
                     showCountdownTimer(it.email)
                 }
-
-                ChangePasswordEvent.NewPasswordLengthErrorEvent -> binding.newPassword.setError(getString(R.string.nc_text_password_length_error))
-                ChangePasswordEvent.NewPasswordNumberErrorEvent -> binding.newPassword.setError(getString(R.string.nc_text_password_number_error))
-                ChangePasswordEvent.NewPasswordSpecialCharErrorEvent -> binding.newPassword.setError(getString(R.string.nc_text_password_special_char_error))
-                ChangePasswordEvent.NewPasswordUpperCaseErrorEvent -> binding.newPassword.setError(getString(R.string.nc_text_password_upper_case_error))
             }
         }
     }
@@ -145,7 +144,12 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
                         }s)"
                     )
                     val startIndex = indexOf(email)
-                    setSpan(StyleSpan(BOLD), startIndex, startIndex + email.length, SPAN_INCLUSIVE_EXCLUSIVE)
+                    setSpan(
+                        StyleSpan(BOLD),
+                        startIndex,
+                        startIndex + email.length,
+                        SPAN_INCLUSIVE_EXCLUSIVE
+                    )
                     setSpan(
                         ForegroundColorSpan(getColor(R.color.nc_primary_color)),
                         startIndex,
@@ -177,7 +181,12 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
             }
             append(" ")
             val startIndex = indexOf(email)
-            setSpan(StyleSpan(BOLD), startIndex, startIndex + email.length, SPAN_INCLUSIVE_EXCLUSIVE)
+            setSpan(
+                StyleSpan(BOLD),
+                startIndex,
+                startIndex + email.length,
+                SPAN_INCLUSIVE_EXCLUSIVE
+            )
             setSpan(
                 ForegroundColorSpan(getColor(R.color.nc_primary_color)),
                 startIndex,
@@ -193,6 +202,13 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
         binding.newPassword.makeMaskedInput()
         binding.confirmPassword.makeMaskedInput()
         binding.changePassword.setOnClickListener { onChangePasswordClicked() }
+        binding.newPassword.addTextChangedCallback {
+            validateNewPassword(it)
+        }
+        binding.newPassword.getEditTextView().setOnFocusChangeListener { v, hasFocus ->
+            binding.passwordErrorGroup.isVisible =
+                hasFocus || binding.newPassword.getEditText().isNotEmpty()
+        }
     }
 
     private fun showChangePasswordError(errorMessage: String) {
@@ -206,6 +222,62 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
             newPassword = binding.newPassword.getEditText(),
             confirmPassword = binding.confirmPassword.getEditText()
         )
+    }
+
+    private fun validateNewPassword(newPassword: String) {
+        if (newPassword.isEmpty()) {
+            listOf(
+                binding.tvAtLeastOneNumber,
+                binding.tvAtLeastOneUpperCase,
+                binding.tvAtLeastOneSpecialChar,
+                binding.tvAtLeast8Characters
+            ).forEach {
+                it.setTextColor(ContextCompat.getColor(this, R.color.nc_primary_color))
+                it.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                    R.drawable.ic_dot,
+                    0,
+                    0,
+                    0
+                )
+            }
+        } else {
+            applyPasswordAttribute(
+                binding.tvAtLeastOneNumber,
+                newPassword.any { it.isDigit() }
+            )
+            applyPasswordAttribute(
+                binding.tvAtLeastOneUpperCase,
+                newPassword.any { it.isUpperCase() }
+            )
+            applyPasswordAttribute(
+                binding.tvAtLeastOneSpecialChar,
+                newPassword.any { it in SPECIAL_CHARACTERS }
+            )
+            applyPasswordAttribute(
+                binding.tvAtLeast8Characters,
+                newPassword.length >= 8
+            )
+        }
+    }
+
+    private fun applyPasswordAttribute(tv: TextView, isPass: Boolean) {
+        if (isPass) {
+            tv.setTextColor(ContextCompat.getColor(this, R.color.nc_slime_dark))
+            tv.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                R.drawable.ic_check_green,
+                0,
+                0,
+                0
+            )
+        } else {
+            tv.setTextColor(ContextCompat.getColor(this, R.color.nc_orange_color))
+            tv.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                R.drawable.ic_info_red,
+                0,
+                0,
+                0
+            )
+        }
     }
 
     companion object {

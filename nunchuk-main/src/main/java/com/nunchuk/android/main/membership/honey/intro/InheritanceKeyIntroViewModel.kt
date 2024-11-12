@@ -23,9 +23,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
+import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -34,32 +39,42 @@ import javax.inject.Inject
 @HiltViewModel
 class TapSignerInheritanceIntroViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
-    private val getMasterSignersUseCase: GetMasterSignersUseCase,
     private val masterSignerMapper: MasterSignerMapper,
-) : ViewModel() {
+    private val getAllSignersUseCase: GetAllSignersUseCase,
+    ) : ViewModel() {
     private val _event = MutableSharedFlow<TapSignerInheritanceIntroEvent>()
     val event = _event.asSharedFlow()
 
-    private val _tapSigners = MutableStateFlow<List<SignerModel>>(emptyList())
-    val tapSigners = _tapSigners.asStateFlow()
+    private val _signers = MutableStateFlow<List<SignerModel>>(emptyList())
+    val signers = _signers.asStateFlow()
 
     init {
         viewModelScope.launch {
-            getMasterSignersUseCase.execute()
-                .collect {
-                    val signers = it.map { signer -> masterSignerMapper(signer) }
-                        .filter { signer ->
-                            signer.type == SignerType.NFC && membershipStepManager.isKeyExisted(
-                                signer.fingerPrint
-                            ).not()
-                        }
+            getAllSignersUseCase(false).onSuccess { pair ->
+                val signers = pair.first.map { signer ->
+                    masterSignerMapper(signer)
+                } + pair.second.map { signer -> signer.toModel() }
+                val coldCard = getColdcard(signers)
+                val tapSigners = getTapSigners(signers)
 
-                    _tapSigners.update { signers }
-                }
+                _signers.update { coldCard + tapSigners }
+
+            }
         }
     }
 
-    fun getTapSigners() = tapSigners.value
+    private fun getColdcard(signers: List<SignerModel>) = signers.filter {
+        isKeyExisted(it.fingerPrint).not()
+                && ((it.type == SignerType.COLDCARD_NFC && it.derivationPath.isRecommendedMultiSigPath)
+                || (it.type == SignerType.AIRGAP && (it.tags.isEmpty() || it.tags.contains(SignerTag.COLDCARD))))
+    }
+
+    private fun getTapSigners(signers: List<SignerModel>) =
+        signers.filter { it.type == SignerType.NFC && isKeyExisted(it.fingerPrint).not() }
+
+    private fun isKeyExisted(fingerPrint: String) = membershipStepManager.isKeyExisted(fingerPrint)
+
+    fun getSigners() = _signers.value
 
     fun onContinueClicked() {
         viewModelScope.launch {

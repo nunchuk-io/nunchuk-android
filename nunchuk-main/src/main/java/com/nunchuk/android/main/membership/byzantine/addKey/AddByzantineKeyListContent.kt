@@ -44,6 +44,7 @@ import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
+import com.nunchuk.android.type.SignerType
 
 @Composable
 fun AddByzantineKeyListContent(
@@ -53,6 +54,7 @@ fun AddByzantineKeyListContent(
     refresh: () -> Unit = { },
     onMoreClicked: () -> Unit = {},
     keys: List<AddKeyData> = emptyList(),
+    missingBackupKeys: List<AddKeyData> = emptyList(),
     remainingTime: Int,
     isRefreshing: Boolean = false,
     isAddOnly: Boolean = false,
@@ -88,11 +90,15 @@ fun AddByzantineKeyListContent(
                     }
                 }
             }) { innerPadding ->
-            Box(Modifier.pullRefresh(state)) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .pullRefresh(state)
+            ) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding)
                         .padding(top = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -132,7 +138,8 @@ fun AddByzantineKeyListContent(
                                 item = key,
                                 onAddClicked = onAddClicked,
                                 onVerifyClicked = onVerifyClicked,
-                                isDisabled = role.isFacilitatorAdmin
+                                isDisabled = role.isFacilitatorAdmin,
+                                isMissingBackup = missingBackupKeys.contains(key) && key.signer?.type != SignerType.NFC,
                             )
                         }
                     }
@@ -168,7 +175,7 @@ fun AddKeyListScreenHoneyBadgerPreview(
     AddByzantineKeyListContent(
         keys = listOf(
             AddKeyData(
-                type = MembershipStep.HONEY_ADD_TAP_SIGNER,
+                type = MembershipStep.HONEY_ADD_INHERITANCE_KEY,
                 signer = signer.copy(isVisible = false),
                 verifyType = VerifyType.NONE
             ),

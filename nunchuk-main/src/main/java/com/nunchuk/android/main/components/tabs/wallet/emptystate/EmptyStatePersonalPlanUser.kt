@@ -4,21 +4,20 @@ import android.app.Activity
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.nav.NunchukNavigator
 
 class EmptyStatePersonalPlanUser(
     private val navigator: NunchukNavigator,
     private val activityContext: Activity
-) : EmptyStateFactory {
+) : EmptyStateProvider {
     override fun getWizardData(conditionInfo: ConditionInfo): WizardData? {
         if (conditionInfo !is ConditionInfo.PersonalPlanUser) return null
         if (conditionInfo.resumeWizard) {
             return WizardData(
-                title = "You’re almost done!",
-                subtitle = "Est. time remaining: ${conditionInfo.resumeWizardMinutes} minutes",
+                title = activityContext.getString(R.string.nc_you_almost_done),
+                subtitle = activityContext.getString(R.string.nc_estimate_remain_time, conditionInfo.resumeWizardMinutes),
                 instructions = emptyList(),
-                buttonText = "Continue setting up your wallet",
+                buttonText = activityContext.getString(R.string.nc_continue_setting_your_wallet),
                 buttonAction = {
                     navigator.openMembershipActivity(
                         activityContext = activityContext,
@@ -33,10 +32,10 @@ class EmptyStatePersonalPlanUser(
             )
         }
         return WizardData(
-            title = "Let’s get you started",
-            subtitle = "This wizard will walk you through creating an assisted wallet step by step.",
+            title = activityContext.getString(R.string.nc_let_s_get_you_started),
+            subtitle = activityContext.getString(R.string.nc_assisted_wallet_intro_desc),
             instructions = listOf(),
-            buttonText = "Create assisted wallet (subscription required)",
+            buttonText = activityContext.getString(R.string.nc_create_assisted_wallet_subscription_required),
             buttonAction = {
                 if (conditionInfo.plan == MembershipPlan.HONEY_BADGER_PLUS) {
                     navigator.openMembershipActivity(
@@ -62,7 +61,7 @@ class EmptyStatePersonalPlanUser(
     override fun getKeyWalletEntryData(conditionInfo: ConditionInfo): KeyWalletEntryData? {
         if (conditionInfo !is ConditionInfo.PersonalPlanUser) return null
         return KeyWalletEntryData(
-            title = "Create unassisted wallet",
+            title = activityContext.getString(R.string.nc_create_unassisted_wallet),
             buttonAction = {
                 navigator.openWalletIntermediaryScreen(activityContext, conditionInfo.hasSigner)
             },

@@ -27,6 +27,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -51,7 +52,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.HighlightMessageType
+import com.nunchuk.android.compose.LabelNumberAndDesc
 import com.nunchuk.android.compose.NCLabelWithIndex
+import com.nunchuk.android.compose.NcClickableText
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
@@ -89,13 +92,17 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceShareSecretInfoScreen(viewModel, args) {
+                InheritanceShareSecretInfoScreen(viewModel, args, onActionClick = {
                     if (args.planFlow == InheritancePlanFlow.SETUP) {
                         showDialogInfo()
                     } else {
                         handleBack()
                     }
-                }
+                }, onLearnMoreClicked = {
+                    findNavController().navigate(
+                        InheritanceShareSecretInfoFragmentDirections.actionInheritanceShareSecretInfoFragmentToInheritanceBackUpDownloadFragment()
+                    )
+                })
             }
         }
     }
@@ -118,6 +125,7 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
                     ActivityManager.popUntil(GroupDashboardActivity::class.java)
                 }
             }
+
             InheritanceSourceFlow.SERVICE_TAB -> requireActivity().finish()
             else -> {
                 ActivityManager.popUntilRoot()
@@ -133,7 +141,8 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
 private fun InheritanceShareSecretInfoScreen(
     viewModel: InheritanceShareSecretInfoViewModel = viewModel(),
     args: InheritanceShareSecretInfoFragmentArgs,
-    onActionClick: () -> Unit = {}
+    onActionClick: () -> Unit = {},
+    onLearnMoreClicked: () -> Unit = {}
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     InheritanceShareSecretInfoContent(
@@ -141,7 +150,8 @@ private fun InheritanceShareSecretInfoScreen(
         type = args.type,
         magicalPhrase = args.magicalPhrase,
         planFlow = args.planFlow,
-        onActionClick = onActionClick
+        onActionClick = onActionClick,
+        onLearnMoreClicked = onLearnMoreClicked
     )
 }
 
@@ -152,7 +162,8 @@ private fun InheritanceShareSecretInfoContent(
     magicalPhrase: String = "",
     type: Int = 0,
     planFlow: Int = InheritancePlanFlow.NONE,
-    onActionClick: () -> Unit = {}
+    onActionClick: () -> Unit = {},
+    onLearnMoreClicked: () -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -171,7 +182,7 @@ private fun InheritanceShareSecretInfoContent(
                             ""
                         }
                         NcImageAppBar(
-                            backgroundRes = R.drawable.nc_bg_tap_signer_explain,
+                            backgroundRes = R.drawable.nc_bg_backup_password_share_secret,
                             title = title,
                         )
                         val typeDesc = when (type) {
@@ -207,7 +218,12 @@ private fun InheritanceShareSecretInfoContent(
                             ) {
                                 Text(
                                     modifier = Modifier.fillMaxWidth(),
-                                    text = magicalPhrase.ifEmpty { Utils.maskValue("", isMask = true) },
+                                    text = magicalPhrase.ifEmpty {
+                                        Utils.maskValue(
+                                            "",
+                                            isMask = true
+                                        )
+                                    },
                                     style = NunchukTheme.typography.body,
                                     textAlign = TextAlign.Center
                                 )
@@ -215,10 +231,23 @@ private fun InheritanceShareSecretInfoContent(
                         }
 
                         NCLabelWithIndex(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                             index = 2,
-                            label = stringResource(R.string.nc_inheritance_share_secret_info_2),
-                        )
+                        ) {
+                            NcClickableText(
+                                modifier = Modifier.padding(top = 0.dp),
+                                messages = listOf(
+                                    ClickAbleText(content = stringResource(id = R.string.nc_inheritance_share_secret_info_2)),
+                                    ClickAbleText(
+                                        content = stringResource(id = R.string.nc_learn_more),
+                                        onLearnMoreClicked
+                                    )
+                                ),
+                                style = NunchukTheme.typography.body
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
                     }
                 }
 

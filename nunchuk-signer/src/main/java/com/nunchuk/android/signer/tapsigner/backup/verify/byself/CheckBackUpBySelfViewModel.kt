@@ -25,6 +25,9 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.signer.mk4.inheritance.backup.myself.ColdCardVerifyBackUpMyselfEvent
+import com.nunchuk.android.usecase.GetDownloadBackUpKeyReplacementUseCase
+import com.nunchuk.android.usecase.GetDownloadBackUpKeyUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import com.nunchuk.android.utils.ChecksumUtil
@@ -42,6 +45,8 @@ class CheckBackUpBySelfViewModel @Inject constructor(
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
+    private val getDownloadBackUpKeyUseCase: GetDownloadBackUpKeyUseCase,
+    private val getDownloadBackUpKeyReplacementUseCase: GetDownloadBackUpKeyReplacementUseCase,
     private val nfcFileManager: NfcFileManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
@@ -51,9 +56,18 @@ class CheckBackUpBySelfViewModel @Inject constructor(
     private val _event = MutableSharedFlow<CheckBackUpBySelfEvent>()
     val event = _event.asSharedFlow()
 
+    private var ident: String = ""
+    init {
+        viewModelScope.launch {
+            getTapSignerStatusByIdUseCase(args.masterSignerId).onSuccess { status ->
+                ident = status.ident.orEmpty()
+            }
+        }
+    }
+
     fun onBtnClicked(event: CheckBackUpBySelfEvent) {
         if (event is OnDownloadBackUpClicked) {
-            handleDownloadBackupKey()
+            handleDownloadBackupKey(event.keyId, event.groupId, event.walletId)
         } else {
             viewModelScope.launch {
                 _event.emit(event)
@@ -61,15 +75,10 @@ class CheckBackUpBySelfViewModel @Inject constructor(
         }
     }
 
-    private fun handleDownloadBackupKey() {
+    private fun handleDownloadBackupKey(keyId: String, groupId: String, walletId: String) {
         viewModelScope.launch {
             getTapSignerStatusByIdUseCase(args.masterSignerId).onSuccess { status ->
-                val newFile = withContext(ioDispatcher) {
-                    File(args.filePath).copyTo(
-                        nfcFileManager.getBackUpKeyFile(status.ident.orEmpty()),
-                        true
-                    )
-                }
+                val newFile = downloadBackupKey(keyId.isNotEmpty(), groupId, walletId)
                 _event.emit(GetBackUpKeySuccess(newFile.absolutePath))
             }
         }
@@ -93,13 +102,15 @@ class CheckBackUpBySelfViewModel @Inject constructor(
         }
     }
 
-    fun setReplaceKeyVerified(keyId: String) {
+    fun setReplaceKeyVerified(keyId: String, groupId: String, walletId: String) {
         viewModelScope.launch {
             setReplaceKeyVerifiedUseCase(
                 SetReplaceKeyVerifiedUseCase.Param(
                     keyId = keyId,
-                    checkSum = getChecksum(),
-                    isAppVerified = false
+                    checkSum = getChecksum(true, groupId = groupId, walletId = walletId),
+                    isAppVerified = false,
+                    groupId = groupId,
+                    walletId = walletId
                 )
             ).onSuccess {
                 _event.emit(OnExitSelfCheck)
@@ -109,13 +120,53 @@ class CheckBackUpBySelfViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getChecksum(): String = withContext(ioDispatcher) {
-        ChecksumUtil.getChecksum(File(args.filePath).readBytes())
+    private suspend fun getChecksum(isReplaceKey: Boolean, groupId: String, walletId: String): String = withContext(ioDispatcher) {
+        val newFile = downloadBackupKey(isReplaceKey, groupId, walletId)
+        ChecksumUtil.getChecksum(newFile.readBytes())
+    }
+
+    private suspend fun downloadBackupKey(isReplaceKey: Boolean, groupId: String, walletId: String): File {
+        val newFile = withContext(ioDispatcher) {
+            var file: File
+            runCatching {
+                if (File(args.filePath).exists().not()) {
+                    throw Exception("File not found")
+                }
+            }.also {
+                file = if (it.isSuccess) {
+                    File(args.filePath)
+                } else {
+                    File(
+                        if (isReplaceKey.not()) {
+                            getDownloadBackUpKeyUseCase(
+                                GetDownloadBackUpKeyUseCase.Param(
+                                    xfp = args.masterSignerId,
+                                    groupId = groupId
+                                )
+                            ).getOrThrow()
+                        } else {
+                            getDownloadBackUpKeyReplacementUseCase(
+                                GetDownloadBackUpKeyReplacementUseCase.Param(
+                                    xfp = args.masterSignerId,
+                                    groupId = groupId,
+                                    walletId = walletId
+                                )
+                            ).getOrThrow()
+                        }
+                    )
+                }
+            }
+            file.copyTo(
+                nfcFileManager.getBackUpKeyFile(ident),
+                true
+            )
+        }
+        return newFile
     }
 }
 
 sealed class CheckBackUpBySelfEvent
-data object OnDownloadBackUpClicked : CheckBackUpBySelfEvent()
+data class OnDownloadBackUpClicked(val groupId: String, val walletId: String, val keyId: String) : CheckBackUpBySelfEvent()
 data object OnVerifiedBackUpClicked : CheckBackUpBySelfEvent()
 data object OnExitSelfCheck : CheckBackUpBySelfEvent()
 data class GetBackUpKeySuccess(val filePath: String) : CheckBackUpBySelfEvent()

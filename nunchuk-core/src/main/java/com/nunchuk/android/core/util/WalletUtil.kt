@@ -71,6 +71,8 @@ private fun Amount.fromBTCToCurrency() = value * SATOSHI_BTC_EXCHANGE_RATE * BTC
 
 fun Double.fromSATtoBTC() = (this * SATOSHI_BTC_EXCHANGE_RATE)
 
+fun Double.fromBTCtoSAT() = (this / SATOSHI_BTC_EXCHANGE_RATE)
+
 fun Double.toAmount() = Amount().copy(value = (this * BTC_SATOSHI_EXCHANGE_RATE).roundToLong())
 
 fun Int.toAmount() = Amount().copy(value = this.toLong())

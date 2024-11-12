@@ -36,6 +36,7 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.isMaster
 import com.nunchuk.android.model.byzantine.isNone
+import com.nunchuk.android.model.isPersonalPlan
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningDialog
@@ -63,11 +64,11 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) {
             if (it is MembershipEvent.RestartWizardSuccess) {
-                val isPersonalWallet = requireActivity().intent.getBooleanExtra(EXTRA_IS_PERSONAL_WALLET, false)
                 nunchukNavigator.openMembershipActivity(
                     activityContext = requireActivity(),
                     groupStep = MembershipStage.NONE,
-                    isPersonalWallet = isPersonalWallet,
+                    isPersonalWallet = membershipStepManager.isPersonalWallet(),
+                    isClearTop = true
                 )
                 requireActivity().setResult(Activity.RESULT_OK)
                 requireActivity().finish()

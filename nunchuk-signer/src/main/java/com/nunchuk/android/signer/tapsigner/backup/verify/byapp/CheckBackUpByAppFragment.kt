@@ -95,6 +95,7 @@ class CheckBackUpByAppFragment : MembershipFragment() {
                     masterSignerId = nfcViewModel.masterSignerId,
                     groupId = (activity as NfcSetupActivity).groupId,
                     keyId = (activity as NfcSetupActivity).keyId,
+                    walletId = (activity as NfcSetupActivity).walletId
                 )
             }
         }
@@ -164,13 +165,17 @@ private fun CheckBackUpByAppScreen(
     masterSignerId: String,
     groupId: String,
     keyId: String,
+    walletId: String,
 ) {
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
 
     CheckBackUpByAppContent(
         onContinueClicked = {
             if (keyId.isNotEmpty()) {
-                viewModel.onReplaceKeyVerified(masterSignerId, keyId)
+                viewModel.onReplaceKeyVerified(
+                    masterSignerId = masterSignerId, keyId = keyId,
+                    groupId = groupId, walletId = walletId
+                )
             } else {
                 viewModel.onContinueClicked(groupId, masterSignerId)
             }

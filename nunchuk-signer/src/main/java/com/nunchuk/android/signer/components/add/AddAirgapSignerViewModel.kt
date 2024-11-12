@@ -105,7 +105,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
     override val initialState = Unit
-    private var chain: Chain = Chain.MAIN
+    var chain: Chain = Chain.MAIN
     private var groupId: String = ""
     private var isMembershipFlow = false
     private var replacedXfp: String? = null
@@ -253,7 +253,8 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                                     SignerExtra(
                                         derivationPath = airgap.derivationPath,
                                         isAddNew = true,
-                                        signerType = airgap.type
+                                        signerType = airgap.type,
+                                        userKeyFileName = ""
                                     )
                                 ),
                                 groupId = groupId
@@ -333,7 +334,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                 if (result.isSuccess) {
                     val signers = result.getOrThrow()
                     updateSigners(signers)
-                    if (chain == Chain.MAIN && _signers.any { isTestNetPath(it.derivationPath) }) {
+                    if (isMembershipFlow && chain == Chain.MAIN && _signers.any { isTestNetPath(it.derivationPath) }) {
                         setEvent(ErrorMk4TestNet)
                     } else {
                         setEvent(ParseKeystoneAirgapSignerSuccess(_signers))

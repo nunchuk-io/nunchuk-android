@@ -49,6 +49,8 @@ sealed class WalletAuthenticationEvent {
     data class ForceSyncSuccess(val isSuccess: Boolean) : WalletAuthenticationEvent()
     data class SignFailed(val singleSigner: SingleSigner) : WalletAuthenticationEvent()
     data object PromptPassphrase : WalletAuthenticationEvent()
+    data object NoInternetConnectionToSign : WalletAuthenticationEvent()
+    data object NoInternetConnectionForceSync : WalletAuthenticationEvent()
 }
 
 data class WalletAuthenticationState(

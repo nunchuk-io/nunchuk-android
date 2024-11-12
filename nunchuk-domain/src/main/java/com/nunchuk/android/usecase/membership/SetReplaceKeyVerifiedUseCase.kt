@@ -33,9 +33,15 @@ class SetReplaceKeyVerifiedUseCase @Inject constructor(
         repository.setReplaceKeyVerified(
             keyId = parameters.keyId,
             checkSum = parameters.checkSum,
-            isAppVerify = parameters.isAppVerified
+            isAppVerify = parameters.isAppVerified,
+            groupId = parameters.groupId,
+            walletId = parameters.walletId
         )
     }
 
-    data class Param(val keyId: String, val checkSum: String, val isAppVerified: Boolean)
+    data class Param(
+        val keyId: String, val checkSum: String, val isAppVerified: Boolean,
+        val groupId: String,
+        val walletId: String
+    )
 }

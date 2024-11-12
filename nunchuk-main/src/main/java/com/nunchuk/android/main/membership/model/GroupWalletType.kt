@@ -62,14 +62,14 @@ fun WalletConfig.toGroupWalletType(): GroupWalletType? {
 fun GroupWalletType.toSteps(isPersonalWallet: Boolean = false): List<MembershipStep> = when (this) {
     GroupWalletType.TWO_OF_FOUR_MULTISIG -> if (isPersonalWallet) {
         listOf(
-            MembershipStep.HONEY_ADD_TAP_SIGNER,
+            MembershipStep.HONEY_ADD_INHERITANCE_KEY,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
             MembershipStep.ADD_SEVER_KEY,
         )
     } else {
         listOf(
-            MembershipStep.BYZANTINE_ADD_TAP_SIGNER,
+            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY,
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
             MembershipStep.ADD_SEVER_KEY,
@@ -98,8 +98,8 @@ fun GroupWalletType.toSteps(isPersonalWallet: Boolean = false): List<MembershipS
     )
 
     GroupWalletType.THREE_OF_FIVE_INHERITANCE -> listOf(
-        MembershipStep.BYZANTINE_ADD_TAP_SIGNER,
-        MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1,
+        MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY,
+        MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1,
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3,
         MembershipStep.ADD_SEVER_KEY,

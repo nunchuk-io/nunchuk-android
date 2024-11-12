@@ -63,7 +63,6 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessState
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.securityquestionanswer.AnswerSecurityQuestionFragment
 import com.nunchuk.android.model.CalculateRequiredSignatureStep
-import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.parcelable
@@ -96,7 +95,8 @@ class KeyRecoveryIntroFragment : Fragment() {
                 if (!extraInfo.isNullOrEmpty()) {
                     viewModel.downloadBackupKey(
                         questionId = extraInfo[AnswerSecurityQuestionFragment.QUESTION_ID].orEmpty(),
-                        answer = extraInfo[AnswerSecurityQuestionFragment.QUESTION_ANSWER].orEmpty()
+                        answer = extraInfo[AnswerSecurityQuestionFragment.QUESTION_ANSWER].orEmpty(),
+                        securityQuestionToken = securityQuestionToken
                     )
                 } else if (confirmCodeMap.isNotEmpty()) {
                     viewModel.requestRecover(
@@ -154,7 +154,7 @@ class KeyRecoveryIntroFragment : Fragment() {
                     val step = event.calculateRequiredSignaturesExt.step
                     if (step == CalculateRequiredSignatureStep.PENDING_APPROVAL) {
                         NCInfoDialog(requireActivity()).showDialog(message = getString(R.string.nc_recovery_request_already_exists))
-                    } else if (step == CalculateRequiredSignatureStep.REQUEST_RECOVER && event.calculateRequiredSignaturesExt.data != null) {
+                    } else if ((step == CalculateRequiredSignatureStep.REQUEST_RECOVER || step == CalculateRequiredSignatureStep.RECOVER) && event.calculateRequiredSignaturesExt.data != null) {
                         navigator.openWalletAuthentication(
                             walletId = "",
                             userData = "",
@@ -164,8 +164,6 @@ class KeyRecoveryIntroFragment : Fragment() {
                             launcher = signLauncher,
                             activityContext = requireActivity()
                         )
-                    } else if (step == CalculateRequiredSignatureStep.RECOVER) {
-                        viewModel.recoverKey()
                     }
                 }
 
@@ -183,17 +181,7 @@ class KeyRecoveryIntroFragment : Fragment() {
             bundle.parcelable<SignerModel>(RecoveryTapSignerListBottomSheetFragment.EXTRA_SIGNER)
                 ?.let {
                     viewModel.setSelectedSigner(it)
-                    if (viewModel.isHasGroup.not()) {
-                        navigator.openWalletAuthentication(
-                            walletId = "",
-                            requiredSignatures = 0,
-                            activityContext = requireActivity(),
-                            type = VerificationType.SECURITY_QUESTION,
-                            launcher = signLauncher
-                        )
-                    } else {
-                        viewModel.calculateRequiredSignatures()
-                    }
+                    viewModel.calculateRequiredSignatures()
                 } ?: run {
                 clearFragmentResult(RecoveryTapSignerListBottomSheetFragment.REQUEST_KEY)
             }

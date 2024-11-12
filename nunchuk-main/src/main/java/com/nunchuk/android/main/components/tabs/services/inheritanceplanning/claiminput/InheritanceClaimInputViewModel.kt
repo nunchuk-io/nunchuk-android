@@ -22,7 +22,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 import android.util.Base64
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.ImportTapsignerMasterSignerContentUseCase
+import com.nunchuk.android.core.domain.ImportBackupKeyContentUseCase
 import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCase
 import com.nunchuk.android.core.domain.membership.InheritanceClaimDownloadBackupUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
@@ -49,7 +49,7 @@ import javax.inject.Inject
 class InheritanceClaimInputViewModel @Inject constructor(
     private val getBip39WordListUseCase: GetBip39WordListUseCase,
     private val inheritanceClaimDownloadBackupUseCase: InheritanceClaimDownloadBackupUseCase,
-    private val importTapsignerMasterSignerContentUseCase: ImportTapsignerMasterSignerContentUseCase,
+    private val importBackupKeyContentUseCase: ImportBackupKeyContentUseCase,
     private val masterSignerMapper: MasterSignerMapper,
     private val getInheritanceClaimStateUseCase: GetInheritanceClaimStateUseCase,
     private val deleteMasterSignerUseCase: DeleteMasterSignerUseCase
@@ -85,18 +85,17 @@ class InheritanceClaimInputViewModel @Inject constructor(
             backupKeys.forEachIndexed { index, backupKey ->
                 val backupData = Base64.decode(backupKey.keyBackUpBase64, Base64.DEFAULT)
                 if (ChecksumUtil.verifyChecksum(backupData, backupKey.keyCheckSum).not()) return@launch
-                val resultImport = importTapsignerMasterSignerContentUseCase(
-                    ImportTapsignerMasterSignerContentUseCase.Param(
-                        backupData,
-                        stateValue.backupPasswords[index],
-                        "$INHERITED_KEY_NAME #${index + 1}"
+                stateValue.backupPasswords.forEach { backupPassword ->
+                    val resultImport = importBackupKeyContentUseCase(
+                        ImportBackupKeyContentUseCase.Param(
+                            backupData,
+                            backupPassword,
+                            "$INHERITED_KEY_NAME #${index + 1}"
+                        )
                     )
-                )
-                if (resultImport.isSuccess) {
-                    importMasterSigners.add(resultImport.getOrThrow())
-                } else {
-                    _event.emit(InheritanceClaimInputEvent.Error(resultImport.exceptionOrNull()?.message.orUnknownError()))
-                    return@forEachIndexed
+                    if (resultImport.isSuccess) {
+                        importMasterSigners.add(resultImport.getOrThrow())
+                    }
                 }
             }
             if (importMasterSigners.size != stateValue.backupPasswords.size) {

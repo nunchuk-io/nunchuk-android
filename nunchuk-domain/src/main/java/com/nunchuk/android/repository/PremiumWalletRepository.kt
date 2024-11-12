@@ -451,6 +451,8 @@ interface PremiumWalletRepository {
 
     suspend fun recoverKey(
         xfp: String,
+        verifyToken: String,
+        securityQuestionToken: String
     ): BackupKey
 
     suspend fun markKeyAsRecovered(xfp: String, status: String)

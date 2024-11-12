@@ -23,6 +23,7 @@ import android.util.Base64
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.ImportBackupKeyContentUseCase
 import com.nunchuk.android.core.domain.ImportTapsignerMasterSignerContentUseCase
 import com.nunchuk.android.core.domain.membership.MarkRecoverStatusUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper

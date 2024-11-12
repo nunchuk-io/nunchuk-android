@@ -31,6 +31,7 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.CalculateRequiredSignatureStep
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
@@ -58,7 +59,7 @@ class KeyRecoveryIntroViewModel @Inject constructor(
     private val recoverKeyUseCase: RecoverKeyUseCase,
     private val getWalletsUseCase: GetWalletsUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
-    savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val args =
@@ -68,6 +69,8 @@ class KeyRecoveryIntroViewModel @Inject constructor(
 
     private val _event = MutableSharedFlow<KeyRecoveryIntroEvent>()
     val event = _event.asSharedFlow()
+
+    var recoverRequestStep: String = ""
 
     var isHasGroup = false
 
@@ -137,9 +140,13 @@ class KeyRecoveryIntroViewModel @Inject constructor(
         }
     }
 
-    fun downloadBackupKey(questionId: String, answer: String) = viewModelScope.launch {
+    fun downloadBackupKey(questionId: String, answer: String, securityQuestionToken: String) = viewModelScope.launch {
         val state = _state.value
         if (state.selectedSigner == null) {
+            return@launch
+        }
+        if (recoverRequestStep == CalculateRequiredSignatureStep.RECOVER.name) {
+            recoverKey(securityQuestionToken = securityQuestionToken, verifyToken = args.verifyToken)
             return@launch
         }
         _event.emit(KeyRecoveryIntroEvent.Loading(true))
@@ -174,8 +181,10 @@ class KeyRecoveryIntroViewModel @Inject constructor(
         )
         _event.emit(KeyRecoveryIntroEvent.Loading(false))
         if (result.isSuccess) {
+            val calculateRequiredSignaturesExt = result.getOrThrow()
+            recoverRequestStep = calculateRequiredSignaturesExt.step?.name.orEmpty()
             _event.emit(
-                KeyRecoveryIntroEvent.CalculateRequiredSignaturesSuccess(result.getOrThrow())
+                KeyRecoveryIntroEvent.CalculateRequiredSignaturesSuccess(calculateRequiredSignaturesExt)
             )
         } else {
             _event.emit(KeyRecoveryIntroEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
@@ -211,7 +220,7 @@ class KeyRecoveryIntroViewModel @Inject constructor(
         }
     }
 
-    fun recoverKey() {
+    fun recoverKey(verifyToken: String, securityQuestionToken: String) {
         viewModelScope.launch {
             val state = _state.value
             if (state.selectedSigner == null) {
@@ -220,7 +229,9 @@ class KeyRecoveryIntroViewModel @Inject constructor(
             _event.emit(KeyRecoveryIntroEvent.Loading(true))
             val result = recoverKeyUseCase(
                 RecoverKeyUseCase.Param(
-                    xfp = state.selectedSigner.fingerPrint
+                    xfp = state.selectedSigner.fingerPrint,
+                    verifyToken = verifyToken,
+                    securityQuestionToken = securityQuestionToken
                 )
             )
             _event.emit(KeyRecoveryIntroEvent.Loading(false))

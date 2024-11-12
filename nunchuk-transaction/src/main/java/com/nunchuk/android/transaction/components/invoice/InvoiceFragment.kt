@@ -52,11 +52,8 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.wallet.InvoiceInfo
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.utils.ExportInvoices
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
-import dev.shreyaspatil.capturable.capturable
-import dev.shreyaspatil.capturable.controller.rememberCaptureController
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -85,7 +82,7 @@ class InvoiceFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                InvoiceScreen(viewModel, invoiceInfo) { bitmaps ->
+                InvoiceScreen(viewModel, invoiceInfo) {
                     viewModel.exportInvoice(invoiceInfo, invoiceInfo.transactionId)
                 }
             }
@@ -117,7 +114,7 @@ class InvoiceFragment : Fragment() {
 fun InvoiceScreen(
     viewModel: InvoiceViewModel = viewModel(),
     invoiceInfo: InvoiceInfo,
-    onSaveClick: (List<ImageBitmap>) -> Unit = {},
+    onSaveClick: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     InvoiceScreenContent(
@@ -126,15 +123,12 @@ fun InvoiceScreen(
     )
 }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalComposeApi::class)
 @Composable
 fun InvoiceScreenContent(
     invoiceInfo: InvoiceInfo,
-    onSaveClick: (List<ImageBitmap>) -> Unit = {},
+    onSaveClick: () -> Unit = {},
 ) {
 
-    val captureController1 = rememberCaptureController()
-    val captureController2 = rememberCaptureController()
     val scope = rememberCoroutineScope()
 
     NunchukTheme {
@@ -155,18 +149,7 @@ fun InvoiceScreenContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
-                        onClick = {
-                            scope.launch {
-                                val captureController = listOf(captureController1, captureController2)
-                                val bitmaps =
-                                    captureController.map { it.captureAsync(Bitmap.Config.ARGB_8888) }
-                                        .awaitAll()
-                                try {
-                                    onSaveClick(bitmaps)
-                                } catch (_: Throwable) {
-                                }
-                            }
-                        },
+                        onClick = onSaveClick,
                     ) {
                         Text(
                             text = stringResource(id = R.string.nc_save_pdf),
@@ -186,7 +169,6 @@ fun InvoiceScreenContent(
                         Column(
                             modifier = Modifier
                                 .background(color = NcColor.greyLight)
-                                .capturable(captureController1)
                                 .fillMaxSize()
                         ) {
                             Text(
@@ -320,7 +302,6 @@ fun InvoiceScreenContent(
                         Column(
                             modifier = Modifier
                                 .background(color = NcColor.greyLight)
-                                .capturable(captureController2)
                                 .fillMaxWidth()
                         ) {
                             if (invoiceInfo.changeAddress.isNotEmpty() && invoiceInfo.changeAddressAmount.isNotEmpty()) {

@@ -1,5 +1,6 @@
 package com.nunchuk.android.core.data.api
 
+import com.nunchuk.android.core.data.model.ConfigSecurityQuestionPayload
 import com.nunchuk.android.core.data.model.CreateServerKeyResponse
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
 import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
@@ -51,14 +52,20 @@ import com.nunchuk.android.core.data.model.membership.WalletAliasResponse
 import com.nunchuk.android.core.data.model.payment.CreateRecurringPaymentRequest
 import com.nunchuk.android.core.data.model.replacement.WalletReplacementStatusResponse
 import com.nunchuk.android.core.network.Data
+import com.nunchuk.android.model.KeyResponse
+import com.nunchuk.android.model.KeyVerifiedRequest
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.HTTP
 import retrofit2.http.Header
 import retrofit2.http.HeaderMap
+import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -588,5 +595,57 @@ internal interface GroupWalletApi {
         @Path("group_id") groupId: String,
         @Path("wallet_id_or_local_id") walletId: String,
         @Body payload: RandomizeBroadcastBatchTransactionsPayload
+    ): Data<Unit>
+
+    @Multipart
+    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/upload-backup")
+    suspend fun uploadBackupKey(
+        @Path("group_id") groupId: String,
+        @Part("key_name") keyName: RequestBody,
+        @Part("key_type") keyType: RequestBody,
+        @Part("key_xfp") keyXfp: RequestBody,
+        @Part("card_id") cardId: RequestBody,
+        @Part image: MultipartBody.Part,
+    ): Data<KeyResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/{xfp}/download-backup")
+    suspend fun downloadBackup(
+        @Path("xfp") xfp: String,
+        @Path("group_id") groupId: String,
+    ): Data<KeyResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/{xfp}/verify")
+    suspend fun setKeyVerified(
+        @Path("group_id") groupId: String,
+        @Path("xfp") keyId: String, @Body payload: KeyVerifiedRequest
+    ): Data<Unit>
+
+    @Multipart
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/upload-backup")
+    suspend fun uploadBackupKeyReplacement(
+        @Header("Verify-token") verifyToken: String,
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Part("key_name") keyName: RequestBody,
+        @Part("key_type") keyType: RequestBody,
+        @Part("key_xfp") keyXfp: RequestBody,
+        @Part("card_id") cardId: RequestBody,
+        @Part image: MultipartBody.Part,
+    ): Data<KeyResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/{xfp}/download-backup")
+    suspend fun downloadBackupReplacement(
+        @Header("Verify-token") verifyToken: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
+        @Path("group_id") groupId: String,
+    ): Data<KeyResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/{xfp}/verify")
+    suspend fun setKeyVerifiedReplacement(
+        @Header("Verify-token") verifyToken: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("group_id") groupId: String,
+        @Path("xfp") keyId: String, @Body payload: KeyVerifiedRequest
     ): Data<Unit>
 }

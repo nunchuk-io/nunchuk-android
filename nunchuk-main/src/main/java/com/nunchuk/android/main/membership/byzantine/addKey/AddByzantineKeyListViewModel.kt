@@ -156,22 +156,33 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private suspend fun updateKeyData() {
         if (key.value.isEmpty()) return
         val signers = _state.value.signers
+        val missingBackupKeys = mutableListOf<AddKeyData>()
         val news = key.value.map { addKeyData ->
             val info = getStepInfo(addKeyData.type)
             var signer =
                 if (info.masterSignerId.isNotEmpty()) signers.find { it.fingerPrint == info.masterSignerId } else null
+            var isMissingBackup = false
             if (signer != null) {
                 runCatching {
                     val extra = gson.fromJson(info.extraData, SignerExtra::class.java)
+                    if (extra != null && extra.userKeyFileName.isEmpty()) {
+                        isMissingBackup = true
+                    }
                     signer = signer?.copy(
                         index = getIndexFromPathUseCase(extra.derivationPath).getOrDefault(0)
                     )
                 }
             }
-            addKeyData.copy(
+            val newKeyData = addKeyData.copy(
                 signer = signer,
                 verifyType = info.verifyType
             )
+            // Check if Coldcard Inheritance signer is missing backup key
+            if (isMissingBackup && newKeyData.signer?.tags.orEmpty().contains(SignerTag.INHERITANCE)
+                && newKeyData.signer?.type != SignerType.NFC) {
+                missingBackupKeys.add(newKeyData)
+            }
+            return@map newKeyData
         }
         _keys.value = news
     }
@@ -210,7 +221,8 @@ class AddByzantineKeyListViewModel @Inject constructor(
                 _event.emit(
                     AddKeyListEvent.OnVerifySigner(
                         signer = signer,
-                        filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer)
+                        filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer),
+                        backUpFileName = getBackUpFileName(stepInfo.extraData)
                     )
                 )
             }
@@ -302,7 +314,8 @@ class AddByzantineKeyListViewModel @Inject constructor(
                         SignerExtra(
                             derivationPath = signer.derivationPath,
                             isAddNew = false,
-                            signerType = signer.type
+                            signerType = signer.type,
+                            userKeyFileName = ""
                         )
                     ),
                     groupId = args.groupId
@@ -333,6 +346,12 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
     fun isUnBackedUpSigner(signer: SignerModel) = unBackedUpSignerXfpSet.contains(signer.fingerPrint)
 
+    private fun getBackUpFileName(extra: String): String {
+        return runCatching {
+            gson.fromJson(extra, SignerExtra::class.java).userKeyFileName
+        }.getOrDefault("")
+    }
+
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
     }
@@ -340,7 +359,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
 
 sealed class AddKeyListEvent {
     data class OnAddKey(val data: AddKeyData) : AddKeyListEvent()
-    data class OnVerifySigner(val signer: SignerModel, val filePath: String) : AddKeyListEvent()
+    data class OnVerifySigner(val signer: SignerModel, val filePath: String, val backUpFileName: String) : AddKeyListEvent()
     data object OnAddAllKey : AddKeyListEvent()
     data object SelectAirgapType : AddKeyListEvent()
     data class ShowError(val message: String) : AddKeyListEvent()
@@ -353,4 +372,5 @@ data class AddKeyListState(
     val similarGroups: Map<String, String> = emptyMap(),
     val shouldShowKeyAdded: Boolean = false,
     val groupWalletType: GroupWalletType? = null,
+    val missingBackupKeys: List<AddKeyData> = emptyList()
 )

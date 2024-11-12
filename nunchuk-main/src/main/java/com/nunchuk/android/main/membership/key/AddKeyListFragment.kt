@@ -73,6 +73,9 @@ import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.SignerModelProvider
+import com.nunchuk.android.compose.pullrefresh.PullRefreshIndicator
+import com.nunchuk.android.compose.pullrefresh.pullRefresh
+import com.nunchuk.android.compose.pullrefresh.rememberPullRefreshState
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -86,6 +89,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.addKey.getKeyOptions
 import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
@@ -98,6 +102,7 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -350,7 +355,13 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is AddKeyListEvent.OnAddKey -> handleOnAddKey(event.data)
-                is AddKeyListEvent.OnVerifySigner -> openVerifyTapSigner(event)
+                is AddKeyListEvent.OnVerifySigner -> {
+                    if (event.signer.type == SignerType.NFC) {
+                        openVerifyTapSigner(event)
+                    } else {
+                        openVerifyColdCard(event)
+                    }
+                }
                 AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> showAirgapOptions()
@@ -367,8 +378,8 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 )
             }
 
-            MembershipStep.HONEY_ADD_TAP_SIGNER -> {
-                findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToTapSignerInheritanceIntroFragment())
+            MembershipStep.HONEY_ADD_INHERITANCE_KEY -> {
+                findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToInheritanceKeyIntroFragment())
             }
 
             MembershipStep.IRON_ADD_HARDWARE_KEY_1,
@@ -418,6 +429,20 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             fromMembershipFlow = true,
             backUpFilePath = event.filePath,
             masterSignerId = event.signer.id,
+            walletId = (activity as MembershipActivity).walletId,
+        )
+    }
+
+    private fun openVerifyColdCard(event: AddKeyListEvent.OnVerifySigner) {
+        navigator.openSetupMk4(
+            activity = requireActivity(),
+            fromMembershipFlow = true,
+            backUpFilePath = event.filePath,
+            xfp = event.signer.fingerPrint,
+            action = if (event.backUpFileName.isNotEmpty()) ColdcardAction.VERIFY_KEY else ColdcardAction.UPLOAD_BACKUP,
+            keyName = event.signer.name,
+            signerType = event.signer.type,
+            backUpFileName = event.backUpFileName,
         )
     }
 
@@ -455,6 +480,7 @@ fun AddKeyListScreen(
     onMoreClicked: () -> Unit = {},
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     AddKeyListContent(
         onContinueClicked = viewModel::onContinueClicked,
@@ -462,19 +488,26 @@ fun AddKeyListScreen(
         onVerifyClicked = viewModel::onVerifyClicked,
         keys = keys,
         remainingTime = remainingTime,
-        onMoreClicked = onMoreClicked
+        onMoreClicked = onMoreClicked,
+        refresh = viewModel::refresh,
+        isRefreshing = uiState.isRefresh,
+        missingBackupKeys = uiState.missingBackupKeys,
     )
 }
 
 @Composable
 fun AddKeyListContent(
-    onAddClicked: (data: AddKeyData) -> Unit = {},
-    onVerifyClicked: (data: AddKeyData) -> Unit = {},
+    isRefreshing: Boolean = false,
+    remainingTime: Int,
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
     keys: List<AddKeyData> = emptyList(),
-    remainingTime: Int,
+    missingBackupKeys: List<AddKeyData> = emptyList(),
+    onVerifyClicked: (data: AddKeyData) -> Unit = {},
+    onAddClicked: (data: AddKeyData) -> Unit = {},
+    refresh: () -> Unit = { },
 ) {
+    val state = rememberPullRefreshState(isRefreshing, refresh)
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -503,53 +536,60 @@ fun AddKeyListContent(
                 }
             },
         ) { innerPadding ->
-            LazyColumn(
-                modifier = Modifier
-                    .padding(innerPadding)
+            Box(
+                Modifier
                     .fillMaxSize()
-                    .padding(top = 16.dp)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(innerPadding)
+                    .pullRefresh(state)
             ) {
-                item {
-                    Text(
-                        text = stringResource(R.string.nc_let_add_your_keys),
-                        style = NunchukTheme.typography.heading
-                    )
-                    Text(
-                        modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
-                        text = buildAnnotatedString {
-                            append(
-                                stringResource(
-                                    id = R.string.nc_add_key_list_desc_one,
-                                    keys.size
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 16.dp)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.nc_let_add_your_keys),
+                            style = NunchukTheme.typography.heading
+                        )
+                        Text(
+                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+                            text = buildAnnotatedString {
+                                append(
+                                    stringResource(
+                                        id = R.string.nc_add_key_list_desc_one,
+                                        keys.size
+                                    )
                                 )
-                            )
-                            append(" ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
-                                append(stringResource(id = R.string.nc_add_key_list_desc_two))
-                            }
-                            if (keys.size > 3) {
-                                append(stringResource(id = R.string.nc_honey_add_key_list_desc_three))
-                            } else {
-                                append(stringResource(id = R.string.nc_add_key_list_desc_three))
-                            }
-                            if (keys.size > 3) {
-                                append("\n\n")
-                                append(stringResource(R.string.nc_among_three_key_select_inheritance))
-                            }
-                        },
-                        style = NunchukTheme.typography.body
-                    )
+                                append(" ")
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
+                                    append(stringResource(id = R.string.nc_add_key_list_desc_two))
+                                }
+
+                                if (keys.size > 3) {
+                                    append("\n\n")
+                                    append(stringResource(R.string.nc_among_three_key_select_inheritance))
+                                }
+
+                                append("\n\nPull to refresh the key statuses.")
+                            },
+                            style = NunchukTheme.typography.body
+                        )
+                    }
+
+                    items(keys) { key ->
+                        AddKeyCard(
+                            item = key,
+                            onAddClicked = onAddClicked,
+                            onVerifyClicked = onVerifyClicked,
+                            isMissingBackup = missingBackupKeys.contains(key) && key.signer?.type != SignerType.NFC
+                        )
+                    }
                 }
 
-                items(keys) { key ->
-                    AddKeyCard(
-                        item = key,
-                        onAddClicked = onAddClicked,
-                        onVerifyClicked = onVerifyClicked,
-                    )
-                }
+                PullRefreshIndicator(isRefreshing, state, Modifier.align(Alignment.TopCenter))
             }
         }
     }
@@ -558,6 +598,7 @@ fun AddKeyListContent(
 @Composable
 fun AddKeyCard(
     item: AddKeyData,
+    isMissingBackup: Boolean = false,
     modifier: Modifier = Modifier,
     onAddClicked: (data: AddKeyData) -> Unit = {},
     onVerifyClicked: (data: AddKeyData) -> Unit = {},
@@ -633,7 +674,7 @@ fun AddKeyCard(
                         modifier = Modifier.height(36.dp),
                         onClick = { onVerifyClicked(item) },
                     ) {
-                        Text(text = stringResource(R.string.nc_verify_backup))
+                        Text(text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(R.string.nc_upload_backup))
                     }
                 }
             }
@@ -678,7 +719,7 @@ private fun ConfigItem(
                 style = NunchukTheme.typography.body
             )
             Row(modifier = Modifier.padding(top = 4.dp)) {
-                if (item.type == MembershipStep.HONEY_ADD_TAP_SIGNER) {
+                if (item.type.isAddInheritanceKey) {
                     NcTag(
                         label = stringResource(R.string.nc_inheritance),
                         backgroundColor = colorResource(
@@ -688,7 +729,7 @@ private fun ConfigItem(
                 }
                 if (item.signer?.isShowAcctX() == true) {
                     NcTag(
-                        modifier = Modifier.padding(start = if (item.type == MembershipStep.HONEY_ADD_TAP_SIGNER) 4.dp else 0.dp),
+                        modifier = Modifier.padding(start = if (item.type == MembershipStep.HONEY_ADD_INHERITANCE_KEY) 4.dp else 0.dp),
                         label = stringResource(R.string.nc_acct_x, item.signer.index),
                         backgroundColor = colorResource(
                             id = R.color.nc_whisper_color
@@ -753,7 +794,7 @@ fun AddKeyListScreenHoneyBadgerPreview(
     AddKeyListContent(
         keys = listOf(
             AddKeyData(
-                type = MembershipStep.HONEY_ADD_TAP_SIGNER,
+                type = MembershipStep.HONEY_ADD_INHERITANCE_KEY,
                 verifyType = VerifyType.NONE
             ),
             AddKeyData(

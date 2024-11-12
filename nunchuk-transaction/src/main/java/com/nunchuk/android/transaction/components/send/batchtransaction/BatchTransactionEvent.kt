@@ -22,7 +22,7 @@ package com.nunchuk.android.transaction.components.send.batchtransaction
 sealed class BatchTransactionEvent {
     data class Loading(val loading: Boolean) : BatchTransactionEvent()
     data class Error(val message: String) : BatchTransactionEvent()
-    data class CheckAddressSuccess(val isCustomTx: Boolean) : BatchTransactionEvent()
+    data class CheckAddressSuccess(val isCustomTx: Boolean, val subtractFeeFromAmount: Boolean) : BatchTransactionEvent()
     data object InsufficientFundsEvent : BatchTransactionEvent()
     data object InsufficientFundsLockedCoinEvent : BatchTransactionEvent()
 }

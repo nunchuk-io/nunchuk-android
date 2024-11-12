@@ -55,6 +55,7 @@ import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.StateEvent
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
 @Composable
@@ -84,6 +85,7 @@ fun ReplaceKeysScreen(
 
     ReplaceKeysContent(
         uiState = uiState,
+        isEnableCreateWallet = viewModel.isEnableContinueButton(),
         snackState = snackState,
         onReplaceKeyClicked = onReplaceKeyClicked,
         onReplaceInheritanceClicked = onReplaceInheritanceClicked,
@@ -98,6 +100,7 @@ fun ReplaceKeysScreen(
 @Composable
 private fun ReplaceKeysContent(
     uiState: ReplaceKeysUiState = ReplaceKeysUiState(),
+    isEnableCreateWallet: Boolean = false,
     onReplaceKeyClicked: (SignerModel) -> Unit = {},
     onReplaceInheritanceClicked: (SignerModel) -> Unit = {},
     snackState: SnackbarHostState = remember { SnackbarHostState() },
@@ -135,7 +138,7 @@ private fun ReplaceKeysContent(
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = onCreateWalletClicked,
-                    enabled = uiState.replaceSigners.isNotEmpty()
+                    enabled = isEnableCreateWallet
                 ) {
                     Text(text = stringResource(R.string.nc_continue_to_create_a_new_wallet))
                 }
@@ -173,8 +176,14 @@ private fun ReplaceKeysContent(
                                     onReplaceKeyClicked(it)
                                 }
                             },
-                            isNeedVerify = uiState.isActiveAssistedWallet && !uiState.verifiedSigners.contains(item.fingerPrint) && uiState.replaceSigners[item.fingerPrint]?.type == SignerType.NFC,
+                            isNeedVerify = uiState.isActiveAssistedWallet &&
+                                    !uiState.verifiedSigners.contains(item.fingerPrint) &&
+                                    !uiState.verifiedSigners.contains(uiState.replaceSigners[item.fingerPrint]?.fingerPrint) &&
+                                    (uiState.replaceSigners[item.fingerPrint]?.type == SignerType.NFC || uiState.replaceSigners[item.fingerPrint]?.tags.orEmpty()
+                                        .contains(SignerTag.INHERITANCE)),
                             onVerifyClicked = onVerifyClicked,
+                            isMissingBackup = uiState.coldCardBackUpFileName[uiState.replaceSigners[item.fingerPrint]?.fingerPrint].isNullOrEmpty() &&
+                                    uiState.replaceSigners[item.fingerPrint]?.type != SignerType.NFC,
                             isReplaced = uiState.replaceSigners.containsKey(item.fingerPrint)
                         )
                     }
@@ -233,6 +242,7 @@ fun ReplaceKeyCard(
     modifier: Modifier = Modifier,
     isReplaced: Boolean = false,
     isNeedVerify: Boolean = false,
+    isMissingBackup: Boolean = false,
     onReplaceClicked: (data: SignerModel) -> Unit = {},
     onVerifyClicked: (data: SignerModel) -> Unit = {},
 ) {
@@ -293,7 +303,11 @@ fun ReplaceKeyCard(
                             modifier = Modifier.height(36.dp),
                             onClick = { onVerifyClicked(item) },
                         ) {
-                            Text(text = stringResource(R.string.nc_verify_backup))
+                            Text(
+                                text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
+                                    R.string.nc_upload_backup
+                                )
+                            )
                         }
                     }
                 } else {

@@ -4,7 +4,7 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.GroupWalletType
 
-interface EmptyStateFactory {
+interface EmptyStateProvider {
     fun getWizardData(conditionInfo: ConditionInfo): WizardData?
     fun getKeyWalletEntryData(conditionInfo: ConditionInfo): KeyWalletEntryData?
 }

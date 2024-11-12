@@ -30,7 +30,7 @@ sealed class Mk4IntroViewEvent {
     class NfcLoading(val isLoading: Boolean) : Mk4IntroViewEvent()
     data object OnContinueClicked : Mk4IntroViewEvent()
     data object ErrorMk4TestNet : Mk4IntroViewEvent()
-    data object OnCreateSignerSuccess : Mk4IntroViewEvent()
+    data class OnCreateSignerSuccess(val signer: SingleSigner) : Mk4IntroViewEvent()
     data object OnSignerExistInAssistedWallet : Mk4IntroViewEvent()
     data class ImportWalletFromMk4Success(val walletId: String) : Mk4IntroViewEvent()
     data class ExtractWalletsFromColdCard(val wallets: List<Wallet>) : Mk4IntroViewEvent()

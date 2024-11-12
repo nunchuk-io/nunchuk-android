@@ -197,6 +197,10 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                                 isUpdateRequest = true,
                             )
                         )
+                    }, onBackUpPasswordInfoClick = {
+                        findNavController().navigate(
+                            InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceBackUpDownloadFragment()
+                        )
                     })
             }
         }
@@ -320,7 +324,8 @@ fun InheritanceReviewPlanScreen(
     onShareSecretClicked: () -> Unit,
     onActionTopBarClick: () -> Unit,
     onViewClaimingInstruction: () -> Unit = {},
-    onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {}
+    onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {},
+    onBackUpPasswordInfoClick: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -348,7 +353,8 @@ fun InheritanceReviewPlanScreen(
         onShareSecretClicked = onShareSecretClicked,
         onActionTopBarClick = onActionTopBarClick,
         onViewClaimingInstruction = onViewClaimingInstruction,
-        onEditBufferPeriodClick = onEditBufferPeriodClick
+        onEditBufferPeriodClick = onEditBufferPeriodClick,
+        onBackUpPasswordInfoClick = onBackUpPasswordInfoClick
     )
 }
 
@@ -368,7 +374,8 @@ fun InheritanceReviewPlanScreenContent(
     onNotifyPrefClick: () -> Unit = {},
     onActionTopBarClick: () -> Unit = {},
     onViewClaimingInstruction: () -> Unit = {},
-    onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {}
+    onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {},
+    onBackUpPasswordInfoClick: () -> Unit = {}
 ) {
     val isEditable = groupId.isEmpty() || state.currentUserRole.toRole.isMasterOrAdmin
     val magicalPhraseMask = if (groupId.isNotEmpty() && magicalPhrase.isEmpty()) {
@@ -499,8 +506,12 @@ fun InheritanceReviewPlanScreenContent(
                                     DetailPlanItem(
                                         iconId = R.drawable.ic_password_light,
                                         titleId = R.string.nc_backup_password,
+                                        actionText = stringResource(id = R.string.nc_text_info),
                                         content = if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) stringResource(id = R.string.nc_backup_passwords_desc) else stringResource(id = R.string.nc_backup_password_desc),
-                                        editable = false
+                                        editable = true,
+                                        onClick = {
+                                            onBackUpPasswordInfoClick()
+                                        }
                                     )
                                     if (isEditable && planFlow == InheritancePlanFlow.VIEW) {
                                         Spacer(modifier = Modifier.height(24.dp))
@@ -741,6 +752,7 @@ fun DetailPlanItem(
     titleId: Int = R.string.nc_text_continue,
     content: String = "dolphin concert apple",
     editable: Boolean = false,
+    actionText: String = stringResource(id = R.string.nc_edit),
     onClick: () -> Unit = {}
 ) {
     Column {
@@ -762,7 +774,7 @@ fun DetailPlanItem(
                     modifier = Modifier.clickable {
                         onClick()
                     },
-                    text = stringResource(id = R.string.nc_edit),
+                    text = actionText,
                     color = colorResource(id = R.color.nc_white_color),
                     style = NunchukTheme.typography.title,
                     textDecoration = TextDecoration.Underline,

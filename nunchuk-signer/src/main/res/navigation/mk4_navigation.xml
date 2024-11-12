@@ -19,6 +19,10 @@
         <argument
             android:name="is_membership_flow"
             app:argType="boolean" />
+
+        <argument android:name="is_add_inheritance_key"
+            android:defaultValue="false"
+            app:argType="boolean" />
     </fragment>
 
     <fragment
@@ -33,15 +37,14 @@
 
         <argument
             android:name="is_replace_key"
-            app:argType="boolean"
-            android:defaultValue="false"/>
+            android:defaultValue="false"
+            app:argType="boolean" />
 
     </fragment>
     <fragment
         android:id="@+id/mk4IntroFragment"
         android:name="com.nunchuk.android.signer.mk4.intro.Mk4IntroFragment"
         android:label="Mk4IntroFragment">
-
 
         <action
             android:id="@+id/action_mk4IntroFragment_to_addMk4NameFragment"
@@ -53,6 +56,11 @@
         <argument
             android:name="is_membership_flow"
             app:argType="boolean" />
+
+        <argument
+            android:name="is_add_inheritance_key"
+            android:defaultValue="false"
+            app:argType="boolean" />
     </fragment>
     <fragment
         android:id="@+id/coldcardRecoverFragment"
@@ -61,8 +69,238 @@
         <argument
             android:name="is_membership_flow"
             app:argType="boolean" />
-        <argument android:name="scan_qr_code"
-            app:argType="boolean"
-            android:defaultValue="false"/>
+        <argument
+            android:name="scan_qr_code"
+            android:defaultValue="false"
+            app:argType="boolean" />
+        <argument
+            android:name="is_add_inheritance_key"
+            android:defaultValue="false"
+            app:argType="boolean" />
+
+        <action
+            android:id="@+id/action_coldcardRecoverFragment_to_coldCardBackUpIntroFragment"
+            app:destination="@id/coldCardBackUpIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
+
+    <fragment
+        android:id="@+id/coldCardIntroFragment"
+        android:name="com.nunchuk.android.signer.mk4.inheritance.ColdCardIntroFragment"
+        android:label="ColdCardIntroFragment">
+
+        <action
+            android:id="@+id/action_coldCardIntroFragment_to_mk4InfoFragment"
+            app:destination="@id/mk4InfoFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_coldCardIntroFragment_to_coldcardRecoverFragment"
+            app:destination="@id/coldcardRecoverFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/coldCardPassphraseBackupReminderFragment"
+        android:name="com.nunchuk.android.signer.mk4.inheritance.ColdCardPassphraseBackupReminderFragment"
+        android:label="ColdCardPassphraseBackupReminderFragment">
+
+        <action
+            android:id="@+id/action_coldCardPassphraseBackupReminderFragment_to_coldCardIntroFragment"
+            app:destination="@id/coldCardIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_coldCardPassphraseBackupReminderFragment_to_coldCardBackUpIntroFragment"
+            app:destination="@id/coldCardBackUpIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/coldCardPassphraseImportantNoticeFragment"
+        android:name="com.nunchuk.android.signer.mk4.inheritance.ColdCardPassphraseImportantNoticeFragment"
+        android:label="ColdCardPassphraseImportantNoticeFragment">
+
+        <action
+            android:id="@+id/action_coldCardPassphraseImportantNoticeFragment_to_coldCardPassphraseBackupReminderFragment"
+            app:destination="@id/coldCardPassphraseBackupReminderFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/coldCardPassphraseQuestionFragment"
+        android:name="com.nunchuk.android.signer.mk4.inheritance.ColdCardPassphraseQuestionFragment"
+        android:label="ColdCardPassphraseQuestionFragment">
+
+        <action
+            android:id="@+id/action_coldCardPassphraseQuestionFragment_to_coldCardPassphraseImportantNoticeFragment"
+            app:destination="@id/coldCardPassphraseImportantNoticeFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_coldCardPassphraseQuestionFragment_to_coldCardIntroFragment"
+            app:destination="@id/coldCardIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_coldCardPassphraseQuestionFragment_to_coldCardBackUpIntroFragment"
+            app:destination="@id/coldCardBackUpIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/coldCardBackUpIntroFragment"
+        android:name="com.nunchuk.android.signer.mk4.inheritance.backup.ColdCardBackUpIntroFragment"
+        android:label="ColdCardBackUpIntroFragment">
+
+        <action
+            android:id="@+id/action_coldCardBackUpIntroFragment_to_coldCardEncryptBackUpFileFragment"
+            app:destination="@id/coldCardEncryptBackUpFileFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/coldCardEncryptBackUpFileFragment"
+        android:name="com.nunchuk.android.signer.mk4.inheritance.backup.ColdCardEncryptBackUpFileFragment"
+        android:label="ColdCardEncryptBackUpFileFragment">
+
+        <action
+            android:id="@+id/action_coldCardEncryptBackUpFileFragment_to_coldCardImportEncryptedBackUpFragment"
+            app:destination="@id/coldCardImportEncryptedBackUpFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/coldCardImportEncryptedBackUpFragment"
+        android:name="com.nunchuk.android.signer.mk4.inheritance.backup.encrypted.ColdCardImportEncryptedBackUpFragment"
+        android:label="ColdCardImportEncryptedBackUpFragment">
+
+        <action
+            android:id="@+id/action_coldCardImportEncryptedBackUpFragment_to_coldCardBackingUpFragment"
+            app:destination="@id/coldCardBackingUpFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/coldCardBackingUpFragment"
+        android:name="com.nunchuk.android.signer.mk4.inheritance.backup.ColdCardBackingUpFragment"
+        android:label="ColdCardBackingUpFragment">
+
+        <argument android:name="filePath"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_coldCardBackingUpFragment_to_coldCardVerifyBackUpOptionFragment"
+            app:destination="@id/coldCardVerifyBackUpOptionFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/coldCardVerifyBackUpOptionFragment"
+        android:name="com.nunchuk.android.signer.mk4.inheritance.backup.ColdCardVerifyBackUpOptionFragment"
+        android:label="ColdCardVerifyBackUpOptionFragment">
+
+        <action
+            android:id="@+id/action_coldCardVerifyBackUpOptionFragment_to_coldCardVerifyBackupMySelfIntroFragment"
+            app:destination="@id/coldCardVerifyBackupMySelfIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
+            android:id="@+id/action_coldCardVerifyBackUpOptionFragment_to_coldCardVerifyBackupViaAppFragment"
+            app:destination="@id/coldCardVerifyBackupViaAppFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/coldCardVerifyBackupMySelfIntroFragment"
+        android:name="com.nunchuk.android.signer.mk4.inheritance.backup.myself.ColdCardVerifyBackupMySelfIntroFragment"
+        android:label="ColdCardVerifyBackupMySelfIntroFragment">
+        <action
+            android:id="@+id/action_coldCardVerifyBackupMySelfIntroFragment_to_coldCardVerifyBackupFragment"
+            app:destination="@id/coldCardVerifyBackupFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/coldCardVerifyBackupFragment"
+        android:name="com.nunchuk.android.signer.mk4.inheritance.backup.myself.ColdCardVerifyBackupFragment"
+        android:label="ColdCardVerifyBackupFragment">
+
+        <action
+            android:id="@+id/action_coldCardVerifyBackupFragment_to_coldCardVerifyRecoveredKeyFragment"
+            app:destination="@id/coldCardVerifyRecoveredKeyFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/coldCardVerifyRecoveredKeyFragment"
+        android:name="com.nunchuk.android.signer.mk4.inheritance.backup.myself.ColdCardVerifyRecoveredKeyFragment"
+        android:label="ColdCardVerifyBackupSuccessFragment"/>
+
+    <fragment
+        android:id="@+id/coldCardVerifyBackupViaAppFragment"
+        android:name="com.nunchuk.android.signer.mk4.inheritance.backup.viaapp.ColdCardVerifyBackupViaAppFragment"
+        android:label="ColdCardVerifyBackupViaAppFragment">
+        <action
+            android:id="@+id/action_coldCardVerifyBackupViaAppFragment_to_backUpResultHealthyFragment"
+            app:destination="@id/backup_healthy_navigation"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <include app:graph="@navigation/backup_healthy_navigation" />
 </navigation>

@@ -178,7 +178,7 @@
 
         <action
             android:id="@+id/action_checkBackUpByAppFragment_to_backUpResultHealthyFragment"
-            app:destination="@id/backUpResultHealthyFragment" />
+            app:destination="@id/backup_healthy_navigation" />
         <action
             android:id="@+id/action_checkBackUpByAppFragment_to_uploadBackUpTapSignerFragment"
             app:destination="@id/uploadBackUpTapSignerFragment"
@@ -189,11 +189,6 @@
             app:popUpTo="@id/uploadBackUpTapSignerFragment"
             app:popUpToInclusive="true" />
     </fragment>
-
-    <fragment
-        android:id="@+id/backUpResultHealthyFragment"
-        android:name="com.nunchuk.android.signer.tapsigner.backup.verify.byapp.health.BackUpResultHealthyFragment"
-        android:label="BackUpResultHealthyFragment" />
 
     <fragment
         android:id="@+id/checkBackUpBySelfFragment"
@@ -234,4 +229,5 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
+    <include app:graph="@navigation/backup_healthy_navigation" />
 </navigation>

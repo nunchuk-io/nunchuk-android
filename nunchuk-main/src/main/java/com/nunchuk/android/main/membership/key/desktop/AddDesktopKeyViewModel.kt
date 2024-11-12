@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.usecase.membership.RequestAddDesktopKeyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -30,7 +31,7 @@ class AddDesktopKeyViewModel @Inject constructor(
                     RequestAddDesktopKeyUseCase.Param(
                         args.step,
                         args.groupId.orEmpty(),
-                        listOf(args.signerTag)
+                        if (args.isAddInheritanceKey) listOf(SignerTag.INHERITANCE, args.signerTag) else listOf(args.signerTag)
                     )
                 ).onSuccess {
                     _event.emit(AddDesktopKeyEvent.RequestAddKeySuccess(it))

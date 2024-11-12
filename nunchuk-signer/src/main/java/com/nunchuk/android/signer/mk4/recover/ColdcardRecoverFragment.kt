@@ -45,11 +45,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.LabelNumberAndDesc
 import com.nunchuk.android.compose.NcClickableText
@@ -68,6 +70,7 @@ import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.add.PASSPORT_EXTRA_KEYS
 import com.nunchuk.android.signer.components.add.ScanDynamicQRActivity
 import com.nunchuk.android.signer.mk4.Mk4Activity
+import com.nunchuk.android.signer.mk4.Mk4ViewModel
 import com.nunchuk.android.utils.parcelableArrayList
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -76,6 +79,7 @@ import kotlinx.coroutines.launch
 class ColdcardRecoverFragment : MembershipFragment() {
     private val viewModel: ColdcardRecoverViewModel by viewModels()
     private val args: ColdcardRecoverFragmentArgs by navArgs()
+    private val mk4ViewModel: Mk4ViewModel by activityViewModels()
 
     private val launcher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
@@ -137,10 +141,23 @@ class ColdcardRecoverFragment : MembershipFragment() {
                         } else {
                             launcher.launch("application/json")
                         }
-                        ColdcardRecoverEvent.CreateSignerSuccess -> {
-                            requireActivity().apply {
-                                setResult(RESULT_OK)
-                                finish()
+                        is ColdcardRecoverEvent.CreateSignerSuccess -> {
+                            if (args.isAddInheritanceKey) {
+                                mk4ViewModel.setOrUpdate(
+                                    mk4ViewModel.coldCardBackUpParam.copy(
+                                        xfp = event.signer.masterFingerprint,
+                                        keyType = event.signer.type,
+                                        keyName = event.signer.name
+                                    )
+                                )
+                                findNavController().navigate(
+                                    ColdcardRecoverFragmentDirections.actionColdcardRecoverFragmentToColdCardBackUpIntroFragment()
+                                )
+                            } else {
+                                requireActivity().apply {
+                                    setResult(RESULT_OK)
+                                    finish()
+                                }
                             }
                         }
 
@@ -155,7 +172,7 @@ class ColdcardRecoverFragment : MembershipFragment() {
                             }
                         }
 
-                        ColdcardRecoverEvent.ErrorMk4TestNet -> showError(getString(R.string.nc_error_device_in_testnet_msg))
+                        ColdcardRecoverEvent.ErrorMk4TestNet -> showError(getString(R.string.nc_error_device_in_testnet_msg_v2))
                     }
                 }
         }

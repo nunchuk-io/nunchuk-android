@@ -30,4 +30,6 @@ class ServerKeyExtra(
     val derivationPath: String,
     @SerializedName("xpub")
     val xpub: String,
+    @SerializedName("file_name")
+    val userKeyFileName: String,
 )

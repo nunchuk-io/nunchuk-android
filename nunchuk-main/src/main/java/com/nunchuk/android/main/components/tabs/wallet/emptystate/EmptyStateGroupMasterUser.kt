@@ -7,14 +7,14 @@ import com.nunchuk.android.nav.NunchukNavigator
 class EmptyStateGroupMasterUser(
     private val navigator: NunchukNavigator,
     private val activityContext: Activity
-) : EmptyStateFactory {
+) : EmptyStateProvider {
     override fun getWizardData(conditionInfo: ConditionInfo): WizardData? {
         if (conditionInfo !is ConditionInfo.GroupMasterUser) return null
         return WizardData(
-            title = "Welcome to Nunchuk!",
-            subtitle = "Let's get started by creating your first wallet.",
+            title = activityContext.getString(R.string.nc_welcome_to_nunchuk),
+            subtitle = activityContext.getString(R.string.nc_let_get_started_creating_first_wallet),
             instructions = emptyList(),
-            buttonText = "Create wallet",
+            buttonText = activityContext.getString(R.string.nc_wallet_create_wallet),
             buttonAction = {
                 navigator.openWalletIntermediaryScreen(activityContext, conditionInfo.hasSigner)
             },

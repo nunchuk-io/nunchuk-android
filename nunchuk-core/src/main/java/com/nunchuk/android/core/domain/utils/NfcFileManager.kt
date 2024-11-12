@@ -57,4 +57,9 @@ class NfcFileManager @Inject constructor(
             context.filesDir,
             "backup.${System.currentTimeMillis()}.${ident}.aes"
         )
+
+    fun getBackUpKeyFileWithName(fileName: String) : File = File(
+        context.filesDir,
+        fileName.ifEmpty { "backup.${System.currentTimeMillis()}.zip" }
+    )
 }

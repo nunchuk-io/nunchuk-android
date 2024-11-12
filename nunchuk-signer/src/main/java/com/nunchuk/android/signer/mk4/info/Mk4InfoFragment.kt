@@ -58,7 +58,8 @@ class Mk4InfoFragment : MembershipFragment() {
                     onContinueClicked = {
                         findNavController().navigate(
                             Mk4InfoFragmentDirections.actionMk4InfoFragmentToMk4IntroFragment(
-                                args.isMembershipFlow
+                                isMembershipFlow = args.isMembershipFlow,
+                                isAddInheritanceKey = args.isAddInheritanceKey
                             )
                         )
                     },

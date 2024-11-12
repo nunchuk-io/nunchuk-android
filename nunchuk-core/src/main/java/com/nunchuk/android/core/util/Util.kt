@@ -77,7 +77,7 @@ const val BTC_SATOSHI_EXCHANGE_RATE = 100000000
 
 const val NFC_CARD_TIMEOUT = 5000
 const val NFC_DEFAULT_NAME = "NFC Key"
-const val TAPSIGNER_INHERITANCE_NAME = "TAPSIGNER (inh.)"
+const val HARDWARE_KEY_NAME = "Hardware key"
 
 const val ONE_HOUR_TO_SECONDS = 60 * 60
 
@@ -85,6 +85,8 @@ private const val MULTI_SIG_SIGNER_PATH_PREFIX = "m/48h"
 private const val SINGLE_SIG_SIGNER_PATH_PREFIX = "m/84h"
 const val COLDCARD_GUIDE_URL = "https://coldcard.com/docs/quick"
 const val COLDCARD_DEFAULT_KEY_NAME = "COLDCARD"
+const val INHERITANCE_KEY_NAME_EXT = "inh."
+const val TAPSIGNER_DEFAULT_KEY_NAME = "TAPSIGNER"
 
 const val SUPPORT_ROOM_USER_ID = "@support:nunchuk.io"
 const val SUPPORT_ROOM_TYPE = "io.nunchuk.support"
@@ -184,8 +186,11 @@ fun Context.getTextBtcUnit() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     else -> getString(R.string.nc_currency_btc)
 }
 
+val String.isTestNetSigner: Boolean
+    get() = split("/").getOrNull(2) == "1h"
+
 val String.isRecommendedMultiSigPath: Boolean
-    get() = this.startsWith(MULTI_SIG_SIGNER_PATH_PREFIX) && this.endsWith("2h")
+    get() = this.startsWith("m/48h") && this.endsWith("2h")
 
 val String.isRecommendedSingleSigPath: Boolean
     get() = this.startsWith(SINGLE_SIG_SIGNER_PATH_PREFIX) && this.endsWith("0h")

@@ -61,6 +61,9 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
+import com.nunchuk.android.core.util.isRecommendedSingleSigPath
+import com.nunchuk.android.core.util.isTestNetSigner
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showOrHideNfcLoading
@@ -76,6 +79,8 @@ import com.nunchuk.android.share.result.GlobalResult
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
+import com.nunchuk.android.signer.mk4.Mk4ViewModel
+import com.nunchuk.android.signer.mk4.recover.ColdcardRecoverFragmentDirections
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -90,6 +95,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private val nfcViewModel by activityViewModels<NfcViewModel>()
     private val viewModel by viewModels<Mk4IntroViewModel>()
+    private val mk4ViewModel by activityViewModels<Mk4ViewModel>()
     private val args: Mk4IntroFragmentArgs by navArgs()
 
     override fun onCreateView(
@@ -149,16 +155,29 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 is Mk4IntroViewEvent.Loading -> showOrHideLoading(it.isLoading)
                 is Mk4IntroViewEvent.ShowError -> showError(it.message)
                 Mk4IntroViewEvent.OnContinueClicked -> onContinueClicked()
-                Mk4IntroViewEvent.OnCreateSignerSuccess -> {
-                    requireActivity().setResult(Activity.RESULT_OK)
-                    requireActivity().finish()
+                is Mk4IntroViewEvent.OnCreateSignerSuccess -> {
+                    if (args.isAddInheritanceKey) {
+                        mk4ViewModel.setOrUpdate(
+                            mk4ViewModel.coldCardBackUpParam.copy(
+                                xfp = it.signer.masterFingerprint,
+                                keyType = it.signer.type,
+                                keyName = it.signer.name
+                            )
+                        )
+                        findNavController().navigate(
+                            ColdcardRecoverFragmentDirections.actionColdcardRecoverFragmentToColdCardBackUpIntroFragment()
+                        )
+                    } else {
+                        requireActivity().setResult(Activity.RESULT_OK)
+                        requireActivity().finish()
+                    }
                 }
 
                 Mk4IntroViewEvent.OnSignerExistInAssistedWallet -> showError(getString(R.string.nc_error_add_same_key))
                 Mk4IntroViewEvent.ErrorMk4TestNet -> NCInfoDialog(requireActivity())
                     .showDialog(
-                        title = getString(R.string.nc_invalid_network),
-                        message = getString(R.string.nc_error_device_in_testnet_msg)
+                        title = getString(R.string.nc_error),
+                        message = getString(R.string.nc_error_device_in_testnet_msg_v2)
                     )
 
                 is Mk4IntroViewEvent.ImportWalletFromMk4Success -> openRecoverWalletName(it.walletId)
@@ -289,7 +308,24 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
         if (signer.isNotEmpty()) {
             val fragment = BottomSheetOption.newInstance(signer.mapIndexed { index, singleSigner ->
                 SheetOption(
-                    type = index + SIGNER_OFFSET, label = singleSigner.derivationPath
+                    type = index + SIGNER_OFFSET,
+                    label = if (singleSigner.derivationPath.isTestNetSigner) {
+                        "${singleSigner.derivationPath} (${getString(R.string.nc_testnet)})"
+                    } else if (singleSigner.derivationPath.isRecommendedMultiSigPath) {
+                        "${singleSigner.derivationPath} (${
+                            getString(
+                                R.string.nc_recommended_for_multisig
+                            )
+                        })"
+                    } else if (singleSigner.derivationPath.isRecommendedSingleSigPath) {
+                        "${singleSigner.derivationPath} (${
+                            getString(
+                                R.string.nc_recommended_for_single_sig
+                            )
+                        })"
+                    } else {
+                        singleSigner.derivationPath
+                    }
                 )
             }, title = getString(R.string.nc_mk4_signer_title))
             fragment.show(childFragmentManager, "BottomSheetOption")

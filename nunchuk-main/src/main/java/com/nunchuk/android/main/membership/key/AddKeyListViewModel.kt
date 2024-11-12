@@ -52,6 +52,7 @@ import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -83,6 +84,7 @@ class AddKeyListViewModel @Inject constructor(
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
+    val state = _state.asStateFlow()
     private val _event = MutableSharedFlow<AddKeyListEvent>()
     val event = _event.asSharedFlow()
     private var loadJob: Job? = null
@@ -117,6 +119,7 @@ class AddKeyListViewModel @Inject constructor(
         viewModelScope.launch {
             membershipStepState.combine(key) { _, keys -> keys }
                 .collect { keys ->
+                    val missingBackupKeys = arrayListOf<AddKeyData>()
                     val news = keys.map { addKeyData ->
                         val info = getStepInfo(addKeyData.type)
                         val extra = runCatching {
@@ -138,9 +141,18 @@ class AddKeyListViewModel @Inject constructor(
                                 verifyType = info.verifyType
                             )
                         }
-                        addKeyData.copy(verifyType = info.verifyType)
+                        val newKeyData = addKeyData.copy(verifyType = info.verifyType)
+                        // Check if Coldcard Inheritance signer is missing backup key
+                        if (newKeyData.signer?.tags.orEmpty().contains(SignerTag.INHERITANCE)
+                            && newKeyData.signer?.type != SignerType.NFC) {
+                            if (extra != null && extra.userKeyFileName.isEmpty()) {
+                                missingBackupKeys.add(newKeyData)
+                            }
+                        }
+                        return@map newKeyData
                     }
                     _keys.value = news
+                    _state.update { it.copy(missingBackupKeys = missingBackupKeys) }
                 }
         }
         viewModelScope.launch {
@@ -159,7 +171,7 @@ class AddKeyListViewModel @Inject constructor(
     fun refresh() {
         if (loadJob?.isActive == true) return
         loadJob = viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
+            _state.update { it.copy(isRefresh = true) }
             syncDraftWalletUseCase("").onSuccess { draft ->
                 loadSigners()
                 draft.config.toGroupWalletType()?.let { type ->
@@ -169,7 +181,7 @@ class AddKeyListViewModel @Inject constructor(
                     }
                 }
             }
-            _state.update { it.copy(isLoading = false) }
+            _state.update { it.copy(isRefresh = false) }
         }
     }
 
@@ -216,7 +228,8 @@ class AddKeyListViewModel @Inject constructor(
                         SignerExtra(
                             derivationPath = signer.derivationPath,
                             isAddNew = false,
-                            signerType = signer.type
+                            signerType = signer.type,
+                            userKeyFileName = ""
                         )
                     ),
                     groupId = ""
@@ -259,7 +272,8 @@ class AddKeyListViewModel @Inject constructor(
                 _event.emit(
                     AddKeyListEvent.OnVerifySigner(
                         signer = signer,
-                        filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer)
+                        filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer),
+                        backUpFileName = getBackUpFileName(stepInfo.extraData)
                     )
                 )
             }
@@ -315,6 +329,12 @@ class AddKeyListViewModel @Inject constructor(
     fun getPortal(): List<SignerModel> =
         _state.value.signers.filter { it.type == SignerType.PORTAL_NFC && isSignerExist(it.fingerPrint).not() }
 
+    private fun getBackUpFileName(extra: String): String {
+        return runCatching {
+            gson.fromJson(extra, SignerExtra::class.java).userKeyFileName
+        }.getOrDefault("")
+    }
+
     fun markShowPortal() {
         viewModelScope.launch {
             ncDataStore.setShowPortal(false)
@@ -328,7 +348,7 @@ class AddKeyListViewModel @Inject constructor(
 
 sealed class AddKeyListEvent {
     data class OnAddKey(val data: AddKeyData) : AddKeyListEvent()
-    data class OnVerifySigner(val signer: SignerModel, val filePath: String) : AddKeyListEvent()
+    data class OnVerifySigner(val signer: SignerModel, val filePath: String, val backUpFileName: String) : AddKeyListEvent()
     data object OnAddAllKey : AddKeyListEvent()
     data object SelectAirgapType : AddKeyListEvent()
     data class ShowError(val message: String) : AddKeyListEvent()
@@ -336,5 +356,7 @@ sealed class AddKeyListEvent {
 
 data class AddKeyListState(
     val isLoading: Boolean = false,
-    val signers: List<SignerModel> = emptyList()
+    val isRefresh: Boolean = false,
+    val signers: List<SignerModel> = emptyList(),
+    val missingBackupKeys: List<AddKeyData> = emptyList()
 )

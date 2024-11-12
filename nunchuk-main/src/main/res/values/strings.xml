@@ -30,9 +30,15 @@
     <string name="nc_activation_date">Activation Date</string>
     <string name="nc_plan_overview_bottom_desc">We will now go through them one-by-one.</string>
     <string name="nc_find_backup_password_desc">In your wallet, you have designated a TAPSIGNER to be the inheritance key. An encrypted backup of this key is stored on the server.\n\nOn or after the Activation Date, the Beneficiary or Trustee can recover this key using the Backup Password printed on the back of the TAPSIGNER.\n\n[B]Make note of this Backup Password[/B]. You will need to share it with the Beneficiary or Trustee.</string>
+    <string name="nc_find_backup_password_desc_1">In your wallet, you have designated a TAPSIGNER to be [A]the first inheritance key.[/A] An encrypted backup of this key is stored on the server.\n\nOn or after the Activation Date, the Beneficiary or Trustee can recover this key using the Backup Password printed on the back of the TAPSIGNER.\n\n[B]Make note of this Backup Password[/B]. You will need to share it with the Beneficiary or Trustee.</string>
+    <string name="nc_find_backup_password_desc_2">Additionally, you have designated %1$s TAPSIGNER to be [A]the second inheritance key.[/A] An encrypted backup of this key is also stored on the server.\n\nSimilarly, on or after the Activation Date, the Beneficiary or Trustee can recover this key using the Backup Password printed on the back of the second TAPSIGNER.\n\n[B]Make note of this Backup Password[/B]. You will need to share it with the Beneficiary or Trustee</string>
+    <string name="nc_record_your_backup_password_desc">In your wallet, you have designated a COLDCARD to be [A]the inheritance key.[/A] An encrypted backup of this key is stored on the server.\n\nOn or after the Activation Date, the Beneficiary or Trustee can recover this key using the Backup Password (12 words) that was displayed on the COLDCARD device when you created the backup file.\n\n[B]Make note of this Backup Password[/B]. You will need to share it with the Beneficiary or Trustee.</string>
+    <string name="nc_record_your_backup_password_desc_1">In your wallet, you have designated a COLDCARD to be [A]the first inheritance key.[/A] An encrypted backup of this key is stored on the server.\n\nOn or after the Activation Date, the Beneficiary or Trustee can recover this key using the Backup Password (12 words) that was displayed on the COLDCARD device when you created the backup file.\n\n[B]Make note of this Backup Password[/B]. You will need to share it with the Beneficiary or Trustee.</string>
+    <string name="nc_record_your_backup_password_desc_2">Additionally, you have designated %1$s COLDCARD to be [A]the second inheritance key.[/A] An encrypted backup of this key is also stored on the server.\n\nOn or after the Activation Date, the Beneficiary or Trustee can recover this key using the Backup Password (12 words) that was displayed on the COLDCARD device when you created the backup file.\n\n[B]Make note of this Backup Password[/B]. You will need to share it with the Beneficiary or Trustee.</string>
     <string name="nc_find_two_backup_password_desc">In your wallet, you have designated two TAPSIGNERs to be the inheritance keys. The encrypted backups of these keys are stored on the server.\n\nOn or after the Activation Date, the Beneficiary or Trustee can recover these keys using the Backup Passwords printed on the back of the TAPSIGNERs.\n\n[B]Make note of the two Backup Passwords[/B]. You will need to share them with the Beneficiary or Trustee.</string>
     <string name="nc_find_backup_password">Find your Backup Password</string>
     <string name="nc_find_backup_passwords">Find your Backup Passwords</string>
+    <string name="nc_record_your_backup_password">Record your Backup Password</string>
     <string name="nc_set_up_inheritance_hint">[B]Beneficiary[/B]: an individual who will inherit your bitcoins.\n\n[B]Trustee[/B]: an individual who will help manage and distribute your bitcoins to the Beneficiary.</string>
     <string name="nc_here_is_plan_magical_phrase">Here is your plan’s Magic Phrase</string>
     <string name="nc_inheritance_key_tip">Inheritance key tip</string>
@@ -102,11 +108,11 @@
     <string name="nc_primary_key_admin_role_message_dialog">An admin must have an email-based account.</string>
     <string name="nc_limit_keyholder_message_dialog">Please make sure that you have no more than %1$s keyholders.</string>
     <string name="nc_remove_member_inheritance_message_dialog">This member is currently in charge of the inheritance plan for this wallet. Please cancel the plan first.</string>
-    <string name="nc_byzantine_add_key_2_of_4_desc">Your new wallet will be a 2-of-4 multisig wallet. [B]Two keys are always required for spending[/B].\n\nAmong your three keys, select one key to be the inheritance key. It must be a TAPSIGNER.\n\nPull to refresh the key statuses.</string>
+    <string name="nc_byzantine_add_key_2_of_4_desc">Your new wallet will be a 2-of-4 multisig wallet. [B]Two keys are always required for spending[/B].\n\nAmong your keys, select one key to be the inheritance key.\n\nPull to refresh the key statuses.</string>
     <string name="nc_byzantine_add_key_2_of_4_no_inheritance_desc">Your new wallet will be a 2-of-4 multisig wallet. [B]Two keys are always required for spending[/B].\n\nPull to refresh the key statuses.</string>
     <string name="nc_byzantine_add_key_2_of_3_desc">Your new wallet will be a 2-of-3 multisig wallet. [B]Two keys are always required for spending[/B].\n\nPull to refresh the key statuses.</string>
     <string name="nc_byzantine_add_key_3_of_5_desc">Your new wallet will be a 3-of-5 multisig wallet. [B]Three keys are always required for spending[/B].\n\nPull to refresh the key statuses.</string>
-    <string name="nc_byzantine_add_key_3_of_5_inheritance_desc">Your new wallet will be a 3-of-5 multisig wallet. [B]Three keys are always required for spending[/B].\n\nAmong your keys, select two keys to be the inheritance keys. They must be TAPSIGNERs.\n\nPull to refresh the key statuses.</string>
+    <string name="nc_byzantine_add_key_3_of_5_inheritance_desc">Your new wallet will be a 3-of-5 multisig wallet. [B]Three keys are always required for spending[/B].\n\nAmong your keys, select two keys to be the inheritance keys.\n\nPull to refresh the key statuses.</string>
     <string name="nc_pending_wallet">Pending wallet</string>
     <string name="nc_wallet_invitation">Wallet invitation</string>
     <string name="nc_accept">Accept</string>
@@ -339,7 +345,6 @@
     <string name="nc_which_key_would_you_like_to_replace">Which key would you like to replace?</string>
     <string name="nc_replace_one_or_multiple_keys">Replace one or multiple keys.</string>
     <string name="nc_replace">Replace</string>
-    <string name="nc_info_hardware_key_not_supported">Please use the desktop app to add this key.</string>
     <string name="nc_cancel_key_replacement">Cancel key replacement</string>
     <string name="nc_inheritance_key_warning">[B]Replacing the inheritance key means that you will have to set up the inheritance plan again[/B]. Are you sure you want to do this?</string>
     <string name="nc_confirm_cancel_replacement_desc">Are you sure you want to cancel the key replacement?</string>
@@ -362,4 +367,15 @@
     <string name="nc_main_what_type_of_personal_wallet">What type of personal wallet do you want to create?</string>
     <string name="nc_roll_over_broadcast_notification">The rollover transactions have been created. Please sign and broadcast them at your convenience.\n\nTo improve privacy, [A]we strongly recommend that you randomize the broadcast times of the rollover transactions.[/A] Avoid broadcasting them all at the same time.</string>
     <string name="nc_banner_expired_time">Expires %1$s</string>
+    <string name="nc_no_internet_connection_sign_dummy_tx">No Internet connection. Transaction will be automatically updated when you are online.</string>
+    <string name="nc_no_internet_connection_force_sync">Transaction not updated</string>
+    <string name="nc_create_assisted_wallet_subscription_required">Create assisted wallet (subscription required)</string>
+    <string name="nc_create_unassisted_wallet">Create unassisted wallet</string>
+    <string name="nc_welcome_to_nunchuk">Welcome to Nunchuk!</string>
+    <string name="nc_continue_creating_first_wallet_or_add_another_key">Continue creating your first wallet, or add another key.</string>
+    <string name="nc_to_get_started">To get started:</string>
+    <string name="nc_add_another_key">Add another key</string>
+    <string name="nc_let_get_started_creating_first_wallet">Let\'s get started by creating your first wallet.</string>
+    <string name="nc_empty_state_free_user_step_1">Add a key (or multiple keys if using multisig), then create your wallet.</string>
+    <string name="nc_empty_state_free_user_step_2">Or quickly create a hot wallet for immediate use, then back it up later.</string>
 </resources>

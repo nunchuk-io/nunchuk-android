@@ -391,7 +391,13 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is AddKeyListEvent.OnAddKey -> handleOnAddKey(event.data)
-                is AddKeyListEvent.OnVerifySigner -> openVerifyTapSigner(event)
+                is AddKeyListEvent.OnVerifySigner -> {
+                    if (event.signer.type == SignerType.NFC) {
+                        openVerifyTapSigner(event)
+                    } else {
+                        openVerifyColdCard(event)
+                    }
+                }
                 AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> showAirgapOptions()
@@ -425,8 +431,8 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                 }
             }
 
-            MembershipStep.BYZANTINE_ADD_TAP_SIGNER, MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 -> {
-                findNavController().navigate(AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToTapSignerInheritanceIntroFragment())
+            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 -> {
+                findNavController().navigate(AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToInheritanceKeyIntroFragment())
             }
 
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,
@@ -477,7 +483,22 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             fromMembershipFlow = true,
             backUpFilePath = event.filePath,
             masterSignerId = event.signer.id,
-            groupId = (activity as MembershipActivity).groupId
+            groupId = (activity as MembershipActivity).groupId,
+            walletId = (activity as MembershipActivity).walletId,
+        )
+    }
+
+    private fun openVerifyColdCard(event: AddKeyListEvent.OnVerifySigner) {
+        navigator.openSetupMk4(
+            activity = requireActivity(),
+            fromMembershipFlow = true,
+            backUpFilePath = event.filePath,
+            xfp = event.signer.fingerPrint,
+            groupId = (activity as MembershipActivity).groupId,
+            action = if (event.backUpFileName.isNotEmpty()) ColdcardAction.VERIFY_KEY else ColdcardAction.UPLOAD_BACKUP,
+            signerType = event.signer.type,
+            keyName = event.signer.name,
+            backUpFileName = event.backUpFileName
         )
     }
 
@@ -524,6 +545,7 @@ fun AddKeyListScreen(
         onAddClicked = viewModel::onAddKeyClicked,
         onVerifyClicked = viewModel::onVerifyClicked,
         keys = keys,
+        missingBackupKeys = state.missingBackupKeys,
         remainingTime = remainingTime,
         onMoreClicked = onMoreClicked,
         refresh = viewModel::refresh,

@@ -135,6 +135,7 @@ private fun TapSignerListScreen(
         onAddNewKeyClicked = viewModel::onAddNewKey,
         signers = args.signers.toList(),
         type = args.type,
+        description = args.description,
         onSignerSelected = viewModel::onSignerSelected,
         selectedSigner = selectedSigner,
     )
@@ -149,6 +150,7 @@ private fun TapSignerListContent(
     onSignerSelected: (signer: SignerModel) -> Unit = {},
     selectedSigner: SignerModel? = null,
     type: SignerType = SignerType.NFC,
+    description: String = "",
 ) {
     val signerLabel = when (type) {
         SignerType.NFC -> "TAPSIGNER(s)"
@@ -180,10 +182,10 @@ private fun TapSignerListContent(
             ),
             style = NunchukTheme.typography.title,
         )
-        if (signerLabel.isNotEmpty()) {
+        if (signerLabel.isNotEmpty() || description.isNotEmpty()) {
             Text(
                 modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
-                text = stringResource(R.string.nc_notice_you_have_exist_key, signerLabel),
+                text = description.ifEmpty { stringResource(R.string.nc_notice_you_have_exist_key, signerLabel) },
                 style = NunchukTheme.typography.body,
             )
         }

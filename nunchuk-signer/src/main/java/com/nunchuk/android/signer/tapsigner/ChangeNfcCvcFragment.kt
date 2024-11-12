@@ -106,7 +106,7 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
                                 binding.editNewCvc.getEditText(),
                                 chainCode,
                                 if (isMembershipFlow) viewModel.replaceSignerName.value.ifEmpty {
-                                    membershipStepManager.getTapSignerName()
+                                    membershipStepManager.getInheritanceKeyName(isTapsigner = true)
                                 } else NFC_DEFAULT_NAME
                             )
                         } else if (setUpAction == NfcSetupActivity.CHANGE_CVC) {

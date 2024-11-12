@@ -22,12 +22,15 @@ package com.nunchuk.android.share.membership
 import com.google.gson.Gson
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.persistence.NcDataStore
-import com.nunchuk.android.core.util.TAPSIGNER_INHERITANCE_NAME
+import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
+import com.nunchuk.android.core.util.INHERITANCE_KEY_NAME_EXT
+import com.nunchuk.android.core.util.TAPSIGNER_DEFAULT_KEY_NAME
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.isPersonalPlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
@@ -133,9 +136,9 @@ class MembershipStepManager @Inject constructor(
                 }
 
                 GroupWalletType.THREE_OF_FIVE_INHERITANCE -> {
-                    steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER] =
+                    steps[MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY] =
                         MembershipStepFlow(totalStep = 8)
-                    steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1] =
+                    steps[MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1] =
                         MembershipStepFlow(totalStep = 8)
                     steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2] =
                         MembershipStepFlow(totalStep = 8)
@@ -157,7 +160,7 @@ class MembershipStepManager @Inject constructor(
                 }
 
                 GroupWalletType.TWO_OF_FOUR_MULTISIG -> {
-                    steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER] =
+                    steps[MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY] =
                         MembershipStepFlow(totalStep = 8)
                     steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
                         MembershipStepFlow(totalStep = 8)
@@ -176,7 +179,7 @@ class MembershipStepManager @Inject constructor(
                 }
 
                 GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE -> {
-                    steps[MembershipStep.BYZANTINE_ADD_TAP_SIGNER] =
+                    steps[MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY] =
                         MembershipStepFlow(totalStep = 8)
                     steps[MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1] =
                         MembershipStepFlow(totalStep = 8)
@@ -274,7 +277,7 @@ class MembershipStepManager @Inject constructor(
             else -> {
                 _stepDone.value.containsAll(
                     listOf(
-                        MembershipStep.HONEY_ADD_TAP_SIGNER,
+                        MembershipStep.HONEY_ADD_INHERITANCE_KEY,
                         MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
                         MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
                         MembershipStep.ADD_SEVER_KEY
@@ -302,12 +305,22 @@ class MembershipStepManager @Inject constructor(
     fun getRemainTimeByOtherSteps(querySteps: List<MembershipStep>) =
         calculateRemainTime(steps.toMap().filter { it.key !in querySteps }.values)
 
-    fun getTapSignerName() = when (currentStep) {
-        MembershipStep.BYZANTINE_ADD_TAP_SIGNER, MembershipStep.HONEY_ADD_TAP_SIGNER -> TAPSIGNER_INHERITANCE_NAME
-        MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 -> "$TAPSIGNER_INHERITANCE_NAME #2"
-        else -> "TAPSIGNER${
-            getNextKeySuffixByType(SignerType.NFC)
-        }"
+    fun getInheritanceKeyName(isTapsigner: Boolean) = when (currentStep) {
+        MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY, MembershipStep.HONEY_ADD_INHERITANCE_KEY ->  {
+            if (isTapsigner) "$TAPSIGNER_DEFAULT_KEY_NAME ($INHERITANCE_KEY_NAME_EXT)" else "$COLDCARD_DEFAULT_KEY_NAME ($INHERITANCE_KEY_NAME_EXT)"
+        }
+        MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 -> {
+            if (isTapsigner) "$TAPSIGNER_DEFAULT_KEY_NAME ($INHERITANCE_KEY_NAME_EXT) #2" else "$COLDCARD_DEFAULT_KEY_NAME ($INHERITANCE_KEY_NAME_EXT) #2"
+        }
+        else -> if (isTapsigner) {
+            "$TAPSIGNER_DEFAULT_KEY_NAME${
+                getNextKeySuffixByType(SignerType.NFC)
+            }"
+        } else {
+            "$COLDCARD_DEFAULT_KEY_NAME${
+                getNextKeySuffixByType(SignerType.COLDCARD_NFC)
+            }"
+        }
     }
 
     fun getNextKeySuffixByType(type: SignerType): String {
@@ -334,6 +347,8 @@ class MembershipStepManager @Inject constructor(
     private fun calculateRemainTime(stepFlows: Collection<MembershipStepFlow>) =
         stepFlows.sumOf { (it.totalStep - it.currentStep).coerceAtLeast(0) * DURATION_EACH_STEP }
             .roundToInt()
+
+    fun isPersonalWallet() = localMembershipPlan.isPersonalPlan()
 
     companion object {
         private const val DURATION_EACH_STEP = 0.5

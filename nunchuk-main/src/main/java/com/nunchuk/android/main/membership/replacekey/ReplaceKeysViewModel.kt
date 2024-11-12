@@ -209,6 +209,11 @@ class ReplaceKeysViewModel @Inject constructor(
                                     .getOrDefault(0)
                             )
                         },
+                        coldCardBackUpFileName = status.signers.filter {
+                            it.value.tags.contains(SignerTag.INHERITANCE.name) && it.value.type != SignerType.NFC
+                        }.map { entry ->
+                            entry.value.xfp.orEmpty() to entry.value.userBackUpFileName.orEmpty()
+                        }.toMap(),
                         verifiedSigners = verifiedSigners,
                         pendingReplaceXfps = status.pendingReplaceXfps,
                     )
@@ -315,7 +320,7 @@ class ReplaceKeysViewModel @Inject constructor(
     fun getColdcard() = _uiState.value.signers.filter {
         isSignerExist(it.fingerPrint).not()
                 && ((it.type == SignerType.COLDCARD_NFC && it.derivationPath.isRecommendedMultiSigPath)
-                || (it.type == SignerType.AIRGAP && it.tags.isEmpty()))
+                || (it.type == SignerType.AIRGAP && (it.tags.isEmpty() || it.tags.contains(SignerTag.COLDCARD))))
     }
 
     fun getAirgap(tag: SignerTag?): List<SignerModel> {
@@ -446,10 +451,12 @@ class ReplaceKeysViewModel @Inject constructor(
     }
 
     fun getKeyId(xfp: String): String {
-        return replacedSigners.find { it.xfp == xfp }?.tapsignerKeyId.orEmpty()
+        return replacedSigners.find { it.xfp == xfp }?.userKeyId.orEmpty()
     }
 
     fun getFilePath(xfp: String) = nfcFileManager.buildFilePath(getKeyId(xfp))
+
+    fun getBackUpFileName(xfp: String) = _uiState.value.coldCardBackUpFileName[xfp].orEmpty()
 
     val replacedXfp: String
         get() = savedStateHandle.get<String>(REPLACE_XFP).orEmpty()
@@ -461,6 +468,20 @@ class ReplaceKeysViewModel @Inject constructor(
         viewModelScope.launch {
             ncDataStore.setShowPortal(false)
         }
+    }
+
+    fun isInheritanceXfp(xfp: String) = _uiState.value.inheritanceXfps.contains(xfp)
+
+    fun getReplaceSignerXfp(xfp: String): String {
+        val replaceSigners = _uiState.value.replaceSigners
+        return replaceSigners.entries.find { it.value.fingerPrint == xfp }?.key.orEmpty()
+    }
+
+    fun isEnableContinueButton(): Boolean {
+        val coldCardInheritanceKeys = _uiState.value.replaceSigners.values.filter {
+            it.tags.contains(SignerTag.INHERITANCE) && it.type != SignerType.NFC
+        }
+        return _uiState.value.replaceSigners.isNotEmpty() && (coldCardInheritanceKeys.isEmpty() || coldCardInheritanceKeys.all { _uiState.value.verifiedSigners.contains(it.fingerPrint) })
     }
 
     companion object {
@@ -484,4 +505,5 @@ data class ReplaceKeysUiState(
     val inheritanceXfps: Set<String> = emptySet(),
     val isActiveAssistedWallet: Boolean = false,
     val isMultiSig: Boolean = false,
+    val coldCardBackUpFileName: Map<String, String> = emptyMap()
 )

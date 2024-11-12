@@ -46,6 +46,7 @@ import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivity
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.main.membership.byzantine.primaryowner.PrimaryOwnerActivity
+import com.nunchuk.android.main.membership.key.desktop.AddDesktopKeyActivity
 import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
 import com.nunchuk.android.main.rollover.RollOverWalletActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
@@ -54,6 +55,7 @@ import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.nav.AppNavigator
@@ -62,6 +64,7 @@ import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
 import com.nunchuk.android.signer.nav.NfcNavigatorDelegate
 import com.nunchuk.android.signer.nav.SignerNavigatorDelegate
 import com.nunchuk.android.transaction.nav.TransactionNavigatorDelegate
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.wallet.components.coin.CoinActivity
 import com.nunchuk.android.wallet.nav.WalletNavigatorDelegate
 import javax.inject.Inject
@@ -167,6 +170,22 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
             activityContext.startActivity(it)
         }
     }
+
+    override fun openAddDesktopKey(
+        activity: Activity,
+        signerTag: SignerTag,
+        groupId: String?,
+        step: MembershipStep,
+        isAddInheritanceKey: Boolean
+    ) {
+        AddDesktopKeyActivity.navigate(
+            activity = activity,
+            signerTag = signerTag,
+            groupId = groupId,
+            step = step,
+            isAddInheritanceKey = isAddInheritanceKey
+        )
+    }
 }
 
 interface AppNavigatorDelegate : AppNavigator {
@@ -185,6 +204,7 @@ interface AppNavigatorDelegate : AppNavigator {
         groupId: String?,
         isPersonalWallet: Boolean,
         walletType: GroupWalletType?,
+        isClearTop: Boolean
     ) {
         val intent = MembershipActivity.buildIntent(
             activity = activityContext,
@@ -192,8 +212,12 @@ interface AppNavigatorDelegate : AppNavigator {
             walletId = walletId,
             groupId = groupId,
             isPersonalWallet = isPersonalWallet,
-            walletType = walletType
-        )
+            walletType = walletType,
+        ).apply {
+            if (isClearTop) {
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            }
+        }
         activityContext.startActivity(intent)
     }
 

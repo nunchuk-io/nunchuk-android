@@ -159,6 +159,7 @@ import com.nunchuk.android.model.membership.GroupConfig
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.model.toMembershipPlan
+import com.nunchuk.android.model.toVerifyType
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
@@ -278,7 +279,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         name = key.name.orEmpty(),
                         xfp = key.xfp.orEmpty(),
                         derivationPath = key.derivationPath.orEmpty(),
-                        xpub = key.xpub.orEmpty()
+                        xpub = key.xpub.orEmpty(),
+                        userKeyFileName = ""
                     )
                 ),
                 plan = plan,
@@ -1694,7 +1696,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         name = key.name.orEmpty(),
                         xfp = key.xfp.orEmpty(),
                         derivationPath = key.derivationPath.orEmpty(),
-                        xpub = key.xpub.orEmpty()
+                        xpub = key.xpub.orEmpty(),
+                        userKeyFileName = "",
                     )
                 ),
                 plan = MembershipPlan.BYZANTINE,
@@ -1823,12 +1826,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                             step = localRequest.step,
                             masterSignerId = key.xfp.orEmpty(),
                             plan = plan,
-                            verifyType = VerifyType.APP_VERIFIED,
+                            verifyType = if (key.tags?.contains(SignerTag.INHERITANCE.name) == true) {
+                                key.userKey?.verificationType.toVerifyType()
+                            } else {
+                                VerifyType.APP_VERIFIED
+                            },
                             extraData = gson.toJson(
                                 SignerExtra(
                                     derivationPath = key.derivationPath.orEmpty(),
                                     isAddNew = false,
-                                    signerType = type
+                                    signerType = type,
+                                    userKeyFileName = key.userKey?.fileName.orEmpty()
                                 )
                             ),
                             groupId = groupId
@@ -2403,9 +2411,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun recoverKey(
-        xfp: String
+        xfp: String,
+        verifyToken: String,
+        securityQuestionToken: String
     ): BackupKey {
-        val response = userWalletApiManager.walletApi.recoverKey(id = xfp)
+        val headersMap = getHeaders(
+            authorizations = emptyList(),
+            verifyToken = verifyToken,
+            securityQuestionToken = securityQuestionToken,
+            confirmCodeToken = ""
+        )
+        val response = userWalletApiManager.walletApi.recoverKey(id = xfp, headers = headersMap)
         val key = response.data.key ?: throw NullPointerException("Can not get key")
         return key.toBackupKey()
     }

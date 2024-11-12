@@ -44,6 +44,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
         super.onCreate(savedInstanceState)
         setLightStatusBar()
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        keyId = intent.getStringExtra(EXTRA_KEY_ID).orEmpty()
         initStartDestination()
     }
 
@@ -131,8 +132,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
     val walletId: String
             by lazy(LazyThreadSafetyMode.NONE) { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
 
-    val keyId: String
-            by lazy(LazyThreadSafetyMode.NONE) { intent.getStringExtra(EXTRA_KEY_ID).orEmpty() }
+    var keyId: String = ""
 
     companion object {
         private const val EXTRA_ACTION = "EXTRA_ACTION"

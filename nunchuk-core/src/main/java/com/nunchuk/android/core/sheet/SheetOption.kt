@@ -160,4 +160,7 @@ object SheetOptionType {
     const val TYPE_EXPORT_PORTAL = 90
     const val TYPE_EXPORT_TX_INVOICES = 91
     const val TYPE_MARK_ADDRESS_AS_USED = 92
+
+    const val TYPE_ADD_INHERITANCE_NFC = 93
+    const val TYPE_ADD_INHERITANCE_COLDCARD = 94
 }

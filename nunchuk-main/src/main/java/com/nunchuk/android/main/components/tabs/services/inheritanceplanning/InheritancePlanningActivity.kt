@@ -153,7 +153,7 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_VERIFY_TOKEN = "extra_verify_token"
         private const val EXTRA_INHERITANCE = "extra_inheritance"
         private const val EXTRA_SOURCE_FLOW = "extra_source_flow"
-        private const val EXTRA_WALLET_ID = "wallet_id"
+        const val EXTRA_WALLET_ID = "wallet_id"
         private const val EXTRA_DUMMY_TRANSACTION_ID = "dummy_transaction_id"
 
         const val RESULT_REQUEST_PLANNING = "result_request_planning"

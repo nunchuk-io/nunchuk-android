@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/backup_healthy_navigation"
+    app:startDestination="@id/backUpResultHealthyFragment">
+
+    <fragment
+        android:id="@+id/backUpResultHealthyFragment"
+        android:name="com.nunchuk.android.signer.tapsigner.backup.verify.byapp.health.BackUpResultHealthyFragment"
+        android:label="BackUpResultHealthyFragment" />
+
+</navigation>

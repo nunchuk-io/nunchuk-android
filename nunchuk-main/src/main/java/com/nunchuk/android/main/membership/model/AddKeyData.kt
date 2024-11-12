@@ -21,7 +21,7 @@ package com.nunchuk.android.main.membership.model
 
 import android.content.Context
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.TAPSIGNER_INHERITANCE_NAME
+import com.nunchuk.android.core.util.HARDWARE_KEY_NAME
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.VerifyType
@@ -39,10 +39,9 @@ val MembershipStep.resId: Int
     get() {
         return when (this) {
             MembershipStep.ADD_SEVER_KEY -> R.drawable.ic_server_key_dark
-            MembershipStep.HONEY_ADD_TAP_SIGNER,
-            MembershipStep.BYZANTINE_ADD_TAP_SIGNER,
-            MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 -> R.drawable.ic_nfc_card
-
+            MembershipStep.HONEY_ADD_INHERITANCE_KEY,
+            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY,
+            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1,
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
@@ -59,16 +58,16 @@ val MembershipStep.resId: Int
 
 fun MembershipStep.getLabel(context: Context): String {
     return when (this) {
-        MembershipStep.IRON_ADD_HARDWARE_KEY_1 -> "Key #1"
-        MembershipStep.IRON_ADD_HARDWARE_KEY_2 -> "Key #2"
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> "Key #1"
+        MembershipStep.IRON_ADD_HARDWARE_KEY_1 -> "$HARDWARE_KEY_NAME #1"
+        MembershipStep.IRON_ADD_HARDWARE_KEY_2 -> "$HARDWARE_KEY_NAME #2"
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> "$HARDWARE_KEY_NAME #1"
         MembershipStep.ADD_SEVER_KEY -> context.getString(R.string.nc_server_key)
-        MembershipStep.HONEY_ADD_TAP_SIGNER, MembershipStep.BYZANTINE_ADD_TAP_SIGNER -> TAPSIGNER_INHERITANCE_NAME
-        MembershipStep.BYZANTINE_ADD_TAP_SIGNER_1 -> "$TAPSIGNER_INHERITANCE_NAME #2"
-        MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> "Key #2"
-        MembershipStep.HONEY_ADD_HARDWARE_KEY_2, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 -> "Key #3"
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 -> "Key #4"
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 -> "Key #5"
+        MembershipStep.HONEY_ADD_INHERITANCE_KEY, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY -> "$HARDWARE_KEY_NAME #1"
+        MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 -> "$HARDWARE_KEY_NAME #2"
+        MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> "$HARDWARE_KEY_NAME #2"
+        MembershipStep.HONEY_ADD_HARDWARE_KEY_2, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 -> "$HARDWARE_KEY_NAME #3"
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 -> "$HARDWARE_KEY_NAME #4"
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 -> "$HARDWARE_KEY_NAME #5"
         else -> ""
     }
 }

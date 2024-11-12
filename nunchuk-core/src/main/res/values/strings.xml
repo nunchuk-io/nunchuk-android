@@ -220,6 +220,7 @@
     <string name="nc_confirmation">Confirmation</string>
     <string name="nc_confirm_verify_backup_by_self_desc">Are you sure you have verified the backup? key recovery might not work with an unverified backup.</string>
     <string name="nc_verify_backup">Verify backup</string>
+    <string name="nc_upload_backup">Upload backup</string>
     <string name="nc_un_verify_backup">Unverified backup</string>
     <string name="nc_try_again">Try again</string>
     <string name="nc_upload_failed">Upload failed</string>
@@ -276,7 +277,7 @@
     <string name="nc_assisted">Assisted</string>
     <string name="nc_your_inheritance_key">Your inheritance key</string>
     <string name="nc_inheritance_intro_desc">This TAPSIGNER will be your designated inheritance key.\n\nPlease take a moment to mark or label this key.</string>
-    <string name="nc_inheritance_key_tip_desc">The inheritance key can function as a backup signing key on a day-to-day basis.\n\nHowever, since the TAPSIGNER used as the inheritance key contains sensitive information with regards to the inheritance (i.e., the Backup Password), [B]we recommend that you exercise extra caution when storing and accessing it.[/B]</string>
+    <string name="nc_inheritance_key_tip_desc">[B]The inheritance key is designed to be used exclusively for the purpose of inheritance.[/B] As such, it should rarely be accessed. However, in an emergency, it can function as a backup signing key.\n\nWe recommend that you put it away in a safe place. Only use this key to sign daily transactions as a last resort.</string>
     <string name="nc_set_up_inheritance_plan">Set up an inheritance plan</string>
     <string name="nc_set_up_inheritance_plan_wallet">Set up an inheritance plan for this wallet</string>
     <string name="nc_view_inheritance_plan">View inheritance plan</string>
@@ -308,7 +309,7 @@
     <string name="nc_two_backup_password">Two Backup Passwords</string>
     <string name="nc_give_app_permission">Please give app the permission to use this feature</string>
     <string name="nc_start">Start</string>
-    <string name="nc_among_three_key_select_inheritance">Among your three keys, select one key to be the inheritance key. It must be a TAPSIGNER.</string>
+    <string name="nc_among_three_key_select_inheritance">Among your keys, select one key to be the inheritance key.</string>
     <string name="nc_what_type_of_hardware_want_to_add">What type of key do you want to add?</string>
     <string name="nc_cosigning_spending_limit">Co-signing spending limit</string>
     <string name="nc_update_cosigning_delay">Update policies</string>
@@ -465,7 +466,8 @@
     <string name="nc_joint_control_desc">The Beneficiary and the Trustee have joint control over the inheritance. Upon the Activation Date, the Beneficiary and Trustee will need to combine their secrets in order to claim the inheritance.</string>
     <string name="nc_plan_magical_phrase">The plan’s Magic Phrase.</string>
     <string name="nc_inheritance_share_secret_info_warning">You are solely responsible for sharing the Magic Phrase and Backup Password with the %s. Failure to share will result in the inheritance being unclaimable.</string>
-    <string name="nc_inheritance_share_secret_info_2">The Backup Password for the encrypted backup, which can be found on the back of the TAPSIGNER designated for inheritance. (it might be listed under “Backup key”).</string>
+    <string name="nc_inheritance_share_secret_info_2">The Backup Password for the encrypted backup.</string>
+    <string name="nc_learn_more">Learn more</string>
     <string name="nc_inheritance_share_secret_info_title_direct">Please share these two secrets with the Beneficiary:</string>
     <string name="nc_inheritance_share_secret_info_title_indirect">Please share these two secrets with the Trustee:</string>
     <string name="nc_inheritance_share_secret_info_title_joint_control">Please share one secret with the Beneficiary and the other secret with the Trustee. [B]Neither party should have both secrets.[/B]</string>
@@ -789,4 +791,6 @@
     <string name="nc_receive_reward_via">Receive reward via</string>
     <string name="nc_address_change_successfully">Address change successful.</string>
     <string name="nc_we_send_email_confirm_reward_address">We\'ll send you an email to confirm (or change) the reward address each time there\'s a successful referral.</string>
+    <string name="nc_send_all_remaining">Send all remaining</string>
+    <string name="nc_info_hardware_key_not_supported">Please use the desktop app to add this key.</string>
 </resources>
