@@ -366,19 +366,22 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                     type = SheetOptionType.TYPE_CREATE_NEW_WALLET,
                     resId = R.drawable.ic_circle_new_wallet,
                     stringId = R.string.nc_create_new_wallet,
-                    subStringId = R.string.nc_create_new_wallet_desc
+                    subStringId = R.string.nc_create_new_wallet_desc,
+                    applyTint = false
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_CREATE_HOT_WALLET,
                     resId = R.drawable.ic_circle_hot_wallet,
                     stringId = R.string.nc_create_hot_wallet,
                     subStringId = R.string.nc_create_hot_wallet_desc,
+                    applyTint = false
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_CREATE_NEW_DECOY_WALLET,
                     resId = R.drawable.ic_circle_decoy_wallet,
                     stringId = R.string.nc_create_new_decoy_wallet,
-                    subStringId = R.string.nc_create_new_decoy_wallet_desc
+                    subStringId = R.string.nc_create_new_decoy_wallet_desc,
+                    applyTint = false
                 ),
             )
         ).show(childFragmentManager, "BottomSheetOption")

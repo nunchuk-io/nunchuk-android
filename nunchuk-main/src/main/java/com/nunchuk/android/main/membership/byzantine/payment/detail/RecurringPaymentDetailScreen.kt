@@ -2,6 +2,7 @@ package com.nunchuk.android.main.membership.byzantine.payment.detail
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -22,6 +23,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentProvider
 import com.nunchuk.android.main.membership.byzantine.payment.summary.PaymentSummaryContent
@@ -85,7 +87,7 @@ fun RecurringPaymentDetailScreen(
                 onClick = { showDeleteDialog = true },
                 enabled = recurringPayment != null,
             ) {
-                Text(text = stringResource(R.string.nc_cancel_this_payment))
+                Text(text = stringResource(R.string.nc_cancel_this_payment), color = MaterialTheme.colorScheme.textPrimary)
             }
         }) { innerPadding ->
             recurringPayment?.let {

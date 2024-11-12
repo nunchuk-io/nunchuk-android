@@ -49,6 +49,7 @@ import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -148,7 +149,7 @@ internal fun ColdCardVerifyBackupScreen(
                         onSkip()
                     },
                 ) {
-                    Text(text = stringResource(R.string.I_will_comeback_to_this_later))
+                    Text(text = stringResource(R.string.I_will_comeback_to_this_later), color = MaterialTheme.colorScheme.textPrimary)
                 }
             }
 

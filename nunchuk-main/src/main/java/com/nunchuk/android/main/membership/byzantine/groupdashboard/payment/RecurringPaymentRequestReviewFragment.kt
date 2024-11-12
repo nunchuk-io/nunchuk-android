@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -37,6 +38,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showSuccess
@@ -161,7 +163,7 @@ private fun RecurringPaymentRequestReviewContent(
                             .fillMaxWidth(),
                         onClick = { showDeletePaymentDialog = true },
                     ) {
-                        Text(text = stringResource(R.string.nc_deny))
+                        Text(text = stringResource(R.string.nc_deny), color = MaterialTheme.colorScheme.textPrimary)
                     }
                 }
             }

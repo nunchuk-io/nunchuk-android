@@ -26,7 +26,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -55,6 +54,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navArgs
 import com.nunchuk.android.compose.NcHighlightText
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
@@ -195,7 +195,7 @@ fun DummyTransactionIntroContent(
                         .align(CenterHorizontally)
                         .padding(bottom = 16.dp),
                 ) {
-                    Image(
+                    NcIcon(
                         painter = painterResource(id = R.drawable.ic_pending_signatures),
                         contentDescription = "Icon pending signatures"
                     )

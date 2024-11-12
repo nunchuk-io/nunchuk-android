@@ -35,7 +35,8 @@ data class SheetOption(
     val label: String? = null,
     val id: String? = null,
     val isSelected: Boolean = false,
-    val showDivider: Boolean = false
+    val showDivider: Boolean = false,
+    val applyTint: Boolean = true,
 ) : Parcelable
 
 object SheetOptionType {
