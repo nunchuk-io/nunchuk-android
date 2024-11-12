@@ -240,6 +240,7 @@ internal interface UserWalletsApi {
     @POST("/v1.1/user-wallets/user-keys/{key_id_or_xfp}/recover")
     suspend fun recoverKey(
         @Path("key_id_or_xfp") id: String,
+        @HeaderMap headers: Map<String, String>,
         @Body payload: EmptyRequest = EmptyRequest()
     ): Data<KeyResponseData>
 

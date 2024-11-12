@@ -2411,9 +2411,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun recoverKey(
-        xfp: String
+        xfp: String,
+        verifyToken: String,
+        securityQuestionToken: String
     ): BackupKey {
-        val response = userWalletApiManager.walletApi.recoverKey(id = xfp)
+        val headersMap = getHeaders(
+            authorizations = emptyList(),
+            verifyToken = verifyToken,
+            securityQuestionToken = securityQuestionToken,
+            confirmCodeToken = ""
+        )
+        val response = userWalletApiManager.walletApi.recoverKey(id = xfp, headers = headersMap)
         val key = response.data.key ?: throw NullPointerException("Can not get key")
         return key.toBackupKey()
     }

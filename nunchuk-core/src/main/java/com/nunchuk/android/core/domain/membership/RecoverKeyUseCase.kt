@@ -14,11 +14,15 @@ class RecoverKeyUseCase @Inject constructor(
 ) : UseCase<RecoverKeyUseCase.Param, BackupKey>(dispatcher) {
     override suspend fun execute(parameters: Param): BackupKey {
         return userWalletsRepository.recoverKey(
-            xfp = parameters.xfp
+            xfp = parameters.xfp,
+            verifyToken = parameters.verifyToken,
+            securityQuestionToken = parameters.securityQuestionToken,
         )
     }
 
     class Param(
-        val xfp: String
+        val xfp: String,
+        val verifyToken: String = "",
+        val securityQuestionToken: String = "",
     )
 }

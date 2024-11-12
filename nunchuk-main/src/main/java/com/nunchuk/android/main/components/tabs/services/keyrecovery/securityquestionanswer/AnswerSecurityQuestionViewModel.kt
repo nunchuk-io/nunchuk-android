@@ -19,18 +19,18 @@
 
 package com.nunchuk.android.main.components.tabs.services.keyrecovery.securityquestionanswer
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.domain.membership.DownloadBackupKeyUseCase
 import com.nunchuk.android.core.domain.membership.GetSecurityQuestionUseCase
 import com.nunchuk.android.core.domain.membership.VerifySecurityQuestionUseCase
-import com.nunchuk.android.core.network.NunchukApiException
-import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.QuestionsAndAnswer
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -78,7 +78,13 @@ class AnswerSecurityQuestionViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
-                _event.emit(AnswerSecurityQuestionEvent.OnVerifySuccess(result.getOrThrow(), state.answer, state.question.id))
+                _event.emit(
+                    AnswerSecurityQuestionEvent.OnVerifySuccess(
+                        result.getOrThrow(),
+                        state.answer,
+                        state.question.id
+                    )
+                )
             } else {
                 _state.update {
                     it.copy(error = result.exceptionOrNull()?.message.orUnknownError())
