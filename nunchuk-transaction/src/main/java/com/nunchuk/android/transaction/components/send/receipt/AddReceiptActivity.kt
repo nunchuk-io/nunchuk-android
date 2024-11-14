@@ -23,7 +23,6 @@ import android.content.Context
 import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
@@ -102,14 +101,22 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         observeEvent()
         viewModel.init(args.address, args.privateNote)
 
-        supportFragmentManager.setFragmentResultListener(WalletComposeBottomSheet.TAG, this) { _, bundle ->
-            val result = bundle.parcelable<WalletBottomSheetResult>(WalletComposeBottomSheet.RESULT) ?: return@setFragmentResultListener
+        supportFragmentManager.setFragmentResultListener(
+            WalletComposeBottomSheet.TAG,
+            this
+        ) { _, bundle ->
+            val result = bundle.parcelable<WalletBottomSheetResult>(WalletComposeBottomSheet.RESULT)
+                ?: return@setFragmentResultListener
             if (result.walletId != null) {
                 viewModel.getFirstUnusedAddress(walletId = result.walletId!!)
             } else {
                 viewModel.updateAddress(result.savedAddress?.address.orEmpty())
             }
-            updateSelectAddressView(isSelectMode = false, walletName = result.walletName, savedAddressLabel = result.savedAddress?.label)
+            updateSelectAddressView(
+                isSelectMode = false,
+                walletName = result.walletName,
+                savedAddressLabel = result.savedAddress?.label
+            )
             supportFragmentManager.clearFragmentResult(WalletComposeBottomSheet.TAG)
         }
     }
@@ -136,7 +143,8 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
     }
 
     private fun setupViews() {
-        binding.toolbarTitle.text = args.sweepType.toTitle(this, getString(R.string.nc_transaction_new))
+        binding.toolbarTitle.text =
+            args.sweepType.toTitle(this, getString(R.string.nc_transaction_new))
         if (args.sweepType != SweepType.NONE) {
             binding.receiptLabel.text = getString(R.string.nc_enter_recipient_address)
         }
@@ -189,13 +197,18 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         }
     }
 
-    private fun updateSelectAddressView(isSelectMode: Boolean, walletName: String? = null, savedAddressLabel: String? = null, isFromParse: Boolean = false) {
+    private fun updateSelectAddressView(
+        isSelectMode: Boolean,
+        walletName: String? = null,
+        savedAddressLabel: String? = null,
+        isFromParse: Boolean = false
+    ) {
         binding.receiptSelectLayout.isVisible = isSelectMode.not()
         binding.receiptSelectLabel.isVisible = isSelectMode.not()
         binding.receiptInput.isVisible = isSelectMode
         if (isSelectMode) {
             if (isFromParse.not()) viewModel.updateAddress("")
-            binding.receiptInputDropdown.setBackgroundDrawable(ContextCompat.getDrawable(this, R.drawable.ic_arrow_drop_down))
+            binding.receiptInputDropdown.setImageResource(R.drawable.ic_arrow_drop_down)
         } else {
             binding.receiptSelectLabel.text = walletName ?: savedAddressLabel
             if (walletName != null) {
@@ -203,12 +216,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             } else {
                 binding.receiptInputImage.setImageResource(R.drawable.ic_saved_address)
             }
-            binding.receiptInputDropdown.setBackgroundDrawable(
-                ContextCompat.getDrawable(
-                    this,
-                    R.drawable.ic_close_circle
-                )
-            )
+            binding.receiptInputDropdown.setImageResource(R.drawable.ic_close_circle)
         }
     }
 
@@ -234,10 +242,14 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     openEstimatedFeeScreen(event.address, event.privateNote, event.amount)
                 }
             }
+
             AddressRequiredEvent -> showAddressRequiredError()
             InvalidAddressEvent -> showInvalidAddressError()
             is ShowError -> NCToastMessage(this).showError(event.message)
-            AddReceiptEvent.ParseBtcUriEvent -> updateSelectAddressView(isSelectMode = true, isFromParse = true)
+            AddReceiptEvent.ParseBtcUriEvent -> updateSelectAddressView(
+                isSelectMode = true,
+                isFromParse = true
+            )
         }
     }
 
@@ -277,7 +289,13 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     )
                 }
             }
-            is TransactionConfirmEvent.LoadingEvent -> showLoading(message = if (event.isClaimInheritance) getString(R.string.nc_withdrawal_in_progress) else null)
+
+            is TransactionConfirmEvent.LoadingEvent -> showLoading(
+                message = if (event.isClaimInheritance) getString(
+                    R.string.nc_withdrawal_in_progress
+                ) else null
+            )
+
             is TransactionConfirmEvent.InitRoomTransactionError -> showCreateTransactionError(event.message)
             is TransactionConfirmEvent.InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
             is TransactionConfirmEvent.UpdateChangeAddress -> {}
@@ -286,6 +304,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 hideLoading()
                 NCToastMessage(this).showError(event.message)
             }
+
             is TransactionConfirmEvent.AssignTagSuccess -> {
                 hideLoading()
                 NCToastMessage(this).showMessage(getString(R.string.nc_tags_assigned))
@@ -296,6 +315,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     transactionConfirmViewModel.isInheritanceClaimingFlow()
                 )
             }
+
             else -> {}
         }
     }

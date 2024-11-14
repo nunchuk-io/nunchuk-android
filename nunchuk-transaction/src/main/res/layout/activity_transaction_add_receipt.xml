@@ -67,10 +67,11 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginEnd="@dimen/nc_padding_12"
-            android:background="@drawable/ic_arrow_drop_down"
+            android:src="@drawable/ic_arrow_drop_down"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/nc_text_primary" />
 
         <LinearLayout
             android:id="@+id/receiptSelectLayout"
@@ -90,7 +91,8 @@
                 android:id="@+id/receiptInputImage"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_bookmark" />
+                android:src="@drawable/ic_bookmark"
+                app:tint="@color/nc_text_primary" />
 
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/receiptSelectLabel"
@@ -99,7 +101,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/nc_padding_8"
                 android:singleLine="true"
-                android:textColor="@color/nc_primary_color"
+                android:textColor="@color/nc_text_primary"
                 tools:text="Address 1" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
