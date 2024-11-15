@@ -22,6 +22,7 @@ package com.nunchuk.android.settings.devices
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -31,7 +32,6 @@ import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.ActivityUserDevicesBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
-import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -41,12 +41,12 @@ class UserDevicesActivity : BaseActivity<ActivityUserDevicesBinding>() {
 
     private lateinit var adapter: UserDevicesAdapter
 
-    override fun initializeBinding() = ActivityUserDevicesBinding.inflate(layoutInflater)
+    override fun initializeBinding() = ActivityUserDevicesBinding.inflate(layoutInflater).also {
+        enableEdgeToEdge()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        setLightStatusBar()
 
         setupViews()
         setupDate()

@@ -356,7 +356,7 @@ private fun LazyListScope.memberListView(
                     text = stringResource(id = R.string.nc_edit),
                     style = NunchukTheme.typography.title,
                     textDecoration = TextDecoration.Underline,
-                    color = colorResource(id = if (isEnable) R.color.nc_primary_color else R.color.nc_text_disable),
+                    color = colorResource(id = if (isEnable) R.color.nc_text_primary else R.color.nc_text_disable),
                 )
             }
         }

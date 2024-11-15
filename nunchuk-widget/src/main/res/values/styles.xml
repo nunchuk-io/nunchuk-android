@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="NunchukTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/nc_primary_color</item>
         <item name="colorPrimaryDark">@color/nc_primary_dark_color</item>
@@ -7,7 +8,9 @@
         <item name="colorControlNormal">@color/nc_text_primary</item>
         <item name="cardViewStyle">@style/NcCardView</item>
         <item name="floatingActionButtonStyle">@style/Widget.App.FloatingActionButton</item>
-        <item name="extendedFloatingActionButtonStyle">@style/Widget.App.ExtendedFloatingActionButton</item>
+        <item name="extendedFloatingActionButtonStyle">
+            @style/Widget.App.ExtendedFloatingActionButton
+        </item>
         <item name="checkboxStyle">@style/Widget.App.CheckBox</item>
         <item name="radioButtonStyle">@style/Widget.App.RadioButton</item>
     </style>
@@ -17,10 +20,6 @@
     </style>
 
     <style name="Widget.App.CheckBox" parent="Widget.MaterialComponents.CompoundButton.CheckBox">
-        <item name="materialThemeOverlay">@style/ThemeOverlay.App.CheckBox</item>
-    </style>
-
-    <style name="ThemeOverlay.App.CheckBox" parent="">
         <item name="buttonTint">@color/nc_text_primary</item>
     </style>
 
@@ -42,6 +41,7 @@
         <item name="cardBackgroundColor">?attr/colorSurface</item>
         <item name="cardElevation">1dp</item>
     </style>
+
     <style name="NCToolbar">
         <item name="android:minHeight">?attr/actionBarSize</item>
         <item name="buttonGravity">center_vertical</item>

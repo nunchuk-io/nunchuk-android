@@ -227,7 +227,6 @@ private fun RollOverBroadcastTransactionContent(
                                 onCheckedChange = {
                                     onRandomizeBroadcastChanged(it)
                                 },
-                                colors = SwitchDefaults.colors()
                             )
                         }
 

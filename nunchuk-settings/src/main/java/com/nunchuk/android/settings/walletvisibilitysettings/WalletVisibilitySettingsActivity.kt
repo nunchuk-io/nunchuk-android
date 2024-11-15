@@ -95,7 +95,6 @@ class WalletVisibilitySettingsActivity : BaseComposeActivity() {
                         NcSwitch(
                             checked = uiState.largeFont,
                             onCheckedChange = onFontSizeChange,
-                            colors = SwitchDefaults.colors()
                         )
                     }
 
@@ -123,7 +122,6 @@ class WalletVisibilitySettingsActivity : BaseComposeActivity() {
                         NcSwitch(
                             checked = uiState.displayTotalBalance,
                             onCheckedChange = onDisplayTotalBalanceChange,
-                            colors = SwitchDefaults.colors()
                         )
                     }
 
@@ -150,7 +148,6 @@ class WalletVisibilitySettingsActivity : BaseComposeActivity() {
                         NcSwitch(
                             checked = uiState.walletSecuritySetting.hideWalletDetail,
                             onCheckedChange = onHideWalletDetailsChange,
-                            colors = SwitchDefaults.colors()
                         )
                     }
                 }

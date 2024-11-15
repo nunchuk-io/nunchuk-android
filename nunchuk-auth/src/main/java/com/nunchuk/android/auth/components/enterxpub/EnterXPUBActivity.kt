@@ -39,6 +39,7 @@ import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class EnterXPUBActivity : BaseComposeActivity() {
@@ -85,6 +86,7 @@ class EnterXPUBActivity : BaseComposeActivity() {
         var inputXPUB by remember { mutableStateOf("") }
 
         LaunchedEffect(Unit) {
+            delay(100)
             focusRequester.requestFocus()
         }
 

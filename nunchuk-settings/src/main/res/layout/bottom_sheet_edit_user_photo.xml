@@ -19,8 +19,9 @@
         android:paddingHorizontal="@dimen/nc_padding_14"
         android:paddingVertical="@dimen/nc_padding_16"
         android:text="@string/nc_text_choose_existing_photo"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16" />
+        android:textColor="@color/nc_text_primary"
+        android:textSize="@dimen/nc_text_size_16"
+        app:drawableTint="@color/nc_text_primary" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnTakePhoto"
@@ -31,20 +32,21 @@
         android:drawablePadding="@dimen/nc_padding_8"
         android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_text_take_photo"
-        android:textColor="@color/nc_black_color"
-        android:textSize="@dimen/nc_text_size_16" />
+        android:textColor="@color/nc_text_primary"
+        android:textSize="@dimen/nc_text_size_16"
+        app:drawableTint="@color/nc_text_primary" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnRemovePhoto"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        app:drawableTint="@color/nc_red_color"
         android:drawableStart="@drawable/ic_delete"
         android:drawablePadding="@dimen/nc_padding_8"
         android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_text_remove_photo"
         android:textColor="@color/nc_red_color"
-        android:textSize="@dimen/nc_text_size_16" />
+        android:textSize="@dimen/nc_text_size_16"
+        app:drawableTint="@color/nc_red_color" />
 
 </LinearLayout>

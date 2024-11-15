@@ -72,6 +72,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
@@ -431,7 +432,7 @@ private fun InviteMembersContent(
                             onClick = onAddMember,
                         ) {
                             Row {
-                                Image(
+                                NcIcon(
                                     painterResource(id = R.drawable.ic_plus_dark),
                                     contentDescription = null,
                                 )

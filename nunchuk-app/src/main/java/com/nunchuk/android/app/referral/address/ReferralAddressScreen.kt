@@ -20,7 +20,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -313,7 +312,6 @@ fun ReferralAddressScreen(
                                     onSelectedWallet(null)
                                 }
                             },
-                            colors = SwitchDefaults.colors()
                         )
                     }
 

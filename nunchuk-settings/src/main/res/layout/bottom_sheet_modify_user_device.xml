@@ -21,7 +21,7 @@
         android:fontFamily="@font/lato_bold"
         android:paddingHorizontal="@dimen/nc_padding_14"
         android:paddingVertical="@dimen/nc_padding_16"
-        android:textColor="@color/nc_black_color"
+        android:textColor="@color/nc_text_primary"
         android:textSize="@dimen/nc_text_size_16"
         tools:text="Desktop 1222" />
 
@@ -33,7 +33,7 @@
         android:layout_marginTop="4dp"
         android:drawablePadding="@dimen/nc_padding_8"
         android:padding="@dimen/nc_padding_16"
-        android:textColor="@color/nc_black_color"
+        android:textColor="@color/nc_text_primary"
         android:textSize="@dimen/nc_text_size_16"
         tools:text="@string/nc_text_take_photo" />
 
