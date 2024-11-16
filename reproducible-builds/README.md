@@ -38,7 +38,8 @@ Now we can switch to the reproducible-builds directory and build the Docker imag
 cd $HOME/nunchuk-android/reproducible-builds
 
 # Build the Docker image
-docker build -t nunchuk-android .
+# Currently, the Dockerfile has g++-multilib which is amd64 only.
+docker build --platform linux/amd64 -t nunchuk-android .
 ```
 
 Now we are ready to start building the Nunchuk Android app bundle.
