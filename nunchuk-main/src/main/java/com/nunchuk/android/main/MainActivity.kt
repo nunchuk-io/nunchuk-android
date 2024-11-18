@@ -28,7 +28,6 @@ import androidx.annotation.IdRes
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.nunchuk.android.contact.components.contacts.ContactsViewModel
@@ -176,6 +175,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
                 finish()
                 navigator.openOnBoardingScreen(this)
             }
+
             else -> {}
         }
     }
@@ -202,7 +202,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main) as NavHostFragment
         navController = navHostFragment.navController
-        navView.setupWithNavController(navController)
+        NunchukBottomNavigationUtil.setupWithNavController(navView, navController)
     }
 
     private fun setBottomNavViewPosition(@IdRes id: Int) {
