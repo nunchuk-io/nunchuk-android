@@ -42,14 +42,15 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class EmergencyLockdownIntroFragment : Fragment() {
 
     private val viewModel: EmergencyLockdownIntroViewModel by viewModels()

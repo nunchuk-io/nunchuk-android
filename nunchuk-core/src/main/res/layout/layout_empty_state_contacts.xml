@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/container"
-    android:background="@color/nc_white_color"
+    android:background="@color/nc_background"
     android:clickable="true"
     android:focusable="true"
     android:orientation="vertical">

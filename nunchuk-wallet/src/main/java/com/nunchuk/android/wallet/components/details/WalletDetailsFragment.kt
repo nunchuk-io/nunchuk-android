@@ -372,7 +372,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
     private fun handleWalletBackground(state: WalletDetailsState) {
         if (state.walletExtended.wallet.needBackup) {
-            binding.container.setBackgroundColor(
+            binding.statusBarBackground.setBackgroundColor(
                 ContextCompat.getColor(
                     requireContext(),
                     R.color.nc_beeswax_dark
@@ -388,12 +388,12 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             )
         } else if (state.walletStatus == WalletStatus.REPLACED.name || state.walletStatus == WalletStatus.LOCKED.name) {
             val color = ContextCompat.getColor(requireContext(), R.color.nc_grey_dark_color)
-            binding.container.setBackgroundColor(color)
+            binding.statusBarBackground.setBackgroundColor(color)
             requireActivity().window.statusBarColor = color
             binding.shareIcon.text = getString(R.string.nc_deactivated)
             binding.shareIcon.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
         } else if (state.isAssistedWallet) {
-            binding.container.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
+            binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
             requireActivity().window.statusBarColor =
                 ContextCompat.getColor(requireContext(), R.color.nc_wallet_premium_bg)
             binding.shareIcon.text =
@@ -405,7 +405,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 )
             )
         } else {
-            binding.container.setBackgroundResource(R.drawable.nc_header_gradient_background)
+            binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_gradient_background)
             requireActivity().window.statusBarColor =
                 ContextCompat.getColor(requireContext(), R.color.nc_primary_color)
             binding.cashAmount.setTextColor(

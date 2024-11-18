@@ -20,6 +20,7 @@ import androidx.compose.ui.window.Dialog
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.R
 
 @Composable
@@ -83,7 +84,7 @@ fun NcInfoDialog(
                             .padding(top = 16.dp),
                         onClick = onNegativeClick
                     ) {
-                        Text(text = it)
+                        Text(text = it, color = MaterialTheme.colorScheme.textPrimary)
                     }
                 }
             }

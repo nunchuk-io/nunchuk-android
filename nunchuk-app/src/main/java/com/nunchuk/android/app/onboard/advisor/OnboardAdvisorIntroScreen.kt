@@ -1,11 +1,8 @@
 package com.nunchuk.android.app.onboard.advisor
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,20 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -38,9 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.R
 import com.nunchuk.android.compose.NcPrimaryDarkButton
-import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcSpannedClickableText
-import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
@@ -169,43 +157,6 @@ fun OnboardAdvisorIntroContent(
                 textAlign = TextAlign.Center,
                 text = stringResource(id = R.string.nc_dont_have_an_advisor),
                 style = NunchukTheme.typography.title
-            )
-        }
-    }
-}
-
-@Composable
-fun OptionCard(
-    containerColor: Color,
-    title: String,
-    description: String,
-    painter: Painter,
-    onClick: () -> Unit = {},
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = containerColor
-        ),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = title, style = NunchukTheme.typography.title)
-                Text(
-                    modifier = Modifier.padding(top = 8.dp),
-                    text = description,
-                    style = NunchukTheme.typography.bodySmall
-                )
-            }
-            Image(
-                modifier = Modifier.align(Alignment.Bottom),
-                painter = painter,
-                contentDescription = "Image",
             )
         }
     }

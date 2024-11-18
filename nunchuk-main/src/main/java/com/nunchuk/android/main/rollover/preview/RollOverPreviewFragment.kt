@@ -45,7 +45,6 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.rollover.RollOverWalletViewModel
-import com.nunchuk.android.model.Amount
 import com.nunchuk.android.nav.NunchukNavigator
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject

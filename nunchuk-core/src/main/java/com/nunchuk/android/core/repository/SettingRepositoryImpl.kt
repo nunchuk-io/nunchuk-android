@@ -149,4 +149,10 @@ internal class SettingRepositoryImpl @Inject constructor(
     override suspend fun setCustomPinConfig(decoyPin: String, isEnable: Boolean) {
         ncDataStore.setCustomPinConfig(decoyPin, isEnable)
     }
+
+    override suspend fun setDarkMode(isDarkMode: Boolean?) {
+        ncDataStore.setDarkMode(isDarkMode)
+    }
+
+    override fun getDarkMode(): Flow<Boolean?> = ncDataStore.isDarkMode
 }

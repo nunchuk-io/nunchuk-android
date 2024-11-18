@@ -24,18 +24,22 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.core.R
 
 @Composable
 fun NcOutlineButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    borderColor: Color = MaterialTheme.colorScheme.primary,
+    borderColor: Color = colorResource(id = R.color.nc_fill_primary),
     onClick: () -> Unit,
     content: @Composable RowScope.() -> Unit,
 ) {
@@ -46,7 +50,11 @@ fun NcOutlineButton(
         onClick = onClick,
         border = BorderStroke(2.dp, color),
         shape = RoundedCornerShape(44.dp),
-        content = content,
+        content = {
+            CompositionLocalProvider(LocalContentColor provides borderColor) {
+                content()
+            }
+        },
         colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent)
     )
 }

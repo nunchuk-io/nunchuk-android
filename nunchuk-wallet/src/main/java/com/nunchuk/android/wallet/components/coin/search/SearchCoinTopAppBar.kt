@@ -30,9 +30,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.MaterialTheme.colors
-import androidx.compose.material.SnackbarDefaults.backgroundColor
-import androidx.compose.material3.*
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -46,8 +52,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.wallet.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,7 +117,7 @@ fun SearchCoinTopAppBar(
                 modifier = Modifier
                     .background(color = MaterialTheme.colorScheme.background)
                     .border(
-                        color = NcColor.border,
+                        color = MaterialTheme.colorScheme.strokePrimary,
                         width = 1.dp,
                         shape = RoundedCornerShape(44.dp),
                     ),

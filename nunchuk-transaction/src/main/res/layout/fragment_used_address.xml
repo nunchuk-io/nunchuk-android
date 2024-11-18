@@ -10,6 +10,7 @@
         android:id="@+id/introduction"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textColor="@color/nc_text_primary"
         android:paddingHorizontal="@dimen/nc_padding_16"
         android:paddingVertical="@dimen/nc_padding_24"
         android:text="@string/nc_address_used_introduction"

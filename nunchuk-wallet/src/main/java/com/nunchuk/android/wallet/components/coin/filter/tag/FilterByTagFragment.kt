@@ -37,7 +37,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -178,13 +177,12 @@ private fun FilterByTagContent(
                     items(tags) { tag ->
                         TagItem(
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            id = tag.coinTag.id,
                             name = tag.coinTag.name,
                             color = tag.coinTag.color,
                             numCoins = tag.numCoins,
                             checked = selectedTagIds.contains(tag.coinTag.id),
-                            onTagClick = { },
                             tagFlow = TagFlow.ADD,
+                            onTagClick = { },
                             onCheckedChange = {
                                 onCheckedChange(tag.coinTag.id, it)
                             })

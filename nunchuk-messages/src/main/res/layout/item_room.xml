@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="@dimen/nc_padding_4"
-    android:background="@color/nc_white_color"
     android:orientation="vertical">
 
     <com.nunchuk.android.widget.swipe.SwipeLayout
@@ -50,7 +49,6 @@
             android:id="@+id/itemLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/nc_white_color"
             android:foreground="?attr/selectableItemBackground"
             android:paddingVertical="@dimen/nc_padding_8">
 
@@ -139,7 +137,7 @@
                 android:layout_marginTop="@dimen/nc_padding_4"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:textColor="@color/nc_grey_dark_color"
+                android:textColor="@color/nc_text_secondary"
                 app:layout_constraintEnd_toStartOf="@+id/endBarrier"
                 app:layout_constraintStart_toEndOf="@+id/avatarHolder"
                 app:layout_constraintTop_toBottomOf="@+id/badgeContainer"

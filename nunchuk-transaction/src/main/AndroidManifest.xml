@@ -76,6 +76,7 @@
             android:name=".components.send.batchtransaction.BatchTransactionActivity"
             android:label="@string/nc_batched_transaction"
             android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity

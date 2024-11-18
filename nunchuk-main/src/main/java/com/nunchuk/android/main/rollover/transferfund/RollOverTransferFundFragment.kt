@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
@@ -40,6 +39,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
@@ -238,7 +238,7 @@ private fun RollOverTransferFundContent(
                         }
 
                         CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
-                            Checkbox(
+                            NcCheckBox(
                                 checked = isRemoveUnusedKeys,
                                 onCheckedChange = { isRemoveUnusedKeys = it })
                         }

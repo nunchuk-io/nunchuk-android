@@ -1,8 +1,10 @@
 package com.nunchuk.android.compose
 
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,18 +40,28 @@ fun NcDatePickerDialog(
                     onConfirm(it)
                 }
             }) {
-                Text(text = stringResource(id = R.string.nc_ok))
+                Text(
+                    text = stringResource(id = R.string.nc_ok),
+                    color = MaterialTheme.colorScheme.textPrimary
+                )
             }
         },
         dismissButton = {
             TextButton(onClick = onDismissRequest) {
-                Text(text = stringResource(id = R.string.nc_cancel))
+                Text(
+                    text = stringResource(id = R.string.nc_cancel),
+                    color = MaterialTheme.colorScheme.textPrimary
+                )
             }
         },
         properties = DialogProperties(usePlatformDefaultWidth = true),
     ) {
         DatePicker(
             state = datePickerState,
+            colors = DatePickerDefaults.colors(
+                selectedDayContainerColor = MaterialTheme.colorScheme.controlActivated,
+                selectedDayContentColor = MaterialTheme.colorScheme.controlTextPrimary,
+            ),
         )
     }
 }

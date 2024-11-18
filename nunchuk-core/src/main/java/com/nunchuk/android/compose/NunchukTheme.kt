@@ -19,16 +19,20 @@
 
 package com.nunchuk.android.compose
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -36,8 +40,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.appearance.ThemeViewModel
+import com.nunchuk.android.model.ThemeMode
 
 private val PrimaryColor = Color(0xff031F2B)
 private val SecondaryColor = Color(0xff031F2B)
@@ -58,27 +65,10 @@ private val LightColors = lightColorScheme(
     surface = Color.White,
 )
 
-private val defaultTypography = Typography()
-private val typography = Typography(
-    displayLarge = defaultTypography.displayLarge.copy(fontFamily = latoRegular),
-    displayMedium = defaultTypography.displayMedium.copy(fontFamily = latoRegular),
-    displaySmall = defaultTypography.displaySmall.copy(fontFamily = latoRegular),
-
-    headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = latoRegular),
-    headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = latoRegular),
-    headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = latoRegular),
-
-    titleLarge = defaultTypography.titleLarge.copy(fontFamily = latoRegular),
-    titleMedium = defaultTypography.titleMedium.copy(fontFamily = latoRegular),
-    titleSmall = defaultTypography.titleSmall.copy(fontFamily = latoRegular),
-
-    bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = latoRegular),
-    bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = latoRegular),
-    bodySmall = defaultTypography.bodySmall.copy(fontFamily = latoRegular),
-
-    labelLarge = defaultTypography.labelLarge.copy(fontFamily = latoBold),
-    labelMedium = defaultTypography.labelMedium.copy(fontFamily = latoRegular),
-    labelSmall = defaultTypography.labelSmall.copy(fontFamily = latoRegular)
+private val DarkColors = darkColorScheme(
+    primary = Color.Black,
+    onPrimary = Color.White,
+    background = Color(0xFF1c1c1e),
 )
 
 @Immutable
@@ -132,118 +122,87 @@ object NunchukTheme {
         get() = LocalNunchukShapes.current
 }
 
-
 @Composable
 fun NunchukTheme(
-    statusBarColor: Color = Color.Transparent,
-    darkIcon: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    val nunchukTypography = NunchukTypography(
-        body = TextStyle(fontSize = 16.sp, fontFamily = latoRegular, color = PrimaryColor),
-        title = TextStyle(
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = latoBold,
-            color = PrimaryColor
-        ),
-        bold = TextStyle(fontWeight = FontWeight.Bold, fontFamily = latoBold, color = PrimaryColor),
-        heading = TextStyle(fontSize = 24.sp, fontFamily = montserratMedium, color = PrimaryColor),
-        titleLarge = TextStyle(
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = latoBold,
-            color = PrimaryColor
-        ),
-        titleSmall = TextStyle(
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = latoBold,
-            color = PrimaryColor
-        ),
-        bodySmall = TextStyle(fontSize = 12.sp, fontFamily = latoRegular, color = PrimaryColor),
-        caption = TextStyle(
-            fontSize = 12.sp,
-            fontFamily = latoRegular,
-            color = PrimaryColor,
-            fontWeight = FontWeight.Medium
-        ),
-        captionTitle = TextStyle(
-            fontSize = 12.sp,
-            fontFamily = latoBold,
-            color = PrimaryColor,
-            fontWeight = FontWeight.Bold
-        ),
-        textLink = TextStyle(
-            fontSize = 16.sp,
-            fontFamily = latoBold,
-            color = PrimaryColor,
-            fontWeight = FontWeight.Bold,
-            textDecoration = TextDecoration.Underline
-        ),
-    )
-
-    val nunchukShapes = NunchukShapes(
-        medium = RoundedCornerShape(12.dp)
-    )
-    val systemUiController = rememberSystemUiController()
-    systemUiController.setSystemBarsColor(color = statusBarColor, darkIcons = darkIcon)
-    CompositionLocalProvider(
-        LocalNunchukTypography provides nunchukTypography,
-        LocalNunchukShapes provides nunchukShapes
-    ) {
-        MaterialTheme(
-            colorScheme = LightColors,
-            typography = typography,
-            content = content,
+    val view = LocalView.current
+    if (view.isInEditMode) {
+        NunchukThemeContent(
+            isDark = isSystemInDarkTheme(),
+            content = content
         )
+    } else {
+        val viewModel: ThemeViewModel = hiltViewModel()
+        val mode by viewModel.mode.collectAsStateWithLifecycle()
+        if (mode != null) {
+            val isDark = when (mode!!) {
+                ThemeMode.Light -> false
+                ThemeMode.Dark -> true
+                ThemeMode.System -> isSystemInDarkTheme()
+            }
+            NunchukThemeContent(
+                isDark = isDark,
+                content = content
+            )
+        }
     }
 }
 
 @Composable
-fun NunchukTheme(
-    isSetStatusBar: Boolean,
+private fun NunchukThemeContent(
+    isDark: Boolean,
     content: @Composable () -> Unit,
 ) {
+    val colorScheme = if (isDark) DarkColors else LightColors
+    val textColor = if (isDark) Color.White else PrimaryColor
     val nunchukTypography = NunchukTypography(
-        body = TextStyle(fontSize = 16.sp, fontFamily = latoRegular, color = PrimaryColor),
+        body = TextStyle(fontSize = 16.sp, fontFamily = latoRegular, color = textColor),
         title = TextStyle(
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = latoBold,
-            color = PrimaryColor
+            color = textColor
         ),
-        bold = TextStyle(fontWeight = FontWeight.Bold, fontFamily = latoBold, color = PrimaryColor),
-        heading = TextStyle(fontSize = 24.sp, fontFamily = montserratMedium, color = PrimaryColor),
+        bold = TextStyle(
+            fontWeight = FontWeight.Bold,
+            fontFamily = latoBold,
+            color = textColor
+        ),
+        heading = TextStyle(
+            fontSize = 24.sp,
+            fontFamily = montserratMedium,
+            color = textColor
+        ),
         titleLarge = TextStyle(
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = latoBold,
-            color = PrimaryColor
+            color = textColor
         ),
         titleSmall = TextStyle(
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = latoBold,
-            color = PrimaryColor
+            color = textColor
         ),
-        bodySmall = TextStyle(fontSize = 12.sp, fontFamily = latoRegular, color = PrimaryColor),
+        bodySmall = TextStyle(fontSize = 12.sp, fontFamily = latoRegular, color = textColor),
         caption = TextStyle(
             fontSize = 12.sp,
-            fontFamily = latoRegular,
-            color = PrimaryColor,
+            fontFamily = latoBold,
+            color = textColor,
             fontWeight = FontWeight.Medium
         ),
         captionTitle = TextStyle(
             fontSize = 12.sp,
             fontFamily = latoBold,
-            color = PrimaryColor,
+            color = textColor,
             fontWeight = FontWeight.Bold
         ),
         textLink = TextStyle(
             fontSize = 16.sp,
             fontFamily = latoBold,
-            color = PrimaryColor,
+            color = textColor,
             fontWeight = FontWeight.Bold,
             textDecoration = TextDecoration.Underline
         ),
@@ -270,15 +229,11 @@ fun NunchukTheme(
         labelMedium = defaultTypography.labelMedium.copy(fontFamily = latoRegular),
         labelSmall = defaultTypography.labelSmall.copy(fontFamily = latoRegular)
     )
-    if (isSetStatusBar) {
-        val systemUiController = rememberSystemUiController()
-        systemUiController.setSystemBarsColor(color = Color.Transparent, darkIcons = true)
-    }
     CompositionLocalProvider(
         LocalNunchukTypography provides nunchukTypography,
     ) {
         MaterialTheme(
-            colorScheme = LightColors,
+            colorScheme = colorScheme,
             typography = typography,
             content = content,
         )

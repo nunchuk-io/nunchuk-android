@@ -21,7 +21,6 @@ package com.nunchuk.android.main.membership.key.recoveryquestion
 
 import android.app.Activity
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -43,6 +42,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -50,7 +50,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -77,6 +76,8 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.strokePrimary
+import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
@@ -84,7 +85,6 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
 import com.nunchuk.android.model.containsByzantineOrFinney
-import com.nunchuk.android.model.isByzantineOrFinney
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -369,7 +369,7 @@ fun QuestionRow(
             Row(
                 modifier = Modifier
                     .border(
-                        width = 1.dp, color = NcColor.border, shape = RoundedCornerShape(8.dp)
+                        width = 1.dp, color = MaterialTheme.colorScheme.strokePrimary, shape = RoundedCornerShape(8.dp)
                     )
                     .clickable(onClick = { onQuestionClicked(index) })
                     .constrainAs(input) {
@@ -409,7 +409,6 @@ fun QuestionRow(
                 value = question.customQuestion.orEmpty(),
                 onValueChange = onInputCustomQuestionTextChange,
                 error = error,
-                showErrorMessageOnly = true
             )
         }
         val vi =
@@ -433,7 +432,7 @@ fun QuestionRow(
                 }
             })
 
-        Divider(modifier = Modifier.padding(top = 16.dp), thickness = 1.dp, color = NcColor.whisper)
+        Divider(modifier = Modifier.padding(top = 16.dp), thickness = 1.dp, color = MaterialTheme.colorScheme.whisper)
     }
 }
 

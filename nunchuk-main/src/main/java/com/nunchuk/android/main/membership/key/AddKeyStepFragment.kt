@@ -282,7 +282,7 @@ fun StepWithEstTime(
                 modifier = Modifier
                     .border(
                         width = 1.dp,
-                        color = colorResource(id = R.color.nc_whisper_color),
+                        color = colorResource(id = R.color.nc_bg_mid_gray),
                         shape = RoundedCornerShape(20.dp)
                     )
                     .padding(horizontal = 10.dp, vertical = 4.dp),
@@ -299,7 +299,7 @@ fun StepWithEstTime(
             else Modifier
                 .border(
                     width = 1.dp,
-                    color = colorResource(id = R.color.nc_whisper_color),
+                    color = colorResource(id = R.color.nc_bg_mid_gray),
                     shape = RoundedCornerShape(20.dp)
                 )
                 .padding(horizontal = 10.dp, vertical = 4.dp)

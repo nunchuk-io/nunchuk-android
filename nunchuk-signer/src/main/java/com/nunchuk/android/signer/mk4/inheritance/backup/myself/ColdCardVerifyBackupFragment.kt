@@ -49,21 +49,13 @@ import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.mk4.Mk4ViewModel
-import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
-import com.nunchuk.android.signer.tapsigner.backup.verify.byself.GetBackUpKeySuccess
-import com.nunchuk.android.signer.tapsigner.backup.verify.byself.OnDownloadBackUpClicked
-import com.nunchuk.android.signer.tapsigner.backup.verify.byself.OnExitSelfCheck
-import com.nunchuk.android.signer.tapsigner.backup.verify.byself.OnVerifiedBackUpClicked
-import com.nunchuk.android.signer.tapsigner.backup.verify.byself.ShowError
-import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -157,7 +149,7 @@ internal fun ColdCardVerifyBackupScreen(
                         onSkip()
                     },
                 ) {
-                    Text(text = stringResource(R.string.I_will_comeback_to_this_later))
+                    Text(text = stringResource(R.string.I_will_comeback_to_this_later), color = MaterialTheme.colorScheme.textPrimary)
                 }
             }
 
@@ -231,7 +223,7 @@ internal fun ColdCardVerifyBackupScreen(
                     modifier = Modifier
                         .padding(start = 50.dp, end = 16.dp)
                         .background(
-                            color = colorResource(R.color.nc_whisper_color),
+                            color = colorResource(R.color.nc_bg_mid_gray),
                             shape = RoundedCornerShape(12.dp)
                         )
                 ) {

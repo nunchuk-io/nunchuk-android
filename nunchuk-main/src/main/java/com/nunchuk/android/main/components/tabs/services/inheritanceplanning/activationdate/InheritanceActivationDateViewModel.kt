@@ -25,9 +25,12 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -61,15 +64,9 @@ class InheritanceActivationDateViewModel @Inject constructor(
         }
     }
 
-    fun setDate(year: Int, month: Int, dayOfMonth: Int) {
-        val cal = Calendar.getInstance().apply {
-            timeInMillis = _state.value.date
-            set(Calendar.YEAR, year)
-            set(Calendar.MONTH, month)
-            set(Calendar.DAY_OF_MONTH, dayOfMonth)
-        }
+    fun setDate(timeInMillis: Long) {
         _state.update {
-            it.copy(date = cal.timeInMillis)
+            it.copy(date = timeInMillis)
         }
     }
 

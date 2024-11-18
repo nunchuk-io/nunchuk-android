@@ -44,7 +44,7 @@ internal class NunchukTransactionNotificationHolder(
         binding.root.minLines = 1
         val context = itemView.context
         binding.notification.apply {
-            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_whisper_color)
+            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_bg_mid_gray)
             setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_info_small, 0, R.drawable.ic_arrow, 0)
         }
         when (model.msgType) {
@@ -90,7 +90,7 @@ internal class NunchukTransactionNotificationHolder(
 
     private fun bindBroadcastTransaction() {
         binding.notification.apply {
-            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_whisper_color)
+            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_bg_mid_gray)
             text = getString(R.string.nc_message_transaction_broadcast)
             setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_info_small, 0, R.drawable.ic_arrow, 0)
         }

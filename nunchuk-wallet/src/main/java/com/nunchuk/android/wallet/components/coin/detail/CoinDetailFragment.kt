@@ -37,7 +37,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,11 +63,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.CoinStatusBadge
-import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.denimTint
+import com.nunchuk.android.compose.fillDenim
+import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.coin.TagFlow
@@ -254,7 +253,6 @@ private fun CoinDetailScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CoinDetailContent(
     output: UnspentOutput = UnspentOutput(),
@@ -271,9 +269,9 @@ private fun CoinDetailContent(
     onLockOrUnlock: (isLocked: Boolean) -> Unit = {},
     onViewCoinAncestry: (output: UnspentOutput) -> Unit = {},
 ) {
-    val backgroundColor =
-        if (isSpentCoin) MaterialTheme.colorScheme.whisper else MaterialTheme.colorScheme.denimTint
     NunchukTheme {
+        val backgroundColor =
+            if (isSpentCoin) MaterialTheme.colorScheme.lightGray else MaterialTheme.colorScheme.fillDenim
         Scaffold(topBar = {
             Box(
                 modifier = Modifier
@@ -398,7 +396,7 @@ private fun CoinBadgeRow(output: UnspentOutput) {
             CoinBadge(
                 modifier = Modifier.padding(end = 4.dp),
                 border = 0.dp,
-                backgroundColor = NcColor.whisper
+                backgroundColor = MaterialTheme.colorScheme.whisper
             ) {
                 Icon(
                     modifier = Modifier.padding(start = 10.dp),
@@ -418,7 +416,7 @@ private fun CoinBadgeRow(output: UnspentOutput) {
         if (output.scheduleTime > 0L) {
             CoinBadge(
                 border = 0.dp,
-                backgroundColor = NcColor.whisper
+                backgroundColor = MaterialTheme.colorScheme.whisper
             ) {
                 Icon(
                     modifier = Modifier.padding(start = 10.dp),

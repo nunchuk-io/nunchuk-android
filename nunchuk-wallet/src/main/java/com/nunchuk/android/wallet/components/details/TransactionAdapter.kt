@@ -19,12 +19,14 @@
 
 package com.nunchuk.android.wallet.components.details
 
+import android.annotation.SuppressLint
 import android.util.Patterns
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
@@ -32,9 +34,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.TransactionNoteView
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.base.BaseViewHolder
 import com.nunchuk.android.core.util.bindTransactionStatus
 import com.nunchuk.android.core.util.canBroadCast
@@ -50,7 +52,6 @@ import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.formatByHour
-import com.nunchuk.android.utils.simpleWeekDayYearFormat
 import com.nunchuk.android.utils.weekDayYearFormat
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.databinding.ItemTransactionBinding
@@ -87,7 +88,7 @@ internal class TransactionAdapter(
 
         private val binding = ItemTransactionBinding.bind(itemView)
         private val receivedAmountColor = ContextCompat.getColor(context, R.color.nc_slime_dark)
-        private val sentAmountColor = ContextCompat.getColor(context, R.color.nc_primary_color)
+        private val sentAmountColor = ContextCompat.getColor(context, R.color.nc_text_primary)
 
         init {
             binding.noteContainer.setOnDebounceClickListener {
@@ -157,10 +158,10 @@ internal class TransactionAdapter(
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
                 setContent {
-                    NunchukTheme(isSetStatusBar = false) {
+                    NunchukTheme {
                         TransactionNoteView(
                             modifier = Modifier
-                                .border(1.dp, NcColor.border, RoundedCornerShape(12.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.strokePrimary, RoundedCornerShape(12.dp))
                                 .padding(8.dp),
                             note = data.transaction.memo
                         )
@@ -169,6 +170,7 @@ internal class TransactionAdapter(
             }
         }
 
+        @SuppressLint("SetTextI18n")
         private fun handleServerTransaction(
             transaction: Transaction,
             serverTransaction: ServerTransaction?

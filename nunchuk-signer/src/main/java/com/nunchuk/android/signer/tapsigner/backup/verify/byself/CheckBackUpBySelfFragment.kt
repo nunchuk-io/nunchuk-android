@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -40,7 +41,6 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
@@ -53,6 +53,7 @@ import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.ClickAbleText
@@ -62,7 +63,6 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.mk4.Mk4ViewModel
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -243,7 +243,7 @@ private fun CheckBackUpBySelfContent(
                         .fillMaxWidth(),
                     onClick = { onBtnClicked(OnExitSelfCheck) },
                 ) {
-                    Text(text = stringResource(R.string.I_will_comeback_to_this_later))
+                    Text(text = stringResource(R.string.I_will_comeback_to_this_later), color = MaterialTheme.colorScheme.textPrimary)
                 }
             }
         }

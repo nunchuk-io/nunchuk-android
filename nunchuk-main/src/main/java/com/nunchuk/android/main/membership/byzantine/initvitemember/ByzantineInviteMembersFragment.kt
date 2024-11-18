@@ -2,7 +2,6 @@ package com.nunchuk.android.main.membership.byzantine.initvitemember
 
 import android.app.Activity
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -47,7 +46,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
@@ -74,12 +72,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.NcColor
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.shorten
@@ -234,7 +234,7 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
         NCInfoDialog(requireActivity()).showDialog(
             message = String.format(
                 getString(R.string.nc_limit_keyholder_message_dialog),
-                viewModel.getMaximumKeyholderRole()
+                viewModel.getMaximumKeyholderRole().toString()
             )
         )
     }
@@ -432,7 +432,7 @@ private fun InviteMembersContent(
                             onClick = onAddMember,
                         ) {
                             Row {
-                                Image(
+                                NcIcon(
                                     painterResource(id = R.drawable.ic_plus_dark),
                                     contentDescription = null,
                                 )
@@ -509,8 +509,8 @@ private fun MemberView(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(shape = RoundedCornerShape(12.dp))
-                .border(width = 1.dp, color = NcColor.border, shape = RoundedCornerShape(12.dp))
-                .background(color = NcColor.greyLight)
+                .border(width = 1.dp, color = MaterialTheme.colorScheme.strokePrimary, shape = RoundedCornerShape(12.dp))
+                .background(color = MaterialTheme.colorScheme.greyLight)
                 .padding(16.dp)
         ) {
             Column {
@@ -556,7 +556,7 @@ private fun MemberView(
                                 modifier = Modifier
                                     .size(48.dp, 48.dp)
                                     .clip(CircleShape)
-                                    .background(color = colorResource(id = R.color.nc_whisper_color)),
+                                    .background(color = colorResource(id = R.color.nc_bg_mid_gray)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Image(
@@ -666,7 +666,7 @@ private fun MemberView(
                     title = stringResource(id = R.string.nc_role),
                     value = role.toTitle(stringResource(id = R.string.nc_select_a_role)),
                     enabled = false,
-                    disableBackgroundColor = if (isMaster) colorResource(id = R.color.nc_whisper_color) else MaterialTheme.colorScheme.surface,
+                    disableBackgroundColor = if (isMaster) colorResource(id = R.color.nc_bg_mid_gray) else MaterialTheme.colorScheme.surface,
                     onClick = {
                         if (isMaster.not()) onSelectRoleClick()
                     },

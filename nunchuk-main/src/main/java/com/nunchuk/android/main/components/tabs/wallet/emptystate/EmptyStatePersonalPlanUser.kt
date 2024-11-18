@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.components.tabs.wallet.emptystate
 
 import android.app.Activity
+import androidx.core.content.ContextCompat
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
@@ -28,7 +29,7 @@ class EmptyStatePersonalPlanUser(
                     )
                 },
                 imageResId = R.drawable.bg_empty_state_personal_plan,
-                backgroundColor = 0xFFD0E2FF
+                backgroundColor = ContextCompat.getColor(activityContext, R.color.nc_fill_denim)
             )
         }
         return WizardData(
@@ -54,7 +55,7 @@ class EmptyStatePersonalPlanUser(
                 }
             },
             imageResId = if (conditionInfo.plan == MembershipPlan.HONEY_BADGER_PLUS) R.drawable.bg_empty_state_group_plan else R.drawable.bg_empty_state_personal_plan,
-            backgroundColor = 0xFFD0E2FF
+            backgroundColor = ContextCompat.getColor(activityContext, R.color.nc_fill_denim)
         )
     }
 

@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -54,14 +55,14 @@ fun CoinCollectionHorizontalView(
     Row(
         modifier
             .background(
-                color = NcColor.greyLight, shape = RoundedCornerShape(24.dp)
+                color = MaterialTheme.colorScheme.greyLight, shape = RoundedCornerShape(24.dp)
             )
             .let {
                 if (clickable) {
                     it.clickable(onClick = onClick)
                 } else it
             }
-            .border(1.dp, color = NcColor.whisper, shape = RoundedCornerShape(24.dp))
+            .border(1.dp, color = MaterialTheme.colorScheme.whisper, shape = RoundedCornerShape(24.dp))
             .padding(horizontal = 6.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically

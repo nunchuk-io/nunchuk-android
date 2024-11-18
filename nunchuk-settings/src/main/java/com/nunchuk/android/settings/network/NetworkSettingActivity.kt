@@ -34,6 +34,7 @@ import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
 import android.view.View
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
@@ -49,7 +50,6 @@ import com.nunchuk.android.utils.getTrimmedText
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.addTextChangedCallback
-import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -77,12 +77,13 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
             }
         }
 
-    override fun initializeBinding() = ActivityNetworkSettingBinding.inflate(layoutInflater)
+    override fun initializeBinding() = ActivityNetworkSettingBinding.inflate(layoutInflater).also {
+        enableEdgeToEdge()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setLightStatusBar()
         showToolbarBackButton()
 
         setupViews()
@@ -151,12 +152,12 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
                 if (currentChain == selectedChain) {
                     ContextCompat.getColor(
                         this@NetworkSettingActivity,
-                        R.color.nc_primary_color
+                        R.color.nc_text_primary
                     )
                 } else {
                     ContextCompat.getColor(
                         this@NetworkSettingActivity,
-                        R.color.nc_grey_dark_color
+                        R.color.nc_second_color
                     )
                 }
             )
@@ -305,7 +306,7 @@ class NetworkSettingActivity : BaseActivity<ActivityNetworkSettingBinding>() {
                 super.updateDrawState(ds)
                 ds.isUnderlineText = true
                 ds.color =
-                    ContextCompat.getColor(this@NetworkSettingActivity, R.color.nc_black_color)
+                    ContextCompat.getColor(this@NetworkSettingActivity, R.color.nc_text_primary)
             }
         }
 

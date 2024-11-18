@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,6 +27,7 @@ import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcScaffold
+import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.guestmode.SignInMode
@@ -144,7 +144,7 @@ fun PinStatusContent(
                 ) {
                     Text(text = stringResource(R.string.nc_protect_app_with_pin), style = NunchukTheme.typography.body)
 
-                    Switch(checked = isEnable, onCheckedChange = onEnablePinChange)
+                    NcSwitch(checked = isEnable, onCheckedChange = onEnablePinChange)
                 }
 
                 Row(

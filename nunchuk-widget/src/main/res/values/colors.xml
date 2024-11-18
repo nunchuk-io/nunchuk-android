@@ -2,6 +2,7 @@
 <resources>
     <color name="nc_primary_color">#031F2B</color>
     <color name="nc_primary_dark_color">#031F2B</color>
+    <color name="nc_blue_primary">#031F2B</color>
     <color name="nc_primary_light_color">#2F466C</color>
     <color name="nc_accent_color">#C1C1C1</color>
     <color name="nc_white_color">#FFFFFF</color>
@@ -10,7 +11,7 @@
     <color name="nc_grey_dark_color">#595959</color>
     <color name="nc_grey_color">#808080</color>
     <color name="nc_grey_light">#F5F5F5</color>
-    <color name="nc_whisper_color">#EAEAEA</color>
+    <color name="nc_bg_mid_gray">#EAEAEA</color>
     <color name="nc_red_color">#D2232A</color>
     <color name="nc_green_color">#A7F0BA</color>
     <color name="nc_orange_color">#CF4018</color>
@@ -24,7 +25,7 @@
     <color name="nc_beeswax_dark">#A66800</color>
     <color name="nc_boulder_color">#757575</color>
 
-    <color name="nc_edit_text_stroke_color">#CCCCCC</color>
+    <color name="nc_stroke_primary">#DEDEDE</color>
     <color name="nc_edit_text_stroke_error_color">#FFD7D9</color>
 
     <color name="nc_button_press_state_color">@color/nc_blue_color</color>
@@ -43,5 +44,17 @@
     <color name="nc_text_disable">#A6A6A6</color>
     <color name="nc_color_031F2B_40">#66031F2B</color>
     <color name="nc_color_222222_40">#66222222</color>
-
+    <color name="nc_text_primary">#031F2B</color>
+    <color name="nc_control_text_primary">#FFFFFF</color>
+    <color name="nc_text_secondary">#757575</color>
+    <color name="nc_state_active">#031F2B</color>
+    <color name="nc_fill_primary">#031F2B</color>
+    <color name="nc_grey_g7">#1C1C1C</color>
+    <color name="nc_background_primary">#FFFFFF</color>
+    <color name="nc_popup_bg">#FFFFFF</color>
+    <color name="nc_background">#FFFFFF</color>
+    <color name="nc_control_state_activated">#031f2b</color>
+    <color name="nc_fill_beewax">#fdebd2</color>
+    <color name="nc_fill_denim">#D0E2FF</color>
+    <color name="nc_fill_input_text">#FFFFFF</color>
 </resources>

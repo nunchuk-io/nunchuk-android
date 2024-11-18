@@ -83,7 +83,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="@dimen/nc_padding_16"
-            android:background="@color/nc_whisper_color"
+            android:background="@color/nc_bg_mid_gray"
             app:layout_constraintTop_toBottomOf="@+id/tv_old_fee_btc" />
 
         <com.nunchuk.android.widget.NCFontTextView
@@ -120,7 +120,7 @@
             android:padding="@dimen/nc_padding_12"
             android:scrollHorizontally="false"
             android:singleLine="true"
-            android:textColor="@color/nc_black_color"
+            android:textColor="@color/nc_text_primary"
             android:textCursorDrawable="@null"
             android:textSize="@dimen/nc_text_size_16"
             app:layout_constraintEnd_toStartOf="@+id/feeUnit"
@@ -135,7 +135,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/nc_padding_4"
             android:text="@string/nc_transaction_fee_rate_unit"
-            android:textColor="@color/nc_black_color"
             app:layout_constraintBottom_toBottomOf="@+id/feeRateInput"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/feeRateInput" />
@@ -168,7 +167,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/nc_transaction_processing_speed"
-                android:textColor="@color/nc_black_color"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 

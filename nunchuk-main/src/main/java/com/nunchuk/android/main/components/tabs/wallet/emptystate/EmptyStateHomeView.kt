@@ -1,3 +1,4 @@
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,7 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,9 +25,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NCLabelWithIndex
-import com.nunchuk.android.compose.NcColor
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.controlTextPrimary
+import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.wallet.emptystate.KeyWalletEntryData
 import com.nunchuk.android.main.components.tabs.wallet.emptystate.WizardData
@@ -99,7 +102,7 @@ fun EmptyStateHomeView(
                 Text(
                     textAlign = TextAlign.Center,
                     text = contentData.buttonText,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.controlTextPrimary,
                 )
             }
         }
@@ -111,14 +114,14 @@ fun KeyWalletEntryView(data: KeyWalletEntryData, onClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(color = NcColor.greyLight, shape = RoundedCornerShape(8.dp))
+            .background(color = MaterialTheme.colorScheme.greyLight, shape = RoundedCornerShape(8.dp))
             .clickable {
                 onClick()
             }
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
+        NcIcon(
             painter = painterResource(id = data.iconResId),
             contentDescription = null,
         )
@@ -129,7 +132,7 @@ fun KeyWalletEntryView(data: KeyWalletEntryData, onClick: () -> Unit = {}) {
                 .padding(start = 8.dp)
                 .weight(1f)
         )
-        Icon(
+        NcIcon(
             painter = painterResource(id = R.drawable.ic_right_arrow_wallet),
             contentDescription = null,
         )
@@ -151,7 +154,7 @@ fun PreviewNunchukScreen() {
                 buttonText = "Add a key (or multiple keys if using multisig), then create you",
                 buttonAction = {},
                 imageResId = R.drawable.bg_empty_state_personal_plan,
-                backgroundColor = 0xFFFDEBD2
+                backgroundColor = 0xFFFDEBD2.toInt()
             )
         )
     }

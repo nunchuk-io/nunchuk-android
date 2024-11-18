@@ -24,7 +24,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,6 +35,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -74,12 +74,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
 import com.journeyapps.barcodescanner.ScanContract
 import com.nunchuk.android.compose.InputSwitchCurrencyView
-import com.nunchuk.android.compose.NcColor
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.fillInputText
+import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.CurrencyFormatter
@@ -340,8 +343,9 @@ private fun BatchTransactionContent(
     var isSendAllRemainingClicked by remember { mutableStateOf(false) }
 
     NunchukTheme {
-        Scaffold { innerPadding ->
-            Column(modifier = Modifier) {
+        Scaffold(
+            modifier = Modifier.imePadding(),
+            topBar = {
                 NcTopAppBar(
                     title = stringResource(id = R.string.nc_batched_transaction),
                     textStyle = NunchukTheme.typography.titleLarge,
@@ -349,117 +353,121 @@ private fun BatchTransactionContent(
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
                     }
                 )
-                LazyColumn(
-                    modifier = Modifier
-                        .weight(1.0f)
-                        .padding(top = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(24.dp)
-                ) {
-                    itemsIndexed(recipientList) { index, recipient ->
-                        RecipientView(index = index + 1,
-                            address = recipient.address,
-                            amount = recipient.amount,
-                            isBtc = recipient.isBtc,
-                            invalidAddress = recipient.invalidAddress,
-                            selectAddressType = recipient.selectAddressType,
-                            selectAddressName = recipient.selectAddressName,
-                            enableRemove = isEnableRemoveRecipient,
-                            onRemoveClick = {
-                                onRemoveRecipient(index)
-                            },
-                            onScanClick = {
-                                onScanClick(index)
-                            },
-                            onInputAmountChange = {
-                                onInputAmountChange(
-                                    index, CurrencyFormatter.format(it, MAX_FRACTION_DIGITS)
-                                )
-                            },
-                            onSwitchBtcAndCurrency = {
-                                onSwitchBtcAndCurrency(index, it)
-                            },
-                            onDropdownClick = {
-                                onDropdownClick(index, recipient.selectAddressType)
-                            },
-                            onInputAddressChange = {
-                                onInputAddressChange(index, it)
-                            },
-                            onSendAllRemainingClick = {
-                                isSendAllRemainingClicked = true
-                                onSendAllRemainingClick(index)
-                            })
+            },
+            bottomBar = {
+                Column {
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .bringIntoViewRequester(bringIntoViewRequester)
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = {
+                            onCreateTransactionClick(isSendAllRemainingClicked)
+                        },
+                        enabled = isEnableCreateTransaction
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_create_transaction))
                     }
-                    item {
-                        NcOutlineButton(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                                .height(48.dp),
-                            onClick = onAddRecipient,
-                        ) {
-                            Row {
-                                Image(
-                                    painterResource(id = R.drawable.ic_plus_dark),
-                                    contentDescription = null,
-                                )
+                    NcOutlineButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 16.dp)
+                            .height(48.dp),
+                        onClick = {
+                            onCustomizeTransactionClick(isSendAllRemainingClicked)
+                        },
+                        enabled = isEnableCreateTransaction
+                    ) {
+                        Text(text = stringResource(R.string.nc_customize_transaction))
+                    }
+                }
+            }
+        ) { innerPadding ->
+            LazyColumn(
+                modifier = Modifier
+                    .padding(innerPadding),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                itemsIndexed(recipientList) { index, recipient ->
+                    RecipientView(index = index + 1,
+                        address = recipient.address,
+                        amount = recipient.amount,
+                        isBtc = recipient.isBtc,
+                        invalidAddress = recipient.invalidAddress,
+                        selectAddressType = recipient.selectAddressType,
+                        selectAddressName = recipient.selectAddressName,
+                        enableRemove = isEnableRemoveRecipient,
+                        onRemoveClick = {
+                            onRemoveRecipient(index)
+                        },
+                        onScanClick = {
+                            onScanClick(index)
+                        },
+                        onInputAmountChange = {
+                            onInputAmountChange(
+                                index, CurrencyFormatter.format(it, MAX_FRACTION_DIGITS)
+                            )
+                        },
+                        onSwitchBtcAndCurrency = {
+                            onSwitchBtcAndCurrency(index, it)
+                        },
+                        onDropdownClick = {
+                            onDropdownClick(index, recipient.selectAddressType)
+                        },
+                        onInputAddressChange = {
+                            onInputAddressChange(index, it)
+                        },
+                        onSendAllRemainingClick = {
+                            isSendAllRemainingClicked = true
+                            onSendAllRemainingClick(index)
+                        })
+                }
+                item(key = "add") {
+                    NcOutlineButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .height(48.dp),
+                        onClick = onAddRecipient,
+                    ) {
+                        Row {
+                            NcIcon(
+                                painterResource(id = R.drawable.ic_plus_dark),
+                                contentDescription = null,
+                            )
 
-                                Text(
-                                    modifier = Modifier.padding(start = 6.dp),
-                                    text = stringResource(id = R.string.nc_add_recipient)
-                                )
-                            }
+                            Text(
+                                modifier = Modifier.padding(start = 6.dp),
+                                text = stringResource(id = R.string.nc_add_recipient)
+                            )
                         }
                     }
-                    item {
-                        NcTextField(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                            title = stringResource(id = R.string.nc_transaction_note),
-                            value = note,
-                            maxLength = MAX_NOTE_LENGTH,
-                            enableMaxLength = true,
-                            visualTransformation = MaxLengthTransformation(maxLength = MAX_NOTE_LENGTH),
-                            onValueChange = {
-                                if (it.length <= MAX_NOTE_LENGTH) {
-                                    onInputNoteChange(it)
-                                }
-                            },
-                            onFocusEvent = { isFocused ->
-                                if (isFocused) {
-                                    coroutineScope.launch {
-                                        delay(500L)
-                                        bringIntoViewRequester.bringIntoView()
-                                    }
+                }
+                item(key = "note") {
+                    NcTextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        title = stringResource(id = R.string.nc_transaction_note),
+                        value = note,
+                        maxLength = MAX_NOTE_LENGTH,
+                        enableMaxLength = true,
+                        visualTransformation = MaxLengthTransformation(maxLength = MAX_NOTE_LENGTH),
+                        onValueChange = {
+                            if (it.length <= MAX_NOTE_LENGTH) {
+                                onInputNoteChange(it)
+                            }
+                        },
+                        onFocusEvent = { isFocused ->
+                            if (isFocused) {
+                                coroutineScope.launch {
+                                    delay(500L)
+                                    bringIntoViewRequester.bringIntoView()
                                 }
                             }
-                        )
-                    }
-                }
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .bringIntoViewRequester(bringIntoViewRequester)
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = {
-                        onCreateTransactionClick(isSendAllRemainingClicked)
-                    },
-                    enabled = isEnableCreateTransaction
-                ) {
-                    Text(text = stringResource(id = R.string.nc_create_transaction))
-                }
-                NcOutlineButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 16.dp)
-                        .height(48.dp),
-                    onClick = {
-                        onCustomizeTransactionClick(isSendAllRemainingClicked)
-                    },
-                    enabled = isEnableCreateTransaction
-                ) {
-                    Text(text = stringResource(R.string.nc_customize_transaction))
+                        }
+                    )
                 }
             }
         }
@@ -507,7 +515,7 @@ private fun RecipientView(
                 text = stringResource(id = R.string.nc_remove),
                 style = NunchukTheme.typography.title,
                 textDecoration = TextDecoration.Underline,
-                color = if (enableRemove) colorResource(id = R.color.nc_primary_color) else colorResource(
+                color = if (enableRemove) colorResource(id = R.color.nc_text_primary) else colorResource(
                     id = R.color.nc_grey_dark_color
                 )
             )
@@ -517,9 +525,9 @@ private fun RecipientView(
                 .fillMaxWidth()
                 .clip(shape = RoundedCornerShape(12.dp))
                 .border(
-                    width = 1.dp, color = NcColor.border, shape = RoundedCornerShape(12.dp)
+                    width = 1.dp, color = MaterialTheme.colorScheme.strokePrimary, shape = RoundedCornerShape(12.dp)
                 )
-                .background(color = NcColor.greyLight)
+                .background(color = MaterialTheme.colorScheme.greyLight)
                 .padding(16.dp)
         ) {
             Column {
@@ -532,7 +540,7 @@ private fun RecipientView(
                         style = NunchukTheme.typography.titleSmall
                     )
 
-                    Image(
+                    NcIcon(
                         modifier = Modifier
                             .size(36.dp)
                             .clickable {
@@ -548,7 +556,7 @@ private fun RecipientView(
                         value = address,
                         inputBoxHeight = 70.dp,
                         rightContent = {
-                            Image(
+                            NcIcon(
                                 modifier = Modifier
                                     .size(24.dp)
                                     .clickable {
@@ -568,10 +576,10 @@ private fun RecipientView(
                             .fillMaxWidth()
                             .border(
                                 width = 1.dp,
-                                color = NcColor.border,
+                                color = MaterialTheme.colorScheme.strokePrimary,
                                 shape = RoundedCornerShape(8.dp)
                             )
-                            .background(color = MaterialTheme.colorScheme.background)
+                            .background(color = MaterialTheme.colorScheme.fillInputText)
                     ) {
                         Row(
                             modifier = Modifier
@@ -579,7 +587,7 @@ private fun RecipientView(
                                 .padding(horizontal = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Image(
+                            NcIcon(
                                 modifier = Modifier
                                     .size(24.dp)
                                     .clickable {
@@ -600,7 +608,7 @@ private fun RecipientView(
                                 style = NunchukTheme.typography.body
                             )
 
-                            Image(
+                            NcIcon(
                                 modifier = Modifier
                                     .size(24.dp)
                                     .clickable {

@@ -19,7 +19,8 @@
             android:layout_width="@dimen/nc_height_60"
             android:layout_height="@dimen/nc_height_60"
             android:layout_gravity="center"
-            android:src="@drawable/ic_services" />
+            android:src="@drawable/ic_services"
+            app:tint="@color/nc_text_primary" />
     </FrameLayout>
 
     <com.nunchuk.android.widget.NCFontTextView
@@ -28,8 +29,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:paddingHorizontal="16dp"
         android:gravity="center"
+        android:paddingHorizontal="16dp"
         android:text="@string/nc_service_tab_observer_role"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,10 +41,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
@@ -168,7 +170,7 @@ fun InvoiceScreenContent(
                     item {
                         Column(
                             modifier = Modifier
-                                .background(color = NcColor.greyLight)
+                                .background(color = MaterialTheme.colorScheme.greyLight)
                                 .fillMaxSize()
                         ) {
                             Text(
@@ -199,7 +201,7 @@ fun InvoiceScreenContent(
                                 style = NunchukTheme.typography.titleSmall,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(color = colorResource(id = R.color.nc_whisper_color))
+                                    .background(color = colorResource(id = R.color.nc_bg_mid_gray))
                                     .padding(horizontal = 16.dp, vertical = 12.dp)
                             )
 
@@ -214,7 +216,7 @@ fun InvoiceScreenContent(
                                 style = NunchukTheme.typography.titleSmall,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(color = colorResource(id = R.color.nc_whisper_color))
+                                    .background(color = colorResource(id = R.color.nc_bg_mid_gray))
                                     .padding(horizontal = 16.dp, vertical = 12.dp)
                             )
 
@@ -243,7 +245,7 @@ fun InvoiceScreenContent(
                             }
 
                             Divider(
-                                color = NcColor.border,
+                                color = MaterialTheme.colorScheme.strokePrimary,
                                 modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp)
                             )
 
@@ -301,7 +303,7 @@ fun InvoiceScreenContent(
                     item {
                         Column(
                             modifier = Modifier
-                                .background(color = NcColor.greyLight)
+                                .background(color = MaterialTheme.colorScheme.greyLight)
                                 .fillMaxWidth()
                         ) {
                             if (invoiceInfo.changeAddress.isNotEmpty() && invoiceInfo.changeAddressAmount.isNotEmpty()) {
@@ -310,7 +312,7 @@ fun InvoiceScreenContent(
                                     style = NunchukTheme.typography.titleSmall,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(color = colorResource(id = R.color.nc_whisper_color))
+                                        .background(color = colorResource(id = R.color.nc_bg_mid_gray))
                                         .padding(horizontal = 16.dp, vertical = 12.dp)
                                 )
 
@@ -343,7 +345,7 @@ fun InvoiceScreenContent(
                                 style = NunchukTheme.typography.titleSmall,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(color = colorResource(id = R.color.nc_whisper_color))
+                                    .background(color = colorResource(id = R.color.nc_bg_mid_gray))
                                     .padding(horizontal = 16.dp, vertical = 12.dp)
                             )
 

@@ -135,4 +135,9 @@
     <string name="nc_enter_your_pin_to_continue_use_app">To continue using the app, please enter your PIN.</string>
     <string name="nc_enter_your_password_to_continue_use_app">To continue using the app, please enter your password.</string>
     <string name="nc_enter_your_passphrase_to_continue_use_app">To continue using the app, please enter your passphrase.</string>
+    <string name="nc_appearance">Appearance</string>
+    <string name="nc_light">Light</string>
+    <string name="nc_dark">Dark</string>
+    <string name="nc_automatic">Automatic</string>
+    <string name="nc_appearance_system_description">Display a theme based on your operating system’s current theme.</string>
 </resources>

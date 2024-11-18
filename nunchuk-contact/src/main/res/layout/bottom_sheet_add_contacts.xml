@@ -32,7 +32,6 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:text="@string/nc_contact_add_contacts"
-            android:textColor="@color/nc_black_color"
             android:textSize="@dimen/nc_text_size_18"
             app:fontTextStyle="semi_bold" />
 
@@ -87,7 +86,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@null"
-                    android:backgroundTint="@color/nc_whisper_color"
+                    android:backgroundTint="@color/nc_bg_mid_gray"
                     android:hint="@string/nc_contacts_type_email_here"
                     android:inputType="textEmailAddress"
                     android:textColor="@color/nc_primary_color"

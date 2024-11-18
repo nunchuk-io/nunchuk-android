@@ -22,19 +22,20 @@ package com.nunchuk.android.transaction.components.send.batchtransaction
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.core.os.bundleOf
+import androidx.activity.enableEdgeToEdge
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.send.amount.InputAmountArgs
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class BatchTransactionActivity : BaseActivity<ActivityNavigationBinding>() {
     override fun initializeBinding(): ActivityNavigationBinding {
-        return ActivityNavigationBinding.inflate(layoutInflater)
+        return ActivityNavigationBinding.inflate(layoutInflater).also {
+            enableEdgeToEdge()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

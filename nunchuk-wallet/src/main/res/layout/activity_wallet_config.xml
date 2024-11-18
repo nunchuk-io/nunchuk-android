@@ -4,8 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/nc_white_color"
-    android:fitsSystemWindows="true"
     app:menu="@menu/menu_wallet_details"
     tools:ignore="ContentDescription">
 
@@ -50,6 +48,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/nc_padding_16"
+            android:drawableTint="@color/nc_text_primary"
             app:drawableEndCompat="@drawable/ic_edit"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -59,17 +58,18 @@
 
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/tv_set_alias"
-            android:drawablePadding="@dimen/nc_padding_6"
             style="@style/NCText.Title"
-            android:gravity="center_vertical"
             android:layout_width="wrap_content"
-            android:layout_marginTop="@dimen/nc_padding_16"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/nc_padding_16"
+            android:layout_marginTop="@dimen/nc_padding_16"
+            android:drawablePadding="@dimen/nc_padding_6"
+            android:drawableTint="@color/nc_text_primary"
+            android:gravity="center_vertical"
+            android:text="@string/nc_set_alias"
             app:drawableEndCompat="@drawable/ic_arrow"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/walletName"
-            android:text="@string/nc_set_alias" />
+            app:layout_constraintTop_toBottomOf="@+id/walletName" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/configuration"
@@ -80,7 +80,7 @@
             android:background="@drawable/nc_rounded_tag_whisper_background"
             android:paddingHorizontal="@dimen/nc_padding_12"
             android:paddingVertical="@dimen/nc_padding_2"
-            android:textColor="@color/nc_primary_color"
+            android:textColor="@color/nc_text_primary"
             android:textSize="@dimen/nc_text_size_12"
             app:fontTextStyle="semi_bold"
             app:layout_constraintStart_toStartOf="parent"
@@ -95,10 +95,11 @@
             android:background="@drawable/nc_rounded_tag_whisper_background"
             android:drawableStart="@drawable/ic_wallet_small"
             android:drawablePadding="@dimen/nc_padding_4"
+            android:drawableTint="@color/nc_text_primary"
             android:paddingHorizontal="@dimen/nc_padding_12"
             android:paddingVertical="@dimen/nc_padding_2"
             android:text="@string/nc_text_shared"
-            android:textColor="@color/nc_primary_color"
+            android:textColor="@color/nc_text_primary"
             android:textSize="@dimen/nc_text_size_12"
             app:layout_constraintBottom_toBottomOf="@+id/configuration"
             app:layout_constraintStart_toEndOf="@+id/configuration"

@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate
 
-import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -39,6 +38,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -59,12 +59,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.google.android.material.datepicker.MaterialDatePicker
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
@@ -75,6 +77,7 @@ import com.nunchuk.android.utils.simpleGlobalDateFormat
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Calendar
 import java.util.Date
+import java.util.TimeZone
 
 @AndroidEntryPoint
 class InheritanceActivationDateFragment : MembershipFragment() {
@@ -120,21 +123,20 @@ class InheritanceActivationDateFragment : MembershipFragment() {
     }
 
     private fun showDatePicker() {
-        val calendar = Calendar.getInstance().apply {
+        val oldCalUtc = Calendar.getInstance().apply {
             val selectedDate = viewModel.state.value.date
             timeInMillis =
                 if (selectedDate == 0L) Calendar.getInstance().timeInMillis else selectedDate
+            timeZone = TimeZone.getTimeZone("UTC")
         }
-        val dialog = DatePickerDialog(
-            requireContext(), R.style.NunchukDateTimePicker,
-            { _, year, month, dayOfMonth ->
-                viewModel.setDate(year, month, dayOfMonth)
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH),
-        )
-        dialog.show()
+        val materialDatePicker = MaterialDatePicker.Builder.datePicker()
+            .setTheme(R.style.NcMaterialCalendar)
+            .setSelection(oldCalUtc.timeInMillis)
+            .build()
+        materialDatePicker.addOnPositiveButtonClickListener { timeInMillis ->
+            viewModel.setDate(timeInMillis)
+        }
+        materialDatePicker.show(childFragmentManager, "MaterialDatePicker")
     }
 
     companion object {
@@ -220,7 +222,7 @@ fun InheritanceActivationDateScreenContent(
                             .fillMaxWidth()
                             .border(
                                 width = 1.dp,
-                                color = NcColor.border,
+                                color = MaterialTheme.colorScheme.strokePrimary,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .clickable(onClick = { onDatePick() })

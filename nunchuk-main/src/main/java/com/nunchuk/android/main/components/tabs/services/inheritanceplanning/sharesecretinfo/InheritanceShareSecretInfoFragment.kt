@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,13 +56,13 @@ import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.LabelNumberAndDesc
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcClickableText
-import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
@@ -207,7 +208,7 @@ private fun InheritanceShareSecretInfoContent(
                             modifier = Modifier
                                 .padding(start = 50.dp, top = 16.dp, end = 16.dp)
                                 .background(
-                                    color = NcColor.greyLight, shape = RoundedCornerShape(12.dp)
+                                    color = MaterialTheme.colorScheme.greyLight, shape = RoundedCornerShape(12.dp)
                                 )
                         ) {
                             Row(

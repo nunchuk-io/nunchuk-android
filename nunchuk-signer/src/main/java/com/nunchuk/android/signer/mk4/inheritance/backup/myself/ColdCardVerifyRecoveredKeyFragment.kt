@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,6 +43,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -151,7 +153,7 @@ internal fun ColdCardVerifyRecoveredKeyScreen(
                         onSkip()
                     },
                 ) {
-                    Text(text = stringResource(R.string.I_will_comeback_to_this_later))
+                    Text(text = stringResource(R.string.I_will_comeback_to_this_later), color = MaterialTheme.colorScheme.textPrimary)
                 }
             }
 
@@ -181,7 +183,7 @@ internal fun ColdCardVerifyRecoveredKeyScreen(
                     modifier = Modifier
                         .padding(top = 8.dp)
                         .background(
-                            color = colorResource(R.color.nc_whisper_color),
+                            color = colorResource(R.color.nc_bg_mid_gray),
                             shape = RoundedCornerShape(12.dp)
                         )
                 ) {

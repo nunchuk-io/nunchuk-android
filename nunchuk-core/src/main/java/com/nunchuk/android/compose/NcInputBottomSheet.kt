@@ -76,7 +76,6 @@ fun NcInputBottomSheet(
                 title = "",
                 value = text,
                 minLines = 5,
-                borderColor = Color.Transparent,
             ) {
                 text = it
             }

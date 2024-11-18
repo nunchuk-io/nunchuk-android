@@ -25,7 +25,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.android.parcel.Parcelize
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -47,26 +46,11 @@ class CoinFilterViewModel @Inject constructor(
         selectCollections.value = collectionIds.toSet()
     }
 
-    fun setDate(isStart: Boolean, year: Int, month: Int, dayOfMonth: Int) {
-        val cal = Calendar.getInstance().apply {
-            set(Calendar.YEAR, year)
-            set(Calendar.MONTH, month)
-            set(Calendar.DAY_OF_MONTH, dayOfMonth)
-        }
+    fun setDate(isStart: Boolean, timeInMillis: Long) {
         if (isStart) {
-            cal.apply {
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-            }
-            startTime.value = cal.timeInMillis
+            startTime.value = timeInMillis
         } else {
-            cal.apply {
-                set(Calendar.HOUR_OF_DAY, 23)
-                set(Calendar.MINUTE, 59)
-                set(Calendar.SECOND, 59)
-            }
-            endTime.value = cal.timeInMillis
+            endTime.value = timeInMillis
         }
     }
 }

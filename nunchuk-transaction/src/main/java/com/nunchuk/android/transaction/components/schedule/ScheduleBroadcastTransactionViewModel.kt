@@ -61,15 +61,9 @@ class ScheduleBroadcastTransactionViewModel @Inject constructor(
         }
     }
 
-    fun setDate(year: Int, month: Int, dayOfMonth: Int) {
-        val cal = Calendar.getInstance().apply {
-            timeInMillis = _state.value.time
-            set(Calendar.YEAR, year)
-            set(Calendar.MONTH, month)
-            set(Calendar.DAY_OF_MONTH, dayOfMonth)
-        }
+    fun setDate(timeInMillis: Long) {
         _state.update {
-            it.copy(time = cal.timeInMillis)
+            it.copy(time = timeInMillis)
         }
     }
 

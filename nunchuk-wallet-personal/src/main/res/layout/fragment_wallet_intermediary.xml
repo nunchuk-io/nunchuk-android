@@ -34,7 +34,8 @@
         android:src="@drawable/ic_wallet_info"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        app:tint="@color/nc_text_primary" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/title"

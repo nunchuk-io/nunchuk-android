@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@color/nc_white_color"
+    android:background="@color/nc_background"
     android:fitsSystemWindows="true">
 
     <androidx.appcompat.widget.Toolbar
@@ -44,7 +44,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/nc_padding_16"
         android:padding="@dimen/nc_padding_4"
-        android:textColor="@color/nc_grey_dark_color"
+        android:textColor="@color/nc_text_secondary"
         app:layout_constraintBottom_toBottomOf="@+id/usernameLabel"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/usernameLabel"

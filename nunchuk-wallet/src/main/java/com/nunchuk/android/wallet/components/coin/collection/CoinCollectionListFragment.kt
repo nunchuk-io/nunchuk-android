@@ -249,7 +249,7 @@ fun CoinCollectionListScreenContent(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_add_circle),
-                        contentDescription = ""
+                        contentDescription = "",
                     )
                     Text(
                         modifier = Modifier.padding(start = 12.dp),

@@ -23,7 +23,8 @@
         android:src="@drawable/ic_primary_key"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        app:tint="@color/nc_text_primary" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/textTitle"
@@ -35,7 +36,6 @@
         android:gravity="start"
         android:paddingVertical="8dp"
         android:text="@string/nc_primary_key_signer_intro_title"
-        android:textColor="@android:color/black"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/introImg" />
 
@@ -48,7 +48,6 @@
         android:layout_marginTop="@dimen/nc_padding_16"
         android:gravity="start"
         android:text="@string/nc_primary_key_signin_intro_desc"
-        android:textColor="@android:color/black"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textTitle" />
 
@@ -72,7 +71,6 @@
         android:fontFamily="@font/lato_semibold"
         android:gravity="center"
         android:text="@string/nc_primary_key_signin_intro_import"
-        android:textColor="@color/nc_primary_color"
         android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

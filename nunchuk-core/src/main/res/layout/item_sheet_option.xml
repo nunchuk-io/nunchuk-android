@@ -16,7 +16,6 @@
         android:includeFontPadding="false"
         android:paddingHorizontal="@dimen/nc_padding_16"
         android:paddingVertical="@dimen/nc_padding_12"
-        android:textColor="@color/nc_black_color"
         tools:drawableEnd="@drawable/ic_check"
         tools:drawableStart="@drawable/ic_backup"
         tools:text="Option" />
@@ -27,7 +26,7 @@
         android:layout_height="1dp"
         android:layout_gravity="bottom"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:background="@color/nc_whisper_color"
+        android:background="@color/nc_bg_mid_gray"
         android:visibility="gone"
         tools:visibility="visible" />
 </FrameLayout>

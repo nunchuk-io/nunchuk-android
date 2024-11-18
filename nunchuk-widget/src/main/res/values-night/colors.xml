@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="nc_primary_color">#FF000000</color>
+    <color name="nc_primary_dark_color">#FF000000</color>
+    <color name="nc_primary_light_color">#2F466C</color>
+    <color name="nc_accent_color">#C1C1C1</color>
+
+    <color name="nc_blue_color">#1A9CB7</color>
+    <color name="nc_grey_dark_color">#595959</color>
+    <color name="nc_grey_color">#808080</color>
+    <color name="nc_grey_light">#2C2C2C</color>
+    <color name="nc_bg_mid_gray">#393939</color>
+    <color name="nc_red_color">#D2232A</color>
+    <color name="nc_green_color">#A7F0BA</color>
+    <color name="nc_orange_color">#CF4018</color>
+    <color name="nc_black_color">#000000</color>
+    <color name="nc_main_color">#333333</color>
+    <color name="nc_second_color">#666666</color>
+    <color name="nc_third_color">#999999</color>
+    <color name="nc_line_color">#EEEEEE</color>
+    <color name="nc_beeswax_light">#FDD95C</color>
+    <color name="nc_beeswax_tint">#FDEBD2</color>
+    <color name="nc_beeswax_dark">#A66800</color>
+    <color name="nc_boulder_color">#757575</color>
+
+    <color name="nc_stroke_primary">#595959</color>
+    <color name="nc_edit_text_stroke_error_color">#FFD7D9</color>
+
+    <color name="nc_button_press_state_color">@color/nc_blue_color</color>
+    <color name="nc_slime_tint_color">#A7F0BA</color>
+
+    <color name="nc_skeleton_color">#EEEEEE</color>
+
+    <color name="nc_lavender_tint_color">#E8DAFF</color>
+    <color name="nc_red_tint_color">#FFD7D9</color>
+    <color name="nc_orange_dark_color">#CF4018</color>
+    <color name="nc_denim_tint_color">#D0E2FF</color>
+    <color name="nc_dialog_background">#50000000</color>
+    <color name="nc_wallet_premium_bg">#1C4A21</color>
+    <color name="nc_slime_dark">#3bbe59</color>
+    <color name="nc_tealish_green">#A7F0BA</color>
+    <color name="nc_text_disable">#A6A6A6</color>
+    <color name="nc_color_031F2B_40">#66031F2B</color>
+    <color name="nc_color_222222_40">#66222222</color>
+    <color name="nc_text_primary">#FFFFFFFF</color>
+    <color name="nc_control_text_primary">#031F2B</color>
+    <color name="nc_text_secondary">#dedede</color>
+    <color name="nc_state_active">#FFCB2E</color>
+    <color name="nc_fill_primary">#FFFFFF</color>
+    <color name="nc_background_primary">#1C1C1E</color>
+    <color name="nc_popup_bg">#393939</color>
+    <color name="nc_background">#1c1c1e</color>
+    <color name="nc_control_state_activated">#FFCB2E</color>
+    <color name="nc_fill_beewax">#a66800</color>
+    <color name="nc_fill_denim">#2F466C</color>
+    <color name="nc_fill_input_text">#2c2c2e1a</color>
+</resources>

@@ -20,8 +20,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,6 +55,7 @@ import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
+import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
@@ -305,7 +304,7 @@ fun ReferralAddressScreen(
                             modifier = Modifier.weight(1f)
                         )
 
-                        Switch(
+                        NcSwitch(
                             checked = state.showOtherAddress,
                             onCheckedChange = {
                                 onShowOtherAddress(it)
@@ -313,7 +312,6 @@ fun ReferralAddressScreen(
                                     onSelectedWallet(null)
                                 }
                             },
-                            colors = SwitchDefaults.colors()
                         )
                     }
 

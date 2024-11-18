@@ -48,9 +48,11 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/nc_padding_4"
         android:background="@drawable/nc_rounded_tag_whisper_background"
+        android:backgroundTint="#EAEAEA"
         android:drawableStart="@drawable/ic_wallet_small"
         android:drawablePadding="@dimen/nc_padding_4"
         android:text="@string/nc_text_shared"
+        android:textColor="@color/nc_grey_g7"
         app:layout_constraintBottom_toTopOf="@+id/config"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/btc" />
@@ -61,6 +63,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/nc_rounded_tag_whisper_background"
+        android:backgroundTint="#EAEAEA"
+        android:textColor="@color/nc_grey_g7"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:text="2/3 Multisig" />

@@ -40,9 +40,7 @@ internal fun WalletEmptyStateView(
         personalSteps.any { it.plan == MembershipPlan.HONEY_BADGER } -> GroupWalletType.TWO_OF_FOUR_MULTISIG
         else -> null
     }
-    NunchukTheme(false) {
-        val contentData: WizardData?
-        val keyWalletEntryData: KeyWalletEntryData?
+    NunchukTheme {
         val conditionInfo = when {
             state.plans.size.orDefault(0) == 1 && state.plans.any {
                 it in setOf(
@@ -103,8 +101,8 @@ internal fun WalletEmptyStateView(
 
             else -> EmptyStateNone()
         }
-        contentData = emptyState.getWizardData(conditionInfo)
-        keyWalletEntryData = emptyState.getKeyWalletEntryData(conditionInfo)
+        val contentData = emptyState.getWizardData(conditionInfo)
+        val keyWalletEntryData = emptyState.getKeyWalletEntryData(conditionInfo)
 
         val onEmptyStateActionButtonClick = { contentData?.buttonAction?.invoke() }
         val onKeyWalletEntryClick = { keyWalletEntryData?.buttonAction?.invoke() }

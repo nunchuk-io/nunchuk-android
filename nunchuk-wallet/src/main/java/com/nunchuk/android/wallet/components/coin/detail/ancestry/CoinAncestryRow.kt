@@ -23,15 +23,22 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +50,8 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
+import com.nunchuk.android.compose.strokePrimary
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getBtcFormatDate
 import com.nunchuk.android.model.Amount
@@ -76,22 +85,26 @@ fun CoinAncestryRow(
             Box(
                 modifier = circleModifier
                     .background(
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.textPrimary,
                         shape = CircleShape
                     )
-                    .border(width = 2.dp, shape = CircleShape, color = MaterialTheme.colorScheme.border)
+                    .border(
+                        width = 2.dp,
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.border
+                    )
             )
         } else {
             Box(
                 modifier = circleModifier.background(
-                    color = MaterialTheme.colorScheme.border,
+                    color = MaterialTheme.colorScheme.strokePrimary,
                     shape = CircleShape
                 )
             )
         }
 
         if (showTopLine) {
-            Divider(modifier = Modifier.constrainAs(topDivider) {
+            VerticalDivider(modifier = Modifier.constrainAs(topDivider) {
                 width = Dimension.value(2.dp)
                 height = Dimension.fillToConstraints
                 top.linkTo(parent.top)
@@ -102,7 +115,7 @@ fun CoinAncestryRow(
         }
 
         if (showBottomLine) {
-            Divider(modifier = Modifier.constrainAs(bottomDivider) {
+            VerticalDivider(modifier = Modifier.constrainAs(bottomDivider) {
                 width = Dimension.value(2.dp)
                 height = Dimension.fillToConstraints
                 top.linkTo(circle.bottom)
@@ -117,6 +130,8 @@ fun CoinAncestryRow(
                 top.linkTo(parent.top)
                 bottom.linkTo(parent.bottom, margin = 24.dp)
                 start.linkTo(parent.start, margin = 52.dp)
+                end.linkTo(parent.end)
+                width = Dimension.fillToConstraints
             },
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(end = 12.dp)
@@ -127,6 +142,9 @@ fun CoinAncestryRow(
                         enabled = isRootCoin.not(),
                         onClick = { onCoinClick(coin) }),
                     shape = NunchukTheme.shape.medium,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    ),
                     border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.border)
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
@@ -146,7 +164,10 @@ fun CoinAncestryRow(
                                     .padding(horizontal = 8.dp),
                                 text = if (isRootCoin) stringResource(R.string.nc_wallet_this_coin)
                                 else stringResource(R.string.nc_wallet_spent),
-                                style = NunchukTheme.typography.bodySmall.copy(fontSize = 10.sp)
+                                style = NunchukTheme.typography.bodySmall.copy(
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.textPrimary
+                                )
                             )
                         }
 

@@ -22,14 +22,19 @@ package com.nunchuk.android.auth.components.forgot
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import com.nunchuk.android.auth.R
-import com.nunchuk.android.auth.components.forgot.ForgotPasswordEvent.*
+import com.nunchuk.android.auth.components.forgot.ForgotPasswordEvent.EmailInvalidEvent
+import com.nunchuk.android.auth.components.forgot.ForgotPasswordEvent.EmailRequiredEvent
+import com.nunchuk.android.auth.components.forgot.ForgotPasswordEvent.EmailValidEvent
+import com.nunchuk.android.auth.components.forgot.ForgotPasswordEvent.ForgotPasswordErrorEvent
+import com.nunchuk.android.auth.components.forgot.ForgotPasswordEvent.ForgotPasswordSuccessEvent
+import com.nunchuk.android.auth.components.forgot.ForgotPasswordEvent.LoadingEvent
 import com.nunchuk.android.auth.databinding.ActivityForgotPasswordBinding
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showToast
-import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -37,12 +42,12 @@ class ForgotPasswordActivity : BaseActivity<ActivityForgotPasswordBinding>() {
 
     private val viewModel: ForgotPasswordViewModel by viewModels()
 
-    override fun initializeBinding() = ActivityForgotPasswordBinding.inflate(layoutInflater)
+    override fun initializeBinding() = ActivityForgotPasswordBinding.inflate(layoutInflater).also {
+        enableEdgeToEdge()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        setTransparentStatusBar(false)
 
         setupViews()
 

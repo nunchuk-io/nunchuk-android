@@ -549,7 +549,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         val totalInBtc = Amount(value = totalBalance).getBTCAmount()
         binding.totalBalanceView.isVisible = state.isDisplayTotalBalance
         binding.totalBalanceView.setContent {
-            NunchukTheme(false) {
+            NunchukTheme {
                 TotalBalanceView(state.useLargeFont, totalInBtc, totalInCurrency)
             }
         }
@@ -678,7 +678,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         val assistedWallets = state.assistedWallets.associateBy { it.localId }
         binding.walletEmpty.isVisible = groupWalletUis.isEmpty()
         binding.pendingWallet.setContent {
-            NunchukTheme(false) {
+            NunchukTheme {
                 Column {
                     groupWalletUis.forEach {
                         val briefWallet = assistedWallets[it.wallet?.wallet?.id.orEmpty()]

@@ -35,7 +35,6 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:text="@string/nc_message_new_chat"
-            android:textColor="@color/nc_black_color"
             app:fontTextStyle="semi_bold" />
 
         <com.nunchuk.android.widget.NCFontTextView
@@ -46,7 +45,7 @@
             android:foreground="?android:selectableItemBackground"
             android:padding="@dimen/nc_padding_4"
             android:text="@string/nc_text_done"
-            android:textColor="@color/nc_black_color"
+            android:textColor="@color/nc_text_primary"
             android:textSize="@dimen/nc_text_size_16"
             android:visibility="gone"
             app:fontTextStyle="semi_bold"
@@ -85,7 +84,7 @@
         android:layout_marginStart="@dimen/nc_padding_4"
         android:layout_marginEnd="@dimen/nc_padding_16"
         android:background="@null"
-        android:backgroundTint="@color/nc_whisper_color"
+        android:backgroundTint="@color/nc_bg_mid_gray"
         android:hint="@string/nc_message_name_or_email"
         android:minWidth="250dp"
         android:textColor="@color/nc_primary_color"
@@ -99,7 +98,7 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginTop="@dimen/nc_padding_8"
-        android:background="@color/nc_whisper_color"
+        android:background="@color/nc_bg_mid_gray"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/input" />
 

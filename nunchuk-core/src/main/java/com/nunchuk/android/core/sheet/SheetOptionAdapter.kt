@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.core.sheet
 
-import android.graphics.Color
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.TextUtils
@@ -68,6 +67,7 @@ class SheetOptionHolder(private val binding: ItemSheetOptionBinding) :
     private val textSize12 by lazy { binding.root.context.resources.getDimensionPixelSize(R.dimen.nc_text_size_12) }
 
     fun bind(option: SheetOption) {
+        val context = binding.root.context
         binding.divider.isVisible = option.showDivider
         binding.tvLabel.setCompoundDrawablesRelativeWithIntrinsicBounds(
             option.resId,
@@ -81,17 +81,23 @@ class SheetOptionHolder(private val binding: ItemSheetOptionBinding) :
             binding.tvLabel.setText(option.stringId)
         }
 
+        binding.tvLabel.compoundDrawablesRelative.forEach {
+            if (option.applyTint) {
+                it?.setTint(ContextCompat.getColor(context, R.color.nc_text_primary))
+            }
+        }
+
         if (option.subStringId != 0) {
             val line1 = binding.tvLabel.text
             val line2 = "\n${getString(option.subStringId)}"
 
             val spannable1 = SpannableString(line1)
             spannable1.setSpan(AbsoluteSizeSpan(textSize16), 0, line1.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
-            spannable1.setSpan(ForegroundColorSpan(Color.parseColor("#000000")), 0, line1.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+            spannable1.setSpan(ForegroundColorSpan(ContextCompat.getColor(context, R.color.nc_text_primary)), 0, line1.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
 
             val spannable2 = SpannableString(line2)
             spannable2.setSpan(AbsoluteSizeSpan(textSize12), 0, line2.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
-            spannable2.setSpan(ForegroundColorSpan(Color.parseColor("#595959")), 0, line2.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+            spannable2.setSpan(ForegroundColorSpan(ContextCompat.getColor(context, R.color.nc_text_secondary)), 0, line2.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
 
             binding.tvLabel.text = TextUtils.concat(spannable1, spannable2)
         }
@@ -107,7 +113,7 @@ class SheetOptionHolder(private val binding: ItemSheetOptionBinding) :
             binding.tvLabel.setTextColor(
                 ContextCompat.getColor(
                     binding.root.context,
-                    R.color.nc_black_color
+                    R.color.nc_text_primary
                 )
             )
         }

@@ -11,6 +11,7 @@
         <item name="android:paddingBottom">@dimen/nc_padding_12</item>
         <item name="android:drawablePadding">@dimen/nc_padding_8</item>
         <item name="android:gravity">start|center_vertical</item>
+        <item name="android:drawableTint">@color/nc_text_primary</item>
     </style>
 
 </resources>

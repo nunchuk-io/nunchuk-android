@@ -44,17 +44,12 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.mk4.Mk4ViewModel
-import com.nunchuk.android.signer.mk4.inheritance.backup.ColdCardEncryptBackUpFileFragmentDirections
-import com.nunchuk.android.signer.tapsigner.backup.verify.byapp.CheckBackUpByAppEvent
-import com.nunchuk.android.signer.tapsigner.backup.verify.byapp.CheckBackUpByAppFragmentDirections
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

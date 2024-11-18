@@ -30,9 +30,12 @@ import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.matrix.MatrixInitializerUseCase
 import com.nunchuk.android.log.FileLogTree
 import com.nunchuk.android.share.InitNunchukUseCase
+import com.nunchuk.android.usecase.darkmode.ConfigThemeUseCase
 import com.nunchuk.android.util.FileHelper
 import dagger.hilt.android.HiltAndroidApp
 import io.branch.referral.Branch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.runBlocking
 import org.matrix.android.sdk.api.Matrix
 import timber.log.Timber
@@ -60,6 +63,12 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
     @Inject
     lateinit var appStateManager: AppStateManager
 
+    @Inject
+    lateinit var configThemeUseCase: ConfigThemeUseCase
+
+    @Inject
+    lateinit var applicationScope: CoroutineScope
+
     override fun onCreate() {
         super.onCreate()
         if (BuildConfig.DEBUG) {
@@ -75,11 +84,17 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
             } else {
                 account.email
             }
-            initNunchukUseCase(InitNunchukUseCase.Param(accountId = accountId, decoyPin = account.decoyPin))
+            initNunchukUseCase(
+                InitNunchukUseCase.Param(
+                    accountId = accountId,
+                    decoyPin = account.decoyPin
+                )
+            )
         }
         fileHelper.getOrCreateNunchukRootDir()
         registerActivityLifecycleCallbacks(ActivityManager)
         registerAppForegroundListener()
+        configThemeUseCase(Unit).launchIn(applicationScope)
     }
 
     private fun registerAppForegroundListener() {

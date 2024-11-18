@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -50,6 +49,7 @@ import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
+import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
@@ -217,7 +217,7 @@ fun HealthCheckReminderContent(
                                     painter = painterResource(id = R.drawable.ic_add_dark),
                                     contentDescription = "Info",
                                     tint = if (isEnable) Color.Black else colorResource(
-                                        id = R.color.nc_whisper_color
+                                        id = R.color.nc_bg_mid_gray
                                     )
                                 )
                             }
@@ -414,7 +414,7 @@ private fun HealthCheckReminderItem(
             }
 
             if (isEditMode.not()) {
-                Checkbox(checked = isSelect, onCheckedChange = {
+                NcCheckBox(checked = isSelect, onCheckedChange = {
                     onHealthCheckChanged(signer, it)
                 })
             }

@@ -38,6 +38,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -67,6 +68,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
 import com.nunchuk.android.core.util.formatDecimalWithoutZero
@@ -454,7 +456,7 @@ private fun CosigningPolicyContent(
                             .fillMaxWidth(),
                         onClick = onDiscardChangeClicked,
                     ) {
-                        Text(text = stringResource(R.string.nc_discard_changes))
+                        Text(text = stringResource(R.string.nc_discard_changes), color = MaterialTheme.colorScheme.textPrimary)
                     }
                 }
             }

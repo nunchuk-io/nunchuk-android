@@ -51,12 +51,12 @@ class NCEditTextView @JvmOverloads constructor(
 
     private var titleId: Int = DEFAULT_VALUE
     private var title: String? = null
-    private var titleColor: Int = ContextCompat.getColor(context, R.color.nc_primary_color)
+    private var titleColor: Int = ContextCompat.getColor(context, R.color.nc_text_primary)
     private var hintText: String? = null
     private var titleSize: Float = resources.getDimension(R.dimen.nc_text_size_12)
     private var hintTextColor: Int = ContextCompat.getColor(context, R.color.nc_third_color)
     private var hintTextId: Int = DEFAULT_VALUE
-    private var editTextColor: Int = ContextCompat.getColor(context, R.color.nc_black_color)
+    private var editTextColor: Int = ContextCompat.getColor(context, R.color.nc_text_primary)
     private var inputType: Int = TEXT_TYPE
     private var editTextSize: Float = resources.getDimension(R.dimen.nc_text_size_16)
     private var editTextBackground: Int = R.drawable.nc_edit_text_bg
@@ -84,10 +84,10 @@ class NCEditTextView @JvmOverloads constructor(
             hintText = attr.getString(R.styleable.NCEditTextView_edit_hint)
         }
 
-        titleColor = attr.getColor(R.styleable.NCEditTextView_edit_title_color, ContextCompat.getColor(context, R.color.nc_primary_color))
+        titleColor = attr.getColor(R.styleable.NCEditTextView_edit_title_color, ContextCompat.getColor(context, R.color.nc_text_primary))
         titleSize = attr.getDimension(R.styleable.NCEditTextView_edit_title_text_size, resources.getDimension(R.dimen.nc_text_size_12))
-        hintTextColor = attr.getColor(R.styleable.NCEditTextView_edit_hint_color, ContextCompat.getColor(context, R.color.nc_third_color))
-        editTextColor = attr.getColor(R.styleable.NCEditTextView_edit_text_color, ContextCompat.getColor(context, R.color.nc_black_color))
+        hintTextColor = attr.getColor(R.styleable.NCEditTextView_edit_hint_color, ContextCompat.getColor(context, R.color.nc_text_secondary))
+        editTextColor = attr.getColor(R.styleable.NCEditTextView_edit_text_color, ContextCompat.getColor(context, R.color.nc_text_primary))
         inputType = attr.getInteger(R.styleable.NCEditTextView_edit_input_type, TEXT_TYPE)
         editTextSize = attr.getDimension(R.styleable.NCEditTextView_edit_text_size, resources.getDimension(R.dimen.nc_text_size_16))
         editTextBackground = attr.getResourceId(R.styleable.NCEditTextView_edit_background, R.drawable.nc_edit_text_bg)

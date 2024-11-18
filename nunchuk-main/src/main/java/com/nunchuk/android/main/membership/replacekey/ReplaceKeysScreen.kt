@@ -278,7 +278,7 @@ fun ReplaceKeyCard(
                         NcTag(
                             label = item.toReadableSignerType(context = LocalContext.current),
                             backgroundColor = colorResource(
-                                id = R.color.nc_whisper_color
+                                id = R.color.nc_bg_mid_gray
                             ),
                         )
                         if (item.isShowAcctX()) {
@@ -286,7 +286,7 @@ fun ReplaceKeyCard(
                                 modifier = Modifier.padding(start = 4.dp),
                                 label = stringResource(R.string.nc_acct_x, item.index),
                                 backgroundColor = colorResource(
-                                    id = R.color.nc_whisper_color
+                                    id = R.color.nc_bg_mid_gray
                                 ),
                             )
                         }

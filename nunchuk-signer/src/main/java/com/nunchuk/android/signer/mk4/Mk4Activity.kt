@@ -22,6 +22,7 @@ package com.nunchuk.android.signer.mk4
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
@@ -53,12 +54,13 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
     val backUpFileName by lazy { intent.getStringExtra(EXTRA_BACK_UP_FILE_NAME).orEmpty() }
 
     override fun initializeBinding(): ActivityNavigationBinding {
-        return ActivityNavigationBinding.inflate(layoutInflater)
+        return ActivityNavigationBinding.inflate(layoutInflater).also {
+            enableEdgeToEdge()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
         initStartDestination()
     }
 

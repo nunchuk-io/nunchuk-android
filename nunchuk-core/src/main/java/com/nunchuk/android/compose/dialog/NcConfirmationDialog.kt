@@ -23,6 +23,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.R
 
 @Composable
@@ -67,7 +68,7 @@ fun NcConfirmationDialog(
                     modifier = Modifier.weight(1f),
                     onClick = onDismiss
                 ) {
-                    Text(text = negativeButtonText)
+                    Text(text = negativeButtonText, color = MaterialTheme.colorScheme.textPrimary)
                 }
                 NcPrimaryDarkButton(
                     modifier = Modifier.weight(1f),

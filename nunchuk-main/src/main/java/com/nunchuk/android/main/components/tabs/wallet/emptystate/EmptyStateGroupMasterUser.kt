@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.components.tabs.wallet.emptystate
 
 import android.app.Activity
+import androidx.core.content.ContextCompat
 import com.nunchuk.android.main.R
 import com.nunchuk.android.nav.NunchukNavigator
 
@@ -19,7 +20,7 @@ class EmptyStateGroupMasterUser(
                 navigator.openWalletIntermediaryScreen(activityContext, conditionInfo.hasSigner)
             },
             imageResId = R.drawable.bg_empty_state_group_plan,
-            backgroundColor = 0xFFD0E2FF
+            backgroundColor = ContextCompat.getColor(activityContext, R.color.nc_fill_denim)
         )
     }
 

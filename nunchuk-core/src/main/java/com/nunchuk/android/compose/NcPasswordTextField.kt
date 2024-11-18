@@ -55,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
@@ -115,6 +116,7 @@ fun NcPasswordTextField(
                 enabled = enabled,
                 onValueChange = onValueChange,
                 visualTransformation = if (!passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.textPrimary),
                 decorationBox = @Composable { innerTextField ->
                     // places leading icon, text field with label and placeholder, trailing icon
                     TextFieldDefaults.DecorationBox(
@@ -231,6 +233,7 @@ fun NcPasswordTextField(
                 enabled = enabled,
                 onValueChange = onValueChange,
                 visualTransformation = visualTransformation,
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.textPrimary),
                 decorationBox = @Composable { innerTextField ->
                     // places leading icon, text field with label and placeholder, trailing icon
                     TextFieldDefaults.DecorationBox(

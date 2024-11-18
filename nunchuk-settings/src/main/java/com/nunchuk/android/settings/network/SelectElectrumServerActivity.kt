@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcSnackBarHost
 import com.nunchuk.android.compose.NcSnackbarVisuals
@@ -312,7 +313,7 @@ private fun ElectrumSeverItem(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (!isRemote) {
-            Image(
+            NcIcon(
                 modifier = Modifier.size(24.dp),
                 painter = painterResource(id = R.drawable.ic_accounts_settings),
                 contentDescription = "Icon user",
@@ -332,7 +333,7 @@ private fun ElectrumSeverItem(
                 contentDescription = "Icon close",
             )
         } else if (isSelected) {
-            Image(
+            NcIcon(
                 modifier = Modifier.size(24.dp),
                 painter = painterResource(id = R.drawable.ic_check),
                 contentDescription = "Icon check",

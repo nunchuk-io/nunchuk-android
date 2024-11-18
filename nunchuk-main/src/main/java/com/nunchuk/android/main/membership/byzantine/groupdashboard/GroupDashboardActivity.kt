@@ -3,7 +3,7 @@ package com.nunchuk.android.main.membership.byzantine.groupdashboard
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.core.view.WindowCompat
+import androidx.activity.enableEdgeToEdge
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.main.R
@@ -17,8 +17,7 @@ class GroupDashboardActivity : BaseActivity<ActivityNavigationBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
+        enableEdgeToEdge()
         val navHostFragment =
             (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
         navHostFragment.navController.setGraph(R.navigation.group_dashboard_navigation, intent.extras)

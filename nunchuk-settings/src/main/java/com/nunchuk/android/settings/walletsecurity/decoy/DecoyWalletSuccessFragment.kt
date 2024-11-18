@@ -24,7 +24,9 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.settings.R
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class DecoyWalletSuccessFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,

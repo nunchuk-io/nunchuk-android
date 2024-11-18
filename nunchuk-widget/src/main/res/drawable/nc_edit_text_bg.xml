@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <corners android:radius="@dimen/nc_padding_8" />
-    <solid android:color="@color/nc_white_color" />
     <stroke
         android:width="@dimen/nc_padding_1"
-        android:color="@color/nc_edit_text_stroke_color" />
+        android:color="@color/nc_stroke_primary" />
 </shape>

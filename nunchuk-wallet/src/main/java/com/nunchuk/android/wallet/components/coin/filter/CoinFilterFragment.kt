@@ -19,19 +19,30 @@
 
 package com.nunchuk.android.wallet.components.coin.filter
 
-import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,10 +53,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -56,7 +65,13 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.*
+import com.google.android.material.datepicker.MaterialDatePicker
+import com.nunchuk.android.compose.InputSwitchCurrencyView
+import com.nunchuk.android.compose.NcCheckBox
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.util.CurrencyFormatter
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
@@ -70,6 +85,7 @@ import com.nunchuk.android.wallet.components.coin.filter.tag.FilterByTagFragment
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Calendar
 import java.util.Date
+import java.util.TimeZone
 
 @AndroidEntryPoint
 class CoinFilterFragment : Fragment() {
@@ -101,22 +117,21 @@ class CoinFilterFragment : Fragment() {
                         )
                     },
                     onSelectDate = { isStart ->
-                        val time =
-                            if (isStart) viewModel.startTime.value else viewModel.endTime.value
-                        val actualTime = if (time < 0L) System.currentTimeMillis() else time
-                        val calendar = Calendar.getInstance().apply {
+                        val oldCalUtc = Calendar.getInstance().apply {
+                            val time =
+                                if (isStart) viewModel.startTime.value else viewModel.endTime.value
+                            val actualTime = if (time < 0L) System.currentTimeMillis() else time
                             timeInMillis = actualTime
+                            timeZone = TimeZone.getTimeZone("UTC")
                         }
-                        val dialog = DatePickerDialog(
-                            requireContext(), R.style.NunchukDateTimePicker,
-                            { _, year, month, dayOfMonth ->
-                                viewModel.setDate(isStart, year, month, dayOfMonth)
-                            },
-                            calendar.get(Calendar.YEAR),
-                            calendar.get(Calendar.MONTH),
-                            calendar.get(Calendar.DAY_OF_MONTH),
-                        )
-                        dialog.show()
+                        val materialDatePicker = MaterialDatePicker.Builder.datePicker()
+                            .setTheme(R.style.NcMaterialCalendar)
+                            .setSelection(oldCalUtc.timeInMillis)
+                            .build()
+                        materialDatePicker.addOnPositiveButtonClickListener { timeInMillis ->
+                            viewModel.setDate(isStart, timeInMillis)
+                        }
+                        materialDatePicker.show(childFragmentManager, "MaterialDatePicker")
                     },
                     onApplyFilter = { min, isMinBtc, max, isMaxBtc, showLockedCoin, showUnlockedCoin, isDescending ->
                         setFragmentResult(
@@ -279,7 +294,7 @@ private fun CoinFilterContent(
                                             .border(
                                                 width = 1.dp,
                                                 shape = RoundedCornerShape(8.dp),
-                                                color = NcColor.border,
+                                                color = MaterialTheme.colorScheme.strokePrimary,
                                             )
                                             .padding(12.dp)
                                     ) {
@@ -315,7 +330,7 @@ private fun CoinFilterContent(
                                             .border(
                                                 width = 1.dp,
                                                 shape = RoundedCornerShape(8.dp),
-                                                color = NcColor.border,
+                                                color = MaterialTheme.colorScheme.strokePrimary,
                                             )
                                             .padding(12.dp)
                                     ) {
@@ -386,7 +401,7 @@ private fun CoinFilterContent(
                                         .border(
                                             width = 1.dp,
                                             shape = RoundedCornerShape(8.dp),
-                                            color = NcColor.border
+                                            color = MaterialTheme.colorScheme.strokePrimary
                                         )
                                         .clickable { onSelectDate(true) }
                                         .fillMaxWidth()
@@ -405,7 +420,7 @@ private fun CoinFilterContent(
                                         .border(
                                             width = 1.dp,
                                             shape = RoundedCornerShape(8.dp),
-                                            color = NcColor.border
+                                            color = MaterialTheme.colorScheme.strokePrimary
                                         )
                                         .clickable { onSelectDate(false) }
                                         .fillMaxWidth()
@@ -429,7 +444,7 @@ private fun CoinFilterContent(
                                             text = stringResource(R.string.nc_show_locked_coins),
                                             style = NunchukTheme.typography.body
                                         )
-                                        Checkbox(modifier = Modifier.align(alignment = Alignment.CenterEnd),
+                                        NcCheckBox(modifier = Modifier.align(alignment = Alignment.CenterEnd),
                                             checked = showLockedCoin,
                                             onCheckedChange = {
                                                 showLockedCoin = it
@@ -444,7 +459,7 @@ private fun CoinFilterContent(
                                             text = stringResource(R.string.nc_show_unlocked_coins),
                                             style = NunchukTheme.typography.body
                                         )
-                                        Checkbox(modifier = Modifier.align(alignment = Alignment.CenterEnd),
+                                        NcCheckBox(modifier = Modifier.align(alignment = Alignment.CenterEnd),
                                             checked = showUnlockedCoin,
                                             onCheckedChange = {
                                                 showUnlockedCoin = it

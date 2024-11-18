@@ -189,7 +189,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             binding.btnCreateNewWallet.setBackgroundResource(if (assistedVisible) R.drawable.nc_rounded_light_background else R.drawable.nc_rounded_dark_background)
             val textColor = ContextCompat.getColor(
                 requireActivity(),
-                if (assistedVisible) R.color.nc_primary_color else R.color.nc_white_color
+                if (assistedVisible) R.color.nc_fill_primary else R.color.nc_text_primary
             )
             binding.btnCreateNewWallet.setTextColor(textColor)
         }
@@ -366,19 +366,22 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                     type = SheetOptionType.TYPE_CREATE_NEW_WALLET,
                     resId = R.drawable.ic_circle_new_wallet,
                     stringId = R.string.nc_create_new_wallet,
-                    subStringId = R.string.nc_create_new_wallet_desc
+                    subStringId = R.string.nc_create_new_wallet_desc,
+                    applyTint = false
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_CREATE_HOT_WALLET,
                     resId = R.drawable.ic_circle_hot_wallet,
                     stringId = R.string.nc_create_hot_wallet,
                     subStringId = R.string.nc_create_hot_wallet_desc,
+                    applyTint = false
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_CREATE_NEW_DECOY_WALLET,
                     resId = R.drawable.ic_circle_decoy_wallet,
                     stringId = R.string.nc_create_new_decoy_wallet,
-                    subStringId = R.string.nc_create_new_decoy_wallet_desc
+                    subStringId = R.string.nc_create_new_decoy_wallet_desc,
+                    applyTint = false
                 ),
             )
         ).show(childFragmentManager, "BottomSheetOption")

@@ -36,8 +36,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.wallet.R
 
 @Composable
@@ -55,7 +55,7 @@ fun CoinBadge(
             )
             .border(
                 border,
-                color = NcColor.whisper,
+                color = MaterialTheme.colorScheme.whisper,
                 shape = RoundedCornerShape(24.dp)
             ),
         verticalAlignment = Alignment.CenterVertically

@@ -21,6 +21,7 @@ import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.provider.SignerModelProvider
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawableResId
@@ -40,7 +41,8 @@ fun SignerCard(
     ) {
         NcCircleImage(
             resId = item.toReadableDrawableResId(),
-            color = MaterialTheme.colorScheme.greyLight
+            color = MaterialTheme.colorScheme.greyLight,
+            iconTintColor = MaterialTheme.colorScheme.textPrimary,
         )
         Column(
             modifier = Modifier
@@ -56,7 +58,7 @@ fun SignerCard(
                 NcTag(
                     label = item.toReadableSignerType(context = LocalContext.current),
                     backgroundColor = colorResource(
-                        id = R.color.nc_whisper_color
+                        id = R.color.nc_bg_mid_gray
                     ),
                 )
                 if (item.isShowAcctX()) {
@@ -64,7 +66,7 @@ fun SignerCard(
                         modifier = Modifier.padding(start = 4.dp),
                         label = stringResource(R.string.nc_acct_x, item.index),
                         backgroundColor = colorResource(
-                            id = R.color.nc_whisper_color
+                            id = R.color.nc_bg_mid_gray
                         ),
                     )
                 }

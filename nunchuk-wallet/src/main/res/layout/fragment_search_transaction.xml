@@ -100,7 +100,7 @@
         android:id="@+id/transactionList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="@color/nc_white_color"
+        android:background="@color/nc_background"
         android:paddingHorizontal="@dimen/nc_padding_16"
         android:paddingTop="@dimen/nc_padding_8"
         android:paddingBottom="@dimen/nc_padding_56"

@@ -33,6 +33,7 @@
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/status"
         style="@style/NCText.Badges"
+        android:textColor="@color/nc_grey_g7"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/nc_rounded_tag_whisper_background"
@@ -71,7 +72,6 @@
         app:layout_constraintBottom_toBottomOf="@+id/receiverName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/receiverName"
-
         tools:text="- 0.120000982 BTC" />
 
     <androidx.constraintlayout.widget.Barrier
@@ -86,7 +86,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_4"
-        android:textColor="@color/nc_primary_dark_color"
+        android:textColor="@color/nc_text_secondary"
         android:textSize="@dimen/nc_text_size_12"
         app:layout_constraintBottom_toBottomOf="@+id/amountUSD"
         app:layout_constraintStart_toStartOf="parent"
@@ -99,6 +99,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingVertical="@dimen/nc_padding_4"
+        android:textColor="@color/nc_text_primary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/bottomBarrier"
         tools:text="$193,090.98" />

@@ -43,7 +43,9 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.BufferPeriodCountdown
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class InheritanceClaimBufferPeriodFragment : Fragment() {
     private val args: InheritanceClaimBufferPeriodFragmentArgs by navArgs()
 

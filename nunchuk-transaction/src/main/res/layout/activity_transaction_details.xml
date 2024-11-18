@@ -1,21 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/nc_white_color"
-    android:fitsSystemWindows="true">
+    android:orientation="vertical">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         style="@style/NCToolbar"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:contentInsetStartWithNavigation="@dimen/nc_padding_16"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         app:menu="@menu/menu_transaction_details"
         app:navigationIcon="@drawable/ic_close">
 
@@ -33,9 +29,7 @@
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginBottom="@dimen/nc_padding_32"
-        app:layout_constraintBottom_toTopOf="@+id/guidelineBottomButton"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar">
+        android:layout_weight="1">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -61,7 +55,7 @@
                     android:paddingHorizontal="@dimen/nc_padding_10"
                     android:paddingVertical="@dimen/nc_padding_4"
                     android:text="@string/nc_transaction_pending_confirmation"
-                    android:textColor="@color/nc_primary_dark_color"
+                    android:textColor="@color/nc_grey_g7"
                     android:textSize="@dimen/nc_text_size_12"
                     app:fontTextStyle="semi_bold"
                     app:layout_constraintStart_toStartOf="parent"
@@ -91,7 +85,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/nc_padding_12"
                     android:text="@string/nc_transaction_sending_to"
-                    android:textColor="@color/nc_black_color"
+                    android:textColor="@color/nc_text_primary"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/status" />
 
@@ -104,7 +98,7 @@
                     android:layout_marginTop="@dimen/nc_padding_12"
                     android:ellipsize="middle"
                     android:singleLine="true"
-                    android:textColor="@color/nc_black_color"
+                    android:textColor="@color/nc_text_primary"
                     app:fontTextStyle="semi_bold"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/sendingToLabel"
@@ -142,6 +136,7 @@
                     android:layout_marginEnd="@dimen/nc_padding_16"
                     android:drawableEnd="@drawable/ic_arrow"
                     android:drawablePadding="@dimen/nc_padding_6"
+                    android:drawableTint="@color/nc_text_primary"
                     android:text="@string/nc_manage_coin"
                     android:visibility="gone"
                     app:layout_constraintStart_toStartOf="parent"
@@ -153,7 +148,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginTop="@dimen/nc_padding_24"
-                    android:background="@color/nc_whisper_color"
+                    android:background="@color/nc_bg_mid_gray"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tv_manage_coin" />
 
@@ -165,9 +160,10 @@
                     android:layout_marginTop="@dimen/nc_padding_16"
                     android:background="?attr/selectableItemBackground"
                     android:drawableEnd="@drawable/ic_expand"
+                    android:drawableTint="@color/nc_text_primary"
                     android:paddingVertical="@dimen/nc_padding_8"
                     android:text="@string/nc_transaction_more_details"
-                    android:textColor="@color/nc_black_color"
+                    android:textColor="@color/nc_text_primary"
                     app:fontTextStyle="semi_bold"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/topDivider" />
@@ -177,7 +173,6 @@
                 android:id="@+id/transactionDetailsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/nc_white_color"
                 android:visibility="gone"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/transactionInfoContainer"
@@ -187,10 +182,10 @@
                     android:id="@+id/sendToAddress"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@color/nc_whisper_color"
+                    android:background="@color/nc_bg_mid_gray"
                     android:padding="@dimen/nc_padding_16"
                     android:text="@string/nc_transaction_send_to_address"
-                    android:textColor="@color/nc_primary_dark_color"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_14"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -210,8 +205,8 @@
                     android:layout_marginTop="@dimen/nc_padding_4"
                     android:layout_marginEnd="@dimen/nc_padding_16"
                     android:visibility="visible"
-                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/container_address"
                     tools:text="5 more address" />
 
@@ -220,7 +215,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_margin="@dimen/nc_padding_16"
-                    android:background="@color/nc_whisper_color"
+                    android:background="@color/nc_bg_mid_gray"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tv_more_address" />
 
@@ -230,7 +225,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/nc_padding_16"
                     android:layout_marginEnd="@dimen/nc_padding_16"
-                    android:textColor="@color/nc_black_color"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_16"
                     app:fontTextStyle="semi_bold"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -243,7 +238,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/nc_padding_4"
                     android:layout_marginEnd="@dimen/nc_padding_16"
-                    android:textColor="@color/nc_black_color"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_14"
                     app:fontTextStyle="semi_bold"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -257,8 +252,9 @@
                     android:layout_marginStart="@dimen/nc_padding_16"
                     android:drawableEnd="@drawable/ic_help"
                     android:drawablePadding="@dimen/nc_padding_4"
+                    android:drawableTint="@color/nc_text_primary"
                     android:text="@string/nc_transaction_estimate_fee"
-                    android:textColor="@color/nc_black_color"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_16"
                     app:fontTextStyle="semi_bold"
                     app:layout_constraintBottom_toBottomOf="@+id/estimatedFeeUSD"
@@ -271,7 +267,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/nc_padding_16"
                     android:layout_marginEnd="@dimen/nc_padding_16"
-                    android:textColor="@color/nc_black_color"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_16"
                     app:fontTextStyle="semi_bold"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -284,7 +280,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/nc_padding_4"
                     android:layout_marginEnd="@dimen/nc_padding_16"
-                    android:textColor="@color/nc_black_color"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_14"
                     app:fontTextStyle="semi_bold"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -297,7 +293,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/nc_padding_16"
                     android:text="@string/nc_transaction_total_amount"
-                    android:textColor="@color/nc_black_color"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_16"
                     app:fontTextStyle="semi_bold"
                     app:layout_constraintBottom_toBottomOf="@+id/totalAmountUSD"
@@ -309,10 +305,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/nc_padding_16"
-                    android:background="@color/nc_whisper_color"
+                    android:background="@color/nc_bg_mid_gray"
                     android:padding="@dimen/nc_padding_16"
                     android:text="@string/nc_transaction_change_address"
-                    android:textColor="@color/nc_primary_dark_color"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_14"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/totalAmountUSD" />
@@ -335,7 +331,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/nc_padding_16"
                     android:layout_marginEnd="@dimen/nc_padding_16"
-                    android:textColor="@color/nc_black_color"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_16"
                     app:fontTextStyle="semi_bold"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -348,7 +344,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/nc_padding_4"
                     android:layout_marginEnd="@dimen/nc_padding_16"
-                    android:textColor="@color/nc_black_color"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_14"
                     app:fontTextStyle="semi_bold"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -363,7 +359,7 @@
                     android:layout_marginTop="@dimen/nc_padding_16"
                     android:layout_marginEnd="@dimen/nc_padding_16"
                     android:background="?attr/selectableItemBackground"
-                    android:textColor="@color/nc_black_color"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_16"
                     app:fontTextStyle="semi_bold"
                     app:layout_constraintEnd_toStartOf="@+id/changeAddressBTC"
@@ -391,10 +387,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/nc_padding_16"
-                    android:background="@color/nc_whisper_color"
+                    android:background="@color/nc_bg_mid_gray"
                     android:padding="@dimen/nc_padding_16"
                     android:text="@string/nc_transaction_note"
-                    android:textColor="@color/nc_primary_dark_color"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_14"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tags" />
@@ -415,10 +411,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/nc_padding_16"
-                    android:autoLink="web"
                     android:layout_marginTop="@dimen/nc_padding_16"
                     android:layout_marginEnd="@dimen/nc_padding_16"
-                    android:textColor="@color/nc_black_color"
+                    android:autoLink="web"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_16"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/privateNote"
@@ -429,10 +425,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/nc_padding_16"
-                    android:background="@color/nc_whisper_color"
+                    android:background="@color/nc_bg_mid_gray"
                     android:padding="@dimen/nc_padding_16"
                     android:text="@string/nc_show_input_coins"
-                    android:textColor="@color/nc_primary_dark_color"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_14"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/noteContent" />
@@ -469,7 +465,7 @@
                     android:layout_height="wrap_content"
                     android:paddingVertical="@dimen/nc_padding_8"
                     android:text="@string/nc_transaction_member_signers"
-                    android:textColor="@color/nc_black_color"
+                    android:textColor="@color/nc_text_primary"
                     app:fontTextStyle="semi_bold"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -482,12 +478,13 @@
                     android:layout_marginStart="@dimen/nc_padding_4"
                     android:drawableStart="@drawable/ic_check_circle"
                     android:drawablePadding="@dimen/nc_padding_2"
+                    android:drawableTint="@color/nc_text_primary"
                     android:ellipsize="end"
                     android:gravity="center_vertical"
                     android:maxLines="2"
                     android:paddingVertical="@dimen/nc_padding_8"
                     android:text="@string/nc_transaction_enough_signers"
-                    android:textColor="@color/nc_grey_dark_color"
+                    android:textColor="@color/nc_text_primary"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/memberSigners"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -505,36 +502,23 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guidelineBottomButton"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintGuide_end="@dimen/nc_padding_16"
-        app:layout_constraintTop_toBottomOf="@+id/scrollView" />
-
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnBroadcast"
         style="@style/NCPrimaryButton.Dark"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_margin="@dimen/nc_padding_16"
         android:text="@string/nc_transaction_broadcast"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/guidelineBottomButton"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:visibility="gone" />
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnViewBlockChain"
         style="@style/NCPrimaryButton.Light"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_margin="@dimen/nc_padding_16"
         android:text="@string/nc_transaction_view_blockchain"
         android:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@+id/guidelineBottomButton"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:visibility="gone" />
+        tools:visibility="visible" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

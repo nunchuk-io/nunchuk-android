@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="@dimen/nc_padding_8"
-    android:background="@color/nc_white_color"
     android:orientation="vertical">
 
     <com.nunchuk.android.widget.swipe.SwipeLayout
@@ -15,10 +14,10 @@
         android:minHeight="55dp">
 
         <LinearLayout
-            android:foreground="?attr/selectableItemBackground"
             android:id="@+id/actionLayout"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
             android:orientation="vertical"
             android:paddingHorizontal="@dimen/nc_padding_16"
@@ -49,7 +48,6 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/nc_white_color"
             android:foreground="?attr/selectableItemBackground"
             android:paddingTop="@dimen/nc_padding_2"
             android:paddingBottom="@dimen/nc_padding_2">
@@ -61,6 +59,7 @@
                 android:layout_height="@dimen/nc_padding_48"
                 android:background="@drawable/nc_circle_beeswax_light_background"
                 android:gravity="center"
+                android:textColor="@color/nc_grey_g7"
                 app:layout_constraintBottom_toBottomOf="@+id/email"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"

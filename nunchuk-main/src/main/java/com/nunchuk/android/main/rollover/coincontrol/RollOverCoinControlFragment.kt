@@ -274,7 +274,6 @@ private fun RollOverCoinControlContent(
                     items(uiState.tags) { tag ->
                         TagItem(
                             modifier = Modifier.padding(vertical = 12.dp),
-                            id = tag.coinTag.id,
                             name = tag.coinTag.name,
                             color = tag.coinTag.color,
                             numCoins = tag.numCoins,

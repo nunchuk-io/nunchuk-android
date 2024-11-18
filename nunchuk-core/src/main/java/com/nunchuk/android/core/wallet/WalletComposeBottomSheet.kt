@@ -39,7 +39,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -65,6 +64,7 @@ import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.ActiveWallet
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.getWalletColors
 import com.nunchuk.android.compose.greyLight
@@ -273,7 +273,7 @@ private fun AssistedWalletContent(
                             modifier = Modifier.weight(1f, fill = true),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
+                            NcIcon(
                                 modifier = Modifier.size(24.dp),
                                 painter = painterResource(id = R.drawable.ic_saved_address),
                                 contentDescription = ""
@@ -314,7 +314,7 @@ private fun AssistedWalletContent(
                                 modifier = Modifier.weight(1f, fill = true),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
+                                NcIcon(
                                     modifier = Modifier.size(24.dp),
                                     painter = painterResource(id = R.drawable.ic_wallet_small),
                                     contentDescription = ""

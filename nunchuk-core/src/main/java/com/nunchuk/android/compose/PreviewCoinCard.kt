@@ -29,8 +29,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -100,7 +97,7 @@ fun PreviewCoinCard(
                             )
                             .border(
                                 1.dp,
-                                color = NcColor.whisper,
+                                color = MaterialTheme.colorScheme.whisper,
                                 shape = RoundedCornerShape(24.dp)
                             )
                             .padding(horizontal = 8.dp, vertical = 2.dp),
@@ -109,32 +106,30 @@ fun PreviewCoinCard(
                     )
                 }
                 if (output.isLocked && mode != MODE_VIEW_ONLY) {
-                    Icon(
+                    NcIcon(
                         modifier = Modifier
                             .padding(start = 4.dp)
                             .background(
-                                color = colorResource(id = R.color.nc_whisper_color),
+                                color = MaterialTheme.colorScheme.whisper,
                                 shape = RoundedCornerShape(24.dp)
                             )
                             .padding(horizontal = 8.dp, vertical = 2.dp)
                             .size(12.dp),
                         painter = painterResource(id = R.drawable.ic_lock),
-                        tint = MaterialTheme.colorScheme.primary,
                         contentDescription = "Lock"
                     )
                 }
                 if (output.scheduleTime > 0L && mode != MODE_VIEW_ONLY) {
-                    Icon(
+                    NcIcon(
                         modifier = Modifier
                             .padding(start = 4.dp)
                             .background(
-                                color = colorResource(id = R.color.nc_whisper_color),
+                                color = MaterialTheme.colorScheme.whisper,
                                 shape = RoundedCornerShape(24.dp)
                             )
                             .padding(horizontal = 8.dp, vertical = 2.dp)
                             .size(12.dp),
                         painter = painterResource(id = R.drawable.ic_schedule),
-                        tint = MaterialTheme.colorScheme.primary,
                         contentDescription = "Schedule"
                     )
                 }
@@ -142,7 +137,8 @@ fun PreviewCoinCard(
             Text(
                 modifier = Modifier.padding(top = 4.dp),
                 text = output.amount.getCurrencyAmount(),
-                style = NunchukTheme.typography.bodySmall
+                style = NunchukTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.textSecondary
             )
             Row(
                 modifier = Modifier.padding(top = 4.dp),
@@ -151,12 +147,14 @@ fun PreviewCoinCard(
                 if (output.time > 0L) {
                     Text(
                         text = output.time.formatDate(),
-                        style = NunchukTheme.typography.bodySmall
+                        style = NunchukTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.textSecondary
                     )
                 } else {
                     Text(
                         text = "--/--/--",
-                        style = NunchukTheme.typography.bodySmall
+                        style = NunchukTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.textSecondary
                     )
                 }
 
@@ -176,7 +174,7 @@ fun PreviewCoinCard(
             }
         }
         if (mode == MODE_SELECT) {
-            Checkbox(modifier = Modifier
+            NcCheckBox(modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 8.dp),
                 checked = isSelected,
@@ -189,7 +187,7 @@ fun PreviewCoinCard(
                     .align(Alignment.TopEnd)
                     .padding(top = 8.dp),
                 onClick = { onViewCoinDetail(output) }) {
-                Icon(painter = painterResource(id = R.drawable.ic_arrow), contentDescription = "", tint = MaterialTheme.colorScheme.primary)
+                NcIcon(painter = painterResource(id = R.drawable.ic_arrow), contentDescription = "")
             }
         }
     }

@@ -60,7 +60,6 @@ import com.nunchuk.android.compose.NcNumberInputField
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.CurrencyFormatter
@@ -307,12 +306,12 @@ private fun FeeRateView(modifier: Modifier, title: String, value: Int) {
     Column(modifier = modifier) {
         Text(
             text = title,
-            style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.greyDark)
+            style = NunchukTheme.typography.bodySmall
         )
 
         Text(
             text = value.toFeeRate(),
-            style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.primary)
+            style = NunchukTheme.typography.bodySmall
         )
 
     }

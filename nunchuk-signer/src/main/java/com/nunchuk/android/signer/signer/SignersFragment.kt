@@ -95,7 +95,7 @@ fun SignersContent(
     onAddSignerClick: () -> Unit = {},
     onSignerClick: (SignerModel) -> Unit = {},
 ) {
-    NunchukTheme(isSetStatusBar = false) {
+    NunchukTheme {
         NcScaffold(
             topBar = {
                 CenterAlignedTopAppBar(

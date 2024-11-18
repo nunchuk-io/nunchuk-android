@@ -20,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,17 +52,15 @@ import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSpannedText
+import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.progress
 import com.nunchuk.android.compose.track
-import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.rollover.RollOverWalletViewModel
 import com.nunchuk.android.nav.NunchukNavigator
@@ -225,12 +222,11 @@ private fun RollOverBroadcastTransactionContent(
                                 style = NunchukTheme.typography.title
                             )
 
-                            Switch(
+                            NcSwitch(
                                 checked = uiState.randomizeBroadcast,
                                 onCheckedChange = {
                                     onRandomizeBroadcastChanged(it)
                                 },
-                                colors = SwitchDefaults.colors()
                             )
                         }
 

@@ -31,6 +31,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.compose.CoinTagGroupView
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BasePortalActivity
@@ -463,7 +464,10 @@ class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetails
         }
     }
 
-    private fun isServerBroadcastTime(transaction: Transaction, serverTransaction: ServerTransaction?): Boolean {
+    private fun isServerBroadcastTime(
+        transaction: Transaction,
+        serverTransaction: ServerTransaction?
+    ): Boolean {
         return serverTransaction != null && transaction.status.canBroadCast() && serverTransaction.type == ServerTransactionType.SCHEDULED && serverTransaction.broadcastTimeInMilis > 0L
     }
 
@@ -491,16 +495,23 @@ class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetails
 
                     signer.type == SignerType.AIRGAP || signer.type == SignerType.UNKNOWN -> showSignByAirgapOptions()
                     signer.type == SignerType.HARDWARE -> showError(getString(R.string.nc_use_desktop_app_to_sign))
-                    signer.type == SignerType.PORTAL_NFC -> handlePortalAction(SignTransaction(
-                        signer.fingerPrint,
-                        viewModel.getTransaction().psbt)
+                    signer.type == SignerType.PORTAL_NFC -> handlePortalAction(
+                        SignTransaction(
+                            signer.fingerPrint,
+                            viewModel.getTransaction().psbt
+                        )
                     )
+
                     else -> viewModel.handleSignSoftwareKey(signer)
                 }
             }).bindItems()
     }
 
-    private fun bindTransaction(transaction: Transaction, coins: List<UnspentOutput>, serverTransaction: ServerTransaction?) {
+    private fun bindTransaction(
+        transaction: Transaction,
+        coins: List<UnspentOutput>,
+        serverTransaction: ServerTransaction?
+    ) {
         binding.tvReplaceByFee.isVisible = transaction.replacedTxid.isNotEmpty()
         binding.noteContent.text = transaction.memo
         binding.signatureStatus.isVisible = !transaction.status.hadBroadcast()
@@ -610,7 +621,9 @@ class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetails
             binding.tags.isVisible = changeOutput != null && changeOutput.tags.isNotEmpty()
             if (changeOutput != null && changeOutput.tags.isNotEmpty()) {
                 binding.tags.setContent {
-                    CoinTagGroupView(tagIds = changeOutput.tags, tags = viewModel.allTags())
+                    NunchukTheme {
+                        CoinTagGroupView(tagIds = changeOutput.tags, tags = viewModel.allTags())
+                    }
                 }
             }
         }
@@ -822,7 +835,7 @@ class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetails
     private fun showBroadcastTransactionSuccess(event: BroadcastTransactionSuccess) {
         hideLoading()
         NCToastMessage(this).show(getString(R.string.nc_transaction_broadcast_successful))
-        val callback : () -> Unit = {
+        val callback: () -> Unit = {
             if (event.roomId.isEmpty()) {
                 finish()
             } else {
@@ -943,7 +956,10 @@ class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetails
 
     private fun getInvoiceInfo(): InvoiceInfo {
         val transaction = viewModel.getTransaction()
-        return transaction.toInvoiceInfo(this, isInheritanceClaimingFlow = args.isInheritanceClaimingFlow)
+        return transaction.toInvoiceInfo(
+            this,
+            isInheritanceClaimingFlow = args.isInheritanceClaimingFlow
+        )
     }
 
     companion object {

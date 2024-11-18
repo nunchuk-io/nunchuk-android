@@ -30,6 +30,7 @@ import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.view.View
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.text.buildSpannedString
@@ -56,7 +57,6 @@ import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.addTextChangedCallback
-import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -77,7 +77,7 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setTransparentStatusBar(false)
+        enableEdgeToEdge()
 
         setupViews()
 
@@ -232,7 +232,7 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
                 binding.tvAtLeastOneSpecialChar,
                 binding.tvAtLeast8Characters
             ).forEach {
-                it.setTextColor(ContextCompat.getColor(this, R.color.nc_primary_color))
+                it.setTextColor(ContextCompat.getColor(this, R.color.nc_text_primary))
                 it.setCompoundDrawablesRelativeWithIntrinsicBounds(
                     R.drawable.ic_dot,
                     0,

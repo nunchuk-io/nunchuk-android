@@ -21,7 +21,6 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentViewModel
-import org.matrix.android.sdk.api.extensions.orTrue
 
 @Composable
 fun PaymentPercentageRoute(

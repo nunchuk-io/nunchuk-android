@@ -60,7 +60,8 @@ fun ActiveWallet(
             Text(
                 modifier = Modifier.padding(top = 2.dp),
                 text = Utils.maskValue(
-                    balance, role.toRole.isKeyHolderLimited || role.toRole.isFacilitatorAdmin || hideWalletDetail
+                    balance,
+                    role.toRole.isKeyHolderLimited || role.toRole.isFacilitatorAdmin || hideWalletDetail
                 ),
                 style = if (useLargeFont) NunchukTheme.typography.body else NunchukTheme.typography.bodySmall,
                 color = Color.White
@@ -97,7 +98,10 @@ fun ActiveWallet(
                             start = 4.dp, end = 8.dp, top = 2.dp, bottom = 2.dp
                         ),
                         text = walletTypeName,
-                        style = NunchukTheme.typography.titleSmall.copy(fontSize = 10.sp)
+                        style = NunchukTheme.typography.titleSmall.copy(
+                            fontSize = 10.sp,
+                            color = colorResource(R.color.nc_grey_g7)
+                        )
                     )
                 }
             }
@@ -119,7 +123,10 @@ fun ActiveWallet(
                         horizontal = 8.dp, vertical = 2.dp
                     ),
                     text = text,
-                    style = NunchukTheme.typography.titleSmall.copy(fontSize = 10.sp)
+                    style = NunchukTheme.typography.titleSmall.copy(
+                        fontSize = 10.sp,
+                        color = colorResource(R.color.nc_grey_g7)
+                    )
                 )
             }
         }
@@ -137,7 +144,7 @@ fun getWalletColors(
     walletStatus: String
 ): List<Color> {
     val colors = if (inviterName.isNotEmpty() || walletsExtended == null) {
-        listOf(MaterialTheme.colorScheme.yellowishOrange, MaterialTheme.colorScheme.yellowishOrange)
+        listOf(MaterialTheme.colorScheme.fillBeewax, MaterialTheme.colorScheme.fillBeewax)
     } else if ((group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name) || isLocked
         || walletStatus == WalletStatus.LOCKED.name
         || walletStatus == WalletStatus.REPLACED.name

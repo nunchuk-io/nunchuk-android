@@ -18,7 +18,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:indeterminate="true"
-            android:indeterminateTint="@color/nc_primary_color"
+            android:indeterminateTint="@color/nc_text_primary"
             android:indeterminateTintMode="src_in" />
 
         <com.nunchuk.android.widget.NCFontTextView
@@ -28,7 +28,7 @@
             android:layout_gravity="center_vertical"
             android:layout_marginHorizontal="@dimen/nc_padding_16"
             android:text="@string/nc_text_waiting"
-            android:textColor="@color/nc_black_color"
+            android:textColor="@color/nc_text_primary"
             android:textSize="@dimen/nc_text_size_18" />
     </androidx.appcompat.widget.LinearLayoutCompat>
 </FrameLayout>

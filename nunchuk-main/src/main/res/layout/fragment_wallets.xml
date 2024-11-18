@@ -239,7 +239,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/nc_title_wallets"
-                        android:textColor="@color/nc_black_color"
                         app:fontTextStyle="semi_bold"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
@@ -272,7 +271,8 @@
                         android:src="@drawable/ic_plus"
                         app:layout_constraintBottom_toBottomOf="@+id/walletsHeader"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="@+id/walletsHeader" />
+                        app:layout_constraintTop_toTopOf="@+id/walletsHeader"
+                        app:tint="@color/nc_text_primary" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <com.nunchuk.android.widget.NCFontTextView
