@@ -34,6 +34,7 @@ import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.campaigns.Campaign
 import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
@@ -53,11 +54,11 @@ internal data class WalletsState(
     val groupWalletUis: List<GroupWalletUi> = emptyList(),
     val alerts: Map<String, Int> = emptyMap(),
     val keyHealthStatus: Map<String, List<KeyHealthStatus>> = emptyMap(),
-    val useLargeFont: Boolean = false,
     val personalSteps: List<MembershipStepInfo>? = null,
     val campaign: Campaign? = null,
     val localReferrerCode: ReferrerCode? = null,
-    val isDisplayTotalBalance: Boolean = false,
+    val homeDisplaySetting: HomeDisplaySetting = HomeDisplaySetting(),
+    val isLeaveRoom: Boolean = false,
 )
 
 internal sealed class WalletsEvent {
@@ -80,6 +81,7 @@ internal sealed class WalletsEvent {
     ) : WalletsEvent()
 
     data class ShowExistingKeyDialog(val key: WalletsExistingKey) : WalletsEvent()
+    data class CheckLeaveRoom(val isLeaveRoom: Boolean, val walletExtended: WalletExtended) : WalletsEvent()
 }
 
 internal data class GroupWalletUi(

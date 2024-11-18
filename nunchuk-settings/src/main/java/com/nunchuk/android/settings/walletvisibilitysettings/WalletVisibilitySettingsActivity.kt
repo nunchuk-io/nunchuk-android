@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,8 +51,8 @@ class WalletVisibilitySettingsActivity : BaseComposeActivity() {
                     onDisplayTotalBalanceChange = {
                         viewModel.onDisplayTotalBalanceChange(it)
                     },
-                    onHideWalletDetailsChange = {
-                        viewModel.updateHideWalletDetail()
+                    onDisplayWalletShortcutChange = {
+                        viewModel.onDisplayWalletShortcutsChange(it)
                     })
             }
         })
@@ -64,12 +63,12 @@ class WalletVisibilitySettingsActivity : BaseComposeActivity() {
         uiState: WalletVisibilitySettingsUiState = WalletVisibilitySettingsUiState(),
         onFontSizeChange: (Boolean) -> Unit = { },
         onDisplayTotalBalanceChange: (Boolean) -> Unit = { },
-        onHideWalletDetailsChange: (Boolean) -> Unit = { }
+        onDisplayWalletShortcutChange: (Boolean) -> Unit = { }
     ) {
         NunchukTheme {
             Scaffold(topBar = {
                 NcTopAppBar(
-                    title = stringResource(id = R.string.nc_wallet_visibility_settings),
+                    title = stringResource(id = R.string.nc_home_screen_settings),
                     textStyle = NunchukTheme.typography.titleLarge
                 )
             }) { innerPadding ->
@@ -93,7 +92,7 @@ class WalletVisibilitySettingsActivity : BaseComposeActivity() {
                         )
 
                         NcSwitch(
-                            checked = uiState.largeFont,
+                            checked = uiState.homeDisplaySetting.useLargeFont,
                             onCheckedChange = onFontSizeChange,
                         )
                     }
@@ -120,7 +119,7 @@ class WalletVisibilitySettingsActivity : BaseComposeActivity() {
                         }
 
                         NcSwitch(
-                            checked = uiState.displayTotalBalance,
+                            checked = uiState.homeDisplaySetting.showTotalBalance,
                             onCheckedChange = onDisplayTotalBalanceChange,
                         )
                     }
@@ -129,25 +128,26 @@ class WalletVisibilitySettingsActivity : BaseComposeActivity() {
                         modifier = Modifier.padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+
                         Column(
                             modifier = Modifier
                                 .weight(1f, true)
                                 .padding(end = 12.dp),
                         ) {
                             Text(
-                                text = stringResource(id = R.string.nc_hide_wallet_details),
+                                text = stringResource(id = R.string.nc_display_wallet_shortcut),
                                 style = NunchukTheme.typography.body
                             )
                             Text(
                                 modifier = Modifier.padding(top = 4.dp),
-                                text = stringResource(id = R.string.nc_hide_wallet_details_desc),
+                                text = stringResource(id = R.string.nc_display_wallet_shortcut_desc),
                                 style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.greyDark)
                             )
                         }
 
                         NcSwitch(
-                            checked = uiState.walletSecuritySetting.hideWalletDetail,
-                            onCheckedChange = onHideWalletDetailsChange,
+                            checked = uiState.homeDisplaySetting.showWalletShortcuts,
+                            onCheckedChange = onDisplayWalletShortcutChange,
                         )
                     }
                 }

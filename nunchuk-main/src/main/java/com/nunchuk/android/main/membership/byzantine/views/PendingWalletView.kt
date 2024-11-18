@@ -19,8 +19,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -81,10 +83,14 @@ fun PendingWalletView(
     status: Map<String, KeyHealthStatus> = emptyMap(),
     useLargeFont: Boolean = false,
     walletStatus: String? = null,
+    showShortcuts: Boolean = false,
     onAccept: () -> Unit = {},
     onDeny: () -> Unit = {},
     onGroupClick: () -> Unit = {},
     onWalletClick: () -> Unit = {},
+    onSendClick: () -> Unit = {},
+    onReceiveClick: () -> Unit = {},
+    onViewCoinsClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -124,14 +130,28 @@ fun PendingWalletView(
                     color = MaterialTheme.colorScheme.textPrimary
                 )
             } else {
-                ActiveWallet(
-                    walletsExtended = walletsExtended,
-                    hideWalletDetail = hideWalletDetail,
-                    isAssistedWallet = isAssistedWallet,
-                    role = role,
-                    useLargeFont = useLargeFont,
-                    walletStatus = walletStatus.orEmpty()
-                )
+                Column {
+                    ActiveWallet(
+                        walletsExtended = walletsExtended,
+                        hideWalletDetail = hideWalletDetail,
+                        isAssistedWallet = isAssistedWallet,
+                        role = role,
+                        useLargeFont = useLargeFont,
+                        walletStatus = walletStatus.orEmpty()
+                    )
+                    if (showShortcuts) {
+                        val allowShowShortcuts = (group != null && role != AssistedWalletRole.KEYHOLDER_LIMITED.name) && isLocked.not()
+                                && walletStatus != WalletStatus.LOCKED.name
+                                && walletStatus != WalletStatus.REPLACED.name
+                        if (allowShowShortcuts) {
+                            ShortcutsView(
+                                onSendClick = onSendClick,
+                                onReceiveClick = onReceiveClick,
+                                onViewCoinsClick = onViewCoinsClick
+                            )
+                        }
+                    }
+                }
             }
         }
         if (group != null && walletStatus != WalletStatus.REPLACED.name) {
@@ -183,7 +203,8 @@ fun RowScope.PendingWalletInviteMember(
     Text(
         text = stringResource(
             R.string.nc_pending_wallet_invite_member, inviterName
-        ), style = NunchukTheme.typography.bodySmall, modifier = Modifier.weight(1f, fill = true)
+        ), style = NunchukTheme.typography.bodySmall, modifier = Modifier
+            .weight(1f, fill = true)
             .padding(end = 12.dp)
     )
     Box(
@@ -192,7 +213,8 @@ fun RowScope.PendingWalletInviteMember(
             .defaultMinSize(minWidth = 62.dp)
             .background(
                 color = Color.White, shape = RoundedCornerShape(48.dp)
-            ).clickable {
+            )
+            .clickable {
                 onDeny()
             },
         contentAlignment = Alignment.Center
@@ -212,7 +234,8 @@ fun RowScope.PendingWalletInviteMember(
             .defaultMinSize(minWidth = 72.dp)
             .background(
                 color = colorResource(R.color.nc_primary_color), shape = RoundedCornerShape(48.dp)
-            ).clickable {
+            )
+            .clickable {
                 onAccept()
             },
         contentAlignment = Alignment.Center
@@ -355,7 +378,9 @@ fun RowScope.ByzantineBottomContent(
                     color = Color.White, shape = RoundedCornerShape(20.dp)
                 )
                 .border(
-                    width = 1.dp, color = MaterialTheme.colorScheme.whisper, shape = RoundedCornerShape(20.dp)
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.whisper,
+                    shape = RoundedCornerShape(20.dp)
                 )
                 .padding(horizontal = 10.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -560,6 +585,76 @@ fun AvatarView(
         }, failure = {
             image()
         })
+    }
+}
+
+@Composable
+@Preview
+fun ShortcutsView(
+    onSendClick: () -> Unit = {},
+    onReceiveClick: () -> Unit = {},
+    onViewCoinsClick: () -> Unit = {}
+) {
+    Column {
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 12.dp)
+        )
+
+        Row(
+            horizontalArrangement = Arrangement.Absolute.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            WalletActionButton(
+                modifier = Modifier.weight(1f),
+                text = "Send",
+                iconId = R.drawable.ic_sending_bitcoin,
+                onClick = onSendClick
+            )
+            VerticalDivider(
+                modifier = Modifier.height(16.dp)
+            )
+            WalletActionButton(
+                modifier = Modifier.weight(1f),
+                text = "Receive",
+                iconId = R.drawable.ic_receive_bitcoin,
+                onClick = onReceiveClick
+            )
+            VerticalDivider(
+                modifier = Modifier.height(16.dp)
+            )
+            WalletActionButton(
+                modifier = Modifier.weight(1f),
+                text = "View coins",
+                iconId = R.drawable.ic_bitcoin_dark,
+                onClick = onViewCoinsClick
+            )
+        }
+    }
+}
+
+@Composable
+fun WalletActionButton(
+    modifier: Modifier,
+    text: String = "",
+    iconId: Int = 0,
+    onClick: () -> Unit = {}
+) {
+    Row(
+        modifier = modifier.padding(vertical = 2.dp)
+            .clickable(onClick = onClick),
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        NcIcon(
+            modifier = Modifier.size(18.dp),
+            painter = painterResource(id = iconId),
+            contentDescription = "Arrow",
+            tint = Color.White
+        )
+        Text(
+            modifier = Modifier.padding(start = 4.dp),
+            text = text, style = NunchukTheme.typography.titleSmall,
+            color = Color.White
+        )
     }
 }
 

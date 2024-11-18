@@ -35,6 +35,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.type.Chain
@@ -74,6 +75,7 @@ class NcDataStore @Inject constructor(
     private val passwordTokenKey = stringPreferencesKey("password_token")
     private val lastCloseAppKey = longPreferencesKey("last_close_app")
     private val isDarkModeKey = booleanPreferencesKey("is_dark_mode")
+    private val homeDisplaySettingKey = stringPreferencesKey("home_display_setting")
 
     /**
      * Current membership plan key
@@ -178,6 +180,14 @@ class NcDataStore @Inject constructor(
             ) ?: WalletSecuritySetting()
         }
 
+    val homeDisplaySetting: Flow<HomeDisplaySetting>
+        get() = context.dataStore.data.map {
+            gson.fromJson(
+                it[homeDisplaySettingKey],
+                HomeDisplaySetting::class.java
+            ) ?: HomeDisplaySetting()
+        }
+
     val localCurrencyFlow: Flow<String>
         get() = context.dataStore.data.map {
             it[getLocalCurrencyKey()] ?: USD_CURRENCY
@@ -234,6 +244,12 @@ class NcDataStore @Inject constructor(
     suspend fun setWalletSecuritySetting(config: String) {
         context.dataStore.edit {
             it[getWalletSecuritySettingKey()] = config
+        }
+    }
+
+    suspend fun setHomeDisplaySetting(config: String) {
+        context.dataStore.edit {
+            it[homeDisplaySettingKey] = config
         }
     }
 
@@ -300,17 +316,6 @@ class NcDataStore @Inject constructor(
             it[securityQuestionKey] ?: false
         }
 
-    suspend fun setUseLargeFontHomeBalances(largeFont: Boolean) {
-        context.dataStore.edit {
-            it[useLargeFontHomeBalances] = largeFont
-        }
-    }
-
-    suspend fun setDisplayTotalBalance(isDisplay: Boolean) {
-        context.dataStore.edit {
-            it[displayTotalBalance] = isDisplay
-        }
-    }
 
     val useLargeFontHomeBalancesFlow: Flow<Boolean>
         get() = context.dataStore.data.map {

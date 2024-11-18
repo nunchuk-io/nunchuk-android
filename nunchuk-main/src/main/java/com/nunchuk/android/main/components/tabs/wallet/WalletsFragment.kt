@@ -29,19 +29,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
@@ -55,7 +46,9 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.contact.components.contacts.ContactsViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
@@ -73,6 +66,7 @@ import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showOrHideNfcLoading
@@ -90,6 +84,8 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsed
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.WalletEmptySignerEvent
 import com.nunchuk.android.main.components.tabs.wallet.emptystate.WalletEmptyStateView
+import com.nunchuk.android.main.components.tabs.wallet.totalbalance.TotalBalanceScrollHandler
+import com.nunchuk.android.main.components.tabs.wallet.totalbalance.TotalBalanceView
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
@@ -103,6 +99,7 @@ import com.nunchuk.android.messages.util.getMsgType
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.GroupWalletType
@@ -133,6 +130,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     @Inject
     lateinit var accountManager: AccountManager
 
+    @Inject
+    lateinit var sessionHolder: SessionHolder
+
     private val walletsViewModel: WalletsViewModel by activityViewModels()
 
     private val roomViewModel: RoomsViewModel by activityViewModels()
@@ -154,16 +154,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private var existingKeyDialog: Dialog? = null
 
-    private var totalScrollDistance = 0 // Track the total scroll distance
-    private var threshold = 50 // Threshold in dp
-    private var isBalanceFrameVisible = true // Track visibility state
-
-    private val thresholdInPx by lazy {
-        TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP,
-            threshold.toFloat(),
-            resources.displayMetrics
-        ).toInt()
+    private val totalBalanceScrollHandler: TotalBalanceScrollHandler by lazy {
+        TotalBalanceScrollHandler(binding.totalBalanceFrame)
     }
 
     override fun initializeBinding(
@@ -176,90 +168,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         setupViews()
 
         observeEvent()
-    }
-
-    private fun handleScrollChange(scrollY: Int, oldScrollY: Int) {
-        val scrollDelta = scrollY - oldScrollY
-
-        if (scrollDelta > 0) {
-            // Scrolling down
-            totalScrollDistance += scrollDelta
-            if (totalScrollDistance > thresholdInPx && isBalanceFrameVisible) {
-                hideBalanceFrameWithAnimation()
-                isBalanceFrameVisible = false
-            }
-        } else if (scrollDelta < 0) {
-            // Scrolling up
-            totalScrollDistance += scrollDelta
-            if (totalScrollDistance < -thresholdInPx && !isBalanceFrameVisible) {
-                showBalanceFrameWithAnimation()
-                isBalanceFrameVisible = true
-            }
-        }
-
-        // Reset totalScrollDistance when changing scroll direction
-        if (scrollDelta > 0 && totalScrollDistance < 0) {
-            totalScrollDistance = 0
-        } else if (scrollDelta < 0 && totalScrollDistance > 0) {
-            totalScrollDistance = 0
-        }
-    }
-
-    @Composable
-    fun TotalBalanceView(
-        isLargeFont: Boolean = false,
-        balanceSatoshis: String = "",
-        balanceDollars: String = ""
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Total balance",
-                style = if (isLargeFont) NunchukTheme.typography.title else MaterialTheme.typography.titleSmall,
-                modifier = Modifier.align(Alignment.CenterVertically)
-            )
-
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                Text(
-                    text = balanceSatoshis,
-                    style = if (isLargeFont) NunchukTheme.typography.title else MaterialTheme.typography.titleSmall,
-                    textAlign = TextAlign.End
-                )
-
-                Text(
-                    text = balanceDollars,
-                    style = if (isLargeFont) NunchukTheme.typography.body else MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.End
-                )
-            }
-        }
-    }
-
-    private fun hideBalanceFrameWithAnimation() {
-        binding.totalBalanceFrame.animate()
-            .translationY(binding.totalBalanceFrame.height.toFloat())
-            .alpha(0f)
-            .setDuration(200)
-            .withEndAction {
-                binding.totalBalanceFrame.visibility = View.GONE
-            }
-            .start()
-    }
-
-    private fun showBalanceFrameWithAnimation() {
-        binding.totalBalanceFrame.visibility = View.VISIBLE
-        binding.totalBalanceFrame.animate()
-            .translationY(0f)
-            .alpha(1f)
-            .setDuration(200)
-            .start()
     }
 
     private fun setupViews() {
@@ -317,7 +225,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             }
         }
         binding.content.setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
-            handleScrollChange(scrollY, oldScrollY)
+            totalBalanceScrollHandler.handleScrollChange(scrollY, oldScrollY)
         })
     }
 
@@ -461,6 +369,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     }
                 )
             }
+
+            is WalletsEvent.CheckLeaveRoom -> openInputAmountScreen(event.walletExtended, event.isLeaveRoom)
         }
         walletsViewModel.clearEvent()
     }
@@ -547,10 +457,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         val totalBalance = state.wallets.sumOf { it.wallet.balance.value }
         val totalInCurrency = Amount(value = totalBalance).getCurrencyAmount()
         val totalInBtc = Amount(value = totalBalance).getBTCAmount()
-        binding.totalBalanceView.isVisible = state.isDisplayTotalBalance
+        binding.totalBalanceView.isVisible = state.homeDisplaySetting.showTotalBalance
         binding.totalBalanceView.setContent {
             NunchukTheme {
-                TotalBalanceView(state.useLargeFont, totalInBtc, totalInCurrency)
+                TotalBalanceView(state.homeDisplaySetting.useLargeFont, totalInBtc, totalInCurrency)
             }
         }
     }
@@ -673,7 +583,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showPendingWallet(state: WalletsState) {
         val groupWalletUis = state.groupWalletUis
-        val useLargeFont = state.useLargeFont
+        val useLargeFont = state.homeDisplaySetting.useLargeFont
         val hideWalletDetail = state.walletSecuritySetting.hideWalletDetail
         val assistedWallets = state.assistedWallets.associateBy { it.localId }
         binding.walletEmpty.isVisible = groupWalletUis.isEmpty()
@@ -696,6 +606,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             signers = it.signers,
                             useLargeFont = useLargeFont,
                             walletStatus = briefWallet?.status,
+                            showShortcuts = state.homeDisplaySetting.showWalletShortcuts,
                             onAccept = {
                                 it.group?.id?.let { groupId ->
                                     walletsViewModel.acceptInviteMember(groupId, it.role)
@@ -729,12 +640,52 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                                 } else {
                                     openWalletDetailsScreen(walletId)
                                 }
+                            },
+                            onSendClick = {
+                                it.wallet?.let { wallet ->
+                                    walletsViewModel.checkUserInRoom(wallet)
+                                }
+                            },
+                            onReceiveClick = {
+                                val walletId = it.wallet?.wallet?.id ?: return@PendingWalletView
+                                navigator.openReceiveTransactionScreen(requireActivity(), walletId)
+                            },
+                            onViewCoinsClick = {
+                                val walletId = it.wallet?.wallet?.id ?: return@PendingWalletView
+                                navigator.openCoinList(context = requireContext(), walletId = walletId)
                             }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }
+        }
+    }
+
+    private fun openInputAmountScreen(walletExtended: WalletExtended, isLeaveRoom: Boolean) {
+        if (walletExtended.isShared) {
+            val roomWallet = walletExtended.roomWallet!!
+            if (isLeaveRoom) {
+                sessionHolder.setActiveRoom(roomWallet.roomId, true)
+                navigator.openInputAmountScreen(
+                    activityContext = requireActivity(),
+                    roomId = roomWallet.roomId,
+                    walletId = roomWallet.walletId,
+                    availableAmount = walletExtended.wallet.balance.pureBTC(),
+                )
+            } else {
+                navigator.openRoomDetailActivity(
+                    activityContext = requireActivity(),
+                    roomId = walletExtended.roomWallet!!.roomId,
+                    roomAction = RoomAction.SEND
+                )
+            }
+        } else {
+            navigator.openInputAmountScreen(
+                activityContext = requireActivity(),
+                walletId = walletExtended.wallet.id,
+                availableAmount = walletExtended.wallet.balance.pureBTC(),
+            )
         }
     }
 

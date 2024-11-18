@@ -26,6 +26,7 @@ import com.nunchuk.android.core.persistence.NcEncryptedPreferences
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.campaigns.Campaign
 import com.nunchuk.android.model.campaigns.ReferrerCode
+import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.repository.SettingRepository
 import com.nunchuk.android.type.Chain
@@ -56,6 +57,9 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override val walletSecuritySetting: Flow<WalletSecuritySetting>
         get() = ncDataStore.walletSecuritySetting
+
+    override val homeDisplaySetting: Flow<HomeDisplaySetting>
+        get() = ncDataStore.homeDisplaySetting
 
     override val walletPin: Flow<String>
         get() = ncEncryptedPreferences.getWalletPinFlow()
@@ -102,20 +106,16 @@ internal class SettingRepositoryImpl @Inject constructor(
         ncDataStore.setWalletSecuritySetting(config)
     }
 
+    override suspend fun setHomeDisplaySetting(config: String) {
+        ncDataStore.setHomeDisplaySetting(config)
+    }
+
     override suspend fun setWalletPin(pin: String) {
         ncEncryptedPreferences.setWalletPin(pin)
     }
 
     override suspend fun setLocalCurrency(currency: String) {
         ncDataStore.setLocalCurrency(currency)
-    }
-
-    override suspend fun setUseLargeFontHomeBalances(useLargeFontHomeBalances: Boolean) {
-        ncDataStore.setUseLargeFontHomeBalances(useLargeFontHomeBalances)
-    }
-
-    override suspend fun setDisplayTotalBalance(isDisplay: Boolean) {
-        ncDataStore.setDisplayTotalBalance(isDisplay)
     }
 
     override suspend fun setLocalMembershipPlan(plan: MembershipPlan) {

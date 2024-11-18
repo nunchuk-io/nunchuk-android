@@ -19,16 +19,32 @@
 
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.FlowUseCase
+import com.google.gson.Gson
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.repository.SettingRepository
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
-class GetUseLargeFontHomeBalancesUseCase @Inject constructor(
-    private val settingRepository: SettingRepository,
-    @IoDispatcher ioDispatcher: CoroutineDispatcher
-) : FlowUseCase<Unit, Boolean>(ioDispatcher) {
+class MigrateHomeDisplaySettingUseCase @Inject constructor(
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    val settingRepository: SettingRepository,
+    val gson: Gson
+) : UseCase<Unit, Unit>(ioDispatcher) {
 
-    override fun execute(parameters: Unit) = settingRepository.useLargeFontHomeBalances
+    override suspend fun execute(parameters: Unit) {
+        val currentHomeSetting = settingRepository.homeDisplaySetting.firstOrNull()
+        if (currentHomeSetting != null && currentHomeSetting != HomeDisplaySetting()) return
+        val useLargeFont = settingRepository.useLargeFontHomeBalances.firstOrNull()
+        val displayTotalBalance = settingRepository.displayTotalBalance.firstOrNull()
+
+        if (useLargeFont == null || displayTotalBalance == null || (useLargeFont == false && displayTotalBalance == false)) return
+        val homeDisplaySetting = HomeDisplaySetting(
+            useLargeFont = useLargeFont,
+            showTotalBalance = displayTotalBalance
+        )
+
+        settingRepository.setHomeDisplaySetting(gson.toJson(homeDisplaySetting))
+    }
 }

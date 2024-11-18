@@ -43,6 +43,9 @@ class DisplaySettingsActivity : BaseComposeActivity() {
                                 },
                                 onAppearanceClick = {
                                     navHostController.navigate("appearance")
+                                },
+                                onHideWalletDetailsChange = { _ ->
+                                    viewModel.updateHideWalletDetail()
                                 }
                             )
                         }

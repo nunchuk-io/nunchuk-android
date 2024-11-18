@@ -35,6 +35,7 @@ import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
@@ -58,24 +59,28 @@ import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
+import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.campaigns.Campaign
 import com.nunchuk.android.model.containsPersonalPlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.usecase.GetDisplayTotalBalanceUseCase
 import com.nunchuk.android.usecase.GetGroupsUseCase
+import com.nunchuk.android.usecase.GetHomeDisplaySettingUseCase
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
-import com.nunchuk.android.usecase.GetUseLargeFontHomeBalancesUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
+import com.nunchuk.android.usecase.MigrateHomeDisplaySettingUseCase
+import com.nunchuk.android.usecase.UpdateHomeDisplaySettingUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.byzantine.GetListGroupWalletKeyHealthStatusUseCase
 import com.nunchuk.android.usecase.byzantine.GroupMemberAcceptRequestUseCase
@@ -112,6 +117,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.session.room.model.Membership
 import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -145,15 +151,16 @@ internal class WalletsViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val getListGroupWalletKeyHealthStatusUseCase: GetListGroupWalletKeyHealthStatusUseCase,
     private val cardIdManager: CardIdManager,
-    private val getUseLargeFontHomeBalancesUseCase: GetUseLargeFontHomeBalancesUseCase,
     private val getPersonalMembershipStepUseCase: GetPersonalMembershipStepUseCase,
     private val updateExistingKeyUseCase: UpdateExistingKeyUseCase,
     private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
     private val getLocalCurrentCampaignUseCase: GetLocalCurrentCampaignUseCase,
     private val getLocalReferrerCodeUseCase: GetLocalReferrerCodeUseCase,
     private val getCurrentCampaignUseCase: GetCurrentCampaignUseCase,
-    private val getDisplayTotalBalanceUseCase: GetDisplayTotalBalanceUseCase,
     private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
+    private val getHomeDisplaySettingUseCase: GetHomeDisplaySettingUseCase,
+    private val sessionHolder: SessionHolder,
+    private val migrateHomeDisplaySettingUseCase: MigrateHomeDisplaySettingUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -300,23 +307,26 @@ internal class WalletsViewModel @Inject constructor(
                 getUserProfileUseCase(Unit)
             }
         }
-        viewModelScope.launch {
-            getUseLargeFontHomeBalancesUseCase(Unit).collect {
-                updateState { copy(useLargeFont = it.getOrDefault(false)) }
-            }
-        }
         getReferrerCode()
-        viewModelScope.launch {
-            getDisplayTotalBalanceUseCase(Unit).collect {
-                updateState { copy(isDisplayTotalBalance = it.getOrDefault(false)) }
-            }
-        }
         viewModelScope.launch {
             state.asFlow().map { it.plans.orEmpty().containsPersonalPlan() }
                 .filter { true }
                 .distinctUntilChanged()
                 .collect {
                     syncDraftWalletUseCase("")
+                }
+        }
+        viewModelScope.launch { // Migrate home display setting
+            migrateHomeDisplaySettingUseCase(Unit)
+        }
+        viewModelScope.launch {
+            getHomeDisplaySettingUseCase(Unit)
+                .collect {
+                    updateState {
+                        copy(
+                            homeDisplaySetting = it.getOrNull() ?: HomeDisplaySetting()
+                        )
+                    }
                 }
         }
     }
@@ -679,6 +689,24 @@ internal class WalletsViewModel @Inject constructor(
                 event(ShowErrorEvent(it))
             }
         setEvent(Loading(false))
+    }
+
+    fun checkUserInRoom(walletExtended: WalletExtended) {
+        val roomWallet = walletExtended.roomWallet
+        if (roomWallet == null) {
+            setEvent(WalletsEvent.CheckLeaveRoom(false, walletExtended))
+            return
+        }
+        viewModelScope.launch {
+            val result = withContext(ioDispatcher) {
+                sessionHolder.getSafeActiveSession()?.let {
+                    val account = accountManager.getAccount()
+                    it.roomService().getRoom(roomWallet.roomId)?.membershipService()
+                        ?.getRoomMember(account.chatId)
+                }
+            }
+            setEvent(WalletsEvent.CheckLeaveRoom(result?.membership == Membership.LEAVE, walletExtended))
+        }
     }
 
     fun denyInviteMember(groupId: String) = viewModelScope.launch {

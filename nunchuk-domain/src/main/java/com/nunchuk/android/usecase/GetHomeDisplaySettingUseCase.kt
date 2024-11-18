@@ -19,17 +19,21 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.FlowUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.setting.HomeDisplaySetting
+import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.repository.SettingRepository
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class SetDisplayTotalBalanceUseCase @Inject constructor(
-    private val settingRepository: SettingRepository,
-    @IoDispatcher ioDispatcher: CoroutineDispatcher
-) : UseCase<Boolean, Unit>(ioDispatcher) {
-    override suspend fun execute(parameters: Boolean) {
-        settingRepository.setDisplayTotalBalance(parameters)
-    }
+class GetHomeDisplaySettingUseCase @Inject constructor(
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val repository: SettingRepository
+) : FlowUseCase<Unit, HomeDisplaySetting>(dispatcher) {
 
+    override fun execute(parameters: Unit): Flow<HomeDisplaySetting> {
+        return repository.homeDisplaySetting
+    }
 }

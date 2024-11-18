@@ -196,7 +196,7 @@
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/display_settings"
                 style="@style/NCText.Settings"
-                android:drawableStart="@drawable/ic_bitcoin"
+                android:drawableStart="@drawable/nc_ic_display_settings"
                 android:drawableEnd="@drawable/ic_arrow"
                 android:drawableTint="?attr/colorOnBackground"
                 android:text="@string/nc_display_settings"

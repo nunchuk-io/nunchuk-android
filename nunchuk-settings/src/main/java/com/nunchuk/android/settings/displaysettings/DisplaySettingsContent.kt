@@ -20,8 +20,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcIcon
+import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.model.ThemeMode
@@ -34,6 +36,7 @@ fun DisplaySettingsContent(
     onDisplayUnitClick: () -> Unit = { },
     onWalletVisibilityClick: () -> Unit = { },
     onAppearanceClick: () -> Unit = { },
+    onHideWalletDetailsChange: (Boolean) -> Unit = { }
 ) {
     val themeModeLabel = when (uiState.themeMode) {
         ThemeMode.Light -> stringResource(id = R.string.nc_light)
@@ -118,7 +121,7 @@ fun DisplaySettingsContent(
                         .padding(top = 12.dp, bottom = 16.dp),
                 ) {
                     Text(
-                        text = stringResource(id = R.string.nc_wallet_visibility_settings),
+                        text = stringResource(id = R.string.nc_home_screen_settings),
                         style = NunchukTheme.typography.body,
                         modifier = Modifier.weight(1f)
                     )
@@ -126,6 +129,32 @@ fun DisplaySettingsContent(
                     NcIcon(
                         painter = painterResource(id = R.drawable.ic_arrow),
                         contentDescription = ""
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f, true)
+                            .padding(end = 12.dp),
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.nc_hide_wallet_details),
+                            style = NunchukTheme.typography.body
+                        )
+                        Text(
+                            modifier = Modifier.padding(top = 4.dp),
+                            text = stringResource(id = R.string.nc_hide_wallet_details_desc),
+                            style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.greyDark)
+                        )
+                    }
+
+                    NcSwitch(
+                        checked = uiState.walletSecuritySetting.hideWalletDetail,
+                        onCheckedChange = onHideWalletDetailsChange,
                     )
                 }
             }

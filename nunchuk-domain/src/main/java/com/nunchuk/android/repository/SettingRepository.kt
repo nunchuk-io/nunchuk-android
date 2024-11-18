@@ -22,6 +22,7 @@ package com.nunchuk.android.repository
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.campaigns.Campaign
 import com.nunchuk.android.model.campaigns.ReferrerCode
+import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.type.Chain
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +34,7 @@ interface SettingRepository {
     val syncRoomSuccess: Flow<Boolean>
     val qrDensity: Flow<Int>
     val walletSecuritySetting: Flow<WalletSecuritySetting>
+    val homeDisplaySetting: Flow<HomeDisplaySetting>
     val walletPin: Flow<String>
     val localCurrency: Flow<String>
     val useLargeFontHomeBalances: Flow<Boolean>
@@ -46,10 +48,9 @@ interface SettingRepository {
     suspend fun markSyncRoomSuccess()
     suspend fun markIsShowNfcUniversal()
     suspend fun setWalletSecuritySetting(config: String)
+    suspend fun setHomeDisplaySetting(config: String)
     suspend fun setWalletPin(pin: String)
     suspend fun setLocalCurrency(currency: String)
-    suspend fun setUseLargeFontHomeBalances(useLargeFontHomeBalances: Boolean)
-    suspend fun setDisplayTotalBalance(isDisplay: Boolean)
     suspend fun setLocalMembershipPlan(plan: MembershipPlan)
     suspend fun setHealthCheckReminderIntro(isShow: Boolean)
     suspend fun setReferrerCode(code: String)

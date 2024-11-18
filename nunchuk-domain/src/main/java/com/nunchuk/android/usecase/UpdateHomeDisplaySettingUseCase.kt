@@ -19,17 +19,21 @@
 
 package com.nunchuk.android.usecase
 
+import com.google.gson.Gson
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.setting.HomeDisplaySetting
+import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.repository.SettingRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class SetUseLargeFontHomeBalancesUseCase @Inject constructor(
+class UpdateHomeDisplaySettingUseCase @Inject constructor(
     private val settingRepository: SettingRepository,
+    private val gson: Gson,
     @IoDispatcher ioDispatcher: CoroutineDispatcher
-) : UseCase<Boolean, Unit>(ioDispatcher) {
-    override suspend fun execute(parameters: Boolean) {
-        settingRepository.setUseLargeFontHomeBalances(parameters)
-    }
+) : UseCase<HomeDisplaySetting, Unit>(ioDispatcher) {
 
+    override suspend fun execute(parameters: HomeDisplaySetting) {
+        settingRepository.setHomeDisplaySetting(gson.toJson(parameters))
+    }
 }
