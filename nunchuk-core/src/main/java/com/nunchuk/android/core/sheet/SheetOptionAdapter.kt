@@ -82,7 +82,7 @@ class SheetOptionHolder(private val binding: ItemSheetOptionBinding) :
         }
 
         binding.tvLabel.compoundDrawablesRelative.forEach {
-            if (option.applyTint) {
+            if (option.applyTint && !option.isDeleted) {
                 it?.setTint(ContextCompat.getColor(context, R.color.nc_text_primary))
             }
         }

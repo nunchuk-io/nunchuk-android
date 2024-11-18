@@ -176,7 +176,11 @@ fun CreateCollectionView(
             modifier = Modifier.systemBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    title = stringResource(id = R.string.nc_create_new_collection),
+                    title = if (initCollection != null) {
+                        stringResource(id = R.string.nc_update_collection)
+                    } else {
+                        stringResource(id = R.string.nc_create_new_collection)
+                    },
                     textStyle = NunchukTheme.typography.titleLarge
                 )
             },
