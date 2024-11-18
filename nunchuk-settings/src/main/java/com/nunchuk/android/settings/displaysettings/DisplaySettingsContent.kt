@@ -84,25 +84,6 @@ fun DisplaySettingsContent(
                         contentDescription = ""
                     )
                 }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onWalletVisibilityClick() }
-                        .padding(top = 12.dp, bottom = 16.dp),
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.nc_wallet_visibility_settings),
-                        style = NunchukTheme.typography.body,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    NcIcon(
-                        painter = painterResource(id = R.drawable.ic_arrow),
-                        contentDescription = ""
-                    )
-                }
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -122,6 +103,24 @@ fun DisplaySettingsContent(
                         modifier = Modifier.padding(end = 8.dp),
                         text = themeModeLabel,
                         style = NunchukTheme.typography.body.copy(color = MaterialTheme.colorScheme.textSecondary)
+                    )
+
+                    NcIcon(
+                        painter = painterResource(id = R.drawable.ic_arrow),
+                        contentDescription = ""
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onWalletVisibilityClick() }
+                        .padding(top = 12.dp, bottom = 16.dp),
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.nc_wallet_visibility_settings),
+                        style = NunchukTheme.typography.body,
+                        modifier = Modifier.weight(1f)
                     )
 
                     NcIcon(

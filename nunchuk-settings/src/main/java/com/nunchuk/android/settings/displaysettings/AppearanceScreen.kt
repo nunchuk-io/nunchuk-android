@@ -88,6 +88,7 @@ fun AppearanceScreen(
                     ThemeCard(
                         modifier = Modifier.weight(1f),
                         description = stringResource(id = R.string.nc_light),
+                        icon = R.drawable.ic_theme_sun,
                         checked = uiState.themeMode == ThemeMode.Light,
                         onClicked = { onThemeModeChange(ThemeMode.Light) }
                     )
@@ -96,6 +97,7 @@ fun AppearanceScreen(
                         modifier = Modifier.weight(1f),
                         description = stringResource(id = R.string.nc_dark),
                         checked = uiState.themeMode == ThemeMode.Dark,
+                        icon = R.drawable.ic_theme_dark,
                         onClicked = { onThemeModeChange(ThemeMode.Dark) }
                     )
                 }
@@ -108,6 +110,7 @@ fun AppearanceScreen(
 fun ThemeCard(
     description: String,
     checked: Boolean,
+    icon: Int,
     modifier: Modifier = Modifier,
     onClicked: () -> Unit = {},
 ) {
@@ -131,7 +134,7 @@ fun ThemeCard(
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             NcIcon(
-                painter = painterResource(id = R.drawable.ic_theme_sun),
+                painter = painterResource(id = icon),
                 contentDescription = ""
             )
             Text(
