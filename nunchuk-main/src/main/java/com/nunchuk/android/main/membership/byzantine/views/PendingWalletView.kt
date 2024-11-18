@@ -26,6 +26,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -84,6 +85,7 @@ fun PendingWalletView(
     useLargeFont: Boolean = false,
     walletStatus: String? = null,
     showShortcuts: Boolean = false,
+    isHasCoin: Boolean = false,
     onAccept: () -> Unit = {},
     onDeny: () -> Unit = {},
     onGroupClick: () -> Unit = {},
@@ -140,11 +142,13 @@ fun PendingWalletView(
                         walletStatus = walletStatus.orEmpty()
                     )
                     if (showShortcuts) {
-                        val allowShowShortcuts = (group != null && role != AssistedWalletRole.KEYHOLDER_LIMITED.name) && isLocked.not()
+                        val allowShowShortcuts = (group == null || role != AssistedWalletRole.KEYHOLDER_LIMITED.name) && isLocked.not()
                                 && walletStatus != WalletStatus.LOCKED.name
                                 && walletStatus != WalletStatus.REPLACED.name
                         if (allowShowShortcuts) {
                             ShortcutsView(
+                                isHasCoin = isHasCoin,
+                                isHasBalance = walletsExtended.wallet.balance.value > 0,
                                 onSendClick = onSendClick,
                                 onReceiveClick = onReceiveClick,
                                 onViewCoinsClick = onViewCoinsClick
@@ -591,6 +595,8 @@ fun AvatarView(
 @Composable
 @Preview
 fun ShortcutsView(
+    isHasCoin: Boolean = false,
+    isHasBalance: Boolean = false,
     onSendClick: () -> Unit = {},
     onReceiveClick: () -> Unit = {},
     onViewCoinsClick: () -> Unit = {}
@@ -606,16 +612,17 @@ fun ShortcutsView(
         ) {
             WalletActionButton(
                 modifier = Modifier.weight(1f),
-                text = "Send",
+                text = stringResource(id = R.string.nc_send),
                 iconId = R.drawable.ic_sending_bitcoin,
-                onClick = onSendClick
+                onClick = onSendClick,
+                clickable = isHasBalance
             )
             VerticalDivider(
                 modifier = Modifier.height(16.dp)
             )
             WalletActionButton(
                 modifier = Modifier.weight(1f),
-                text = "Receive",
+                text = stringResource(id = R.string.nc_receive),
                 iconId = R.drawable.ic_receive_bitcoin,
                 onClick = onReceiveClick
             )
@@ -623,10 +630,12 @@ fun ShortcutsView(
                 modifier = Modifier.height(16.dp)
             )
             WalletActionButton(
-                modifier = Modifier.weight(1f),
-                text = "View coins",
+                modifier = Modifier.weight(1f)
+                    .alpha(if (isHasCoin) 1f else 0.5f),
+                text = stringResource(id = R.string.nc_view_coins),
                 iconId = R.drawable.ic_bitcoin_dark,
-                onClick = onViewCoinsClick
+                onClick = onViewCoinsClick,
+                clickable = isHasCoin
             )
         }
     }
@@ -637,11 +646,12 @@ fun WalletActionButton(
     modifier: Modifier,
     text: String = "",
     iconId: Int = 0,
+    clickable: Boolean = true,
     onClick: () -> Unit = {}
 ) {
     Row(
         modifier = modifier.padding(vertical = 2.dp)
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick, enabled = clickable),
         horizontalArrangement = Arrangement.Center,
     ) {
         NcIcon(

@@ -606,6 +606,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             signers = it.signers,
                             useLargeFont = useLargeFont,
                             walletStatus = briefWallet?.status,
+                            isHasCoin = it.isHasCoin,
                             showShortcuts = state.homeDisplaySetting.showWalletShortcuts,
                             onAccept = {
                                 it.group?.id?.let { groupId ->

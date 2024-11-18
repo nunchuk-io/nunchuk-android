@@ -90,6 +90,7 @@ import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
 import com.nunchuk.android.usecase.campaign.GetCurrentCampaignUseCase
 import com.nunchuk.android.usecase.campaign.GetLocalCurrentCampaignUseCase
 import com.nunchuk.android.usecase.campaign.GetLocalReferrerCodeUseCase
+import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
@@ -161,6 +162,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getHomeDisplaySettingUseCase: GetHomeDisplaySettingUseCase,
     private val sessionHolder: SessionHolder,
     private val migrateHomeDisplaySettingUseCase: MigrateHomeDisplaySettingUseCase,
+    private val getAllCoinUseCase: GetAllCoinUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -175,6 +177,7 @@ internal class WalletsViewModel @Inject constructor(
 
     private var isRetrievingData = AtomicBoolean(false)
     private var isRetrievingAlert = AtomicBoolean(false)
+    private var isRetrievingCoins = AtomicBoolean(false)
     private var isRetrievingKeyHealthStatus = AtomicBoolean(false)
 
     private var walletsRequestKey = ""
@@ -444,6 +447,25 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
+    private fun updateCoins() {
+        if (isRetrievingCoins.get()) return
+        viewModelScope.launch {
+            val walletIds = getState().wallets.map { it.wallet.id }
+            if (walletIds.isEmpty()) return@launch
+            isRetrievingCoins.set(true)
+                  val coinList = walletIds.map { walletId ->
+                    async {
+                        val result = getAllCoinUseCase(walletId)
+                        walletId to result.getOrNull().orEmpty().size
+                    }
+                }.awaitAll()
+
+            isRetrievingCoins.set(false)
+            updateState { copy(coins = coinList.associate { it }) }
+            mapGroupWalletUi()
+        }
+    }
+
     fun retrieveData() {
         if (isRetrievingData.get()) return
         isRetrievingData.set(true)
@@ -462,6 +484,7 @@ internal class WalletsViewModel @Inject constructor(
                     isRetrievingData.set(false)
                 }.collect {
                     updateState { copy(wallets = it) }
+                    updateCoins()
                     mapGroupWalletUi()
                     getCampaign()
                 }
@@ -502,7 +525,8 @@ internal class WalletsViewModel @Inject constructor(
                     ),
                     keyStatus = getState().keyHealthStatus[wallet.wallet.id].orEmpty()
                         .associateBy { it.xfp },
-                    signers = signers
+                    signers = signers,
+                    isHasCoin = getState().coins[wallet.wallet.id].orDefault(0) > 0
                 )
                 if (group != null) {
                     val role = byzantineGroupUtils.getCurrentUserRole(group)
