@@ -24,6 +24,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.nunchuk.android.BuildConfig
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.walletsecurity.unlock.UnlockPinActivity
@@ -33,6 +34,7 @@ import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import io.branch.referral.Branch
 import io.branch.referral.validators.IntegrationValidator
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -46,18 +48,24 @@ internal class SplashActivity : AppCompatActivity() {
         super.onStart()
         IntegrationValidator.validate(this)
         Branch.sessionBuilder(this).withCallback { branchUniversalObject, linkProperties, error ->
-            if (error != null) {
-                Log.e("BranchSDK_Tester", "branch init failed. Caused by -" + error.message)
-            } else {
-                Log.e("BranchSDK_Tester", "branch init complete!")
-                if (branchUniversalObject != null) {
-                    Log.e("BranchSDK_Tester", "title " + branchUniversalObject.title)
-                    Log.e("BranchSDK_Tester", "CanonicalIdentifier " + branchUniversalObject.canonicalIdentifier)
-                    Log.e("BranchSDK_Tester", "metadata " + branchUniversalObject.contentMetadata.convertToJson())
-                }
-                if (linkProperties != null) {
-                    Log.e("BranchSDK_Tester", "Channel " + linkProperties.channel)
-                    Log.e("BranchSDK_Tester", "control params " + linkProperties.controlParams)
+            if (BuildConfig.DEBUG) {
+                if (error != null) {
+                    Timber.tag("BranchSDK_Tester")
+                        .e("branch init failed. Caused by -%s", error.message)
+                } else {
+                    Timber.tag("BranchSDK_Tester").e("branch init complete!")
+                    if (branchUniversalObject != null) {
+                        Timber.tag("BranchSDK_Tester").e("title %s", branchUniversalObject.title)
+                        Timber.tag("BranchSDK_Tester")
+                            .e("CanonicalIdentifier %s", branchUniversalObject.canonicalIdentifier)
+                        Timber.tag("BranchSDK_Tester")
+                            .e("metadata %s", branchUniversalObject.contentMetadata.convertToJson())
+                    }
+                    if (linkProperties != null) {
+                        Timber.tag("BranchSDK_Tester").e("Channel %s", linkProperties.channel)
+                        Timber.tag("BranchSDK_Tester")
+                            .e("control params %s", linkProperties.controlParams)
+                    }
                 }
             }
         }.withData(this.intent.data).init()
@@ -68,10 +76,12 @@ internal class SplashActivity : AppCompatActivity() {
         this.intent = intent
         if (intent.hasExtra("branch_force_new_session") && intent.getBooleanExtra("branch_force_new_session",false)) {
             Branch.sessionBuilder(this).withCallback { referringParams, error ->
-                if (error != null) {
-                    Log.e("BranchSDK_Tester", error.message)
-                } else if (referringParams != null) {
-                    Log.e("BranchSDK_Tester", referringParams.toString())
+                if (BuildConfig.DEBUG) {
+                    if (error != null) {
+                        Timber.tag("BranchSDK_Tester").e(error.message)
+                    } else if (referringParams != null) {
+                        Timber.tag("BranchSDK_Tester").e(referringParams.toString())
+                    }
                 }
             }.reInit()
         }

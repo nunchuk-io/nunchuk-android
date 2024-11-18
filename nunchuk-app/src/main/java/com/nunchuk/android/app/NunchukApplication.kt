@@ -73,8 +73,8 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
         super.onCreate()
         if (BuildConfig.DEBUG) {
             Timber.plant(FileLogTree(this))
+            Branch.enableLogging()
         }
-        Branch.enableLogging()
         Branch.getAutoInstance(this)
         runBlocking {
             matrixInitializerUseCase(Unit)
