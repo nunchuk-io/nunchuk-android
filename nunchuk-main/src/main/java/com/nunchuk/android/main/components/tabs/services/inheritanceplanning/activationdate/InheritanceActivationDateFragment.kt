@@ -50,7 +50,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.fragment.app.activityViewModels
@@ -60,13 +60,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.datepicker.MaterialDatePicker
-import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.strokePrimary
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
@@ -233,7 +233,7 @@ fun InheritanceActivationDateScreenContent(
                     ) {
                         val textStyle =
                             if (date.isEmpty()) NunchukTheme.typography.body.copy(
-                                color = NcColor.boulder
+                                color = MaterialTheme.colorScheme.textSecondary
                             ) else NunchukTheme.typography.body
                         Text(
                             text = date
@@ -271,7 +271,7 @@ fun InheritanceActivationDateScreenContent(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun InheritanceActivationDateScreenPreview() {
     InheritanceActivationDateScreenContent()

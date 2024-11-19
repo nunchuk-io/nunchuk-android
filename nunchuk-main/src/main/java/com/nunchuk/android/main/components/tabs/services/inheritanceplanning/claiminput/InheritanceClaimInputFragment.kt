@@ -54,6 +54,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -262,7 +263,7 @@ private fun InheritanceClaimInputContent(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun InheritanceClaimInputScreenPreview() {
     InheritanceClaimInputContent(

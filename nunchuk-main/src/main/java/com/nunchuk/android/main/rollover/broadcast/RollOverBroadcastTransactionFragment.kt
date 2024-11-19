@@ -279,7 +279,7 @@ private fun RollOverBroadcastTransactionContent(
                                         Box(
                                             modifier = Modifier
                                                 .progress(sliderState = sliderState)
-                                                .background(color = colorResource(id = R.color.nc_primary_color))
+                                                .background(color = colorResource(id = R.color.nc_text_primary))
                                         )
                                     }
                                 }

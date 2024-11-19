@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.activityViewModels
@@ -57,6 +58,7 @@ import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.border
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
@@ -215,7 +217,7 @@ fun InheritanceNoteScreenContent(
                                 Box(
                                     Modifier.border(
                                         width = 1.dp,
-                                        color = Color(0xFFDEDEDE),
+                                        color = MaterialTheme.colorScheme.border,
                                         shape = RoundedCornerShape(8.dp),
                                     )
                                 )
@@ -251,7 +253,7 @@ fun InheritanceNoteScreenContent(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun InheritanceNoteScreenPreview() {
     InheritanceNoteScreenContent()

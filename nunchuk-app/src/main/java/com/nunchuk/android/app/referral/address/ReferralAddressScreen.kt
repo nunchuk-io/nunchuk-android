@@ -29,13 +29,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -59,6 +58,7 @@ import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.border
 import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.core.qr.startQRCodeScan
@@ -401,9 +401,11 @@ private fun OptionItem(
         modifier = modifier, onClick = onClick,
         border = BorderStroke(
             width = 2.dp,
-            color = if (disabled) Color(0xFFDEDEDE) else if (isSelected) colorResource(id = R.color.nc_primary_color) else Color(
-                0xFFDEDEDE
-            )
+            color = if (disabled) {
+                MaterialTheme.colorScheme.border
+            } else if (isSelected) {
+                colorResource(id = R.color.nc_text_primary)
+            } else MaterialTheme.colorScheme.border
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -418,13 +420,13 @@ private fun OptionItem(
                 Text(
                     text = title, style = NunchukTheme.typography.title.copy(
                         color = colorResource(id = R.color.nc_color_222222_40).takeIf { disabled }
-                            ?: colorResource(id = R.color.nc_primary_color)
+                            ?: colorResource(id = R.color.nc_text_primary)
                     )
                 )
                 Text(
                     text = simplifyAddress(desc), style = NunchukTheme.typography.body.copy(
                         color = if (disabled) colorResource(id = R.color.nc_color_222222_40) else colorResource(
-                            id = R.color.nc_primary_color
+                            id = R.color.nc_text_primary
                         )
                     )
                 )
@@ -433,7 +435,7 @@ private fun OptionItem(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun ReferralAddressScreenPreview(
 ) {

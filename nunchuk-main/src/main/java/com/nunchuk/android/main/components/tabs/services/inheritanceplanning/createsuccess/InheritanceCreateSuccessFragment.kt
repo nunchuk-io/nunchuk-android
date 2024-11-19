@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -118,7 +119,7 @@ fun InheritanceCreateSuccessScreenContent(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun InheritanceCreateSuccessScreenContentPreview() {
     InheritanceCreateSuccessScreenContent()

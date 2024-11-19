@@ -33,12 +33,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.activityViewModels
@@ -52,6 +51,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
@@ -214,9 +214,7 @@ private fun OptionItem(
         modifier = modifier, onClick = onClick,
         border = BorderStroke(
             width = 2.dp,
-            color = if (isSelected) colorResource(id = R.color.nc_primary_color) else Color(
-                0xFFDEDEDE
-            )
+            color = if (isSelected) colorResource(id = R.color.nc_text_primary) else MaterialTheme.colorScheme.textSecondary
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -233,7 +231,7 @@ private fun OptionItem(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun InheritanceBufferPeriodFragmentContentPreview() {
     InheritanceBufferPeriodContent(options = listOf(

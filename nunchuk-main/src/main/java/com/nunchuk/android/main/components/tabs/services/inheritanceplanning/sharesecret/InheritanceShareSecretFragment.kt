@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,6 +48,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.border
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -181,7 +183,7 @@ private fun OptionItem(
     Card(
         modifier = modifier, onClick = onClick,
         border = BorderStroke(
-            width = 2.dp, color = if(isSelected) colorResource(id = R.color.nc_primary_color) else Color(0xFFDEDEDE)
+            width = 2.dp, color = if(isSelected) colorResource(id = R.color.nc_text_primary) else MaterialTheme.colorScheme.border
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -195,7 +197,7 @@ private fun OptionItem(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun InheritanceShareSecretScreenPreview() {
     InheritanceShareSecretContent(options = initOptions())

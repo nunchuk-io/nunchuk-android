@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.navigation.findNavController
 import com.nunchuk.android.compose.NCLabelWithIndex
@@ -99,7 +100,7 @@ private fun InheritanceBackUpDownloadContent(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun InheritanceBackUpDownloadScreenPreview() {
     InheritanceBackUpDownloadContent(

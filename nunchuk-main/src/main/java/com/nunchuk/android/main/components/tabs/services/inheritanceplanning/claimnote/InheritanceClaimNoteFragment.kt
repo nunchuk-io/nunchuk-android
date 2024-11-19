@@ -42,6 +42,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.DialogFragment
@@ -239,7 +240,7 @@ private fun InheritanceClaimNoteContent(
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = montserratMedium,
                                     color = colorResource(
-                                        id = R.color.nc_primary_color
+                                        id = R.color.nc_text_primary
                                     )
                                 ),
                                 textAlign = TextAlign.Center
@@ -311,7 +312,7 @@ private fun InheritanceClaimNoteContent(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun InheritanceClaimNotePreview() {
     InheritanceClaimNoteContent(

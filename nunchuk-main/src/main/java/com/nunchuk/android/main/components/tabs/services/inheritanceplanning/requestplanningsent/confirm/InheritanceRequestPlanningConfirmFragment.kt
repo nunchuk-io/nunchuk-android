@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -159,7 +160,7 @@ private fun InheritanceRequestPlanningConfirmContent(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun InheritanceRequestPlanningConfirmScreenPreview() {
     InheritanceRequestPlanningConfirmContent()

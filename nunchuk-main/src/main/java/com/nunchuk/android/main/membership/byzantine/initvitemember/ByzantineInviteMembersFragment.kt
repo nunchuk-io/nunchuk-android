@@ -62,6 +62,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.PopupProperties
@@ -501,7 +502,7 @@ private fun MemberView(
                     text = stringResource(id = R.string.nc_remove),
                     style = NunchukTheme.typography.title,
                     textDecoration = TextDecoration.Underline,
-                    color = colorResource(id = R.color.nc_primary_color)
+                    color = colorResource(id = R.color.nc_text_primary)
                 )
             }
         }
@@ -687,7 +688,7 @@ private fun MemberView(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun PreviewMemberView() {
     MemberView(

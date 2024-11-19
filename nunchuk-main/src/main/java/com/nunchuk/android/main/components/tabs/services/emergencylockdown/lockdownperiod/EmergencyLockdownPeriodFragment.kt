@@ -210,7 +210,7 @@ private fun OptionItem(
         modifier = modifier, onClick = onClick,
         border = BorderStroke(
             width = 2.dp,
-            color = if (isSelected) colorResource(id = R.color.nc_primary_color) else Color(
+            color = if (isSelected) colorResource(id = R.color.nc_text_primary) else Color(
                 0xFFDEDEDE
             )
         ),
