@@ -357,7 +357,8 @@ private fun CoinTagDetailContent(
                                             .size(width = 36.dp, height = 36.dp)
                                             .clickable {
                                                 onEditTagColorClick()
-                                            }
+                                            },
+                                        tint = colorResource(R.color.nc_grey_g7)
                                     )
                                 }
 

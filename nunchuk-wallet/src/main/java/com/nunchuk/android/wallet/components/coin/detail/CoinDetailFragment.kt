@@ -66,9 +66,9 @@ import com.nunchuk.android.compose.CoinStatusBadge
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.fillDenim
 import com.nunchuk.android.compose.lightGray
-import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -396,7 +396,7 @@ private fun CoinBadgeRow(output: UnspentOutput) {
             CoinBadge(
                 modifier = Modifier.padding(end = 4.dp),
                 border = 0.dp,
-                backgroundColor = MaterialTheme.colorScheme.whisper
+                backgroundColor = MaterialTheme.colorScheme.backgroundMidGray
             ) {
                 Icon(
                     modifier = Modifier.padding(start = 10.dp),
@@ -416,7 +416,7 @@ private fun CoinBadgeRow(output: UnspentOutput) {
         if (output.scheduleTime > 0L) {
             CoinBadge(
                 border = 0.dp,
-                backgroundColor = MaterialTheme.colorScheme.whisper
+                backgroundColor = MaterialTheme.colorScheme.backgroundMidGray
             ) {
                 Icon(
                     modifier = Modifier.padding(start = 10.dp),
@@ -440,7 +440,10 @@ private fun CoinBadgeRow(output: UnspentOutput) {
 private fun CoinDetailScreenPreview() {
     NunchukTheme {
         CoinDetailContent(
-
+            output = UnspentOutput(
+                isChange = true,
+                isLocked = true,
+            )
         )
     }
 }

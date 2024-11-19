@@ -94,4 +94,10 @@ val ColorScheme.controlFillSecondary: Color
 val ColorScheme.fillInputText: Color
     get() = if (isDark) Color(0x4D000000) else Color(0xFFFFFFFF)
 
+val ColorScheme.backgroundMidGray: Color
+    get() = if (isDark) Color(0xFF393939) else Color(0xFFEAEAEA)
+
+val ColorScheme.backgroundLightGray: Color
+    get() = greyLight
+
 

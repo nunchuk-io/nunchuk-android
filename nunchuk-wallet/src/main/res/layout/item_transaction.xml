@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/nc_transaction_send_to"
-        android:textColor="@color/nc_grey_dark_color"
+        android:textColor="@color/nc_text_secondary"
         app:layout_constraintBottom_toBottomOf="@+id/status"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/status" />
