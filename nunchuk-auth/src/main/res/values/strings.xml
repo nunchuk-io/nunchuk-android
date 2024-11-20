@@ -58,4 +58,5 @@
     <string name="nc_text_password_special_char_error">Password must contain at least one special character</string>
     <string name="nc_text_password_upper_case_error">Password must contain at least one upper case letter</string>
     <string name="nc_text_password_length_error">Password must be at least 8 characters long</string>
+    <string name="nc_biometric_login_not_setup">You have not set up sign in using Fingerprint. To set it up, please sign in to your account and navigate to: Profile → Security Settings.</string>
 </resources>

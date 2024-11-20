@@ -42,7 +42,7 @@ class PinStatusViewModel @Inject constructor(
         }
         viewModelScope.launch {
             getWalletSecuritySettingUseCase(Unit)
-                .map { it.getOrDefault(WalletSecuritySetting()) }
+                .map { it.getOrDefault(WalletSecuritySetting.DEFAULT) }
                 .catch { Timber.e(it) }
                 .collect {
                     _state.update { state -> state.copy(settings = it) }
@@ -79,5 +79,5 @@ class PinStatusViewModel @Inject constructor(
 data class PinStatusUiState(
     val isAppPinEnable: Boolean = false,
     val isCustomPinEnable: Boolean = false,
-    val settings: WalletSecuritySetting = WalletSecuritySetting()
+    val settings: WalletSecuritySetting = WalletSecuritySetting.DEFAULT
 )

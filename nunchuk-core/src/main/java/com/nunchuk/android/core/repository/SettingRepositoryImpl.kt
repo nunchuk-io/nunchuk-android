@@ -26,6 +26,7 @@ import com.nunchuk.android.core.persistence.NcEncryptedPreferences
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.campaigns.Campaign
 import com.nunchuk.android.model.campaigns.ReferrerCode
+import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.repository.SettingRepository
@@ -60,6 +61,9 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override val homeDisplaySetting: Flow<HomeDisplaySetting>
         get() = ncDataStore.homeDisplaySetting
+
+    override val biometricConfig: Flow<BiometricConfig>
+        get() = ncDataStore.biometricConfig
 
     override val walletPin: Flow<String>
         get() = ncEncryptedPreferences.getWalletPinFlow()
@@ -108,6 +112,10 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override suspend fun setHomeDisplaySetting(config: String) {
         ncDataStore.setHomeDisplaySetting(config)
+    }
+
+    override suspend fun setBiometricConfig(config: String) {
+        ncDataStore.setBiometricConfig(config)
     }
 
     override suspend fun setWalletPin(pin: String) {

@@ -98,16 +98,45 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/password" />
 
-    <com.nunchuk.android.widget.NCFontButton
-        android:id="@+id/signIn"
-        style="@style/NCPrimaryButton.Dark"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/signInContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/nc_height_48"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_16"
-        android:text="@string/nc_text_continue"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/staySignIn" />
+        app:layout_constraintTop_toBottomOf="@+id/staySignIn">
+
+        <com.nunchuk.android.widget.NCFontButton
+            android:id="@+id/signIn"
+            style="@style/NCPrimaryButton.Dark"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/nc_text_continue"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="0dp"
+            android:layout_marginVertical="14dp"
+            android:layout_marginEnd="@dimen/nc_padding_16"
+            android:background="@color/nc_white_color"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/fingerprint"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/fingerprint"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="@dimen/nc_padding_20"
+            android:src="@drawable/ic_android_fingerprint"
+            app:layout_constraintBottom_toBottomOf="@id/signIn"
+            app:layout_constraintEnd_toEndOf="@+id/signIn"
+            app:layout_constraintTop_toTopOf="@id/signIn"
+            android:tint="@color/nc_white_color" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/signInDigitalSignature"
@@ -118,7 +147,7 @@
         android:layout_marginTop="@dimen/nc_padding_16"
         android:text="@string/nc_text_signin_via_digital_signature"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/signIn"
+        app:layout_constraintTop_toBottomOf="@id/signInContainer"
         app:layout_goneMarginTop="0dp" />
 
     <com.nunchuk.android.widget.NCFontButton
@@ -130,7 +159,7 @@
         android:layout_marginTop="@dimen/nc_padding_16"
         android:text="@string/nc_sign_in_via_primary_key"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/signIn"
+        app:layout_constraintTop_toBottomOf="@id/signInContainer"
         app:layout_goneMarginTop="0dp" />
 
     <com.nunchuk.android.widget.NCFontButton

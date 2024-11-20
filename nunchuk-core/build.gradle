@@ -41,6 +41,7 @@ dependencies {
     implementation "com.squareup.moshi:moshi:1.14.0"
     implementation "com.github.Nunchuk1:LibPortal:v2@aar"
     implementation("net.java.dev.jna:jna:5.14.0@aar")
+    implementation "androidx.biometric:biometric:1.1.0"
 
     testImplementation otherTestDeps.junit
 }

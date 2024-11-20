@@ -30,6 +30,7 @@ import com.nunchuk.android.auth.components.signin.SignInEvent.PasswordValidEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.ProcessingEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.SignInErrorEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.SignInSuccessEvent
+import com.nunchuk.android.auth.domain.BiometricLoginUseCase
 import com.nunchuk.android.auth.domain.CheckEmailAvailabilityUseCase
 import com.nunchuk.android.auth.domain.RegisterUseCase
 import com.nunchuk.android.auth.domain.SignInUseCase
@@ -47,11 +48,14 @@ import com.nunchuk.android.core.retry.RetryPolicy
 import com.nunchuk.android.core.retry.retryIO
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.log.fileLog
+import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.share.InitNunchukUseCase
+import com.nunchuk.android.usecase.GetBiometricConfigUseCase
 import com.nunchuk.android.usecase.GetPrimaryKeyListUseCase
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -66,6 +70,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -82,7 +87,9 @@ internal class SignInViewModel @Inject constructor(
     private val registerUseCase: RegisterUseCase,
     private val updateUseProfileUseCase: UpdateUseProfileUseCase,
     private val savedStateHandle: SavedStateHandle,
-    private val getWalletPinUseCase: GetWalletPinUseCase,
+    getWalletPinUseCase: GetWalletPinUseCase,
+    getBiometricConfigUseCase: GetBiometricConfigUseCase,
+    private val biometricLoginUseCase: BiometricLoginUseCase
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SignInEvent>()
     val event = _event.asSharedFlow()
@@ -99,6 +106,10 @@ internal class SignInViewModel @Inject constructor(
     val walletPinEnable = getWalletPinUseCase(Unit).map { it.getOrDefault("") }
         .map { it.isNotBlank() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val biometricConfig = getBiometricConfigUseCase(Unit)
+        .map { it.getOrDefault(BiometricConfig.DEFAULT) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, BiometricConfig.DEFAULT)
 
     init {
         if (type != SignInType.EMAIL) {
@@ -295,6 +306,30 @@ internal class SignInViewModel @Inject constructor(
     fun setType(stage: SignInType) {
         savedStateHandle[EXTRA_TYPE] = stage
         _state.update { state -> state.copy(type = stage) }
+    }
+
+    fun onBiometricSignIn() {
+        viewModelScope.launch {
+            _event.emit(ProcessingEvent())
+             biometricLoginUseCase(Unit)
+                .onSuccess { it ->
+                    if (it == null) {
+                        return@launch
+                    }
+                    withContext(IO) {
+                        token = it.token
+                        encryptedDeviceId = it.deviceId
+                        fileLog(message = "start initNunchuk")
+                        initNunchuk()
+                        fileLog(message = "end initNunchuk")
+                        signInModeHolder.setCurrentMode(SignInMode.EMAIL)
+                        _event.emit(SignInSuccessEvent)
+                    }
+                }
+                .onFailure {
+                    _event.emit(SignInErrorEvent(message = it.message.orUnknownError()))
+                }
+        }
     }
 
     companion object {

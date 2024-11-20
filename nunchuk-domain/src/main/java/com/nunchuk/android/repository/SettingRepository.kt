@@ -22,6 +22,7 @@ package com.nunchuk.android.repository
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.campaigns.Campaign
 import com.nunchuk.android.model.campaigns.ReferrerCode
+import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.type.Chain
@@ -35,6 +36,7 @@ interface SettingRepository {
     val qrDensity: Flow<Int>
     val walletSecuritySetting: Flow<WalletSecuritySetting>
     val homeDisplaySetting: Flow<HomeDisplaySetting>
+    val biometricConfig: Flow<BiometricConfig>
     val walletPin: Flow<String>
     val localCurrency: Flow<String>
     val useLargeFontHomeBalances: Flow<Boolean>
@@ -49,6 +51,7 @@ interface SettingRepository {
     suspend fun markIsShowNfcUniversal()
     suspend fun setWalletSecuritySetting(config: String)
     suspend fun setHomeDisplaySetting(config: String)
+    suspend fun setBiometricConfig(config: String)
     suspend fun setWalletPin(pin: String)
     suspend fun setLocalCurrency(currency: String)
     suspend fun setLocalMembershipPlan(plan: MembershipPlan)

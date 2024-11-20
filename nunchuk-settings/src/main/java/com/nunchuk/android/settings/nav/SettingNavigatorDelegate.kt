@@ -33,6 +33,7 @@ import com.nunchuk.android.settings.notification.TurnNotificationActivity
 import com.nunchuk.android.settings.sync.SyncSettingActivity
 import com.nunchuk.android.settings.unit.DisplayUnitActivity
 import com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingActivity
+import com.nunchuk.android.settings.walletsecurity.biometric.BiometricActivity
 import com.nunchuk.android.settings.walletsecurity.unlock.UnlockPinActivity
 import com.nunchuk.android.settings.walletvisibilitysettings.WalletVisibilitySettingsActivity
 
@@ -78,11 +79,15 @@ interface SettingNavigatorDelegate : SettingNavigator {
         LocalCurrencyActivity.start(activityContext)
     }
 
-    override fun openUnlockPinScreen(activityContext: Context) {
+    override fun openUnlockPinScreen(activityContext: Context, sourceFlowInfo: Int) {
+        UnlockPinActivity.navigate(activityContext, sourceFlowInfo)
+    }
+
+    override fun openBiometricScreen(activityContext: Context) {
         activityContext.startActivity(
             Intent(
                 activityContext,
-                UnlockPinActivity::class.java
+                BiometricActivity::class.java
             )
         )
     }

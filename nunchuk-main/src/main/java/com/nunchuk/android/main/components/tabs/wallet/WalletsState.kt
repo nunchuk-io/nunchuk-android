@@ -49,7 +49,7 @@ internal data class WalletsState(
     val isSetupInheritance: Boolean = false,
     val isHideUpsellBanner: Boolean = false,
     val banner: Banner? = null,
-    val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting(),
+    val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting.DEFAULT,
     val allGroups: List<ByzantineGroup> = emptyList(),
     val groupWalletUis: List<GroupWalletUi> = emptyList(),
     val alerts: Map<String, Int> = emptyMap(),

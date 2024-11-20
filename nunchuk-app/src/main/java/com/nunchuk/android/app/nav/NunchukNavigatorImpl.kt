@@ -191,10 +191,7 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
 interface AppNavigatorDelegate : AppNavigator {
 
     override fun restartApp(activityContext: Context) {
-        val intent = Intent(activityContext, SplashActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        }
-        activityContext.startActivity(intent)
+        SplashActivity.navigate(activityContext, isFromSignOut = true)
     }
 
     override fun openMembershipActivity(

@@ -1,6 +1,7 @@
 package com.nunchuk.android.settings.walletsecurity.unlock
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
@@ -43,7 +44,10 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
+import com.nunchuk.android.core.biometric.BiometricPromptManager
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.nav.NunchukNavigator
@@ -58,6 +62,11 @@ class UnlockPinFragment : Fragment() {
     lateinit var navigator: NunchukNavigator
 
     private val args: UnlockPinFragmentArgs by navArgs()
+
+    private val biometricPromptManager by lazy {
+        BiometricPromptManager(requireActivity())
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -65,6 +74,12 @@ class UnlockPinFragment : Fragment() {
     ) = content {
         val viewModel = viewModel<UnlockPinViewModel>()
         val state by viewModel.state.collectAsStateWithLifecycle()
+        val biometricResult by biometricPromptManager.promptResults.collectAsStateWithLifecycle(null)
+
+        var showBiometricNotEnrolledDialog by rememberSaveable {
+            mutableStateOf(false)
+        }
+
 
         if (state.isLoading) {
             NcLoadingDialog()
@@ -87,9 +102,63 @@ class UnlockPinFragment : Fragment() {
                         activityContext = requireActivity(),
                         isClearTask = true
                     )
+
+                    UnlockPinEvent.GoToSignIn -> navigator.openSignInScreen(requireActivity())
                 }
                 viewModel.markEventHandled()
             }
+        }
+
+        LaunchedEffect(biometricResult) {
+            if (biometricResult != null) {
+                when (biometricResult) {
+                    is BiometricPromptManager.BiometricResult.AuthenticationSuccess -> {
+                        requireActivity().finish()
+                    }
+
+                    is BiometricPromptManager.BiometricResult.AuthenticationNotSet -> {
+                        showBiometricNotEnrolledDialog = true
+                    }
+
+                    is BiometricPromptManager.BiometricResult.AuthenticationFailed -> {
+                        viewModel.signOut()
+                    }
+
+                    is BiometricPromptManager.BiometricResult.AuthenticationError -> {
+                        viewModel.signOut()
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+
+        if (state.showBiometricPrompt) {
+            if (biometricPromptManager.checkDeviceHasBiometricEnrolled().not()) {
+                showBiometricNotEnrolledDialog = true
+            } else {
+                viewModel.setShowBiometricPrompt(false)
+                biometricPromptManager.showBiometricPrompt()
+            }
+        }
+
+        if (showBiometricNotEnrolledDialog) {
+            NcInfoDialog(
+                message = stringResource(R.string.nc_biometric_is_not_enable_this_device),
+                positiveButtonText = stringResource(R.string.nc_try_again),
+                negativeButtonText = stringResource(R.string.nc_sign_in_using_password),
+                onPositiveClick = {
+                    viewModel.setShowBiometricPrompt(true)
+                    showBiometricNotEnrolledDialog = false
+                },
+                onNegativeClick = {
+                    viewModel.signOut()
+                    showBiometricNotEnrolledDialog = false
+                },
+                onDismiss = {
+                    showBiometricNotEnrolledDialog = false
+                }
+            )
         }
 
         UnlockPinContent(
@@ -224,12 +293,8 @@ private fun UnlockPinContentPreview(
 
 class SettingProvider : CollectionPreviewParameterProvider<WalletSecuritySetting>(
     listOf(
-        WalletSecuritySetting(
-            protectWalletPin = true
-        ),
-        WalletSecuritySetting(
-            protectWalletPassword = true
-        ),
-        WalletSecuritySetting(protectWalletPassphrase = true)
+        WalletSecuritySetting.DEFAULT.copy(protectWalletPin = true),
+        WalletSecuritySetting.DEFAULT.copy(protectWalletPassword = true),
+        WalletSecuritySetting.DEFAULT.copy(protectWalletPassphrase = true)
     )
 )

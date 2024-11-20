@@ -21,6 +21,7 @@ package com.nunchuk.android.settings.walletsecurity
 
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.auth.domain.BiometricRegisterUseCase
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.CheckHasPassphrasePrimaryKeyUseCase
 import com.nunchuk.android.core.domain.CheckWalletPinUseCase
@@ -32,13 +33,17 @@ import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.usecase.GetBiometricConfigUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
+import com.nunchuk.android.usecase.UpdateBiometricConfigUseCase
 import com.nunchuk.android.usecase.UpdateWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.pin.GetCustomPinConfigFlowUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -56,7 +61,10 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
     private val signInModeHolder: SignInModeHolder,
     private val checkHasPassphrasePrimaryKeyUseCase: CheckHasPassphrasePrimaryKeyUseCase,
     private val getCustomPinConfigFlowUseCase: GetCustomPinConfigFlowUseCase,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val getBiometricConfigUseCase: GetBiometricConfigUseCase,
+    private val updateBiometricConfigUseCase: UpdateBiometricConfigUseCase,
+    private val biometricRegisterUseCase: BiometricRegisterUseCase
 ) : NunchukViewModel<WalletSecuritySettingState, WalletSecuritySettingEvent>() {
     private var customPinJob: Job? = null
     override val initialState = WalletSecuritySettingState()
@@ -67,7 +75,7 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
                 .collect {
                     updateState {
                         copy(
-                            walletSecuritySetting = it.getOrNull() ?: WalletSecuritySetting()
+                            walletSecuritySetting = it.getOrNull() ?: WalletSecuritySetting.DEFAULT
                         )
                     }
                 }
@@ -85,6 +93,17 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
                 val enablePassphrase = checkHasPassphrasePrimaryKeyUseCase(Unit)
                 updateState { copy(isEnablePassphrase = enablePassphrase.getOrDefault(false)) }
             }
+        }
+
+        viewModelScope.launch {
+            getBiometricConfigUseCase(Unit)
+                .map { it.getOrDefault(BiometricConfig.DEFAULT) }
+                .filter {
+                    it.userId == accountManager.getAccount().id
+                }
+                .collect { result ->
+                    updateState { copy(isEnableBiometric = result.enabled) }
+                }
         }
     }
 
@@ -106,6 +125,24 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
             if (forceUpdate) true else walletSecuritySetting.hideWalletDetail.not()
         updateSetting(walletSecuritySetting.copy(hideWalletDetail = hideWalletDetail))
     }
+
+    fun updateProtectWalletBiometric(enable: Boolean, privateKey: String = "") =
+        viewModelScope.launch {
+            val config = if (enable) {
+                BiometricConfig(
+                    enabled = true,
+                    userId = accountManager.getAccount().id,
+                    privateKey = privateKey,
+                    email = accountManager.getAccount().email
+                )
+            } else {
+                BiometricConfig.DEFAULT
+            }
+            updateBiometricConfigUseCase(config)
+                .onSuccess {
+                    updateState { copy(isEnableBiometric = enable) }
+                }
+        }
 
     fun updateProtectWalletPassword(data: Boolean) = viewModelScope.launch {
         val walletSecuritySetting = getState().walletSecuritySetting
@@ -139,20 +176,16 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
         }
     }
 
-    fun checkWalletPin(input: String, isHideWalletDetailFlow: Boolean = false) =
+    fun checkWalletPin(input: String) =
         viewModelScope.launch {
             val match = checkWalletPinUseCase(input).getOrDefault(false)
-            if (isHideWalletDetailFlow) {
-                if (match.not()) updateHideWalletDetail(true)
-            } else {
-                updateProtectWalletPin(match.not())
-            }
-            event(WalletSecuritySettingEvent.CheckWalletPin(match, isHideWalletDetailFlow))
+            if (match.not()) updateHideWalletDetail(true)
+            event(WalletSecuritySettingEvent.CheckWalletPin(match, true))
         }
 
-    fun confirmPassword(password: String, isHideWalletDetailFlow: Boolean = false) =
+    fun confirmPassword(password: String) =
         viewModelScope.launch {
-            if (password.isBlank() && isHideWalletDetailFlow.not()) {
+            if (password.isBlank()) {
                 updateProtectWalletPassword(true)
                 return@launch
             }
@@ -163,18 +196,43 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
-                if (isHideWalletDetailFlow) {
-                    event(WalletSecuritySettingEvent.CheckPasswordSuccess)
-                } else {
-                    updateProtectWalletPassword(false)
-                }
+                updateProtectWalletPassword(false)
             } else {
-                if (isHideWalletDetailFlow.not()) updateProtectWalletPassword(true) else updateHideWalletDetail(
-                    true
-                )
+                updateProtectWalletPassword(true)
                 event(WalletSecuritySettingEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
+
+    fun registerBiometric(password: String) {
+        viewModelScope.launch {
+            if (password.isBlank()) {
+                return@launch
+            }
+
+            val result = verifiedPasswordTokenUseCase(
+                VerifiedPasswordTokenUseCase.Param(
+                    password = password,
+                    targetAction = TargetAction.REGISTER_BIOMETRIC_PUBLIC_KEY.name
+                )
+            )
+            if (result.isSuccess) {
+                biometricRegisterUseCase(
+                    BiometricRegisterUseCase.Param(
+                        result.getOrNull().orEmpty()
+                    )
+                )
+                    .onSuccess {
+                        updateProtectWalletBiometric(true, it)
+                    }.onFailure {
+                        updateProtectWalletBiometric(false)
+                        event(WalletSecuritySettingEvent.Error(message = it.message.orUnknownError()))
+                    }
+            } else {
+                updateProtectWalletBiometric(false)
+                event(WalletSecuritySettingEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
 
     fun confirmPassphrase(passphrase: String, isHideWalletDetailFlow: Boolean = false) =
         viewModelScope.launch {

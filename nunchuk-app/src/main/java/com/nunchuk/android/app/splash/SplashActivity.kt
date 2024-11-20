@@ -19,12 +19,13 @@
 
 package com.nunchuk.android.app.splash
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.BuildConfig
+import com.nunchuk.android.core.util.UnlockPinSourceFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.walletsecurity.unlock.UnlockPinActivity
@@ -43,6 +44,10 @@ internal class SplashActivity : AppCompatActivity() {
     lateinit var navigator: NunchukNavigator
 
     private val viewModel: SplashViewModel by viewModels()
+
+    private val isFromSignOut: Boolean by lazy {
+        intent.getBooleanExtra(EXTRA_IS_FROM_SIGN_OUT, false)
+    }
 
     override fun onStart() {
         super.onStart()
@@ -109,13 +114,33 @@ internal class SplashActivity : AppCompatActivity() {
                 }
                 if (event.askPin) {
                     startActivity(Intent(this, UnlockPinActivity::class.java))
+                } else if (event.askBiometric) {
+                    navigator.openBiometricScreen(this)
                 }
             }
 
             is SplashEvent.InitErrorEvent -> NCToastMessage(this).showError(event.error)
+            SplashEvent.NavUnlockPinScreenEvent -> {
+                if (isFromSignOut) {
+                    navigator.openSignInScreen(this, true)
+                } else {
+                    navigator.openSignInScreen(this, false)
+                    navigator.openUnlockPinScreen(this, UnlockPinSourceFlow.SIGN_IN_UNKNOWN_MODE)
+                }
+            }
         }
         overridePendingTransition(0, 0)
         finish()
+    }
+
+    companion object {
+        private const val EXTRA_IS_FROM_SIGN_OUT = "is_from_sign_out"
+        fun navigate(activityContext: Context, isFromSignOut: Boolean = false) {
+            val intent = Intent(activityContext, SplashActivity::class.java)
+                .putExtra(EXTRA_IS_FROM_SIGN_OUT, isFromSignOut)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            activityContext.startActivity(intent)
+        }
     }
 }
 

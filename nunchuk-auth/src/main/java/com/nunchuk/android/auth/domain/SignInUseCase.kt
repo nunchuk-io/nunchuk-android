@@ -46,6 +46,7 @@ internal class SignInUseCaseImpl @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val checkShowOnboardUseCase: CheckShowOnboardUseCase,
+    private val storeAccountUseCase: StoreAccountUseCase
 ) : SignInUseCase {
 
     override fun execute(
@@ -67,23 +68,14 @@ internal class SignInUseCaseImpl @Inject constructor(
         staySignedIn: Boolean,
         fetchUserInfo: Boolean
     ): AccountInfo {
-        val account = accountManager.getAccount().copy(
-            email = email,
-            token = response.tokenId,
-            activated = true,
-            staySignedIn = staySignedIn,
-            deviceId = response.deviceId,
-        )
-        accountManager.storeAccount(account)
-
-        if (fetchUserInfo) {
-            runCatching {
-                getUserProfileUseCase(Unit)
-                checkShowOnboardUseCase(Unit)
-            }
-        }
-
-        return accountManager.getAccount()
+        return storeAccountUseCase(
+            StoreAccountUseCase.Param(
+                email = email,
+                response = response,
+                staySignedIn = staySignedIn,
+                fetchUserInfo = fetchUserInfo
+            )
+        ).getOrThrow()
     }
 
 }

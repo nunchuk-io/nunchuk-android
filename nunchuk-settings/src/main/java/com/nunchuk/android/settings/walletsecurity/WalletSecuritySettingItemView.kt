@@ -69,4 +69,11 @@ internal class WalletSecuritySettingItemView @JvmOverloads constructor(
             onChanged(checked)
         }
     }
+
+    fun setEnable(enable: Boolean) {
+        binding.switchButton.isEnabled = enable
+        binding.switchButton.alpha = if (enable) 1f else 0.5f
+        binding.tvTitle.alpha = if (enable) 1f else 0.5f
+        binding.tvDesc.alpha = if (enable) 1f else 0.5f
+    }
 }

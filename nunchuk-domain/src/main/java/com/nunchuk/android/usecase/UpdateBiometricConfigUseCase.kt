@@ -17,14 +17,24 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.app.splash
+package com.nunchuk.android.usecase
 
-sealed class SplashEvent {
-    data object NavSignInEvent : SplashEvent()
+import com.google.gson.Gson
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.setting.BiometricConfig
+import com.nunchuk.android.model.setting.HomeDisplaySetting
+import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.repository.SettingRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-    data class NavHomeScreenEvent(val askPin: Boolean, val askBiometric: Boolean) : SplashEvent()
+class UpdateBiometricConfigUseCase @Inject constructor(
+    private val settingRepository: SettingRepository,
+    private val gson: Gson,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : UseCase<BiometricConfig, Unit>(ioDispatcher) {
 
-    data class InitErrorEvent(val error: String) : SplashEvent()
-    data object NavUnlockPinScreenEvent : SplashEvent()
-
+    override suspend fun execute(parameters: BiometricConfig) {
+        settingRepository.setBiometricConfig(gson.toJson(parameters))
+    }
 }

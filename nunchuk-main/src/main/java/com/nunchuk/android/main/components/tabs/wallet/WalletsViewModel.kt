@@ -299,7 +299,7 @@ internal class WalletsViewModel @Inject constructor(
                 .collect {
                     updateState {
                         copy(
-                            walletSecuritySetting = it.getOrNull() ?: WalletSecuritySetting()
+                            walletSecuritySetting = it.getOrNull() ?: WalletSecuritySetting.DEFAULT
                         )
                     }
                 }

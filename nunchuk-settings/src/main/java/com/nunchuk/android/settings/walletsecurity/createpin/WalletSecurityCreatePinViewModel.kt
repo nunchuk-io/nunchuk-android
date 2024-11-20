@@ -219,7 +219,7 @@ data class InputValue(
 )
 
 data class WalletSecurityCreatePinState(
-    val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting(),
+    val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting.DEFAULT,
     val inputValue: MutableMap<Int, InputValue> = hashMapOf(),
     val createPinFlow: Boolean = false,
     val attemptCount: Int = 0

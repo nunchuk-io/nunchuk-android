@@ -20,6 +20,7 @@
 package com.nunchuk.android.app.splash
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountInfo
@@ -30,6 +31,7 @@ import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.usecase.GetBiometricConfigUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.pin.GetCustomPinConfigFlowUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -49,6 +51,7 @@ internal class SplashViewModel @Inject constructor(
     private val application: Application,
     private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
     private val getCustomPinConfigFlowUseCase: GetCustomPinConfigFlowUseCase,
+    private val getBiometricConfigUseCase: GetBiometricConfigUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SplashEvent>(1)
@@ -63,11 +66,13 @@ internal class SplashViewModel @Inject constructor(
             val isAccountExisted = accountManager.isAccountExisted()
             val pin = getWalletPinUseCase(Unit).map { it.getOrDefault("") }.first()
             val settings = getWalletSecuritySettingUseCase(Unit)
-                .map { it.getOrDefault(WalletSecuritySetting()) }
+                .map { it.getOrDefault(WalletSecuritySetting.DEFAULT) }
                 .first()
             val isDecoyDisablePin = getCustomPinConfigFlowUseCase(account.decoyPin)
                 .map { it.getOrDefault(true) }
                 .first()
+            val isBiometricEnable =
+                getBiometricConfigUseCase(Unit).first().getOrNull()?.enabled ?: false
             val shouldAskPin = pin.isNotEmpty()
                     || (settings.protectWalletPassphrase && mode == SignInMode.PRIMARY_KEY)
                     || (settings.protectWalletPassword && mode == SignInMode.EMAIL)
@@ -77,15 +82,28 @@ internal class SplashViewModel @Inject constructor(
                     SplashEvent.NavSignInEvent
                 )
 
-                isAccountExisted && accountManager.isAccountActivated() || mode.isGuestMode() ->
-                    _event.emit(SplashEvent.NavHomeScreenEvent(askPin = shouldAskPin && isDecoyDisablePin))
-
+                isAccountExisted && accountManager.isAccountActivated() || mode.isGuestMode() -> {
+                    Log.e("biometric", "isBiometricEnable: $isBiometricEnable")
+                    _event.emit(
+                        SplashEvent.NavHomeScreenEvent(
+                            askPin = shouldAskPin && isDecoyDisablePin,
+                            askBiometric = isBiometricEnable
+                        )
+                    )
+                }
                 // can delete after x version
                 !isFreshInstall && !accountManager.isHasAccountBefore() && info.versionCode <= 245 -> {
                     accountManager.storeAccount(AccountInfo(loginType = SignInMode.GUEST_MODE.value))
                     signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
-                    _event.emit(SplashEvent.NavHomeScreenEvent(askPin = shouldAskPin && isDecoyDisablePin))
+                    _event.emit(
+                        SplashEvent.NavHomeScreenEvent(
+                            askPin = shouldAskPin && isDecoyDisablePin,
+                            false
+                        )
+                    )
                 }
+
+                shouldAskPin && mode == SignInMode.UNKNOWN -> _event.emit(SplashEvent.NavUnlockPinScreenEvent)
 
                 else -> _event.emit(SplashEvent.NavSignInEvent)
             }

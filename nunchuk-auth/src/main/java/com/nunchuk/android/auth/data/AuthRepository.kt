@@ -31,6 +31,9 @@ import com.nunchuk.android.auth.api.SignInPayload
 import com.nunchuk.android.auth.api.TryLoginRequest
 import com.nunchuk.android.auth.api.UserTokenResponse
 import com.nunchuk.android.auth.api.VerifyNewDevicePayload
+import com.nunchuk.android.auth.api.biometric.BiometricChallengeRequest
+import com.nunchuk.android.auth.api.biometric.BiometricRegisterPublicKey
+import com.nunchuk.android.auth.api.biometric.BiometricVerifyChallengeRequest
 import com.nunchuk.android.auth.domain.model.EmailAvailability
 import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
@@ -75,6 +78,9 @@ interface AuthRepository {
 
     suspend fun resendPassword(email: String)
     suspend fun checkAvailableEmail(email: String): EmailAvailability
+    suspend fun biometricRegisterPublicKey(publicKey: String, registerVerificationToken: String)
+    suspend fun biometricChallenge(userId: String): Pair<String, String>
+    suspend fun biometricVerifyChallenge(challengeId: String, signature: String): UserTokenResponse
 }
 
 internal class AuthRepositoryImpl @Inject constructor(
@@ -175,5 +181,41 @@ internal class AuthRepositoryImpl @Inject constructor(
     override suspend fun checkAvailableEmail(email: String): EmailAvailability {
         accountManager.storeAccount(AccountInfo(email = email))
         return authApi.checkUsernameAvailability(email, "Email").data
+    }
+
+    override suspend fun biometricRegisterPublicKey(
+        publicKey: String,
+        registerVerificationToken: String
+    ) {
+        val response = authApi.biometricRegisterPublicKey(
+            BiometricRegisterPublicKey(
+                publicKey = publicKey,
+                registerVerificationToken = registerVerificationToken
+            )
+        )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
+    override suspend fun biometricChallenge(userId: String): Pair<String, String> {
+        val response = authApi.getBiometricChallenge(BiometricChallengeRequest(userId))
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        return response.data.challengeId.orEmpty() to response.data.challenge.orEmpty()
+    }
+
+    override suspend fun biometricVerifyChallenge(challengeId: String, signature: String): UserTokenResponse {
+        val response = authApi.biometricVerifyChallenge(
+            BiometricVerifyChallengeRequest(
+                challengeId = challengeId,
+                signature = signature
+            )
+        )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        return response.data
     }
 }

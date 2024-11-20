@@ -47,12 +47,16 @@ class WalletSecuritySettingActivity : BaseActivity<ActivityNavigationBinding>() 
             supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.wallet_security_setting_nav)
-        if (args.type == WalletSecurityType.CREATE_DECOY_WALLET) {
-            graph.setStartDestination(R.id.decoyWalletIntroFragment)
-        } else if (args.type == WalletSecurityType.CREATE_DECOY_SUCCESS) {
-            graph.setStartDestination(R.id.decoyWalletSuccessFragment)
-        } else {
-            graph.setStartDestination(R.id.walletSecuritySettingFragment)
+        when (args.type) {
+            WalletSecurityType.CREATE_DECOY_WALLET -> {
+                graph.setStartDestination(R.id.decoyWalletIntroFragment)
+            }
+            WalletSecurityType.CREATE_DECOY_SUCCESS -> {
+                graph.setStartDestination(R.id.decoyWalletSuccessFragment)
+            }
+            else -> {
+                graph.setStartDestination(R.id.walletSecuritySettingFragment)
+            }
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
     }

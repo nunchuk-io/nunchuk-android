@@ -27,6 +27,9 @@ import android.widget.EditText
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.enterxpub.EnterXPUBActivity
 import com.nunchuk.android.auth.components.signin.SignInEvent.EmailInvalidEvent
@@ -42,6 +45,7 @@ import com.nunchuk.android.auth.util.getTextTrimmed
 import com.nunchuk.android.auth.util.setUnderlineText
 import com.nunchuk.android.core.account.SignInType
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.biometric.BiometricPromptManager
 import com.nunchuk.android.core.network.ApiErrorCode.NEW_DEVICE
 import com.nunchuk.android.core.network.ErrorDetail
 import com.nunchuk.android.core.util.flowObserver
@@ -49,9 +53,11 @@ import com.nunchuk.android.core.util.linkify
 import com.nunchuk.android.core.util.showKeyboard
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.serializable
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SignInActivity : BaseActivity<ActivitySigninBinding>() {
@@ -63,6 +69,9 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
             }
         }
 
+    private val biometricPromptManager by lazy {
+        BiometricPromptManager(activity = this)
+    }
     private val viewModel: SignInViewModel by viewModels()
 
     override fun initializeBinding() = ActivitySigninBinding.inflate(layoutInflater)
@@ -95,6 +104,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                         navigator.openUnlockPinScreen(this)
                     }
                 }
+
                 is ProcessingEvent -> showOrHideLoading(it.isLoading)
 
                 is SignInEvent.RequireChangePassword -> navigator.openChangePasswordScreen(
@@ -110,18 +120,49 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
             if (it.email.isNotEmpty()) {
                 binding.email.getEditTextView().setText(it.email)
             }
-            binding.signInPrimary.isVisible = it.type == SignInType.GUEST || it.accounts.isNotEmpty()
+            binding.signInPrimary.isVisible =
+                it.type == SignInType.GUEST || it.accounts.isNotEmpty()
             initUiWithStage(it.type, it.isSubscriberUser)
 
             when (it.type) {
                 SignInType.EMAIL, SignInType.GUEST -> {
                     binding.email.getEditTextView().showKeyboard()
                 }
+
                 SignInType.PASSWORD -> {
                     binding.password.getEditTextView().showKeyboard()
                 }
+
                 SignInType.NAME -> {
                     binding.name.getEditTextView().showKeyboard()
+                }
+            }
+        }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                biometricPromptManager.promptResults.collect {
+                    when (it) {
+                        is BiometricPromptManager.BiometricResult.AuthenticationSuccess -> viewModel.onBiometricSignIn()
+                        is BiometricPromptManager.BiometricResult.AuthenticationNotSet -> {
+                            NCInfoDialog(
+                                activity = this@SignInActivity
+                            ).showDialog(
+                                message = getString(R.string.nc_biometric_is_not_enable_this_device),
+                                btnYes = getString(R.string.nc_try_again),
+                                btnInfo = getString(R.string.nc_sign_in_using_password),
+                            )
+                        }
+
+                        is BiometricPromptManager.BiometricResult.AuthenticationFailed -> {
+
+                        }
+
+                        is BiometricPromptManager.BiometricResult.AuthenticationError -> {
+
+                        }
+
+                        else -> Unit
+                    }
                 }
             }
         }
@@ -223,6 +264,15 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                     intent.serializable<SignInType>(SignInViewModel.EXTRA_TYPE) ?: SignInType.EMAIL
                 )
                 clearInputFields()
+            }
+        }
+        binding.fingerprint.setOnClickListener {
+            if (viewModel.biometricConfig.value.enabled) {
+                biometricPromptManager.showBiometricPrompt()
+            } else {
+                NCInfoDialog(this).showDialog(
+                    message = getString(R.string.nc_biometric_login_not_setup),
+                )
             }
         }
         clearInputFields()

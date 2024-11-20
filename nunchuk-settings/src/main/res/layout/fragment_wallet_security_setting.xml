@@ -14,7 +14,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_back"
-        app:title="@string/nc_wallet_security_settings" />
+        app:title="@string/nc_security_settings" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -25,6 +25,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
+            <com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingItemView
+                android:id="@+id/protect_wallet_fingerprint_option"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:wss_desc="@string/nc_protect_wallets_with_fingerprint_desc"
+                app:wss_title="@string/nc_protect_wallets_with_fingerprint" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/pin_option"

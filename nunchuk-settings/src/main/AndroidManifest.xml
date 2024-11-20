@@ -80,5 +80,11 @@
             android:launchMode="singleTask"
             android:theme="@style/NunchukNoActionBar.Light" />
 
+        <activity
+            android:name=".walletsecurity.biometric.BiometricActivity"
+            android:screenOrientation="portrait"
+            android:launchMode="singleTask"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
     </application>
 </manifest>

@@ -20,6 +20,7 @@
 package com.nunchuk.android.nav
 
 import android.content.Context
+import com.nunchuk.android.core.util.UnlockPinSourceFlow
 import com.nunchuk.android.core.wallet.WalletSecurityArgs
 
 interface SettingNavigator {
@@ -37,5 +38,6 @@ interface SettingNavigator {
         messages: ArrayList<String> = arrayListOf()
     )
     fun openLocalCurrencyScreen(activityContext: Context)
-    fun openUnlockPinScreen(activityContext: Context)
+    fun openUnlockPinScreen(activityContext: Context, sourceFlowInfo: Int = UnlockPinSourceFlow.NONE)
+    fun openBiometricScreen(activityContext: Context)
 }

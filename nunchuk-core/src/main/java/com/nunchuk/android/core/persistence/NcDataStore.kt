@@ -35,6 +35,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.toMembershipPlan
@@ -76,6 +77,7 @@ class NcDataStore @Inject constructor(
     private val lastCloseAppKey = longPreferencesKey("last_close_app")
     private val isDarkModeKey = booleanPreferencesKey("is_dark_mode")
     private val homeDisplaySettingKey = stringPreferencesKey("home_display_setting")
+    private val biometricConfigKey = stringPreferencesKey("biometric_config")
 
     /**
      * Current membership plan key
@@ -177,7 +179,7 @@ class NcDataStore @Inject constructor(
             gson.fromJson(
                 it[getWalletSecuritySettingKey()].orEmpty(),
                 WalletSecuritySetting::class.java
-            ) ?: WalletSecuritySetting()
+            ) ?: WalletSecuritySetting.DEFAULT
         }
 
     val homeDisplaySetting: Flow<HomeDisplaySetting>
@@ -191,6 +193,14 @@ class NcDataStore @Inject constructor(
     val localCurrencyFlow: Flow<String>
         get() = context.dataStore.data.map {
             it[getLocalCurrencyKey()] ?: USD_CURRENCY
+        }
+
+    val biometricConfig: Flow<BiometricConfig>
+        get() = context.dataStore.data.map {
+            gson.fromJson(
+                it[biometricConfigKey],
+                BiometricConfig::class.java
+            ) ?: BiometricConfig.DEFAULT
         }
 
     suspend fun setChain(chain: Chain) {
@@ -250,6 +260,12 @@ class NcDataStore @Inject constructor(
     suspend fun setHomeDisplaySetting(config: String) {
         context.dataStore.edit {
             it[homeDisplaySettingKey] = config
+        }
+    }
+
+    suspend fun setBiometricConfig(config: String) {
+        context.dataStore.edit {
+            it[biometricConfigKey] = config
         }
     }
 
@@ -315,7 +331,6 @@ class NcDataStore @Inject constructor(
         get() = context.dataStore.data.map {
             it[securityQuestionKey] ?: false
         }
-
 
     val useLargeFontHomeBalancesFlow: Flow<Boolean>
         get() = context.dataStore.data.map {

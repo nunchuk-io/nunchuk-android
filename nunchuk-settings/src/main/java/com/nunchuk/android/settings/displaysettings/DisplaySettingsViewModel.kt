@@ -42,7 +42,7 @@ class DisplaySettingsViewModel @Inject constructor(
         viewModelScope.launch {
             getWalletSecuritySettingUseCase(Unit)
                 .collect { result ->
-                    _state.update { it.copy(walletSecuritySetting = result.getOrNull() ?: WalletSecuritySetting()) }
+                    _state.update { it.copy(walletSecuritySetting = result.getOrNull() ?: WalletSecuritySetting.DEFAULT) }
                 }
         }
     }
@@ -84,5 +84,5 @@ class DisplaySettingsViewModel @Inject constructor(
 data class DisplaySettingsUiState(
     val unit: Int = CURRENT_DISPLAY_UNIT_TYPE,
     val themeMode: ThemeMode = ThemeMode.System,
-    val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting(),
+    val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting.DEFAULT,
 )

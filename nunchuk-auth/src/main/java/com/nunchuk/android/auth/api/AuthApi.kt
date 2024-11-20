@@ -20,6 +20,11 @@
 package com.nunchuk.android.auth.api
 
 import com.nunchuk.android.auth.domain.model.EmailAvailability
+import com.nunchuk.android.auth.api.biometric.BiometricChallengeRequest
+import com.nunchuk.android.auth.api.biometric.BiometricChallengeResponse
+import com.nunchuk.android.auth.api.biometric.BiometricRegisterPublicKey
+import com.nunchuk.android.auth.api.biometric.BiometricSignInRequest
+import com.nunchuk.android.auth.api.biometric.BiometricVerifyChallengeRequest
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -83,4 +88,16 @@ interface AuthApi {
     suspend fun resendPassword(
         @Body payload: ResendPasswordRequest
     ): Data<Unit>
+
+    @POST("/v1.1/passport/biometric/challenge")
+    suspend fun getBiometricChallenge(@Body request: BiometricChallengeRequest): Data<BiometricChallengeResponse>
+
+    @POST("/v1.1/passport/biometric/register-public-key")
+    suspend fun biometricRegisterPublicKey(@Body request: BiometricRegisterPublicKey): Data<Unit>
+
+    @POST("/v1.1/passport/biometric/verify-challenge")
+    suspend fun biometricVerifyChallenge(@Body request: BiometricVerifyChallengeRequest): Data<UserTokenResponse>
+
+    @POST("/v1.1/passport/biometric/signin")
+    suspend fun biometricSignIn(@Body request: BiometricSignInRequest): Data<UserTokenResponse>
 }

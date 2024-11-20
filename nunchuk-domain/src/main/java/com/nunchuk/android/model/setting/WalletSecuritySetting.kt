@@ -20,8 +20,17 @@
 package com.nunchuk.android.model.setting
 
 data class WalletSecuritySetting(
-    val hideWalletDetail: Boolean = false,
-    val protectWalletPassword: Boolean = false,
-    val protectWalletPassphrase: Boolean = false,
-    val protectWalletPin: Boolean = false
-)
+    val hideWalletDetail: Boolean,
+    val protectWalletPassword: Boolean,
+    val protectWalletPassphrase: Boolean,
+    val protectWalletPin: Boolean,
+) {
+    companion object {
+        val DEFAULT = WalletSecuritySetting(
+            hideWalletDetail = false,
+            protectWalletPassword = false,
+            protectWalletPassphrase = false,
+            protectWalletPin = false,
+        )
+    }
+}

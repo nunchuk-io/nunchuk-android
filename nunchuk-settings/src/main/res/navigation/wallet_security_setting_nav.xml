@@ -56,6 +56,11 @@
             android:name="is_remove_pin"
             android:defaultValue="false"
             app:argType="boolean" />
+
+        <argument
+            android:name="source_flow"
+            android:defaultValue="0"
+            app:argType="integer" />
     </fragment>
     <fragment
         android:id="@+id/decoyWalletIntroFragment"

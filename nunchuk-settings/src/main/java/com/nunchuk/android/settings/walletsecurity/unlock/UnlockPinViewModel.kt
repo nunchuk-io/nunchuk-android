@@ -1,5 +1,6 @@
 package com.nunchuk.android.settings.walletsecurity.unlock
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountInfo
@@ -14,8 +15,11 @@ import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.profile.SendSignOutUseCase
+import com.nunchuk.android.core.util.UnlockPinSourceFlow
+import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.share.InitNunchukUseCase
+import com.nunchuk.android.usecase.GetBiometricConfigUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.pin.DecoyPinExistUseCase
 import com.nunchuk.android.usecase.pin.SetCustomPinConfigUseCase
@@ -43,11 +47,15 @@ class UnlockPinViewModel @Inject constructor(
     private val sendSignOutUseCase: SendSignOutUseCase,
     private val initNunchukUseCase: InitNunchukUseCase,
     private val accountManager: AccountManager,
-    private val setCustomPinConfigUseCase: SetCustomPinConfigUseCase
+    private val setCustomPinConfigUseCase: SetCustomPinConfigUseCase,
+    private val getBiometricConfigUseCase: GetBiometricConfigUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _state = MutableStateFlow(UnlockPinUiState())
     val state = _state.asStateFlow()
     private var walletPin: String = ""
+
+    private val args = UnlockPinFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
     init {
         viewModelScope.launch {
@@ -66,9 +74,22 @@ class UnlockPinViewModel @Inject constructor(
         }
         viewModelScope.launch {
             getWalletSecuritySettingUseCase(Unit)
-                .map { it.getOrDefault(WalletSecuritySetting()) }
+                .map { it.getOrDefault(WalletSecuritySetting.DEFAULT) }
                 .collect { settings ->
-                    _state.update { state -> state.copy(walletSecuritySetting = settings.copy(protectWalletPin = state.walletSecuritySetting.protectWalletPin)) }
+                    _state.update { state ->
+                        state.copy(
+                            walletSecuritySetting = settings.copy(
+                                protectWalletPin = state.walletSecuritySetting.protectWalletPin
+                            )
+                        )
+                    }
+                }
+        }
+        viewModelScope.launch {
+            getBiometricConfigUseCase(Unit)
+                .map { it.getOrDefault(BiometricConfig.DEFAULT) }
+                .collect { result ->
+                    _state.update { it.copy(biometricConfig = result) }
                 }
         }
     }
@@ -137,6 +158,10 @@ class UnlockPinViewModel @Inject constructor(
                     }
                 } else {
                     checkPin(pin) {
+                        if (args.sourceFlow == UnlockPinSourceFlow.SIGN_IN_UNKNOWN_MODE) {
+                            _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
+                            return@checkPin
+                        }
                         val account = accountManager.getAccount()
                         val accountId = if (account.loginType == SignInMode.PRIMARY_KEY.value) {
                             account.username
@@ -148,7 +173,12 @@ class UnlockPinViewModel @Inject constructor(
                             ?: SignInMode.GUEST_MODE
                         signInModeHolder.setCurrentMode(mode)
                         initNunchukUseCase(InitNunchukUseCase.Param(accountId = accountId))
-                        _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
+                        if (_state.value.biometricConfig.enabled && args.isRemovePin.not() && mode == SignInMode.EMAIL
+                            && account.id.isNotEmpty() && account.id == _state.value.biometricConfig.userId){
+                            _state.update { it.copy(showBiometricPrompt = true) }
+                        } else {
+                            _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
+                        }
                     }
                 }
             } else if (isWalletPasswordEnabled()) {
@@ -220,6 +250,19 @@ class UnlockPinViewModel @Inject constructor(
 
     private fun isWalletPassphraseEnabled() =
         signInModeHolder.getCurrentMode() == SignInMode.PRIMARY_KEY && state.value.walletSecuritySetting.protectWalletPassphrase
+
+    fun signOut() {
+        viewModelScope.launch {
+            signInModeHolder.clear()
+            clearInfoSessionUseCase.invoke(Unit)
+            sendSignOutUseCase(Unit)
+            _state.update { it.copy(event = UnlockPinEvent.GoToSignIn) }
+        }
+    }
+
+    fun setShowBiometricPrompt(show: Boolean) {
+        _state.update { it.copy(showBiometricPrompt = show) }
+    }
 }
 
 data class UnlockPinUiState(
@@ -227,10 +270,13 @@ data class UnlockPinUiState(
     val isFailed: Boolean = false,
     val attemptCount: Int = 0,
     val event: UnlockPinEvent? = null,
-    val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting()
+    val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting.DEFAULT,
+    val biometricConfig: BiometricConfig = BiometricConfig.DEFAULT,
+    val showBiometricPrompt: Boolean = false,
 )
 
 sealed class UnlockPinEvent {
     data object GoToMain : UnlockPinEvent()
     data object PinMatched : UnlockPinEvent()
+    data object GoToSignIn : UnlockPinEvent()
 }
