@@ -28,7 +28,7 @@
         android:layout_marginTop="@dimen/nc_padding_16"
         android:layout_marginEnd="@dimen/nc_padding_16"
         android:text="@string/nc_text_verify_instruction"
-        android:textColor="@color/nc_primary_color"
+        android:textColor="@color/nc_text_primary"
         app:layout_constraintTop_toBottomOf="@+id/toolbarVerifyScreen" />
 
     <com.nunchuk.android.widget.NCEditTextView
