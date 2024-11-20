@@ -67,7 +67,7 @@
     <string name="nc_use_large_font_balances_home_screen">Use large font for balances</string>
     <string name="nc_display_total_balance_home_screen">Display total balance</string>
     <string name="nc_display_wallet_shortcut">Display wallet shortcuts</string>
-    <string name="nc_display_wallet_shortcut_desc">Show Send, Receive and View Coins shortcuts</string>
+    <string name="nc_display_wallet_shortcut_desc">Show Send, Receive and View Coins shortcuts.</string>
     <string name="nc_applies_when_have_two_more_wallets">Applies when you have two or more wallets.</string>
     <string name="nc_follow_us">Follow us</string>
     <string name="nc_contact_us">Contact us</string>
