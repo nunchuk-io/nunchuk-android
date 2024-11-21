@@ -59,14 +59,14 @@ class EmptyStatePersonalPlanUser(
         )
     }
 
-    override fun getKeyWalletEntryData(conditionInfo: ConditionInfo): KeyWalletEntryData? {
-        if (conditionInfo !is ConditionInfo.PersonalPlanUser) return null
-        return KeyWalletEntryData(
+    override fun getKeyWalletEntryData(conditionInfo: ConditionInfo): List<KeyWalletEntryData> {
+        if (conditionInfo !is ConditionInfo.PersonalPlanUser) return emptyList()
+        return listOf(KeyWalletEntryData(
             title = activityContext.getString(R.string.nc_create_unassisted_wallet),
             buttonAction = {
                 navigator.openWalletIntermediaryScreen(activityContext, conditionInfo.hasSigner)
             },
             iconResId = R.drawable.ic_wallet_empty_state
-        )
+        ))
     }
 }

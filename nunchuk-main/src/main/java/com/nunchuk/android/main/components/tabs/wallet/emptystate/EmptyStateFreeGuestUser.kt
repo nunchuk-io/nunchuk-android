@@ -41,23 +41,34 @@ class EmptyStateFreeGuestUser(
         )
     }
 
-    override fun getKeyWalletEntryData(conditionInfo: ConditionInfo): KeyWalletEntryData? {
-        if (conditionInfo !is ConditionInfo.FreeGuestUser) return null
+    override fun getKeyWalletEntryData(conditionInfo: ConditionInfo): List<KeyWalletEntryData> {
+        if (conditionInfo !is ConditionInfo.FreeGuestUser) return emptyList()
         if (conditionInfo.hasSigner) {
-            return KeyWalletEntryData(
-                title = activityContext.getString(R.string.nc_add_another_key),
-                buttonAction = {
-                    navigator.openSignerIntroScreen(activityContext)
-                },
-                iconResId = R.drawable.ic_signer_empty_state
+            return listOf(
+                KeyWalletEntryData(
+                    title = activityContext.getString(R.string.nc_add_another_key),
+                    buttonAction = {
+                        navigator.openSignerIntroScreen(activityContext)
+                    },
+                    iconResId = R.drawable.ic_signer_empty_state
+                )
             )
         }
-        return KeyWalletEntryData(
-            title = activityContext.getString(R.string.nc_create_hot_wallet),
-            buttonAction = {
-                navigator.openHotWalletScreen(null, activityContext, false)
-            },
-            iconResId = R.drawable.ic_hot_wallet_empty_state
+        return listOf(
+            KeyWalletEntryData(
+                title = activityContext.getString(R.string.nc_create_hot_wallet),
+                buttonAction = {
+                    navigator.openHotWalletScreen(null, activityContext, false)
+                },
+                iconResId = R.drawable.ic_hot_wallet_empty_state
+            ),
+            KeyWalletEntryData(
+                title = activityContext.getString(R.string.nc_text_recover_wallet),
+                buttonAction = {
+                    navigator.openWalletIntermediaryScreen(activityContext, false)
+                },
+                iconResId = R.drawable.ic_import
+            )
         )
     }
 }

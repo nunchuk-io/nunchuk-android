@@ -24,7 +24,7 @@ class EmptyStateGroupMasterUser(
         )
     }
 
-    override fun getKeyWalletEntryData(conditionInfo: ConditionInfo): KeyWalletEntryData? {
-        return null
+    override fun getKeyWalletEntryData(conditionInfo: ConditionInfo): List<KeyWalletEntryData> {
+        return emptyList()
     }
 }

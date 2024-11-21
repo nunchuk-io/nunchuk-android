@@ -102,20 +102,19 @@ internal fun WalletEmptyStateView(
             else -> EmptyStateNone()
         }
         val contentData = emptyState.getWizardData(conditionInfo)
-        val keyWalletEntryData = emptyState.getKeyWalletEntryData(conditionInfo)
+        val keyWalletEntryDataList = emptyState.getKeyWalletEntryData(conditionInfo)
 
         val onEmptyStateActionButtonClick = { contentData?.buttonAction?.invoke() }
-        val onKeyWalletEntryClick = { keyWalletEntryData?.buttonAction?.invoke() }
         Column {
             if (contentData != null) {
                 EmptyStateHomeView(contentData, onActionButtonClick = {
                     onEmptyStateActionButtonClick()
                 })
             }
-            if (keyWalletEntryData != null) {
+            keyWalletEntryDataList.forEach { it ->
                 Spacer(modifier = Modifier.height(12.dp))
-                KeyWalletEntryView(keyWalletEntryData, onClick = {
-                    onKeyWalletEntryClick()
+                KeyWalletEntryView(it, onClick = {
+                    it.buttonAction.invoke()
                 })
             }
         }
