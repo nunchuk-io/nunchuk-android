@@ -59,7 +59,6 @@ internal data class WalletsState(
     val localReferrerCode: ReferrerCode? = null,
     val homeDisplaySetting: HomeDisplaySetting = HomeDisplaySetting(),
     val isLeaveRoom: Boolean = false,
-    val coins: Map<String, Int> = emptyMap(),
 )
 
 internal sealed class WalletsEvent {
@@ -95,5 +94,4 @@ internal data class GroupWalletUi(
     val keyStatus: Map<String, KeyHealthStatus> = emptyMap(),
     val signers: List<SignerModel> = emptyList(),
     val isPendingPersonalWallet: Boolean = false,
-    val isHasCoin: Boolean = false,
 )

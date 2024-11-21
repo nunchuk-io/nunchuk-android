@@ -606,7 +606,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             signers = it.signers,
                             useLargeFont = useLargeFont,
                             walletStatus = briefWallet?.status,
-                            isHasCoin = it.isHasCoin,
                             showShortcuts = state.homeDisplaySetting.showWalletShortcuts,
                             onAccept = {
                                 it.group?.id?.let { groupId ->
@@ -650,10 +649,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             onReceiveClick = {
                                 val walletId = it.wallet?.wallet?.id ?: return@PendingWalletView
                                 navigator.openReceiveTransactionScreen(requireActivity(), walletId)
-                            },
-                            onViewCoinsClick = {
-                                val walletId = it.wallet?.wallet?.id ?: return@PendingWalletView
-                                navigator.openCoinList(context = requireContext(), walletId = walletId)
                             }
                         )
                         Spacer(modifier = Modifier.height(8.dp))

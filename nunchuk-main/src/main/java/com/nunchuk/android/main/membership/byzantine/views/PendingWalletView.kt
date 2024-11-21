@@ -85,14 +85,12 @@ fun PendingWalletView(
     useLargeFont: Boolean = false,
     walletStatus: String? = null,
     showShortcuts: Boolean = false,
-    isHasCoin: Boolean = false,
     onAccept: () -> Unit = {},
     onDeny: () -> Unit = {},
     onGroupClick: () -> Unit = {},
     onWalletClick: () -> Unit = {},
     onSendClick: () -> Unit = {},
     onReceiveClick: () -> Unit = {},
-    onViewCoinsClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -148,12 +146,10 @@ fun PendingWalletView(
                                     && walletStatus != WalletStatus.REPLACED.name
                         if (allowShowShortcuts) {
                             ShortcutsView(
-                                isHasCoin = isHasCoin,
                                 isHasBalance = walletsExtended.wallet.balance.value > 0,
                                 useLargeFont = useLargeFont,
                                 onSendClick = onSendClick,
                                 onReceiveClick = onReceiveClick,
-                                onViewCoinsClick = onViewCoinsClick
                             )
                         }
                     }
@@ -597,17 +593,16 @@ fun AvatarView(
 @Composable
 @Preview
 fun ShortcutsView(
-    isHasCoin: Boolean = false,
     isHasBalance: Boolean = false,
     useLargeFont: Boolean = false,
     onSendClick: () -> Unit = {},
     onReceiveClick: () -> Unit = {},
-    onViewCoinsClick: () -> Unit = {}
 ) {
     Column {
         HorizontalDivider(
-            modifier = Modifier.padding(vertical = 12.dp),
-            color = MaterialTheme.colorScheme.whisper
+            modifier = Modifier.padding(vertical = 8.dp),
+            color = MaterialTheme.colorScheme.whisper,
+            thickness = 0.5.dp
         )
 
         Row(
@@ -618,33 +613,20 @@ fun ShortcutsView(
             WalletActionButton(
                 modifier = Modifier.weight(1f),
                 text = stringResource(id = R.string.nc_send),
-                iconId = R.drawable.ic_sending_bitcoin,
                 useLargeFont = useLargeFont,
                 onClick = onSendClick,
                 clickable = isHasBalance
             )
             VerticalDivider(
-                modifier = Modifier.height(16.dp)
+                modifier = Modifier.height(16.dp),
+                color = MaterialTheme.colorScheme.whisper,
+                thickness = 0.5.dp
             )
             WalletActionButton(
                 modifier = Modifier.weight(1f),
                 text = stringResource(id = R.string.nc_receive),
-                iconId = R.drawable.ic_receive_bitcoin,
                 useLargeFont = useLargeFont,
                 onClick = onReceiveClick
-            )
-            VerticalDivider(
-                modifier = Modifier.height(16.dp)
-            )
-            WalletActionButton(
-                modifier = Modifier
-                    .weight(1f)
-                    .alpha(if (isHasCoin) 1f else 0.5f),
-                text = stringResource(id = R.string.nc_view_coins),
-                iconId = R.drawable.ic_bitcoin_dark,
-                useLargeFont = useLargeFont,
-                onClick = onViewCoinsClick,
-                clickable = isHasCoin
             )
         }
     }
@@ -654,7 +636,6 @@ fun ShortcutsView(
 fun WalletActionButton(
     modifier: Modifier,
     text: String = "",
-    iconId: Int = 0,
     useLargeFont: Boolean = false,
     clickable: Boolean = true,
     onClick: () -> Unit = {}
@@ -665,15 +646,9 @@ fun WalletActionButton(
             .clickable(onClick = onClick, enabled = clickable),
         horizontalArrangement = Arrangement.Center,
     ) {
-        NcIcon(
-            modifier = Modifier.size(if (useLargeFont) 24.dp else 18.dp),
-            painter = painterResource(id = iconId),
-            contentDescription = "Arrow",
-            tint = Color.White
-        )
         Text(
             modifier = Modifier.padding(start = 4.dp),
-            text = text, style = if (useLargeFont) NunchukTheme.typography.body else NunchukTheme.typography.titleSmall,
+            text = text, style = if (useLargeFont) NunchukTheme.typography.body else NunchukTheme.typography.bodySmall,
             color = Color.White
         )
     }
