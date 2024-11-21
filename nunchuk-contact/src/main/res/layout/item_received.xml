@@ -15,7 +15,8 @@
         android:src="@drawable/ic_accept"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/nc_text_primary" />
 
     <ImageView
         android:id="@+id/cancel"
@@ -26,7 +27,8 @@
         android:src="@drawable/ic_cancel"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/accept"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/nc_text_primary" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/avatar"

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/nc_bottom_sheet_background"
     android:orientation="vertical"
     android:paddingBottom="@dimen/nc_padding_24"
-    xmlns:tools="http://schemas.android.com/tools"
     app:behavior_hideable="true"
     app:behavior_peekHeight="90dp">
 
@@ -23,7 +23,8 @@
             android:layout_height="@dimen/nc_padding_24"
             android:layout_alignParentStart="true"
             android:foreground="?android:selectableItemBackground"
-            android:src="@drawable/ic_close" />
+            android:src="@drawable/ic_close"
+            app:tint="@color/nc_text_primary" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/addBtn"
@@ -41,7 +42,8 @@
             android:layout_height="@dimen/nc_padding_24"
             android:layout_alignParentEnd="true"
             android:foreground="?android:selectableItemBackground"
-            android:src="@drawable/ic_send" />
+            android:src="@drawable/ic_send"
+            app:tint="@color/nc_text_primary" />
 
     </RelativeLayout>
 
@@ -89,7 +91,8 @@
                     android:backgroundTint="@color/nc_bg_mid_gray"
                     android:hint="@string/nc_contacts_type_email_here"
                     android:inputType="textEmailAddress"
-                    android:textColor="@color/nc_primary_color"
+                    android:textColor="@color/nc_text_primary"
+                    android:textColorHint="@color/nc_text_secondary"
                     android:textSize="@dimen/nc_text_size_16" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
@@ -108,8 +111,8 @@
         android:text="@string/nc_contact_valid_email_address"
         android:textColor="@color/nc_red_color"
         android:textSize="@dimen/nc_text_size_14"
-        tools:visibility="visible"
-        android:visibility="gone" />
+        android:visibility="gone"
+        tools:visibility="visible" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/tv_error_userName"
@@ -122,8 +125,8 @@
         android:text="@string/nc_user_name_invalid"
         android:textColor="@color/nc_red_color"
         android:textSize="@dimen/nc_text_size_14"
-        tools:visibility="visible"
-        android:visibility="gone" />
+        android:visibility="gone"
+        tools:visibility="visible" />
 
 
 </androidx.appcompat.widget.LinearLayoutCompat>

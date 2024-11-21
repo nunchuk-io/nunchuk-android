@@ -4,5 +4,5 @@
 
     <corners android:radius="@dimen/nc_padding_32" />
 
-    <solid android:color="#D0E2FF" />
+    <solid android:color="@color/nc_fill_denim" />
 </shape>

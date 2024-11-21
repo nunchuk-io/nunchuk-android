@@ -86,10 +86,10 @@
     </style>
 
     <style name="NCTabLayout.Light" parent="NCTabLayout">
-        <item name="tabIndicatorColor">@color/nc_primary_color</item>
-        <item name="tabBackground">@color/nc_white_color</item>
-        <item name="tabSelectedTextColor">@color/nc_primary_color</item>
-        <item name="tabTextColor">@color/nc_primary_color</item>
+        <item name="tabIndicatorColor">@color/nc_text_primary</item>
+        <item name="tabBackground">@color/nc_bg_mid_gray</item>
+        <item name="tabSelectedTextColor">@color/nc_text_primary</item>
+        <item name="tabTextColor">@color/nc_text_primary</item>
     </style>
 
     <style name="NCTextAppearance" parent="TextAppearance.Design.Tab">
