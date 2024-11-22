@@ -48,6 +48,7 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.wallet.WalletSecurityArgs
 import com.nunchuk.android.core.wallet.WalletSecurityType
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.campaigns.CampaignType
 import com.nunchuk.android.settings.AccountEvent.SignOutEvent
 import com.nunchuk.android.settings.databinding.FragmentAccountBinding
 import com.nunchuk.android.utils.parcelable
@@ -152,7 +153,8 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
 
         binding.premiumBadge.isVisible = state.plans.isNotEmpty()
         binding.premiumBadge.text = getPlanName(state.plans)
-        binding.inviteFriendsView.isVisible = state.campaign?.isValid().orFalse() && state.isHasWallet
+        binding.inviteFriendsView.isVisible = state.campaign?.isValid().orFalse() && (state.isHasWallet ||  state.campaign?.type == CampaignType.DOWNLOAD)
+        binding.llCampaigns.isVisible = state.campaign?.cta.isNullOrEmpty().not() && state.campaign?.type != CampaignType.DOWNLOAD
         binding.tvCampaigns.text = state.campaign?.cta.orEmpty()
     }
 
