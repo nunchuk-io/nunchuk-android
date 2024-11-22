@@ -38,7 +38,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -59,6 +58,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.SignersModelProvider
@@ -216,7 +216,7 @@ private fun SignerCard(
                 ),
             )
         }
-        RadioButton(selected = isSelected, onClick = {
+        NcRadioButton(selected = isSelected, onClick = {
             onSignerSelected(signer)
         })
     }

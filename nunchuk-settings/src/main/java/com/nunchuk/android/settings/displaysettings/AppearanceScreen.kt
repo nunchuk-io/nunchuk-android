@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcIcon
+import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTopAppBar
@@ -143,14 +142,10 @@ fun ThemeCard(
             )
         }
 
-        RadioButton(
+        NcRadioButton(
             selected = checked,
             onClick = onClicked,
             modifier = Modifier.align(Alignment.TopEnd),
-            colors = RadioButtonDefaults.colors(
-                selectedColor = MaterialTheme.colorScheme.textPrimary,
-                unselectedColor = MaterialTheme.colorScheme.textPrimary
-            )
         )
     }
 }

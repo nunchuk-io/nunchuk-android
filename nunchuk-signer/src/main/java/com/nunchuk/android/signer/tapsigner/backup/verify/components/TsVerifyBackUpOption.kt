@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,10 +33,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NunchukTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TsVerifyBackUpOption(
     modifier: Modifier = Modifier,
@@ -54,7 +53,7 @@ fun TsVerifyBackUpOption(
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(selected = isSelected, onClick = onClick)
+            NcRadioButton(selected = isSelected, onClick = onClick)
             Column {
                 Text(text = label, style = NunchukTheme.typography.title)
                 if (isRecommend) {

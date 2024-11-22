@@ -16,7 +16,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -40,6 +39,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcDatePickerDialog
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
@@ -168,7 +168,7 @@ fun HealthCheckReminderScreenContent(
                     )
 
                     CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
-                        RadioButton(
+                        NcRadioButton(
                             selected = selectReminderFrequency == reminder,
                             onClick = {
                                 onCheckedChange(reminder)

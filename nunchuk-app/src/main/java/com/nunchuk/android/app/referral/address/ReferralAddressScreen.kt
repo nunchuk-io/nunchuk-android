@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,7 +51,9 @@ import com.nunchuk.android.app.referral.confirmationcode.REFERRAL_CONFIRMATION_C
 import com.nunchuk.android.app.referral.simplifyAddress
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcHintMessage
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTextField
@@ -336,7 +337,7 @@ fun ReferralAddressScreen(
                                 style = NunchukTheme.typography.body
                             )
 
-                            Image(
+                            NcIcon(
                                 modifier = Modifier
                                     .size(25.dp),
                                 painter = painterResource(id = R.drawable.ic_qrcode_dark),
@@ -410,7 +411,7 @@ private fun OptionItem(
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(
+            NcRadioButton(
                 selected = isSelected, onClick = onClick, colors = RadioButtonDefaults.colors(
                     disabledUnselectedColor = colorResource(id = R.color.nc_color_031F2B_40),
                 ),

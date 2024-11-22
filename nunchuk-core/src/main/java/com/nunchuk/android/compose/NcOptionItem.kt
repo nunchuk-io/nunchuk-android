@@ -36,7 +36,7 @@ fun NcOptionItem(
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(modifier = Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(modifier = Modifier.size(24.dp), selected = isSelected, onClick = onClick)
+            NcRadioButton(modifier = Modifier.size(24.dp), selected = isSelected, onClick = onClick)
             Text(
                 modifier = Modifier.padding(start = 12.dp),
                 text = label,

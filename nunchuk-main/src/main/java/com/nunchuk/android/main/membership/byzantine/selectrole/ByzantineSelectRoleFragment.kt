@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,8 +36,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
@@ -164,7 +162,6 @@ private fun SelectRoleContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OptionItem(
     modifier: Modifier = Modifier,
@@ -185,13 +182,13 @@ private fun OptionItem(
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(modifier = Modifier.padding(horizontal = 8.dp)) {
-            RadioButton(selected = isSelected, onClick = onClick)
+            NcRadioButton(selected = isSelected, onClick = onClick)
             Column(modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 8.dp)) {
                 Text(text = title, style = NunchukTheme.typography.title)
                 if (hint.isNotEmpty()) {
                     Text(
                         text = hint,
-                        style = NunchukTheme.typography.bodySmall.copy(color = NcColor.greyDark)
+                        style = NunchukTheme.typography.bodySmall.copy(color = colorResource(R.color.nc_text_secondary))
                     )
                 }
                 Text(text = desc, style = NunchukTheme.typography.body)

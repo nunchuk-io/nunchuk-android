@@ -14,7 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -33,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 
@@ -167,6 +167,6 @@ fun SortRadioButtonItem(
             text = text,
             style = NunchukTheme.typography.body
         )
-        RadioButton(selected = isSelected, onClick = onClick)
+        NcRadioButton(selected = isSelected, onClick = onClick)
     }
 }

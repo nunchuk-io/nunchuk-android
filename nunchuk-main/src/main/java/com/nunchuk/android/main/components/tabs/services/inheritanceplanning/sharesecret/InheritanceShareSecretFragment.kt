@@ -46,6 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
@@ -188,7 +189,7 @@ private fun OptionItem(
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(selected = isSelected, onClick = onClick)
+            NcRadioButton(selected = isSelected, onClick = onClick)
             Column(modifier = Modifier.padding(start = 12.dp)) {
                 Text(text = title, style = NunchukTheme.typography.title)
                 Text(text = desc, style = NunchukTheme.typography.body)

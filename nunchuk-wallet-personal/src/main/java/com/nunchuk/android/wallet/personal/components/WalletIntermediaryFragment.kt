@@ -189,7 +189,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             binding.btnCreateNewWallet.setBackgroundResource(if (assistedVisible) R.drawable.nc_rounded_light_background else R.drawable.nc_rounded_dark_background)
             val textColor = ContextCompat.getColor(
                 requireActivity(),
-                if (assistedVisible) R.color.nc_fill_primary else R.color.nc_text_primary
+                if (assistedVisible) R.color.nc_fill_primary else R.color.nc_control_text_primary
             )
             binding.btnCreateNewWallet.setTextColor(textColor)
         }

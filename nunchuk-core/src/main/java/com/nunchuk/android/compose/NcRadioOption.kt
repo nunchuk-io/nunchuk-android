@@ -13,7 +13,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -51,7 +50,7 @@ fun NcRadioOption(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
-                RadioButton(
+                NcRadioButton(
                     modifier = Modifier.padding(),
                     selected = isSelected,
                     enabled = enabled,
@@ -71,7 +70,7 @@ fun NcRadioOption(
 @Composable
 fun NcRadioOptionPreview() {
     NunchukTheme {
-        NcRadioOption {
+        NcRadioOption(isSelected = true) {
             Text(text = "A master account and secondary account(s) control three keys; Nunchuk holds the fourth key on our secure server to assist in inheritance planning and daily wallet operation.")
         }
     }

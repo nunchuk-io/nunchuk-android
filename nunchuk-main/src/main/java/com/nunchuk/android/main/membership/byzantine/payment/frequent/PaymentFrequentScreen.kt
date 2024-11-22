@@ -13,7 +13,6 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -36,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NcDatePickerDialog
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcSnackBarHost
 import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcTextField
@@ -286,7 +286,7 @@ private fun FrequencyOption(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(text = text, style = NunchukTheme.typography.body)
-        RadioButton(selected = isSelected, onClick = onClick)
+        NcRadioButton(selected = isSelected, onClick = onClick)
     }
 }
 

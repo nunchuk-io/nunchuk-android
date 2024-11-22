@@ -40,7 +40,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -69,6 +68,7 @@ import com.google.android.material.datepicker.MaterialDatePicker
 import com.nunchuk.android.compose.InputSwitchCurrencyView
 import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.strokePrimary
@@ -481,7 +481,7 @@ private fun CoinFilterContent(
                                         text = stringResource(R.string.nc_sort_in_descending_order),
                                         style = NunchukTheme.typography.body
                                     )
-                                    RadioButton(modifier = Modifier.align(alignment = Alignment.CenterEnd),
+                                    NcRadioButton(modifier = Modifier.align(alignment = Alignment.CenterEnd),
                                         selected = isDescending,
                                         onClick = { isDescending = true })
                                 }
@@ -494,7 +494,7 @@ private fun CoinFilterContent(
                                         text = stringResource(R.string.nc_sort_in_ascending_order),
                                         style = NunchukTheme.typography.body
                                     )
-                                    RadioButton(modifier = Modifier.align(alignment = Alignment.CenterEnd),
+                                    NcRadioButton(modifier = Modifier.align(alignment = Alignment.CenterEnd),
                                         selected = isDescending.not(),
                                         onClick = { isDescending = false })
                                 }

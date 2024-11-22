@@ -217,7 +217,7 @@ private fun OptionItem(
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(selected = isSelected, onClick = onClick)
+            NcRadioButton(selected = isSelected, onClick = onClick)
             Text(text = label, style = NunchukTheme.typography.title)
         }
     }
