@@ -51,6 +51,8 @@
         android:id="@+id/slider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:trackColor="@color/nc_text_primary"
+        app:thumbColor="@color/nc_text_primary"
         app:labelBehavior="gone"
         android:stepSize="1"
         android:value="1"

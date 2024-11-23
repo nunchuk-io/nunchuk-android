@@ -42,6 +42,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
 import com.nunchuk.android.compose.quickSilver
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
@@ -88,7 +89,7 @@ fun HealthCheckContent(
                         Text(
                             text = "Reminders",
                             style = NunchukTheme.typography.title,
-                            color = if (isEnable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.quickSilver,
+                            color = if (isEnable) MaterialTheme.colorScheme.textPrimary else MaterialTheme.colorScheme.quickSilver,
                             textDecoration = TextDecoration.Underline,
                             modifier = Modifier
                                 .padding(end = 16.dp)
@@ -200,7 +201,8 @@ private fun HealthCheckItem(
                 resId = signer.toReadableDrawableResId(),
                 size = 48.dp,
                 iconSize = 24.dp,
-                color = color
+                color = color,
+                iconTintColor = colorResource(id = R.color.nc_grey_g7)
             )
 
             Column(
