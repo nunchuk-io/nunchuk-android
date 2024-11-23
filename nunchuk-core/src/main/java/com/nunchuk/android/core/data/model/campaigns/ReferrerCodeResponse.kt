@@ -13,11 +13,12 @@ data class ReferrerCodeResponse(
     @SerializedName("receive_address_hash") val receiveAddressHash: String?,
     @SerializedName("campaign") val campaign: CampaignResponse?,
     @SerializedName("text_template") val textTemplate: String?,
-    @SerializedName("metadata") val metaData: ReferrerMetaDataResponse?
+    @SerializedName("metadata") val metaData: ReferrerMetaDataResponse?,
+    @SerializedName("status") val status: String?,
 )
 
 data class ReferrerMetaDataResponse(
     @SerializedName("redirect_url") val redirectUrl: String?,
     @SerializedName("current_downloaded") val currentDownloaded: Int?,
-    @SerializedName("required_downloaded") val requiredDownloaded: Int?
+    @SerializedName("required_downloaded") val requiredDownloaded: Int?,
 )

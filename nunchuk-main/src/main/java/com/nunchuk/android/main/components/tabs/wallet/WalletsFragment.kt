@@ -24,7 +24,6 @@ import android.app.Dialog
 import android.content.res.ColorStateList
 import android.nfc.tech.IsoDep
 import android.os.Bundle
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -106,7 +105,9 @@ import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.campaigns.Campaign
+import com.nunchuk.android.model.campaigns.CampaignStatus
 import com.nunchuk.android.model.campaigns.CampaignType
+import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.isByzantineOrFinney
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.signer.satscard.SatsCardActivity
@@ -370,7 +371,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 )
             }
 
-            is WalletsEvent.CheckLeaveRoom -> openInputAmountScreen(event.walletExtended, event.isLeaveRoom)
+            is WalletsEvent.CheckLeaveRoom -> openInputAmountScreen(
+                event.walletExtended,
+                event.isLeaveRoom
+            )
         }
         walletsViewModel.clearEvent()
     }
@@ -429,7 +433,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         showConnectionBlockchainStatus(state)
         showIntro(state)
         showPendingWallet(state)
-        showCampaign(state.campaign, state.wallets.isNotEmpty())
+        showCampaign(state.campaign, state.wallets.isNotEmpty(), state.localReferrerCode)
         showTotalBalance(state)
         binding.contentContainer.isVisible = isShowEmptyState(state).not()
         binding.emptyStateView.isVisible = isShowEmptyState(state)
@@ -465,8 +469,13 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         }
     }
 
-    private fun showCampaign(campaign: Campaign?, isHasWallet: Boolean = false) {
-        binding.llCampaigns.isVisible = campaign?.isValid() == true && campaign.isDismissed.not() && (campaign.type == CampaignType.DOWNLOAD || isHasWallet)
+    private fun showCampaign(
+        campaign: Campaign?,
+        isHasWallet: Boolean = false,
+        localReferrerCode: ReferrerCode?
+    ) {
+        binding.llCampaigns.isVisible =
+            campaign?.isValid() == true && campaign.isDismissed.not() && (campaign.type == CampaignType.DOWNLOAD || isHasWallet) && localReferrerCode?.status != CampaignStatus.COMPLETED
         binding.tvCampaigns.text = campaign?.cta
     }
 

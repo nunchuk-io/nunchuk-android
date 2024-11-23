@@ -1,6 +1,5 @@
 package com.nunchuk.android.app.referral.invitefriend
 
-import androidx.appcompat.app.AppCompatDelegate.NightMode
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -67,6 +66,7 @@ import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.html.HtmlText
 import com.nunchuk.android.core.referral.ReferralArgs
 import com.nunchuk.android.core.util.openExternalLink
+import com.nunchuk.android.model.campaigns.CampaignStatus
 import com.nunchuk.android.model.campaigns.CampaignType
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.utils.EmailValidator
@@ -118,7 +118,8 @@ fun NavGraphBuilder.referralInviteFriend(
             }
         }
 
-        ReferralInviteFriendScreen(args = args,
+        ReferralInviteFriendScreen(
+            args = args,
             state = state,
             navController = navController,
             snackState = snackState,
@@ -128,27 +129,34 @@ fun NavGraphBuilder.referralInviteFriend(
             },
             onShowEmailAlreadyExistDialogConsumed = { isYesClick, inputEmail ->
                 viewModel.onShowEmailAlreadyExistDialogConsumed(isYesClick, inputEmail)
-            }, onForceShowInputEmail = {
+            },
+            onForceShowInputEmail = {
                 viewModel.setForceShowInputEmail(it)
-            }, onCopyToClipboard = {
+            },
+            onCopyToClipboard = {
                 state.localReferrerCode?.link?.let { link ->
                     onCopyToClipboard(link)
                 }
-            }, onChangeAddress = {
+            },
+            onChangeAddress = {
                 onChangeAddress(
                     viewModel.getReceiveAddress(),
                     viewModel.getSelectWalletId(),
                     viewModel.isHasLocalReferrerCode()
                 )
-            }, onViewReferralAddress = {
+            },
+            onViewReferralAddress = {
                 if (viewModel.getEmail().isNotEmpty()) {
                     onViewReferralAddress(viewModel.getEmail())
                 }
-            }, onShowReceiveAddressResult = {
+            },
+            onShowReceiveAddressResult = {
                 viewModel.getReferrerCodeByEmail(viewModel.getEmail(), it)
-            }, onChangeReceiveAddress = {
+            },
+            onChangeReceiveAddress = {
                 viewModel.updateReceiveAddress(resultData = it)
-            }, onShareLink = onShareLink,
+            },
+            onShareLink = onShareLink,
             onPickReceiveAddressResult = {
                 viewModel.updatePickTempAddress(it)
             },
@@ -450,7 +458,9 @@ fun ReferralInviteFriendScreen(
                 Text(text = state.localReferrerCode.email, style = NunchukTheme.typography.body)
             }
 
-            if (isDownloadCampaignType && state.localReferrerCode != null && state.forceShowInputEmail.not()) {
+            if (isDownloadCampaignType && state.localReferrerCode != null && state.forceShowInputEmail.not()
+                && state.localReferrerCode.status != CampaignStatus.COMPLETED
+            ) {
                 Row(modifier = Modifier.padding(top = if (state.isLoginByEmail) 8.dp else 16.dp)) {
                     Text(
                         modifier = Modifier.weight(1f),

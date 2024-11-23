@@ -12,7 +12,7 @@ data class Campaign(
     val cta: String,
     val dismissible: Boolean,
     val isDismissed: Boolean,
-    val type: CampaignType
+    val type: CampaignType?,
 ) : Parcelable {
     companion object {
         fun empty() = Campaign(

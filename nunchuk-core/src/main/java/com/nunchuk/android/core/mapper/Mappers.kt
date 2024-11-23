@@ -42,6 +42,7 @@ import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
 import com.nunchuk.android.model.byzantine.toAlertType
 import com.nunchuk.android.model.campaigns.Campaign
+import com.nunchuk.android.model.campaigns.CampaignStatus
 import com.nunchuk.android.model.campaigns.CampaignType
 import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.campaigns.ReferrerMetaData
@@ -351,7 +352,8 @@ internal fun ReferrerCodeResponse.toModel() = ReferrerCode(
     receiveAddressHash = receiveAddressHash.orEmpty(),
     textTemplate = textTemplate.orEmpty(),
     campaign = campaign?.toModel() ?: Campaign.empty(),
-    metaData = metaData?.toModel()
+    metaData = metaData?.toModel(),
+    status = CampaignStatus.valueOf(status.orEmpty())
 )
 
 internal fun ReferrerMetaDataResponse.toModel() = ReferrerMetaData(

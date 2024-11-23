@@ -14,6 +14,7 @@ data class ReferrerCode(
     val localWalletId: String = "",
     val email: String = "",
     val metaData: ReferrerMetaData?,
+    val status: CampaignStatus? = CampaignStatus.NONE,
 ) : Parcelable {
     fun getDisplayDownloaded(): String {
         val currentDownloaded = metaData?.currentDownloaded ?: 0

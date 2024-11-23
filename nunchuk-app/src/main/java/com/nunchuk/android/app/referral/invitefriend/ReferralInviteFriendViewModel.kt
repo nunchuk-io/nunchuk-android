@@ -66,7 +66,7 @@ class ReferralInviteFriendViewModel @Inject constructor(
     fun init(campaign: Campaign, localReferrerCode: ReferrerCode?) {
         if (isInitialized) return
         isInitialized = true
-        campaignType = campaign.type
+        campaignType = campaign.type ?: CampaignType.GENERAL
         _state.update {
             it.copy(campaign = campaign, localReferrerCode = localReferrerCode)
         }
