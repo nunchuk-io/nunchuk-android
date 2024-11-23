@@ -611,7 +611,8 @@ fun ShortcutsView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             WalletActionButton(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f)
+                    .alpha(if (isHasBalance) 1f else 0.5f),
                 text = stringResource(id = R.string.nc_send),
                 useLargeFont = useLargeFont,
                 onClick = onSendClick,
