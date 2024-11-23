@@ -56,7 +56,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
@@ -608,11 +608,11 @@ fun AddKeyCard(
         Box(
             modifier = modifier.background(
                 color = if (item.verifyType != VerifyType.NONE) {
-                    colorResource(id = R.color.nc_green_color)
+                    colorResource(id = R.color.nc_fill_slime)
                 } else if (isDisabled) {
                     colorResource(id = R.color.nc_grey_dark_color)
                 } else {
-                    colorResource(id = R.color.nc_beeswax_tint)
+                    colorResource(id = R.color.nc_fill_beewax)
                 },
                 shape = RoundedCornerShape(8.dp)
             ),
@@ -623,7 +623,6 @@ fun AddKeyCard(
             ) {
                 NcCircleImage(
                     resId = item.signer.toReadableDrawableResId(),
-                    color = colorResource(id = R.color.nc_white_color)
                 )
                 Column(
                     modifier = Modifier
@@ -683,7 +682,7 @@ fun AddKeyCard(
         if (item.verifyType != VerifyType.NONE) {
             Box(
                 modifier = modifier.background(
-                    colorResource(id = R.color.nc_green_color),
+                    colorResource(id = R.color.nc_fill_slime),
                     shape = RoundedCornerShape(8.dp)
                 ),
                 contentAlignment = Alignment.Center,
@@ -763,7 +762,7 @@ private fun ConfigItem(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 fun AddKeyListScreenIronHandPreview(
     @PreviewParameter(SignerModelProvider::class) signer: SignerModel,
@@ -786,7 +785,7 @@ fun AddKeyListScreenIronHandPreview(
     )
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 fun AddKeyListScreenHoneyBadgerPreview(
     @PreviewParameter(SignerModelProvider::class) signer: SignerModel,

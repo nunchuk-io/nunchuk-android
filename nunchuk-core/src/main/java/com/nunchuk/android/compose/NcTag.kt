@@ -48,7 +48,7 @@ fun NcTag(
             .padding(horizontal = 8.dp, vertical = 2.dp),
         text = label,
         style = TextStyle(
-            fontSize = 10.sp, fontWeight = FontWeight.W900, fontFamily = latoBold
+            fontSize = 10.sp, fontWeight = FontWeight.W900, fontFamily = latoBold, color = colorResource(id = R.color.nc_text_primary)
         )
     )
 }

@@ -48,7 +48,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -277,7 +277,9 @@ fun StepWithEstTime(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = label, style = NunchukTheme.typography.body)
-        if (isCompleted) {
+        if (isCompleted || !isInProgress) {
+            val content = if (isCompleted) stringResource(R.string.nc_text_completed)
+            else stringResource(R.string.nc_est_time_in_mins, estInMinutes)
             Text(
                 modifier = Modifier
                     .border(
@@ -286,33 +288,26 @@ fun StepWithEstTime(
                         shape = RoundedCornerShape(20.dp)
                     )
                     .padding(horizontal = 10.dp, vertical = 4.dp),
-                text = stringResource(R.string.nc_text_completed),
+                text = content,
                 style = NunchukTheme.typography.caption
             )
         } else {
-            val modifier = if (isInProgress) Modifier
+            val modifier = Modifier
                 .background(
                     color = colorResource(id = R.color.nc_green_color),
-                    shape = RoundedCornerShape(20.dp)
-                )
-                .padding(horizontal = 10.dp, vertical = 4.dp)
-            else Modifier
-                .border(
-                    width = 1.dp,
-                    color = colorResource(id = R.color.nc_bg_mid_gray),
                     shape = RoundedCornerShape(20.dp)
                 )
                 .padding(horizontal = 10.dp, vertical = 4.dp)
             Text(
                 modifier = modifier,
                 text = stringResource(R.string.nc_est_time_in_mins, estInMinutes),
-                style = NunchukTheme.typography.caption
+                style = NunchukTheme.typography.caption.copy(color = colorResource(id = R.color.nc_grey_g7))
             )
         }
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 fun AddKeyStepScreenPreview() {
     AddKeyStepContent(

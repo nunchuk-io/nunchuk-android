@@ -41,7 +41,8 @@ fun getKeyOptions(context: Context,
                 type = SignerType.PORTAL_NFC.ordinal,
                 resId = if(shouldShowNewPortal) R.drawable.ic_new else 0,
                 label = context.getString(R.string.nc_portal),
-                showDivider = true
+                showDivider = true,
+                applyTint = false
             ),
             SheetOption(
                 type = SheetOptionType.TYPE_ADD_BITBOX,

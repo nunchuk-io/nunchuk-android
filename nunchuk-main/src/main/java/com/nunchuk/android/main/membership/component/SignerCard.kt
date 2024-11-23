@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
@@ -21,7 +20,6 @@ import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
-import com.nunchuk.android.main.R
 
 @Composable
 fun SignerCard(
@@ -45,11 +43,7 @@ fun SignerCard(
             Text(
                 modifier = Modifier.padding(top = 4.dp),
                 text = signer.getXfpOrCardIdLabel(),
-                style = NunchukTheme.typography.bodySmall.copy(
-                    color = colorResource(
-                        id = R.color.nc_grey_dark_color
-                    )
-                ),
+                style = NunchukTheme.typography.bodySmall,
             )
             if (isSelectable) {
                 NcTag(

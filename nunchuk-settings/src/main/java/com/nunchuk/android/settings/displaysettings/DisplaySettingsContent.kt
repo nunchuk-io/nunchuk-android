@@ -23,7 +23,6 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.model.ThemeMode
@@ -148,7 +147,7 @@ fun DisplaySettingsContent(
                         Text(
                             modifier = Modifier.padding(top = 4.dp),
                             text = stringResource(id = R.string.nc_hide_wallet_details_desc),
-                            style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.greyDark)
+                            style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.textSecondary)
                         )
                     }
 

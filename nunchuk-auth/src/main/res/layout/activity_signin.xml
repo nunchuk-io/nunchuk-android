@@ -153,7 +153,7 @@
         android:layout_margin="@dimen/nc_padding_16"
         android:gravity="center"
         android:text="@string/nc_text_term_and_policy_guest_mode"
-        android:textColorLink="@color/nc_primary_color"
+        android:textColorLink="@color/nc_text_primary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/guestMode" />
