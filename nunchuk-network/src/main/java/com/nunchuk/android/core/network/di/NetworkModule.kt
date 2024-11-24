@@ -22,6 +22,7 @@ package com.nunchuk.android.core.network.di
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.nunchuk.android.core.network.ApiConstant.BASE_STAG_URL
 import com.nunchuk.android.core.network.ApiConstant.BASE_TEST_NET_URL
 import com.nunchuk.android.core.network.ApiConstant.BASE_URL
 import com.nunchuk.android.core.network.ApiConstant.BASE_URL_MATRIX
@@ -87,6 +88,18 @@ class NetworkModule @Inject constructor() {
     ): Retrofit = Retrofit.Builder()
         .addConverterFactory(gsonConverterFactory)
         .baseUrl(BASE_TEST_NET_URL)
+        .client(client)
+        .build()
+
+    @Singleton
+    @Provides
+    @Named(STAG_RETROFIT)
+    fun provideNunchukStagRetrofit(
+        gsonConverterFactory: GsonConverterFactory,
+        @Named(APP_HTTP_CLIENT) client: OkHttpClient
+    ): Retrofit = Retrofit.Builder()
+        .addConverterFactory(gsonConverterFactory)
+        .baseUrl(BASE_STAG_URL)
         .client(client)
         .build()
 
