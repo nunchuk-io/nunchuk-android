@@ -354,7 +354,6 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.btcAmount.text = Utils.maskValue(wallet.getBTCAmount(), state.hideWalletDetailLocal)
         binding.cashAmount.text =
             Utils.maskValue(wallet.getCurrencyAmount(), state.hideWalletDetailLocal)
-        binding.ivSendBtc.isClickable = wallet.balance.value > 0
 
         binding.shareIcon.isVisible =
             state.walletExtended.isShared || state.isAssistedWallet || state.walletStatus == WalletStatus.REPLACED.name
