@@ -154,7 +154,7 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
         val textSpannable = SpannableString(confirmInstructionText).apply {
             setSpan(UnderlineSpan(), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             setSpan(
-                ForegroundColorSpan(getColor(R.color.nc_primary_color)),
+                ForegroundColorSpan(getColor(R.color.nc_text_primary)),
                 start,
                 end,
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE

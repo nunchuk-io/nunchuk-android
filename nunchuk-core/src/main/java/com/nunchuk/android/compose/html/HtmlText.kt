@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import androidx.core.text.HtmlCompat
+import com.nunchuk.android.compose.NunchukTheme
 
 private const val URL_TAG = "url_tag"
 
@@ -32,7 +33,7 @@ fun HtmlText(
     fontSize: TextUnit = 14.sp,
     flags: Int = HtmlCompat.FROM_HTML_MODE_COMPACT,
     URLSpanStyle: SpanStyle = SpanStyle(
-        color = linkTextColor(),
+        color = NunchukTheme.typography.body.color,
         textDecoration = TextDecoration.Underline
     ),
     customSpannedHandler: ((Spanned) -> AnnotatedString)? = null
@@ -67,11 +68,6 @@ fun HtmlText(
     }
 
 }
-
-@Composable
-private fun linkTextColor() = Color(
-    TextView(LocalContext.current).linkTextColors.defaultColor
-)
 
 @Composable
 private fun String.asHTML(
