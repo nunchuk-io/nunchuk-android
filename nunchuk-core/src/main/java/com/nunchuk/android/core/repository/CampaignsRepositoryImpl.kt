@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.core.repository
 
+import android.util.Log
 import com.google.gson.Gson
 import com.nunchuk.android.core.data.api.CampaignsApi
 import com.nunchuk.android.core.data.model.campaigns.CreateReferrerCodeRequest

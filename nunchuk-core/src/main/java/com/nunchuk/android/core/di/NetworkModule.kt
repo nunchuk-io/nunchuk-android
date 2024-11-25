@@ -25,7 +25,6 @@ import com.nunchuk.android.core.data.api.GroupWalletApi
 import com.nunchuk.android.core.data.api.PriceConverterAPI
 import com.nunchuk.android.core.data.api.TransactionApi
 import com.nunchuk.android.core.data.api.UserWalletsApi
-import com.nunchuk.android.network.util.STAG_RETROFIT
 import com.nunchuk.android.network.util.TEST_NET_RETROFIT
 import com.nunchuk.android.network.util.TEST_NET_USER_WALLET_API
 import dagger.Module
@@ -80,5 +79,5 @@ internal object NetworkModule {
 
     @Singleton
     @Provides
-    fun provideCampaignsApi(@Named(STAG_RETROFIT)retrofit: Retrofit): CampaignsApi = retrofit.create(CampaignsApi::class.java)
+    fun provideCampaignsApi(retrofit: Retrofit): CampaignsApi = retrofit.create(CampaignsApi::class.java)
 }
