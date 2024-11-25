@@ -19,11 +19,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.signer.R
 
 @Composable
@@ -64,7 +65,7 @@ fun BackingUpContent(
                     .clip(RoundedCornerShape(24.dp))
                     .height(8.dp)
                     .fillMaxWidth(),
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.textPrimary,
                 trackColor = colorResource(id = R.color.nc_bg_mid_gray),
             )
             val label = when {
@@ -78,7 +79,7 @@ fun BackingUpContent(
                     .align(alignment = Alignment.CenterHorizontally),
                 text = label,
                 style = NunchukTheme.typography.body.copy(
-                    color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                    color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.textPrimary
                 )
             )
             Spacer(modifier = Modifier.weight(1.0f))
@@ -98,20 +99,31 @@ fun BackingUpContent(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun UploadBackUpTapSignerScreenPreview() {
-    BackingUpContent(percentage = 75)
+    BackingUpContent(
+        percentage = 75,
+        description = "Backing up your wallet will allow you to restore your wallet on another device."
+    )
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun UploadBackUpTapSignerScreenFailedPreview() {
-    BackingUpContent(percentage = 75, isError = true)
+    BackingUpContent(
+        percentage = 75,
+        isError = true,
+        description = "Backing up your wallet will allow you to restore your wallet on another device."
+    )
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun UploadBackUpTapSignerScreen100Preview() {
-    BackingUpContent(percentage = 100, isError = false)
+    BackingUpContent(
+        percentage = 100,
+        isError = false,
+        description = "Backing up your wallet will allow you to restore your wallet on another device."
+    )
 }

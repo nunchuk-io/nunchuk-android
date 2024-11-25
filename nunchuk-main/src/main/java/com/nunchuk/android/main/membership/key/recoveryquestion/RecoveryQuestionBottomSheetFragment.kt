@@ -25,7 +25,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,7 +48,9 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeBottomSheet
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class RecoveryQuestionBottomSheetFragment : BaseComposeBottomSheet() {
 
     private val args: RecoveryQuestionBottomSheetFragmentArgs by navArgs()
