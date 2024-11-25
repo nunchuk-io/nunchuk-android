@@ -15,7 +15,8 @@
         android:src="@drawable/ic_notifications"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/nc_text_primary" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/textTitle"
@@ -27,7 +28,6 @@
         android:gravity="center"
         android:padding="@dimen/nc_padding_8"
         android:text="@string/nc_ssigner_primary_key_notification_title"
-        android:textColor="@android:color/black"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/introImg" />
 
@@ -40,7 +40,6 @@
         android:layout_marginTop="@dimen/nc_padding_16"
         android:gravity="center"
         android:text="@string/nc_ssigner_primary_key_notification_desc"
-        android:textColor="@android:color/black"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textTitle" />
 
