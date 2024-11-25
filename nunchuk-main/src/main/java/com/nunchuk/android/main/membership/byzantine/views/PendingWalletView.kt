@@ -36,11 +36,14 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.ActiveWallet
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.controlFillPrimary
+import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.compose.getWalletColors
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.whisper
@@ -214,7 +217,12 @@ fun RowScope.PendingWalletInviteMember(
             .height(36.dp)
             .defaultMinSize(minWidth = 62.dp)
             .background(
-                color = Color.White, shape = RoundedCornerShape(48.dp)
+                color = Color.Transparent, shape = RoundedCornerShape(48.dp)
+            )
+            .border(
+                width = 2.dp,
+                color = MaterialTheme.colorScheme.controlFillPrimary,
+                shape = RoundedCornerShape(48.dp)
             )
             .clickable {
                 onDeny()
@@ -224,7 +232,6 @@ fun RowScope.PendingWalletInviteMember(
         Text(
             modifier = Modifier.padding(horizontal = 16.dp),
             text = stringResource(id = R.string.nc_deny),
-            color = colorResource(id = R.color.nc_primary_color),
             style = NunchukTheme.typography.captionTitle
         )
     }
@@ -235,7 +242,8 @@ fun RowScope.PendingWalletInviteMember(
             .padding(start = 12.dp)
             .defaultMinSize(minWidth = 72.dp)
             .background(
-                color = colorResource(R.color.nc_primary_color), shape = RoundedCornerShape(48.dp)
+                color = MaterialTheme.colorScheme.controlFillPrimary,
+                shape = RoundedCornerShape(48.dp)
             )
             .clickable {
                 onAccept()
@@ -245,8 +253,9 @@ fun RowScope.PendingWalletInviteMember(
         Text(
             modifier = Modifier.padding(horizontal = 16.dp),
             text = stringResource(id = R.string.nc_accept),
-            color = colorResource(id = R.color.nc_white_color),
-            style = NunchukTheme.typography.captionTitle
+            style = NunchukTheme.typography.captionTitle.copy(
+                color = MaterialTheme.colorScheme.controlTextPrimary
+            )
         )
     }
 }
@@ -611,7 +620,8 @@ fun ShortcutsView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             WalletActionButton(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
                     .alpha(if (isHasBalance) 1f else 0.5f),
                 text = stringResource(id = R.string.nc_send),
                 useLargeFont = useLargeFont,
@@ -649,9 +659,28 @@ fun WalletActionButton(
     ) {
         Text(
             modifier = Modifier.padding(start = 4.dp),
-            text = text, style = if (useLargeFont) NunchukTheme.typography.body else NunchukTheme.typography.bodySmall,
+            text = text,
+            style = if (useLargeFont) NunchukTheme.typography.body else NunchukTheme.typography.bodySmall,
             color = Color.White
         )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun WalletInvitationPreview() {
+    NunchukTheme {
+        Row(
+            Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp)
+        ) {
+            PendingWalletInviteMember(
+                inviterName = "ThongLe20",
+                onAccept = {},
+                onDeny = {}
+            )
+        }
     }
 }
 
