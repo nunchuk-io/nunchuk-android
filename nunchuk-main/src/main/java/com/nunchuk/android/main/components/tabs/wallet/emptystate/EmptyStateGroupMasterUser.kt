@@ -9,7 +9,7 @@ class EmptyStateGroupMasterUser(
     private val navigator: NunchukNavigator,
     private val activityContext: Activity
 ) : EmptyStateProvider {
-    override fun getWizardData(conditionInfo: ConditionInfo): WizardData? {
+    override fun getWizardData(conditionInfo: ConditionInfo, isDark: Boolean): WizardData? {
         if (conditionInfo !is ConditionInfo.GroupMasterUser) return null
         return WizardData(
             title = activityContext.getString(R.string.nc_welcome_to_nunchuk),

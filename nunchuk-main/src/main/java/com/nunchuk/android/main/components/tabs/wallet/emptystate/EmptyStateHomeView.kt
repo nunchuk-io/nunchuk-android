@@ -100,6 +100,7 @@ fun EmptyStateHomeView(
                 isAutoExpandHeight = true
             ) {
                 Text(
+                    style = NunchukTheme.typography.titleSmall,
                     textAlign = TextAlign.Center,
                     text = contentData.buttonText,
                     color = MaterialTheme.colorScheme.controlTextPrimary,

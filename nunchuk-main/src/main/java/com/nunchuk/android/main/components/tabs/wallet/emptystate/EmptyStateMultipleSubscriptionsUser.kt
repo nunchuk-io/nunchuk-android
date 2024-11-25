@@ -9,7 +9,7 @@ class EmptyStateMultipleSubscriptionsUser(
     private val navigator: NunchukNavigator,
     private val activityContext: Activity
 ) : EmptyStateProvider {
-    override fun getWizardData(conditionInfo: ConditionInfo): WizardData? {
+    override fun getWizardData(conditionInfo: ConditionInfo, isDark: Boolean): WizardData? {
         if (conditionInfo !is ConditionInfo.MultipleSubscriptionsUser) return null
         return WizardData(
             title = activityContext.getString(R.string.nc_welcome_to_nunchuk),

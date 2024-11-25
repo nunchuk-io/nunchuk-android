@@ -10,7 +10,7 @@ class EmptyStateFreeGuestUser(
     private val activityContext: Activity
 ) :
     EmptyStateProvider {
-    override fun getWizardData(conditionInfo: ConditionInfo): WizardData? {
+    override fun getWizardData(conditionInfo: ConditionInfo, isDark: Boolean): WizardData? {
         if (conditionInfo !is ConditionInfo.FreeGuestUser) return null
         if (conditionInfo.hasSigner) {
             return WizardData(
@@ -21,7 +21,7 @@ class EmptyStateFreeGuestUser(
                 buttonAction = {
                     navigator.openWalletIntermediaryScreen(activityContext, true)
                 },
-                imageResId = R.drawable.bg_empty_state_free_account,
+                imageResId = if (isDark) R.drawable.bg_empty_state_free_account_dark else R.drawable.bg_empty_state_free_account,
                 backgroundColor = ContextCompat.getColor(activityContext, R.color.nc_fill_denim)
             )
         }
@@ -36,7 +36,7 @@ class EmptyStateFreeGuestUser(
             buttonAction = {
                 navigator.openSignerIntroScreen(activityContext)
             },
-            imageResId = R.drawable.bg_empty_state_free_account,
+            imageResId = if (isDark) R.drawable.bg_empty_state_free_account_dark else R.drawable.bg_empty_state_free_account,
             backgroundColor = ContextCompat.getColor(activityContext, R.color.nc_fill_beewax)
         )
     }

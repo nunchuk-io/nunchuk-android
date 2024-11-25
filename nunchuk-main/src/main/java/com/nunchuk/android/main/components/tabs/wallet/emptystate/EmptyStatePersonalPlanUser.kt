@@ -11,12 +11,15 @@ class EmptyStatePersonalPlanUser(
     private val navigator: NunchukNavigator,
     private val activityContext: Activity
 ) : EmptyStateProvider {
-    override fun getWizardData(conditionInfo: ConditionInfo): WizardData? {
+    override fun getWizardData(conditionInfo: ConditionInfo, isDark: Boolean): WizardData? {
         if (conditionInfo !is ConditionInfo.PersonalPlanUser) return null
         if (conditionInfo.resumeWizard) {
             return WizardData(
                 title = activityContext.getString(R.string.nc_you_almost_done),
-                subtitle = activityContext.getString(R.string.nc_estimate_remain_time, conditionInfo.resumeWizardMinutes),
+                subtitle = activityContext.getString(
+                    R.string.nc_estimate_remain_time,
+                    conditionInfo.resumeWizardMinutes
+                ),
                 instructions = emptyList(),
                 buttonText = activityContext.getString(R.string.nc_continue_setting_your_wallet),
                 buttonAction = {
@@ -54,19 +57,23 @@ class EmptyStatePersonalPlanUser(
                     )
                 }
             },
-            imageResId = if (conditionInfo.plan == MembershipPlan.HONEY_BADGER_PLUS) R.drawable.bg_empty_state_group_plan else R.drawable.bg_empty_state_personal_plan,
+            imageResId = if (conditionInfo.plan == MembershipPlan.HONEY_BADGER_PLUS) R.drawable.bg_empty_state_group_plan else {
+                if (isDark) R.drawable.bg_empty_state_personal_plan_dark else R.drawable.bg_empty_state_personal_plan
+            },
             backgroundColor = ContextCompat.getColor(activityContext, R.color.nc_fill_denim)
         )
     }
 
     override fun getKeyWalletEntryData(conditionInfo: ConditionInfo): List<KeyWalletEntryData> {
         if (conditionInfo !is ConditionInfo.PersonalPlanUser) return emptyList()
-        return listOf(KeyWalletEntryData(
-            title = activityContext.getString(R.string.nc_create_unassisted_wallet),
-            buttonAction = {
-                navigator.openWalletIntermediaryScreen(activityContext, conditionInfo.hasSigner)
-            },
-            iconResId = R.drawable.ic_wallet_empty_state
-        ))
+        return listOf(
+            KeyWalletEntryData(
+                title = activityContext.getString(R.string.nc_create_unassisted_wallet),
+                buttonAction = {
+                    navigator.openWalletIntermediaryScreen(activityContext, conditionInfo.hasSigner)
+                },
+                iconResId = R.drawable.ic_wallet_empty_state
+            )
+        )
     }
 }

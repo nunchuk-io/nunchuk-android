@@ -37,7 +37,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -83,46 +84,47 @@ class IntroAssistedWalletFragment : Fragment() {
 @Composable
 fun IntroAssistedWalletScreen(viewModel: IntroAssistedWalletViewModel = viewModel()) =
     NunchukTheme {
-        NunchukTheme {
-            Scaffold(
-                modifier = Modifier.navigationBarsPadding(),
-                topBar = {
-                    NcImageAppBar(
-                        backgroundRes = R.drawable.nc_bg_intro_assisted_wallet,
-                        backIconRes = R.drawable.ic_close
-                    )
-                },
-                bottomBar = {
-                    NcPrimaryDarkButton(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                        onClick = { viewModel.onContinueClicked() }) {
-                        Text(text = stringResource(id = R.string.nc_text_continue))
-                    }
-                },
-            ) { innerPadding ->
-                Column(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                ) {
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                NcImageAppBar(
+                    backgroundRes = if (NunchukTheme.isDark) R.drawable.nc_bg_intro_assisted_wallet_dark else R.drawable.nc_bg_intro_assisted_wallet,
+                    backIconRes = R.drawable.ic_close
+                )
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                    onClick = { viewModel.onContinueClicked() }) {
                     Text(
-                        modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                        text = stringResource(R.string.nc_welcome_assisted_wallet_title),
-                        style = NunchukTheme.typography.heading
-                    )
-                    Text(
-                        modifier = Modifier.padding(16.dp),
-                        text = stringResource(R.string.nc_welcome_assisted_wallet_desc),
-                        style = NunchukTheme.typography.body
+                        text = stringResource(id = R.string.nc_text_continue),
+                        fontWeight = FontWeight.Bold
                     )
                 }
+            },
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text(
+                    modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
+                    text = stringResource(R.string.nc_welcome_assisted_wallet_title),
+                    style = NunchukTheme.typography.heading
+                )
+                Text(
+                    modifier = Modifier.padding(16.dp),
+                    text = stringResource(R.string.nc_welcome_assisted_wallet_desc),
+                    style = NunchukTheme.typography.body
+                )
             }
         }
     }
 
-@Preview
+@PreviewLightDark
 @Composable
 fun IntroAssistedWalletScreenPreview() {
     IntroAssistedWalletScreen()

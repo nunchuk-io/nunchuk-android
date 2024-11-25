@@ -112,6 +112,10 @@ val LocalNunchukTypography = staticCompositionLocalOf {
     )
 }
 
+val LocalNunchukThemeMode = staticCompositionLocalOf {
+    true
+}
+
 object NunchukTheme {
     val typography: NunchukTypography
         @Composable
@@ -120,6 +124,10 @@ object NunchukTheme {
     val shape: NunchukShapes
         @Composable
         get() = LocalNunchukShapes.current
+
+    val isDark: Boolean
+        @Composable
+        get() = LocalNunchukThemeMode.current
 }
 
 @Composable
@@ -231,6 +239,7 @@ private fun NunchukThemeContent(
     )
     CompositionLocalProvider(
         LocalNunchukTypography provides nunchukTypography,
+        LocalNunchukThemeMode provides isDark,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

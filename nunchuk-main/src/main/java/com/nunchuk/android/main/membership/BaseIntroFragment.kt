@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcImageAppBar
@@ -82,7 +83,10 @@ fun BaseIntroScreen(
                     .padding(16.dp),
                 onClick = onContinueClicked
             ) {
-                Text(text = stringResource(id = R.string.nc_text_continue))
+                Text(
+                    text = stringResource(id = R.string.nc_text_continue),
+                    fontWeight = FontWeight.Bold
+                )
             }
         }) { innerPadding ->
         Column(

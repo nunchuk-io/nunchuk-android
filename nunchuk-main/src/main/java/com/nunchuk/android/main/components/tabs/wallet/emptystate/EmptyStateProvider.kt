@@ -5,7 +5,7 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.GroupWalletType
 
 interface EmptyStateProvider {
-    fun getWizardData(conditionInfo: ConditionInfo): WizardData?
+    fun getWizardData(conditionInfo: ConditionInfo, isDark: Boolean): WizardData?
     fun getKeyWalletEntryData(conditionInfo: ConditionInfo): List<KeyWalletEntryData>
 }
 

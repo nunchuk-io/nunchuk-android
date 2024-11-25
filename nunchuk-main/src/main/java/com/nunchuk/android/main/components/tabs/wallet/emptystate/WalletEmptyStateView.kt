@@ -101,7 +101,7 @@ internal fun WalletEmptyStateView(
 
             else -> EmptyStateNone()
         }
-        val contentData = emptyState.getWizardData(conditionInfo)
+        val contentData = emptyState.getWizardData(conditionInfo, NunchukTheme.isDark)
         val keyWalletEntryDataList = emptyState.getKeyWalletEntryData(conditionInfo)
 
         val onEmptyStateActionButtonClick = { contentData?.buttonAction?.invoke() }

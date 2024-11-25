@@ -81,7 +81,7 @@
         android:id="@+id/container_non_subscriber"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/nc_beeswax_tint"
+        android:background="@color/nc_fill_beewax"
         android:paddingHorizontal="@dimen/nc_padding_16"
         android:paddingVertical="@dimen/nc_padding_12"
         android:visibility="gone"
