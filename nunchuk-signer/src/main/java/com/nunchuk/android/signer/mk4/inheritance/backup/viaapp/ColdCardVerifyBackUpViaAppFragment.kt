@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -44,6 +46,7 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -155,7 +158,7 @@ internal fun ColdCardVerifyBackupViaAppScreen(
                 ) {
                     Text(
                         text = "Continue",
-                        style = NunchukTheme.typography.title.copy(color = Color.White)
+                        style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.controlTextPrimary)
                     )
                 }
             }
@@ -226,7 +229,7 @@ internal fun ColdCardVerifyBackupViaAppScreen(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun ColdCardVerifyBackupViaAppScreenPreview() {
     ColdCardVerifyBackupViaAppScreen()

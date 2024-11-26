@@ -386,7 +386,7 @@ fun RowScope.ByzantineBottomContent(
         Row(
             modifier = Modifier
                 .background(
-                    color = Color.White, shape = RoundedCornerShape(20.dp)
+                    color = colorResource(R.color.nc_background_primary), shape = RoundedCornerShape(20.dp)
                 )
                 .border(
                     width = 1.dp,
@@ -684,7 +684,7 @@ private fun WalletInvitationPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@PreviewLightDark
 @Composable
 fun PendingWalletViewPreview() {
     val walletsExtended = WalletExtended(

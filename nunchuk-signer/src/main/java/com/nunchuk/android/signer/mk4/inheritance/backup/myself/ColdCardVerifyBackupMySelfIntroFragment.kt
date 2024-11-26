@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -26,6 +28,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
@@ -84,7 +87,7 @@ fun ColdCardVerifyBackupMySelfIntroScreen(
                     ) {
                         Text(
                             text = stringResource(id = R.string.nc_text_continue),
-                            style = NunchukTheme.typography.title.copy(color = Color.White)
+                            style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.controlTextPrimary)
                         )
                     }
                 }
@@ -121,7 +124,7 @@ fun ColdCardVerifyBackupMySelfIntroScreen(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun ColdCardVerifyBackupMySelfIntroScreenPreview() {
     ColdCardVerifyBackupMySelfIntroScreen()

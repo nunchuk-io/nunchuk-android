@@ -26,6 +26,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.fragment.compose.content
@@ -133,16 +134,6 @@ internal fun ColdCardImportEncryptedBackUpScreen(
                     onClick = { onColdCardAction(ColdCardAction.FILE) }
                 )
 
-//                HorizontalDivider(
-//                    modifier = Modifier.padding(horizontal = 16.dp),
-//                    thickness = 0.5.dp
-//                )
-//
-//                ActionItem(
-//                    title = "Import via NFC",
-//                    iconId = R.drawable.ic_nfc_indicator_small,
-//                    onClick = { onColdCardAction(ColdCardAction.NFC) }
-//                )
             }
         }
     }
@@ -163,7 +154,6 @@ private fun ActionItem(
         Icon(
             painter = painterResource(id = iconId),
             contentDescription = "",
-            tint = colorResource(id = R.color.nc_primary_color),
             modifier = Modifier.size(24.dp)
         )
 
@@ -182,7 +172,7 @@ private fun ActionItem(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun ColdCardImportEncryptedBackUpScreenPreview() {
     ColdCardImportEncryptedBackUpScreen()
