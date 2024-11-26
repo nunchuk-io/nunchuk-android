@@ -43,6 +43,7 @@ import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.base.BaseComposeBottomSheet
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.HealthReminderFrequency
@@ -194,7 +195,7 @@ fun HealthCheckReminderScreenContent(
             textStyle = NunchukTheme.typography.body.copy(
                 color = if (selectReminderFrequency.isNone()) colorResource(
                     id = R.color.nc_boulder_color
-                ) else MaterialTheme.colorScheme.primary
+                ) else MaterialTheme.colorScheme.textPrimary
             ),
             onValueChange = {},
             enabled = false,

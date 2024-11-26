@@ -332,7 +332,7 @@ private fun HealthCheckReminderItem(
                     ) {
                         Text(
                             text = label,
-                            style = NunchukTheme.typography.titleSmall.copy(fontSize = 10.sp)
+                            style = NunchukTheme.typography.titleSmall.copy(fontSize = 10.sp, color = colorResource(R.color.nc_grey_g7))
                         )
                     }
                 }
@@ -345,7 +345,8 @@ private fun HealthCheckReminderItem(
                         resId = signer.toReadableDrawableResId(),
                         size = 48.dp,
                         iconSize = 24.dp,
-                        color = color
+                        color = color,
+                        iconTintColor = colorResource(R.color.nc_grey_g7)
                     )
 
                     Column(

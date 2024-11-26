@@ -199,7 +199,9 @@ private fun CheckBackUpByAppContent(
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
     NunchukTheme {
-        Scaffold(topBar = {
+        Scaffold(
+            modifier = Modifier.imePadding(),
+            topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.nc_bg_tap_signer_explain,
                 title = stringResource(R.string.nc_estimate_remain_time, remainingTime),

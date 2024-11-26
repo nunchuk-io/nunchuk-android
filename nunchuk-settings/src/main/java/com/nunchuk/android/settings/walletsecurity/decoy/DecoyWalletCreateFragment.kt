@@ -10,13 +10,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -29,6 +29,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -56,7 +57,10 @@ class DecoyWalletCreateFragment : Fragment() {
     ): View = content {
         val state by viewModel.state.collectAsStateWithLifecycle()
         DecoyWalletCreateScreen(onCreateDecoyWallet = {
-            navigator.openAddWalletScreen(activityContext = requireContext(), decoyPin = args.decoyPin)
+            navigator.openAddWalletScreen(
+                activityContext = requireContext(),
+                decoyPin = args.decoyPin
+            )
         }, onUseExistingWallet = {
             WalletComposeBottomSheet.show(
                 fragmentManager = childFragmentManager,
@@ -118,8 +122,12 @@ fun DecoyWalletCreateScreen(
                             .fillMaxWidth(),
                         onClick = onCreateDecoyWallet
                     ) {
-                        Text(text = "Create new decoy wallet",
-                            style = NunchukTheme.typography.title.copy(color = Color.White))
+                        Text(
+                            text = "Create new decoy wallet",
+                            style = NunchukTheme.typography.title.copy(
+                                color = MaterialTheme.colorScheme.controlTextPrimary
+                            )
+                        )
                     }
 
                     NcOutlineButton(
@@ -162,7 +170,7 @@ fun DecoyWalletCreateScreen(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun DecoyWalletCreateScreenPreview() {
     DecoyWalletCreateScreen()

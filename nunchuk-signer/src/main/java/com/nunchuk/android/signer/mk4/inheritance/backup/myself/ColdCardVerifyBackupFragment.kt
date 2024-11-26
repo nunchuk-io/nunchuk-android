@@ -20,7 +20,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,14 +28,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -46,9 +44,11 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NCLabelWithIndex
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.nav.NunchukNavigator
@@ -99,7 +99,9 @@ class ColdCardVerifyBackupFragment : MembershipFragment() {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when (event) {
-                        is ColdCardVerifyBackUpMyselfEvent.GetBackUpKeySuccess -> IntentSharingController.from(requireActivity())
+                        is ColdCardVerifyBackUpMyselfEvent.GetBackUpKeySuccess -> IntentSharingController.from(
+                            requireActivity()
+                        )
                             .shareFile(event.filePath)
                     }
                 }
@@ -137,7 +139,7 @@ internal fun ColdCardVerifyBackupScreen(
                 ) {
                     Text(
                         text = "Continue",
-                        style = NunchukTheme.typography.title.copy(color = Color.White)
+                        style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.controlTextPrimary)
                     )
                 }
 
@@ -149,7 +151,10 @@ internal fun ColdCardVerifyBackupScreen(
                         onSkip()
                     },
                 ) {
-                    Text(text = stringResource(R.string.I_will_comeback_to_this_later), color = MaterialTheme.colorScheme.textPrimary)
+                    Text(
+                        text = stringResource(R.string.I_will_comeback_to_this_later),
+                        style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.textPrimary)
+                    )
                 }
             }
 
@@ -178,7 +183,7 @@ internal fun ColdCardVerifyBackupScreen(
                             .size(24.dp)
                             .border(
                                 width = 2.dp,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = MaterialTheme.colorScheme.textPrimary,
                                 shape = CircleShape
                             ),
                         contentAlignment = Alignment.Center
@@ -189,18 +194,19 @@ internal fun ColdCardVerifyBackupScreen(
                         )
                     }
                     Text(
-                        modifier = Modifier.padding(start = 12.dp).clickable {
-                            onDownloadFile()
-                        },
+                        modifier = Modifier
+                            .padding(start = 12.dp)
+                            .clickable {
+                                onDownloadFile()
+                            },
                         text = "Download the encrypted backup file",
                         style = NunchukTheme.typography.title,
                         textDecoration = TextDecoration.Underline
                     )
 
-                    Icon(
+                    NcIcon(
                         painter = painterResource(id = R.drawable.ic_download),
                         contentDescription = "",
-                        tint = colorResource(id = R.color.nc_primary_color),
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -246,7 +252,7 @@ internal fun ColdCardVerifyBackupScreen(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun ColdCardVerifyBackupScreenPreview() {
     ColdCardVerifyBackupScreen()

@@ -66,7 +66,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
@@ -82,6 +82,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.compose.latoBold
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.domain.data.CheckFirmwareVersion
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_GENERATE_HEAL_CHECK_MSG
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_MK4_IMPORT_SIGNATURE
@@ -107,6 +108,7 @@ import com.nunchuk.android.core.wallet.WalletBottomSheetResult
 import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.model.HealthCheckHistory
 import com.nunchuk.android.model.KeyHealthType
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.signer.R
@@ -595,6 +597,7 @@ private fun SignerInfoContent(
                             resId = resId,
                             size = 96.dp,
                             iconSize = 60.dp,
+                            iconTintColor = colorResource(id = R.color.nc_grey_g7),
                             color = if (uiState.assistedWalletIds.isEmpty()) Color.White else color
                         )
                     }
@@ -624,13 +627,13 @@ private fun SignerInfoContent(
                             Text(
                                 modifier = Modifier
                                     .background(
-                                        color = colorResource(id = R.color.nc_beeswax_light),
+                                        color = colorResource(id = R.color.nc_fill_beewax),
                                         shape = RoundedCornerShape(20.dp)
                                     )
                                     .padding(horizontal = 8.dp),
                                 text = stringResource(id = R.string.nc_signer_type_primary_key),
                                 style = TextStyle(
-                                    color = MaterialTheme.colorScheme.primary,
+                                    color = MaterialTheme.colorScheme.textPrimary,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.W500,
                                     fontFamily = latoBold
@@ -657,7 +660,7 @@ private fun SignerInfoContent(
                                 .padding(horizontal = 8.dp),
                             text = signerType,
                             style = TextStyle(
-                                color = MaterialTheme.colorScheme.primary,
+                                color = MaterialTheme.colorScheme.textPrimary,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.W500,
                                 fontFamily = latoBold
@@ -762,11 +765,12 @@ private fun SignerInfoContent(
                             ) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_health_check_dark),
-                                    contentDescription = ""
+                                    contentDescription = "",
+                                    tint = colorResource(R.color.nc_grey_g7)
                                 )
                                 Text(
                                     text = label,
-                                    style = NunchukTheme.typography.bodySmall
+                                    style = NunchukTheme.typography.bodySmall.copy(color = colorResource(R.color.nc_grey_g7))
                                 )
                             }
 
@@ -849,10 +853,31 @@ fun HealthCheckHistoryItem(history: HealthCheckHistory, onHistoryItemClick: () -
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun SignerInfoScreenPreview() {
     SignerInfoContent(
         justAdded = true,
+        uiState = SignerInfoState(
+            signerName = "Key",
+            masterSigner = MasterSigner(
+                type = SignerType.NFC
+            ),
+        )
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun SignerInfoAssistedScreenPreview() {
+    SignerInfoContent(
+        justAdded = true,
+        uiState = SignerInfoState(
+            signerName = "Key",
+            masterSigner = MasterSigner(
+                type = SignerType.NFC
+            ),
+            assistedWalletIds = listOf("abc")
+        )
     )
 }

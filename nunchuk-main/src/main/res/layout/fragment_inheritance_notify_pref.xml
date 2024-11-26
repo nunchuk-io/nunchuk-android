@@ -149,7 +149,7 @@
                 android:id="@+id/notify_check"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:buttonTint="@color/nc_primary_color"
+                app:buttonTint="@color/nc_text_primary"
                 app:layout_constraintBaseline_toBaselineOf="@+id/notify_title"
                 app:layout_constraintEnd_toEndOf="parent" />
 

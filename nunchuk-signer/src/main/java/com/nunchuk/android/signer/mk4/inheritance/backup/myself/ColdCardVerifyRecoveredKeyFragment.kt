@@ -26,11 +26,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -42,6 +41,7 @@ import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.util.showError
@@ -141,7 +141,7 @@ internal fun ColdCardVerifyRecoveredKeyScreen(
                     }) {
                     Text(
                         text = "I have verified the backup",
-                        style = NunchukTheme.typography.title.copy(color = Color.White)
+                        style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.controlTextPrimary)
                     )
                 }
 
@@ -153,7 +153,10 @@ internal fun ColdCardVerifyRecoveredKeyScreen(
                         onSkip()
                     },
                 ) {
-                    Text(text = stringResource(R.string.I_will_comeback_to_this_later), color = MaterialTheme.colorScheme.textPrimary)
+                    Text(
+                        text = stringResource(R.string.I_will_comeback_to_this_later),
+                        style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.textPrimary)
+                    )
                 }
             }
 
@@ -211,7 +214,7 @@ internal fun ColdCardVerifyRecoveredKeyScreen(
                     modifier = Modifier
                         .padding(top = 8.dp)
                         .background(
-                            color = colorResource(R.color.nc_beeswax_tint),
+                            color = colorResource(R.color.nc_fill_beewax),
                             shape = RoundedCornerShape(12.dp)
                         )
                 ) {
@@ -247,7 +250,7 @@ internal fun ColdCardVerifyRecoveredKeyScreen(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun ColdCardVerifyRecoveredKeyScreenPreview() {
     NunchukTheme {

@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.relocation.BringIntoViewRequester
@@ -344,7 +345,7 @@ private fun BatchTransactionContent(
 
     NunchukTheme {
         Scaffold(
-            modifier = Modifier.imePadding(),
+            modifier = Modifier.systemBarsPadding().imePadding(),
             topBar = {
                 NcTopAppBar(
                     title = stringResource(id = R.string.nc_batched_transaction),

@@ -15,21 +15,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.nav.NunchukNavigator
@@ -177,10 +176,9 @@ private fun ActionItem(
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
+        NcIcon(
             painter = painterResource(id = iconId),
             contentDescription = "",
-            tint = colorResource(id = R.color.nc_primary_color),
             modifier = Modifier.size(24.dp)
         )
 
@@ -192,14 +190,14 @@ private fun ActionItem(
             style = NunchukTheme.typography.body
         )
 
-        Icon(
+        NcIcon(
             painter = painterResource(id = R.drawable.ic_arrow),
             contentDescription = "",
         )
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun ColdCardIntroScreenPreview() {
     ColdCardIntroScreen()

@@ -3,7 +3,6 @@ package com.nunchuk.android.settings.walletsecurity.pin
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +25,7 @@ import androidx.fragment.app.viewModels
 import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTopAppBar
@@ -155,7 +155,7 @@ fun PinStatusContent(
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
+                    NcIcon(
                         painter = painterResource(id = R.drawable.ic_password),
                         contentDescription = "PIN"
                     )
@@ -165,7 +165,7 @@ fun PinStatusContent(
                         style = NunchukTheme.typography.body,
                     )
                     Spacer(modifier = Modifier.weight(1f))
-                    Image(
+                    NcIcon(
                         painter = painterResource(id = R.drawable.ic_right_arrow_dark),
                         contentDescription = "Right arrow"
                     )

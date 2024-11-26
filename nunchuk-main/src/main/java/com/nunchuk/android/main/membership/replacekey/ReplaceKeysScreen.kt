@@ -32,7 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -251,9 +251,9 @@ fun ReplaceKeyCard(
         Box(
             modifier = modifier.background(
                 color = if (isReplaced && !isNeedVerify)
-                    colorResource(id = R.color.nc_green_color)
+                    colorResource(id = R.color.nc_fill_slime)
                 else
-                    colorResource(id = R.color.nc_beeswax_tint),
+                    colorResource(id = R.color.nc_fill_beewax),
                 shape = RoundedCornerShape(8.dp)
             ),
             contentAlignment = Alignment.Center,
@@ -263,7 +263,6 @@ fun ReplaceKeyCard(
             ) {
                 NcCircleImage(
                     resId = item.toReadableDrawableResId(),
-                    color = colorResource(id = R.color.nc_white_color)
                 )
                 Column(
                     modifier = Modifier
@@ -341,7 +340,7 @@ fun ReplaceKeyCard(
 }
 
 @Composable
-@Preview
+@PreviewLightDark
 private fun ReplaceKeysContentPreview(
     @PreviewParameter(SignersModelProvider::class) signers: List<SignerModel>,
 ) {

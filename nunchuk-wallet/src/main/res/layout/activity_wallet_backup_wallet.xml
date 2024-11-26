@@ -34,7 +34,8 @@
         android:src="@drawable/ic_backup_big"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        app:tint="@color/nc_text_primary" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/title"
@@ -83,7 +84,8 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_share" />
+            android:src="@drawable/ic_share"
+            app:tint="@color/nc_control_text_primary" />
 
         <com.nunchuk.android.widget.NCFontTextView
             style="@style/NCOutlineButton.Text"
@@ -91,7 +93,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_6"
             android:text="@string/nc_wallet_save_wallet_configuration"
-            android:textColor="@color/nc_white_color" />
+            android:textColor="@color/nc_control_text_primary" />
 
     </LinearLayout>
 
@@ -103,7 +105,7 @@
         android:layout_margin="@dimen/nc_padding_16"
         android:layout_marginStart="@dimen/nc_padding_6"
         android:text="@string/nc_text_do_this_later"
-        android:textColor="@color/nc_primary_color"
+        android:textColor="@color/nc_text_primary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
