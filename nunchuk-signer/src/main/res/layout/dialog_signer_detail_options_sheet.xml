@@ -19,7 +19,7 @@
         android:background="?attr/selectableItemBackground"
         android:paddingVertical="@dimen/nc_padding_16"
         android:text="@string/nc_signer_sign_message"
-        android:textColor="@color/nc_black_color"
+        android:textColor="@color/nc_text_primary"
         android:textSize="@dimen/nc_text_size_16" />
 
     <com.nunchuk.android.widget.NCFontTextView
@@ -30,7 +30,7 @@
         android:background="?attr/selectableItemBackground"
         android:paddingVertical="@dimen/nc_padding_16"
         android:text="@string/nc_top_up_xpubs"
-        android:textColor="@color/nc_black_color"
+        android:textColor="@color/nc_text_primary"
         android:textSize="@dimen/nc_text_size_16" />
 
     <com.nunchuk.android.widget.NCFontTextView
@@ -40,7 +40,7 @@
         android:background="?attr/selectableItemBackground"
         android:paddingVertical="@dimen/nc_padding_16"
         android:text="@string/nc_change_cvc"
-        android:textColor="@color/nc_black_color"
+        android:textColor="@color/nc_text_primary"
         android:textSize="@dimen/nc_text_size_16" />
 
     <com.nunchuk.android.widget.NCFontTextView
@@ -51,7 +51,7 @@
         android:background="?attr/selectableItemBackground"
         android:paddingVertical="@dimen/nc_padding_16"
         android:text="@string/nc_back_up_key"
-        android:textColor="@color/nc_black_color"
+        android:textColor="@color/nc_text_primary"
         android:textSize="@dimen/nc_text_size_16"
         app:drawableTint="@color/nc_primary_color" />
 
@@ -63,7 +63,7 @@
         android:background="?attr/selectableItemBackground"
         android:paddingVertical="@dimen/nc_padding_16"
         android:text="@string/nc_check_firmware_verion"
-        android:textColor="@color/nc_black_color"
+        android:textColor="@color/nc_text_primary"
         android:textSize="@dimen/nc_text_size_16"
         android:visibility="gone"
         app:drawableTint="@color/nc_primary_color"
@@ -77,7 +77,7 @@
         android:background="?attr/selectableItemBackground"
         android:paddingVertical="@dimen/nc_padding_16"
         android:text="@string/nc_update_firmware"
-        android:textColor="@color/nc_black_color"
+        android:textColor="@color/nc_text_primary"
         android:textSize="@dimen/nc_text_size_16"
         android:visibility="gone"
         app:drawableTint="@color/nc_primary_color"
