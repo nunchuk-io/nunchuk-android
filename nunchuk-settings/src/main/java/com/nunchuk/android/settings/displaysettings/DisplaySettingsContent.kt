@@ -3,7 +3,6 @@ package com.nunchuk.android.settings.displaysettings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -86,32 +85,32 @@ fun DisplaySettingsContent(
                         contentDescription = ""
                     )
                 }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onAppearanceClick() }
-                        .padding(top = 12.dp, bottom = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.nc_appearance),
-                        style = NunchukTheme.typography.body,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    Text(
-                        modifier = Modifier.padding(end = 8.dp),
-                        text = themeModeLabel,
-                        style = NunchukTheme.typography.body.copy(color = MaterialTheme.colorScheme.textSecondary)
-                    )
-
-                    NcIcon(
-                        painter = painterResource(id = R.drawable.ic_arrow),
-                        contentDescription = ""
-                    )
-                }
+//                Row(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .clickable { onAppearanceClick() }
+//                        .padding(top = 12.dp, bottom = 16.dp),
+//                    verticalAlignment = Alignment.CenterVertically
+//                ) {
+//                    Text(
+//                        text = stringResource(R.string.nc_appearance),
+//                        style = NunchukTheme.typography.body,
+//                        modifier = Modifier.weight(1f)
+//                    )
+//
+//                    Spacer(modifier = Modifier.weight(1f))
+//
+//                    Text(
+//                        modifier = Modifier.padding(end = 8.dp),
+//                        text = themeModeLabel,
+//                        style = NunchukTheme.typography.body.copy(color = MaterialTheme.colorScheme.textSecondary)
+//                    )
+//
+//                    NcIcon(
+//                        painter = painterResource(id = R.drawable.ic_arrow),
+//                        contentDescription = ""
+//                    )
+//                }
 
                 Row(
                     modifier = Modifier
