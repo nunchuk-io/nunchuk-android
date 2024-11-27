@@ -48,7 +48,7 @@ Now we are ready to start building the Nunchuk Android app bundle.
 cd ..
 
 # Build the app
-docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk-origin --device /dev/fuse --cap-add SYS_ADMIN nunchuk-android bash -c "disorderfs --sort-dirents=yes --reverse-dirents=no /home/appuser/app/nunchuk-origin/ /home/appuser/app/nunchuk/; cd /home/appuser/app/nunchuk && ./gradlew clean bundleProductionRelease"
+docker run --rm -v "$(pwd)":/app-src --device /dev/fuse --cap-add SYS_ADMIN nunchuk-android bash -c "mkdir /app; disorderfs --sort-dirents=yes --reverse-dirents=no /app-src/ /app/; cd /app && ./gradlew clean bundleProductionRelease"
 ```
 
 After that's done, you have your app bundle! It's located in:
@@ -148,20 +148,20 @@ sdk_version=$(sed -n "s/.*prebuildNativeSdkVersion = '\([0-9.]*\)@aar'.*/\1/p" $
 git checkout $sdk_version
 
 # Build the SDK
-docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk nunchuk-android bash -c "cd src/main/native && ./.install_linux_deps.sh arm64-v8a"
-docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk nunchuk-android bash -c "cd src/main/native && ./.install_linux_deps.sh armeabi-v7a"
-docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk nunchuk-android ./gradlew assembleArm8Release
+docker run --rm -v "$(pwd)":/nunchuk-android-nativesdk nunchuk-android bash -c "cd src/main/native && ./.install_linux_deps.sh arm64-v8a"
+docker run --rm -v "$(pwd)":/nunchuk-android-nativesdk nunchuk-android bash -c "cd src/main/native && ./.install_linux_deps.sh armeabi-v7a"
+docker run --rm -v "$(pwd)":/nunchuk-android-nativesdk nunchuk-android ./gradlew assembleArm8Release
 ```
 After that's done, you have your sdk .aar file! It's located in:
 
-`./build/outputs/aar/nunchuk-arm8-release.aar`
+`./build/outputs/aar/nunchuk-android-nativesdk-arm8-release.aar`
 
 Download `nunchuk-android-nativesdk-arm8-release.aar` on [nunchuk-android-nativesdk-prebuild](https://github.com/nunchuk-io/nunchuk-android-nativesdk-prebuild). Note that you must switch to the same tag/version as `nunchuk-android-nativesdk` before downloading.
 
 Run the command below to check if the two `.aar` files on GitHub and the local build match with each other
 
 ```
-diff ./build/outputs/aar/nunchuk-arm8-release.aar nunchuk-android-nativesdk-arm8-release.aar
+diff ./build/outputs/aar/nunchuk-android-nativesdk-arm8-release.aar nunchuk-android-nativesdk-arm8-release.aar
 ```
 
 ## Troubleshooting
