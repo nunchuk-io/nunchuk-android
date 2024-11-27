@@ -82,6 +82,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard.conf'
             signingConfig signingConfigs.release
 
+            // Disable PNG crunching
+            aaptOptions {
+                cruncherEnabled = false
+            }
+
             firebaseCrashlytics {
                 // Enable processing and uploading of native symbols to Firebase servers.
                 // By default, this is disabled to improve build speeds.

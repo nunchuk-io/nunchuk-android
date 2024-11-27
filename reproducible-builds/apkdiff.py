@@ -79,11 +79,9 @@ def compareApks(first, second):
             "META-INF/BNDLTOOL.SF",
             "META-INF/BNDLTOOL.RSA",
             "stamp-cert-sha256",
-            "resources.arsc", 
+            "resources.arsc",
             "res/xml/splits0.xml",
             "AndroidManifest.xml",
-            "assets/dexopt/baseline.prof",
-            "assets/dexopt/baseline.profm",
             ]
 
     firstZip = ZipFile(first, 'r')
