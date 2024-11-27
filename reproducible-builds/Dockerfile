@@ -4,7 +4,7 @@ RUN set -ex; \
     apt-get update; \
     DEBIAN_FRONTEND=noninteractive apt-get install --yes -o APT::Install-Suggests=false --no-install-recommends \
         bzip2 make automake ninja-build g++-multilib libtool binutils-gold \
-        bsdmainutils pkg-config python3 patch bison curl unzip git openjdk-17-jdk; \
+        bsdmainutils pkg-config python3 patch bison curl unzip git openjdk-17-jdk disorderfs; \
     rm -rf /var/lib/apt/lists/*; \
     useradd -ms /bin/bash appuser;
      
@@ -14,6 +14,7 @@ ENV ANDROID_SDK_ROOT=/home/appuser/app/sdk
 ENV ANDROID_SDK=/home/appuser/app/sdk
 ENV ANDROID_HOME=/home/appuser/app/sdk
 
+RUN mkdir -p /home/appuser/app/nunchuk
 WORKDIR /home/appuser/app/nunchuk/
 
 ENV ANDROID_SDK_URL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip

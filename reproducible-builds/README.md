@@ -38,7 +38,7 @@ Now we can switch to the reproducible-builds directory and build the Docker imag
 cd $HOME/nunchuk-android/reproducible-builds
 
 # Build the Docker image
-docker build -t nunchuk-android .
+docker build --platform linux/amd64 -t nunchuk-android .
 ```
 
 Now we are ready to start building the Nunchuk Android app bundle.
@@ -48,7 +48,7 @@ Now we are ready to start building the Nunchuk Android app bundle.
 cd ..
 
 # Build the app
-docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk nunchuk-android ./gradlew clean bundleProductionRelease
+docker run --rm -v "$(pwd)":/home/appuser/app/nunchuk-origin --device /dev/fuse --cap-add SYS_ADMIN nunchuk-android bash -c "disorderfs --sort-dirents=yes --reverse-dirents=no /home/appuser/app/nunchuk-origin/ /home/appuser/app/nunchuk/; cd /home/appuser/app/nunchuk && ./gradlew clean bundleProductionRelease"
 ```
 
 After that's done, you have your app bundle! It's located in:
