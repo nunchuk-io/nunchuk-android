@@ -361,8 +361,8 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         updateFabIcon(state.hideWalletDetailLocal)
         binding.ivSendBtc.isEnabled = state.walletStatus != WalletStatus.LOCKED.name
         binding.ivSendBtc.alpha = if (binding.ivSendBtc.isEnabled) 1.0f else 0.7f
-        binding.ivViewCoin.isEnabled = state.isHasCoin
-        binding.ivViewCoin.alpha = if (state.isHasCoin) 1.0f else 0.7f
+        binding.ivViewCoin.isEnabled = state.isHasCoin && viewModel.isFacilitatorAdmin().not()
+        binding.ivViewCoin.alpha = if (state.isHasCoin && viewModel.isFacilitatorAdmin().not()) 1.0f else 0.7f
         binding.tvWalletWarning.isVisible = state.walletExtended.wallet.needBackup
         if (state.walletExtended.wallet.needBackup) {
             handleNeedBackupWallet()
