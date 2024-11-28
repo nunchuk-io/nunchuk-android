@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.compose
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
@@ -27,9 +28,11 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -37,7 +40,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.appearance.ThemeViewModel
+import com.nunchuk.android.model.ThemeMode
 
 private val PrimaryColor = Color(0xff031F2B)
 private val SecondaryColor = Color(0xff031F2B)
@@ -127,31 +134,27 @@ object NunchukTheme {
 fun NunchukTheme(
     content: @Composable () -> Unit,
 ) {
-//    val view = LocalView.current
-//    if (view.isInEditMode) {
-//        NunchukThemeContent(
-//            isDark = isSystemInDarkTheme(),
-//            content = content
-//        )
-//    } else {
-//        val viewModel: ThemeViewModel = hiltViewModel()
-//        val mode by viewModel.mode.collectAsStateWithLifecycle()
-//        if (mode != null) {
-//            val isDark = when (mode!!) {
-//                ThemeMode.Light -> false
-//                ThemeMode.Dark -> true
-//                ThemeMode.System -> isSystemInDarkTheme()
-//            }
-//            NunchukThemeContent(
-//                isDark = isDark,
-//                content = content
-//            )
-//        }
-//    }
-    NunchukThemeContent(
-        isDark = false,
-        content = content
-    )
+    val view = LocalView.current
+    if (view.isInEditMode) {
+        NunchukThemeContent(
+            isDark = isSystemInDarkTheme(),
+            content = content
+        )
+    } else {
+        val viewModel: ThemeViewModel = hiltViewModel()
+        val mode by viewModel.mode.collectAsStateWithLifecycle()
+        if (mode != null) {
+            val isDark = when (mode!!) {
+                ThemeMode.Light -> false
+                ThemeMode.Dark -> true
+                ThemeMode.System -> isSystemInDarkTheme()
+            }
+            NunchukThemeContent(
+                isDark = isDark,
+                content = content
+            )
+        }
+    }
 }
 
 @Composable

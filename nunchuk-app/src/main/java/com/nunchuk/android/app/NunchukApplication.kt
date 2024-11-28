@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.app
 
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
@@ -36,6 +35,7 @@ import com.nunchuk.android.util.FileHelper
 import dagger.hilt.android.HiltAndroidApp
 import io.branch.referral.Branch
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.runBlocking
 import org.matrix.android.sdk.api.Matrix
 import timber.log.Timber
@@ -94,8 +94,7 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
         fileHelper.getOrCreateNunchukRootDir()
         registerActivityLifecycleCallbacks(ActivityManager)
         registerAppForegroundListener()
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-//        configThemeUseCase(Unit).launchIn(applicationScope)
+        configThemeUseCase(Unit).launchIn(applicationScope)
     }
 
     private fun registerAppForegroundListener() {
