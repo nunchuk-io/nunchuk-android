@@ -42,6 +42,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
@@ -169,7 +170,17 @@ fun NcTextField(
                     value = value,
                     visualTransformation = VisualTransformation.None,
                     innerTextField = innerTextField,
-                    placeholder = placeholder,
+                    placeholder = {
+                        placeholder?.let {
+                            CompositionLocalProvider(
+                                LocalTextStyle provides NunchukTheme.typography.body.copy(
+                                    color = MaterialTheme.colorScheme.textSecondary
+                                )
+                            ) {
+                                it()
+                            }
+                        }
+                    },
                     label = null,
                     leadingIcon = null,
                     trailingIcon = rightContent,
@@ -185,8 +196,10 @@ fun NcTextField(
                                 width = 1.dp,
                                 color = if (hasError) {
                                     colorResource(R.color.nc_orange_color)
-                                } else {
+                                } else if (isFocused) {
                                     colorResource(R.color.nc_text_primary)
+                                } else {
+                                    colorResource(R.color.nc_stroke_primary)
                                 },
                                 shape = RoundedCornerShape(8.dp),
                             )
@@ -197,7 +210,7 @@ fun NcTextField(
         )
         if (!error.isNullOrEmpty() || !hint.isNullOrEmpty()) {
             val color =
-                if (hasError) colorResource(R.color.nc_orange_color) else MaterialTheme.colorScheme.greyDark
+                if (hasError) colorResource(R.color.nc_orange_color) else MaterialTheme.colorScheme.textSecondary
             CompositionLocalProvider(LocalContentColor provides color) {
                 BottomText(error ?: hint)
             }
@@ -271,7 +284,17 @@ fun NcTextField(
                         value = value.text,
                         visualTransformation = VisualTransformation.None,
                         innerTextField = innerTextField,
-                        placeholder = placeholder,
+                        placeholder = {
+                            placeholder?.let {
+                                CompositionLocalProvider(
+                                    LocalTextStyle provides NunchukTheme.typography.body.copy(
+                                        color = MaterialTheme.colorScheme.textSecondary
+                                    )
+                                ) {
+                                    it()
+                                }
+                            }
+                        },
                         label = null,
                         leadingIcon = null,
                         trailingIcon = null,
@@ -287,8 +310,10 @@ fun NcTextField(
                                     width = 1.dp,
                                     color = if (hasError) {
                                         colorResource(R.color.nc_orange_color)
-                                    } else {
+                                    } else if (isFocused) {
                                         colorResource(R.color.nc_text_primary)
+                                    } else {
+                                        colorResource(R.color.nc_stroke_primary)
                                     },
                                     shape = RoundedCornerShape(8.dp),
                                 )

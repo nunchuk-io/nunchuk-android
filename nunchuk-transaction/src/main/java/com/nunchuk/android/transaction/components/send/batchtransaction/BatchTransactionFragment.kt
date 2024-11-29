@@ -432,7 +432,7 @@ private fun BatchTransactionContent(
                             .height(48.dp),
                         onClick = onAddRecipient,
                     ) {
-                        Row {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             NcIcon(
                                 painterResource(id = R.drawable.ic_plus_dark),
                                 contentDescription = null,

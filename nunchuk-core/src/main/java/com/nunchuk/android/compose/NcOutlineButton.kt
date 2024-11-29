@@ -24,14 +24,16 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
 
@@ -51,10 +53,25 @@ fun NcOutlineButton(
         border = BorderStroke(2.dp, color),
         shape = RoundedCornerShape(44.dp),
         content = {
-            CompositionLocalProvider(LocalContentColor provides borderColor) {
+            CompositionLocalProvider(
+                LocalTextStyle provides NunchukTheme.typography.title.copy(
+                    color = colorResource(id = R.color.nc_fill_primary)
+                )
+            ) {
                 content()
             }
         },
         colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent)
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun NcOutlineButtonPreview() {
+    NcOutlineButton(
+        onClick = {},
+        content = {
+            Text("Button")
+        }
     )
 }

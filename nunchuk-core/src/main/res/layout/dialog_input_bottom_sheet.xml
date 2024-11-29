@@ -16,7 +16,8 @@
         android:layout_height="wrap_content"
         android:src="@drawable/ic_close"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/nc_text_primary" />
 
     <Space
         android:layout_width="match_parent"
@@ -54,9 +55,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/nc_padding_8"
-        app:layout_goneMarginTop="0dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/title"
+        app:layout_goneMarginTop="0dp"
         tools:text="For example: m/48h/0h/0h" />
 
     <com.nunchuk.android.widget.NCFontTextView

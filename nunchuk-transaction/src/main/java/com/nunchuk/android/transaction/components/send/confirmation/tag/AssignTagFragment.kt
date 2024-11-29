@@ -19,12 +19,19 @@
 
 package com.nunchuk.android.transaction.components.send.confirmation.tag
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
@@ -33,7 +40,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,7 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.nunchuk.android.compose.NcPrimaryButton
+import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.TagItem
@@ -197,19 +203,18 @@ private fun AssignTagContent(
             ) {
                 Text(text = stringResource(R.string.nc_assign_tags))
             }
-            NcPrimaryButton(
-                Modifier
+            NcOutlineButton(
+                modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth(), onClick = onDismiss
             ) {
-                Text(text = stringResource(R.string.nc_dont_assign_any_tags), color = colorResource(
-                    id = R.color.nc_primary_color
-                ))
+                Text(text = stringResource(R.string.nc_dont_assign_any_tags))
             }
         }
     }
 }
 
+@Preview(uiMode = UI_MODE_NIGHT_YES)
 @Preview(showBackground = true)
 @Composable
 private fun AssignTagScreenPreview() {
