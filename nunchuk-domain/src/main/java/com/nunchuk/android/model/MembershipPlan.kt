@@ -103,6 +103,8 @@ fun List<MembershipPlan>.containsPersonalPlan() =
 
 fun List<MembershipPlan>.isNonePlan() = this.isEmpty() || this.contains(MembershipPlan.NONE)
 
+fun MembershipPlan.isAllowSetupInheritance() = this == MembershipPlan.HONEY_BADGER || this == MembershipPlan.HONEY_BADGER_PLUS || this == MembershipPlan.BYZANTINE_PRO
+
 private const val IRON_HAND_PLAN = "iron_hand"
 private const val IRON_HAND_PLAN_TESTNET = "iron_hand_testnet"
 private const val HONEY_BADGER_PLAN_TESTNET = "honey_badger_testnet"

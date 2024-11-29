@@ -67,6 +67,7 @@ import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.campaigns.Campaign
 import com.nunchuk.android.model.containsPersonalPlan
+import com.nunchuk.android.model.isAllowSetupInheritance
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
@@ -162,7 +163,6 @@ internal class WalletsViewModel @Inject constructor(
     private val getHomeDisplaySettingUseCase: GetHomeDisplaySettingUseCase,
     private val sessionHolder: SessionHolder,
     private val migrateHomeDisplaySettingUseCase: MigrateHomeDisplaySettingUseCase,
-    private val getAllCoinUseCase: GetAllCoinUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -378,8 +378,7 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     private fun checkInheritance(wallets: List<AssistedWalletBrief>) = viewModelScope.launch {
-        val walletsUnSetupInheritance =
-            wallets.filter { it.plan == MembershipPlan.HONEY_BADGER || it.plan == MembershipPlan.BYZANTINE_PRO }
+        val walletsUnSetupInheritance = wallets.filter { it.plan.isAllowSetupInheritance() }
         supervisorScope {
             walletsUnSetupInheritance.map {
                 async {

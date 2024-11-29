@@ -153,6 +153,7 @@ import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.isAddInheritanceKey
+import com.nunchuk.android.model.isAllowSetupInheritance
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.AssistedWalletBriefExt
 import com.nunchuk.android.model.membership.GroupConfig
@@ -184,6 +185,7 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.SERVER_KEY_NAME
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -191,6 +193,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.coroutines.coroutineContext
@@ -2122,13 +2125,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     ): WalletServer {
         val response = userWalletApiManager.groupWalletApi.getGroupWallet(groupId)
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
+        val slug = wallet.slug.toMembershipPlan()
         saveWalletToLib(wallet, groupAssistedKeys)
         membershipStepDao.deleteStepByGroupId(groupId)
         requestAddKeyDao.deleteRequests(groupId)
         assistedWalletDao.updateOrInsert(
             AssistedWalletEntity(
                 localId = wallet.localId.orEmpty(),
-                plan = wallet.slug.toMembershipPlan(),
+                plan = slug,
                 id = wallet.id?.toLongOrNull() ?: 0L,
                 groupId = groupId,
                 primaryMembershipId = wallet.primaryMembershipId.orEmpty(),
@@ -2137,6 +2141,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 replaceByWalletId = wallet.replaceBy?.walletId.orEmpty()
             )
         )
+        if (slug.isAllowSetupInheritance()) {
+            GlobalScope.launch { // This allows it to run in the background without blocking the return of wallet.toModel()
+                kotlin.runCatching { getInheritance(wallet.localId.orEmpty(), groupId = groupId) }
+            }
+        }
         return wallet.toModel()
     }
 
