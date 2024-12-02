@@ -20,7 +20,6 @@
 package com.nunchuk.android.auth.components.signin
 
 import com.nunchuk.android.core.network.ErrorDetail
-import com.nunchuk.android.model.PrimaryKey
 
 internal sealed class SignInEvent {
     data object EmailRequiredEvent : SignInEvent()
@@ -34,4 +33,5 @@ internal sealed class SignInEvent {
     data object SignInSuccessEvent : SignInEvent()
     data class SignInErrorEvent(val code: Int? = null, val message: String? = null, val errorDetail: ErrorDetail? = null) : SignInEvent()
     data class RequireChangePassword(val isNew: Boolean) : SignInEvent()
+    data object OpenMainScreen: SignInEvent()
 }

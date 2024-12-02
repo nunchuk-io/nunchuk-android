@@ -98,12 +98,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                 is PasswordRequiredEvent -> binding.password.setError(getString(R.string.nc_text_required))
                 is PasswordValidEvent -> binding.password.hideError()
                 is SignInErrorEvent -> onSignInError(it.code, it.message.orEmpty(), it.errorDetail)
-                is SignInSuccessEvent -> {
-                    openMainScreen()
-                    if (viewModel.walletPinEnable.value) {
-                        navigator.openUnlockPinScreen(this)
-                    }
-                }
+                is SignInSuccessEvent -> viewModel.checkClearBiometric()
 
                 is ProcessingEvent -> showOrHideLoading(it.isLoading)
 
@@ -114,6 +109,12 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
                 SignInEvent.NameRequiredEvent -> binding.name.setError(getString(R.string.nc_text_required))
                 SignInEvent.NameValidEvent -> binding.name.hideError()
+                SignInEvent.OpenMainScreen -> {
+                    openMainScreen()
+                    if (viewModel.walletPinEnable.value) {
+                        navigator.openUnlockPinScreen(this)
+                    }
+                }
             }
         }
         flowObserver(viewModel.state) {

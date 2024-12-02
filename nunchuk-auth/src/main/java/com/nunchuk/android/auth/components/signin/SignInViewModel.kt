@@ -52,10 +52,10 @@ import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.usecase.GetBiometricConfigUseCase
 import com.nunchuk.android.usecase.GetPrimaryKeyListUseCase
+import com.nunchuk.android.usecase.UpdateBiometricConfigUseCase
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -89,7 +89,8 @@ internal class SignInViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     getWalletPinUseCase: GetWalletPinUseCase,
     getBiometricConfigUseCase: GetBiometricConfigUseCase,
-    private val biometricLoginUseCase: BiometricLoginUseCase
+    private val biometricLoginUseCase: BiometricLoginUseCase,
+    private val updateBiometricConfigUseCase: UpdateBiometricConfigUseCase
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SignInEvent>()
     val event = _event.asSharedFlow()
@@ -329,6 +330,16 @@ internal class SignInViewModel @Inject constructor(
                 .onFailure {
                     _event.emit(SignInErrorEvent(message = it.message.orUnknownError()))
                 }
+        }
+    }
+
+    fun checkClearBiometric() {
+        viewModelScope.launch {
+            val loggedAccountId = accountManager.getAccount().id
+            if (biometricConfig.value.userId == loggedAccountId) {
+                updateBiometricConfigUseCase(BiometricConfig.DEFAULT)
+            }
+            _event.emit(SignInEvent.OpenMainScreen)
         }
     }
 
