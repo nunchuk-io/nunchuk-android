@@ -3,7 +3,7 @@
 
     <application>
         <activity
-            android:name=".components.TaprootWarningActivity"
+            android:name=".components.taproot.TaprootActivity"
             android:label="@string/nc_text_warning"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light"

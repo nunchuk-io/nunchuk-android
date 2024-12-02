@@ -139,7 +139,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
 
     fun openWalletEmptySignerScreen(activityContext: Context)
 
-    fun openTaprootWarningScreen(
+    fun openTaprootScreen(
         activityContext: Context,
         walletName: String,
         walletType: WalletType,

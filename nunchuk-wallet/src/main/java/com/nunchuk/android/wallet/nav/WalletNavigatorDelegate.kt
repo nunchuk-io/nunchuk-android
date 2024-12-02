@@ -41,7 +41,7 @@ import com.nunchuk.android.wallet.components.intro.WalletEmptySignerActivity
 import com.nunchuk.android.wallet.components.review.ReviewWalletActivity
 import com.nunchuk.android.wallet.components.search.SearchTransactionActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationActivity
-import com.nunchuk.android.wallet.personal.components.TaprootWarningActivity
+import com.nunchuk.android.wallet.personal.components.taproot.TaprootActivity
 import com.nunchuk.android.wallet.personal.components.WalletIntermediaryActivity
 import com.nunchuk.android.wallet.personal.components.add.AddWalletActivity
 import com.nunchuk.android.wallet.personal.components.recover.AddRecoverWalletActivity
@@ -214,13 +214,13 @@ interface WalletNavigatorDelegate : WalletNavigator {
         SharedWalletConfigActivity.start(activityContext, roomWalletData)
     }
 
-    override fun openTaprootWarningScreen(
+    override fun openTaprootScreen(
         activityContext: Context,
         walletName: String,
         walletType: WalletType,
         addressType: AddressType,
     ) {
-        TaprootWarningActivity.start(activityContext, walletName, walletType, addressType)
+        TaprootActivity.start(activityContext, walletName, walletType, addressType)
     }
 
     override fun openRecoverSharedWalletScreen(activityContext: Context) {

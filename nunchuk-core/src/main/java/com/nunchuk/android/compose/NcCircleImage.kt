@@ -54,7 +54,7 @@ fun NcCircleImage(
         contentAlignment = Alignment.Center
     ) {
         if (iconSize > 0.dp) {
-            NcIcon(
+            Icon(
                 modifier = Modifier.size(iconSize),
                 painter = painterResource(id = resId),
                 tint = iconTintColor,

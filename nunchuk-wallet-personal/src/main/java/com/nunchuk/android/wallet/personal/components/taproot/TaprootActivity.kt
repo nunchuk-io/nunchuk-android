@@ -17,58 +17,70 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.wallet.personal.components
+package com.nunchuk.android.wallet.personal.components.taproot
 
 import android.content.Context
 import android.os.Bundle
-import androidx.core.text.HtmlCompat
-import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.nav.args.ConfigureWalletArgs
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
-import com.nunchuk.android.wallet.personal.R
-import com.nunchuk.android.wallet.personal.databinding.ActivityTaprootWarningBinding
-import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class TaprootWarningActivity : BaseActivity<ActivityTaprootWarningBinding>() {
+class TaprootActivity : BaseComposeActivity() {
 
     private val args: TaprootWarningArgs by lazy { TaprootWarningArgs.deserializeFrom(intent) }
-
-    override fun initializeBinding() = ActivityTaprootWarningBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setLightStatusBar()
+        enableEdgeToEdge()
 
-        setupViews()
-    }
+        setContent {
+            val navController = rememberNavController()
 
-    private fun setupViews() {
-        binding.withdrawDesc.text = HtmlCompat.fromHtml(
-            getString(R.string.nc_wallet_taproot_withdraw_support_desc),
-            HtmlCompat.FROM_HTML_MODE_COMPACT
-        )
+            NavHost(
+                modifier = Modifier.fillMaxSize(),
+                navController = navController, startDestination = TaprootIntroScreenRoute) {
+                taprootIntroScreen {
+                    navController.navigateTaprootWarningScreen()
+                }
+                taprootWarningScreen {
 
-        // TODO Hai
-        binding.btnContinue.setOnClickListener {
-            finish()
-            navigator.openConfigureWalletScreen(
-                activityContext = this,
-                args = ConfigureWalletArgs(
-                    walletName = args.walletName,
-                    walletType = args.walletType,
-                    addressType = args.addressType,
-                ),
-            )
-        }
-
-        binding.toolbar.setNavigationOnClickListener {
-            finish()
+                }
+            }
         }
     }
+//
+//    private fun setupViews() {
+//        binding.withdrawDesc.text = HtmlCompat.fromHtml(
+//            getString(R.string.nc_wallet_taproot_withdraw_support_desc),
+//            HtmlCompat.FROM_HTML_MODE_COMPACT
+//        )
+//
+//        // TODO Hai
+//        binding.btnContinue.setOnClickListener {
+//            finish()
+//            navigator.openConfigureWalletScreen(
+//                activityContext = this,
+//                args = ConfigureWalletArgs(
+//                    walletName = args.walletName,
+//                    walletType = args.walletType,
+//                    addressType = args.addressType,
+//                ),
+//            )
+//        }
+//
+//        binding.toolbar.setNavigationOnClickListener {
+//            finish()
+//        }
+//    }
 
     companion object {
         fun start(activityContext: Context, walletName: String, walletType: WalletType, addressType: AddressType) {

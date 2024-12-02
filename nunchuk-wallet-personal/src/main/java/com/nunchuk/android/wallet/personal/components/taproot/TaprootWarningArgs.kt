@@ -17,7 +17,7 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.wallet.personal.components
+package com.nunchuk.android.wallet.personal.components.taproot
 
 import android.content.Context
 import android.content.Intent
@@ -31,7 +31,7 @@ data class TaprootWarningArgs(
     val addressType: AddressType
 ) : ActivityArgs {
 
-    override fun buildIntent(activityContext: Context) = Intent(activityContext, TaprootWarningActivity::class.java).apply {
+    override fun buildIntent(activityContext: Context) = Intent(activityContext, TaprootActivity::class.java).apply {
         putExtra(EXTRA_WALLET_NAME, walletName)
         putExtra(EXTRA_WALLET_TYPE, walletType)
         putExtra(EXTRA_ADDRESS_TYPE, addressType)
