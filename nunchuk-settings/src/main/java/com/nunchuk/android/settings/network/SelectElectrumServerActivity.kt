@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
@@ -32,9 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcIcon
@@ -44,27 +45,25 @@ import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.sheet.input.InputBottomSheet
 import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
 import com.nunchuk.android.model.ElectrumServer
 import com.nunchuk.android.model.RemoteElectrumServer
 import com.nunchuk.android.model.StateEvent
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
-class SelectElectrumServerActivity : FragmentActivity(), InputBottomSheetListener {
-    @Inject
-    lateinit var navigator: NunchukNavigator
+class SelectElectrumServerActivity : BaseComposeActivity(), InputBottomSheetListener {
 
     private val viewModel: SelectElectrumServerViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         setContent {
             SelectElectrumServerScreen(
@@ -202,6 +201,7 @@ private fun SelectElectrumServerContent(
     val context = LocalContext.current
     NunchukTheme {
         Scaffold(
+            modifier = Modifier.systemBarsPadding(),
             snackbarHost = {
                 NcSnackBarHost(state = snackBarHostState)
             },
@@ -343,7 +343,7 @@ private fun ElectrumSeverItem(
 }
 
 @Composable
-@Preview
+@PreviewLightDark
 private fun SelectElectrumServerContentPreview() {
     SelectElectrumServerContent(
         SelectElectrumServerUiState(
@@ -353,9 +353,9 @@ private fun SelectElectrumServerContentPreview() {
                 RemoteElectrumServer("Server 3", "https://server3.com"),
             ),
             localElectrumServers = listOf(
-                ElectrumServer(url = "https://server4.com", chain = Chain.MAIN),
-                ElectrumServer(url = "https://server5.com", chain = Chain.MAIN),
-                ElectrumServer(url = "https://server6.com", chain = Chain.MAIN),
+                ElectrumServer(url = "https://server4.com", chain = Chain.MAIN, id = 1L),
+                ElectrumServer(url = "https://server5.com", chain = Chain.MAIN, id = 2L),
+                ElectrumServer(url = "https://server6.com", chain = Chain.MAIN, id = 3L),
             ),
         )
     )
