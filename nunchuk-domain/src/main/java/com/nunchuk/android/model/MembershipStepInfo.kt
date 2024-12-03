@@ -19,6 +19,11 @@
 
 package com.nunchuk.android.model
 
+import com.google.gson.Gson
+import com.nunchuk.android.type.SignerType
+
+private val gson = Gson()
+
 data class MembershipStepInfo(
     val id: Long = 0,
     val step: MembershipStep,
@@ -31,4 +36,25 @@ data class MembershipStepInfo(
 ) {
     val isVerifyOrAddKey: Boolean
         get() = verifyType != VerifyType.NONE || masterSignerId.isNotEmpty()
+
+    fun isInheritanceKeyRequireBackup(): Boolean {
+        val signer = runCatching {
+            gson.fromJson(
+                extraData,
+                SignerExtra::class.java
+            )
+        }.getOrNull()
+        return step.isAddInheritanceKey && signer != null && signer.signerType != SignerType.NFC && (verifyType != VerifyType.NONE || signer.userKeyFileName.isNotEmpty())
+    }
+
+    fun isNFCKey(): Boolean {
+        val signer = runCatching {
+            gson.fromJson(
+                extraData,
+                SignerExtra::class.java
+            )
+        }.getOrNull()
+        return signer?.signerType == SignerType.NFC
+    }
 }
+

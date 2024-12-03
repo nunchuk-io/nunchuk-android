@@ -30,6 +30,7 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.isPersonalPlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.type.SignerType
@@ -216,7 +217,13 @@ class MembershipStepManager @Inject constructor(
                         }
                     }
 
-                    _stepDone.value = steps.filter { it.isVerifyOrAddKey }.map { it.step }.toSet()
+                    _stepDone.value = steps.filter {
+                        if (it.step.isAddInheritanceKey) {
+                            if (it.isNFCKey()) it.isVerifyOrAddKey else it.isInheritanceKeyRequireBackup()
+                        } else {
+                            it.isVerifyOrAddKey
+                        }
+                    }.map { it.step }.toSet()
                 }
         }
     }

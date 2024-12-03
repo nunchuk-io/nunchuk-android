@@ -44,6 +44,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -166,6 +167,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                             data.signers.first()
                         )
                     )
+
                     else -> {
                         val signer = data.signers.first()
                         val selectedSignerTag = selectedSignerTag
@@ -362,6 +364,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                         openVerifyColdCard(event)
                     }
                 }
+
                 AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> showAirgapOptions()
@@ -508,6 +511,14 @@ fun AddKeyListContent(
     refresh: () -> Unit = { },
 ) {
     val state = rememberPullRefreshState(isRefreshing, refresh)
+    val continueButtonEnabled = remember(keys) {
+        keys.all { it.isVerifyOrAddKey }
+                && (missingBackupKeys.isEmpty() || keys.filter {
+            it.signer?.type != SignerType.NFC && it.signer?.tags?.contains(
+                SignerTag.INHERITANCE
+            ) == true
+        }.all { it.verifyType != VerifyType.NONE })
+    }
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -530,7 +541,7 @@ fun AddKeyListContent(
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = onContinueClicked,
-                    enabled = keys.all { it.isVerifyOrAddKey }
+                    enabled = continueButtonEnabled
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
                 }
@@ -673,7 +684,11 @@ fun AddKeyCard(
                         modifier = Modifier.height(36.dp),
                         onClick = { onVerifyClicked(item) },
                     ) {
-                        Text(text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(R.string.nc_upload_backup))
+                        Text(
+                            text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
+                                R.string.nc_upload_backup
+                            )
+                        )
                     }
                 }
             }
