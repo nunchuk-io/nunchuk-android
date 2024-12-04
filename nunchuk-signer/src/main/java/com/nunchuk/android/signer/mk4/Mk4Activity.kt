@@ -69,7 +69,18 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.mk4_navigation)
-        viewModel.setOrUpdate(ColdCardBackUpParam(xfp = xfp, keyType = signerType, filePath = backUpFilePath, keyName = keyName, backUpFileName = backUpFileName, keyId = keyId, isRequestAddOrReplaceKey = action != ColdcardAction.UPLOAD_BACKUP))
+        viewModel.setOrUpdate(
+            ColdCardBackUpParam(
+                xfp = xfp,
+                keyType = signerType,
+                filePath = backUpFilePath,
+                keyName = keyName,
+                backUpFileName = backUpFileName,
+                keyId = keyId,
+                isRequestAddOrReplaceKey = action != ColdcardAction.UPLOAD_BACKUP,
+                groupId = groupId
+            )
+        )
         when (action) {
             ColdcardAction.CREATE -> graph.setStartDestination(R.id.mk4InfoFragment)
             ColdcardAction.RECOVER_KEY -> graph.setStartDestination(R.id.coldcardRecoverFragment)
@@ -117,7 +128,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             groupId: String,
             newIndex: Int = -1,
             xfp: String? = null,
-            isScanQRCode : Boolean = false,
+            isScanQRCode: Boolean = false,
             replacedXfp: String? = null,
             walletId: String? = null,
             signerType: SignerType?,
@@ -153,7 +164,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             groupId: String = "",
             newIndex: Int = -1,
             xfp: String? = null,
-            isScanQRCode : Boolean = false,
+            isScanQRCode: Boolean = false,
             replacedXfp: String? = null,
             walletId: String? = null,
             signerType: SignerType? = null,

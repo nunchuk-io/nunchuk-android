@@ -220,7 +220,7 @@
     <string name="nc_confirmation">Confirmation</string>
     <string name="nc_confirm_verify_backup_by_self_desc">Are you sure you have verified the backup? key recovery might not work with an unverified backup.</string>
     <string name="nc_verify_backup">Verify backup</string>
-    <string name="nc_upload_backup">Upload backup</string>
+    <string name="nc_upload_backup">Backup</string>
     <string name="nc_un_verify_backup">Unverified backup</string>
     <string name="nc_try_again">Try again</string>
     <string name="nc_sign_in_using_password">Sign in using password</string>

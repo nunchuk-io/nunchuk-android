@@ -86,6 +86,8 @@ class ColdCardIntroFragment : MembershipFragment() {
                         isAddInheritanceKey = true
                     )
                 )
+
+                else -> {}
             }
         }
     }

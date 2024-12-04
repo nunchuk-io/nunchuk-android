@@ -97,12 +97,12 @@ internal fun ColdCardBackUpIntroScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Back up COLDCARD",
+                    text = stringResource(R.string.nc_back_up_coldcard),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                    text = "In the upcoming steps, you’ll use your COLDCARD to back up the key and encrypt the backup file. Once encrypted, the file can be uploaded to our server.\n\nThe encrypted backup will later be used to recover the inheritance key on the Beneficiary’s device when they claim the inheritance.",
+                    text = stringResource(R.string.nc_back_up_coldcard_desc),
                     style = NunchukTheme.typography.body
                 )
             }

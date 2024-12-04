@@ -4,5 +4,6 @@ internal enum class ColdCardAction {
     NFC,
     USB,
     QR,
-    FILE
+    FILE,
+    DESKTOP
 }

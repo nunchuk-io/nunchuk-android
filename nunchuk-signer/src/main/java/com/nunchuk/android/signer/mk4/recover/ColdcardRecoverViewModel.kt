@@ -171,7 +171,9 @@ class ColdcardRecoverViewModel @Inject constructor(
             }
             val createSignerResult = createSignerUseCase(
                 CreateSignerUseCase.Params(
-                    name = if (args.isMembershipFlow) membershipStepManager.getInheritanceKeyName(isTapsigner = false) else signerName,
+                    name = if (args.isMembershipFlow) membershipStepManager.getInheritanceKeyName(
+                        isTapsigner = false
+                    ) else signerName,
                     xpub = signer.xpub,
                     derivationPath = signer.derivationPath,
                     masterFingerprint = signer.masterFingerprint,
@@ -185,37 +187,37 @@ class ColdcardRecoverViewModel @Inject constructor(
                 return@launch
             }
             val coldcardSigner = createSignerResult.getOrThrow()
-            if (args.isAddInheritanceKey.not()) {
-                if (replacedXfp.isNullOrEmpty()) {
-                    saveMembershipStepUseCase(
-                        MembershipStepInfo(
-                            step = membershipStepManager.currentStep
-                                ?: throw IllegalArgumentException("Current step empty"),
-                            masterSignerId = coldcardSigner.masterFingerprint,
-                            plan = membershipStepManager.localMembershipPlan,
-                            verifyType = VerifyType.APP_VERIFIED,
-                            extraData = gson.toJson(
-                                SignerExtra(
-                                    derivationPath = coldcardSigner.derivationPath,
-                                    isAddNew = true,
-                                    signerType = coldcardSigner.type,
-                                    userKeyFileName = ""
-                                )
-                            ),
-                            groupId = groupId
-                        )
+            if (replacedXfp.isNullOrEmpty()) {
+                saveMembershipStepUseCase(
+                    MembershipStepInfo(
+                        step = membershipStepManager.currentStep
+                            ?: throw IllegalArgumentException("Current step empty"),
+                        masterSignerId = coldcardSigner.masterFingerprint,
+                        plan = membershipStepManager.localMembershipPlan,
+                        verifyType = if (args.isAddInheritanceKey.not()) VerifyType.APP_VERIFIED else VerifyType.NONE,
+                        extraData = gson.toJson(
+                            SignerExtra(
+                                derivationPath = coldcardSigner.derivationPath,
+                                isAddNew = true,
+                                signerType = coldcardSigner.type,
+                                userKeyFileName = ""
+                            )
+                        ),
+                        groupId = groupId
                     )
-                    syncKeyUseCase(
-                        SyncKeyUseCase.Param(
-                            step = membershipStepManager.currentStep
-                                ?: throw IllegalArgumentException("Current step empty"),
-                            groupId = groupId,
-                            signer = coldcardSigner
-                        )
-                    ).onFailure {
-                        _event.emit(ColdcardRecoverEvent.ShowError(it.message.orUnknownError()))
-                    }
-                } else {
+                )
+                syncKeyUseCase(
+                    SyncKeyUseCase.Param(
+                        step = membershipStepManager.currentStep
+                            ?: throw IllegalArgumentException("Current step empty"),
+                        groupId = groupId,
+                        signer = coldcardSigner
+                    )
+                ).onFailure {
+                    _event.emit(ColdcardRecoverEvent.ShowError(it.message.orUnknownError()))
+                }
+            } else {
+                if (args.isAddInheritanceKey.not()) {
                     replaceKeyUseCase(
                         ReplaceKeyUseCase.Param(
                             groupId = groupId,

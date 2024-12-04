@@ -28,10 +28,16 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.mk4.Mk4Activity
+import com.nunchuk.android.signer.mk4.Mk4Event
 import com.nunchuk.android.signer.mk4.Mk4ViewModel
+import com.nunchuk.android.signer.tapsigner.backup.explain.OnContinueClicked
+import com.nunchuk.android.signer.tapsigner.backup.explain.TapSignerBackUpExplainFragmentDirections
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -51,13 +57,34 @@ class ColdCardPassphraseBackupReminderFragment : MembershipFragment() {
         val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
         ColdCardPassphraseBackupReminderScreen(remainTime) {
             if (mk4ViewModel.coldCardBackUpParam.xfp.isNotEmpty()) {
-                findNavController().navigate(
-                    ColdCardPassphraseBackupReminderFragmentDirections.actionColdCardPassphraseBackupReminderFragmentToColdCardBackUpIntroFragment()
-                )
+                if ((activity as Mk4Activity).replacedXfp.isNullOrEmpty().not()) {
+                    findNavController().navigate(
+                        ColdCardPassphraseBackupReminderFragmentDirections.actionColdCardPassphraseBackupReminderFragmentToColdCardBackUpIntroFragment()
+                    )
+                } else {
+                    mk4ViewModel.saveMembershipExistingColdCard()
+                }
             } else {
                 findNavController().navigate(
                     ColdCardPassphraseBackupReminderFragmentDirections.actionColdCardPassphraseBackupReminderFragmentToColdCardIntroFragment()
                 )
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        flowObserver(mk4ViewModel.event) { event ->
+            when (event) {
+                is Mk4Event.Loading -> {
+                    showOrHideLoading(event.isLoading)
+                }
+
+                Mk4Event.Success -> {
+                    findNavController().navigate(
+                        ColdCardPassphraseBackupReminderFragmentDirections.actionColdCardPassphraseBackupReminderFragmentToColdCardBackUpIntroFragment()
+                    )
+                }
             }
         }
     }

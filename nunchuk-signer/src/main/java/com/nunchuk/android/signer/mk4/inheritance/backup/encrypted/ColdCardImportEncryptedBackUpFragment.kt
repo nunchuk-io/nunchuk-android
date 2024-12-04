@@ -69,8 +69,8 @@ class ColdCardImportEncryptedBackUpFragment : MembershipFragment() {
                     importFileLauncher.launch("*/*")
                 }
 
-                ColdCardAction.NFC -> {
-
+                ColdCardAction.DESKTOP -> {
+                    findNavController().navigate(ColdCardImportEncryptedBackUpFragmentDirections.actionColdCardImportEncryptedBackUpFragmentToColdCardImportEncryptedBackUpDesktopFragment())
                 }
 
                 else -> {
@@ -133,7 +133,11 @@ internal fun ColdCardImportEncryptedBackUpScreen(
                     iconId = R.drawable.ic_import,
                     onClick = { onColdCardAction(ColdCardAction.FILE) }
                 )
-
+                ActionItem(
+                    title = "Import via Desktop app",
+                    iconId = R.drawable.ic_desktop,
+                    onClick = { onColdCardAction(ColdCardAction.DESKTOP) }
+                )
             }
         }
     }

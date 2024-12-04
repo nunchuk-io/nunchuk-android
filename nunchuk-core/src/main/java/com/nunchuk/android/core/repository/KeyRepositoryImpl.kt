@@ -215,6 +215,10 @@ internal class KeyRepositoryImpl @Inject constructor(
                         throw keyResponse.error
                     }
                 }
+                val existingInfo = membershipDao.getStep(chatId, chain.value, step, groupId)
+                if (existingInfo != null && tags.orEmpty().contains(SignerTag.COLDCARD.name)) {
+                    membershipDao.delete(existingInfo)
+                }
                 membershipDao.updateOrInsert(info)
                 send(KeyUpload.Progress(100))
                 if (result.isSuccess) {
@@ -251,7 +255,7 @@ internal class KeyRepositoryImpl @Inject constructor(
         signerIndex: Int,
         walletId: String,
         groupId: String,
-        isRequestRepalceKey: Boolean
+        isRequestReplaceKey: Boolean
     ): Flow<KeyUpload> {
         return callbackFlow {
             val file = File(filePath)
@@ -346,7 +350,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                 } else null,
                 tags = tags,
             )
-            if (isRequestRepalceKey) {
+            if (isRequestReplaceKey) {
                 val replaceResponse = if (groupId.isNotEmpty()) {
                     userWalletApiManager.groupWalletApi.replaceKey(
                         verifyToken = verifyToken,
