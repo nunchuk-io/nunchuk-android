@@ -120,7 +120,7 @@
             android:layout_height="0dp"
             android:layout_marginVertical="14dp"
             android:layout_marginEnd="@dimen/nc_padding_16"
-            android:background="@color/nc_white_color"
+            android:background="@color/nc_background_primary"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/fingerprint"
             app:layout_constraintTop_toTopOf="parent" />
@@ -134,7 +134,7 @@
             app:layout_constraintBottom_toBottomOf="@id/signIn"
             app:layout_constraintEnd_toEndOf="@+id/signIn"
             app:layout_constraintTop_toTopOf="@id/signIn"
-            android:tint="@color/nc_white_color" />
+            app:tint="@color/nc_control_text_primary"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
