@@ -28,24 +28,28 @@ import com.nunchuk.android.type.WalletType
 data class TaprootWarningArgs(
     val walletName: String,
     val walletType: WalletType,
-    val addressType: AddressType
+    val addressType: AddressType,
+    val decoyPin : String = ""
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, TaprootActivity::class.java).apply {
         putExtra(EXTRA_WALLET_NAME, walletName)
         putExtra(EXTRA_WALLET_TYPE, walletType)
         putExtra(EXTRA_ADDRESS_TYPE, addressType)
+        putExtra(EXTRA_DECOY_PIN, decoyPin)
     }
 
     companion object {
         private const val EXTRA_WALLET_NAME = "EXTRA_WALLET_NAME"
         private const val EXTRA_WALLET_TYPE = "EXTRA_WALLET_TYPE"
         private const val EXTRA_ADDRESS_TYPE = "EXTRA_ADDRESS_TYPE"
+        private const val EXTRA_DECOY_PIN = "EXTRA_DECOY_PIN"
 
         fun deserializeFrom(intent: Intent): TaprootWarningArgs = TaprootWarningArgs(
             intent.extras?.getString(EXTRA_WALLET_NAME, "").orEmpty(),
             intent.getSerializableExtra(EXTRA_WALLET_TYPE) as WalletType,
-            intent.getSerializableExtra(EXTRA_ADDRESS_TYPE) as AddressType
+            intent.getSerializableExtra(EXTRA_ADDRESS_TYPE) as AddressType,
+            intent.extras?.getString(EXTRA_DECOY_PIN, "").orEmpty()
         )
     }
 }

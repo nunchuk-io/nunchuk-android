@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -174,7 +175,12 @@ fun SignersContent(
 
                     }
                     items(uiState.signers) { signer ->
-                        SignerCard(item = signer, onSignerSelected = onSignerClick)
+                        SignerCard(
+                            modifier = Modifier
+                                .padding(12.dp)
+                                .clickable { onSignerClick(signer) },
+                            item = signer
+                        )
                     }
                 }
             }

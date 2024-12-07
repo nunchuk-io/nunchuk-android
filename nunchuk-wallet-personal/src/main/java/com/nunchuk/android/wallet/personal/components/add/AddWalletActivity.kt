@@ -55,7 +55,13 @@ class AddWalletActivity : BaseComposeActivity() {
         addressType: AddressType
     ) {
         if (addressType.isTaproot()) {
-            navigator.openTaprootScreen(this, walletName, WalletType.MULTI_SIG, addressType)
+            navigator.openTaprootScreen(
+                activityContext = this,
+                walletName = walletName,
+                walletType = WalletType.MULTI_SIG,
+                addressType = addressType,
+                decoyPin = pin
+            )
         } else {
             navigator.openConfigureWalletScreen(
                 this,

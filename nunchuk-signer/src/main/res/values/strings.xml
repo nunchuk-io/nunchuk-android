@@ -170,7 +170,6 @@
     <string name="nc_select_wallet_address_type"><![CDATA[Select wallet & address type]]></string>
     <string name="nc_select_the_type_of_wallet_you_want_to_use_portal_in">Select the type of wallet you want to use Portal in:</string>
     <string name="nc_single_sig">Single-sig</string>
-    <string name="nc_multisig">Multisig</string>
     <string name="nc_default_native_segwit">Default: Native Segwit</string>
     <string name="nc_bech32m_address">Bech32m address</string>
     <string name="nc_taproot">Taproot</string>

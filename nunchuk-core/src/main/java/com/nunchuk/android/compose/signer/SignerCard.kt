@@ -31,12 +31,10 @@ import com.nunchuk.android.core.util.toReadableSignerType
 fun SignerCard(
     item: SignerModel,
     modifier: Modifier = Modifier,
-    onSignerSelected: (signer: SignerModel) -> Unit = {},
+    onPathClick: () -> Unit = {}
 ) {
     Row(
-        modifier = modifier
-            .clickable(onClick = { onSignerSelected(item) })
-            .padding(12.dp),
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
         NcCircleImage(
@@ -72,6 +70,7 @@ fun SignerCard(
                 }
             }
             Text(
+                modifier = Modifier.clickable(enabled = item.isEditablePath, onClick = onPathClick),
                 text = item.getXfpOrCardIdLabel(),
                 style = NunchukTheme.typography.bodySmall
             )

@@ -38,11 +38,14 @@ import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.wallet.ConfigureWalletEvent
+import com.nunchuk.android.wallet.ConfigureWalletEvent.AssignSignerCompletedEvent
+import com.nunchuk.android.wallet.ConfigureWalletEvent.Loading
+import com.nunchuk.android.wallet.ConfigureWalletState
+import com.nunchuk.android.wallet.ConfigureWalletViewModel
 import com.nunchuk.android.wallet.InputBipPathBottomSheet
 import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
 import com.nunchuk.android.wallet.R
-import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.AssignSignerCompletedEvent
-import com.nunchuk.android.wallet.components.configure.ConfigureWalletEvent.Loading
 import com.nunchuk.android.wallet.databinding.ActivityConfigureWalletBinding
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
@@ -52,7 +55,6 @@ import com.nunchuk.android.widget.NCWarningVerticalDialog
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(),
@@ -84,8 +86,8 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
     }
 
     private fun observeEvent() {
-        viewModel.event.observe(this, ::handleEvent)
-        viewModel.state.observe(this, ::handleState)
+        flowObserver(viewModel.state, collector = ::handleState)
+        flowObserver(viewModel.event, collector = ::handleEvent)
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_TOPUP_XPUBS }) {
             viewModel.cacheTapSignerXpub(
                 IsoDep.get(it.tag),
@@ -178,12 +180,7 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
         val requireSigns = state.totalRequireSigns
         val totalSigns = state.selectedSigners.size
         bindSigners(
-            runBlocking {
-                viewModel.mapSigners(
-                    masterSigners = state.masterSigners,
-                    remoteSigners = state.remoteSigners
-                )
-            },
+            state.allSigners,
             state.selectedSigners,
             state.isShowPath
         )

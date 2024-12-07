@@ -20,71 +20,238 @@
 package com.nunchuk.android.wallet.personal.components.taproot
 
 import android.content.Context
+import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
+import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_TOPUP_XPUBS
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.nav.args.ConfigureWalletArgs
+import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.wallet.ConfigureWalletEvent
+import com.nunchuk.android.wallet.ConfigureWalletViewModel
+import com.nunchuk.android.wallet.InputBipPathBottomSheet
+import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
+import com.nunchuk.android.wallet.personal.R
+import com.nunchuk.android.wallet.personal.components.taproot.configure.navigateTaprootConfigScreen
+import com.nunchuk.android.wallet.personal.components.taproot.configure.taprootConfigScreen
+import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCInputDialog
+import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.NCWarningDialog
+import com.nunchuk.android.widget.NCWarningVerticalDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
-class TaprootActivity : BaseComposeActivity() {
+class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListener,
+    BottomSheetOptionListener {
 
     private val args: TaprootWarningArgs by lazy { TaprootWarningArgs.deserializeFrom(intent) }
+    private val viewModel: ConfigureWalletViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
-
+        viewModel.init(
+            ConfigureWalletArgs(
+                walletName = args.walletName,
+                walletType = args.walletType,
+                addressType = AddressType.TAPROOT,
+                decoyPin = args.decoyPin
+            )
+        )
         setContent {
             val navController = rememberNavController()
 
             NavHost(
                 modifier = Modifier.fillMaxSize(),
-                navController = navController, startDestination = TaprootIntroScreenRoute) {
+                navController = navController, startDestination = TaprootIntroScreenRoute
+            ) {
                 taprootIntroScreen {
                     navController.navigateTaprootWarningScreen()
                 }
                 taprootWarningScreen {
-
+                    navController.navigateTaprootConfigScreen()
                 }
+                taprootConfigScreen(
+                    viewModel = viewModel,
+                    onContinue = {
+                        viewModel.handleContinueEvent()
+                    },
+                    onSelectSigner = { model, checked ->
+                        if (model.type == SignerType.SOFTWARE && viewModel.isUnBackedUpSigner(model) && checked) {
+                            showUnBackedUpSignerWarning()
+                        } else {
+                            viewModel.updateSelectedSigner(
+                                signer = model,
+                                checked = checked,
+                            )
+                        }
+                    },
+                    onEditPath = { model ->
+                        InputBipPathBottomSheet.show(
+                            supportFragmentManager,
+                            model.id,
+                            model.derivationPath
+                        )
+                    }
+                )
             }
         }
+
+        observeEvent()
     }
-//
-//    private fun setupViews() {
-//        binding.withdrawDesc.text = HtmlCompat.fromHtml(
-//            getString(R.string.nc_wallet_taproot_withdraw_support_desc),
-//            HtmlCompat.FROM_HTML_MODE_COMPACT
-//        )
-//
-//        // TODO Hai
-//        binding.btnContinue.setOnClickListener {
-//            finish()
-//            navigator.openConfigureWalletScreen(
-//                activityContext = this,
-//                args = ConfigureWalletArgs(
-//                    walletName = args.walletName,
-//                    walletType = args.walletType,
-//                    addressType = args.addressType,
-//                ),
-//            )
-//        }
-//
-//        binding.toolbar.setNavigationOnClickListener {
-//            finish()
-//        }
-//    }
+
+
+    override fun onInputDone(masterSignerId: String, newInput: String) {
+        viewModel.changeBip32Path(masterSignerId, newInput)
+    }
+
+    override fun onOptionClicked(option: SheetOption) {
+        viewModel.toggleShowPath()
+    }
+
+    private fun observeEvent() {
+        flowObserver(viewModel.event, collector = ::handleEvent)
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_TOPUP_XPUBS }) {
+            viewModel.cacheTapSignerXpub(
+                IsoDep.get(it.tag),
+                nfcViewModel.inputCvc.orEmpty(),
+            )
+            nfcViewModel.clearScanInfo()
+        }
+    }
+
+    private fun handleEvent(event: ConfigureWalletEvent) {
+        when (event) {
+            is ConfigureWalletEvent.AssignSignerCompletedEvent -> openWalletConfirmScreen(
+                totalRequireSigns = event.totalRequireSigns,
+                masterSigners = event.masterSigners,
+                remoteSigners = event.remoteSigners
+            )
+
+            is ConfigureWalletEvent.Loading -> showOrHideLoading(event.loading)
+            is ConfigureWalletEvent.PromptInputPassphrase -> requireInputPassphrase(event.signer)
+            is ConfigureWalletEvent.ShowError -> NCToastMessage(this).showError(event.message)
+            ConfigureWalletEvent.ChangeBip32Success -> NCToastMessage(this).show(getString(R.string.nc_bip_32_updated))
+            is ConfigureWalletEvent.ShowRiskSignerDialog -> {
+                if (event.isShow) {
+                    showRiskSignerDialog()
+                } else {
+                    viewModel.handleContinueEvent()
+                }
+            }
+
+            is ConfigureWalletEvent.RequestCacheTapSignerXpub -> handleCacheXpub(event.signer)
+            is ConfigureWalletEvent.CacheTapSignerXpubError -> handleCacheXpubError(event)
+            is ConfigureWalletEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
+        }
+    }
+
+    private fun handleCacheXpub(signer: SignerModel) {
+        NCWarningDialog(this).showDialog(
+            title = getString(R.string.nc_text_info),
+            message = getString(R.string.nc_new_xpub_need),
+            btnYes = getString(R.string.nc_ok),
+            btnNo = getString(R.string.nc_cancel),
+            onYesClick = {
+                startNfcFlow(REQUEST_NFC_TOPUP_XPUBS)
+            },
+            onNoClick = {
+                viewModel.cancelVerifyPassphrase(signer)
+            }
+        )
+    }
+
+    private fun handleCacheXpubError(event: ConfigureWalletEvent.CacheTapSignerXpubError) {
+        if (nfcViewModel.handleNfcError(event.error).not()) {
+            val message = event.error?.message.orUnknownError()
+            NCToastMessage(this).showError(message)
+        }
+    }
+
+    private fun requireInputPassphrase(signer: SignerModel) {
+        NCInputDialog(this).showDialog(
+            title = getString(R.string.nc_transaction_enter_passphrase),
+            onConfirmed = {
+                viewModel.verifyPassphrase(signer, it)
+            },
+            onCanceled = {
+                viewModel.cancelVerifyPassphrase(signer)
+            }
+        )
+    }
+
+    private fun openWalletConfirmScreen(
+        totalRequireSigns: Int,
+        masterSigners: List<SingleSigner>,
+        remoteSigners: List<SingleSigner>
+    ) {
+        navigator.openReviewWalletScreen(
+            activityContext = this,
+            args = ReviewWalletArgs(
+                walletName = args.walletName,
+                walletType = args.walletType,
+                addressType = args.addressType,
+                decoyPin = args.decoyPin,
+                totalRequireSigns = totalRequireSigns,
+                masterSigners = masterSigners,
+                remoteSigners = remoteSigners
+            )
+        )
+    }
+
+    private fun showUnBackedUpSignerWarning() {
+        NCInfoDialog(this).showDialog(
+            message = getString(R.string.nc_unbacked_up_signer_warning_desc),
+            onYesClick = {}
+        )
+    }
+
+    private fun showRiskSignerDialog() {
+        NCWarningVerticalDialog(this).showDialog(
+            message = getString(R.string.nc_risk_signer_key_warning_desc),
+            btnYes = getString(R.string.nc_risk_signer_key_warning_button),
+            btnNeutral = getString(R.string.nc_text_cancel),
+            btnNo = "",
+            onYesClick = {
+                viewModel.handleContinueEvent()
+            })
+    }
 
     companion object {
-        fun start(activityContext: Context, walletName: String, walletType: WalletType, addressType: AddressType) {
-            activityContext.startActivity(TaprootWarningArgs(walletName, walletType, addressType).buildIntent(activityContext))
+        fun start(
+            activityContext: Context,
+            walletName: String,
+            walletType: WalletType,
+            addressType: AddressType,
+            decoyPin: String
+        ) {
+            activityContext.startActivity(
+                TaprootWarningArgs(
+                    walletName,
+                    walletType,
+                    addressType,
+                    decoyPin
+                ).buildIntent(activityContext)
+            )
         }
     }
 }

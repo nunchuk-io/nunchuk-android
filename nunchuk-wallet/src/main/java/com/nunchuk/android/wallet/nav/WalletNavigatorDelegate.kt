@@ -41,11 +41,11 @@ import com.nunchuk.android.wallet.components.intro.WalletEmptySignerActivity
 import com.nunchuk.android.wallet.components.review.ReviewWalletActivity
 import com.nunchuk.android.wallet.components.search.SearchTransactionActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationActivity
-import com.nunchuk.android.wallet.personal.components.taproot.TaprootActivity
 import com.nunchuk.android.wallet.personal.components.WalletIntermediaryActivity
 import com.nunchuk.android.wallet.personal.components.add.AddWalletActivity
 import com.nunchuk.android.wallet.personal.components.recover.AddRecoverWalletActivity
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletQrCodeActivity
+import com.nunchuk.android.wallet.personal.components.taproot.TaprootActivity
 import com.nunchuk.android.wallet.shared.components.assign.AssignSignerSharedWalletActivity
 import com.nunchuk.android.wallet.shared.components.config.SharedWalletConfigActivity
 import com.nunchuk.android.wallet.shared.components.configure.ConfigureSharedWalletActivity
@@ -219,8 +219,9 @@ interface WalletNavigatorDelegate : WalletNavigator {
         walletName: String,
         walletType: WalletType,
         addressType: AddressType,
+        decoyPin: String,
     ) {
-        TaprootActivity.start(activityContext, walletName, walletType, addressType)
+        TaprootActivity.start(activityContext, walletName, walletType, addressType, decoyPin)
     }
 
     override fun openRecoverSharedWalletScreen(activityContext: Context) {

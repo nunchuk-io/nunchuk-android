@@ -58,6 +58,7 @@ data class SignerModel(
         if (type != other.type) return false
         if (derivationPath != other.derivationPath) return false
         if (name != other.name) return false
+        if (index != other.index) return false
 
         return true
     }
