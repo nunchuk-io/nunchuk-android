@@ -1,6 +1,5 @@
 package com.nunchuk.android.compose.signer
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,7 +30,6 @@ import com.nunchuk.android.core.util.toReadableSignerType
 fun SignerCard(
     item: SignerModel,
     modifier: Modifier = Modifier,
-    onPathClick: () -> Unit = {}
 ) {
     Row(
         modifier = modifier,
@@ -70,7 +68,6 @@ fun SignerCard(
                 }
             }
             Text(
-                modifier = Modifier.clickable(enabled = item.isEditablePath, onClick = onPathClick),
                 text = item.getXfpOrCardIdLabel(),
                 style = NunchukTheme.typography.bodySmall
             )

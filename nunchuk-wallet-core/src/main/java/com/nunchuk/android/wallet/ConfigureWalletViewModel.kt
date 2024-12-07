@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -88,6 +89,17 @@ class ConfigureWalletViewModel @Inject constructor(
 
     init {
         getUnBackedUpWallet()
+        viewModelScope.launch {
+            state.map { it.selectedSigners.size }
+                .distinctUntilChanged()
+                .collect {
+                    _state.update {
+                        it.copy(
+                            allSigners = mapSigners(it.masterSigners, it.remoteSigners)
+                        )
+                    }
+                }
+        }
     }
 
     private fun getState() = _state.value
@@ -192,11 +204,7 @@ class ConfigureWalletViewModel @Inject constructor(
         } else {
             newSet.add(signer)
         }
-
-        val isSingleSig = newSet.size <= 1
-        val signerMap =
-            if (isSingleSig) masterSignerSingleMap else masterSignerMutisigMap
-        updateSelectedSigners(newSet, signerMap)
+        updateSelectedSigners(newSet)
         val state = getState()
         val currentNum = state.totalRequireSigns
         if (currentNum == 0 || state.totalRequireSigns > state.selectedSigners.size) {
@@ -215,7 +223,7 @@ class ConfigureWalletViewModel @Inject constructor(
     fun handleDecreaseRequiredSigners() {
         val state = getState()
         val currentNum = state.totalRequireSigns
-        val newVal = if (currentNum - 1 >= 0) currentNum - 1 else currentNum
+        val newVal = if (currentNum - 1 >= 1) currentNum - 1 else currentNum
         _state.update { it.copy(totalRequireSigns = newVal) }
     }
 
@@ -224,12 +232,12 @@ class ConfigureWalletViewModel @Inject constructor(
         val hasSigners = state.selectedSigners.isNotEmpty()
         val isValidRequireSigns = state.totalRequireSigns > 0
         val signerMap = getSignerModelMap()
-        if (isValidRequireSigns && hasSigners) {
+        if (args.addressType.isTaproot() && state.keySet.isEmpty()) {
+            _event.emit(ConfigureWalletEvent.OpenConfigKeySet)
+        } else if (isValidRequireSigns && hasSigners) {
             _event.emit(
                 ConfigureWalletEvent.AssignSignerCompletedEvent(state.totalRequireSigns,
-                    state.selectedSigners.asSequence().map {
-                        signerMap[it.id]
-                    }.filterNotNull().toList(),
+                    state.selectedSigners.mapNotNull { signerMap[it.id] },
                     state.remoteSigners.filter { state.selectedSigners.contains(it.toModel()) })
             )
         }
@@ -245,10 +253,10 @@ class ConfigureWalletViewModel @Inject constructor(
             )
             _event.emit(ConfigureWalletEvent.Loading(false))
             if (result.isSuccess) {
-                val newSignerMap = getSignerModelMap().apply {
+                getSignerModelMap().apply {
                     set(masterSignerId, result.getOrThrow())
                 }
-                updateSelectedSigners(getState().selectedSigners, newSignerMap)
+                updateSelectedSigners(getState().selectedSigners)
                 _event.emit(ConfigureWalletEvent.ChangeBip32Success)
             } else {
                 _event.emit(ConfigureWalletEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
@@ -283,18 +291,22 @@ class ConfigureWalletViewModel @Inject constructor(
 
     private fun updateSelectedSigners(
         selectedSigners: Set<SignerModel>,
-        signerMap: Map<String, SingleSigner>
     ) {
+        val isSingleSig = selectedSigners.size <= 1
+        val signerMap =
+            if (isSingleSig) masterSignerSingleMap else masterSignerMutisigMap
         val newSelectedSigner =
-            selectedSigners.mapNotNull {
+            selectedSigners.map {
                 if (masterSignerIdSet.contains(it.id)) {
-                    signerMap[it.id]?.toModel()
+                    it.copy(derivationPath = signerMap[it.id]?.derivationPath.orEmpty())
                 } else {
                     it
                 }
             }.toSet()
         _state.update {
-            it.copy(selectedSigners = newSelectedSigner)
+            it.copy(
+                selectedSigners = newSelectedSigner,
+            )
         }
     }
 
@@ -320,6 +332,18 @@ class ConfigureWalletViewModel @Inject constructor(
                         unBackedUpSignerXfpSet.add(it.signers.first().masterFingerprint)
                     }
                 }
+        }
+    }
+
+    fun toggleSelectKeySet(signer: SignerModel) {
+        val newSet = getState().keySet.toMutableSet()
+        if (newSet.contains(signer)) {
+            newSet.remove(signer)
+        } else {
+            newSet.add(signer)
+        }
+        _state.update {
+            it.copy(keySet = newSet)
         }
     }
 

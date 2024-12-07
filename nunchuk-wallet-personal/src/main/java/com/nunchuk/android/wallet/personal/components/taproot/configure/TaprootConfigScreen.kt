@@ -22,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -32,7 +31,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
@@ -40,7 +38,6 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.provider.SignersModelProvider
-import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
@@ -203,12 +200,14 @@ fun TaprootConfigScreen(
                 }
 
                 partition.first.forEach { signer ->
+                    val isSelected = state.selectedSigners.contains(signer)
+                    val checkable = state.selectedSigners.size < 5 || isSelected
                     item {
-                        SignerItem(
+                        ConfigSignerItem(
                             signer = signer,
-                            isChecked = state.selectedSigners.contains(signer),
+                            checkable = checkable,
+                            isChecked = isSelected,
                             onSelectSigner = onSelectSigner,
-                            onEditPath = onEditPath,
                         )
                     }
                 }
@@ -232,47 +231,15 @@ fun TaprootConfigScreen(
 
                 partition.second.forEach { signer ->
                     item {
-                        SignerItem(
+                        ConfigSignerItem(
                             signer = signer,
                             checkable = false,
                             isChecked = false,
                             onSelectSigner = onSelectSigner,
-                            onEditPath = onEditPath,
                         )
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun SignerItem(
-    signer: SignerModel,
-    checkable: Boolean = true,
-    isChecked: Boolean = false,
-    onSelectSigner: (SignerModel, Boolean) -> Unit,
-    onEditPath: (SignerModel) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .alpha(if (checkable) 1f else 0.4f)
-            .clickable(enabled = checkable) { onSelectSigner(signer, !isChecked) }
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        SignerCard(
-            modifier = Modifier.weight(1f),
-            item = signer,
-            onPathClick = { onEditPath(signer) },
-        )
-
-        if (checkable) {
-            NcCheckBox(
-                modifier = Modifier.padding(8.dp),
-                checked = isChecked,
-                onCheckedChange = { onSelectSigner(signer, it) },
-            )
         }
     }
 }

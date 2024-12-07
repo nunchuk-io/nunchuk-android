@@ -32,7 +32,7 @@ sealed class ConfigureWalletEvent {
         val masterSigners: List<SingleSigner>,
         val remoteSigners: List<SingleSigner>
     ) : ConfigureWalletEvent()
-
+    data object OpenConfigKeySet : ConfigureWalletEvent()
     data class PromptInputPassphrase(val signer: SignerModel) : ConfigureWalletEvent()
     data class ShowError(val message: String) : ConfigureWalletEvent()
     data class ShowRiskSignerDialog(val isShow: Boolean) : ConfigureWalletEvent()
@@ -49,4 +49,5 @@ data class ConfigureWalletState(
     val selectedSigners: Set<SignerModel> = emptySet(),
     val isShowPath: Boolean = false,
     val supportedSignerTypes: Set<SignerType> = emptySet(),
+    val keySet: Set<SignerModel> = emptySet(),
 )

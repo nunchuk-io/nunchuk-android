@@ -49,7 +49,7 @@ internal class SignersViewBinder(
         binding.signerName.text = model.name
         binding.xfp.text = model.getXfpOrCardIdLabel()
         binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty() && isShowPath
-        binding.tvBip32Path.text = "BIP32 path: ${model.derivationPath}"
+        binding.tvBip32Path.text = context.getString(R.string.nc_bip32_path, model.derivationPath)
         if (model.isEditablePath.not()) {
             binding.tvBip32Path.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0,0,0)
             binding.tvBip32Path.setOnDebounceClickListener {  }

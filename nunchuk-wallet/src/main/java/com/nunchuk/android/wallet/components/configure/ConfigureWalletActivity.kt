@@ -120,6 +120,7 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
             is ConfigureWalletEvent.RequestCacheTapSignerXpub -> handleCacheXpub(event.signer)
             is ConfigureWalletEvent.CacheTapSignerXpubError -> handleCacheXpubError(event)
             is ConfigureWalletEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
+            ConfigureWalletEvent.OpenConfigKeySet -> Unit
         }
     }
 

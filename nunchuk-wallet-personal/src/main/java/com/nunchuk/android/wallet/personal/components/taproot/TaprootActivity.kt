@@ -26,7 +26,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
@@ -48,6 +51,8 @@ import com.nunchuk.android.wallet.ConfigureWalletViewModel
 import com.nunchuk.android.wallet.InputBipPathBottomSheet
 import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
 import com.nunchuk.android.wallet.personal.R
+import com.nunchuk.android.wallet.personal.components.taproot.configure.configureValueKeySetScreen
+import com.nunchuk.android.wallet.personal.components.taproot.configure.navigateConfigureValueKeySet
 import com.nunchuk.android.wallet.personal.components.taproot.configure.navigateTaprootConfigScreen
 import com.nunchuk.android.wallet.personal.components.taproot.configure.taprootConfigScreen
 import com.nunchuk.android.widget.NCInfoDialog
@@ -79,10 +84,18 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
         )
         setContent {
             val navController = rememberNavController()
+            val event by viewModel.event.collectAsStateWithLifecycle(null)
+
+            LaunchedEffect(event) {
+                if (event == ConfigureWalletEvent.OpenConfigKeySet) {
+                    navController.navigateConfigureValueKeySet()
+                }
+            }
 
             NavHost(
                 modifier = Modifier.fillMaxSize(),
-                navController = navController, startDestination = TaprootIntroScreenRoute
+                navController = navController,
+                startDestination = TaprootIntroScreenRoute
             ) {
                 taprootIntroScreen {
                     navController.navigateTaprootWarningScreen()
@@ -93,7 +106,7 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                 taprootConfigScreen(
                     viewModel = viewModel,
                     onContinue = {
-                        viewModel.handleContinueEvent()
+                        viewModel.checkShowRiskSignerDialog()
                     },
                     onSelectSigner = { model, checked ->
                         if (model.type == SignerType.SOFTWARE && viewModel.isUnBackedUpSigner(model) && checked) {
@@ -113,6 +126,9 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                         )
                     }
                 )
+                configureValueKeySetScreen(viewModel) {
+                    viewModel.handleContinueEvent()
+                }
             }
         }
 
@@ -162,6 +178,7 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
             is ConfigureWalletEvent.RequestCacheTapSignerXpub -> handleCacheXpub(event.signer)
             is ConfigureWalletEvent.CacheTapSignerXpubError -> handleCacheXpubError(event)
             is ConfigureWalletEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
+            ConfigureWalletEvent.OpenConfigKeySet -> Unit
         }
     }
 
