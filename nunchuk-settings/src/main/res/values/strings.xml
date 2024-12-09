@@ -137,6 +137,7 @@
     <string name="nc_there_is_no_forgot_pin_feature">There is no \'Forgot PIN?\' feature!</string>
     <string name="nc_pin_exist">This PIN already exists.</string>
     <string name="nc_honey_badger_plus">Honey Badger PLUS</string>
+    <string name="nc_honey_badger_premier">Honey Badger PREMIER</string>
     <string name="nc_enter_your_pin_to_continue_use_app">To continue using the app, please enter your PIN.</string>
     <string name="nc_enter_your_password_to_continue_use_app">To continue using the app, please enter your password.</string>
     <string name="nc_enter_your_passphrase_to_continue_use_app">To continue using the app, please enter your passphrase.</string>
