@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/nc_background"
     android:fitsSystemWindows="true">
 
@@ -43,8 +43,8 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_8"
-        android:textColor="@color/nc_beeswax_dark"
         android:text="@string/nc_ssigner_text_set_passphrase_primary_key_note"
+        android:textColor="@color/nc_beeswax_dark"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/note" />
 
@@ -114,6 +114,7 @@
         android:background="@drawable/nc_rounded_whisper_background"
         android:drawableStart="@drawable/ic_info"
         android:drawablePadding="@dimen/nc_padding_8"
+        android:drawableTint="@color/nc_text_primary"
         android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_ssigner_text_set_passphrase_warn"
         app:layout_constraintBottom_toTopOf="@+id/btnFirst"
@@ -125,9 +126,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
-        tools:text="@string/nc_ssigner_text_dont_set_passphrase"
         app:layout_constraintBottom_toTopOf="@+id/btnSecondary"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="@string/nc_ssigner_text_dont_set_passphrase" />
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnSecondary"
@@ -135,8 +136,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"
-        tools:text="@string/nc_ssigner_text_set_passphrase"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="@string/nc_ssigner_text_set_passphrase" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
