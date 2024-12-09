@@ -351,6 +351,7 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
             MembershipPlan.FINNEY -> getString(R.string.nc_finney)
             MembershipPlan.FINNEY_PRO -> getString(R.string.nc_finney_pro)
             MembershipPlan.HONEY_BADGER_PLUS -> getString(R.string.nc_honey_badger_plus)
+            MembershipPlan.HONEY_BADGER_PREMIER -> getString(R.string.nc_honey_badger_premier)
             else -> ""
         }
     }

@@ -41,7 +41,7 @@ class EmptyStatePersonalPlanUser(
             instructions = listOf(),
             buttonText = activityContext.getString(R.string.nc_create_assisted_wallet_subscription_required),
             buttonAction = {
-                if (conditionInfo.plan == MembershipPlan.HONEY_BADGER_PLUS) {
+                if (conditionInfo.plan == MembershipPlan.HONEY_BADGER_PLUS || conditionInfo.plan == MembershipPlan.HONEY_BADGER_PREMIER) {
                     navigator.openMembershipActivity(
                         activityContext = activityContext,
                         groupStep = MembershipStage.NONE,
@@ -57,7 +57,7 @@ class EmptyStatePersonalPlanUser(
                     )
                 }
             },
-            imageResId = if (conditionInfo.plan == MembershipPlan.HONEY_BADGER_PLUS) R.drawable.bg_empty_state_group_plan else {
+            imageResId = if (conditionInfo.plan == MembershipPlan.HONEY_BADGER_PLUS || conditionInfo.plan == MembershipPlan.HONEY_BADGER_PREMIER) R.drawable.bg_empty_state_group_plan else {
                 if (isDark) R.drawable.bg_empty_state_personal_plan_dark else R.drawable.bg_empty_state_personal_plan
             },
             backgroundColor = ContextCompat.getColor(activityContext, R.color.nc_fill_denim)

@@ -1565,6 +1565,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         response.data.honeyBadgerPlus?.let {
             walletCounts["honey_badger_plus"] = it.remainingWalletCount
         }
+        response.data.honeyBadgerPremier?.let {
+            walletCounts["honey_badger_premier"] = it.remainingWalletCount
+        }
 
         return GroupConfig(
             walletsCount = walletCounts,
