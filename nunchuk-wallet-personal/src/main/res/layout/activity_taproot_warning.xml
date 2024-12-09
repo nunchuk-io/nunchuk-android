@@ -34,7 +34,8 @@
         android:src="@drawable/ic_warning_amber"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        app:tint="@color/nc_text_primary" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/note"
@@ -60,7 +61,7 @@
         android:gravity="center"
         android:padding="@dimen/nc_padding_4"
         android:text="1"
-        android:textColor="@color/nc_primary_color"
+        android:textColor="@color/nc_text_primary"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/note" />
 
@@ -73,7 +74,7 @@
         android:layout_marginTop="@dimen/nc_padding_24"
         android:gravity="center"
         android:text="@string/nc_wallet_taproot_withdraw_support_title"
-        android:textColor="@color/nc_black_color"
+        android:textColor="@color/nc_text_primary"
         app:fontTextStyle="semi_bold"
         app:layout_constraintStart_toEndOf="@+id/initNum"
         app:layout_constraintTop_toBottomOf="@+id/note" />
@@ -102,7 +103,7 @@
         android:gravity="center"
         android:padding="@dimen/nc_padding_4"
         android:text="2"
-        android:textColor="@color/nc_primary_color"
+        android:textColor="@color/nc_text_primary"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/withdrawDesc" />
 

@@ -15,7 +15,8 @@
         android:layout_height="wrap_content"
         android:src="@drawable/ic_close"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/nc_text_primary" />
 
     <Space
         android:layout_width="match_parent"
@@ -31,7 +32,7 @@
         android:layout_marginTop="@dimen/nc_padding_16"
         android:backgroundTint="@color/nc_bg_mid_gray"
         android:paddingVertical="@dimen/nc_padding_8"
-        android:textColor="@color/nc_primary_color"
+        android:textColor="@color/nc_text_primary"
         android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/signerNameLabel" />
@@ -43,7 +44,7 @@
         android:layout_marginTop="@dimen/nc_padding_8"
         android:paddingVertical="@dimen/nc_padding_8"
         android:text="@string/nc_text_signer_name"
-        android:textColor="@color/nc_black_color"
+        android:textColor="@color/nc_text_primary"
         android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/iconClose" />
@@ -54,7 +55,7 @@
         android:layout_height="wrap_content"
         android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_text_save"
-        android:textColor="@color/nc_black_color"
+        android:textColor="@color/nc_text_primary"
         android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintBottom_toBottomOf="@+id/iconClose"
         app:layout_constraintEnd_toEndOf="parent"

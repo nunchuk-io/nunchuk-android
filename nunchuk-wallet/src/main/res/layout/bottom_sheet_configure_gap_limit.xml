@@ -22,7 +22,8 @@
             android:layout_height="@dimen/nc_padding_24"
             android:layout_alignParentStart="true"
             android:background="?android:selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_close" />
+            android:src="@drawable/ic_close"
+            app:tint="@color/nc_text_primary" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/saveBtn"
@@ -31,7 +32,7 @@
             android:layout_alignParentEnd="true"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:text="@string/nc_text_save"
-            android:textColor="@color/nc_black_color"
+            android:textColor="@color/nc_text_primary"
             android:textSize="@dimen/nc_text_size_18"
             app:fontTextStyle="semi_bold" />
 
@@ -70,7 +71,7 @@
         android:maxEms="20"
         android:minHeight="200dp"
         android:minEms="5"
-        android:textColor="@color/nc_primary_color"
+        android:textColor="@color/nc_text_primary"
         android:textSize="@dimen/nc_text_size_16" />
 
     <com.nunchuk.android.widget.NCFontTextView

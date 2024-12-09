@@ -132,7 +132,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/nc_padding_16"
-            android:buttonTint="@color/nc_black_color"
             android:checked="true"
             app:layout_constraintBottom_toBottomOf="@+id/standardWalletType"
             app:layout_constraintEnd_toEndOf="parent"
@@ -169,7 +168,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/nc_padding_16"
-            android:buttonTint="@color/nc_black_color"
             app:layout_constraintBottom_toBottomOf="@+id/escrowWalletDesc"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/escrowWalletType" />
@@ -248,7 +246,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/nc_padding_16"
-            android:buttonTint="@color/nc_black_color"
             android:checked="true"
             app:layout_constraintBottom_toBottomOf="@+id/nativeSegwitDesc"
             app:layout_constraintEnd_toEndOf="parent"
@@ -298,7 +295,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/nc_padding_16"
-            android:buttonTint="@color/nc_black_color"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/nestedSegwitType" />
 
@@ -332,7 +328,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/nc_padding_16"
-            android:buttonTint="@color/nc_black_color"
             app:layout_constraintTop_toTopOf="@+id/legacyType"
             app:layout_constraintEnd_toEndOf="parent" />
 
@@ -380,7 +375,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/nc_padding_16"
-            android:buttonTint="@color/nc_black_color"
             app:layout_constraintTop_toTopOf="@+id/taprootType"
             app:layout_constraintEnd_toEndOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>

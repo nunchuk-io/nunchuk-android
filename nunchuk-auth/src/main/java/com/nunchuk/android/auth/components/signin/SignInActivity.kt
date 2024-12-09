@@ -24,6 +24,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
@@ -55,7 +56,6 @@ import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -74,11 +74,12 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
     }
     private val viewModel: SignInViewModel by viewModels()
 
-    override fun initializeBinding() = ActivitySigninBinding.inflate(layoutInflater)
+    override fun initializeBinding() = ActivitySigninBinding.inflate(layoutInflater).also {
+        enableEdgeToEdge()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setTransparentStatusBar(false)
 
         setupViews()
 
