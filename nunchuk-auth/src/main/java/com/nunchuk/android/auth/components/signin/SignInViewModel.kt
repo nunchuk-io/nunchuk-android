@@ -87,7 +87,6 @@ internal class SignInViewModel @Inject constructor(
     private val registerUseCase: RegisterUseCase,
     private val updateUseProfileUseCase: UpdateUseProfileUseCase,
     private val savedStateHandle: SavedStateHandle,
-    getWalletPinUseCase: GetWalletPinUseCase,
     getBiometricConfigUseCase: GetBiometricConfigUseCase,
     private val biometricLoginUseCase: BiometricLoginUseCase,
     private val updateBiometricConfigUseCase: UpdateBiometricConfigUseCase
@@ -103,10 +102,6 @@ internal class SignInViewModel @Inject constructor(
 
     private var token: String? = null
     private var encryptedDeviceId: String? = null
-
-    val walletPinEnable = getWalletPinUseCase(Unit).map { it.getOrDefault("") }
-        .map { it.isNotBlank() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val biometricConfig = getBiometricConfigUseCase(Unit)
         .map { it.getOrDefault(BiometricConfig.DEFAULT) }

@@ -111,9 +111,6 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                 SignInEvent.NameValidEvent -> binding.name.hideError()
                 SignInEvent.OpenMainScreen -> {
                     openMainScreen()
-                    if (viewModel.walletPinEnable.value) {
-                        navigator.openUnlockPinScreen(this)
-                    }
                 }
             }
         }
