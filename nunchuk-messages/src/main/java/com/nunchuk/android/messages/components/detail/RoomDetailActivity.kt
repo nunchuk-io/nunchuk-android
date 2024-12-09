@@ -23,14 +23,13 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.MotionEvent
-import androidx.core.view.WindowCompat
+import androidx.activity.enableEdgeToEdge
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.detail.viewer.RoomMediaViewerFragment
 import com.nunchuk.android.messages.databinding.ActivityRoomDetailBinding
-import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -41,14 +40,14 @@ class RoomDetailActivity : BaseActivity<ActivityRoomDetailBinding>() {
     }
 
     override fun initializeBinding(): ActivityRoomDetailBinding {
-        return ActivityRoomDetailBinding.inflate(layoutInflater)
+        return ActivityRoomDetailBinding.inflate(layoutInflater).also {
+            enableEdgeToEdge()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        setLightStatusBar()
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.nav_room_detail)
         navHostFragment.navController.setGraph(graph, intent.extras)

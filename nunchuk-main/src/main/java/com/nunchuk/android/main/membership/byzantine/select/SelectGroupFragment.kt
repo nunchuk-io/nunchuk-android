@@ -29,18 +29,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioOption
 import com.nunchuk.android.compose.NcTag
@@ -251,14 +253,14 @@ fun ProBadgePlan(modifier: Modifier, text: String) {
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_check_badge),
-            tint = MaterialTheme.colorScheme.surface,
+            tint = Color.White,
             contentDescription = "Badge Icon"
         )
         Text(
             modifier = Modifier.padding(start = 4.dp),
             text = text,
             style = NunchukTheme.typography.bold.copy(
-                color = MaterialTheme.colorScheme.surface,
+                color = Color.White,
                 fontSize = 10.sp
             )
         )
@@ -277,9 +279,8 @@ fun StandardBadgePlan(modifier: Modifier) {
             .padding(horizontal = 8.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
+        NcIcon(
             painter = painterResource(id = R.drawable.ic_check_badge),
-            tint = MaterialTheme.colorScheme.primary,
             contentDescription = "Badge Icon"
         )
         Text(
@@ -290,7 +291,7 @@ fun StandardBadgePlan(modifier: Modifier) {
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun SelectGroupScreenPreview() {
     SelectGroupContent(
