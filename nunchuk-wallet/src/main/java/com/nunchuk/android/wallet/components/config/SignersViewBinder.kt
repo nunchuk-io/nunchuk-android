@@ -37,23 +37,28 @@ import com.nunchuk.android.widget.util.setOnDebounceClickListener
 internal class SignersViewBinder(
     container: ViewGroup,
     signers: List<SignerModel>,
+    private val isTaproot: Boolean,
+    private val totalRequiredSign: Int,
     private val isActiveAssistedWallet: Boolean = false,
     private val isInactiveAssistedWallet: Boolean = false,
     private val role: AssistedWalletRole = AssistedWalletRole.NONE,
     private val onViewPolicy: (model: SignerModel) -> Unit = {},
 ) : AbsViewBinder<SignerModel, ItemWalletConfigSignerBinding>(container, signers) {
 
-    override fun initializeBinding() = ItemWalletConfigSignerBinding.inflate(inflater, container, false)
+    override fun initializeBinding() =
+        ItemWalletConfigSignerBinding.inflate(inflater, container, false)
 
     override fun bindItem(position: Int, model: SignerModel) {
         val binding = ItemWalletConfigSignerBinding.bind(container.getChildAt(position))
 
         val isServerKey = model.type == SignerType.SERVER
-        binding.btnViewKeyPolicy.isVisible = isServerKey && isInactiveAssistedWallet.not() && role.isFacilitatorAdmin.not()
+        binding.btnViewKeyPolicy.isVisible =
+            isServerKey && isInactiveAssistedWallet.not() && role.isFacilitatorAdmin.not()
         binding.btnViewKeyPolicy.isEnabled = isServerKey && isActiveAssistedWallet
         binding.signerType.isVisible = isServerKey.not()
         binding.xpf.isVisible = isServerKey.not() || isInactiveAssistedWallet
         binding.btnViewKeyPolicy.setOnDebounceClickListener { onViewPolicy(model) }
+        binding.tvValueKey.isVisible = isTaproot && position < totalRequiredSign
 
         binding.signerType.text = model.toReadableSignerType(context, isIgnorePrimary = true)
         binding.avatar.isGone = model.localKey
@@ -76,6 +81,6 @@ internal class SignersViewBinder(
         binding.signerPrimaryKeyType.isVisible = model.isPrimaryKey
         binding.tvBip32Path.isVisible = model.derivationPath.isNotEmpty() && isServerKey.not()
         binding.tvBip32Path.text = "BIP32 path: ${model.derivationPath}"
-        binding.tvBip32Path.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0,0,0)
+        binding.tvBip32Path.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
     }
 }

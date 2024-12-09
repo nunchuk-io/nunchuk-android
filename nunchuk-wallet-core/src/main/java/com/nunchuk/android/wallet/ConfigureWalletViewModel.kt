@@ -242,11 +242,12 @@ class ConfigureWalletViewModel @Inject constructor(
                     )
                 }
             } else emptyList()
-            val selectedSingleSigners = state.selectedSigners.mapNotNull { signerMap[it.id] } + state.remoteSigners.filter {
-                state.selectedSigners.contains(
-                    it.toModel()
-                )
-            }
+            val selectedSingleSigners =
+                state.selectedSigners.mapNotNull { signerMap[it.id] } + state.remoteSigners.filter {
+                    state.selectedSigners.contains(
+                        it.toModel()
+                    )
+                }
             val signers = if (args.addressType.isTaproot()) {
                 selectedSingleSigners.sortedBy { signer -> if (keySetSigners.contains(signer)) 0 else 1 }
             } else {
@@ -315,8 +316,9 @@ class ConfigureWalletViewModel @Inject constructor(
             if (isSingleSig) masterSignerSingleMap else masterSignerMutisigMap
         val newSelectedSigner =
             selectedSigners.map {
-                if (masterSignerIdSet.contains(it.id)) {
-                    it.copy(derivationPath = signerMap[it.id]?.derivationPath.orEmpty())
+                val signer = signerMap[it.id]
+                if (masterSignerIdSet.contains(it.id) && signer != null) {
+                    it.copy(derivationPath = signer.derivationPath, index = signer.index)
                 } else {
                     it
                 }

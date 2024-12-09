@@ -42,6 +42,7 @@ import com.nunchuk.android.core.util.RollOverWalletFlow
 import com.nunchuk.android.core.util.RollOverWalletSource
 import com.nunchuk.android.core.util.formatddMMMyyyyDate
 import com.nunchuk.android.core.util.getFileFromUri
+import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.core.util.upperCase
 import com.nunchuk.android.core.wallet.WalletBottomSheetResult
@@ -466,6 +467,8 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             isActiveAssistedWallet = viewModel.isAssistedWallet(),
             isInactiveAssistedWallet = viewModel.isInactiveAssistedWallet(),
             role = state.role.toRole,
+            isTaproot = state.walletExtended.wallet.addressType.isTaproot(),
+            totalRequiredSign = state.walletExtended.wallet.totalRequireSigns,
         ) {
             showReEnterPassword(TargetAction.UPDATE_SERVER_KEY, it)
         }.bindItems()

@@ -809,4 +809,5 @@
     <string name="nc_biometric_is_not_enable_this_device">Fingerprint is not enabled on this device. Please activate it in your phone’s settings and try again, or sign in using your password.</string>
     <string name="nc_multisig">Multisig</string>
     <string name="nc_unbacked_up_signer_warning_desc">The hot wallet containing this key must be backed up before this key can be used in another wallet. Please back it up first.</string>
+    <string name="nc_value_key">Value Key</string>
 </resources>

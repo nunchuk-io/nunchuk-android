@@ -68,6 +68,21 @@
         tools:visibility="visible" />
 
     <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/tv_value_key"
+        style="@style/NCText.Badges"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_4"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/nc_rounded_denim_background"
+        android:paddingHorizontal="@dimen/nc_padding_8"
+        android:text="@string/nc_value_key"
+        app:layout_constraintBottom_toTopOf="@+id/xpf"
+        app:layout_constraintStart_toEndOf="@+id/signerPrimaryKeyType"
+        app:layout_constraintTop_toBottomOf="@+id/signerName"
+        app:layout_goneMarginStart="0dp" />
+
+    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/signerType"
         style="@style/NCText.Badges"
         android:layout_width="wrap_content"
@@ -78,7 +93,7 @@
         android:paddingHorizontal="@dimen/nc_padding_8"
         android:text="@string/nc_signer_airgapped"
         app:layout_constraintBottom_toTopOf="@+id/xpf"
-        app:layout_constraintStart_toEndOf="@+id/signerPrimaryKeyType"
+        app:layout_constraintStart_toEndOf="@+id/tv_value_key"
         app:layout_constraintTop_toBottomOf="@+id/signerName"
         app:layout_goneMarginStart="0dp" />
 

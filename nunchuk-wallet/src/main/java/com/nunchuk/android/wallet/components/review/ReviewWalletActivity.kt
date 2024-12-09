@@ -22,8 +22,10 @@ package com.nunchuk.android.wallet.components.review
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.utils.viewModelProviderFactoryOf
@@ -35,7 +37,6 @@ import com.nunchuk.android.wallet.databinding.ActivityReviewWalletBinding
 import com.nunchuk.android.wallet.util.isWalletExisted
 import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -53,12 +54,13 @@ class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
 
     private val args: ReviewWalletArgs by lazy { ReviewWalletArgs.deserializeFrom(intent) }
 
-    override fun initializeBinding() = ActivityReviewWalletBinding.inflate(layoutInflater)
+    override fun initializeBinding() = ActivityReviewWalletBinding.inflate(layoutInflater).also {
+        enableEdgeToEdge()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setLightStatusBar()
         setupViews()
         observeEvent()
     }
@@ -103,7 +105,12 @@ class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
 
         binding.walletType.text = args.walletType.toReadableString(this)
         binding.addressType.text = args.addressType.toReadableString(this)
-        SignersViewBinder(binding.signersContainer, signers).bindItems()
+        SignersViewBinder(
+            container = binding.signersContainer,
+            signers = signers,
+            isTaproot = args.addressType.isTaproot(),
+            totalRequiredSign = args.totalRequireSigns
+        ).bindItems()
 
         binding.btnContinue.setOnClickListener {
             viewModel.handleContinueEvent(
