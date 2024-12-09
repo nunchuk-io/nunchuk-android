@@ -22,6 +22,7 @@ package com.nunchuk.android.signer.tapsigner
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
@@ -32,18 +33,17 @@ import com.nunchuk.android.signer.tapsigner.backup.verify.TapSignerVerifyBackUpO
 import com.nunchuk.android.signer.tapsigner.id.TapSignerIdFragmentArgs
 import com.nunchuk.android.signer.tapsigner.intro.AddTapSignerIntroFragmentArgs
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
-import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
     override fun initializeBinding(): ActivityNavigationBinding =
-        ActivityNavigationBinding.inflate(layoutInflater)
+        ActivityNavigationBinding.inflate(layoutInflater).also {
+            enableEdgeToEdge()
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setLightStatusBar()
-        WindowCompat.setDecorFitsSystemWindows(window, false)
         keyId = intent.getStringExtra(EXTRA_KEY_ID).orEmpty()
         initStartDestination()
     }
