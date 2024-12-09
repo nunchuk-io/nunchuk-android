@@ -34,26 +34,16 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.type.WalletType.ESCROW
 import com.nunchuk.android.type.WalletType.SINGLE_SIG
 import com.nunchuk.android.usecase.CreateWalletUseCase
-import com.nunchuk.android.usecase.DraftWalletUseCase
-import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.CreateWalletErrorEvent
 import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.CreateWalletSuccessEvent
-import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.SetLoadingEvent
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import timber.log.Timber
 
 internal class ReviewWalletViewModel @AssistedInject constructor(
     @Assisted private val args: ReviewWalletArgs,
-    private val draftWalletUseCase: DraftWalletUseCase,
     private val createWalletUseCase: CreateWalletUseCase,
     private val accountManager: AccountManager,
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase
@@ -66,55 +56,33 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
         walletType: WalletType,
         addressType: AddressType,
         totalRequireSigns: Int,
-        masterSigners: List<SingleSigner>,
-        remoteSigners: List<SingleSigner>,
+        signers: List<SingleSigner>,
         decoyPin: String
     ) {
-        val totalSigns = masterSigners.size + remoteSigners.size
+        val totalSigns = signers.size
         val normalizeWalletType =
             if (walletType == ESCROW) ESCROW else if (totalSigns > 1) WalletType.MULTI_SIG else SINGLE_SIG
         viewModelScope.launch {
-            flowOf(masterSigners)
-                .flowOn(Dispatchers.IO)
-                .onStart { event(SetLoadingEvent(true)) }
-                .map {
-                    val signers = it + remoteSigners
-                    draftWalletUseCase.execute(
-                        name = walletName,
-                        totalRequireSigns = totalRequireSigns,
-                        signers = signers,
-                        addressType = addressType,
-                        isEscrow = normalizeWalletType == ESCROW
-                    )
-                    signers
-                }
-                .flowOn(Dispatchers.IO)
-                .map {
-                    createWalletUseCase(
-                        CreateWalletUseCase.Params(
-                            name = walletName,
-                            totalRequireSigns = totalRequireSigns,
-                            signers = it,
-                            addressType = addressType,
-                            isEscrow = normalizeWalletType == ESCROW,
-                            decoyPin = decoyPin,
-                        )
-                    ).getOrThrow()
-                }
-                .flowOn(Dispatchers.Main)
-                .onException {
-                    event(CreateWalletErrorEvent(it.message.orUnknownError()))
-                }
-                .collect {
-                    Timber.d("create wallet completed:$it")
-                    event(CreateWalletSuccessEvent(it))
-                }
+            createWalletUseCase(
+                CreateWalletUseCase.Params(
+                    name = walletName,
+                    totalRequireSigns = totalRequireSigns,
+                    signers = signers,
+                    addressType = addressType,
+                    isEscrow = normalizeWalletType == ESCROW,
+                    decoyPin = decoyPin,
+                )
+            ).onSuccess {
+                event(CreateWalletSuccessEvent(it))
+            }.onFailure {
+                event(CreateWalletErrorEvent(it.message.orUnknownError()))
+            }
         }
     }
 
     fun mapSigners(): List<SignerModel> {
-        val masterSigners = args.masterSigners.map {
-            it.toModel(isPrimaryKey = accountManager.getPrimaryKeyInfo()?.xfp == it.masterFingerprint)
+        return args.signers.map {
+            it.toModel(isPrimaryKey = it.hasMasterSigner && accountManager.getPrimaryKeyInfo()?.xfp == it.masterFingerprint)
         }.map {
             if (it.type == SignerType.NFC) {
                 val status = runBlocking { getTapSignerStatusByIdUseCase(it.id) }
@@ -122,7 +90,6 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
             }
             return@map it
         }
-        return masterSigners + args.remoteSigners.map(SingleSigner::toModel)
     }
 
     @AssistedFactory

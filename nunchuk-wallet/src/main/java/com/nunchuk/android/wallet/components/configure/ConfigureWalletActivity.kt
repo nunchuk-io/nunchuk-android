@@ -101,8 +101,7 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
         when (event) {
             is AssignSignerCompletedEvent -> openWalletConfirmScreen(
                 totalRequireSigns = event.totalRequireSigns,
-                masterSigners = event.masterSigners,
-                remoteSigners = event.remoteSigners
+                signers = event.signers,
             )
 
             is Loading -> showOrHideLoading(event.loading)
@@ -160,8 +159,7 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
 
     private fun openWalletConfirmScreen(
         totalRequireSigns: Int,
-        masterSigners: List<SingleSigner>,
-        remoteSigners: List<SingleSigner>
+        signers: List<SingleSigner>,
     ) {
         navigator.openReviewWalletScreen(
             activityContext = this,
@@ -171,8 +169,7 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
                 addressType = args.addressType,
                 decoyPin = args.decoyPin,
                 totalRequireSigns = totalRequireSigns,
-                masterSigners = masterSigners,
-                remoteSigners = remoteSigners
+                signers = signers,
             )
         )
     }

@@ -33,8 +33,7 @@ data class ReviewWalletArgs(
     val walletType: WalletType,
     val addressType: AddressType,
     val totalRequireSigns: Int,
-    val masterSigners: List<SingleSigner>,
-    val remoteSigners: List<SingleSigner>,
+    val signers: List<SingleSigner>,
     val decoyPin: String = ""
 ) {
 
@@ -43,8 +42,7 @@ data class ReviewWalletArgs(
         putSerializable(EXTRA_WALLET_TYPE, walletType)
         putSerializable(EXTRA_ADDRESS_TYPE, addressType)
         putInt(EXTRA_TOTAL_REQUIRED_SIGNS, totalRequireSigns)
-        putParcelableArrayList(EXTRA_MASTER_SIGNERS, ArrayList(masterSigners))
-        putParcelableArrayList(EXTRA_REMOTE_SIGNERS, ArrayList(remoteSigners))
+        putParcelableArrayList(EXTRA_SIGNERS, ArrayList(signers))
         putString(EXTRA_DECOY_PIN, decoyPin)
     }
 
@@ -53,8 +51,7 @@ data class ReviewWalletArgs(
         private const val EXTRA_WALLET_TYPE = "EXTRA_WALLET_TYPE"
         private const val EXTRA_ADDRESS_TYPE = "EXTRA_ADDRESS_TYPE"
         private const val EXTRA_TOTAL_REQUIRED_SIGNS = "EXTRA_TOTAL_REQUIRED_SIGNS"
-        private const val EXTRA_MASTER_SIGNERS = "EXTRA_MASTER_SIGNERS"
-        private const val EXTRA_REMOTE_SIGNERS = "EXTRA_REMOTE_SIGNERS"
+        private const val EXTRA_SIGNERS = "EXTRA_SIGNERS"
         private const val EXTRA_DECOY_PIN = "EXTRA_DECOY_PIN"
 
         fun deserializeFrom(intent: Intent): ReviewWalletArgs = ReviewWalletArgs(
@@ -62,8 +59,7 @@ data class ReviewWalletArgs(
             intent.serializable<WalletType>(EXTRA_WALLET_TYPE)!!,
             intent.serializable<AddressType>(EXTRA_ADDRESS_TYPE)!!,
             intent.getIntExtra(EXTRA_TOTAL_REQUIRED_SIGNS, 0),
-            intent.parcelableArrayList<SingleSigner>(EXTRA_MASTER_SIGNERS).orEmpty(),
-            intent.parcelableArrayList<SingleSigner>(EXTRA_REMOTE_SIGNERS).orEmpty(),
+            intent.parcelableArrayList<SingleSigner>(EXTRA_SIGNERS).orEmpty(),
             intent.extras.getStringValue(EXTRA_DECOY_PIN),
         )
     }

@@ -86,11 +86,9 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
             )
         } else if (args.isQuickWallet) {
             finish()
-        } else if (args.wallet.signers.size > 1) {
-            navigator.returnToMainScreen(this)
-            navigator.openWalletDetailsScreen(this, args.wallet.id)
         } else {
             navigator.returnToMainScreen(this)
+            navigator.openWalletDetailsScreen(this, args.wallet.id)
         }
     }
 

@@ -29,8 +29,7 @@ sealed class ConfigureWalletEvent {
     data class Loading(val loading: Boolean) : ConfigureWalletEvent()
     data class AssignSignerCompletedEvent(
         val totalRequireSigns: Int = 0,
-        val masterSigners: List<SingleSigner>,
-        val remoteSigners: List<SingleSigner>
+        val signers: List<SingleSigner>,
     ) : ConfigureWalletEvent()
     data object OpenConfigKeySet : ConfigureWalletEvent()
     data class PromptInputPassphrase(val signer: SignerModel) : ConfigureWalletEvent()

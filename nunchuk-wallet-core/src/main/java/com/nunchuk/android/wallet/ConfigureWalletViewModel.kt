@@ -235,10 +235,28 @@ class ConfigureWalletViewModel @Inject constructor(
         if (args.addressType.isTaproot() && state.keySet.isEmpty()) {
             _event.emit(ConfigureWalletEvent.OpenConfigKeySet)
         } else if (isValidRequireSigns && hasSigners) {
+            val keySetSigners = if (args.addressType.isTaproot()) {
+                state.keySet.mapNotNull { signerMap[it.id] } + state.remoteSigners.filter {
+                    state.keySet.contains(
+                        it.toModel()
+                    )
+                }
+            } else emptyList()
+            val selectedSingleSigners = state.selectedSigners.mapNotNull { signerMap[it.id] } + state.remoteSigners.filter {
+                state.selectedSigners.contains(
+                    it.toModel()
+                )
+            }
+            val signers = if (args.addressType.isTaproot()) {
+                selectedSingleSigners.sortedBy { signer -> if (keySetSigners.contains(signer)) 0 else 1 }
+            } else {
+                selectedSingleSigners
+            }
             _event.emit(
-                ConfigureWalletEvent.AssignSignerCompletedEvent(state.totalRequireSigns,
-                    state.selectedSigners.mapNotNull { signerMap[it.id] },
-                    state.remoteSigners.filter { state.selectedSigners.contains(it.toModel()) })
+                ConfigureWalletEvent.AssignSignerCompletedEvent(
+                    totalRequireSigns = state.totalRequireSigns,
+                    signers = signers,
+                )
             )
         }
     }

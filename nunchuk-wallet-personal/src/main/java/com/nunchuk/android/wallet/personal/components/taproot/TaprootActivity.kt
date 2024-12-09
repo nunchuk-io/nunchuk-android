@@ -159,8 +159,7 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
         when (event) {
             is ConfigureWalletEvent.AssignSignerCompletedEvent -> openWalletConfirmScreen(
                 totalRequireSigns = event.totalRequireSigns,
-                masterSigners = event.masterSigners,
-                remoteSigners = event.remoteSigners
+                signers = event.signers,
             )
 
             is ConfigureWalletEvent.Loading -> showOrHideLoading(event.loading)
@@ -218,8 +217,7 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
 
     private fun openWalletConfirmScreen(
         totalRequireSigns: Int,
-        masterSigners: List<SingleSigner>,
-        remoteSigners: List<SingleSigner>
+        signers: List<SingleSigner>,
     ) {
         navigator.openReviewWalletScreen(
             activityContext = this,
@@ -229,8 +227,7 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                 addressType = args.addressType,
                 decoyPin = args.decoyPin,
                 totalRequireSigns = totalRequireSigns,
-                masterSigners = masterSigners,
-                remoteSigners = remoteSigners
+                signers = signers,
             )
         )
     }

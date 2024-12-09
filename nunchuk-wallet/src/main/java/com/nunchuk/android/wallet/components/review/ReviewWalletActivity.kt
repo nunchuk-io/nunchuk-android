@@ -111,8 +111,7 @@ class ReviewWalletActivity : BaseActivity<ActivityReviewWalletBinding>() {
                 walletType = args.walletType,
                 addressType = args.addressType,
                 totalRequireSigns = args.totalRequireSigns,
-                masterSigners = args.masterSigners,
-                remoteSigners = args.remoteSigners,
+                signers = args.signers,
                 decoyPin = args.decoyPin
             )
         }
