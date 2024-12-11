@@ -22,7 +22,7 @@ package com.nunchuk.android.wallet
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.model.signer.SupportedSigner
 
 sealed class ConfigureWalletEvent {
     object ChangeBip32Success : ConfigureWalletEvent()
@@ -47,6 +47,6 @@ data class ConfigureWalletState(
     val allSigners : List<SignerModel> = emptyList(),
     val selectedSigners: Set<SignerModel> = emptySet(),
     val isShowPath: Boolean = false,
-    val supportedSignerTypes: Set<SignerType> = emptySet(),
+    val supportedSigners: List<SupportedSigner> = emptyList(),
     val keySet: Set<SignerModel> = emptySet(),
 )

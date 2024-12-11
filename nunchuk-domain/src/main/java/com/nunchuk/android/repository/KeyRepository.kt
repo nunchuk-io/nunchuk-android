@@ -23,6 +23,7 @@ import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import kotlinx.coroutines.flow.Flow
@@ -105,4 +106,6 @@ interface KeyRepository {
     suspend fun getBackUpKey(xfp: String, groupId: String): String
 
     suspend fun getBackUpKeyReplacement(xfp: String, groupId: String, walletId: String): String
+
+    suspend fun getSupportedSigners(): List<SupportedSigner>
 }

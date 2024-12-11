@@ -86,7 +86,12 @@ fun TaprootConfigScreen(
     onEditPath: (SignerModel) -> Unit = {},
     onUpdateRequiredKey: (Boolean) -> Unit = {},
 ) {
-    val partition = state.allSigners.partition { state.supportedSignerTypes.contains(it.type) }
+    val partition = state.allSigners.partition { signer ->
+        state.supportedSigners.any { supportedSigner ->
+            supportedSigner.type == signer.type
+                    && (supportedSigner.tag == null || signer.tags.contains(supportedSigner.tag))
+        }
+    }
     NunchukTheme {
         NcScaffold(
             modifier = modifier.systemBarsPadding(),

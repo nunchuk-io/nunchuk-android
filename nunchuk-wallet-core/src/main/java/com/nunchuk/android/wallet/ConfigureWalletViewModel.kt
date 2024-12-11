@@ -41,6 +41,7 @@ import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.SendSignerPassphrase
+import com.nunchuk.android.usecase.signer.GetSupportedSignersUseCase
 import com.nunchuk.android.usecase.wallet.GetWallets2UseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -72,6 +73,7 @@ class ConfigureWalletViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val cacheDefaultTapsignerMasterSignerXPubUseCase: CacheDefaultTapsignerMasterSignerXPubUseCase,
     private val getWallets2UseCase: GetWallets2UseCase,
+    private val getSupportedSignersUseCase: GetSupportedSignersUseCase,
 ) : ViewModel() {
 
     private lateinit var args: ConfigureWalletArgs
@@ -106,12 +108,18 @@ class ConfigureWalletViewModel @Inject constructor(
 
     fun init(args: ConfigureWalletArgs) {
         this.args = args
-        _state.update {
-            it.copy(
-                supportedSignerTypes = if (args.addressType.isTaproot()) setOf(SignerType.SOFTWARE) else emptySet()
-            )
+        if (args.addressType.isTaproot()) {
+            getSupportedSigner()
         }
         getSigners()
+    }
+
+    private fun getSupportedSigner() {
+        viewModelScope.launch {
+            getSupportedSignersUseCase(Unit).onSuccess { supportedSigners ->
+                _state.update { it.copy(supportedSigners = supportedSigners) }
+            }
+        }
     }
 
     private fun getSigners() {

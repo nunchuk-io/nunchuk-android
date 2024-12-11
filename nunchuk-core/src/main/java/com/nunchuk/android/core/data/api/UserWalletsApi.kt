@@ -96,6 +96,7 @@ import com.nunchuk.android.model.DownloadBackupKeyResponseData
 import com.nunchuk.android.model.KeyResponse
 import com.nunchuk.android.model.KeyResponseData
 import com.nunchuk.android.model.KeyVerifiedRequest
+import com.nunchuk.android.model.SupportedSignersData
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Body
@@ -724,4 +725,7 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Body payload: KeyVerifiedRequest
     ): Data<Unit>
+
+    @GET("/v1.1/user-wallets/taproot/supported-signers")
+    suspend fun getSupportedSigners(): Data<SupportedSignersData>
 }

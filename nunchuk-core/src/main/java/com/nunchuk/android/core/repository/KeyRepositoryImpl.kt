@@ -27,6 +27,7 @@ import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.ServerSignerMapper
 import com.nunchuk.android.core.persistence.NcDataStore
+import com.nunchuk.android.core.signer.toSignerTag
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.core.util.toSignerType
@@ -38,6 +39,7 @@ import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.isAddInheritanceKey
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.AssistedWalletDao
@@ -697,6 +699,19 @@ internal class KeyRepositoryImpl @Inject constructor(
             response.data.keyBackUpBase64
         )
         return serverKeyFilePath
+    }
+
+    override suspend fun getSupportedSigners(): List<SupportedSigner> {
+        val response = userWalletApiManager.walletApi.getSupportedSigners()
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        return response.data.supportedSigners.map {
+            SupportedSigner(
+                type = it.signerType.toSignerType(),
+                tag = it.signerTag.toSignerTag()
+            )
+        }
     }
 
     companion object {
