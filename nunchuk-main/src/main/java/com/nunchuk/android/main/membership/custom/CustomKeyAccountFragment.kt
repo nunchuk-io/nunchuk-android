@@ -114,7 +114,8 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                     signer = args.signer,
                     onShowMoreOptions = ::handleShowMore,
                     remainingTime = remainingTime,
-                    isMultisig = args.isMultisigWallet
+                    isMultisig = args.isMultisigWallet,
+                    isReplaceKey = args.replacedXfp.isNotEmpty(),
                 )
             }
         }
@@ -327,6 +328,7 @@ private fun CustomKeyAccountFragmentScreen(
     onShowMoreOptions: () -> Unit = {},
     remainingTime: Int = 0,
     isMultisig: Boolean = true,
+    isReplaceKey: Boolean = false,
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     CustomKeyAccountFragmentContent(
@@ -336,7 +338,8 @@ private fun CustomKeyAccountFragmentScreen(
         isTestNet = uiState.isTestNet,
         isMultisig = isMultisig,
         onShowMoreOptions = onShowMoreOptions,
-        onContinueClicked = viewModel::checkSignerIndex
+        onContinueClicked = viewModel::checkSignerIndex,
+        isReplaceKey = isReplaceKey,
     )
 }
 
@@ -349,6 +352,7 @@ private fun CustomKeyAccountFragmentContent(
     remainingTime: Int = 0,
     onShowMoreOptions: () -> Unit = {},
     onContinueClicked: (newIndex: Int) -> Unit = {},
+    isReplaceKey: Boolean = false,
 ) {
     var newIndex by remember(oldIndex) {
         mutableStateOf(if (oldIndex >= 0) "" else "0")
@@ -364,15 +368,18 @@ private fun CustomKeyAccountFragmentContent(
                         remainingTime
                     ),
                     actions = {
-                        IconButton(onClick = onShowMoreOptions) {
-                            Icon(
-                                painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
-                                contentDescription = "More icon"
-                            )
+                        if (!isReplaceKey) {
+                            IconButton(onClick = onShowMoreOptions) {
+                                Icon(
+                                    painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
+                                    contentDescription = "More icon"
+                                )
+                            }
                         }
                     }
                 )
-            }, bottomBar = {
+            },
+            bottomBar = {
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -382,7 +389,8 @@ private fun CustomKeyAccountFragmentContent(
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
                 }
-            }) { innerPadding ->
+            },
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
