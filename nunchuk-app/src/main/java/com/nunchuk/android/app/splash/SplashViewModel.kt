@@ -29,6 +29,7 @@ import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
+import com.nunchuk.android.core.guestmode.isPrimaryKey
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.usecase.GetBiometricConfigUseCase
@@ -83,11 +84,10 @@ internal class SplashViewModel @Inject constructor(
                 )
 
                 isAccountExisted && accountManager.isAccountActivated() || mode.isGuestMode() -> {
-                    Log.e("biometric", "isBiometricEnable: $isBiometricEnable")
                     _event.emit(
                         SplashEvent.NavHomeScreenEvent(
                             askPin = shouldAskPin && isDecoyDisablePin,
-                            askBiometric = isBiometricEnable
+                            askBiometric = isBiometricEnable && mode.isGuestMode().not() && mode.isPrimaryKey().not()
                         )
                     )
                 }

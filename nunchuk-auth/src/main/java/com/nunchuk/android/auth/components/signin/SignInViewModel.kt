@@ -168,7 +168,7 @@ internal class SignInViewModel @Inject constructor(
             if (validateName(name)) {
                 updateUseProfileUseCase(UpdateUseProfileUseCase.Params(name = name))
                     .onSuccess {
-                        _event.emit(SignInSuccessEvent)
+                        _event.emit(SignInSuccessEvent())
                     }
                     .onFailure {
                         _event.emit(SignInErrorEvent(message = it.message.orUnknownError()))
@@ -239,7 +239,7 @@ internal class SignInViewModel @Inject constructor(
                             _event.emit(ProcessingEvent(false))
                             setType(SignInType.NAME)
                         } else {
-                            _event.emit(SignInSuccessEvent)
+                            _event.emit(SignInSuccessEvent())
                         }
                     }
                     .flowOn(Main)
@@ -274,7 +274,7 @@ internal class SignInViewModel @Inject constructor(
                 .onSuccess {
                     accountManager.storeAccount(AccountInfo().copy(loginType = SignInMode.GUEST_MODE.value))
                     signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
-                    _event.emit(SignInSuccessEvent)
+                    _event.emit(SignInSuccessEvent())
                 }.onFailure {
                     _event.emit(SignInErrorEvent(message = it.message.orUnknownError()))
                 }
@@ -319,7 +319,7 @@ internal class SignInViewModel @Inject constructor(
                         initNunchuk()
                         fileLog(message = "end initNunchuk")
                         signInModeHolder.setCurrentMode(SignInMode.EMAIL)
-                        _event.emit(SignInSuccessEvent)
+                        _event.emit(SignInSuccessEvent(ignoreCheckBiometric = true))
                     }
                 }
                 .onFailure {

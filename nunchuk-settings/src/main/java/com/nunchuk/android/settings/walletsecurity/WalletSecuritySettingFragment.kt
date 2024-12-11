@@ -248,6 +248,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                 )
             } else {
                 binding.protectWalletFingerprintOption.setOptionChecked(false)
+                viewModel.updateProtectWalletBiometric(false)
             }
         }
         if (biometricPromptManager.checkHardwareSupport()

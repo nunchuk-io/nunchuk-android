@@ -99,7 +99,13 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                 is PasswordRequiredEvent -> binding.password.setError(getString(R.string.nc_text_required))
                 is PasswordValidEvent -> binding.password.hideError()
                 is SignInErrorEvent -> onSignInError(it.code, it.message.orEmpty(), it.errorDetail)
-                is SignInSuccessEvent -> viewModel.checkClearBiometric()
+                is SignInSuccessEvent -> {
+                    if (it.ignoreCheckBiometric) {
+                        openMainScreen()
+                    } else {
+                        viewModel.checkClearBiometric()
+                    }
+                }
 
                 is ProcessingEvent -> showOrHideLoading(it.isLoading)
 
