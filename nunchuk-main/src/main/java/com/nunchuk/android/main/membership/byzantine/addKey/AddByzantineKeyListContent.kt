@@ -45,8 +45,6 @@ import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
-import com.nunchuk.android.type.SignerTag
-import com.nunchuk.android.type.SignerType
 
 @Composable
 fun AddByzantineKeyListContent(
@@ -64,14 +62,7 @@ fun AddByzantineKeyListContent(
     role: AssistedWalletRole = AssistedWalletRole.NONE,
 ) {
     val state = rememberPullRefreshState(isRefreshing, refresh)
-    val continueButtonEnabled = remember(keys) {
-        keys.all { it.isVerifyOrAddKey }
-                && (missingBackupKeys.isEmpty() || keys.filter {
-            it.signer?.type != SignerType.NFC && it.signer?.tags?.contains(
-                SignerTag.INHERITANCE
-            ) == true
-        }.all { it.verifyType != VerifyType.NONE })
-    }
+
     NunchukTheme {
         Scaffold(modifier = Modifier
             .statusBarsPadding()
@@ -94,7 +85,7 @@ fun AddByzantineKeyListContent(
                             .fillMaxWidth()
                             .padding(16.dp),
                         onClick = onContinueClicked,
-                        enabled = continueButtonEnabled
+                        enabled = keys.all { it.isVerifyOrAddKey } && missingBackupKeys.isEmpty()
                     ) {
                         Text(text = stringResource(id = R.string.nc_text_continue))
                     }
@@ -149,7 +140,7 @@ fun AddByzantineKeyListContent(
                                 onAddClicked = onAddClicked,
                                 onVerifyClicked = onVerifyClicked,
                                 isDisabled = role.isFacilitatorAdmin,
-                                isMissingBackup = missingBackupKeys.contains(key) && key.signer?.type != SignerType.NFC,
+                                isMissingBackup = missingBackupKeys.contains(key),
                             )
                         }
                     }

@@ -43,6 +43,7 @@ import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -156,17 +157,17 @@ class AddByzantineKeyListViewModel @Inject constructor(
     private suspend fun updateKeyData() {
         if (key.value.isEmpty()) return
         val signers = _state.value.signers
-        val missingBackupKeys = mutableListOf<AddKeyData>()
+        val coldCardMissingBackupKeys = mutableListOf<AddKeyData>()
         val news = key.value.map { addKeyData ->
             val info = getStepInfo(addKeyData.type)
             var signer =
                 if (info.masterSignerId.isNotEmpty()) signers.find { it.fingerPrint == info.masterSignerId } else null
-            var isMissingBackup = false
+            var isColdCardMissingBackup = false
             if (signer != null) {
                 runCatching {
                     val extra = gson.fromJson(info.extraData, SignerExtra::class.java)
-                    if (extra != null && extra.userKeyFileName.isEmpty()) {
-                        isMissingBackup = true
+                    if (extra != null && extra.userKeyFileName.isEmpty() && info.step.isAddInheritanceKey && signer?.type != SignerType.NFC) {
+                        isColdCardMissingBackup = true
                     }
                     signer = signer?.copy(
                         index = getIndexFromPathUseCase(extra.derivationPath).getOrDefault(0)
@@ -178,12 +179,12 @@ class AddByzantineKeyListViewModel @Inject constructor(
                 verifyType = info.verifyType
             )
             // Check if Coldcard Inheritance signer is missing backup key
-            if (isMissingBackup && newKeyData.signer?.tags.orEmpty().contains(SignerTag.INHERITANCE)
-                && newKeyData.signer?.type != SignerType.NFC) {
-                missingBackupKeys.add(newKeyData)
+            if (isColdCardMissingBackup) {
+                coldCardMissingBackupKeys.add(newKeyData)
             }
             return@map newKeyData
         }
+        _state.update { it.copy(missingBackupKeys = coldCardMissingBackupKeys) }
         _keys.value = news
     }
 

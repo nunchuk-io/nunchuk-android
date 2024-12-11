@@ -39,6 +39,7 @@ import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -52,7 +53,6 @@ import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -119,7 +119,7 @@ class AddKeyListViewModel @Inject constructor(
         viewModelScope.launch {
             membershipStepState.combine(key) { _, keys -> keys }
                 .collect { keys ->
-                    val missingBackupKeys = arrayListOf<AddKeyData>()
+                    val coldCardMissingBackupKeys = arrayListOf<AddKeyData>()
                     val news = keys.map { addKeyData ->
                         val info = getStepInfo(addKeyData.type)
                         val extra = runCatching {
@@ -143,16 +143,15 @@ class AddKeyListViewModel @Inject constructor(
                         }
                         val newKeyData = addKeyData.copy(verifyType = info.verifyType)
                         // Check if Coldcard Inheritance signer is missing backup key
-                        if (newKeyData.signer?.tags.orEmpty().contains(SignerTag.INHERITANCE)
-                            && newKeyData.signer?.type != SignerType.NFC) {
+                        if (info.step.isAddInheritanceKey && newKeyData.signer?.type != SignerType.NFC) {
                             if (extra != null && extra.userKeyFileName.isEmpty()) {
-                                missingBackupKeys.add(newKeyData)
+                                coldCardMissingBackupKeys.add(newKeyData)
                             }
                         }
                         return@map newKeyData
                     }
                     _keys.value = news
-                    _state.update { it.copy(missingBackupKeys = missingBackupKeys) }
+                    _state.update { it.copy(missingBackupKeys = coldCardMissingBackupKeys) }
                 }
         }
         viewModelScope.launch {

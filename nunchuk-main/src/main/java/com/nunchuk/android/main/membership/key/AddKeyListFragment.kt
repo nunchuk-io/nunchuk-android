@@ -511,14 +511,7 @@ fun AddKeyListContent(
     refresh: () -> Unit = { },
 ) {
     val state = rememberPullRefreshState(isRefreshing, refresh)
-    val continueButtonEnabled = remember(keys) {
-        keys.all { it.isVerifyOrAddKey }
-                && (missingBackupKeys.isEmpty() || keys.filter {
-            it.signer?.type != SignerType.NFC && it.signer?.tags?.contains(
-                SignerTag.INHERITANCE
-            ) == true
-        }.all { it.verifyType != VerifyType.NONE })
-    }
+
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -541,7 +534,7 @@ fun AddKeyListContent(
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = onContinueClicked,
-                    enabled = continueButtonEnabled
+                    enabled = keys.all { it.isVerifyOrAddKey } && missingBackupKeys.isEmpty()
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
                 }
