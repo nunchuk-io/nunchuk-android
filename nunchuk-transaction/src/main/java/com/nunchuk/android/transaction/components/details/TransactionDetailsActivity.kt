@@ -187,7 +187,7 @@ class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetails
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (isNfcIntent(intent ?: return)) {
+        if (isNfcIntent(intent)) {
             shouldReload = false
         }
     }
@@ -278,8 +278,8 @@ class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetails
     }
 
     private fun observeEvent() {
-        viewModel.event.observe(this, ::handleEvent)
-        viewModel.state.observe(this, ::handleState)
+        flowObserver(viewModel.event, collector = ::handleEvent)
+        flowObserver(viewModel.state, collector = ::handleState)
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_SIGN_TRANSACTION }) {
             viewModel.handleSignByTapSigner(IsoDep.get(it.tag), nfcViewModel.inputCvc.orEmpty())
             nfcViewModel.clearScanInfo()

@@ -30,12 +30,12 @@ import com.nunchuk.android.utils.parcelable
 data class TransactionDetailsArgs(
     val walletId: String,
     val txId: String,
-    val initEventId: String,
-    val roomId: String,
-    val transaction: Transaction?,
-    val isInheritanceClaimingFlow: Boolean,
-    val isCancelBroadcast: Boolean,
-    val errorMessage: String,
+    val initEventId: String = "",
+    val roomId: String = "",
+    val transaction: Transaction? = null,
+    val isInheritanceClaimingFlow: Boolean = false,
+    val isCancelBroadcast: Boolean = false,
+    val errorMessage: String = "",
     val isRequestSignatureFlow: Boolean = false,
 ) : ActivityArgs {
 
