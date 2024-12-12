@@ -9,6 +9,7 @@
     android:background="@drawable/nc_rounded_whisper_disable_background"
     android:drawableStart="@drawable/ic_info_small"
     android:drawablePadding="@dimen/nc_padding_8"
+    android:drawableTint="@color/nc_text_primary"
     android:gravity="start|center_vertical"
     android:orientation="horizontal"
     android:padding="@dimen/nc_padding_8"

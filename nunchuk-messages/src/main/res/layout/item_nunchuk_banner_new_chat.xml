@@ -10,7 +10,7 @@
     android:layout_marginTop="@dimen/nc_padding_8"
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintTop_toTopOf="parent"
-    tools:visibility="gone">
+    tools:visibility="visible">
 
     <ImageView
         android:id="@+id/iconInfo"
@@ -18,7 +18,8 @@
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/introTitle"
-        android:src="@drawable/ic_joint_wallet" />
+        android:src="@drawable/ic_joint_wallet"
+        app:tint="@color/nc_text_primary" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/introTitle"

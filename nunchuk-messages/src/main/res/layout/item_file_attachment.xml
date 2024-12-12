@@ -21,7 +21,8 @@
             android:layout_height="wrap_content"
             android:src="@drawable/ic_attach_file"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/nc_text_primary" />
 
         <TextView
             android:id="@+id/tv_fileName"

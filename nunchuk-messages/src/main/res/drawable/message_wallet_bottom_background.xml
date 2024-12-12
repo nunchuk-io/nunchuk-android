@@ -16,7 +16,7 @@
             <corners
                 android:bottomLeftRadius="16dp"
                 android:bottomRightRadius="16dp" />
-            <solid android:color="@color/nc_white_color" />
+            <solid android:color="@color/nc_background" />
         </shape>
     </item>
 </layer-list>
