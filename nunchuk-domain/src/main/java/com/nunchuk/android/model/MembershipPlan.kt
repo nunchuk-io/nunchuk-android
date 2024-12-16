@@ -23,7 +23,7 @@ import androidx.annotation.Keep
 
 @Keep
 enum class MembershipPlan {
-    NONE, IRON_HAND, HONEY_BADGER, BYZANTINE, BYZANTINE_PRO, BYZANTINE_PREMIER, FINNEY, FINNEY_PRO, HONEY_BADGER_PLUS, HONEY_BADGER_PREMIER
+    NONE, IRON_HAND, HONEY_BADGER, BYZANTINE, BYZANTINE_PRO, BYZANTINE_PREMIER, FINNEY, FINNEY_PRO, HONEY_BADGER_PLUS
 }
 
 val MembershipPlan.slug : String
@@ -36,7 +36,6 @@ val MembershipPlan.slug : String
         MembershipPlan.FINNEY -> FINNEY_PLAN
         MembershipPlan.FINNEY_PRO -> FINNEY_PRO_PLAN
         MembershipPlan.HONEY_BADGER_PLUS -> HONEY_BADGER_PLUS_PLAN
-        MembershipPlan.HONEY_BADGER_PREMIER -> HONEY_BADGER_PREMIER_PLAN
         else -> ""
     }
 
@@ -47,7 +46,6 @@ fun MembershipPlan.isByzantineOrFinney() =
             || this == MembershipPlan.FINNEY
             || this == MembershipPlan.FINNEY_PRO
             || this == MembershipPlan.HONEY_BADGER_PLUS
-            || this == MembershipPlan.HONEY_BADGER_PREMIER
 
 fun MembershipPlan.isPersonalPlan() =
     this == MembershipPlan.IRON_HAND
@@ -86,10 +84,6 @@ fun String?.toMembershipPlan() = when (this) {
         MembershipPlan.HONEY_BADGER_PLUS
     }
 
-    HONEY_BADGER_PREMIER_PLAN, HONEY_BADGER_PREMIER_PLAN_TESTNET -> {
-        MembershipPlan.HONEY_BADGER_PREMIER
-    }
-
     else -> {
         MembershipPlan.NONE
     }
@@ -101,6 +95,7 @@ fun List<MembershipPlan>.containsByzantineOrFinney() =
             || this.contains(MembershipPlan.BYZANTINE_PREMIER)
             || this.contains(MembershipPlan.FINNEY)
             || this.contains(MembershipPlan.FINNEY_PRO)
+            || this.contains(MembershipPlan.HONEY_BADGER_PLUS)
 
 fun List<MembershipPlan>.containsPersonalPlan() =
     this.contains(MembershipPlan.IRON_HAND)
@@ -108,13 +103,12 @@ fun List<MembershipPlan>.containsPersonalPlan() =
 
 fun List<MembershipPlan>.isNonePlan() = this.isEmpty() || this.contains(MembershipPlan.NONE)
 
-fun MembershipPlan.isAllowSetupInheritance() = this == MembershipPlan.HONEY_BADGER || this == MembershipPlan.HONEY_BADGER_PLUS || this == MembershipPlan.BYZANTINE_PRO || this == MembershipPlan.HONEY_BADGER_PREMIER
+fun MembershipPlan.isAllowSetupInheritance() = this == MembershipPlan.HONEY_BADGER || this == MembershipPlan.HONEY_BADGER_PLUS || this == MembershipPlan.BYZANTINE_PRO
 
 private const val IRON_HAND_PLAN = "iron_hand"
 private const val IRON_HAND_PLAN_TESTNET = "iron_hand_testnet"
 private const val HONEY_BADGER_PLAN_TESTNET = "honey_badger_testnet"
 private const val HONEY_BADGER_PLUS_PLAN_TESTNET = "honey_badger_plus_testnet"
-private const val HONEY_BADGER_PREMIER_PLAN_TESTNET = "honey_badger_premier_testnet"
 private const val BYZANTINE_PLAN_TESTNET = "byzantine_testnet"
 private const val BYZANTINE_PRO_PLAN_TESTNET = "byzantine_pro_testnet"
 private const val BYZANTINE_PREMIER_TESTNET = "byzantine_premier_testnet"
@@ -123,7 +117,6 @@ private const val BYZANTINE_PREMIER_PLAN = "byzantine_premier"
 private const val BYZANTINE_PLAN_ = "byzantine"
 private const val HONEY_BADGER_PLAN = "honey_badger"
 private const val HONEY_BADGER_PLUS_PLAN = "honey_badger_plus"
-private const val HONEY_BADGER_PREMIER_PLAN = "honey_badger_premier"
 private const val FINNEY_PLAN = "finney"
 private const val FINNEY_PLAN_TESTNET = "finney_testnet"
 private const val FINNEY_PRO_PLAN = "finney_pro"

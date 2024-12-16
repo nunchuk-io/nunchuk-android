@@ -46,8 +46,7 @@ internal fun WalletEmptyStateView(
                 it in setOf(
                     MembershipPlan.IRON_HAND,
                     MembershipPlan.HONEY_BADGER,
-                    MembershipPlan.HONEY_BADGER_PLUS,
-                    MembershipPlan.HONEY_BADGER_PREMIER
+                    MembershipPlan.HONEY_BADGER_PLUS
                 )
             }.orTrue() -> {
                 ConditionInfo.PersonalPlanUser(
