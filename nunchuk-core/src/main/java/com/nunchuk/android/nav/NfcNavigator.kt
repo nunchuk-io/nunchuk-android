@@ -43,7 +43,8 @@ interface NfcNavigator {
         keyId: String? = null,
         keyName: String? = null,
         xfp: String? = null,
-        backUpFileName: String? = null
+        backUpFileName: String? = null,
+        isFromAddKey: Boolean = false
     )
 
     fun startSetupMk4ForResult(

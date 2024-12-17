@@ -195,4 +195,12 @@
     <string name="nc_back_up_coldcard">Back up COLDCARD</string>
     <string name="nc_back_up_coldcard_desc">In the upcoming steps, you’ll use your COLDCARD to back up the key and encrypt the backup file. Once encrypted, the file can be uploaded to our server.\n\nThe encrypted backup will later be used to recover the inheritance key on the Beneficiary’s device when they claim the inheritance.</string>
     <string name="nc_coldcard_import_encrypted_backup_desktop_desc">If you haven’t installed the Desktop app yet, please download it here.\n\nOnce the app is installed,, please follow the instructions below to import the encrypted backup file on your Desktop:</string>
+    <string name="nc_jade">JADE</string>
+    <string name="nc_add_jade">Add Blockstram Jade</string>
+    <string name="nc_add_seedsigner">Add SeedSigner</string>
+    <string name="nc_add_foundation_passport">Add Foundation Passport</string>
+    <string name="nc_add_keystone">Add Keystone</string>
+    <string name="nc_desktop_only">Desktop only</string>
+    <string name="nc_add_jade_via_qr">Add Blockstram Jade via QR</string>
+    <string name="nc_add_jade_via_usb">Add Blockstram Jade via USB</string>
 </resources>

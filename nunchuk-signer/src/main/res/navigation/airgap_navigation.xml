@@ -23,4 +23,17 @@
         android:name="com.nunchuk.android.signer.components.add.AddAirgapSignerFragment"
         android:label="AddAirgapSignerFragment" />
 
+    <fragment
+        android:id="@+id/airgapActionIntroFragment"
+        android:name="com.nunchuk.android.signer.components.add.AirgapActionIntroFragment"
+        android:label="AirgapActionIntroFragment">
+        <action
+            android:id="@+id/action_airgapActionIntroFragment_to_airgapIntroFragment"
+            app:destination="@id/airgapIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
 </navigation>

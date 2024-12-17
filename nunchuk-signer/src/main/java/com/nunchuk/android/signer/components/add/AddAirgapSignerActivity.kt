@@ -34,14 +34,6 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        val navHostFragment =
-            (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
-        navHostFragment.navController.setGraph(R.navigation.airgap_navigation)
-    }
-
     val isMembershipFlow: Boolean by lazy {
         intent.getBooleanExtra(
             EXTRA_IS_MEMBERSHIP_FLOW,
@@ -54,6 +46,26 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
     val newIndex: Int by lazy { intent.getIntExtra(EXTRA_NEW_INDEX, 0) }
     val replacedXfp: String? by lazy { intent.getStringExtra(EXTRA_REPLACED_XFP) }
     val walletId: String by lazy { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        val navHostFragment =
+            (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
+        val inflater = navHostFragment.navController.navInflater
+        val graph = inflater.inflate(R.navigation.airgap_navigation)
+
+        if (isMembershipFlow.not()) {
+            if (signerTag == SignerTag.JADE) {
+                graph.setStartDestination(R.id.airgapActionIntroFragment)
+            } else {
+                graph.setStartDestination(R.id.airgapIntroFragment)
+            }
+        } else {
+            graph.setStartDestination(R.id.airgapIntroFragment)
+        }
+        navHostFragment.navController.setGraph(graph, intent.extras)
+    }
 
     companion object {
         private const val EXTRA_IS_MEMBERSHIP_FLOW = "is_membership_flow"

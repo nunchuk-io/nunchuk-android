@@ -45,7 +45,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
         keyId: String?,
         keyName: String?,
         xfp: String?,
-        backUpFileName: String?
+        backUpFileName: String?,
+        isFromAddKey: Boolean
     ) {
         Mk4Activity.navigate(
             activity = activity,
@@ -61,7 +62,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
             keyId = keyId,
             keyName = keyName,
             xfp = xfp,
-            backUpFileName = backUpFileName
+            backUpFileName = backUpFileName,
+            isFromAddKey = isFromAddKey
         )
     }
 

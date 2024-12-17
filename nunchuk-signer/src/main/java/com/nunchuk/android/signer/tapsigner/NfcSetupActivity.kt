@@ -54,7 +54,9 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.nfc_setup_navigation)
         val startDestinationId = when (setUpAction) {
-            SETUP_TAP_SIGNER -> R.id.addTapSignerIntroFragment
+            SETUP_TAP_SIGNER -> {
+                if (fromMembershipFlow) R.id.addTapSignerIntroFragment else R.id.tapSignerIntroFragment
+            }
             SETUP_SATSCARD -> R.id.setupChainCodeFragment
             RECOVER_NFC -> R.id.recoverNfcKeyGuideFragment
             VERIFY_TAP_SIGNER -> R.id.tapSignerVerifyBackUpOptionFragment

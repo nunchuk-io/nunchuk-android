@@ -55,6 +55,24 @@
         android:name="com.nunchuk.android.signer.tapsigner.decryption.NfcDecryptionKeyFragment"
         android:label="NfcDecryptionKeyFragment"
         tools:layout="@layout/fragment_decryption_key" />
+
+    <fragment
+        android:id="@+id/tapSignerIntroFragment"
+        android:name="com.nunchuk.android.signer.tapsigner.intro.TapSignerIntroFragment"
+        android:label="TapSignerIntroFragment">
+        <action android:id="@+id/action_tapSignerIntroFragment_to_addTapSignerIntroFragment"
+            app:destination="@id/addTapSignerIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action android:id="@+id/action_tapSignerIntroFragment_to_recoverNfcKeyGuideFragment"
+            app:destination="@id/recoverNfcKeyGuideFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
     <fragment
         android:id="@+id/addTapSignerIntroFragment"
         android:name="com.nunchuk.android.signer.tapsigner.intro.AddTapSignerIntroFragment"

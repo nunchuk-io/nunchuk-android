@@ -101,6 +101,14 @@ private fun AirgapIntroContent(
         SignerTag.KEYSTONE -> R.drawable.bg_airgap_keystone_intro
         else -> R.drawable.bg_airgap_other_intro
     }
+
+    val title = when (signerTag) {
+        SignerTag.SEEDSIGNER -> stringResource(id = R.string.nc_add_seedsigner)
+        SignerTag.JADE -> stringResource(id = R.string.nc_add_jade)
+        SignerTag.PASSPORT -> stringResource(id = R.string.nc_add_foundation_passport)
+        SignerTag.KEYSTONE -> stringResource(id = R.string.nc_add_keystone)
+        else -> stringResource(id = R.string.nc_add_an_airgapped_key)
+    }
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -132,7 +140,7 @@ private fun AirgapIntroContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_add_an_airgapped_key),
+                    text = title,
                     style = NunchukTheme.typography.heading
                 )
                 Text(

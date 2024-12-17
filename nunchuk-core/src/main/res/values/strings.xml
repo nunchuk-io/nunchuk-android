@@ -123,7 +123,9 @@
     <string name="nc_init_coldcard">Initialize COLDCARD</string>
     <string name="nc_unlock_coldcard">Unlock COLDCARD</string>
     <string name="nc_add_coldcard_mk4">Add COLDCARD</string>
+    <string name="nc_add_coldcard_mk4_desc">You can add COLDCARD via NFC, QR code or by importing a file.</string>
     <string name="nc_add_key">Add key</string>
+    <string name="nc_select_your_key_type">Select your key type:</string>
     <string name="nc_export_via_nfc">Export via NFC</string>
     <string name="nc_export_via_file">Export via file</string>
     <string name="nc_export_via_file_advance">Export via file (Advanced)</string>
@@ -287,7 +289,6 @@
     <string name="nc_set_up_inheritance_plan">Set up an inheritance plan</string>
     <string name="nc_set_up_inheritance_plan_wallet">Set up an inheritance plan for this wallet</string>
     <string name="nc_view_inheritance_plan">View inheritance plan</string>
-    <string name="nc_add_coldcard_via_file">Add COLDCARD via a file (Advanced)</string>
     <string name="nc_export_xpubs_from_coldcard">Export XPUBs from COLDCARD</string>
     <string name="nc_import_xpub_into_app">Import XPUBs into this app</string>
     <string name="nc_scan_qr_code">Scan QR code</string>
@@ -737,7 +738,9 @@
     <string name="nc_signer_generic_air_gapped">Generic air-gapped device</string>
     <string name="nc_ledger">Ledger</string>
     <string name="nc_trezor">Trezor</string>
+    <string name="nc_software">Software</string>
     <string name="nc_seedsigner">SeedSigner</string>
+    <string name="nc_foundation">Foundation</string>
     <string name="nc_select_the_key_type">Please select the key type</string>
     <string name="nc_key_has_added_change_key">This key has already been added. Do you want to change the key type?</string>
     <string name="nc_email_has_been_changed">Email has been changed. Please sign in again.</string>
@@ -817,4 +820,11 @@
     <string name="nc_value_key">Value Key</string>
     <string name="nc_bip32_path">BIP32 path: %1$s</string>
     <string name="nc_hide">Hide</string>
+    <string name="nc_add_coldcard_via_nfc">Add COLDCARD via NFC</string>
+    <string name="nc_add_coldcard_via_qr">Add COLDCARD via QR</string>
+    <string name="nc_add_coldcard_via_usb">Add COLDCARD via USB</string>
+    <string name="nc_add_coldcard_via_file">Add COLDCARD via a file (Advanced)</string>
+    <string name="nc_add_tapsigner_via_nfc">Add TAPSIGNER via NFC</string>
+    <string name="nc_recover_tapsigner_key_from_backup">Recover TAPSIGNER key from backup</string>
+    <string name="nc_generic_airgap">Generic Airgap</string>
 </resources>

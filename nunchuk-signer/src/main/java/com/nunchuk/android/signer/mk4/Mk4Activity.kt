@@ -52,6 +52,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
     val keyId by lazy { intent.getStringExtra(EXTRA_KEY_ID).orEmpty() }
     val keyName by lazy { intent.getStringExtra(EXTRA_KEY_NAME).orEmpty() }
     val backUpFileName by lazy { intent.getStringExtra(EXTRA_BACK_UP_FILE_NAME).orEmpty() }
+    val isFromAddKey by lazy { intent.getBooleanExtra(EXTRA_IS_FROM_ADD_KEY, false) }
 
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater).also {
@@ -82,7 +83,13 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             )
         )
         when (action) {
-            ColdcardAction.CREATE -> graph.setStartDestination(R.id.mk4InfoFragment)
+            ColdcardAction.CREATE -> {
+                if (isFromAddKey) {
+                    graph.setStartDestination(R.id.coldCardIntroFragment)
+                } else {
+                    graph.setStartDestination(R.id.mk4IntroFragment)
+                }
+            }
             ColdcardAction.RECOVER_KEY -> graph.setStartDestination(R.id.coldcardRecoverFragment)
             ColdcardAction.RECOVER_SINGLE_SIG_WALLET,
             ColdcardAction.RECOVER_MULTI_SIG_WALLET,
@@ -117,6 +124,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
         private const val EXTRA_KEY_ID = "key_id"
         private const val EXTRA_KEY_NAME = "key_name"
         private const val EXTRA_BACK_UP_FILE_NAME = "back_up_file_name"
+        private const val EXTRA_IS_FROM_ADD_KEY = "is_from_add_key"
 
         /**
          * @param signerType, backUpFilePath, keyId, keyName are used for the backup flow
@@ -135,7 +143,8 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             backUpFilePath: String? = null,
             keyId: String? = null,
             keyName: String? = null,
-            backUpFileName: String? = null
+            backUpFileName: String? = null,
+            isFromAddKey: Boolean = false
         ) {
             activity.startActivity(
                 buildIntent(
@@ -152,7 +161,8 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
                     backUpFilePath = backUpFilePath,
                     keyId = keyId,
                     keyName = keyName,
-                    backUpFileName = backUpFileName
+                    backUpFileName = backUpFileName,
+                    isFromAddKey = isFromAddKey
                 )
             )
         }
@@ -171,7 +181,8 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             backUpFilePath: String? = null,
             keyId: String? = null,
             keyName: String? = null,
-            backUpFileName: String? = null
+            backUpFileName: String? = null,
+            isFromAddKey: Boolean = false
         ): Intent {
             return Intent(activity, Mk4Activity::class.java).apply {
                 putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
@@ -187,6 +198,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
                 putExtra(EXTRA_KEY_ID, keyId)
                 putExtra(EXTRA_KEY_NAME, keyName)
                 putExtra(EXTRA_BACK_UP_FILE_NAME, backUpFileName)
+                putExtra(EXTRA_IS_FROM_ADD_KEY, isFromAddKey)
             }
         }
     }

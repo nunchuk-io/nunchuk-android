@@ -61,10 +61,12 @@ import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
+import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.signer.nav.NfcNavigatorDelegate
 import com.nunchuk.android.signer.nav.SignerNavigatorDelegate
 import com.nunchuk.android.transaction.nav.TransactionNavigatorDelegate
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.wallet.components.coin.CoinActivity
 import com.nunchuk.android.wallet.nav.WalletNavigatorDelegate
 import javax.inject.Inject

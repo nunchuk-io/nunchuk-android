@@ -58,8 +58,14 @@ import com.nunchuk.android.compose.NcClickableText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.util.COLDCARD_GUIDE_URL
 import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
+import com.nunchuk.android.core.util.isRecommendedSingleSigPath
+import com.nunchuk.android.core.util.isTestNetSigner
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -71,12 +77,15 @@ import com.nunchuk.android.signer.components.add.PASSPORT_EXTRA_KEYS
 import com.nunchuk.android.signer.components.add.ScanDynamicQRActivity
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.mk4.Mk4ViewModel
+import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.utils.parcelableArrayList
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @AndroidEntryPoint
-class ColdcardRecoverFragment : MembershipFragment() {
+class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener {
     private val viewModel: ColdcardRecoverViewModel by viewModels()
     private val args: ColdcardRecoverFragmentArgs by navArgs()
     private val mk4ViewModel: Mk4ViewModel by activityViewModels()
@@ -141,6 +150,7 @@ class ColdcardRecoverFragment : MembershipFragment() {
                         } else {
                             launcher.launch("application/json")
                         }
+
                         is ColdcardRecoverEvent.CreateSignerSuccess -> {
                             if (args.isAddInheritanceKey) {
                                 mk4ViewModel.setOrUpdate(
@@ -173,9 +183,102 @@ class ColdcardRecoverFragment : MembershipFragment() {
                         }
 
                         ColdcardRecoverEvent.ErrorMk4TestNet -> showError(getString(R.string.nc_error_device_in_testnet_msg_v2))
+                        is ColdcardRecoverEvent.LoadMk4SignersSuccess -> {
+                            openSignerSheet(event.signers)
+                        }
+
+                        is ColdcardRecoverEvent.CheckExistingKey -> {
+                            when (event.type) {
+                                ResultExistingKey.Software -> NCInfoDialog(requireActivity())
+                                    .showDialog(
+                                        message = String.format(
+                                            getString(R.string.nc_existing_key_is_software_key_delete_key),
+                                            event.signer.masterFingerprint.uppercase(Locale.getDefault())
+                                        ),
+                                        btnYes = getString(R.string.nc_text_yes),
+                                        btnInfo = getString(R.string.nc_text_no),
+                                        onYesClick = {
+                                            findNavController().navigate(
+                                                ColdcardRecoverFragmentDirections.actionColdcardRecoverFragmentToAddMk4NameFragment(
+                                                    isReplaceKey = true,
+                                                    signer = event.signer
+                                                )
+                                            )
+                                        },
+                                        onInfoClick = {}
+                                    )
+
+                                ResultExistingKey.Hardware -> {
+                                    NCInfoDialog(requireActivity())
+                                        .showDialog(
+                                            message = String.format(
+                                                getString(R.string.nc_existing_key_change_key_type),
+                                                event.signer.masterFingerprint.uppercase(Locale.getDefault())
+                                            ),
+                                            btnYes = getString(R.string.nc_text_yes),
+                                            btnInfo = getString(R.string.nc_text_no),
+                                            onYesClick = {
+                                                findNavController().navigate(
+                                                    ColdcardRecoverFragmentDirections.actionColdcardRecoverFragmentToAddMk4NameFragment(
+                                                        isReplaceKey = true,
+                                                        signer = event.signer
+                                                    )
+                                                )
+                                            },
+                                            onInfoClick = {}
+                                        )
+                                }
+
+                                ResultExistingKey.None -> findNavController().navigate(
+                                    ColdcardRecoverFragmentDirections.actionColdcardRecoverFragmentToAddMk4NameFragment(
+                                        event.signer
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
         }
+    }
+
+    override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
+        if (option.type >= SIGNER_OFFSET) {
+            val signer = viewModel.mk4Signers.getOrNull(option.type - SIGNER_OFFSET) ?: return
+            viewModel.checkExistingKey(signer)
+        }
+    }
+
+    private fun openSignerSheet(signer: List<SingleSigner>) {
+        if (signer.isNotEmpty()) {
+            val fragment = BottomSheetOption.newInstance(signer.mapIndexed { index, singleSigner ->
+                SheetOption(
+                    type = index + SIGNER_OFFSET,
+                    label = if (singleSigner.derivationPath.isTestNetSigner) {
+                        "${singleSigner.derivationPath} (${getString(R.string.nc_testnet)})"
+                    } else if (singleSigner.derivationPath.isRecommendedMultiSigPath) {
+                        "${singleSigner.derivationPath} (${
+                            getString(
+                                R.string.nc_recommended_for_multisig
+                            )
+                        })"
+                    } else if (singleSigner.derivationPath.isRecommendedSingleSigPath) {
+                        "${singleSigner.derivationPath} (${
+                            getString(
+                                R.string.nc_recommended_for_single_sig
+                            )
+                        })"
+                    } else {
+                        singleSigner.derivationPath
+                    }
+                )
+            }, title = getString(R.string.nc_mk4_signer_title))
+            fragment.show(childFragmentManager, "BottomSheetOption")
+        }
+    }
+
+    companion object {
+        private const val SIGNER_OFFSET = 1000
     }
 }
 
@@ -291,12 +394,16 @@ private fun ColdcardRecoverContent(
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 4,
-                    title = if (isScanQRCode) stringResource(R.string.nc_scan_qr_code) else stringResource(R.string.nc_import_xpub_into_app),
+                    title = if (isScanQRCode) stringResource(R.string.nc_scan_qr_code) else stringResource(
+                        R.string.nc_import_xpub_into_app
+                    ),
                     titleStyle = NunchukTheme.typography.title,
                 ) {
                     Text(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),
-                        text = if (isScanQRCode) stringResource(R.string.nc_scan_qr_code_desc) else stringResource(R.string.nc_import_xpub_into_app_desc),
+                        text = if (isScanQRCode) stringResource(R.string.nc_scan_qr_code_desc) else stringResource(
+                            R.string.nc_import_xpub_into_app_desc
+                        ),
                         style = NunchukTheme.typography.body
                     )
                 }
