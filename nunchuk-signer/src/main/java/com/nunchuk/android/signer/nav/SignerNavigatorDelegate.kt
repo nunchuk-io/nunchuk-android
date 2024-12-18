@@ -24,6 +24,7 @@ import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.signer.KeyFlow
+import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.PrimaryKey
 import com.nunchuk.android.nav.SignerNavigator
 import com.nunchuk.android.signer.SignerIntroActivity
@@ -93,6 +94,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         newIndex: Int,
         replacedXfp: String?,
         walletId: String,
+        step: MembershipStep?
     ) {
         activityContext.startActivity(
             AddAirgapSignerActivity.buildIntent(
@@ -103,7 +105,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
                 xfp = xfp,
                 newIndex = newIndex,
                 replacedXfp = replacedXfp,
-                walletId = walletId
+                walletId = walletId,
+                step = step
             )
         )
     }

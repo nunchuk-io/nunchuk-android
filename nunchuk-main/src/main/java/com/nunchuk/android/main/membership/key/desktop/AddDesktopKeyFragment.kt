@@ -80,6 +80,7 @@ private fun AddLedgerScreen(
         SignerTag.TREZOR -> stringResource(id = R.string.nc_main_add_trezor_desc)
         SignerTag.LEDGER -> stringResource(id = R.string.nc_main_add_ledger_desc)
         SignerTag.BITBOX -> stringResource(id = R.string.nc_main_add_bitbox_desc)
+        SignerTag.JADE -> stringResource(id = R.string.nc_main_add_jade_desc)
         else -> ""
     }
     val imageId = when(tag) {
@@ -87,6 +88,7 @@ private fun AddLedgerScreen(
         SignerTag.TREZOR -> R.drawable.bg_add_trezor
         SignerTag.LEDGER -> R.drawable.bg_add_ledger
         SignerTag.BITBOX -> R.drawable.bg_add_bitbox
+        SignerTag.JADE -> R.drawable.bg_add_jade
         else -> 0
     }
 

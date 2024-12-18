@@ -25,6 +25,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.signer.KeyFlow
+import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.PrimaryKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -56,6 +57,7 @@ interface SignerNavigator {
         newIndex : Int = -1,
         replacedXfp: String? = null,
         walletId: String = "",
+        step: MembershipStep? = null,
     )
 
     fun openAddAirSignerScreenForResult(

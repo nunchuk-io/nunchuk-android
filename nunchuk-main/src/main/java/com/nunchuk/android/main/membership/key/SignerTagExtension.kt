@@ -9,5 +9,6 @@ fun SignerTag.toString(context: Context) = when (this) {
     SignerTag.TREZOR -> context.getString(R.string.nc_trezor)
     SignerTag.COLDCARD -> context.getString(R.string.nc_coldcard)
     SignerTag.BITBOX -> context.getString(R.string.nc_bitbox)
+    SignerTag.JADE -> context.getString(R.string.nc_blockstream_jade)
     else -> ""
 }

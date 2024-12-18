@@ -27,6 +27,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.type.SignerTag
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -36,13 +37,17 @@ class AirgapActionIntroFragment : MembershipFragment() {
     @Inject
     lateinit var navigator: NunchukNavigator
 
+    private val isMembershipFlow: Boolean by lazy {
+        (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View = content {
-        AirgapActionIntroScreen {
-            when (it) {
+        AirgapActionIntroScreen(isMembershipFlow = isMembershipFlow) { jadeAction ->
+            when (jadeAction) {
                 JADEAction.QR -> {
                     findNavController().navigate(
                         AirgapActionIntroFragmentDirections.actionAirgapActionIntroFragmentToAirgapIntroFragment()
@@ -50,7 +55,14 @@ class AirgapActionIntroFragment : MembershipFragment() {
                 }
 
                 JADEAction.USB -> {
-
+                    (requireActivity() as AddAirgapSignerActivity).step?.let {
+                        navigator.openAddDesktopKey(
+                            activity = requireActivity(),
+                            signerTag = SignerTag.JADE,
+                            groupId = (requireActivity() as AddAirgapSignerActivity).groupId,
+                            step = it
+                        )
+                    }
                 }
             }
         }
@@ -60,6 +72,7 @@ class AirgapActionIntroFragment : MembershipFragment() {
 
 @Composable
 internal fun AirgapActionIntroScreen(
+    isMembershipFlow: Boolean,
     onAction: (JADEAction) -> Unit = {}
 ) {
     NunchukTheme {
@@ -96,8 +109,8 @@ internal fun AirgapActionIntroScreen(
                     title = stringResource(R.string.nc_add_jade_via_usb),
                     iconId = R.drawable.ic_usb,
                     onClick = { onAction(JADEAction.USB) },
-                    isEnable = false,
-                    subtitle = stringResource(R.string.nc_desktop_only)
+                    isEnable = isMembershipFlow,
+                    subtitle = if (isMembershipFlow.not()) stringResource(R.string.nc_desktop_only) else ""
                 )
             }
         }
@@ -107,7 +120,9 @@ internal fun AirgapActionIntroScreen(
 @PreviewLightDark
 @Composable
 private fun AirgapActionIntroScreenPreview() {
-    AirgapActionIntroScreen()
+    AirgapActionIntroScreen(
+        isMembershipFlow = false
+    )
 }
 
 enum class JADEAction {

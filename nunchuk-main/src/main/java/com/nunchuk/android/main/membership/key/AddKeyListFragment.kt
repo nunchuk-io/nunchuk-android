@@ -284,7 +284,8 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
         navigator.openAddAirSignerScreen(
             activityContext = requireActivity(),
             isMembershipFlow = true,
-            tag = tag
+            tag = tag,
+            step = membershipStepManager.currentStep
         )
     }
 

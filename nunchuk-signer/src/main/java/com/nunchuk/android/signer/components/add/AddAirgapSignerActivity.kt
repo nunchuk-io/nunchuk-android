@@ -25,6 +25,7 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.utils.serializable
@@ -46,6 +47,7 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
     val newIndex: Int by lazy { intent.getIntExtra(EXTRA_NEW_INDEX, 0) }
     val replacedXfp: String? by lazy { intent.getStringExtra(EXTRA_REPLACED_XFP) }
     val walletId: String by lazy { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
+    val step: MembershipStep? by lazy { intent.serializable(EXTRA_MEMBERSHIP_STEP) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,12 +57,8 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.airgap_navigation)
 
-        if (isMembershipFlow.not()) {
-            if (signerTag == SignerTag.JADE) {
-                graph.setStartDestination(R.id.airgapActionIntroFragment)
-            } else {
-                graph.setStartDestination(R.id.airgapIntroFragment)
-            }
+        if (signerTag == SignerTag.JADE) {
+            graph.setStartDestination(R.id.airgapActionIntroFragment)
         } else {
             graph.setStartDestination(R.id.airgapIntroFragment)
         }
@@ -75,6 +73,7 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_NEW_INDEX = "new_index"
         private const val EXTRA_REPLACED_XFP = "replaced_xfp"
         private const val EXTRA_WALLET_ID = "wallet_id"
+        private const val EXTRA_MEMBERSHIP_STEP = "step"
 
         fun buildIntent(
             activityContext: Context,
@@ -84,7 +83,8 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
             xfp: String?,
             newIndex: Int,
             replacedXfp: String? = null,
-            walletId : String = ""
+            walletId: String = "",
+            step: MembershipStep? = null
         ) = Intent(
             activityContext,
             AddAirgapSignerActivity::class.java
@@ -96,6 +96,7 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
             putExtra(EXTRA_NEW_INDEX, newIndex)
             putExtra(EXTRA_REPLACED_XFP, replacedXfp)
             putExtra(EXTRA_WALLET_ID, walletId)
+            putExtra(EXTRA_MEMBERSHIP_STEP, step)
         }
     }
 
