@@ -6,19 +6,12 @@ import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.material3.IconButton
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import com.nunchuk.android.compose.NcIcon
-import com.nunchuk.android.compose.NcScaffold
-import com.nunchuk.android.compose.NcTopAppBar
-import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.R
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseComposePortalActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_MK4_EXPORT_TRANSACTION
@@ -54,6 +47,7 @@ import com.nunchuk.android.share.model.TransactionOption.REMOVE_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.REPLACE_BY_FEE
 import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
 import com.nunchuk.android.share.model.TransactionOption.SHOW_INVOICE
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.BroadcastTransactionSuccess
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.CancelScheduleBroadcastTransactionSuccess
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.DeleteTransactionSuccess
@@ -76,7 +70,8 @@ import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.invoice.InvoiceActivity
 import com.nunchuk.android.transaction.components.schedule.ScheduleBroadcastTransactionActivity
-import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.type.TransactionStatus.PENDING_CONFIRMATION
+import com.nunchuk.android.type.TransactionStatus.READY_TO_BROADCAST
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.toInvoiceInfo
 import com.nunchuk.android.widget.NCInfoDialog
@@ -106,7 +101,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                         ScheduleBroadcastTransactionActivity.EXTRA_SCHEDULE_BROADCAST_TIME
                     )
                 )
-                NCToastMessage(this).showMessage(getString(com.nunchuk.android.transaction.R.string.nc_broadcast_has_been_scheduled))
+                NCToastMessage(this).showMessage(getString(R.string.nc_broadcast_has_been_scheduled))
             }
         }
 
@@ -120,7 +115,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                     walletId = result.walletId,
                     txId = result.transaction.txId,
                 )
-                NcToastManager.scheduleShowMessage(getString(com.nunchuk.android.transaction.R.string.nc_the_transaction_has_been_replaced))
+                NcToastManager.scheduleShowMessage(getString(R.string.nc_the_transaction_has_been_replaced))
                 finish()
             }
         }
@@ -157,9 +152,11 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             transaction = args.transaction
         )
 
+        enableEdgeToEdge()
         setContent {
             val state by viewModel.state.collectAsStateWithLifecycle()
             TransactionDetailView(
+                args = args,
                 state = state,
                 onShowMore = { handleMenuMore() }
             )
@@ -174,6 +171,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         if (args.isCancelBroadcast) {
             viewModel.cancelScheduleBroadcast()
         }
+        observeEvent()
     }
 
 
@@ -185,15 +183,15 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
 
     private fun showEstimatedFeeTooltip() {
         BottomSheetTooltip.newInstance(
-            title = getString(com.nunchuk.android.transaction.R.string.nc_text_info),
-            message = getString(com.nunchuk.android.transaction.R.string.nc_estimated_fee_tooltip),
+            title = getString(R.string.nc_text_info),
+            message = getString(R.string.nc_estimated_fee_tooltip),
         ).show(supportFragmentManager, "BottomSheetTooltip")
     }
 
     private fun showInheritanceClaimingDialog() {
         NCInfoDialog(this).showDialog(
-            title = getString(com.nunchuk.android.transaction.R.string.nc_congratulation),
-            message = getString(com.nunchuk.android.transaction.R.string.nc_your_inheritance_has_been_claimed),
+            title = getString(R.string.nc_congratulation),
+            message = getString(R.string.nc_your_inheritance_has_been_claimed),
         ).show()
     }
 
@@ -268,11 +266,11 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             ImportTransactionFromMk4Success -> handleImportTransactionFromMk4Success()
             ExportTransactionToMk4Success -> handleExportTxToMk4Success()
             CancelScheduleBroadcastTransactionSuccess -> NCToastMessage(this).show(
-                getString(com.nunchuk.android.transaction.R.string.nc_schedule_broadcast_has_been_canceled)
+                getString(R.string.nc_schedule_broadcast_has_been_canceled)
             )
 
             ImportTransactionSuccess -> {
-                NCToastMessage(this).show(getString(com.nunchuk.android.transaction.R.string.nc_transaction_imported))
+                NCToastMessage(this).show(getString(R.string.nc_transaction_imported))
                 handleSignRequestSignature()
             }
 
@@ -280,7 +278,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             is TransactionDetailsEvent.GetRawTransactionSuccess -> handleCopyContent(event.rawTransaction)
             TransactionDetailsEvent.RequestSignatureTransactionSuccess -> {
                 hideLoading()
-                NCToastMessage(this).show(getString(com.nunchuk.android.transaction.R.string.nc_request_signature_sent))
+                NCToastMessage(this).show(getString(R.string.nc_request_signature_sent))
             }
         }
     }
@@ -288,12 +286,12 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
     private fun handleExportTxToMk4Success() {
         hideLoading()
         startNfcFlow(REQUEST_MK4_IMPORT_SIGNATURE)
-        NCToastMessage(this).show(getString(com.nunchuk.android.transaction.R.string.nc_transaction_exported))
+        NCToastMessage(this).show(getString(R.string.nc_transaction_exported))
     }
 
     private fun handleImportTransactionFromMk4Success() {
         hideLoading()
-        NCToastMessage(this).show(getString(com.nunchuk.android.transaction.R.string.nc_signed_transaction))
+        NCToastMessage(this).show(getString(R.string.nc_signed_transaction))
         handleSignRequestSignature()
     }
 
@@ -305,7 +303,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
     private fun handleUpdateTransactionSuccess(event: UpdateTransactionMemoSuccess) {
         setResult(Activity.RESULT_OK)
         hideLoading()
-        NCToastMessage(this).show(getString(com.nunchuk.android.transaction.R.string.nc_private_note_updated))
+        NCToastMessage(this).show(getString(R.string.nc_private_note_updated))
     }
 
     private fun handleSignError(event: TransactionDetailsError) {
@@ -326,8 +324,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
     private fun handleCancelTransaction() {
         if (viewModel.getTransaction().status.isPending()) {
             NCWarningDialog(this).showDialog(
-                title = getString(com.nunchuk.android.transaction.R.string.nc_text_confirmation),
-                message = getString(com.nunchuk.android.transaction.R.string.nc_transaction_confirmation),
+                title = getString(R.string.nc_text_confirmation),
+                message = getString(R.string.nc_transaction_confirmation),
                 onYesClick = viewModel::handleDeleteTransactionEvent
             )
         } else {
@@ -421,7 +419,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
 
     private fun requireInputPassphrase(func: (String) -> Unit) {
         NCInputDialog(this).showDialog(
-            title = getString(com.nunchuk.android.transaction.R.string.nc_transaction_enter_passphrase),
+            title = getString(R.string.nc_transaction_enter_passphrase),
             onConfirmed = func
         )
     }
@@ -429,18 +427,18 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
     private fun showSignTransactionSuccess(event: SignTransactionSuccess) {
         hideLoading()
         if (viewModel.isAssistedWallet().not()) {
-            NCToastMessage(this).show(getString(com.nunchuk.android.transaction.R.string.nc_transaction_signed_successful))
+            NCToastMessage(this).show(getString(R.string.nc_transaction_signed_successful))
         } else if (event.serverSigned != null) {
             lifecycleScope.launch {
-                NCToastMessage(this@TransactionDetailComposeActivity).show(getString(com.nunchuk.android.transaction.R.string.nc_transaction_signed_successful))
-                if (event.status == TransactionStatus.READY_TO_BROADCAST && event.serverSigned) {
+                NCToastMessage(this@TransactionDetailComposeActivity).show(getString(R.string.nc_transaction_signed_successful))
+                if (event.status == READY_TO_BROADCAST && event.serverSigned) {
                     delay(3000L)
-                    NCToastMessage(this@TransactionDetailComposeActivity).show(getString(com.nunchuk.android.transaction.R.string.nc_server_key_signed))
-                } else if (event.status == TransactionStatus.PENDING_CONFIRMATION && event.serverSigned) {
+                    NCToastMessage(this@TransactionDetailComposeActivity).show(getString(R.string.nc_server_key_signed))
+                } else if (event.status == PENDING_CONFIRMATION && event.serverSigned) {
                     delay(3000L)
-                    NCToastMessage(this@TransactionDetailComposeActivity).show(getString(com.nunchuk.android.transaction.R.string.nc_server_key_signed))
+                    NCToastMessage(this@TransactionDetailComposeActivity).show(getString(R.string.nc_server_key_signed))
                     delay(3000L)
-                    NCToastMessage(this@TransactionDetailComposeActivity).show(getString(com.nunchuk.android.transaction.R.string.nc_transaction_has_succesfully_broadcast))
+                    NCToastMessage(this@TransactionDetailComposeActivity).show(getString(R.string.nc_transaction_has_succesfully_broadcast))
                 }
             }
         }
@@ -452,7 +450,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
 
     private fun showBroadcastTransactionSuccess(event: BroadcastTransactionSuccess) {
         hideLoading()
-        NCToastMessage(this).show(getString(com.nunchuk.android.transaction.R.string.nc_transaction_broadcast_successful))
+        NCToastMessage(this).show(getString(R.string.nc_transaction_broadcast_successful))
         val callback: () -> Unit = {
             if (event.roomId.isEmpty()) {
                 finish()
@@ -471,9 +469,9 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         setResult(Activity.RESULT_OK)
         finish()
         if (isCancel) {
-            NcToastManager.scheduleShowMessage(getString(com.nunchuk.android.transaction.R.string.nc_transaction_cancelled))
+            NcToastManager.scheduleShowMessage(getString(R.string.nc_transaction_cancelled))
         } else {
-            NcToastManager.scheduleShowMessage(getString(com.nunchuk.android.transaction.R.string.nc_transaction_removed))
+            NcToastManager.scheduleShowMessage(getString(R.string.nc_transaction_removed))
         }
     }
 
@@ -488,7 +486,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
 
     private fun handleCopyContent(content: String) {
         copyToClipboard(label = "Nunchuk", text = content)
-        NCToastMessage(this).showMessage(getString(com.nunchuk.android.transaction.R.string.nc_copied_to_clipboard))
+        NCToastMessage(this).showMessage(getString(R.string.nc_copied_to_clipboard))
     }
 
     private fun handleSignRequestSignature(isBack: Boolean = true) {
@@ -504,13 +502,13 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             listOf(
                 SheetOption(
                     type = SheetOptionType.EXPORT_TX_TO_Mk4,
-                    resId = com.nunchuk.android.transaction.R.drawable.ic_export,
-                    label = getString(com.nunchuk.android.transaction.R.string.nc_transaction_export_transaction)
+                    resId = R.drawable.ic_export,
+                    label = getString(R.string.nc_transaction_export_transaction)
                 ),
                 SheetOption(
                     type = SheetOptionType.IMPORT_TX_FROM_Mk4,
-                    resId = com.nunchuk.android.transaction.R.drawable.ic_import,
-                    label = getString(com.nunchuk.android.transaction.R.string.nc_import_signature)
+                    resId = R.drawable.ic_import,
+                    label = getString(R.string.nc_import_signature)
                 ),
             )
         ).show(supportFragmentManager, "BottomSheetOption")
@@ -521,13 +519,13 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             listOf(
                 SheetOption(
                     type = IMPORT_TRANSACTION.ordinal,
-                    resId = com.nunchuk.android.transaction.R.drawable.ic_import,
-                    label = getString(com.nunchuk.android.transaction.R.string.nc_transaction_import_signature),
+                    resId = R.drawable.ic_import,
+                    label = getString(R.string.nc_transaction_import_signature),
                 ),
                 SheetOption(
                     type = EXPORT_TRANSACTION.ordinal,
-                    resId = com.nunchuk.android.transaction.R.drawable.ic_export,
-                    label = getString(com.nunchuk.android.transaction.R.string.nc_transaction_export_transaction),
+                    resId = R.drawable.ic_export,
+                    label = getString(R.string.nc_transaction_export_transaction),
                 ),
             )
         ).show(supportFragmentManager, "BottomSheetOption")
@@ -538,18 +536,18 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             listOf(
                 SheetOption(
                     type = SheetOptionType.TYPE_EXPORT_QR,
-                    resId = com.nunchuk.android.transaction.R.drawable.ic_qr,
-                    label = getString(com.nunchuk.android.transaction.R.string.nc_export_via_qr),
+                    resId = R.drawable.ic_qr,
+                    label = getString(R.string.nc_export_via_qr),
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_EXPORT_BBQR,
-                    resId = com.nunchuk.android.transaction.R.drawable.ic_qr,
-                    label = getString(com.nunchuk.android.transaction.R.string.nc_export_via_bbqr),
+                    resId = R.drawable.ic_qr,
+                    label = getString(R.string.nc_export_via_bbqr),
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_EXPORT_FILE,
-                    resId = com.nunchuk.android.transaction.R.drawable.ic_export,
-                    label = getString(com.nunchuk.android.transaction.R.string.nc_export_via_file),
+                    resId = R.drawable.ic_export,
+                    label = getString(R.string.nc_export_via_file),
                 ),
             )
         ).show(supportFragmentManager, "BottomSheetOption")
@@ -560,13 +558,13 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             listOf(
                 SheetOption(
                     type = SheetOptionType.TYPE_IMPORT_QR,
-                    resId = com.nunchuk.android.transaction.R.drawable.ic_qr,
-                    label = getString(com.nunchuk.android.transaction.R.string.nc_import_via_qr),
+                    resId = R.drawable.ic_qr,
+                    label = getString(R.string.nc_import_via_qr),
                 ),
                 SheetOption(
                     type = SheetOptionType.TYPE_IMPORT_FILE,
-                    resId = com.nunchuk.android.transaction.R.drawable.ic_import,
-                    label = getString(com.nunchuk.android.transaction.R.string.nc_import_via_file),
+                    resId = R.drawable.ic_import,
+                    label = getString(R.string.nc_import_via_file),
                 ),
             )
         ).show(supportFragmentManager, "BottomSheetOption")
@@ -578,32 +576,5 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             this,
             isInheritanceClaimingFlow = args.isInheritanceClaimingFlow
         )
-    }
-}
-
-@Composable
-fun TransactionDetailView(
-    state: TransactionDetailsState = TransactionDetailsState(),
-    onShowMore: () -> Unit,
-) {
-    NunchukTheme {
-        NcScaffold(
-            topBar = {
-                NcTopAppBar(
-                    title = "Transaction Details",
-                    textStyle = NunchukTheme.typography.titleLarge,
-                    actions = {
-                        IconButton(onClick = onShowMore) {
-                            NcIcon(
-                                painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "Back",
-                            )
-                        }
-                    }
-                )
-            }
-        ) { innerPadding ->
-
-        }
     }
 }

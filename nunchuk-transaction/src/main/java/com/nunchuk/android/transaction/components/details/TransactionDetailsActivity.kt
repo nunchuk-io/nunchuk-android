@@ -589,11 +589,7 @@ class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetails
             binding.sendingToLabel.text = getString(R.string.nc_transaction_receive_at)
             binding.sendToAddress.text = getString(R.string.nc_transaction_receive_at)
         } else {
-            if (transaction.status.isConfirmed()) {
-                binding.sendingToLabel.text = getString(R.string.nc_transaction_send_to)
-            } else {
-                binding.sendingToLabel.text = getString(R.string.nc_transaction_sending_to)
-            }
+            binding.sendingToLabel.text = getString(R.string.nc_transaction_send_to)
             binding.sendToAddress.text = getString(R.string.nc_transaction_sending_to)
         }
     }

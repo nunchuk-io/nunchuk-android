@@ -40,7 +40,7 @@ data class TransactionDetailsArgs(
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) =
-        Intent(activityContext, TransactionDetailsActivity::class.java).apply {
+        Intent(activityContext, TransactionDetailComposeActivity::class.java).apply {
             putExtra(EXTRA_WALLET_ID, walletId)
             putExtra(EXTRA_TRANSACTION_ID, txId)
             putExtra(EXTRA_INIT_EVENT_ID, initEventId)
