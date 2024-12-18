@@ -20,8 +20,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,12 +37,16 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcIcon
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.lightGray
+import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.getFormatDate
@@ -61,6 +67,9 @@ fun TransactionDetailView(
     args: TransactionDetailsArgs,
     state: TransactionDetailsState = TransactionDetailsState(),
     onShowMore: () -> Unit = {},
+    onSignClick: (SignerModel) -> Unit = {},
+    onBroadcastClick: () -> Unit = {},
+    onViewOnBlockExplorer: () -> Unit = {},
 ) {
     var showDetail by rememberSaveable { mutableStateOf(false) }
     var showInputCoin by rememberSaveable { mutableStateOf(false) }
@@ -68,6 +77,11 @@ fun TransactionDetailView(
     val outputs = if (transaction.isReceive)
         transaction.receiveOutputs else
         transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
+    val signerMap by remember(state.signers) {
+        derivedStateOf {
+            state.signers.associateBy { it.fingerPrint }
+        }
+    }
     NunchukTheme {
         NcScaffold(
             topBar = {
@@ -83,6 +97,31 @@ fun TransactionDetailView(
                         }
                     }
                 )
+            },
+            bottomBar = {
+                if (transaction.status.canBroadCast()) {
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        onClick = onBroadcastClick
+                    ) {
+                        Text(
+                            text = stringResource(R.string.nc_transaction_ready_to_broadcast),
+                        )
+                    }
+                } else if (transaction.status.hadBroadcast()) {
+                    NcOutlineButton(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        onClick = onViewOnBlockExplorer
+                    ) {
+                        Text(
+                            text = stringResource(R.string.nc_view_on_explorer),
+                        )
+                    }
+                }
             }
         ) { innerPadding ->
             LazyColumn(
@@ -201,6 +240,21 @@ fun TransactionDetailView(
                     }
                 }
 
+                if (transaction.keySetStatus.isNotEmpty()) {
+                    transaction.keySetStatus.forEachIndexed { index, keySetStatus ->
+                        item {
+                            KeySetView(
+                                signers = signerMap,
+                                keySetIndex = index,
+                                requiredSignatures = transaction.m,
+                                keySet = keySetStatus,
+                                onSignClick = onSignClick
+                            )
+                        }
+                    }
+                } else {
+
+                }
             }
         }
     }
@@ -270,6 +324,7 @@ private fun TransactionHeader(
         TransactionStatus.CONFIRMED -> "${transaction.height} ${stringResource(R.string.nc_transaction_confirmations)}"
         TransactionStatus.NETWORK_REJECTED -> stringResource(R.string.nc_transaction_network_rejected)
         TransactionStatus.REPLACED -> stringResource(R.string.nc_transaction_replaced)
+        TransactionStatus.PENDING_NONCE -> ""
     }
     val statusColor = when (transaction.status) {
         TransactionStatus.PENDING_SIGNATURES -> colorResource(R.color.nc_red_tint_color)
@@ -278,6 +333,7 @@ private fun TransactionHeader(
         TransactionStatus.CONFIRMED -> colorResource(R.color.nc_denim_tint_color)
         TransactionStatus.NETWORK_REJECTED -> colorResource(R.color.nc_orange_dark_color)
         TransactionStatus.REPLACED -> colorResource(R.color.nc_white_color)
+        TransactionStatus.PENDING_NONCE -> colorResource(R.color.nc_white_color)
     }
     Column(
         modifier = Modifier
@@ -346,7 +402,7 @@ private fun TransactionHeader(
             Row(
                 modifier = Modifier
                     .padding(top = 16.dp)
-                    .clickable(onClick = onShowDetails),
+                    .clickable(onClick = {}),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
@@ -491,7 +547,7 @@ private fun TransactionDetailViewPreview() {
         state = TransactionDetailsState(
             transaction = Transaction(
                 txId = "txId",
-                status = TransactionStatus.PENDING_SIGNATURES,
+                status = TransactionStatus.READY_TO_BROADCAST,
                 isReceive = false,
                 receiveOutputs = emptyList(),
                 outputs = listOf(

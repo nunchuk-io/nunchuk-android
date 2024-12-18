@@ -12,6 +12,7 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseComposePortalActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_MK4_EXPORT_TRANSACTION
@@ -70,6 +71,8 @@ import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeArgs
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.invoice.InvoiceActivity
 import com.nunchuk.android.transaction.components.schedule.ScheduleBroadcastTransactionActivity
+import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus.PENDING_CONFIRMATION
 import com.nunchuk.android.type.TransactionStatus.READY_TO_BROADCAST
 import com.nunchuk.android.utils.parcelable
@@ -158,7 +161,32 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             TransactionDetailView(
                 args = args,
                 state = state,
-                onShowMore = { handleMenuMore() }
+                onShowMore = { handleMenuMore() },
+                onSignClick = { signer ->
+                    viewModel.setCurrentSigner(signer)
+                    when {
+                        signer.type == SignerType.COLDCARD_NFC
+                                || signer.type == SignerType.HARDWARE && signer.tags.contains(
+                            SignerTag.COLDCARD) -> showSignByMk4Options()
+
+                        signer.type == SignerType.NFC -> {
+                            startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
+                        }
+
+                        signer.type == SignerType.AIRGAP || signer.type == SignerType.UNKNOWN -> showSignByAirgapOptions()
+                        signer.type == SignerType.HARDWARE -> showError(getString(R.string.nc_use_desktop_app_to_sign))
+                        signer.type == SignerType.PORTAL_NFC -> handlePortalAction(
+                            SignTransaction(
+                                signer.fingerPrint,
+                                viewModel.getTransaction().psbt
+                            )
+                        )
+
+                        else -> viewModel.handleSignSoftwareKey(signer)
+                    }
+                },
+                onBroadcastClick = viewModel::handleBroadcastEvent,
+                onViewOnBlockExplorer = viewModel::handleViewBlockchainEvent,
             )
         }
 

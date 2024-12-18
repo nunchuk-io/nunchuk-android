@@ -97,4 +97,5 @@
     <string name="nc_mark_address_as_used">Mark address as used</string>
     <string name="nc_mark_address_as_used_message">Are you sure you want to mark the address as used?</string>
     <string name="nc_better_privacy_and_lower_fees">Better privacy and lower fees</string>
+    <string name="nc_round_2">Round %1$s/2</string>
 </resources>

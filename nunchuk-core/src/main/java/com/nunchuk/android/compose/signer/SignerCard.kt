@@ -30,6 +30,7 @@ import com.nunchuk.android.core.util.toReadableSignerType
 fun SignerCard(
     item: SignerModel,
     modifier: Modifier = Modifier,
+    showValueKey: Boolean = false,
 ) {
     Row(
         modifier = modifier,
@@ -50,7 +51,15 @@ fun SignerCard(
                 text = item.name,
                 style = NunchukTheme.typography.body
             )
-            Row {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                if (showValueKey) {
+                    NcTag(
+                        label = stringResource(R.string.nc_value_key),
+                        backgroundColor = colorResource(id = R.color.nc_fill_denim),
+                    )
+                }
                 NcTag(
                     label = item.toReadableSignerType(context = LocalContext.current),
                     backgroundColor = colorResource(
@@ -59,7 +68,6 @@ fun SignerCard(
                 )
                 if (item.isShowAcctX()) {
                     NcTag(
-                        modifier = Modifier.padding(start = 4.dp),
                         label = stringResource(R.string.nc_acct_x, item.index),
                         backgroundColor = colorResource(
                             id = R.color.nc_bg_mid_gray

@@ -28,7 +28,7 @@ ext {
     hiltVersion = "2.48"
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.1.79'
+    nativeSdkVersion = '1.1.80'
     prebuildNativeSdkVersion = '1.1.80@aar'
 
     // Matrix

@@ -36,6 +36,7 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.nunchuk.android.core.R
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.TransactionStatus.CONFIRMED
 import com.nunchuk.android.type.TransactionStatus.NETWORK_REJECTED
 import com.nunchuk.android.type.TransactionStatus.PENDING_CONFIRMATION
@@ -86,6 +87,7 @@ fun TextView.bindTransactionStatus(transaction: Transaction) {
             text = context.getString(R.string.nc_transaction_replaced)
             background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_stroke_background)
         }
+        TransactionStatus.PENDING_NONCE -> Unit
     }
 }
 

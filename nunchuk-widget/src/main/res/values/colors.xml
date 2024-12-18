@@ -58,4 +58,5 @@
     <color name="nc_fill_denim">#D0E2FF</color>
     <color name="nc_fill_input_text">#FFFFFF</color>
     <color name="nc_fill_slime">#A7F0BA</color>
+    <color name="nc_primary_y0">#ffcb2e</color>
 </resources>
