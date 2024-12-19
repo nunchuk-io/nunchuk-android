@@ -28,7 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.datasource.CollectionPreviewParameterProvider
 import androidx.compose.ui.unit.dp
@@ -239,7 +239,7 @@ fun UnlockPinContent(
                     modifier = Modifier
                         .padding(top = 24.dp)
                         .align(Alignment.CenterHorizontally),
-                    resId = R.drawable.ic_pin_lock, size = 96.dp, iconSize = 60.dp
+                    resId = if (NunchukTheme.isDark) R.drawable.ic_pin_lock_dark else R.drawable.ic_pin_lock, size = 96.dp, iconSize = 60.dp
                 )
 
                 Text(
@@ -276,7 +276,7 @@ fun UnlockPinContent(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun UnlockPinContentPreview(
     @PreviewParameter(SettingProvider::class) setting: WalletSecuritySetting,

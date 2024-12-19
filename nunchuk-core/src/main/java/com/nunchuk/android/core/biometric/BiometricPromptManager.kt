@@ -55,19 +55,16 @@ class BiometricPromptManager(private val activity: FragmentActivity) {
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     super.onAuthenticationError(errorCode, errString)
-//                    result(BiometricResult.AuthenticationError(errString.toString()))
                     resultChannel.trySend(BiometricResult.AuthenticationError(errString.toString()))
                 }
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
-//                    result(BiometricResult.AuthenticationSuccess)
                     resultChannel.trySend(BiometricResult.AuthenticationSuccess)
                 }
 
                 override fun onAuthenticationFailed() {
                     super.onAuthenticationFailed()
-//                    result(BiometricResult.AuthenticationFailed)
                     resultChannel.trySend(BiometricResult.AuthenticationFailed)
                 }
             }
@@ -91,17 +88,19 @@ class BiometricPromptManager(private val activity: FragmentActivity) {
     }
 
     fun enrollBiometric(enrollLauncher: ActivityResultLauncher<Intent>) {
-        val enrollIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Intent(Settings.ACTION_BIOMETRIC_ENROLL).apply {
+        runCatching {
+            val enrollIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                Intent(Settings.ACTION_BIOMETRIC_ENROLL).apply {
                     putExtra(
                         Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
                         BIOMETRIC_STRONG
                     )
+                }
+            } else {
+                Intent(Settings.ACTION_SECURITY_SETTINGS)
             }
-        } else {
-            Intent(Settings.ACTION_SECURITY_SETTINGS)
+            enrollLauncher.launch(enrollIntent)
         }
-        enrollLauncher.launch(enrollIntent)
     }
 
     sealed interface BiometricResult {

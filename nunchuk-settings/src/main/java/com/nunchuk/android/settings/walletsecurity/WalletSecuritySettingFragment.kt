@@ -244,6 +244,9 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                     btnNo = getString(R.string.nc_do_not_allow),
                     onYesClick = {
                         biometricPromptManager.showBiometricPrompt()
+                    },
+                    onNoClick = {
+                        binding.protectWalletFingerprintOption.setOptionChecked(false)
                     }
                 )
             } else {
