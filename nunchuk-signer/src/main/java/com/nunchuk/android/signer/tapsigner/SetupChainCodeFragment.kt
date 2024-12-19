@@ -95,7 +95,7 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
                     membershipStepManager.remainingTime.value
                 )
         } else {
-            binding.tvTitle.text = getString(R.string.nc_set_up_chain_code)
+            binding.tvTitle.text = ""
         }
         binding.cardAutomatic.setBackgroundResource(selectedBackground)
         binding.cardAdvanced.setBackgroundResource(unselectedBackground)
