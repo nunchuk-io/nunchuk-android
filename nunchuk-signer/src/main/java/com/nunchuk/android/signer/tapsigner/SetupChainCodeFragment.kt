@@ -65,7 +65,10 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
     private val selectedBackground = R.drawable.nc_rounded_12dp_stroke_primary_background
     private val unselectedBackground = R.drawable.nc_rounded_12dp_stroke_border_background
 
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentSetupChainCodeBinding {
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentSetupChainCodeBinding {
         return FragmentSetupChainCodeBinding.inflate(inflater, container, false)
     }
 
@@ -85,7 +88,15 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
     private fun initViews() {
         binding.etChainCode.setMaxLength(CHAIN_CODE_LENGTH)
         binding.etChainCode.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_120))
-        binding.tvTitle.text = getString(R.string.nc_estimate_remain_time,membershipStepManager.remainingTime.value)
+        if ((activity as NfcSetupActivity).fromMembershipFlow) {
+            binding.tvTitle.text =
+                getString(
+                    R.string.nc_estimate_remain_time,
+                    membershipStepManager.remainingTime.value
+                )
+        } else {
+            binding.tvTitle.text = getString(R.string.nc_set_up_chain_code)
+        }
         binding.cardAutomatic.setBackgroundResource(selectedBackground)
         binding.cardAdvanced.setBackgroundResource(unselectedBackground)
     }
@@ -164,10 +175,15 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
         when (event) {
             is SetupChainCodeEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
             is SetupChainCodeEvent.SetupSatsCardSuccess -> {
-                SatsCardActivity.navigate(requireActivity(), event.status, (activity as NfcSetupActivity).hasWallet)
+                SatsCardActivity.navigate(
+                    requireActivity(),
+                    event.status,
+                    (activity as NfcSetupActivity).hasWallet
+                )
                 NcToastManager.scheduleShowMessage(getString(R.string.nc_slot_ready_deposit))
                 requireActivity().finish()
             }
+
             is SetupChainCodeEvent.ShowError -> {
                 if (nfcViewModel.handleNfcError(event.e).not()) showError(event.e?.message)
             }
