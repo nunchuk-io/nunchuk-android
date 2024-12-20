@@ -4,10 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,12 +19,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.nunchuk.android.compose.NcIcon
-import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.SignersModelProvider
-import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.signDone
@@ -127,38 +122,14 @@ fun KeySetView(
 
         keySet.signerStatus.forEach { (fingerPrint, isSigned) ->
             signers[fingerPrint]?.let { signer ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    SignerCard(
-                        modifier = Modifier.weight(1f),
-                        item = signer,
-                        showValueKey = keySetIndex == 0
-                    )
-
-                    if (isSigned && !keySet.status.signDone()) {
-                        Text(
-                            text = stringResource(R.string.nc_transaction_signed),
-                            style = NunchukTheme.typography.captionTitle,
-                        )
-
-                        NcIcon(
-                            modifier = Modifier.padding(start = 8.dp),
-                            painter = painterResource(R.drawable.ic_check_circle_24),
-                            contentDescription = "Signed",
-                        )
-                    } else {
-                        NcPrimaryDarkButton(onClick = { onSignClick(signer) }, height = 36.dp) {
-                            Text(
-                                text = stringResource(id = R.string.nc_sign),
-                                style = LocalTextStyle.current.copy(fontSize = 12.sp)
-                            )
-                        }
-                    }
-                }
+                TransactionSignerView(
+                    modifier = Modifier.padding(top = 16.dp),
+                    signer = signer,
+                    showValueKey = keySetIndex == 0,
+                    isSigned = isSigned,
+                    canSign = !keySet.status.signDone(),
+                    onSignClick = onSignClick
+                )
             }
         }
     }

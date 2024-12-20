@@ -2,7 +2,6 @@
 
 package com.nunchuk.android.transaction.components.invoice
 
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -23,13 +22,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -56,8 +52,6 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -175,7 +169,7 @@ fun InvoiceScreenContent(
                         ) {
                             Text(
                                 text = if (invoiceInfo.isReceive) stringResource(id = R.string.nc_amount_receive) else stringResource(id = R.string.nc_amount_sent),
-                                style = NunchukTheme.typography.body.copy(color = Color.Black),
+                                style = NunchukTheme.typography.body,
                                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp)
                             )
 

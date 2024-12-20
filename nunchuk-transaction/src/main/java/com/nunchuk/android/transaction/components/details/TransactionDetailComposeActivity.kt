@@ -27,6 +27,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.BottomSheetTooltip
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.sheet.input.InputBottomSheet
 import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
 import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.copyToClipboard
@@ -167,7 +168,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                     when {
                         signer.type == SignerType.COLDCARD_NFC
                                 || signer.type == SignerType.HARDWARE && signer.tags.contains(
-                            SignerTag.COLDCARD) -> showSignByMk4Options()
+                            SignerTag.COLDCARD
+                        ) -> showSignByMk4Options()
 
                         signer.type == SignerType.NFC -> {
                             startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
@@ -187,6 +189,34 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                 },
                 onBroadcastClick = viewModel::handleBroadcastEvent,
                 onViewOnBlockExplorer = viewModel::handleViewBlockchainEvent,
+                onManageCoinClick = {
+                    when (viewModel.coins().size) {
+                        1 -> navigator.openCoinDetail(
+                            launcher = coinLauncher,
+                            context = this,
+                            walletId = args.walletId,
+                            viewModel.coins().first()
+                        )
+
+                        else -> navigator.openCoinList(
+                            launcher = coinLauncher,
+                            context = this,
+                            walletId = args.walletId,
+                            txId = args.txId
+                        )
+                    }
+                },
+                onEditNote = {
+                    InputBottomSheet.show(
+                        fragmentManager = supportFragmentManager,
+                        currentInput = viewModel.getTransaction().memo,
+                        title = getString(R.string.nc_transaction_note)
+                    )
+                },
+                onShowFeeTooltip = {
+                    showEstimatedFeeTooltip()
+                },
+                onCopyText = { handleCopyContent(it) },
             )
         }
 

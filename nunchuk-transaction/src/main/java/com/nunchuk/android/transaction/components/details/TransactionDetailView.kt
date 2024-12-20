@@ -10,7 +10,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -36,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.MODE_VIEW_ONLY
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -43,6 +47,7 @@ import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.PreviewCoinCard
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.core.signer.SignerModel
@@ -50,7 +55,9 @@ import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.getFormatDate
+import com.nunchuk.android.core.util.getPendingSignatures
 import com.nunchuk.android.core.util.hadBroadcast
+import com.nunchuk.android.core.util.signDone
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Transaction
@@ -58,6 +65,9 @@ import com.nunchuk.android.model.TxOutput
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
+import com.nunchuk.android.model.byzantine.isObserver
+import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.type.TransactionStatus
 
@@ -70,6 +80,10 @@ fun TransactionDetailView(
     onSignClick: (SignerModel) -> Unit = {},
     onBroadcastClick: () -> Unit = {},
     onViewOnBlockExplorer: () -> Unit = {},
+    onManageCoinClick: () -> Unit = {},
+    onEditNote: () -> Unit = {},
+    onCopyText: (String) -> Unit = {},
+    onShowFeeTooltip: () -> Unit,
 ) {
     var showDetail by rememberSaveable { mutableStateOf(false) }
     var showInputCoin by rememberSaveable { mutableStateOf(false) }
@@ -84,9 +98,10 @@ fun TransactionDetailView(
     }
     NunchukTheme {
         NcScaffold(
+            modifier = Modifier.systemBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    title = "Transaction Details",
+                    title = stringResource(R.string.nc_transaction_details),
                     textStyle = NunchukTheme.typography.titleLarge,
                     actions = {
                         IconButton(onClick = onShowMore) {
@@ -99,7 +114,10 @@ fun TransactionDetailView(
                 )
             },
             bottomBar = {
-                if (transaction.status.canBroadCast()) {
+                if (transaction.status.canBroadCast()
+                    && args.isInheritanceClaimingFlow.not() && state.userRole.isObserver.not()
+                    && isServerBroadcastTime(transaction, state.serverTransaction).not()
+                ) {
                     NcPrimaryDarkButton(
                         modifier = Modifier
                             .padding(16.dp)
@@ -131,11 +149,13 @@ fun TransactionDetailView(
             ) {
                 item {
                     TransactionHeader(
+                        args = args,
                         transaction = state.transaction,
                         allTxCoins = state.coins,
                         outputs = outputs,
                         userRole = state.userRole,
                         onShowDetails = { showDetail = !showDetail },
+                        onManageCoinClick = onManageCoinClick
                     )
                 }
 
@@ -157,7 +177,7 @@ fun TransactionDetailView(
                         item {
                             TransactionOutputItem(
                                 output = output,
-                                onCopyText = { /* TODO */ },
+                                onCopyText = onCopyText,
                             )
                         }
                     }
@@ -172,7 +192,8 @@ fun TransactionDetailView(
 
                     item {
                         TransactionEstimateFee(
-                            fee = transaction.fee
+                            fee = transaction.fee,
+                            onShowFeeTooltip = onShowFeeTooltip
                         )
                     }
 
@@ -199,19 +220,19 @@ fun TransactionDetailView(
                             Text(
                                 text = stringResource(R.string.nc_edit),
                                 style = NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
-                                modifier = Modifier.align(Alignment.CenterEnd),
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .clickable(onClick = onEditNote),
                             )
                         }
                     }
 
-                    if (transaction.memo.isEmpty()) {
-                        item {
-                            Text(
-                                text = transaction.memo.ifBlank { stringResource(R.string.nc_none) },
-                                style = NunchukTheme.typography.body,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
-                            )
-                        }
+                    item {
+                        Text(
+                            text = transaction.memo.ifBlank { stringResource(R.string.nc_none) },
+                            style = NunchukTheme.typography.body,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
+                        )
                     }
 
                     if (state.txInputCoins.isNotEmpty()) {
@@ -238,6 +259,15 @@ fun TransactionDetailView(
                         }
 
                     }
+                    if (showInputCoin) {
+                        items(state.txInputCoins, key = { it.address }) { input ->
+                            PreviewCoinCard(
+                                output = input,
+                                mode = MODE_VIEW_ONLY,
+                                tags = state.tags
+                            )
+                        }
+                    }
                 }
 
                 if (transaction.keySetStatus.isNotEmpty()) {
@@ -252,8 +282,26 @@ fun TransactionDetailView(
                             )
                         }
                     }
-                } else {
+                } else if (!transaction.isReceive && !args.isInheritanceClaimingFlow) {
+                    item {
+                        PendingSignatureStatusView(
+                            pendingSigners = transaction.getPendingSignatures(),
+                            status = transaction.status
+                        )
+                    }
 
+                    itemsIndexed(state.signers) { index, signer ->
+                        TransactionSignerView(
+                            modifier = Modifier
+                                .padding(top = 16.dp)
+                                .padding(horizontal = 16.dp),
+                            signer = signer,
+                            showValueKey = index < transaction.m,
+                            isSigned = transaction.signers.isNotEmpty() && transaction.signers[signer.fingerPrint] ?: false,
+                            canSign = !transaction.status.signDone(),
+                            onSignClick = onSignClick
+                        )
+                    }
                 }
             }
         }
@@ -262,7 +310,7 @@ fun TransactionDetailView(
 
 
 @Composable
-private fun PendingSignatureStatusView(pendingSigners: Int) {
+private fun PendingSignatureStatusView(pendingSigners: Int, status: TransactionStatus) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -274,43 +322,47 @@ private fun PendingSignatureStatusView(pendingSigners: Int) {
             style = NunchukTheme.typography.titleSmall,
         )
 
-        if (pendingSigners > 0) {
-            NcIcon(
-                painter = painterResource(id = R.drawable.ic_pending_signatures),
-                contentDescription = "Warning",
-                modifier = Modifier.padding(start = 8.dp),
-            )
-            Text(
-                text = pluralStringResource(
-                    R.plurals.nc_transaction_pending_signature,
-                    pendingSigners,
-                    pendingSigners
-                ),
-                style = NunchukTheme.typography.bodySmall,
-                modifier = Modifier.padding(start = 4.dp),
-            )
-        } else {
-            NcIcon(
-                painter = painterResource(id = R.drawable.ic_check_circle),
-                contentDescription = "Check",
-                modifier = Modifier.padding(start = 8.dp),
-            )
-            Text(
-                text = stringResource(R.string.nc_transaction_enough_signers),
-                style = NunchukTheme.typography.bodySmall,
-                modifier = Modifier.padding(start = 4.dp),
-            )
+        if (!status.hadBroadcast()) {
+            if (pendingSigners > 0) {
+                NcIcon(
+                    painter = painterResource(id = R.drawable.ic_pending_signatures),
+                    contentDescription = "Warning",
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+                Text(
+                    text = pluralStringResource(
+                        R.plurals.nc_transaction_pending_signature,
+                        pendingSigners,
+                        pendingSigners
+                    ),
+                    style = NunchukTheme.typography.bodySmall,
+                    modifier = Modifier.padding(start = 4.dp),
+                )
+            } else {
+                NcIcon(
+                    painter = painterResource(id = R.drawable.ic_check_circle),
+                    contentDescription = "Check",
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+                Text(
+                    text = stringResource(R.string.nc_transaction_enough_signers),
+                    style = NunchukTheme.typography.bodySmall,
+                    modifier = Modifier.padding(start = 4.dp),
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun TransactionHeader(
+    args: TransactionDetailsArgs,
     transaction: Transaction,
     allTxCoins: List<UnspentOutput>,
     outputs: List<TxOutput>,
     userRole: AssistedWalletRole,
     onShowDetails: () -> Unit,
+    onManageCoinClick: () -> Unit,
 ) {
     val sendToAddress = if (outputs.size >= 2) {
         stringResource(R.string.nc_multiple_addresses)
@@ -392,17 +444,19 @@ private fun TransactionHeader(
             modifier = Modifier.padding(top = 4.dp),
         )
 
-        Text(
-            text = transaction.getFormatDate(),
-            style = NunchukTheme.typography.body,
-            modifier = Modifier.padding(top = 4.dp),
-        )
+        if (args.isInheritanceClaimingFlow.not()) {
+            Text(
+                text = transaction.getFormatDate(),
+                style = NunchukTheme.typography.body,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
 
         if (allTxCoins.isNotEmpty() && transaction.status.hadBroadcast() && userRole.isKeyHolderLimited.not()) {
             Row(
                 modifier = Modifier
                     .padding(top = 16.dp)
-                    .clickable(onClick = {}),
+                    .clickable(onClick = onManageCoinClick),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
@@ -446,7 +500,8 @@ private fun TransactionHeader(
 
 @Composable
 private fun TransactionEstimateFee(
-    fee: Amount
+    fee: Amount,
+    onShowFeeTooltip: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -462,7 +517,7 @@ private fun TransactionEstimateFee(
         NcIcon(
             painter = painterResource(id = R.drawable.ic_help),
             contentDescription = "Info",
-            modifier = Modifier.padding(start = 4.dp),
+            modifier = Modifier.padding(start = 4.dp).clickable(onClick = onShowFeeTooltip),
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -535,6 +590,13 @@ private fun AmountView(amount: Amount) {
     }
 }
 
+private fun isServerBroadcastTime(
+    transaction: Transaction,
+    serverTransaction: ServerTransaction?
+): Boolean {
+    return serverTransaction != null && transaction.status.canBroadCast() && serverTransaction.type == ServerTransactionType.SCHEDULED && serverTransaction.broadcastTimeInMilis > 0L
+}
+
 @PreviewLightDark
 @Composable
 private fun TransactionDetailViewPreview() {
@@ -570,5 +632,6 @@ private fun TransactionDetailViewPreview() {
                 )
             )
         ),
+        onShowFeeTooltip = {},
     )
 }
