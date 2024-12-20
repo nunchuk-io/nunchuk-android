@@ -128,7 +128,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import java.util.Date
 
-
+@Deprecated(message = "Use TransactionDetailComposeActivity instead")
 @AndroidEntryPoint
 class TransactionDetailsActivity : BasePortalActivity<ActivityTransactionDetailsBinding>(),
     InputBottomSheetListener, BottomSheetOptionListener {

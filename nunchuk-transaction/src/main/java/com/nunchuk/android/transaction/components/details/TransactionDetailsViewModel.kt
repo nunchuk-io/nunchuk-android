@@ -395,6 +395,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             getWalletUseCase.execute(walletId).collect { wallet ->
                 val account = accountManager.getAccount()
+                _state.update { it.copy(addressType = wallet.wallet.addressType) }
                 val signers = wallet.wallet.signers.map { signer ->
                     if (signer.type == SignerType.NFC) {
                         signer.toModel()

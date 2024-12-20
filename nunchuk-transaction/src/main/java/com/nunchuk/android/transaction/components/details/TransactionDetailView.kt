@@ -57,6 +57,7 @@ import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.getFormatDate
 import com.nunchuk.android.core.util.getPendingSignatures
 import com.nunchuk.android.core.util.hadBroadcast
+import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.signDone
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Amount
@@ -296,7 +297,7 @@ fun TransactionDetailView(
                                 .padding(top = 16.dp)
                                 .padding(horizontal = 16.dp),
                             signer = signer,
-                            showValueKey = index < transaction.m,
+                            showValueKey = index < transaction.m && state.addressType.isTaproot(),
                             isSigned = transaction.signers.isNotEmpty() && transaction.signers[signer.fingerPrint] ?: false,
                             canSign = !transaction.status.signDone(),
                             onSignClick = onSignClick
@@ -517,7 +518,9 @@ private fun TransactionEstimateFee(
         NcIcon(
             painter = painterResource(id = R.drawable.ic_help),
             contentDescription = "Info",
-            modifier = Modifier.padding(start = 4.dp).clickable(onClick = onShowFeeTooltip),
+            modifier = Modifier
+                .padding(start = 4.dp)
+                .clickable(onClick = onShowFeeTooltip),
         )
 
         Spacer(modifier = Modifier.weight(1f))

@@ -26,6 +26,7 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.type.AddressType
 
 data class TransactionDetailsState(
     val viewMore: Boolean = false,
@@ -38,4 +39,5 @@ data class TransactionDetailsState(
     val members: List<ByzantineMember> = emptyList(),
     val userRole: AssistedWalletRole = AssistedWalletRole.NONE,
     val txInputCoins: List<UnspentOutput> = emptyList(),
+    val addressType: AddressType = AddressType.NATIVE_SEGWIT
 )
