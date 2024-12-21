@@ -283,6 +283,11 @@ class ConfigureWalletViewModel @Inject constructor(
                 getSignerModelMap().apply {
                     set(masterSignerId, result.getOrThrow())
                 }
+                _state.update {
+                    it.copy(
+                        allSigners = mapSigners(it.masterSigners, it.remoteSigners)
+                    )
+                }
                 updateSelectedSigners(getState().selectedSigners)
                 _event.emit(ConfigureWalletEvent.ChangeBip32Success)
             } else {

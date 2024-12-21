@@ -17,6 +17,7 @@ fun ConfigSignerItem(
     signer: SignerModel,
     checkable: Boolean = true,
     isChecked: Boolean = false,
+    isShowPath : Boolean = false,
     onSelectSigner: (SignerModel, Boolean) -> Unit,
     onEditPath: (SignerModel) -> Unit = {},
 ) {
@@ -30,6 +31,8 @@ fun ConfigSignerItem(
         SignerCard(
             modifier = Modifier.weight(1f),
             item = signer,
+            showBipPath = isShowPath,
+            onEditPath = { onEditPath(signer) },
         )
 
         if (checkable) {

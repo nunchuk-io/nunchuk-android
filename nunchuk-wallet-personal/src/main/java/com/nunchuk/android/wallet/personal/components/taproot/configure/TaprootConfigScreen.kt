@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,11 +50,14 @@ import com.nunchuk.android.wallet.personal.R
 
 const val TaprootConfigScreenRoute = "taproot_config_screen"
 
+const val MAX_SELECTED_SIGNERS = 5
+
 fun NavGraphBuilder.taprootConfigScreen(
     viewModel: ConfigureWalletViewModel,
     onContinue: () -> Unit,
     onSelectSigner: (SignerModel, Boolean) -> Unit,
     onEditPath: (SignerModel) -> Unit,
+    onToggleShowPath : () -> Unit,
 ) {
     composable(TaprootConfigScreenRoute) {
         val state by viewModel.state.collectAsStateWithLifecycle()
@@ -67,7 +72,8 @@ fun NavGraphBuilder.taprootConfigScreen(
                 } else {
                     viewModel.handleDecreaseRequiredSigners()
                 }
-            }
+            },
+            onToggleShowPath = onToggleShowPath,
         )
     }
 }
@@ -85,6 +91,7 @@ fun TaprootConfigScreen(
     onSelectSigner: (SignerModel, Boolean) -> Unit = { _, _ -> },
     onEditPath: (SignerModel) -> Unit = {},
     onUpdateRequiredKey: (Boolean) -> Unit = {},
+    onToggleShowPath: () -> Unit = {},
 ) {
     val partition = state.allSigners.partition { signer ->
         state.supportedSigners.any { supportedSigner ->
@@ -99,6 +106,14 @@ fun TaprootConfigScreen(
                 NcTopAppBar(
                     title = stringResource(R.string.nc_wallet_configure_title),
                     textStyle = NunchukTheme.typography.titleLarge,
+                    actions = {
+                        IconButton(onClick = onToggleShowPath) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
+                    }
                 )
             },
             bottomBar = {
@@ -206,13 +221,15 @@ fun TaprootConfigScreen(
 
                 partition.first.forEach { signer ->
                     val isSelected = state.selectedSigners.contains(signer)
-                    val checkable = state.selectedSigners.size < 5 || isSelected
+                    val checkable = state.selectedSigners.size < MAX_SELECTED_SIGNERS || isSelected
                     item {
                         ConfigSignerItem(
                             signer = signer,
                             checkable = checkable,
                             isChecked = isSelected,
+                            isShowPath = state.isShowPath,
                             onSelectSigner = onSelectSigner,
+                            onEditPath = onEditPath,
                         )
                     }
                 }

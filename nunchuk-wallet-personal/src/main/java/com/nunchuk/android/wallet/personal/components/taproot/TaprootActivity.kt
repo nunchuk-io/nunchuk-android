@@ -34,6 +34,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_TOPUP_XPUBS
+import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.signer.SignerModel
@@ -124,6 +125,19 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                             model.id,
                             model.derivationPath
                         )
+                    },
+                    onToggleShowPath = {
+                        BottomSheetOption.newInstance(
+                            options = listOf(
+                                SheetOption(
+                                    0,
+                                    label = if (viewModel.isShowPath())
+                                        getString(R.string.nc_hide_bip_32_path)
+                                    else
+                                        getString(R.string.nc_show_bip_32_path)
+                                ),
+                            )
+                        ).show(supportFragmentManager, "BottomSheetOption")
                     }
                 )
                 configureValueKeySetScreen(viewModel) {

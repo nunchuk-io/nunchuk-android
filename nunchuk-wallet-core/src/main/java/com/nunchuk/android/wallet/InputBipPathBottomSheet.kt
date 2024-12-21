@@ -86,7 +86,7 @@ class InputBipPathBottomSheet : BaseBottomSheet<DialogInputBottomSheetBinding>()
     }
 
     private fun setupViews() {
-        binding.title.text = getString(R.string.nc_bip32_path)
+        binding.title.text = getString(R.string.nc_bip32_path_title)
         binding.edit.getEditTextView().setText(args.currentInput)
         binding.btnSave.setUnderline()
 

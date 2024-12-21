@@ -1,5 +1,6 @@
 package com.nunchuk.android.compose.signer
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,6 +32,8 @@ fun SignerCard(
     item: SignerModel,
     modifier: Modifier = Modifier,
     showValueKey: Boolean = false,
+    showBipPath: Boolean = false,
+    onEditPath: () -> Unit = {},
 ) {
     Row(
         modifier = modifier,
@@ -79,6 +82,15 @@ fun SignerCard(
                 text = item.getXfpOrCardIdLabel(),
                 style = NunchukTheme.typography.bodySmall
             )
+            if (showBipPath && item.derivationPath.isNotEmpty()) {
+                Text(
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .clickable(onClick = onEditPath),
+                    text = stringResource(R.string.nc_bip32_path, item.derivationPath),
+                    style = NunchukTheme.typography.bodySmall
+                )
+            }
         }
     }
 }
