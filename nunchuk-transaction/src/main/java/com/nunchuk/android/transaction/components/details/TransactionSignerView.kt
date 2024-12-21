@@ -20,6 +20,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.canSign
 import com.nunchuk.android.transaction.R
 
 @Composable
@@ -53,7 +54,7 @@ fun TransactionSignerView(
                 painter = painterResource(R.drawable.ic_check_circle_24),
                 contentDescription = "Signed",
             )
-        } else if (canSign) {
+        } else if (canSign && signer.type.canSign) {
             NcPrimaryDarkButton(onClick = { onSignClick(signer) }, height = 36.dp) {
                 Text(
                     text = stringResource(id = R.string.nc_sign),

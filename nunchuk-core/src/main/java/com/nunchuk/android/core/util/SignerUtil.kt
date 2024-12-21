@@ -118,3 +118,6 @@ val SignerTag?.formattedName: String
         SignerTag.COLDCARD -> COLDCARD_DEFAULT_KEY_NAME
         else -> "Hardware Key"
     }
+
+val SignerType.canSign: Boolean
+    get() = this != SERVER && this != UNKNOWN
