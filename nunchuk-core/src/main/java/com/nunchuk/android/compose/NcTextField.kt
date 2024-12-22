@@ -54,6 +54,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.colorResource
@@ -258,6 +259,9 @@ fun NcTextField(
         Box {
             BasicTextField(
                 modifier = Modifier
+                    .onFocusChanged { focusState ->
+                        onFocusEvent(focusState.isFocused)
+                    }
                     .background(
                         color = if (hasError) colorResource(id = R.color.nc_red_tint_color) else MaterialTheme.colorScheme.fillInputText,
                         shape = RoundedCornerShape(8.dp)

@@ -147,7 +147,7 @@ fun InheritanceClaimScreen(
         magicalPhrase = state._magicalPhrase,
         backupDownloads = state._backupPasswords,
         onMagicalPhraseTextChange = {
-            viewModel.handleInputEvent(it)
+            viewModel.handleInputEvent(it.lowercase())
         }, onSuggestClick = {
             viewModel.handleSelectWord(it)
         }, onBackupDownloadTextChange = { text, index ->
@@ -157,7 +157,7 @@ fun InheritanceClaimScreen(
         })
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun InheritanceClaimInputContent(
     magicalPhrase: String = "",
@@ -215,7 +215,7 @@ private fun InheritanceClaimInputContent(
                         }
                     }
                 )
-                LazyRow(modifier = Modifier.bringIntoViewRequester(bringIntoViewRequester)) {
+                LazyRow {
                     items(suggestions) {
                         Card(
                             modifier = Modifier
@@ -236,6 +236,7 @@ private fun InheritanceClaimInputContent(
                 backupDownloads.forEachIndexed { index, backupDownload ->
                     NcTextField(
                         modifier = Modifier
+                             .bringIntoViewRequester(bringIntoViewRequester)
                             .fillMaxWidth()
                             .padding(top = 16.dp)
                             .padding(horizontal = 16.dp),
