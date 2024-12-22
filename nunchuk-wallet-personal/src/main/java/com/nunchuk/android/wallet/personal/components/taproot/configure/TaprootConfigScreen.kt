@@ -200,6 +200,7 @@ fun TaprootConfigScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
+                        enabled = state.selectedSigners.isNotEmpty(),
                         onClick = onContinue,
                     ) {
                         Text(text = stringResource(R.string.nc_text_continue))

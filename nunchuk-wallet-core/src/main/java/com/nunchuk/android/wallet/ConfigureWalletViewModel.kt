@@ -383,6 +383,12 @@ class ConfigureWalletViewModel @Inject constructor(
     fun isUnBackedUpSigner(signer: SignerModel) =
         unBackedUpSignerXfpSet.contains(signer.fingerPrint)
 
+    fun resetKeySet() {
+        _state.update {
+            it.copy(keySet = emptySet())
+        }
+    }
+
     companion object {
         private const val EXTRA_CURRENT_SELECTED_MASTER_SIGNER = "_a"
     }

@@ -27,9 +27,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
@@ -85,11 +83,12 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
         )
         setContent {
             val navController = rememberNavController()
-            val event by viewModel.event.collectAsStateWithLifecycle(null)
 
-            LaunchedEffect(event) {
-                if (event == ConfigureWalletEvent.OpenConfigKeySet) {
-                    navController.navigateConfigureValueKeySet()
+            LaunchedEffect(Unit) {
+                viewModel.event.collect {
+                    if (it is ConfigureWalletEvent.OpenConfigKeySet) {
+                        navController.navigateConfigureValueKeySet()
+                    }
                 }
             }
 
@@ -107,6 +106,7 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                 taprootConfigScreen(
                     viewModel = viewModel,
                     onContinue = {
+                        viewModel.resetKeySet()
                         viewModel.checkShowRiskSignerDialog()
                     },
                     onSelectSigner = { model, checked ->

@@ -43,6 +43,7 @@ fun NavGraphBuilder.configureValueKeySetScreen(
         route = ConfigureValueKeySetScreenRoute,
     ) {
         val state by viewModel.state.collectAsStateWithLifecycle()
+
         ConfigureValueKeySetScreen(
             modifier = modifier,
             onContinueClick = onContinueClick,
