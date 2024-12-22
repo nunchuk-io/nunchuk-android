@@ -38,6 +38,7 @@ import com.nunchuk.android.model.QuestionsAndAnswer
 import com.nunchuk.android.model.SecurityQuestion
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.model.containsPersonalPlan
+import com.nunchuk.android.model.wallet.WalletStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -381,8 +382,9 @@ class RecoveryQuestionViewModel @Inject constructor(
 
     private fun getWalletId(): String? {
         val stateValue = _state.value
-        if (stateValue.plans.containsPersonalPlan()) return stateValue.assistedWallets.firstOrNull { it.groupId.isEmpty() }?.localId.orEmpty()
-        return stateValue.assistedWallets.firstOrNull { it.groupId.isNotEmpty() }?.localId
+        val activeWallets = stateValue.assistedWallets.filter { it.status != WalletStatus.REPLACED.name }
+        if (stateValue.plans.containsPersonalPlan()) return activeWallets.firstOrNull { it.groupId.isEmpty() }?.localId.orEmpty()
+        return activeWallets.firstOrNull { it.groupId.isNotEmpty() }?.localId
     }
 
 }
