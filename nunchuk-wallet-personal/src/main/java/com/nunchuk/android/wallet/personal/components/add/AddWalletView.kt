@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -188,16 +189,20 @@ private fun AddressTypeOption(
     ) {
         Text(
             text = name,
-            style = NunchukTheme.typography.titleSmall
+            style = NunchukTheme.typography.body
         )
 
         badge?.let {
             Text(
                 modifier = Modifier
-                    .border(1.dp, MaterialTheme.colorScheme.whisper)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.whisper,
+                        shape = RoundedCornerShape(20.dp)
+                    )
                     .padding(horizontal = 8.dp),
                 text = badge,
-                style = NunchukTheme.typography.bodySmall.copy(fontSize = 10.sp)
+                style = NunchukTheme.typography.caption.copy(fontSize = 10.sp)
             )
         }
 

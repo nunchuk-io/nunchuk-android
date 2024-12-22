@@ -62,15 +62,19 @@
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/descriptionHint"
-        style="@style/NCText.Body"
+        style="@style/NCText.Title.Small"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:paddingVertical="@dimen/nc_padding_8"
+        android:layout_marginBottom="@dimen/nc_padding_16"
+        android:background="@drawable/nc_rounded_whisper_background"
+        android:drawableStart="@drawable/ic_info"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:drawableTint="@color/nc_text_primary"
+        android:padding="@dimen/nc_padding_16"
         android:text="@string/nc_wallet_backup_wallet_description_hint"
-        android:textColor="@color/nc_beeswax_dark"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/description" />
+        app:layout_constraintBottom_toTopOf="@+id/btnBackup"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <LinearLayout
         android:id="@+id/btnBackup"
