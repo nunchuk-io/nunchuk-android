@@ -1,5 +1,6 @@
 package com.nunchuk.android.transaction.components.details
 
+import android.text.format.DateUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +41,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.MODE_VIEW_ONLY
+import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -57,6 +59,7 @@ import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.getFormatDate
 import com.nunchuk.android.core.util.getPendingSignatures
 import com.nunchuk.android.core.util.hadBroadcast
+import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.signDone
 import com.nunchuk.android.core.util.truncatedAddress
@@ -71,6 +74,9 @@ import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.utils.formatByHour
+import com.nunchuk.android.utils.formatByWeek
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -300,8 +306,41 @@ fun TransactionDetailView(
                             showValueKey = index < transaction.m && state.addressType.isTaproot(),
                             isSigned = transaction.signers.isNotEmpty() && transaction.signers[signer.fingerPrint] ?: false,
                             canSign = !transaction.status.signDone(),
-                            onSignClick = onSignClick
-                        )
+                            onSignClick = onSignClick,
+                        ) {
+                            val isSigned =
+                                transaction.signers.isNotEmpty() && transaction.signers[signer.fingerPrint] ?: false
+                            val serverTransaction = state.serverTransaction
+                            val spendingLimitMessage =
+                                serverTransaction?.spendingLimitMessage.orEmpty()
+                            val cosignedTime = serverTransaction?.signedInMilis ?: 0L
+                            if (serverTransaction?.isCosigning == true) {
+                                Text(
+                                    text = stringResource(R.string.nc_co_signing_in_progress),
+                                    style = NunchukTheme.typography.bodySmall,
+                                    color = colorResource(R.color.nc_beeswax_dark),
+                                )
+                            } else if (spendingLimitMessage.isNotEmpty()) {
+                                Text(
+                                    text = serverTransaction?.spendingLimitMessage.orEmpty(),
+                                    style = NunchukTheme.typography.bodySmall,
+                                    color = colorResource(R.color.nc_beeswax_dark),
+                                )
+                            } else if (cosignedTime > 0L && isSigned.not() && transaction.status.isPendingSignatures()) {
+                                val cosignDate = Date(cosignedTime)
+                                val content = if (DateUtils.isToday(cosignedTime)) {
+                                    "${stringResource(R.string.nc_cosign_at)} [B]${cosignDate.formatByHour()}[/B]"
+                                } else {
+                                    "${stringResource(R.string.nc_cosign_at)} [B]${cosignDate.formatByHour()} ${cosignDate.formatByWeek()}[/B]"
+                                }
+                                NcHighlightText(
+                                    text = content,
+                                    style = NunchukTheme.typography.bodySmall.copy(
+                                        color = colorResource(R.color.nc_beeswax_dark)
+                                    ),
+                                )
+                            }
+                        }
                     }
                 }
             }

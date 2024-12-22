@@ -22,6 +22,7 @@ import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.canSign
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.type.SignerType
 
 @Composable
 fun TransactionSignerView(
@@ -30,7 +31,8 @@ fun TransactionSignerView(
     showValueKey: Boolean,
     isSigned: Boolean,
     canSign: Boolean,
-    onSignClick: (SignerModel) -> Unit
+    onSignClick: (SignerModel) -> Unit,
+    cosignContent : @Composable () -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -40,7 +42,12 @@ fun TransactionSignerView(
         SignerCard(
             modifier = Modifier.weight(1f),
             item = signer,
-            showValueKey = showValueKey
+            showValueKey = showValueKey,
+            content = {
+                if (signer.type == SignerType.SERVER) {
+                    cosignContent()
+                }
+            }
         )
 
         if (isSigned) {
