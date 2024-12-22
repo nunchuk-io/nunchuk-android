@@ -143,8 +143,9 @@ fun TaprootConfigScreen(
                             Text(
                                 modifier = Modifier.padding(top = 4.dp),
                                 text = stringResource(R.string.nc_number_of_signatures_required_to_unlock_funds),
-                                style = NunchukTheme.typography.caption,
-                                color = MaterialTheme.colorScheme.textSecondary,
+                                style = NunchukTheme.typography.caption.copy(
+                                    color = MaterialTheme.colorScheme.textSecondary
+                                ),
                             )
                         }
 

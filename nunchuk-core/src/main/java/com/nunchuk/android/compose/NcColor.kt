@@ -86,7 +86,7 @@ val ColorScheme.controlActivated: Color
     get() = if (isDark) Color(0xFFffcb2e) else Color(0xFF031f2b)
 
 val ColorScheme.controlDefault: Color
-    get() = if (isDark) Color(0xFF5b5b5b) else Color(0xFFeaeaea)
+    get() = if (isDark) Color(0xFFA6A6A6) else Color(0xFF595959)
 
 val ColorScheme.controlFillSecondary: Color
     get() = if (isDark) Color(0xFF393939) else Color(0xFF032b3c)

@@ -16,11 +16,11 @@
     </style>
 
     <style name="Widget.App.RadioButton" parent="Widget.MaterialComponents.CompoundButton.RadioButton">
-        <item name="buttonTint">@color/nc_text_primary</item>
+        <item name="buttonTint">@color/button_tint</item>
     </style>
 
     <style name="Widget.App.CheckBox" parent="Widget.MaterialComponents.CompoundButton.CheckBox">
-        <item name="buttonTint">@color/nc_text_primary</item>
+        <item name="buttonTint">@color/button_tint</item>
     </style>
 
     <style name="Widget.App.ExtendedFloatingActionButton" parent="Widget.MaterialComponents.ExtendedFloatingActionButton.Icon">
