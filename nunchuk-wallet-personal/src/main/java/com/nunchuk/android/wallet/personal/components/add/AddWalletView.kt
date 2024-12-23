@@ -113,7 +113,7 @@ fun AddWalletView(
                 NcTextField(
                     title = stringResource(id = R.string.nc_text_wallet_name),
                     value = walletName,
-                    onValueChange = { walletName = it },
+                    onValueChange = { walletName = it.take(80) },
                     enableMaxLength = true,
                     maxLength = 80,
                     modifier = Modifier.focusRequester(focusRequester)
