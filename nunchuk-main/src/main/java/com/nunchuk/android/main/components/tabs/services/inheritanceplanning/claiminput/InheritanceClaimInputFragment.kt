@@ -24,27 +24,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -53,7 +50,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
@@ -114,6 +110,7 @@ class InheritanceClaimInputFragment : Fragment() {
                         )
                     }
                 }
+
                 is InheritanceClaimInputEvent.Loading -> showOrHideLoading(loading = event.isLoading)
                 is InheritanceClaimInputEvent.SubscriptionExpired -> showSubscriptionExpiredDialog()
                 is InheritanceClaimInputEvent.InActivated -> showInActivatedDialog(event.message)
@@ -157,7 +154,6 @@ fun InheritanceClaimScreen(
         })
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun InheritanceClaimInputContent(
     magicalPhrase: String = "",
@@ -168,88 +164,17 @@ private fun InheritanceClaimInputContent(
     onMagicalPhraseTextChange: (String) -> Unit = {},
     onBackupDownloadTextChange: (String, Int) -> Unit = { _, _ -> },
 ) {
-    val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
+    val lazyListState = rememberLazyListState()
     NunchukTheme {
-        Scaffold { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .navigationBarsPadding()
-                    .fillMaxHeight()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.bg_claim_inheritance_illustration,
-                    title = "",
-                )
-                Text(
-                    modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_claim_inheritance),
-                    style = NunchukTheme.typography.heading
-                )
-                Text(
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                    text = stringResource(R.string.nc_claim_inheritance_desc),
-                    style = NunchukTheme.typography.body
-                )
-                NcTextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 24.dp)
-                        .padding(horizontal = 16.dp),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    title = stringResource(id = R.string.nc_magical_phrase),
-                    value = TextFieldValue(
-                        text = magicalPhrase,
-                        selection = TextRange(magicalPhrase.length)
-                    ),
-                    onValueChange = {
-                        onMagicalPhraseTextChange(it.text)
-                    },
-                    onFocusEvent = { isFocused ->
-                        if (isFocused) {
-                            coroutineScope.launch {
-                                delay(500L)
-                                bringIntoViewRequester.bringIntoView()
-                            }
-                        }
-                    }
-                )
-                LazyRow {
-                    items(suggestions) {
-                        Card(
-                            modifier = Modifier
-                                .padding(vertical = 16.dp, horizontal = 6.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            onClick = {
-                                onSuggestClick(it)
-                            }
-                        ) {
-                            Text(
-                                text = it,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                            )
-                        }
-                    }
-                }
+        Scaffold(
+            modifier = Modifier
+                .statusBarsPadding()
+                .navigationBarsPadding(),
+            topBar = {
 
-                backupDownloads.forEachIndexed { index, backupDownload ->
-                    NcTextField(
-                        modifier = Modifier
-                             .bringIntoViewRequester(bringIntoViewRequester)
-                            .fillMaxWidth()
-                            .padding(top = 16.dp)
-                            .padding(horizontal = 16.dp),
-                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                        title = if (index == 0) stringResource(id = R.string.nc_backup_download) else stringResource(id = R.string.nc_backup_download_optional, index + 1),
-                        value = backupDownload,
-                        onValueChange = {
-                            onBackupDownloadTextChange(it, index)
-                        }
-                    )
-                }
-
-                Spacer(modifier = Modifier.weight(1.0f))
+            },
+            bottomBar = {
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -258,6 +183,96 @@ private fun InheritanceClaimInputContent(
                     onClick = onContinueClick,
                 ) {
                     Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
+                }
+            }
+        ) { innerPadding ->
+            LazyColumn(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                state = lazyListState
+            ) {
+                item {
+                    NcImageAppBar(
+                        backgroundRes = R.drawable.bg_claim_inheritance_illustration,
+                        title = "",
+                    )
+                    Text(
+                        modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
+                        text = stringResource(R.string.nc_claim_inheritance),
+                        style = NunchukTheme.typography.heading
+                    )
+                    Text(
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                        text = stringResource(R.string.nc_claim_inheritance_desc),
+                        style = NunchukTheme.typography.body
+                    )
+                    NcTextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp)
+                            .padding(horizontal = 16.dp),
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                        title = stringResource(id = R.string.nc_magical_phrase),
+                        value = TextFieldValue(
+                            text = magicalPhrase,
+                            selection = TextRange(magicalPhrase.length)
+                        ),
+                        onValueChange = {
+                            onMagicalPhraseTextChange(it.text)
+                        },
+                        onFocusEvent = { isFocused ->
+                            if (isFocused) {
+                                coroutineScope.launch {
+                                    delay(100)
+                                    lazyListState.animateScrollToItem(index = 2)
+                                }
+                            }
+                        }
+                    )
+                }
+                item {
+                    LazyRow {
+                        items(suggestions) {
+                            Card(
+                                modifier = Modifier
+                                    .padding(vertical = 16.dp, horizontal = 6.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                onClick = {
+                                    onSuggestClick(it)
+                                }
+                            ) {
+                                Text(
+                                    text = it,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    backupDownloads.forEachIndexed { index, backupDownload ->
+                        NcTextField(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp)
+                                .padding(horizontal = 16.dp),
+                            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                            title = if (index == 0) stringResource(id = R.string.nc_backup_download) else stringResource(
+                                id = R.string.nc_backup_download_optional,
+                                index + 1
+                            ),
+                            value = backupDownload,
+                            onValueChange = {
+                                onBackupDownloadTextChange(it, index)
+                            }
+                        )
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(200.dp))
                 }
             }
         }
