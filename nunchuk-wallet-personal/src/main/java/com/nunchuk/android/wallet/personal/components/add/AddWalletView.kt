@@ -20,12 +20,16 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
@@ -44,6 +48,7 @@ import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.wallet.personal.R
+import kotlinx.coroutines.delay
 
 @Composable
 fun AddWalletView(
@@ -61,6 +66,12 @@ fun AddWalletView(
         AddressType.NESTED_SEGWIT,
         AddressType.LEGACY
     )
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        delay(100L)
+        focusRequester.requestFocus()
+    }
     NunchukTheme {
         NcScaffold(
             modifier = Modifier
@@ -104,7 +115,8 @@ fun AddWalletView(
                     value = walletName,
                     onValueChange = { walletName = it },
                     enableMaxLength = true,
-                    maxLength = 20
+                    maxLength = 20,
+                    modifier = Modifier.focusRequester(focusRequester)
                 )
 
                 HorizontalDivider(
