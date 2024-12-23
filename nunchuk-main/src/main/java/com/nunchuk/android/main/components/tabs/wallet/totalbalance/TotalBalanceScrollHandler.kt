@@ -6,7 +6,7 @@ import android.view.View
 class TotalBalanceScrollHandler(private val totalBalanceFrame: View) {
 
     private var totalScrollDistance = 0 // Track the total scroll distance
-    private var threshold = 50 // Threshold in dp
+    private var threshold = 20 // Threshold in dp
     private var isBalanceFrameVisible = true // Track visibility state
 
     private val thresholdInPx by lazy {
