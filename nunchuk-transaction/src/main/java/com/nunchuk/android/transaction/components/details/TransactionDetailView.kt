@@ -37,6 +37,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -267,12 +268,28 @@ fun TransactionDetailView(
 
                     }
                     if (showInputCoin) {
-                        items(state.txInputCoins, key = { it.address }) { input ->
+                        items(
+                            state.txInputCoins.take(30),
+                            key = { "${it.txid} - ${it.vout}" },
+                        ) { input ->
                             PreviewCoinCard(
                                 output = input,
                                 mode = MODE_VIEW_ONLY,
                                 tags = state.tags
                             )
+                        }
+
+                        if (state.txInputCoins.size > 30) {
+                            item {
+                                Text(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    text = stringResource(
+                                        R.string.nc_more_address,
+                                        state.txInputCoins.size - 30
+                                    ),
+                                    style = NunchukTheme.typography.bodySmall.copy(textAlign = TextAlign.Center),
+                                )
+                            }
                         }
                     }
                 }
