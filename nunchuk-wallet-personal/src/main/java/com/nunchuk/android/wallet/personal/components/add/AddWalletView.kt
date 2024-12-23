@@ -115,7 +115,7 @@ fun AddWalletView(
                     value = walletName,
                     onValueChange = { walletName = it },
                     enableMaxLength = true,
-                    maxLength = 20,
+                    maxLength = 80,
                     modifier = Modifier.focusRequester(focusRequester)
                 )
 
