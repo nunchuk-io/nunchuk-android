@@ -65,7 +65,7 @@ val ColorScheme.textPrimary: Color
     get() = if (isDark) Color.White else Color(0xFF031F2B)
 
 val ColorScheme.textSecondary: Color
-    get() = if (isDark) Color(0xFFDEDEDE) else Color(0xFF757575)
+    get() = if (isDark) Color(0xFFA6A6A6) else Color(0xFF757575)
 
 val ColorScheme.strokePrimary: Color
     get() = if (isDark) Color(0xFF595959) else Color(0xFFDEDEDE)
