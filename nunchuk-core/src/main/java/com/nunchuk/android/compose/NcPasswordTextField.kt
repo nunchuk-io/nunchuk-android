@@ -149,9 +149,7 @@ fun NcPasswordTextField(
                             Box(
                                 Modifier.border(
                                     width = 1.dp,
-                                    color = if (hasError) colorResource(id = R.color.nc_orange_color) else Color(
-                                        0xFFDEDEDE
-                                    ),
+                                    color = if (hasError) colorResource(id = R.color.nc_orange_color) else MaterialTheme.colorScheme.border,
                                     shape = RoundedCornerShape(8.dp),
                                 )
                             )
@@ -266,9 +264,7 @@ fun NcPasswordTextField(
                             Box(
                                 Modifier.border(
                                     width = 1.dp,
-                                    color = if (hasError) colorResource(id = R.color.nc_orange_color) else Color(
-                                        0xFFDEDEDE
-                                    ),
+                                    color = if (hasError) colorResource(id = R.color.nc_orange_color) else MaterialTheme.colorScheme.border,
                                     shape = RoundedCornerShape(8.dp),
                                 )
                             )

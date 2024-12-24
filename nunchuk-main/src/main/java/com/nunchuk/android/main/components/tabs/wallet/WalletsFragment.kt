@@ -458,6 +458,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showTotalBalance(state: WalletsState) {
+        binding.totalBalanceFrame.isVisible = state.wallets.isNotEmpty()
         val totalBalance = state.wallets.sumOf { it.wallet.balance.value }
         val totalInCurrency = Amount(value = totalBalance).getCurrencyAmount()
         val totalInBtc = Amount(value = totalBalance).getBTCAmount()
