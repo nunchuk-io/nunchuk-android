@@ -42,7 +42,7 @@ ext {
     PATCH_VERSION = 57
     TASK_LABEL = "DEV"
 
-    VERSION_CODE = 256
+    VERSION_CODE = 257
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
@@ -170,7 +170,7 @@ ext {
 
     nunchukDeps = [
             nativeSdk: "io.nunchuk.android:nativesdk:${nativeSdkVersion}",
-            prebuildNativeSdk: "com.github.nunchuk-io:nunchuk-android-nativesdk-prebuild:${prebuildNativeSdkVersion}"
+            prebuildNativeSdk: "io.nunchuk.android:nativesdk:${nativeSdkVersion}"
     ]
 
     matrixDeps = [
