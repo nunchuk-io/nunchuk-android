@@ -189,7 +189,7 @@ private fun KeySetViewPreview(
                 keySetIndex = 0,
                 requiredSignatures = 2,
                 keySet = KeySetStatus(
-                    status = TransactionStatus.PENDING_SIGNATURES,
+                    status = TransactionStatus.PENDING_NONCE,
                     signerStatus = mapOf(
                         "79EB35F4" to true,
                         "79EB35F5" to false,

@@ -39,6 +39,8 @@
     <string name="nc_taproot_warning_title">To use Taproot, please note the following</string>
     <string name="nc_number_of_signatures_required_to_unlock_funds">Number of signatures required to unlock funds.</string>
     <string name="nc_assign_at_least_1_key_to_the_wallet_up_to_5">Assign at least 1 key to the wallet (up to 5)</string>
-    <string name="nc_keys_not_yet_supporting_taproot">Keys not yet supporting taproot</string>
+    <string name="nc_keys_not_yet_supporting_taproot">Keys not yet supporting Taproot</string>
+    <string name="nc_configure_value_key_set">Configure Value Key Set</string>
+    <string name="nc_configure_value_key_set_desc">Among the keys assigned to the wallet, please select the keys to create the Value Keyset. Signing transactions with the Value Keyset will help maximize privacy and fee savings.</string>
 
 </resources>

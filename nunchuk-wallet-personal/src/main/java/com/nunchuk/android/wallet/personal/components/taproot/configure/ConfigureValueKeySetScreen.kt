@@ -98,7 +98,7 @@ fun ConfigureValueKeySetScreen(
                 )
 
                 Text(
-                    text = "Configure Value Key Set",
+                    text = stringResource(R.string.nc_configure_value_key_set),
                     style = NunchukTheme.typography.heading,
                     modifier = Modifier
                         .padding(top = 24.dp)
@@ -106,7 +106,7 @@ fun ConfigureValueKeySetScreen(
                 )
 
                 Text(
-                    text = "Among the keys assigned to the wallet, please select the keys to create the Value Keyset. The Value Keyset will help reduce transaction fees and enhance security.",
+                    text = stringResource(R.string.nc_configure_value_key_set_desc),
                     style = NunchukTheme.typography.body,
                     modifier = Modifier
                         .padding(top = 12.dp)
