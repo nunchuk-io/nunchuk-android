@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.SignersModelProvider
+import com.nunchuk.android.compose.strokePrimary
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.signDone
@@ -36,12 +40,15 @@ fun KeySetView(
     keySet: KeySetStatus,
     signers: Map<String, SignerModel>,
     requiredSignatures: Int,
+    showDivider: Boolean = false,
     onSignClick: (SignerModel) -> Unit = {},
 ) {
     val round = if (keySet.status == TransactionStatus.PENDING_NONCE) 1 else 2
     val pendingSignatures = requiredSignatures - keySet.signerStatus.count { !it.value }
     Column(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier
+            .padding(horizontal = 16.dp)
+            .padding(top = 16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (keySetIndex == 0) {
@@ -86,7 +93,7 @@ fun KeySetView(
             if (keySet.status.signDone()) {
                 Text(
                     text = stringResource(R.string.nc_text_completed),
-                    style = NunchukTheme.typography.captionTitle.copy(
+                    style = NunchukTheme.typography.titleSmall.copy(
                         color = Color.White
                     ),
                     modifier = Modifier
@@ -99,7 +106,7 @@ fun KeySetView(
             } else {
                 Text(
                     text = stringResource(R.string.nc_round_2, round),
-                    style = NunchukTheme.typography.captionTitle.copy(
+                    style = NunchukTheme.typography.titleSmall.copy(
                         color = colorResource(R.color.nc_grey_g7)
                     ),
                     modifier = Modifier
@@ -116,7 +123,8 @@ fun KeySetView(
             Text(
                 text = stringResource(R.string.nc_better_privacy_and_lower_fees),
                 style = NunchukTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 4.dp),
+                color = MaterialTheme.colorScheme.textSecondary
             )
         }
 
@@ -126,11 +134,21 @@ fun KeySetView(
                     modifier = Modifier.padding(top = 16.dp),
                     signer = signer,
                     showValueKey = keySetIndex == 0,
-                    isSigned = isSigned,
+                    isSigned = isSigned || keySet.status.signDone(),
                     canSign = !keySet.status.signDone(),
                     onSignClick = onSignClick
                 )
             }
+        }
+
+        if (showDivider) {
+            HorizontalDivider(
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .fillMaxWidth(),
+                color = MaterialTheme.colorScheme.strokePrimary,
+                thickness = 1.dp
+            )
         }
     }
 }
@@ -152,7 +170,8 @@ private fun KeySetViewPreview(
                         "79EB35F4" to true,
                         "79EB35F5" to false,
                     )
-                )
+                ),
+                showDivider = true
             )
             KeySetView(
                 signers = signers.associateBy { it.fingerPrint },

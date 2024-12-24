@@ -21,6 +21,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawableResId
@@ -80,7 +81,8 @@ fun SignerCard(
             if (item.type != SignerType.SERVER) {
                 Text(
                     text = item.getXfpOrCardIdLabel(),
-                    style = NunchukTheme.typography.bodySmall
+                    style = NunchukTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.textSecondary
                 )
             }
             content()

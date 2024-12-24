@@ -44,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.MODE_VIEW_ONLY
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcIcon
-import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSwitch
@@ -95,6 +94,7 @@ fun TransactionDetailView(
 ) {
     var showDetail by rememberSaveable { mutableStateOf(false) }
     var showInputCoin by rememberSaveable { mutableStateOf(false) }
+    var isExpanded by rememberSaveable { mutableStateOf(false) }
     val transaction = state.transaction
     val outputs = if (transaction.isReceive)
         transaction.receiveOutputs else
@@ -133,18 +133,18 @@ fun TransactionDetailView(
                         onClick = onBroadcastClick
                     ) {
                         Text(
-                            text = stringResource(R.string.nc_transaction_ready_to_broadcast),
+                            text = stringResource(R.string.nc_transaction_broadcast),
                         )
                     }
                 } else if (transaction.status.hadBroadcast()) {
-                    NcOutlineButton(
+                    NcPrimaryDarkButton(
                         modifier = Modifier
                             .padding(16.dp)
                             .fillMaxWidth(),
                         onClick = onViewOnBlockExplorer
                     ) {
                         Text(
-                            text = stringResource(R.string.nc_view_on_explorer),
+                            text = stringResource(R.string.nc_transaction_view_blockchain),
                         )
                     }
                 }
@@ -295,15 +295,39 @@ fun TransactionDetailView(
                 }
 
                 if (transaction.keySetStatus.isNotEmpty()) {
-                    transaction.keySetStatus.forEachIndexed { index, keySetStatus ->
-                        item {
-                            KeySetView(
-                                signers = signerMap,
-                                keySetIndex = index,
-                                requiredSignatures = transaction.m,
-                                keySet = keySetStatus,
-                                onSignClick = onSignClick
-                            )
+                    item {
+                        KeySetView(
+                            signers = signerMap,
+                            keySetIndex = 0,
+                            requiredSignatures = transaction.m,
+                            keySet = transaction.keySetStatus.first(),
+                            onSignClick = onSignClick
+                        )
+                    }
+
+                    item {
+                        OtherKeySetView(
+                            modifier = Modifier.padding(top = 16.dp),
+                            toggleExpand = {
+                                isExpanded = !isExpanded
+                            },
+                            count = transaction.keySetStatus.size - 1,
+                            isExpanded = isExpanded
+                        )
+                    }
+
+                    if (isExpanded) {
+                        transaction.keySetStatus.drop(1).forEachIndexed { index, keySetStatus ->
+                            item {
+                                KeySetView(
+                                    signers = signerMap,
+                                    keySetIndex = index,
+                                    requiredSignatures = transaction.m,
+                                    keySet = keySetStatus,
+                                    onSignClick = onSignClick,
+                                    showDivider = index < transaction.keySetStatus.size - 2
+                                )
+                            }
                         }
                     }
                 } else if (!transaction.isReceive && !args.isInheritanceClaimingFlow) {
