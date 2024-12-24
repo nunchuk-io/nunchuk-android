@@ -30,6 +30,11 @@
         <item quantity="other">Pending %d signatures</item>
     </plurals>
 
+    <plurals name="nc_transaction_pending_nonce">
+        <item quantity="one">Pending %d nonce</item>
+        <item quantity="other">Pending %d nonces</item>
+    </plurals>
+
     <string name="nc_currency_btc">BTC</string>
     <string name="nc_currency_usd">USD</string>
     <string name="nc_currency_sat">sat</string>

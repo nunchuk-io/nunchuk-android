@@ -321,7 +321,7 @@ fun TransactionDetailView(
                             item {
                                 KeySetView(
                                     signers = signerMap,
-                                    keySetIndex = index,
+                                    keySetIndex = index + 1,
                                     requiredSignatures = transaction.m,
                                     keySet = keySetStatus,
                                     onSignClick = onSignClick,

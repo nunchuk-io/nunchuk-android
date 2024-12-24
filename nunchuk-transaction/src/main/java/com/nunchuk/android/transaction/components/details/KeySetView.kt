@@ -23,6 +23,8 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.backgroundMidGray
+import com.nunchuk.android.compose.fillBeeswax
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
@@ -44,7 +46,7 @@ fun KeySetView(
     onSignClick: (SignerModel) -> Unit = {},
 ) {
     val round = if (keySet.status == TransactionStatus.PENDING_NONCE) 1 else 2
-    val pendingSignatures = requiredSignatures - keySet.signerStatus.count { !it.value }
+    val pendingSignatures = requiredSignatures - keySet.signerStatus.count { it.value }
     Column(
         modifier = modifier
             .padding(horizontal = 16.dp)
@@ -79,7 +81,11 @@ fun KeySetView(
 
                 Text(
                     text = pluralStringResource(
-                        R.plurals.nc_transaction_pending_signature,
+                        if (round == 1) {
+                            R.plurals.nc_transaction_pending_nonce
+                        } else {
+                            R.plurals.nc_transaction_pending_signature
+                        },
                         pendingSignatures,
                         pendingSignatures
                     ),
@@ -104,6 +110,11 @@ fun KeySetView(
                         .padding(horizontal = 8.dp)
                 )
             } else {
+                val color = when {
+                    round == 1 && requiredSignatures == pendingSignatures -> MaterialTheme.colorScheme.backgroundMidGray
+                    round == 1 -> MaterialTheme.colorScheme.fillBeeswax
+                    else -> colorResource(R.color.nc_primary_y0)
+                }
                 Text(
                     text = stringResource(R.string.nc_round_2, round),
                     style = NunchukTheme.typography.titleSmall.copy(
@@ -111,7 +122,7 @@ fun KeySetView(
                     ),
                     modifier = Modifier
                         .background(
-                            color = colorResource(R.color.nc_primary_y0),
+                            color = color,
                             shape = RoundedCornerShape(20.dp)
                         )
                         .padding(horizontal = 8.dp)
@@ -160,6 +171,19 @@ private fun KeySetViewPreview(
 ) {
     NunchukTheme {
         Column(Modifier.background(MaterialTheme.colorScheme.background)) {
+            KeySetView(
+                signers = signers.associateBy { it.fingerPrint },
+                keySetIndex = 0,
+                requiredSignatures = 2,
+                keySet = KeySetStatus(
+                    status = TransactionStatus.PENDING_NONCE,
+                    signerStatus = mapOf(
+                        "79EB35F4" to false,
+                        "79EB35F5" to false,
+                    )
+                ),
+                showDivider = true
+            )
             KeySetView(
                 signers = signers.associateBy { it.fingerPrint },
                 keySetIndex = 0,
