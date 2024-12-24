@@ -67,7 +67,7 @@ fun TextView.bindTransactionStatus(transaction: Transaction) {
             backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_red_tint_color)
         }
         READY_TO_BROADCAST -> {
-            text = context.getString(R.string.nc_transaction_ready_to_broadcast)
+            text = context.getString(R.string.nc_ready_to_broadcast)
             backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_beeswax_tint)
         }
         PENDING_CONFIRMATION -> {

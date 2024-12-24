@@ -452,7 +452,7 @@ private fun TransactionHeader(
     }
     val status = when (transaction.status) {
         TransactionStatus.PENDING_SIGNATURES -> stringResource(R.string.nc_transaction_pending_signatures)
-        TransactionStatus.READY_TO_BROADCAST -> stringResource(R.string.nc_transaction_ready_to_broadcast)
+        TransactionStatus.READY_TO_BROADCAST -> stringResource(R.string.nc_ready_to_broadcast)
         TransactionStatus.PENDING_CONFIRMATION -> stringResource(R.string.nc_transaction_pending_confirmation)
         TransactionStatus.CONFIRMED -> "${transaction.height} ${stringResource(R.string.nc_transaction_confirmations)}"
         TransactionStatus.NETWORK_REJECTED -> stringResource(R.string.nc_transaction_network_rejected)

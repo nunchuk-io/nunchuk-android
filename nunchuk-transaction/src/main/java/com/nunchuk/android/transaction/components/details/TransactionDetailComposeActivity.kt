@@ -33,6 +33,7 @@ import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isPending
+import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.wallet.InvoiceInfo
@@ -74,6 +75,7 @@ import com.nunchuk.android.transaction.components.invoice.InvoiceActivity
 import com.nunchuk.android.transaction.components.schedule.ScheduleBroadcastTransactionActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.TransactionStatus.PENDING_CONFIRMATION
 import com.nunchuk.android.type.TransactionStatus.READY_TO_BROADCAST
 import com.nunchuk.android.utils.parcelable
@@ -484,7 +486,16 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
 
     private fun showSignTransactionSuccess(event: SignTransactionSuccess) {
         hideLoading()
-        if (viewModel.isAssistedWallet().not()) {
+        val state = viewModel.state.value
+        if (state.addressType.isTaproot()) {
+            val round1Completed = state.transaction.keySetStatus.any { it.status != TransactionStatus.PENDING_NONCE && it.signerStatus.all { entry -> !entry.value } }
+            val readyToBroadcast = state.transaction.status == READY_TO_BROADCAST
+            if (readyToBroadcast) {
+                NCToastMessage(this).show(getString(R.string.nc_transaction_ready_to_broadcast))
+            } else if (round1Completed) {
+                NCToastMessage(this).show(getString(R.string.nc_round_1_completed))
+            }
+        } else if (viewModel.isAssistedWallet().not()) {
             NCToastMessage(this).show(getString(R.string.nc_transaction_signed_successful))
         } else if (event.serverSigned != null) {
             lifecycleScope.launch {

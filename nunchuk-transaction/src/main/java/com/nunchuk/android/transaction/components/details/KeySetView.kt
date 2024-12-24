@@ -115,10 +115,14 @@ fun KeySetView(
                     round == 1 -> MaterialTheme.colorScheme.fillBeeswax
                     else -> colorResource(R.color.nc_primary_y0)
                 }
+                val textColor = when {
+                    round == 1 && requiredSignatures == pendingSignatures -> MaterialTheme.colorScheme.textSecondary
+                    else -> colorResource(R.color.nc_grey_g7)
+                }
                 Text(
                     text = stringResource(R.string.nc_round_2, round),
                     style = NunchukTheme.typography.titleSmall.copy(
-                        color = colorResource(R.color.nc_grey_g7)
+                        color = textColor
                     ),
                     modifier = Modifier
                         .background(
