@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -24,6 +26,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcCircleImage
@@ -32,6 +35,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.textSecondary
+import kotlin.math.max
 
 @Composable
 fun SignerIntroScreen(
@@ -50,6 +54,7 @@ fun SignerIntroScreen(
                     .padding(horizontal = 16.dp)
                     .navigationBarsPadding()
                     .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
             ) {
                 Text(
                     text = stringResource(R.string.nc_add_key),
@@ -255,12 +260,16 @@ internal fun SignerItem(
                 modifier = Modifier.padding(top = 4.dp),
                 text = title,
                 style = NunchukTheme.typography.body,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             if (subtitle.isNotEmpty()) {
                 Text(
                     modifier = Modifier.padding(top = 4.dp),
                     text = subtitle,
-                    style = NunchukTheme.typography.bodySmall
+                    style = NunchukTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
