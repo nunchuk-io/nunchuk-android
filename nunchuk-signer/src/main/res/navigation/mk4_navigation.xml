@@ -55,7 +55,8 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <argument
             android:name="is_membership_flow"
-            app:argType="boolean" />
+            app:argType="boolean"
+            android:defaultValue="false"/>
 
         <argument
             android:name="is_add_inheritance_key"

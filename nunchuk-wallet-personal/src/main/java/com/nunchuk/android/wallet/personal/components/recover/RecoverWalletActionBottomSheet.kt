@@ -30,7 +30,7 @@ import com.nunchuk.android.wallet.personal.databinding.BottomSheetWalletRecovery
 internal class RecoverWalletActionBottomSheet :
     BaseBottomSheet<BottomSheetWalletRecoveryActionBinding>() {
 
-    lateinit var listener: (RecoverWalletOption) -> Unit
+     var listener: ((RecoverWalletOption) -> Unit)? = null
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -54,7 +54,7 @@ internal class RecoverWalletActionBottomSheet :
     }
 
     private fun onActionClicked(option: RecoverWalletOption) {
-        listener(option)
+        listener?.invoke(option)
         dismiss()
     }
 
