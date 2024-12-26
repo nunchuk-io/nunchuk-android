@@ -816,4 +816,5 @@
     <string name="nc_unbacked_up_signer_warning_desc">The hot wallet containing this key must be backed up before this key can be used in another wallet. Please back it up first.</string>
     <string name="nc_value_key">Value Key</string>
     <string name="nc_bip32_path">BIP32 path: %1$s</string>
+    <string name="nc_hide">Hide</string>
 </resources>
