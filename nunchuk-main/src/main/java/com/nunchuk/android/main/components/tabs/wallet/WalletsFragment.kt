@@ -653,7 +653,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             },
                             onSendClick = {
                                 it.wallet?.let { wallet ->
-                                    walletsViewModel.checkUserInRoom(wallet)
+                                    walletsViewModel.getWalletDetail(wallet.wallet.id)
                                 }
                             },
                             onReceiveClick = {

@@ -29,7 +29,6 @@ import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
-import com.nunchuk.android.core.domain.membership.CheckWalletsExistingKeyUseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
@@ -59,7 +58,6 @@ import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
@@ -79,9 +77,9 @@ import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetHomeDisplaySettingUseCase
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
+import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.MigrateHomeDisplaySettingUseCase
-import com.nunchuk.android.usecase.UpdateHomeDisplaySettingUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.byzantine.GetListGroupWalletKeyHealthStatusUseCase
 import com.nunchuk.android.usecase.byzantine.GroupMemberAcceptRequestUseCase
@@ -91,7 +89,6 @@ import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
 import com.nunchuk.android.usecase.campaign.GetCurrentCampaignUseCase
 import com.nunchuk.android.usecase.campaign.GetLocalCurrentCampaignUseCase
 import com.nunchuk.android.usecase.campaign.GetLocalReferrerCodeUseCase
-import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
@@ -103,6 +100,8 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -121,7 +120,6 @@ import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.room.model.Membership
 import timber.log.Timber
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -163,6 +161,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getHomeDisplaySettingUseCase: GetHomeDisplaySettingUseCase,
     private val sessionHolder: SessionHolder,
     private val migrateHomeDisplaySettingUseCase: MigrateHomeDisplaySettingUseCase,
+    private val getWalletUseCase: GetWalletUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -692,6 +691,16 @@ internal class WalletsViewModel @Inject constructor(
         setEvent(Loading(false))
     }
 
+    fun getWalletDetail(walletId: String) = viewModelScope.launch {
+        getWalletUseCase.execute(walletId)
+            .flowOn(IO)
+            .onException {}
+            .flowOn(Main)
+            .collect {
+                checkUserInRoom(it)
+            }
+    }
+
     fun checkUserInRoom(walletExtended: WalletExtended) {
         val roomWallet = walletExtended.roomWallet
         if (roomWallet == null) {
@@ -706,7 +715,12 @@ internal class WalletsViewModel @Inject constructor(
                         ?.getRoomMember(account.chatId)
                 }
             }
-            setEvent(WalletsEvent.CheckLeaveRoom(result?.membership == Membership.LEAVE, walletExtended))
+            setEvent(
+                WalletsEvent.CheckLeaveRoom(
+                    result?.membership == Membership.LEAVE,
+                    walletExtended
+                )
+            )
         }
     }
 
