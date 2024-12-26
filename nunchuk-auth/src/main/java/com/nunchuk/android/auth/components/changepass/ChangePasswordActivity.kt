@@ -24,6 +24,7 @@ import android.content.Intent
 import android.graphics.Typeface.BOLD
 import android.os.Bundle
 import android.text.Spannable.SPAN_INCLUSIVE_EXCLUSIVE
+import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
@@ -151,7 +152,7 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
                         SPAN_INCLUSIVE_EXCLUSIVE
                     )
                     setSpan(
-                        ForegroundColorSpan(getColor(R.color.nc_primary_color)),
+                        ForegroundColorSpan(getColor(R.color.nc_text_primary)),
                         startIndex,
                         startIndex + email.length,
                         SPAN_INCLUSIVE_EXCLUSIVE
@@ -168,6 +169,11 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
             override fun onClick(widget: View) {
                 widget.invalidate()
                 viewModel.resendPassword()
+            }
+
+            override fun updateDrawState(ds: TextPaint) {
+                ds.color = getColor(R.color.nc_text_primary)
+                ds.isUnderlineText = true
             }
         }
         binding.emailSentDescription.text = buildSpannedString {
@@ -188,7 +194,7 @@ class ChangePasswordActivity : BaseActivity<ActivityChangePasswordBinding>() {
                 SPAN_INCLUSIVE_EXCLUSIVE
             )
             setSpan(
-                ForegroundColorSpan(getColor(R.color.nc_primary_color)),
+                ForegroundColorSpan(getColor(R.color.nc_text_primary)),
                 startIndex,
                 startIndex + email.length,
                 SPAN_INCLUSIVE_EXCLUSIVE

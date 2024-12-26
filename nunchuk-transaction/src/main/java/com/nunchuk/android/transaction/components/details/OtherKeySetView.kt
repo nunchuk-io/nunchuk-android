@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -87,7 +88,7 @@ fun OtherKeySetView(
                 modifier = Modifier
                     .clickable(onClick = toggleExpand)
                     .padding(start = 8.dp),
-                text = "View all",
+                text = if (isExpanded) stringResource(R.string.nc_hide) else stringResource(R.string.nc_view_all),
                 style = NunchukTheme.typography.titleSmall.copy(
                     textDecoration = TextDecoration.Underline
                 )
