@@ -197,26 +197,28 @@ fun TransactionDetailView(
                         }
                     }
 
-                    item {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(16.dp),
-                            color = MaterialTheme.colorScheme.backgroundMidGray,
-                            thickness = 1.dp
-                        )
-                    }
+                    if (!transaction.isReceive) {
+                        item {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(16.dp),
+                                color = MaterialTheme.colorScheme.backgroundMidGray,
+                                thickness = 1.dp
+                            )
+                        }
 
-                    item {
-                        TransactionEstimateFee(
-                            fee = transaction.fee,
-                            onShowFeeTooltip = onShowFeeTooltip
-                        )
-                    }
+                        item {
+                            TransactionEstimateFee(
+                                fee = transaction.fee,
+                                onShowFeeTooltip = onShowFeeTooltip
+                            )
+                        }
 
-                    item {
-                        TransactionTotalAmount(
-                            modifier = Modifier.padding(top = 16.dp),
-                            total = transaction.totalAmount
-                        )
+                        item {
+                            TransactionTotalAmount(
+                                modifier = Modifier.padding(top = 16.dp),
+                                total = transaction.totalAmount
+                            )
+                        }
                     }
 
                     if (hasChange) {
