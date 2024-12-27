@@ -89,6 +89,7 @@
         android:hint="@string/nc_message_name_or_email"
         android:minWidth="250dp"
         android:textColor="@color/nc_text_primary"
+        android:textColorHint="@color/nc_text_secondary"
         android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/to"

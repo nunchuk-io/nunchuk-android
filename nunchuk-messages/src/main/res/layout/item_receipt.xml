@@ -26,9 +26,10 @@
         style="@style/NCText.Body"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_8"
         android:drawableEnd="@drawable/ic_close"
         android:drawablePadding="@dimen/nc_padding_8"
-        android:layout_marginStart="@dimen/nc_padding_8"
+        android:drawableTint="@color/nc_text_primary"
         app:fontTextStyle="semi_bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@+id/avatar"
@@ -37,9 +38,9 @@
 
     <View
         android:layout_width="12dp"
+        android:layout_height="1dp"
         app:layout_constraintBottom_toBottomOf="@id/name"
-        app:layout_constraintTop_toTopOf="@id/name"
         app:layout_constraintStart_toEndOf="@+id/name"
-        android:layout_height="1dp" />
+        app:layout_constraintTop_toTopOf="@id/name" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
