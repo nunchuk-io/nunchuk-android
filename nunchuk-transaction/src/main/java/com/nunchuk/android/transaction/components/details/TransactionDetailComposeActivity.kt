@@ -219,6 +219,14 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                     showEstimatedFeeTooltip()
                 },
                 onCopyText = { handleCopyContent(it) },
+                onEditChangeCoin = { coin ->
+                    navigator.openCoinDetail(
+                        launcher = coinLauncher,
+                        context = this,
+                        walletId = args.walletId,
+                        output = coin
+                    )
+                }
             )
         }
 

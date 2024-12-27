@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.CoinTagGroupView
 import com.nunchuk.android.compose.MODE_VIEW_ONLY
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcIcon
@@ -59,11 +60,13 @@ import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.getFormatDate
 import com.nunchuk.android.core.util.getPendingSignatures
 import com.nunchuk.android.core.util.hadBroadcast
+import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.signDone
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxOutput
 import com.nunchuk.android.model.UnspentOutput
@@ -89,10 +92,11 @@ fun TransactionDetailView(
     onViewOnBlockExplorer: () -> Unit = {},
     onManageCoinClick: () -> Unit = {},
     onEditNote: () -> Unit = {},
+    onEditChangeCoin: (UnspentOutput) -> Unit = {},
     onCopyText: (String) -> Unit = {},
     onShowFeeTooltip: () -> Unit,
 ) {
-    var showDetail by rememberSaveable { mutableStateOf(false) }
+    var showDetail by rememberSaveable { mutableStateOf(true) }
     var showInputCoin by rememberSaveable { mutableStateOf(false) }
     var isExpanded by rememberSaveable { mutableStateOf(false) }
     val transaction = state.transaction
@@ -104,6 +108,8 @@ fun TransactionDetailView(
             state.signers.associateBy { it.fingerPrint }
         }
     }
+    val hasChange: Boolean = transaction.hasChangeIndex()
+    val changeCoin = state.coins.find { it.vout == transaction.changeIndex }
     NunchukTheme {
         NcScaffold(
             modifier = Modifier.systemBarsPadding(),
@@ -210,6 +216,43 @@ fun TransactionDetailView(
                             modifier = Modifier.padding(top = 16.dp),
                             total = transaction.totalAmount
                         )
+                    }
+
+                    if (hasChange) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 16.dp)
+                                    .fillMaxWidth()
+                                    .background(color = MaterialTheme.colorScheme.backgroundMidGray)
+                                    .padding(16.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.nc_transaction_change_address),
+                                    style = NunchukTheme.typography.titleSmall,
+                                )
+
+                                if (changeCoin != null) {
+                                    Text(
+                                        text = stringResource(R.string.nc_edit),
+                                        style = NunchukTheme.typography.bodySmall.copy(
+                                            textDecoration = TextDecoration.Underline
+                                        ),
+                                        modifier = Modifier
+                                            .align(Alignment.CenterEnd)
+                                            .clickable(onClick = { onEditChangeCoin(changeCoin) }),
+                                    )
+                                }
+                            }
+                        }
+
+                        item {
+                            ChangeAddressView(
+                                txOutput = transaction.outputs[transaction.changeIndex],
+                                output = changeCoin,
+                                tags = state.tags
+                            )
+                        }
                     }
 
                     item {
@@ -623,11 +666,46 @@ private fun TransactionTotalAmount(
         Text(
             text = stringResource(R.string.nc_transaction_total_amount),
             style = NunchukTheme.typography.body,
+            modifier = Modifier.weight(1f),
         )
 
-        Spacer(modifier = Modifier.weight(1f))
-
         AmountView(total)
+    }
+}
+
+@Composable
+private fun ChangeAddressView(
+    modifier: Modifier = Modifier,
+    txOutput: TxOutput,
+    output: UnspentOutput?,
+    tags: Map<Int, CoinTag>
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp)
+            .padding(horizontal = 16.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = txOutput.first,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp),
+                style = NunchukTheme.typography.body,
+            )
+
+            AmountView(txOutput.second)
+        }
+
+        if (output != null && output.tags.isNotEmpty()) {
+            CoinTagGroupView(
+                modifier = Modifier.padding(top = 8.dp),
+                tagIds = output.tags, tags = tags
+            )
+        }
     }
 }
 
