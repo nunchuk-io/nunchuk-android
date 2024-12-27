@@ -34,12 +34,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
@@ -50,6 +52,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,14 +63,18 @@ import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.SignersModelProvider
+import com.nunchuk.android.compose.signer.SignerCard
+import com.nunchuk.android.compose.signer.SingleChoiceSignerCard
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.base.BaseComposeBottomSheet
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.component.SignerCard
+import com.nunchuk.android.main.membership.MembershipViewModel
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.type.SignerType
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -76,6 +83,7 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
     lateinit var navigator: NunchukNavigator
 
     private val viewModel by viewModels<TapSingerListBottomSheetViewModel>()
+    private val activityViewModel by activityViewModels<MembershipViewModel>()
     private val args: TapSignerListBottomSheetFragmentArgs by navArgs()
 
     override fun onCreateView(
@@ -86,7 +94,12 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
 
             setContent {
                 NunchukTheme {
-                    TapSignerListScreen(viewModel, args, onCloseClicked = ::dismissAllowingStateLoss)
+                    TapSignerListScreen(
+                        activityViewModel = activityViewModel,
+                        viewModel = viewModel,
+                        args = args,
+                        onCloseClicked = ::dismissAllowingStateLoss
+                    )
                 }
             }
         }
@@ -117,23 +130,34 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
 
     companion object {
         const val REQUEST_KEY = "TapSignerListBottomSheetFragment"
-        const val EXTRA_SELECTED_SIGNER_ID = "EXTRA_SELECTED_SIGNER_ID"
     }
 }
 
 @Composable
 private fun TapSignerListScreen(
+    activityViewModel: MembershipViewModel,
     viewModel: TapSingerListBottomSheetViewModel,
     args: TapSignerListBottomSheetFragmentArgs,
-    onCloseClicked : () -> Unit = {},
+    onCloseClicked: () -> Unit = {},
 ) {
     val selectedSigner by viewModel.selectSingle.collectAsStateWithLifecycle()
+    val supportedSigners by activityViewModel.state.map { it.supportedTypes }
+        .collectAsStateWithLifecycle(emptyList())
+
+    val selectableSigner = if (supportedSigners.isNotEmpty()) args.signers.partition { signer ->
+        supportedSigners.any {
+            it.type == signer.type && (it.tag == null || signer.tags.contains(it.tag))
+        }
+    } else {
+        Pair(args.signers.toList(), emptyList())
+    }
 
     TapSignerListContent(
         onCloseClicked = onCloseClicked,
         onAddExistKeyClicked = viewModel::onAddExistingKey,
         onAddNewKeyClicked = viewModel::onAddNewKey,
-        signers = args.signers.toList(),
+        signers = selectableSigner.first,
+        unsupportedSigners = selectableSigner.second,
         type = args.type,
         description = args.description,
         onSignerSelected = viewModel::onSignerSelected,
@@ -147,6 +171,7 @@ private fun TapSignerListContent(
     onAddExistKeyClicked: () -> Unit = {},
     onAddNewKeyClicked: () -> Unit = {},
     signers: List<SignerModel> = emptyList(),
+    unsupportedSigners: List<SignerModel> = emptyList(),
     onSignerSelected: (signer: SignerModel) -> Unit = {},
     selectedSigner: SignerModel? = null,
     type: SignerType = SignerType.NFC,
@@ -162,10 +187,12 @@ private fun TapSignerListContent(
     }
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
     Column(
-        modifier = Modifier.background(
-            color = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-        ).nestedScroll(rememberNestedScrollInteropConnection())
+        modifier = Modifier
+            .background(
+                color = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+            )
+            .nestedScroll(rememberNestedScrollInteropConnection())
     ) {
         IconButton(
             modifier = Modifier.padding(top = 40.dp), onClick = onCloseClicked
@@ -185,24 +212,60 @@ private fun TapSignerListContent(
         if (signerLabel.isNotEmpty() || description.isNotEmpty()) {
             Text(
                 modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
-                text = description.ifEmpty { stringResource(R.string.nc_notice_you_have_exist_key, signerLabel) },
+                text = description.ifEmpty {
+                    stringResource(
+                        R.string.nc_notice_you_have_exist_key,
+                        signerLabel
+                    )
+                },
                 style = NunchukTheme.typography.body,
             )
         }
         LazyColumn(
-            modifier = Modifier.padding(horizontal = 16.dp).heightIn(max = screenHeightDp.div(2).dp),
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .heightIn(max = screenHeightDp.div(2).dp),
             contentPadding = PaddingValues(vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             items(signers) { signer ->
-                SignerCard(
+                SingleChoiceSignerCard(
                     signer = signer,
-                    isSelected = signer == selectedSigner,
-                    onSignerSelected = onSignerSelected,
+                    isChecked = signer == selectedSigner,
+                    onSelectSigner = onSignerSelected,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
+
+            if (unsupportedSigners.isNotEmpty()) {
+                item {
+                    HorizontalDivider(
+                        modifier = Modifier.fillMaxWidth(),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.strokePrimary
+                    )
+                }
+
+                item {
+                    Text(
+                        text = stringResource(
+                            R.string.nc_keys_not_yet_supporting_taproot
+                        ),
+                        style = NunchukTheme.typography.titleSmall,
+                    )
+                }
+
+                items(unsupportedSigners) { signer ->
+                    SignerCard(
+                        item = signer,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .alpha(0.4f),
+                    )
+                }
+            }
         }
+
         NcPrimaryDarkButton(
             modifier = Modifier
                 .fillMaxWidth()
@@ -235,7 +298,8 @@ fun TapSignerListContentPreview(
 ) {
     NunchukTheme {
         TapSignerListContent(
-            signers = signers
+            signers = signers,
+            unsupportedSigners = signers
         )
     }
 }

@@ -26,6 +26,7 @@ import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.PrimaryKey
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.SignerNavigator
 import com.nunchuk.android.signer.SignerIntroActivity
 import com.nunchuk.android.signer.components.add.AddAirgapSignerActivity
@@ -51,8 +52,16 @@ import com.nunchuk.android.type.SignerType
 
 interface SignerNavigatorDelegate : SignerNavigator {
 
-    override fun openSignerIntroScreen(activityContext: Context, walletId: String) {
-        SignerIntroActivity.start(activityContext = activityContext, walletId = walletId)
+    override fun openSignerIntroScreen(
+        activityContext: Context,
+        walletId: String,
+        supportedSigners: List<SupportedSigner>?
+    ) {
+        SignerIntroActivity.start(
+            activityContext = activityContext,
+            walletId = walletId,
+            supportedSigners = supportedSigners
+        )
     }
 
     override fun openSignerInfoScreen(

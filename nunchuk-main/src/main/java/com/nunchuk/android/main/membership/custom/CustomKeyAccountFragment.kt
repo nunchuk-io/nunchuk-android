@@ -47,6 +47,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.provider.SignerModelProvider
+import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -58,7 +59,6 @@ import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
-import com.nunchuk.android.main.membership.component.SignerCard
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
@@ -405,8 +405,7 @@ private fun CustomKeyAccountFragmentContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 16.dp),
-                    signer = signer,
-                    isSelectable = false,
+                    item = signer,
                 )
                 Text(
                     text = stringResource(R.string.nc_custom_key_account_desc),

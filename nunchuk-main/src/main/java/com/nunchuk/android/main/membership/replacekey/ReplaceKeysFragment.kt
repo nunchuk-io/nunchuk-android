@@ -27,6 +27,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.main.membership.MembershipViewModel
 import com.nunchuk.android.main.membership.byzantine.addKey.getKeyOptions
 import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
@@ -50,6 +51,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
     lateinit var navigator: NunchukNavigator
 
     private val viewModel: ReplaceKeysViewModel by activityViewModels()
+    private val activityViewModel by activityViewModels<MembershipViewModel>()
 
     private val args by navArgs<ReplaceKeysFragmentArgs>()
     private var selectedSignerTag: SignerTag? = null
@@ -207,7 +209,8 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
     private fun openSignerIntro() {
         navigator.openSignerIntroScreen(
             activityContext = requireActivity(),
-            walletId = args.walletId
+            walletId = args.walletId,
+            supportedSigners = activityViewModel.getSupportedSigners()
         )
     }
 

@@ -27,11 +27,16 @@ import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.PrimaryKey
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
 interface SignerNavigator {
-    fun openSignerIntroScreen(activityContext: Context, walletId: String = "")
+    fun openSignerIntroScreen(
+        activityContext: Context,
+        walletId: String = "",
+        supportedSigners: List<SupportedSigner>? = null,
+    )
 
     fun openSignerInfoScreen(
         activityContext: Context,
@@ -54,7 +59,7 @@ interface SignerNavigator {
         tag: SignerTag? = null,
         groupId: String = "",
         xfp: String? = null,
-        newIndex : Int = -1,
+        newIndex: Int = -1,
         replacedXfp: String? = null,
         walletId: String = "",
         step: MembershipStep? = null,
@@ -67,7 +72,7 @@ interface SignerNavigator {
         tag: SignerTag? = null,
         groupId: String = "",
         xfp: String? = null,
-        newIndex : Int = -1,
+        newIndex: Int = -1,
         replacedXfp: String? = null,
         walletId: String = "",
     )

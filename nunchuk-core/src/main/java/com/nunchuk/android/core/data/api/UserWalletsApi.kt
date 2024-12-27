@@ -44,6 +44,7 @@ import com.nunchuk.android.core.data.model.PersonalWalletConfig
 import com.nunchuk.android.core.data.model.RequestRecoverKeyRequest
 import com.nunchuk.android.core.data.model.SecurityQuestionDataResponse
 import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
+import com.nunchuk.android.core.data.model.SupportedSignersData
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.TransactionAdditionalResponse
 import com.nunchuk.android.core.data.model.UpdateKeyPayload
@@ -96,7 +97,6 @@ import com.nunchuk.android.model.DownloadBackupKeyResponseData
 import com.nunchuk.android.model.KeyResponse
 import com.nunchuk.android.model.KeyResponseData
 import com.nunchuk.android.model.KeyVerifiedRequest
-import com.nunchuk.android.model.SupportedSignersData
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Body

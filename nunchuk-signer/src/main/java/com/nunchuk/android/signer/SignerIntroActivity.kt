@@ -22,42 +22,35 @@ package com.nunchuk.android.signer
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.core.view.WindowCompat
-import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.signer.KeyFlow
-import com.nunchuk.android.signer.databinding.ActivitySignerIntroBinding
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.tapsigner.SetUpNfcOptionSheet
 import com.nunchuk.android.type.SignerTag
-import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.utils.parcelableArrayList
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SignerIntroActivity : BaseComposeActivity(),
-    SetUpNfcOptionSheet.OptionClickListener {
+class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionClickListener {
+    private val supportedSigners: List<SupportedSigner> by lazy {
+        intent.parcelableArrayList<SupportedSigner>(EXTRA_SUPPORTED_SIGNERS).orEmpty()
+    }
 
-//    override fun initializeBinding() = ActivitySignerIntroBinding.inflate(layoutInflater)
-
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//
-//        setLightStatusBar()
-//        setupViews()
-//    }
-
-        override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        enableEdgeToEdge()
         setContentView(ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
                 SignerIntroScreen(
+                    supportedSigners = supportedSigners,
                     onClick = { keyType: KeyType ->
                         when (keyType) {
                             KeyType.TAPSIGNER -> navigateToSetupTapSigner()
@@ -118,17 +111,6 @@ class SignerIntroActivity : BaseComposeActivity(),
         }
     }
 
-//    private fun setupViews() {
-//        binding.btnAddNFC.setOnClickListener {
-//            SetUpNfcOptionSheet.newInstance().show(supportFragmentManager, "SetUpNfcOptionSheet")
-//        }
-//        binding.btnAddAirSigner.setOnClickListener { openAddAirSignerIntroScreen() }
-//        binding.btnAddSSigner.setOnClickListener { openAddSoftwareSignerScreen() }
-//        binding.toolbar.setNavigationOnClickListener {
-//            finish()
-//        }
-//    }
-
     private fun openPortalScreen() {
         navigator.openPortalScreen(
             activity = this,
@@ -177,11 +159,19 @@ class SignerIntroActivity : BaseComposeActivity(),
 
     companion object {
         private const val EXTRA_WALLET_ID = "wallet_id"
+        private const val EXTRA_SUPPORTED_SIGNERS = "supported_signers"
 
-        fun start(activityContext: Context, walletId: String? = null) {
+        fun start(
+            activityContext: Context,
+            walletId: String? = null,
+            supportedSigners: List<SupportedSigner>? = null
+        ) {
             activityContext.startActivity(
                 Intent(activityContext, SignerIntroActivity::class.java).apply {
                     putExtra(EXTRA_WALLET_ID, walletId)
+                    supportedSigners?.let {
+                        putParcelableArrayListExtra(EXTRA_SUPPORTED_SIGNERS, ArrayList(it))
+                    }
                 },
             )
         }

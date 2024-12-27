@@ -26,6 +26,7 @@ import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.signer.SignerServer
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetIndexFromPathUseCase
@@ -118,7 +119,8 @@ class ReplaceKeysViewModel @Inject constructor(
                             .map { signer ->
                                 singleSignerMapper(signer)
                             },
-                        isMultiSig = wallet.signers.size > 1
+                        isMultiSig = wallet.signers.size > 1,
+                        addressType = wallet.addressType
                     )
                 }
             }
@@ -505,5 +507,6 @@ data class ReplaceKeysUiState(
     val inheritanceXfps: Set<String> = emptySet(),
     val isActiveAssistedWallet: Boolean = false,
     val isMultiSig: Boolean = false,
-    val coldCardBackUpFileName: Map<String, String> = emptyMap()
+    val coldCardBackUpFileName: Map<String, String> = emptyMap(),
+    val addressType: AddressType = AddressType.NATIVE_SEGWIT
 )
