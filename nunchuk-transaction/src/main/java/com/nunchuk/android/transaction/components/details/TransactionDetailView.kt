@@ -376,7 +376,7 @@ fun TransactionDetailView(
                             }
                         }
                     }
-                } else if (!transaction.isReceive && !args.isInheritanceClaimingFlow) {
+                } else if (!transaction.isReceive && !args.isInheritanceClaimingFlow && state.signers.isNotEmpty()) {
                     item {
                         PendingSignatureStatusView(
                             pendingSigners = transaction.getPendingSignatures(),
