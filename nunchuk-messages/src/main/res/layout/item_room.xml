@@ -14,10 +14,10 @@
         android:minHeight="55dp">
 
         <LinearLayout
-            android:foreground="?attr/selectableItemBackground"
             android:id="@+id/actionLayout"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
             android:orientation="vertical"
             android:paddingHorizontal="@dimen/nc_padding_16"
@@ -110,6 +110,7 @@
                     android:background="@drawable/nc_rounded_tag_whisper_background"
                     android:drawableStart="@drawable/ic_wallet_small"
                     android:drawablePadding="@dimen/nc_padding_4"
+                    android:drawableTint="@color/nc_text_primary"
                     android:paddingHorizontal="@dimen/nc_padding_8"
                     android:text="@string/nc_text_shared"
                     tools:text="Shared" />
@@ -123,6 +124,7 @@
                     android:background="@drawable/nc_rounded_tag_whisper_background"
                     android:drawableStart="@drawable/ic_secured_dark"
                     android:drawablePadding="@dimen/nc_padding_4"
+                    android:drawableTint="@color/nc_text_primary"
                     android:paddingHorizontal="@dimen/nc_padding_8"
                     android:text="@string/nc_message_encrypted"
                     tools:text="Encrypted" />
@@ -146,10 +148,10 @@
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/name"
                 style="@style/NCText.Title"
-                android:layout_marginStart="@dimen/nc_padding_12"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/nc_padding_8"
+                android:layout_marginStart="@dimen/nc_padding_12"
                 android:ellipsize="end"
                 android:maxLines="2"
                 app:layout_constraintEnd_toStartOf="@+id/endBarrier"

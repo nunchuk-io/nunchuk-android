@@ -26,7 +26,8 @@
             android:layout_height="@dimen/nc_padding_24"
             android:layout_alignParentStart="true"
             android:foreground="?android:selectableItemBackground"
-            android:src="@drawable/ic_close" />
+            android:src="@drawable/ic_close"
+            app:tint="@color/nc_text_primary" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/addBtn"
@@ -87,7 +88,7 @@
         android:backgroundTint="@color/nc_bg_mid_gray"
         android:hint="@string/nc_message_name_or_email"
         android:minWidth="250dp"
-        android:textColor="@color/nc_primary_color"
+        android:textColor="@color/nc_text_primary"
         android:textSize="@dimen/nc_text_size_16"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/to"

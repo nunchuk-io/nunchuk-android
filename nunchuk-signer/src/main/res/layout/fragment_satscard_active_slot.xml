@@ -104,7 +104,8 @@
                     android:drawableStart="@drawable/ic_copy"
                     android:drawablePadding="@dimen/nc_padding_6"
                     android:text="@string/nc_address_copy"
-                    android:textColor="@color/nc_black_color"
+                    android:drawableTint="@color/nc_text_primary"
+                    android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_14"
                     app:fontTextStyle="semi_bold" />
             </FrameLayout>

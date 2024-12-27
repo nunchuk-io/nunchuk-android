@@ -26,9 +26,9 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/totalSignersContainer"
-        android:layout_marginTop="@dimen/nc_padding_32"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_32"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
 
         <com.nunchuk.android.widget.NCFontTextView
@@ -51,7 +51,7 @@
             android:layout_marginStart="@dimen/nc_padding_16"
             android:padding="@dimen/nc_padding_4"
             android:text="@string/nc_wallet_total_number_keys_in_wallet"
-            android:textColor="@color/nc_grey_dark_color"
+            android:textColor="@color/nc_text_secondary"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/totalSignerLabel" />
 
@@ -66,7 +66,8 @@
             android:src="@drawable/ic_minus"
             app:layout_constraintBottom_toBottomOf="@+id/totalSignerDesc"
             app:layout_constraintEnd_toStartOf="@id/totalSingerCounter"
-            app:layout_constraintTop_toTopOf="@+id/totalSignerLabel" />
+            app:layout_constraintTop_toTopOf="@+id/totalSignerLabel"
+            app:tint="@color/nc_text_primary" />
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/totalSingerCounter"
@@ -78,7 +79,7 @@
             android:inputType="number"
             android:maxLength="4"
             android:minWidth="@dimen/nc_padding_30"
-            android:textColor="@color/nc_primary_color"
+            android:textColor="@color/nc_text_primary"
             android:textSize="@dimen/nc_text_size_14"
             app:layout_constraintBottom_toBottomOf="@id/totalSignerIconPlus"
             app:layout_constraintEnd_toStartOf="@id/totalSignerIconPlus"
@@ -96,16 +97,17 @@
             android:src="@drawable/ic_plus"
             app:layout_constraintBottom_toBottomOf="@+id/totalSignerDesc"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/totalSignerLabel" />
+            app:layout_constraintTop_toTopOf="@+id/totalSignerLabel"
+            app:tint="@color/nc_text_primary" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/requireSignerContainer"
-        android:layout_marginTop="@dimen/nc_padding_24"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/totalSignersContainer"
-        app:layout_constraintStart_toStartOf="parent">
+        android:layout_marginTop="@dimen/nc_padding_24"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/totalSignersContainer">
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/requiredSignerLabel"
@@ -127,7 +129,7 @@
             android:layout_marginStart="@dimen/nc_padding_16"
             android:padding="@dimen/nc_padding_4"
             android:text="@string/nc_wallet_required_signer_desc"
-            android:textColor="@color/nc_grey_dark_color"
+            android:textColor="@color/nc_text_secondary"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/requiredSignerLabel" />
 
@@ -135,6 +137,7 @@
             android:id="@+id/iconMinus"
             android:layout_width="@dimen/nc_padding_28"
             android:layout_height="@dimen/nc_padding_28"
+            app:tint="@color/nc_text_primary"
             android:layout_marginEnd="@dimen/nc_padding_8"
             android:background="@drawable/nc_circle_dark_stroke_background"
             android:padding="@dimen/nc_padding_8"
@@ -154,7 +157,7 @@
             android:inputType="number"
             android:maxLength="4"
             android:minWidth="@dimen/nc_padding_30"
-            android:textColor="@color/nc_primary_color"
+            android:textColor="@color/nc_text_primary"
             android:textSize="@dimen/nc_text_size_14"
             app:layout_constraintBottom_toBottomOf="@id/iconPlus"
             app:layout_constraintEnd_toStartOf="@id/iconPlus"
@@ -170,6 +173,7 @@
             android:padding="@dimen/nc_padding_6"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_plus"
+            app:tint="@color/nc_text_primary"
             app:layout_constraintBottom_toBottomOf="@+id/requiredSignerDesc"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/requiredSignerLabel" />

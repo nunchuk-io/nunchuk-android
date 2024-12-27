@@ -42,8 +42,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:visibility="gone"
                 android:maxLines="2"
+                android:visibility="gone"
                 tools:text="Hugo Nunchuk" />
 
             <com.nunchuk.android.widget.NCFontTextView
@@ -125,7 +125,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/add_wallet"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/nc_text_primary" />
 
         <ImageView
             android:id="@+id/add_wallet"
@@ -137,7 +138,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/sendBTC"
             app:layout_constraintStart_toEndOf="@+id/send_action"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/nc_text_primary" />
 
         <ImageView
             android:id="@+id/sendBTC"
@@ -149,7 +151,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/receiveBTC"
             app:layout_constraintStart_toEndOf="@+id/add_wallet"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/nc_text_primary" />
 
         <ImageView
             android:id="@+id/receiveBTC"
@@ -161,7 +164,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/sendBTC"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/nc_text_primary" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -183,7 +187,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="top"
-        app:constraint_referenced_ids="clMessageAction, editText"/>
+        app:constraint_referenced_ids="clMessageAction, editText" />
 
     <ImageView
         android:id="@+id/send"
@@ -199,11 +203,11 @@
         android:id="@+id/clMessageAction"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
         android:background="@color/nc_background"
         android:elevation="@dimen/nc_padding_8"
         android:padding="@dimen/nc_padding_16"
-        android:visibility="gone">
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <ImageView
             android:id="@+id/btnCopy"
