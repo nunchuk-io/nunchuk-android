@@ -27,12 +27,13 @@ import com.nunchuk.android.type.SignerType
 @Composable
 fun TransactionSignerView(
     modifier: Modifier = Modifier,
+    isCommit: Boolean = false,
     signer: SignerModel,
     showValueKey: Boolean,
     isSigned: Boolean,
     canSign: Boolean,
     onSignClick: (SignerModel) -> Unit,
-    cosignContent : @Composable () -> Unit = {}
+    cosignContent: @Composable () -> Unit = {},
 ) {
     Row(
         modifier = modifier
@@ -52,7 +53,7 @@ fun TransactionSignerView(
 
         if (isSigned) {
             Text(
-                text = stringResource(R.string.nc_transaction_signed),
+                text = if (isCommit) stringResource(R.string.nc_committed) else stringResource(R.string.nc_transaction_signed),
                 style = NunchukTheme.typography.captionTitle,
             )
 
@@ -64,7 +65,7 @@ fun TransactionSignerView(
         } else if (canSign && signer.type.canSign) {
             NcPrimaryDarkButton(onClick = { onSignClick(signer) }, height = 36.dp) {
                 Text(
-                    text = stringResource(id = R.string.nc_sign),
+                    text = if (isCommit) stringResource(R.string.nc_commit) else stringResource(id = R.string.nc_sign),
                     style = LocalTextStyle.current.copy(fontSize = 12.sp)
                 )
             }

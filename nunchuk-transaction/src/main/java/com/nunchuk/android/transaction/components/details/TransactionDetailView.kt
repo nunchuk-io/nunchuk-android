@@ -96,7 +96,7 @@ fun TransactionDetailView(
     onCopyText: (String) -> Unit = {},
     onShowFeeTooltip: () -> Unit,
 ) {
-    var showDetail by rememberSaveable { mutableStateOf(true) }
+    var showDetail by rememberSaveable { mutableStateOf(false) }
     var showInputCoin by rememberSaveable { mutableStateOf(false) }
     var isExpanded by rememberSaveable { mutableStateOf(false) }
     val transaction = state.transaction
@@ -168,6 +168,7 @@ fun TransactionDetailView(
                         allTxCoins = state.coins,
                         outputs = outputs,
                         userRole = state.userRole,
+                        showDetail = showDetail,
                         onShowDetails = { showDetail = !showDetail },
                         onManageCoinClick = onManageCoinClick
                     )
@@ -485,6 +486,7 @@ private fun TransactionHeader(
     allTxCoins: List<UnspentOutput>,
     outputs: List<TxOutput>,
     userRole: AssistedWalletRole,
+    showDetail: Boolean,
     onShowDetails: () -> Unit,
     onManageCoinClick: () -> Unit,
 ) {
@@ -610,12 +612,15 @@ private fun TransactionHeader(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = stringResource(R.string.nc_transaction_more_details),
+                text = if (showDetail)
+                    stringResource(R.string.nc_transaction_less_details)
+                else
+                    stringResource(R.string.nc_transaction_more_details),
                 style = NunchukTheme.typography.title,
             )
 
             NcIcon(
-                painter = painterResource(id = R.drawable.ic_expand),
+                painter = painterResource(id = if (showDetail) R.drawable.ic_collapse else R.drawable.ic_expand),
                 contentDescription = "Show Details",
             )
         }

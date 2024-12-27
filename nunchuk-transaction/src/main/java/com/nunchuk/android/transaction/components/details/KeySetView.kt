@@ -151,7 +151,8 @@ fun KeySetView(
                     showValueKey = keySetIndex == 0,
                     isSigned = isSigned || keySet.status.signDone(),
                     canSign = !keySet.status.signDone(),
-                    onSignClick = onSignClick
+                    onSignClick = onSignClick,
+                    isCommit = round == 1
                 )
             }
         }

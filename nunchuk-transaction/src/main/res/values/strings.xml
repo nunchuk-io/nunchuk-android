@@ -100,4 +100,6 @@
     <string name="nc_round_2">Round %1$s/2</string>
     <string name="nc_transaction_ready_to_broadcast">Transaction ready to broadcast</string>
     <string name="nc_round_1_completed">Round 1 completed</string>
+    <string name="nc_committed">Committed</string>
+    <string name="nc_commit">Commit</string>
 </resources>
