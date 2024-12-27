@@ -391,7 +391,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private fun loadWallet() {
-        if (walletId.isEmpty() && initTransaction != null) return
+        if (walletId.isEmpty() || initTransaction != null) return
         viewModelScope.launch {
             getWalletUseCase.execute(walletId).collect { wallet ->
                 val account = accountManager.getAccount()
