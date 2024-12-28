@@ -827,5 +827,4 @@
     <string name="nc_add_tapsigner_via_nfc">Add TAPSIGNER via NFC</string>
     <string name="nc_recover_tapsigner_key_from_backup">Recover TAPSIGNER key from backup</string>
     <string name="nc_generic_airgap">Generic Airgap</string>
-    <string name="nc_hide">Hide</string>
 </resources>
