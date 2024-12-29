@@ -60,4 +60,6 @@
     <color name="nc_fill_input_text">#FFFFFF</color>
     <color name="nc_fill_slime">#A7F0BA</color>
     <color name="nc_primary_y0">#ffcb2e</color>
+    <color name="cl_084B7B">#084B7B</color>
+    <color name="cl_2B74A9">#2B74A9</color>
 </resources>

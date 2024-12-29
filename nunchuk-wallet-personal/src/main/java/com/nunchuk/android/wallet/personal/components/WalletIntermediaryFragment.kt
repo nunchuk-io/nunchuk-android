@@ -27,9 +27,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.base.BaseCameraFragment
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
@@ -42,6 +48,8 @@ import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.wallet.WalletBottomSheetResult
+import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.core.wallet.WalletSecurityArgs
 import com.nunchuk.android.core.wallet.WalletSecurityType
 import com.nunchuk.android.model.MembershipPlan
@@ -50,19 +58,26 @@ import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.share.ColdcardAction
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletActionBottomSheet
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletOption
 import com.nunchuk.android.wallet.personal.databinding.FragmentWalletIntermediaryBinding
 import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediaryBinding>(),
+class WalletIntermediaryFragment : BaseCameraFragment<ViewBinding>(),
     BottomSheetOptionListener {
     private val viewModel: WalletIntermediaryViewModel by viewModels()
-    private val isQuickWallet: Boolean by lazy { requireActivity().intent.getBooleanExtra("is_quick_wallet", false) }
+    private val isQuickWallet: Boolean by lazy {
+        requireActivity().intent.getBooleanExtra(
+            "is_quick_wallet",
+            false
+        )
+    }
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -74,15 +89,44 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             }
         }
 
-    override fun initializeBinding(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-    ): FragmentWalletIntermediaryBinding {
-        return FragmentWalletIntermediaryBinding.inflate(inflater, container, false)
-    }
+//    lateinit var binding: FragmentWalletIntermediaryBinding
 
     private val hasSigner
         get() = requireArguments().getBoolean(WalletIntermediaryActivity.EXTRA_HAS_SIGNER, false)
+
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+    ): ViewBinding {
+        TODO("Not yet implemented")
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                WalletIntermediaryScreen(
+                    isMembership = state.isMembership,
+                    remainingAssistedWallets = state.walletsCount.values.sum(),
+                    onRecoverWalletClicked = {
+                        openRecoverWalletScreen()
+                    },
+                    onWalletTypeSelected = {
+                        onWalletTypeSelected(it)
+                    },
+                    onScanQRClicked = {
+
+                    },
+                    onJoinGroupWalletClicked = {
+                        showInputGroupWalletLinkDialog()
+                    },
+                )
+            }
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -90,6 +134,48 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
         initUi()
         setupViews()
         observer()
+
+        childFragmentManager.setFragmentResultListener(
+            UnassistedWalletTypeBottomSheet.TAG,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val result = bundle.parcelable<UnassistedWalletTypeBottomSheet.Result>(UnassistedWalletTypeBottomSheet.RESULT)
+                ?: return@setFragmentResultListener
+            val walletType = result.walletType
+            onWalletTypeSelected(walletType)
+            clearFragmentResult(UnassistedWalletTypeBottomSheet.TAG)
+        }
+    }
+
+    private fun onWalletTypeSelected(walletType: WalletType) {
+        when (walletType) {
+            WalletType.ASSISTED -> {
+                createAssistedWallet()
+            }
+            WalletType.UNASSISTED -> {
+                UnassistedWalletTypeBottomSheet.show(childFragmentManager)
+            }
+
+            WalletType.CUSTOM -> {
+                if (isQuickWallet) {
+                    navigator.openCreateNewSeedScreen(this, true)
+                } else if (hasSigner) {
+                    openCreateNewWalletScreen()
+                } else {
+                    openWalletEmptySignerScreen()
+                }
+            }
+            WalletType.HOT -> {
+                navigator.openHotWalletScreen(launcher, requireActivity(), isQuickWallet)
+            }
+            WalletType.GROUP -> navigator.openFreeGroupWalletScreen(requireActivity())
+            WalletType.DECOY -> {
+                navigator.openWalletSecuritySettingScreen(
+                    activityContext = requireContext(),
+                    args = WalletSecurityArgs(type = WalletSecurityType.CREATE_DECOY_WALLET)
+                )
+            }
+        }
     }
 
     override fun onResume() {
@@ -118,30 +204,13 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                     showRunOutWallet(false)
                 }
             }
+
             SheetOptionType.TYPE_PERSONAL_WALLET -> {
                 if (viewModel.isPersonalWalletAvailable()) {
                     openCreateAssistedWallet()
                 } else {
                     showRunOutWallet(true)
                 }
-            }
-            SheetOptionType.TYPE_CREATE_NEW_WALLET -> {
-                if (isQuickWallet) {
-                    navigator.openCreateNewSeedScreen(this, true)
-                } else if (hasSigner) {
-                    openCreateNewWalletScreen()
-                } else {
-                    openWalletEmptySignerScreen()
-                }
-            }
-            SheetOptionType.TYPE_CREATE_HOT_WALLET -> {
-                navigator.openHotWalletScreen(launcher, requireActivity(), isQuickWallet)
-            }
-            SheetOptionType.TYPE_CREATE_NEW_DECOY_WALLET -> {
-                navigator.openWalletSecuritySettingScreen(
-                    activityContext = requireContext(),
-                    args = WalletSecurityArgs(type = WalletSecurityType.CREATE_DECOY_WALLET)
-                )
             }
         }
     }
@@ -172,26 +241,17 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             }
         }
         flowObserver(viewModel.state) {
-            val isCreateAssistedWalletVisible = it.isMembership
-            binding.btnCreateGroupWallet.apply {
-                isVisible = isCreateAssistedWalletVisible
-                text =
-                    if (it.personalSteps.isNotEmpty()) {
-                        getString(R.string.nc_continue_setting_your_wallet)
-                    } else {
-                        context.getString(
-                            R.string.nc_create_assisted_wallet,
-                            it.walletsCount.values.sum()
-                        )
-                    }
-            }
-            val assistedVisible = binding.btnCreateGroupWallet.isVisible
-            binding.btnCreateNewWallet.setBackgroundResource(if (assistedVisible) R.drawable.nc_rounded_light_background else R.drawable.nc_rounded_dark_background)
-            val textColor = ContextCompat.getColor(
-                requireActivity(),
-                if (assistedVisible) R.color.nc_fill_primary else R.color.nc_control_text_primary
-            )
-            binding.btnCreateNewWallet.setTextColor(textColor)
+//            binding.btnCreateGroupWallet.apply {
+//                text =
+//                    if (it.personalSteps.isNotEmpty()) {
+//                        getString(R.string.nc_continue_setting_your_wallet)
+//                    } else {
+//                        context.getString(
+//                            R.string.nc_create_assisted_wallet,
+//                            it.walletsCount.values.sum()
+//                        )
+//                    }
+//            }
         }
     }
 
@@ -203,6 +263,19 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             onYesClick = {
                 navigator.openSignerIntroScreen(requireActivity())
             }
+        ).show()
+    }
+
+    private fun showInputGroupWalletLinkDialog() {
+        NCInputDialog(requireActivity()).showDialog(
+            title = getString(R.string.nc_enter_wallet_link),
+            confirmText = getString(R.string.nc_text_continue),
+            onConfirmed = {
+                if (it.isNotEmpty()) {
+//                    viewModel.handleInputWalletLink(it)
+                }
+            },
+            isMaskedInput = false
         ).show()
     }
 
@@ -219,12 +292,12 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
     }
 
     private fun initUi() {
-        if (isQuickWallet) {
-            binding.title.isVisible = true
-            binding.message.text = getString(R.string.nc_create_single_sig_for_sweep)
-            binding.btnCreateNewWallet.text = getString(R.string.nc_text_continue)
-            binding.btnRecoverWallet.text = getString(R.string.nc_create_my_own_wallet)
-        }
+//        if (isQuickWallet) {
+//            binding.title.isVisible = true
+//            binding.message.text = getString(R.string.nc_create_single_sig_for_sweep)
+//            binding.btnCreateNewWallet.text = getString(R.string.nc_text_continue)
+//            binding.btnRecoverWallet.text = getString(R.string.nc_create_my_own_wallet)
+//        }
     }
 
     private fun openCreateNewWalletScreen() {
@@ -249,6 +322,8 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                         type = PortalDeviceFlow.RECOVER
                     )
                 )
+
+                RecoverWalletOption.GroupWallet -> TODO()
             }
         }
     }
@@ -267,32 +342,33 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
     }
 
     private fun setupViews() {
-        binding.btnCreateNewWallet.setOnClickListener {
-            showCreateWalletOption()
-        }
-        binding.btnRecoverWallet.setOnClickListener {
-            if (isQuickWallet) {
-                navigator.openWalletIntermediaryScreen(requireActivity(), viewModel.hasSigner)
-                requireActivity().finish()
-            } else {
-                openRecoverWalletScreen()
-            }
-        }
-        binding.btnCreateGroupWallet.setOnDebounceClickListener {
-            val state = viewModel.state.value
-            val walletCount = state.walletsCount.values.sum()
-            if (state.personalSteps.isNotEmpty()) {
-                openCreateAssistedWallet()
-            } else if (viewModel.isPersonalWalletAvailable() && walletCount == 1) {
-                openCreateAssistedWallet()
-            } else if (viewModel.isGroupWalletAvailable() && walletCount == 1) {
-                openCreateGroupWallet()
-            } else {
-                showOptionGroupWalletType()
-            }
-        }
-        binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressedDispatcher?.onBackPressed()
+//        binding.btnCreateNewWallet.setOnClickListener {
+//            showCreateWalletOption()
+//        }
+//        binding.btnRecoverWallet.setOnClickListener {
+//            if (isQuickWallet) {
+//                navigator.openWalletIntermediaryScreen(requireActivity(), viewModel.hasSigner)
+//                requireActivity().finish()
+//            } else {
+//                openRecoverWalletScreen()
+//            }
+//        }
+//        binding.toolbar.setNavigationOnClickListener {
+//            activity?.onBackPressedDispatcher?.onBackPressed()
+//        }
+    }
+
+    private fun createAssistedWallet() {
+        val state = viewModel.state.value
+        val walletCount = state.walletsCount.values.sum()
+        if (state.personalSteps.isNotEmpty()) {
+            openCreateAssistedWallet()
+        } else if (viewModel.isPersonalWalletAvailable() && walletCount == 1) {
+            openCreateAssistedWallet()
+        } else if (viewModel.isGroupWalletAvailable() && walletCount == 1) {
+            openCreateGroupWallet()
+        } else {
+            showOptionGroupWalletType()
         }
     }
 
@@ -310,9 +386,15 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
             viewModel.state.value.personalSteps.any { it.plan == MembershipPlan.HONEY_BADGER } -> GroupWalletType.TWO_OF_FOUR_MULTISIG
             else -> null
         }
-        when(walletType) {
-            GroupWalletType.TWO_OF_THREE_PLATFORM_KEY -> viewModel.setLocalMembershipPlan(MembershipPlan.IRON_HAND)
-            GroupWalletType.TWO_OF_FOUR_MULTISIG -> viewModel.setLocalMembershipPlan(MembershipPlan.HONEY_BADGER)
+        when (walletType) {
+            GroupWalletType.TWO_OF_THREE_PLATFORM_KEY -> viewModel.setLocalMembershipPlan(
+                MembershipPlan.IRON_HAND
+            )
+
+            GroupWalletType.TWO_OF_FOUR_MULTISIG -> viewModel.setLocalMembershipPlan(
+                MembershipPlan.HONEY_BADGER
+            )
+
             else -> Unit
         }
         navigator.openMembershipActivity(
@@ -333,10 +415,12 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 SheetOption(
                     SheetOptionType.IMPORT_SINGLE_SIG_COLD_CARD,
                     stringId = R.string.nc_single_sig_wallet,
+                    resId = R.drawable.ic_group_wallet_menu,
                 ),
                 SheetOption(
                     SheetOptionType.IMPORT_MULTI_SIG_COLD_CARD,
                     stringId = R.string.nc_multisig_wallet,
+                    resId = R.drawable.ic_personal_wallet_menu,
                 ),
             ),
             title = getString(R.string.nc_which_type_wallet_you_want_import)
@@ -356,34 +440,6 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 ),
             ),
             title = getString(R.string.nc_type_of_assisted_wallet)
-        ).show(childFragmentManager, "BottomSheetOption")
-    }
-
-    private fun showCreateWalletOption() {
-        BottomSheetOption.newInstance(
-            options = listOf(
-                SheetOption(
-                    type = SheetOptionType.TYPE_CREATE_NEW_WALLET,
-                    resId = R.drawable.ic_circle_new_wallet,
-                    stringId = R.string.nc_create_new_wallet,
-                    subStringId = R.string.nc_create_new_wallet_desc,
-                    applyTint = false
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_CREATE_HOT_WALLET,
-                    resId = R.drawable.ic_circle_hot_wallet,
-                    stringId = R.string.nc_create_hot_wallet,
-                    subStringId = R.string.nc_create_hot_wallet_desc,
-                    applyTint = false
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_CREATE_NEW_DECOY_WALLET,
-                    resId = R.drawable.ic_circle_decoy_wallet,
-                    stringId = R.string.nc_create_new_decoy_wallet,
-                    subStringId = R.string.nc_create_new_decoy_wallet_desc,
-                    applyTint = false
-                ),
-            )
         ).show(childFragmentManager, "BottomSheetOption")
     }
 }

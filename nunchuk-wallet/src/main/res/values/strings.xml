@@ -2,7 +2,6 @@
 <resources>
     <string name="nc_wallet_review_wallet_title">Review Wallet</string>
     <string name="nc_wallet_has_been_created">Wallet has been created</string>
-    <string name="nc_wallet_create_wallet">Create wallet</string>
 
     <string name="nc_wallet_backup">Backup</string>
     <string name="nc_wallet_device_registration">Wallet registration</string>

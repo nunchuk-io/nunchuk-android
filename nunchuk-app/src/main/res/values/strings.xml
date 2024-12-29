@@ -14,14 +14,11 @@
     <string name="nc_quick_create_a_hot_wallet_desc">Quickly create a hot wallet for immediate use and back it up later.</string>
     <string name="nc_create_a_hot_wallet_now">Create a hot wallet now</string>
     <string name="nc_i_ll_explore_on_my_own">I’ll explore on my own</string>
-    <string name="nc_unassisted_wallet">Unassisted wallet</string>
     <string name="nc_unassisted_wallet_desc">Freely create hot wallets, watch-only wallets, or state-of-the-art multisig wallets that work with a plethora of hardware signing devices. Choose one that fits your need.</string>
-    <string name="nc_assisted_wallet">Assisted wallet</string>
     <string name="nc_assisted_wallet_option_desc">For those who are new to Bitcoin, need expert guidance, or want advanced features such as inheritance planning or multi-user wallets.</string>
     <string name="nc_unassisted_wallet_option_desc">For those who are comfortable with doing everything themselves.</string>
     <string name="nc_how_will_you_use_nunchuk">How will you use Nunchuk?</string>
     <string name="nc_already_have_an_account_sign_in">Already have an account? [A]Sign in[/A]</string>
-    <string name="nc_hot_wallet">Hot wallet</string>
     <string name="nc_hot_wallet_desc">A hot wallet is a wallet that is frequently connected to the Internet.\n\nFor securing large amounts of funds, consider moving to a cold wallet, a multisig wallet or an assisted multisig wallet for better security.</string>
     <string name="nc_learn_more_about_assisted_wallet">Learn more about assisted wallet</string>
     <string name="nc_send_query">Send query</string>

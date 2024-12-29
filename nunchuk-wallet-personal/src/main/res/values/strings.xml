@@ -9,7 +9,7 @@
     <string name="nc_text_create_new_wallet">Create new wallet</string>
     <string name="nc_text_recover_wallet">Recover existing wallet</string>
     <string name="nc_txt_recover_using_qr_code">Recover via QR code</string>
-    <string name="nc_txt_recover_using_bsms_file">Recover via BSMS/descriptors/config file</string>
+    <string name="nc_txt_recover_using_bsms_file">Recover via BSMS/descriptors</string>
     <string name="nc_txt_file_bsms_chooser">Please select your BSMS file</string>
     <string name="nc_wallet_taproot_title">To use Taproot, please note the following</string>
     <string name="nc_wallet_taproot_withdraw_support_title">Withdraw support (possible loss of funds)</string>
@@ -25,6 +25,7 @@
     <string name="nc_create_hot_wallet">Create hot wallet</string>
     <string name="nc_create_hot_wallet_desc">Quickly create a hot wallet for immediate use and back it up later.</string>
     <string name="nc_recover_hot_wallet">Recover hot wallet</string>
+    <string name="nc_recover_group_wallet">Recover group wallet</string>
     <string name="nc_run_out_of_group_wallet">You don\'t have any group wallets remaining. To purchase additional group wallets, please visit nunchuk.io/my-plan.</string>
     <string name="nc_run_out_of_personal_wallet">You don\'t have any personal wallets remaining. To purchase additional personal wallets, please visit nunchuk.io/my-plan.</string>
     <string name="nc_recover_wallet_from_portal">Recover wallet from Portal</string>
@@ -42,5 +43,6 @@
     <string name="nc_keys_not_yet_supporting_taproot">Keys not yet supporting Taproot</string>
     <string name="nc_configure_value_key_set">Configure Value Key Set</string>
     <string name="nc_configure_value_key_set_desc">Among the keys assigned to the wallet, please select the keys to create the Value Keyset. Signing transactions with the Value Keyset will help maximize privacy and fee savings.</string>
+    <string name="nc_enter_wallet_link">Please enter the wallet link</string>
 
 </resources>

@@ -68,7 +68,7 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.getWalletColors
 import com.nunchuk.android.compose.greyLight
-import com.nunchuk.android.compose.provider.WalletProvider
+import com.nunchuk.android.compose.provider.WalletExtendedListProvider
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseComposeBottomSheet
 import com.nunchuk.android.core.util.SavedAddressFlow
@@ -426,7 +426,7 @@ fun AssistedWallet(
 @Preview
 @Composable
 fun AssistedWalletContentPreview(
-    @PreviewParameter(WalletProvider::class) wallets: List<WalletExtended>,
+    @PreviewParameter(WalletExtendedListProvider::class) wallets: List<WalletExtended>,
 ) {
     NunchukTheme {
         AssistedWalletContent(

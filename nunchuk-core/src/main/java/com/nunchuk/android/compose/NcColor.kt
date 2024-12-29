@@ -79,6 +79,9 @@ val ColorScheme.controlTextPrimary: Color
 val ColorScheme.fillDenim: Color
     get() = if (isDark) Color(0xFF2f466c) else Color(0xFFd0e2ff)
 
+val ColorScheme.fillDenim2: Color
+    get() = if (isDark) Color(0xFF2F466C) else Color(0xFFD0E2FF)
+
 val ColorScheme.fillBeeswax: Color
     get() = if (isDark) Color(0xFFa66800) else Color(0xFFFDEBD2)
 

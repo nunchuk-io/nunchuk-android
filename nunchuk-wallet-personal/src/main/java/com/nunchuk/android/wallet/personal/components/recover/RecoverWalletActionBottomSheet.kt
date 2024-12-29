@@ -51,6 +51,7 @@ internal class RecoverWalletActionBottomSheet :
         binding.btnRecoverFromColdcard.setOnClickListener { onActionClicked(RecoverWalletOption.ColdCard) }
         binding.btnRecoverHotWallet.setOnClickListener { onActionClicked(RecoverWalletOption.HotWallet) }
         binding.btnRecoverPortalWallet.setOnClickListener { onActionClicked(RecoverWalletOption.PortalWallet) }
+        binding.btnRecoverGroupWallet.setOnClickListener { onActionClicked(RecoverWalletOption.GroupWallet) }
     }
 
     private fun onActionClicked(option: RecoverWalletOption) {
@@ -73,6 +74,7 @@ sealed class RecoverWalletOption {
     data object ColdCard : RecoverWalletOption()
     data object HotWallet : RecoverWalletOption()
     data object PortalWallet : RecoverWalletOption()
+    data object GroupWallet : RecoverWalletOption()
 }
 
 

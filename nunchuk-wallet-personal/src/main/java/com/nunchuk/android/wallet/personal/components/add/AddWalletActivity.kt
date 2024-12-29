@@ -37,11 +37,15 @@ class AddWalletActivity : BaseComposeActivity() {
         intent.getStringExtra(DECOY_PIN).orEmpty()
     }
 
+    private val isEdit: Boolean by lazy(LazyThreadSafetyMode.NONE) {
+        intent.getBooleanExtra(IS_EDIT, false)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            AddWalletView { walletName, addressType ->
+            AddWalletView(isEdit = isEdit) { walletName, addressType ->
                 openAssignSignerScreen(
                     walletName = walletName,
                     addressType = addressType
@@ -77,14 +81,17 @@ class AddWalletActivity : BaseComposeActivity() {
 
     companion object {
         private const val DECOY_PIN = "decoy_wallet"
+        private const val IS_EDIT = "is_edit"
 
-        fun start(activityContext: Context, decoyPin: String) {
+
+        fun start(activityContext: Context, decoyPin: String, isEdit: Boolean) {
             activityContext.startActivity(
                 Intent(
                     activityContext,
                     AddWalletActivity::class.java
                 ).apply {
                     putExtra(DECOY_PIN, decoyPin)
+                    putExtra(IS_EDIT, isEdit)
                 })
         }
     }

@@ -33,6 +33,7 @@ class NCInputDialog @Inject constructor(private val context: Context) {
 
     fun showDialog(
         title: String,
+        confirmText: String = context.getString(R.string.nc_text_confirm),
         onConfirmed: (String) -> Unit = {},
         onCanceled: () -> Unit = {},
         isMaskedInput: Boolean = true,
@@ -46,6 +47,7 @@ class NCInputDialog @Inject constructor(private val context: Context) {
         val binding = NcConfirmDialogBinding.inflate(LayoutInflater.from(context))
         setContentView(binding.root)
         binding.title.text = title
+        binding.btnYes.text = confirmText
         binding.btnYes.setOnClickListener {
             onConfirmed(binding.message.getEditText())
             dismiss()

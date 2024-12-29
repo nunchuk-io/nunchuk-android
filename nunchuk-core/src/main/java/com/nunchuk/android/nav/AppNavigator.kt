@@ -149,4 +149,5 @@ interface AppNavigator {
     )
 
     fun openReferralScreen(activityContext: Context, args: ReferralArgs)
+    fun openFreeGroupWalletScreen(activityContext: Context)
 }

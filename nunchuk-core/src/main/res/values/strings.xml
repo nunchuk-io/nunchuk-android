@@ -184,7 +184,7 @@
     <string name="nc_hide_bip_32_path">Hide BIP 32 path</string>
     <string name="nc_show_bip_32_path">Show BIP 32 path</string>
     <string name="nc_import_via_file">Import via file</string>
-    <string name="nc_recover_from_coldcard">Recover from COLDCARD</string>
+    <string name="nc_recover_from_coldcard">Recover wallet from COLDCARD</string>
     <string name="nc_step">Step</string>
     <string name="nc_add_your_keys">Add your keys</string>
     <string name="nc_let_add_your_keys">Let’s add your keys</string>
@@ -776,6 +776,7 @@
     <string name="nc_enter_xpub_desc">To verify that you are the account owner, please enter the master public key (XPUB) of one of the keys in your assisted wallets. You can find the XPUBs in your wallet configuration (BSMS file). You can also paste in the entire BSMS file.</string>
     <string name="nc_portal_nfc">Portal</string>
     <string name="nc_text_add_wallet">Add wallet</string>
+    <string name="nc_config">Config</string>
     <string name="nc_portal">Portal</string>
     <string name="nc_wallet_customize_address_type">Customize address type</string>
     <string name="nc_enter_your_wallet_name">Enter your wallet name</string>
@@ -827,4 +828,24 @@
     <string name="nc_add_tapsigner_via_nfc">Add TAPSIGNER via NFC</string>
     <string name="nc_recover_tapsigner_key_from_backup">Recover TAPSIGNER key from backup</string>
     <string name="nc_generic_airgap">Generic Airgap</string>
+    <string name="nc_encrypted">Encrypted</string>
+    <string name="nc_setup_group_wallet">Set up group wallet</string>
+    <string name="nc_copy_wallet_link">Copy wallet link</string>
+    <string name="nc_show_qr">Show QR</string>
+    <string name="nc_wallet_create_wallet">Create wallet</string>
+    <string name="nc_select_wallet_type">Select wallet type:</string>
+    <string name="nc_assisted_wallet">Assisted wallet</string>
+    <string name="nc_assisted_wallet_create_wallet_desc">Let our Setup Wizard guide you step-by-step to effortlessly create an assisted wallet.</string>
+    <string name="nc_unassisted_wallet">Unassisted wallet</string>
+    <string name="nc_unassisted_wallet_create_wallet_desc">Set up and manage your Bitcoin wallets independently. Perfect for experienced users.</string>
+    <string name="nc_join_group_wallet">Join group wallet</string>
+    <string name="nc_create_wallet_free_user_guide">Improve your security, plan your inheritance, set spending limits, and more. Learn about our assisted services now.</string>
+    <string name="nc_custom_wallet">Custom wallet</string>
+    <string name="nc_custom_wallet_desc">Choose between single and multi-signature setups. Existing keys required.</string>
+    <string name="nc_hot_wallet">Hot wallet</string>
+    <string name="nc_hot_wallet_create_wallet_desc">Quickly create a wallet for immediate use—no existing keys required. Backup later.</string>
+    <string name="nc_group_wallet_desc">Collaboratively manage Bitcoin with multiple people or devices.</string>
+    <string name="nc_decoy_wallet">Decoy wallet</string>
+    <string name="nc_decoy_wallet_desc">Generate a concealed wallet, accessible via a specific PIN.</string>
+    <string name="nc_subscription_required">Subscription required</string>
 </resources>
