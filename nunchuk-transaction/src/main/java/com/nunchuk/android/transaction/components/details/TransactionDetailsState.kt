@@ -29,13 +29,11 @@ import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.type.AddressType
 
 data class TransactionDetailsState(
-    val viewMore: Boolean = false,
     val transaction: Transaction = Transaction(),
     val serverTransaction: ServerTransaction? = null,
     val signers: List<SignerModel> = emptyList(),
     val coins: List<UnspentOutput> = emptyList(),
     val tags: Map<Int, CoinTag> = emptyMap(),
-    val isShowInputCoin: Boolean = false,
     val members: List<ByzantineMember> = emptyList(),
     val userRole: AssistedWalletRole = AssistedWalletRole.NONE,
     val txInputCoins: List<UnspentOutput> = emptyList(),

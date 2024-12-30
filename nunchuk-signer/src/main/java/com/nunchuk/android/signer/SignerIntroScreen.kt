@@ -44,8 +44,8 @@ fun SignerIntroScreen(
     supportedSigners: List<SupportedSigner> = emptyList(),
     onClick: (KeyType) -> Unit = {}
 ) {
-    val isGenericAirgapEnable = supportedSigners.isNotEmpty()
-            && supportedSigners.any { it.type == SignerType.AIRGAP && it.tag == null }
+    val isGenericAirgapEnable = supportedSigners.isEmpty()
+            || supportedSigners.any { it.type == SignerType.AIRGAP && it.tag == null }
     NunchukTheme {
         Scaffold(topBar = {
             NcTopAppBar(

@@ -27,7 +27,7 @@ import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboa
 import com.nunchuk.android.messages.components.detail.RoomDetailActivity
 import com.nunchuk.android.messages.components.detail.RoomDetailFragmentArgs
 import com.nunchuk.android.notifications.PushNotificationIntentProvider
-import com.nunchuk.android.transaction.components.details.TransactionDetailsActivity
+import com.nunchuk.android.transaction.components.details.TransactionDetailsArgs
 import com.nunchuk.android.wallet.components.alias.AliasActivity
 import javax.inject.Inject
 
@@ -47,7 +47,7 @@ class PushNotificationIntentProviderImpl @Inject constructor(
         isCancelBroadcast: Boolean,
         errorMessage: String
     ): Intent {
-        return TransactionDetailsActivity.buildIntent(context, walletId = walletId, txId = txId, isCancelBroadcast = isCancelBroadcast, errorMessage = errorMessage)
+        return TransactionDetailsArgs(walletId = walletId, txId = txId, isCancelBroadcast = isCancelBroadcast, errorMessage = errorMessage).buildIntent(context)
     }
 
     override fun getGeneralIntent(

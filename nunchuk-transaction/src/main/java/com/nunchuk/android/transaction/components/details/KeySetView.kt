@@ -143,19 +143,19 @@ fun KeySetView(
             )
         }
 
-        keySet.signerStatus.forEach { (fingerPrint, isSigned) ->
-            signers[fingerPrint]?.let { signer ->
+        keySet.signerStatus.mapNotNull { signers[it.key] }
+            .sortedBy { it.name }
+            .forEach { signer ->
                 TransactionSignerView(
                     modifier = Modifier.padding(top = 16.dp),
                     signer = signer,
                     showValueKey = keySetIndex == 0,
-                    isSigned = isSigned || keySet.status.signDone(),
+                    isSigned = keySet.signerStatus[signer.fingerPrint] == true || keySet.status.signDone(),
                     canSign = !keySet.status.signDone(),
                     onSignClick = onSignClick,
                     isCommit = round == 1
                 )
             }
-        }
 
         if (showDivider) {
             HorizontalDivider(

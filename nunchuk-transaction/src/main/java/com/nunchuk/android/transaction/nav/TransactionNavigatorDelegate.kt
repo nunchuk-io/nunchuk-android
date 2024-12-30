@@ -28,14 +28,13 @@ import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.nfc.SweepType
-import com.nunchuk.android.core.util.SavedAddressFlow
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.TransactionNavigator
 import com.nunchuk.android.transaction.components.address.SavedAddressActivity
-import com.nunchuk.android.transaction.components.details.TransactionDetailsActivity
+import com.nunchuk.android.transaction.components.details.TransactionDetailsArgs
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeActivity
 import com.nunchuk.android.transaction.components.export.ExportTransactionActivity
 import com.nunchuk.android.transaction.components.imports.ImportTransactionActivity
@@ -192,8 +191,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         isRequestSignatureFlow: Boolean
     ) {
         activityContext.startActivity(
-            TransactionDetailsActivity.buildIntent(
-                activityContext = activityContext,
+            TransactionDetailsArgs(
                 walletId = walletId,
                 txId = txId,
                 initEventId = initEventId,
@@ -201,7 +199,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
                 transaction = transaction,
                 isInheritanceClaimingFlow = isInheritanceClaimingFlow,
                 isRequestSignatureFlow = isRequestSignatureFlow
-            )
+            ).buildIntent(activityContext)
         )
     }
 
@@ -215,14 +213,13 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         transaction: Transaction?
     ) {
         launcher.launch(
-            TransactionDetailsActivity.buildIntent(
-                activityContext = activityContext,
+            TransactionDetailsArgs(
                 walletId = walletId,
                 txId = txId,
                 initEventId = initEventId,
                 roomId = roomId,
                 transaction = transaction
-            )
+            ).buildIntent(activityContext)
         )
     }
 

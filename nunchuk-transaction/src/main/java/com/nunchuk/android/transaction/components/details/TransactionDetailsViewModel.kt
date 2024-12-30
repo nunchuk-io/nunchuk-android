@@ -243,7 +243,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 .collect {
                     getCoinsFromTxInputsUseCase(GetCoinsFromTxInputsUseCase.Params(walletId, it))
                         .onSuccess { coins ->
-                            _state.update { it.copy(txInputCoins = coins) }
+                            _state.update { state -> state.copy(txInputCoins = coins) }
                         }
                 }
         }
@@ -312,7 +312,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     fun getAllCoins() {
         viewModelScope.launch {
             getAllCoinUseCase(walletId).onSuccess { coins ->
-                _state.update { it.copy(coins = coins.filter { it.txid == txId }) }
+                _state.update { it.copy(coins = coins.filter { coin -> coin.txid == txId }) }
             }
         }
     }
@@ -526,10 +526,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 serverTransaction = serverTransaction,
             )
         }
-    }
-
-    fun handleViewMoreEvent() = viewModelScope.launch {
-        _state.update { it.copy(viewMore = !it.viewMore) }
     }
 
     fun handleBroadcastEvent() {
@@ -869,9 +865,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
             getState().signers.find { it.type == SignerType.SERVER }?.fingerPrint.orEmpty()
         return transaction.signers[fingerPrint] == true
     }
-
-    fun toggleShowInputCoin() =
-        _state.update { it.copy(isShowInputCoin = getState().isShowInputCoin.not()) }
 
     private fun isMatchingEmailOrUserName(emailOrUsername: String) =
         emailOrUsername == accountManager.getAccount().email

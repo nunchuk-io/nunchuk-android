@@ -51,6 +51,7 @@ import com.nunchuk.android.share.model.TransactionOption.REPLACE_BY_FEE
 import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
 import com.nunchuk.android.share.model.TransactionOption.SHOW_INVOICE
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.details.RequestSignatureMemberFragment.Companion.EXTRA_MEMBER_ID
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.BroadcastTransactionSuccess
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.CancelScheduleBroadcastTransactionSuccess
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.DeleteTransactionSuccess
@@ -240,6 +241,15 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             viewModel.cancelScheduleBroadcast()
         }
         observeEvent()
+        supportFragmentManager.setFragmentResultListener(
+            RequestSignatureMemberFragment.REQUEST_KEY,
+            this
+        ) { requestKey, result ->
+            if (requestKey == RequestSignatureMemberFragment.REQUEST_KEY) {
+                val memberId = result.getString(EXTRA_MEMBER_ID)
+                viewModel.requestSignatureTransaction(memberId.orEmpty())
+            }
+        }
     }
 
 
