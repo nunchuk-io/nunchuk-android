@@ -112,6 +112,17 @@
         app:layout_constraintTop_toBottomOf="@+id/configuration_container"
         tools:text="1.00000001 BTC" />
 
+    <ImageView
+        android:id="@+id/fab"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="8dp"
+        android:src="@drawable/ic_hide_pass"
+        app:layout_constraintBottom_toBottomOf="@+id/btcAmount"
+        app:layout_constraintStart_toEndOf="@+id/btcAmount"
+        app:layout_constraintTop_toTopOf="@+id/btcAmount"
+        app:tint="@color/nc_white_color" />
+
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/cashAmount"
         style="@style/NCText.Body"
@@ -450,16 +461,6 @@
         app:layout_constraintTop_toBottomOf="@+id/scrollViewWalletTransactions"
         tools:listitem="@layout/item_transaction"
         tools:visibility="visible" />
-
-    <com.nunchuk.android.widget.NCMovableFloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_margin="@dimen/nc_padding_16"
-        android:src="@drawable/ic_hide_pass"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
 
 </androidx.constraintlayout.motion.widget.MotionLayout>
