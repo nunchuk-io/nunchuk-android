@@ -3,11 +3,11 @@
     <string name="nc_wallet_review_wallet_title">Review Wallet</string>
     <string name="nc_wallet_has_been_created">Wallet has been created</string>
 
-    <string name="nc_wallet_backup">Backup</string>
+    <string name="nc_wallet_backup">Back up</string>
     <string name="nc_wallet_device_registration">Wallet registration</string>
     <string name="nc_wallet_backup_your_wallet">Please save your BSMS file</string>
     <string name="nc_wallet_backup_wallet_description">The BSMS file stores your wallet configuration. \n\nLosing the BSMS file alone does not compromise your funds, but you should still keep it safe to protect your privacy. Anyone who has the file can monitor transactions in the wallet.</string>
-    <string name="nc_wallet_backup_wallet_description_hint">Tip: you need both the keys and the BSMS file to recover your wallet.</string>
+    <string name="nc_wallet_backup_wallet_description_hint">You need both the keys and the BSMS file to recover your wallet.</string>
     <string name="nc_wallet_save_wallet_descriptor">Save BSMS file</string>
     <string name="nc_wallet_skip_backup">I’ll do this later</string>
 

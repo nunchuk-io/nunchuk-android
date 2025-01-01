@@ -34,8 +34,7 @@
         android:src="@drawable/ic_backup_big"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:tint="@color/nc_text_primary" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/title"
