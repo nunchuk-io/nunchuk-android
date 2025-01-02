@@ -228,7 +228,7 @@ fun Action(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .height(20.dp),
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.border
         )
 
         NcIcon(

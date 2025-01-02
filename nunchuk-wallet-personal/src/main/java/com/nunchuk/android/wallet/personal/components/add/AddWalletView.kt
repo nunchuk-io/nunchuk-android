@@ -95,7 +95,7 @@ fun AddWalletView(
                 .fillMaxSize(),
             topBar = {
                 NcTopAppBar(
-                    title = "stringResource(id = R.string.nc_config)",
+                    title = stringResource(id = R.string.nc_config),
                     textStyle = NunchukTheme.typography.titleLarge
                 )
             },

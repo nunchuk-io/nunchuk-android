@@ -72,6 +72,10 @@
             android:name=".groupwallet.FreeGroupWalletActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity android:name=".groupwallet.join.UnableJoinGroupWalletActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
     </application>
 
 </manifest>

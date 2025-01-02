@@ -72,5 +72,10 @@ internal interface DataModule {
 
     @Binds
     @Singleton
-    fun bindCampaignsRepositoryy(repository: CampaignsRepositoryImpl): CampaignsRepository
+    fun bindCampaignsRepository(repository: CampaignsRepositoryImpl): CampaignsRepository
+
+
+    @Binds
+    @Singleton
+    fun bindSharedWalletRepository(repository: SharedWalletRepositoryImpl): SharedWalletRepository
 }

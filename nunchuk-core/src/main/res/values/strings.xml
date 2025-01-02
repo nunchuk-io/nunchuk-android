@@ -848,4 +848,6 @@
     <string name="nc_decoy_wallet">Decoy wallet</string>
     <string name="nc_decoy_wallet_desc">Generate a concealed wallet, accessible via a specific PIN.</string>
     <string name="nc_subscription_required">Subscription required</string>
+    <string name="nc_unable_access_link_desc">Your link has expired or the wallet has already been created.</string>
+    <string name="nc_unable_access_link">Unable to access link</string>
 </resources>
