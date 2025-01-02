@@ -101,6 +101,7 @@ fun List<MembershipPlan>.containsByzantineOrFinney() =
             || this.contains(MembershipPlan.BYZANTINE_PREMIER)
             || this.contains(MembershipPlan.FINNEY)
             || this.contains(MembershipPlan.FINNEY_PRO)
+            || this.contains(MembershipPlan.HONEY_BADGER_PREMIER)
 
 fun List<MembershipPlan>.containsPersonalPlan() =
     this.contains(MembershipPlan.IRON_HAND)
