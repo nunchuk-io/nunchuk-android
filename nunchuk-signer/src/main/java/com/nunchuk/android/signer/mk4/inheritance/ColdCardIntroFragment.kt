@@ -27,7 +27,6 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.nav.NunchukNavigator
-import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
@@ -50,26 +49,18 @@ class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
     ): View = content {
         val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
         ColdCardIntroScreen(
-            remainTime,
+            remainTime = remainTime,
+            isMembershipFlow = (requireActivity() as Mk4Activity).isMembershipFlow,
             isFromAddKey = isFromAddKey
         ) {
             when (it) {
                 ColdCardAction.NFC -> {
-                    if (isFromAddKey) {
-                        navigator.openSetupMk4(
-                            activity = requireActivity(),
-                            fromMembershipFlow = false,
-                            walletId = (requireActivity() as Mk4Activity).walletId,
+                    findNavController().navigate(
+                        ColdCardIntroFragmentDirections.actionColdCardIntroFragmentToMk4InfoFragment(
+                            isMembershipFlow = isFromAddKey.not(),
+                            isAddInheritanceKey = isFromAddKey.not()
                         )
-                        requireActivity().finish()
-                    } else {
-                        findNavController().navigate(
-                            ColdCardIntroFragmentDirections.actionColdCardIntroFragmentToMk4InfoFragment(
-                                isMembershipFlow = true,
-                                isAddInheritanceKey = true
-                            )
-                        )
-                    }
+                    )
                 }
 
                 ColdCardAction.USB -> {
@@ -92,22 +83,13 @@ class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 }
 
                 ColdCardAction.QR, ColdCardAction.FILE -> {
-                    if (isFromAddKey) {
-                        navigator.openSetupMk4(
-                            requireActivity(),
-                            false,
-                            ColdcardAction.RECOVER_KEY,
-                            isScanQRCode = it == ColdCardAction.QR
+                    findNavController().navigate(
+                        ColdCardIntroFragmentDirections.actionColdCardIntroFragmentToColdcardRecoverFragment(
+                            isMembershipFlow = isFromAddKey.not(),
+                            scanQrCode = it == ColdCardAction.QR,
+                            isAddInheritanceKey = isFromAddKey.not()
                         )
-                        requireActivity().finish()
-                    } else {
-                        findNavController().navigate(
-                            ColdCardIntroFragmentDirections.actionColdCardIntroFragmentToColdcardRecoverFragment(
-                                isMembershipFlow = true, scanQrCode = it == ColdCardAction.QR,
-                                isAddInheritanceKey = true
-                            )
-                        )
-                    }
+                    )
                 }
 
                 else -> {}
@@ -121,16 +103,21 @@ class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
 internal fun ColdCardIntroScreen(
     remainTime: Int = 0,
     isFromAddKey: Boolean = false,
+    isMembershipFlow: Boolean = false,
     onColdCardAction: (ColdCardAction) -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.bg_add_coldcard_view_nfc_intro,
-                title = stringResource(
-                    id = R.string.nc_estimate_remain_time,
-                    remainTime
-                )
+                title = if (isMembershipFlow) {
+                    stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    )
+                } else {
+                    ""
+                }
             )
         }) { innerPadding ->
             Column(

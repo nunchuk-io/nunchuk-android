@@ -53,6 +53,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
     val keyName by lazy { intent.getStringExtra(EXTRA_KEY_NAME).orEmpty() }
     val backUpFileName by lazy { intent.getStringExtra(EXTRA_BACK_UP_FILE_NAME).orEmpty() }
     val isFromAddKey by lazy { intent.getBooleanExtra(EXTRA_IS_FROM_ADD_KEY, false) }
+    val isMembershipFlow by lazy { intent.getBooleanExtra(EXTRA_IS_MEMBERSHIP_FLOW, false) }
 
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater).also {

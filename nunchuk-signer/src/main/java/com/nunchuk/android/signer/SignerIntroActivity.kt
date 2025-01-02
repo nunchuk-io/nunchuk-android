@@ -82,7 +82,6 @@ class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionCli
         navigator.openSetupMk4(
             activity = this,
             fromMembershipFlow = false,
-            walletId = walletId,
             isFromAddKey = true
         )
         finish()
