@@ -3,7 +3,6 @@ package com.nunchuk.android.signer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
@@ -23,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -252,30 +249,20 @@ internal fun SignerItem(
                 shape = RoundedCornerShape(12.dp)
             )
             .alpha(if (isDisabled) 0.6f else 1f)
-            .padding(vertical = 8.dp, horizontal = 8.dp)
+            .padding(vertical = 18.dp, horizontal = 12.dp)
             .clickable(enabled = !isDisabled) {
                 onClick()
             },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(color = MaterialTheme.colorScheme.lightGray),
-            contentAlignment = Alignment.Center
-        ) {
-            NcIcon(
-                painter = painterResource(id = iconRes),
-                contentDescription = "Key icon",
-                modifier = Modifier
-                    .padding(10.dp)
-            )
-        }
+        NcIcon(
+            painter = painterResource(id = iconRes),
+            contentDescription = "Key icon",
+            modifier = Modifier.size(24.dp)
+        )
 
-        Column(modifier = Modifier.padding(start = 8.dp)) {
+        Column(modifier = Modifier.padding(start = 12.dp)) {
             Text(
-                modifier = Modifier.padding(top = 4.dp),
                 text = title,
                 style = NunchukTheme.typography.body,
                 maxLines = 1,
@@ -283,7 +270,6 @@ internal fun SignerItem(
             )
             if (subtitle.isNotEmpty()) {
                 Text(
-                    modifier = Modifier.padding(top = 4.dp),
                     text = subtitle,
                     style = NunchukTheme.typography.bodySmall,
                     maxLines = 1,
