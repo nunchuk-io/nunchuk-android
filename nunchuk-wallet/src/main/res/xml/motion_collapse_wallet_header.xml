@@ -21,6 +21,12 @@
                 app:visibilityMode="ignore" />
         </Constraint>
 
+        <Constraint android:id="@+id/chatView">
+            <PropertySet
+                app:applyMotionScene="false"
+                app:visibilityMode="ignore" />
+        </Constraint>
+
         <Constraint
             android:id="@+id/configuration_container"
             android:layout_width="0dp"

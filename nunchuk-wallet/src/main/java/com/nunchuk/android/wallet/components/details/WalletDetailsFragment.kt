@@ -494,6 +494,10 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             }
         })
         setupPaginationAdapter()
+
+        binding.chatView.setContent {
+            GroupWalletChatView()
+        }
     }
 
     private fun animateLayout(isEnd: Boolean) {

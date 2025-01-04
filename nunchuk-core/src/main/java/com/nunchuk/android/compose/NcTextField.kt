@@ -95,8 +95,9 @@ fun NcTextField(
     colors: TextFieldColors = TextFieldDefaults.colors(),
     inputBoxHeight: Dp = Dp.Unspecified,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    onFocusEvent: (Boolean) -> Unit = {},
     textStyle: TextStyle = NunchukTheme.typography.body,
+    roundBoxRadius: Dp = 8.dp,
+    onFocusEvent: (Boolean) -> Unit = {},
     secondTitle: @Composable (() -> Unit)? = null,
     onValueChange: (value: String) -> Unit,
 ) {
@@ -145,7 +146,7 @@ fun NcTextField(
             modifier = Modifier
                 .background(
                     color = if (enabled.not()) disableBackgroundColor else MaterialTheme.colorScheme.fillInputText,
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(roundBoxRadius)
                 )
                 .defaultMinSize(
                     minWidth = TextFieldDefaults.MinWidth,
@@ -202,7 +203,7 @@ fun NcTextField(
                                 } else {
                                     colorResource(R.color.nc_stroke_primary)
                                 },
-                                shape = RoundedCornerShape(8.dp),
+                                shape = RoundedCornerShape(roundBoxRadius),
                             )
                         )
                     }
