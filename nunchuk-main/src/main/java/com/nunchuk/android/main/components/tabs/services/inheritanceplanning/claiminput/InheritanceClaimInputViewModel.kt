@@ -82,6 +82,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
             val backupKeys = result.getOrThrow()
             if (backupKeys.size != stateValue.backupPasswords.size) return@launch
             val importMasterSigners = ArrayList<MasterSigner>()
+            var errorMsg: String? = null
             backupKeys.forEachIndexed { index, backupKey ->
                 val backupData = Base64.decode(backupKey.keyBackUpBase64, Base64.DEFAULT)
                 if (ChecksumUtil.verifyChecksum(backupData, backupKey.keyCheckSum).not()) return@launch
@@ -95,6 +96,8 @@ class InheritanceClaimInputViewModel @Inject constructor(
                     )
                     if (resultImport.isSuccess) {
                         importMasterSigners.add(resultImport.getOrThrow())
+                    } else {
+                        errorMsg = resultImport.exceptionOrNull()?.message.orUnknownError()
                     }
                 }
             }
@@ -102,6 +105,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
                 importMasterSigners.forEach {
                     deleteMasterSignerUseCase(it.id)
                 }
+                _event.emit(InheritanceClaimInputEvent.Error(errorMsg ?: "Error importing backup keys"))
                 return@launch
             }
             getStatus(importMasterSigners, stateValue.magicalPhrase, backupKeys)
