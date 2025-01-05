@@ -23,9 +23,11 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.core.view.isVisible
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.manager.ActivityManager
@@ -40,9 +42,9 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.RollOverWalletFlow
 import com.nunchuk.android.core.util.RollOverWalletSource
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.formatddMMMyyyyDate
 import com.nunchuk.android.core.util.getFileFromUri
-import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.core.util.upperCase
 import com.nunchuk.android.core.wallet.WalletBottomSheetResult
@@ -53,10 +55,7 @@ import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
-import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.result.GlobalResultKey
-import com.nunchuk.android.share.wallet.bindWalletConfiguration
-import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.utils.toInvoiceInfo
@@ -68,14 +67,11 @@ import com.nunchuk.android.wallet.components.config.WalletConfigEvent.UpdateName
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent
 import com.nunchuk.android.wallet.databinding.ActivityWalletConfigBinding
-import com.nunchuk.android.wallet.util.toReadableString
 import com.nunchuk.android.widget.NCDeleteConfirmationDialog
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCProgressDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
-import com.nunchuk.android.widget.util.setLightStatusBar
-import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -123,19 +119,39 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
         }
 
-    private lateinit var ncProgressDialog: NCProgressDialog
+    private val ncProgressDialog: NCProgressDialog by lazy {
+        NCProgressDialog(activity = this@WalletConfigActivity)
+    }
 
     private val args: WalletConfigArgs by lazy { WalletConfigArgs.deserializeFrom(intent) }
 
-    override fun initializeBinding() = ActivityWalletConfigBinding.inflate(layoutInflater)
+    override fun initializeBinding() = ActivityWalletConfigBinding.inflate(layoutInflater).also {
+        enableEdgeToEdge()
+    }
 
     private var isCancelExportInvoice = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setLightStatusBar()
-        setupViews()
+        binding.container.setContent {
+            val state by viewModel.state.collectAsStateWithLifecycle()
+            WalletConfigView(
+                state = state,
+                onShowMore = ::showMoreOptions,
+                onChangeAlias = { aliasLauncher.launch(AliasActivity.createIntent(this, args.walletId)) },
+                openWalletConfig = {
+                    showReEnterPassword(TargetAction.UPDATE_SERVER_KEY, it)
+                },
+                onEditWalletName = {
+                    WalletUpdateBottomSheet.show(
+                        fragmentManager = supportFragmentManager,
+                        walletName = viewModel.walletName()
+                    ).setListener(viewModel::handleEditCompleteEvent)
+                },
+            )
+        }
+
         observeEvent()
         sharedViewModel.init(args.walletId)
 
@@ -246,10 +262,9 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
             SheetOptionType.TYPE_EXPORT_TX_INVOICES -> {
                 isCancelExportInvoice = false
-                kotlin.runCatching {
+                runCatching {
                     ncProgressDialog.dialog?.dismiss()
                 }
-                ncProgressDialog = NCProgressDialog(activity = this@WalletConfigActivity)
                 ncProgressDialog.showDialog(
                     currentStep = 1,
                     totalSteps = viewModel.getTransactions().size,
@@ -322,8 +337,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     private fun observeEvent() {
-        viewModel.state.observe(this, ::handleState)
-        viewModel.event.observe(this, ::handleEvent)
+        flowObserver(flow = viewModel.event, collector = ::handleEvent)
     }
 
     override fun handleSharedEvent(event: UploadConfigurationEvent) {
@@ -439,65 +453,6 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             putExtra(EXTRA_WALLET_ACTION, WalletConfigAction.DELETE)
         })
         ActivityManager.popUntilRoot()
-    }
-
-    private fun handleState(state: WalletConfigState) {
-        val wallet = state.walletExtended.wallet
-        binding.walletName.text = wallet.name
-        if (viewModel.isEditableWalletName()) {
-            binding.walletName.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_edit, 0)
-        } else {
-            binding.walletName.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
-        }
-
-        binding.configuration.bindWalletConfiguration(wallet)
-
-        binding.walletType.text =
-            (if (wallet.escrow) WalletType.ESCROW else WalletType.MULTI_SIG).toReadableString(this)
-        binding.addressType.text = wallet.addressType.toReadableString(this)
-        binding.shareIcon.isVisible = state.walletExtended.isShared || state.isAssistedWallet
-        if (state.isAssistedWallet) {
-            binding.shareIcon.text = getString(R.string.nc_assisted)
-        } else {
-            binding.shareIcon.text = getString(R.string.nc_text_shared)
-        }
-        SignersViewBinder(
-            container = binding.signersContainer,
-            signers = state.signers,
-            isActiveAssistedWallet = viewModel.isAssistedWallet(),
-            isInactiveAssistedWallet = viewModel.isInactiveAssistedWallet(),
-            role = state.role.toRole,
-            isTaproot = state.walletExtended.wallet.addressType.isTaproot(),
-            totalRequiredSign = state.walletExtended.wallet.totalRequireSigns,
-        ) {
-            showReEnterPassword(TargetAction.UPDATE_SERVER_KEY, it)
-        }.bindItems()
-        binding.tvSetAlias.text = if (state.alias.isNotEmpty()) {
-            getString(R.string.nc_change_alias)
-        } else {
-            getString(R.string.nc_set_alias)
-        }
-    }
-
-    private fun setupViews() {
-        binding.toolbar.setOnMenuItemClickListener {
-            if (it.itemId == R.id.menu_more) {
-                showMoreOptions()
-            }
-            false
-        }
-        binding.walletName.setOnClickListener {
-            if (viewModel.isEditableWalletName().not()) return@setOnClickListener
-            onEditClicked()
-        }
-        binding.btnDone.setOnClickListener {
-            finish()
-        }
-        binding.toolbar.setNavigationOnClickListener { finish() }
-        binding.tvSetAlias.isVisible = !viewModel.getGroupId().isNullOrEmpty()
-        binding.tvSetAlias.setOnDebounceClickListener {
-            aliasLauncher.launch(AliasActivity.createIntent(this, args.walletId))
-        }
     }
 
     private fun handleExportBSMS() {
@@ -655,15 +610,6 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 ),
             )
         ).show(supportFragmentManager, "BottomSheetOption")
-    }
-
-    private fun onEditClicked() {
-        val bottomSheet = WalletUpdateBottomSheet.show(
-            fragmentManager = supportFragmentManager,
-            walletName = binding.walletName.text.toString()
-        )
-
-        bottomSheet.setListener(viewModel::handleEditCompleteEvent)
     }
 
     private fun showEditWalletSuccess() {

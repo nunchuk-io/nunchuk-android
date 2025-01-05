@@ -82,7 +82,6 @@ class WalletsBottomSheetViewModel @Inject constructor(
                     _state.update {
                         it.copy(joinedGroups = joinedGroups.associateBy { it.id }, roles = roles)
                     }
-                    updateLockdownWalletsIds()
                 }
         }
         viewModelScope.launch {
@@ -128,17 +127,8 @@ class WalletsBottomSheetViewModel @Inject constructor(
                             assistedWallets = filterWallets.associateBy { it.localId }
                         )
                     }
-                    updateLockdownWalletsIds()
                 }
         }
-    }
-
-    private fun updateLockdownWalletsIds() {
-        val lockdownWalletIds = state.value.assistedWallets.values.filter {
-            state.value.joinedGroups[it.groupId]?.isLocked == true
-        }.map { it.localId }
-        _state.update { it.copy(lockdownWalletIds = lockdownWalletIds.toSet()) }
-        composeWalletUiModels()
     }
 
     fun getSavedAddresses() {
@@ -162,7 +152,6 @@ class WalletsBottomSheetViewModel @Inject constructor(
                 group = state.value.joinedGroups[assistedWallet?.groupId] ?: return@forEach // skip if group is not joined
             }
             val role = state.value.roles[assistedWallet?.groupId]
-            val isLocked = state.value.lockdownWalletIds.contains(assistedWallet?.localId)
             val walletStatus = assistedWallet?.status ?: ""
             if (state.value.config.isShowDeactivatedWallets().not() && walletStatus == WalletStatus.REPLACED.name) return@forEach // skip if wallet is replaced
             uis.add(
@@ -172,7 +161,6 @@ class WalletsBottomSheetViewModel @Inject constructor(
                     isAssistedWallet = assistedWallet?.status == WalletStatus.ACTIVE.name,
                     group = group,
                     role = role ?: AssistedWalletRole.NONE,
-                    isLocked = isLocked,
                     walletStatus = walletStatus
                 )
             )
@@ -187,14 +175,12 @@ data class WalletUiModel(
     val isAssistedWallet: Boolean,
     val group: ByzantineGroup?,
     val role: AssistedWalletRole,
-    val isLocked: Boolean,
     val walletStatus: String
 )
 
 data class WalletsBottomSheetState(
     val wallets: List<WalletExtended> = emptyList(),
     val assistedWallets: Map<String, AssistedWalletBrief> = hashMapOf(),
-    val lockdownWalletIds: Set<String> = emptySet(),
     val joinedGroups: Map<String, ByzantineGroup> = HashMap(),
     val savedAddresses: List<SavedAddress> = emptyList(),
     val roles: Map<String, AssistedWalletRole> = emptyMap(),

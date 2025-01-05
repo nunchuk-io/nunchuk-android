@@ -20,17 +20,22 @@
 package com.nunchuk.android.wallet.components.config
 
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.membership.AssistedWalletBrief
 
 data class WalletConfigState(
     val walletExtended: WalletExtended = WalletExtended(),
     val signers: List<SignerModel> = emptyList(),
     val isAssistedWallet: Boolean = false,
+    val isInactiveAssistedWallet: Boolean = false,
     val verifyToken: String? = null,
     val isShowDeleteAssistedWallet: Boolean = false,
     val role: String = AssistedWalletRole.NONE.name,
     val alias: String = "",
     val transactions: List<Transaction> = emptyList(),
+    val assistedWallet: AssistedWalletBrief? = null,
+    val group: ByzantineGroup? = null,
 )

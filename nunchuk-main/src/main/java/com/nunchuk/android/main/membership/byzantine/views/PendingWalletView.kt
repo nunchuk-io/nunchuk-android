@@ -45,6 +45,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlFillPrimary
 import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.compose.getWalletColors
+import com.nunchuk.android.compose.isLimitAccess
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.signer.SignerModel
@@ -95,6 +96,7 @@ fun PendingWalletView(
     onSendClick: () -> Unit = {},
     onReceiveClick: () -> Unit = {},
 ) {
+    val isLimitAccess = isLimitAccess(group, role, walletStatus)
     Column(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(8.dp))
@@ -107,13 +109,11 @@ fun PendingWalletView(
                 .background(
                     brush = Brush.linearGradient(
                         colors = getWalletColors(
-                            walletsExtended = walletsExtended,
+                            wallet = walletsExtended?.wallet,
                             isAssistedWallet = isAssistedWallet,
-                            role = role,
-                            walletStatus = walletStatus.orEmpty(),
-                            isLocked = isLocked,
-                            inviterName = inviterName,
-                            group = group
+                            isLimitAccess = isLimitAccess,
+                            isJoined = inviterName.isEmpty(),
+                            hasGroup = group != null
                         ), start = Offset.Zero, end = Offset.Infinite
                     )
                 )

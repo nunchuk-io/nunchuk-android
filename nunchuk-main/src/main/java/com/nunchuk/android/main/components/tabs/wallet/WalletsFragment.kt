@@ -63,7 +63,6 @@ import com.nunchuk.android.core.util.formatMMMddyyyyDate
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.openExternalLink
-import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.showError
@@ -611,7 +610,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             isAssistedWallet = briefWallet?.status == WalletStatus.ACTIVE.name || it.isPendingPersonalWallet,
                             hideWalletDetail = hideWalletDetail,
                             badgeCount = it.badgeCount,
-                            isLocked = it.group?.isLocked.orFalse(),
                             primaryOwnerMember = it.primaryOwnerMember,
                             role = it.role,
                             status = it.keyStatus,

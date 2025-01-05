@@ -63,12 +63,14 @@ fun SignerCard(
                         backgroundColor = colorResource(id = R.color.nc_fill_denim),
                     )
                 }
-                NcTag(
-                    label = item.toReadableSignerType(context = LocalContext.current),
-                    backgroundColor = colorResource(
-                        id = R.color.nc_bg_mid_gray
-                    ),
-                )
+                if (item.type != SignerType.SERVER) {
+                    NcTag(
+                        label = item.toReadableSignerType(context = LocalContext.current),
+                        backgroundColor = colorResource(
+                            id = R.color.nc_bg_mid_gray
+                        ),
+                    )
+                }
                 if (item.isShowAcctX()) {
                     NcTag(
                         label = stringResource(R.string.nc_acct_x, item.index),

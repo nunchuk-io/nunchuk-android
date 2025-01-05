@@ -68,6 +68,7 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.getWalletColors
 import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.isLimitAccess
 import com.nunchuk.android.compose.provider.WalletExtendedListProvider
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseComposeBottomSheet
@@ -340,7 +341,6 @@ private fun AssistedWalletContent(
                 AssistedWallet(
                     walletsExtended = ui.wallet,
                     isAssistedWallet = ui.isAssistedWallet,
-                    isLocked = ui.isLocked,
                     walletStatus = ui.walletStatus,
                     role = ui.role.name,
                     group = ui.group,
@@ -380,19 +380,17 @@ fun AssistedWallet(
     walletsExtended: WalletExtended,
     isAssistedWallet: Boolean,
     role: String,
-    isLocked: Boolean,
     group: ByzantineGroup?,
     walletStatus: String,
     onWalletClick: () -> Unit = {}
 ) {
+    val isLimitAccess = isLimitAccess(group, role, walletStatus)
+
     val colors = getWalletColors(
-        walletsExtended = walletsExtended,
+        wallet = walletsExtended.wallet,
         isAssistedWallet = isAssistedWallet,
-        group = group,
-        role = role,
-        isLocked = isLocked,
-        inviterName = "",
-        walletStatus = walletStatus
+        hasGroup = group != null,
+        isLimitAccess = isLimitAccess,
     )
     Column(
         modifier = Modifier

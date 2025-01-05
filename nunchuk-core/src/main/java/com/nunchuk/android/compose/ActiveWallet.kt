@@ -24,6 +24,7 @@ import com.nunchuk.android.core.R
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.model.ByzantineGroup
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
@@ -133,26 +134,28 @@ fun ActiveWallet(
     }
 }
 
+fun isLimitAccess(group: ByzantineGroup?, role: String, walletStatus: String?): Boolean {
+    return group?.isLocked == true
+            || (group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name)
+            || walletStatus == WalletStatus.LOCKED.name
+            || walletStatus == WalletStatus.REPLACED.name
+}
+
 @Composable
 fun getWalletColors(
-    walletsExtended: WalletExtended?,
+    isJoined: Boolean = true,
+    wallet: Wallet?,
+    hasGroup: Boolean,
     isAssistedWallet: Boolean,
-    group: ByzantineGroup?,
-    role: String,
-    isLocked: Boolean,
-    inviterName: String,
-    walletStatus: String
+    isLimitAccess: Boolean,
 ): List<Color> {
-    val colors = if (inviterName.isNotEmpty() || walletsExtended == null) {
+    val colors = if (!isJoined || wallet == null) {
         listOf(MaterialTheme.colorScheme.fillBeewax, MaterialTheme.colorScheme.fillBeewax)
-    } else if ((group != null && role == AssistedWalletRole.KEYHOLDER_LIMITED.name) || isLocked
-        || walletStatus == WalletStatus.LOCKED.name
-        || walletStatus == WalletStatus.REPLACED.name
-    ) {
+    } else if (isLimitAccess) {
         listOf(NcColor.greyDark, NcColor.greyDark)
-    } else if (group != null || isAssistedWallet) {
+    } else if (hasGroup || isAssistedWallet) {
         listOf(MaterialTheme.colorScheme.ming, MaterialTheme.colorScheme.everglade)
-    } else if (walletsExtended.wallet.needBackup) {
+    } else if (wallet.needBackup) {
         listOf(
             colorResource(id = R.color.nc_beeswax_dark),
             colorResource(id = R.color.nc_beeswax_dark)

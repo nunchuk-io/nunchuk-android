@@ -22,8 +22,8 @@ package com.nunchuk.android.wallet.components.config
 import android.content.Context
 import androidx.annotation.Keep
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
@@ -72,17 +72,20 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -113,7 +116,12 @@ internal class WalletConfigViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     @ApplicationContext private val context: Context,
-) : NunchukViewModel<WalletConfigState, WalletConfigEvent>() {
+) : ViewModel() {
+    private val _state = MutableStateFlow(WalletConfigState())
+    val state = _state.asStateFlow()
+
+    private val _event = MutableSharedFlow<WalletConfigEvent>()
+    val event = _event.asSharedFlow()
 
     private val walletId: String
         get() = savedStateHandle.get<String>("EXTRA_WALLET_ID").orEmpty()
@@ -129,6 +137,8 @@ internal class WalletConfigViewModel @Inject constructor(
     private val exportInvoices = ExportInvoices(context)
 
     private val accountInfo by lazy { accountManager.getAccount() }
+
+    private fun getState() = _state.value
 
     init {
         getWalletDetails()
@@ -147,7 +157,7 @@ internal class WalletConfigViewModel @Inject constructor(
             getAssistedWalletsFlowUseCase(Unit).mapNotNull { wallets ->
                 wallets.getOrElse { emptyList() }.find { it.localId == walletId }
             }.collect {
-                updateState { copy(alias = it.alias) }
+                _state.update { it.copy(alias = it.alias) }
                 getWalletDetails()
             }
         }
@@ -168,18 +178,22 @@ internal class WalletConfigViewModel @Inject constructor(
                         walletExtended = it,
                         signers = mapSigners(it.wallet.signers, it.roomWallet),
                         isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
+                        isInactiveAssistedWallet = assistedWalletManager.isInactiveAssistedWallet(walletId),
+                        assistedWallet = assistedWalletManager.getBriefWallet(walletId)
                     )
                 }
                 .flowOn(Dispatchers.IO)
-                .onException { event(UpdateNameErrorEvent(it.message.orUnknownError())) }
+                .onException { _event.emit(UpdateNameErrorEvent(it.message.orUnknownError())) }
                 .flowOn(Dispatchers.Main)
-                .collect {
+                .collect { state ->
                     getTransactionHistory()
-                    updateState {
-                        copy(
-                            walletExtended = it.walletExtended,
-                            signers = it.signers,
-                            isAssistedWallet = it.isAssistedWallet
+                    _state.update {
+                        it.copy(
+                            walletExtended = state.walletExtended,
+                            signers = state.signers,
+                            isAssistedWallet = state.isAssistedWallet,
+                            isInactiveAssistedWallet = state.isInactiveAssistedWallet,
+                            assistedWallet = state.assistedWallet
                         )
                     }
                 }
@@ -194,7 +208,7 @@ internal class WalletConfigViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collect { group ->
                     val role = byzantineGroupUtils.getCurrentUserRole(group)
-                    updateState { copy(role = role) }
+                    _state.update { it.copy(role = role, group = group) }
                 }
         }
     }
@@ -212,16 +226,16 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun verifyPassword(password: String, signer: SignerModel) {
         viewModelScope.launch {
-            setEvent(WalletConfigEvent.Loading(true))
+            _event.emit(WalletConfigEvent.Loading(true))
             val result = verifiedPasswordTokenUseCase(
                 VerifiedPasswordTokenUseCase.Param(
                     TargetAction.UPDATE_SERVER_KEY.name,
                     password
                 )
             )
-            setEvent(WalletConfigEvent.Loading(false))
+            _event.emit(WalletConfigEvent.Loading(false))
             if (result.isSuccess) {
-                setEvent(
+                _event.emit(
                     WalletConfigEvent.VerifyPasswordSuccess(
                         result.getOrThrow().orEmpty(),
                         signer,
@@ -229,38 +243,38 @@ internal class WalletConfigViewModel @Inject constructor(
                     )
                 )
             } else {
-                setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+                _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
     }
 
     fun verifyPasswordToReplaceKey(password: String) {
         viewModelScope.launch {
-            setEvent(WalletConfigEvent.Loading(true))
+            _event.emit(WalletConfigEvent.Loading(true))
             val result = verifiedPasswordTokenUseCase(
                 VerifiedPasswordTokenUseCase.Param(
                     TargetAction.REPLACE_KEYS.name,
                     password
                 )
             )
-            setEvent(WalletConfigEvent.Loading(false))
+            _event.emit(WalletConfigEvent.Loading(false))
             if (result.isSuccess) {
-                setEvent(WalletConfigEvent.OpenReplaceKey)
+                _event.emit(WalletConfigEvent.OpenReplaceKey)
             } else {
-                setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+                _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
     }
 
     fun verifyPasswordToDeleteAssistedWallet(password: String) = viewModelScope.launch {
-        setEvent(WalletConfigEvent.Loading(true))
+        _event.emit(WalletConfigEvent.Loading(true))
         val result = verifiedPasswordTokenUseCase(
             VerifiedPasswordTokenUseCase.Param(
                 TargetAction.DELETE_WALLET.name,
                 password
             )
         )
-        setEvent(WalletConfigEvent.Loading(false))
+        _event.emit(WalletConfigEvent.Loading(false))
         if (result.isSuccess) {
             val resultCalculate = calculateRequiredSignaturesDeleteAssistedWalletUseCase(
                 CalculateRequiredSignaturesDeleteAssistedWalletUseCase.Param(
@@ -269,8 +283,8 @@ internal class WalletConfigViewModel @Inject constructor(
                 )
             )
             if (resultCalculate.isSuccess) {
-                updateState { copy(verifyToken = result.getOrNull()) }
-                setEvent(
+                _state.update { it.copy(verifyToken = result.getOrNull()) }
+                _event.emit(
                     WalletConfigEvent.CalculateRequiredSignaturesSuccess(
                         walletId = walletId,
                         requiredSignatures = resultCalculate.getOrThrow().requiredSignatures,
@@ -278,10 +292,10 @@ internal class WalletConfigViewModel @Inject constructor(
                     )
                 )
             } else {
-                setEvent(WalletConfigEvent.WalletDetailsError(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
+                _event.emit(WalletConfigEvent.WalletDetailsError(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
             }
         } else {
-            setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+            _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
@@ -305,29 +319,34 @@ internal class WalletConfigViewModel @Inject constructor(
                 )
             ).onSuccess {
                 if (updateAction == UpdateAction.NAME) {
-                    event(UpdateNameSuccessEvent)
+                    _event.emit(UpdateNameSuccessEvent)
                 } else if (updateAction == UpdateAction.GAP_LIMIT) {
-                    event(WalletConfigEvent.UpdateGapLimitSuccessEvent)
+                    _event.emit(WalletConfigEvent.UpdateGapLimitSuccessEvent)
                 }
             }.onFailure {
-                event(UpdateNameErrorEvent(it.message.orUnknownError()))
+                _event.emit(UpdateNameErrorEvent(it.message.orUnknownError()))
             }
         }
 
     private fun getTransactionHistory() {
         viewModelScope.launch {
-            setEvent(WalletConfigEvent.Loading(true))
+            _event.emit(WalletConfigEvent.Loading(true))
             getTransactionHistoryUseCase.execute(walletId).flowOn(Dispatchers.IO)
                 .collect { transactions ->
-                    setEvent(WalletConfigEvent.Loading(false))
+                    _event.emit(WalletConfigEvent.Loading(false))
                     val isPendingTransactionExisting = transactions.any { it.status.isPending() }
-                    updateState { copy(isShowDeleteAssistedWallet = isPendingTransactionExisting.not(), transactions = transactions) }
+                    _state.update {
+                        it.copy(
+                            isShowDeleteAssistedWallet = isPendingTransactionExisting.not(),
+                            transactions = transactions
+                        )
+                    }
                 }
         }
     }
 
-    private fun showError(t: Throwable) {
-        event(WalletConfigEvent.WalletDetailsError(t.message.orUnknownError()))
+    private suspend fun showError(t: Throwable) {
+        _event.emit(WalletConfigEvent.WalletDetailsError(t.message.orUnknownError()))
     }
 
     private suspend fun leaveRoom(onDone: suspend () -> Unit) {
@@ -350,9 +369,9 @@ internal class WalletConfigViewModel @Inject constructor(
                 when (val event = deleteWalletUseCase.execute(walletId)) {
                     is Result.Success -> {
                         if (isAssistedWallet()) {
-                            setEvent(WalletConfigEvent.DeleteAssistedWalletSuccess)
+                            _event.emit(WalletConfigEvent.DeleteAssistedWalletSuccess)
                         } else {
-                            event(WalletConfigEvent.DeleteWalletSuccess)
+                            _event.emit(WalletConfigEvent.DeleteWalletSuccess)
                         }
                     }
 
@@ -388,14 +407,14 @@ internal class WalletConfigViewModel @Inject constructor(
     }
 
     fun forceRefreshWallet() = viewModelScope.launch {
-        setEvent(WalletConfigEvent.Loading(true))
+        _event.emit(WalletConfigEvent.Loading(true))
         val result = forceRefreshWalletUseCase(walletId)
         delay(3000L)
-        setEvent(WalletConfigEvent.Loading(false))
+        _event.emit(WalletConfigEvent.Loading(false))
         if (result.isSuccess) {
-            setEvent(WalletConfigEvent.ForceRefreshWalletSuccess)
+            _event.emit(WalletConfigEvent.ForceRefreshWalletSuccess)
         } else {
-            setEvent(WalletConfigEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+            _event.emit(WalletConfigEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
@@ -411,7 +430,7 @@ internal class WalletConfigViewModel @Inject constructor(
     private fun exportWalletToFile(walletId: String, filePath: String, format: ExportFormat) {
         viewModelScope.launch {
             when (val event = exportWalletUseCase.execute(walletId, filePath, format)) {
-                is Result.Success -> event(WalletConfigEvent.UploadWalletConfigEvent(filePath))
+                is Result.Success -> _event.emit(WalletConfigEvent.UploadWalletConfigEvent(filePath))
                 is Result.Error -> showError(event.exception)
             }
         }
@@ -423,7 +442,7 @@ internal class WalletConfigViewModel @Inject constructor(
     ) = viewModelScope.launch {
         val state = getState()
         if (state.verifyToken == null) return@launch
-        setEvent(WalletConfigEvent.Loading(true))
+        _event.emit(WalletConfigEvent.Loading(true))
         val result = deleteAssistedWalletUseCase(
             DeleteAssistedWalletUseCase.Param(
                 signatures = signatures,
@@ -433,16 +452,16 @@ internal class WalletConfigViewModel @Inject constructor(
                 groupId = assistedWalletManager.getGroupId(walletId)
             )
         )
-        setEvent(WalletConfigEvent.Loading(false))
+        _event.emit(WalletConfigEvent.Loading(false))
         if (result.isSuccess) {
             handleDeleteWallet()
         } else {
-            setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+            _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
     fun importCoinControlNunchuk(filePath: String) = viewModelScope.launch {
-        setEvent(WalletConfigEvent.Loading(true))
+        _event.emit(WalletConfigEvent.Loading(true))
         val result = importTxCoinControlUseCase(
             ImportTxCoinControlUseCase.Param(
                 walletId = walletId,
@@ -450,11 +469,11 @@ internal class WalletConfigViewModel @Inject constructor(
                 force = true
             )
         )
-        setEvent(WalletConfigEvent.Loading(false))
+        _event.emit(WalletConfigEvent.Loading(false))
         if (result.isSuccess) {
-            setEvent(WalletConfigEvent.ImportTxCoinControlSuccess)
+            _event.emit(WalletConfigEvent.ImportTxCoinControlSuccess)
         } else {
-            setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+            _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
@@ -468,9 +487,9 @@ internal class WalletConfigViewModel @Inject constructor(
                     )
                 )
                 if (result.isSuccess) {
-                    setEvent(WalletConfigEvent.ExportTxCoinControlSuccess(event.data))
+                    _event.emit(WalletConfigEvent.ExportTxCoinControlSuccess(event.data))
                 } else {
-                    setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+                    _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
                 }
             }
 
@@ -479,18 +498,18 @@ internal class WalletConfigViewModel @Inject constructor(
     }
 
     fun importCoinControlBIP329(filePath: String) = viewModelScope.launch {
-        setEvent(WalletConfigEvent.Loading(true))
+        _event.emit(WalletConfigEvent.Loading(true))
         val result = importCoinControlBIP329UseCase(
             ImportCoinControlBIP329UseCase.Param(
                 walletId = walletId,
                 data = filePath
             )
         )
-        setEvent(WalletConfigEvent.Loading(false))
+        _event.emit(WalletConfigEvent.Loading(false))
         if (result.isSuccess) {
-            setEvent(WalletConfigEvent.ImportTxCoinControlSuccess)
+            _event.emit(WalletConfigEvent.ImportTxCoinControlSuccess)
         } else {
-            setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+            _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
@@ -504,9 +523,9 @@ internal class WalletConfigViewModel @Inject constructor(
                     )
                 )
                 if (result.isSuccess) {
-                    setEvent(WalletConfigEvent.ExportTxCoinControlSuccess(event.data))
+                    _event.emit(WalletConfigEvent.ExportTxCoinControlSuccess(event.data))
                 } else {
-                    setEvent(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+                    _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
                 }
             }
 
@@ -522,12 +541,12 @@ internal class WalletConfigViewModel @Inject constructor(
                 is Result.Success -> {
                     exportInvoices.generatePDF(invoiceInfos, event.data, exportInvoicesJob!!)
                     withContext(Dispatchers.Main) {
-                        setEvent(WalletConfigEvent.ExportInvoiceSuccess(event.data))
+                        _event.emit(WalletConfigEvent.ExportInvoiceSuccess(event.data))
                     }
                 }
 
                 is Result.Error -> {
-                    setEvent(WalletConfigEvent.WalletDetailsError(event.exception.message.orUnknownError()))
+                    _event.emit(WalletConfigEvent.WalletDetailsError(event.exception.message.orUnknownError()))
                 }
             }
         }
@@ -568,9 +587,6 @@ internal class WalletConfigViewModel @Inject constructor(
     fun isSignerDeleted() = getState().signers.firstOrNull()?.type == SignerType.UNKNOWN
 
     fun getTransactions() = getState().transactions
-
-    override val initialState: WalletConfigState
-        get() = WalletConfigState()
 
     @Keep
     enum class UpdateAction {
