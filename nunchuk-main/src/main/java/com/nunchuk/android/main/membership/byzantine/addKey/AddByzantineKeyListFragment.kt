@@ -328,7 +328,8 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             activityContext = requireActivity(),
             isMembershipFlow = true,
             tag = tag,
-            groupId = args.groupId
+            groupId = args.groupId,
+            step = membershipStepManager.currentStep
         )
     }
 
