@@ -65,6 +65,7 @@
                 <com.nunchuk.android.widget.NCFontTextView
                     android:id="@+id/tvCampaigns"
                     style="@style/NCText.Bold"
+                    android:textColor="#031F2B"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/nc_padding_4"

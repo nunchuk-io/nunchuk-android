@@ -96,7 +96,7 @@ fun Button.bindEnableState(enable: Boolean) {
     isClickable = enable
     if (enable) {
         background = ContextCompat.getDrawable(context, R.drawable.nc_rounded_dark_background)
-        setTextColor(ContextCompat.getColor(context, R.color.nc_white_color))
+        setTextColor(ContextCompat.getColor(context, R.color.nc_control_text_primary))
     } else {
         background = ContextCompat.getDrawable(context, R.drawable.nc_rounded_whisper_disable_background)
         setTextColor(ContextCompat.getColor(context, R.color.nc_grey_dark_color))
