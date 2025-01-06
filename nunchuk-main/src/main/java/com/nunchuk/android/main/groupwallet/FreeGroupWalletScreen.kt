@@ -412,7 +412,7 @@ internal fun WalletInfo(
                             modifier = Modifier
                                 .size(6.dp)
                                 .clip(shape = CircleShape)
-                                .background(colorResource(id = R.color.nc_grey_light))
+                                .background(Color(0xFFF5F5F5))
                         )
 
                         Text(
@@ -425,32 +425,6 @@ internal fun WalletInfo(
                             )
                         )
                     }
-                }
-
-                Row(
-                    modifier = Modifier
-                        .clip(shape = RoundedCornerShape(50.dp))
-                        .background(colorResource(id = R.color.nc_white_color))
-                        .padding(vertical = 10.dp, horizontal = 16.dp)
-                        .clickable { onEditClicked() },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    NcIcon(
-                        modifier = Modifier
-                            .size(18.dp)
-                            .padding(2.dp),
-                        painter = painterResource(id = R.drawable.ic_edit),
-                        contentDescription = "Wallet icon",
-                        tint = Color(0xFF031F2B)
-                    )
-
-                    Text(
-                        modifier = Modifier.padding(start = 4.dp),
-                        text = stringResource(id = R.string.nc_edit),
-                        style = NunchukTheme.typography.titleSmall.copy(
-                            color = Color(0xFF031F2B)
-                        )
-                    )
                 }
             }
 
@@ -494,6 +468,25 @@ internal fun WalletInfo(
                     Text(
                         modifier = Modifier.padding(start = 4.dp),
                         text = stringResource(id = R.string.nc_show_qr),
+                        style = NunchukTheme.typography.titleSmall.copy(color = colorResource(id = R.color.nc_white_color))
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.padding(start = 20.dp)
+                        .clickable { onEditClicked() },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    NcIcon(
+                        modifier = Modifier.size(16.dp),
+                        painter = painterResource(id = R.drawable.ic_setting_2),
+                        contentDescription = "Wallet icon",
+                        tint = colorResource(id = R.color.nc_white_color)
+                    )
+
+                    Text(
+                        modifier = Modifier.padding(start = 4.dp),
+                        text = stringResource(id = R.string.nc_settings),
                         style = NunchukTheme.typography.titleSmall.copy(color = colorResource(id = R.color.nc_white_color))
                     )
                 }

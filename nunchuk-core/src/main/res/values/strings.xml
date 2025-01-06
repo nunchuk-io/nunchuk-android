@@ -832,6 +832,7 @@
     <string name="nc_setup_group_wallet">Set up group wallet</string>
     <string name="nc_copy_wallet_link">Copy wallet link</string>
     <string name="nc_show_qr">Show QR</string>
+    <string name="nc_settings">Settings</string>
     <string name="nc_wallet_create_wallet">Create wallet</string>
     <string name="nc_select_wallet_type">Select wallet type:</string>
     <string name="nc_assisted_wallet">Assisted wallet</string>
