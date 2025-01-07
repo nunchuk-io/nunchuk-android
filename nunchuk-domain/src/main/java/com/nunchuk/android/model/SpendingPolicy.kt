@@ -24,7 +24,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class SpendingPolicy(
-    val limit: Double,
+    val limit: Double = 0.0,
     val timeUnit: SpendingTimeUnit,
     val currencyUnit: String,
 ) : Parcelable

@@ -49,7 +49,7 @@ data class SpendingPolicyDto(
     @SerializedName("interval")
     val interval: String,
     @SerializedName("limit")
-    val limit: Double,
+    val limit: Double = 0.0,
     @SerializedName("currency")
     val currency: String,
 )

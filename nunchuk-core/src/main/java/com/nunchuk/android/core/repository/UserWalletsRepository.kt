@@ -1140,9 +1140,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 )
             )
         }
-        if (response.isSuccess.not()) {
-            throw response.error
-        }
     }
 
     override suspend fun updateServerTransaction(
@@ -1305,7 +1302,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     walletId, transactionId, SyncTransactionRequest(psbt = libTx.psbt)
                 )
             }
-            libTx to response.data.transaction
+            try {
+                libTx to response.data.transaction
+            } catch (e: Exception) {
+                libTx to null
+            }
         }
     }
 
