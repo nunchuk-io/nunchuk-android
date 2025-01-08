@@ -33,7 +33,6 @@ import com.nunchuk.android.core.domain.membership.SecurityQuestionsUpdateUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.membership.model.SecurityQuestionModel
 import com.nunchuk.android.manager.AssistedWalletManager
-import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.QuestionsAndAnswer
 import com.nunchuk.android.model.SecurityQuestion
 import com.nunchuk.android.model.VerificationType
@@ -115,12 +114,8 @@ class RecoveryQuestionViewModel @Inject constructor(
         val recoveryList = mutableListOf<RecoveryData>()
         if (args.isRecoveryFlow) {
             val answeredQuestions = questions.filter { it.isAnswer }
-            if (answeredQuestions.size < 3) {
-                (0..2).forEach {
-                    recoveryList.add(RecoveryData(index = it))
-                }
-            } else {
-                (0..2).forEach {
+            val answeredQuestionsSize = answeredQuestions.size
+                (0..<answeredQuestionsSize).forEach {
                     val question = answeredQuestions[it]
                     recoveryList.add(
                         RecoveryData(
@@ -133,7 +128,9 @@ class RecoveryQuestionViewModel @Inject constructor(
                         )
                     )
                 }
-            }
+                while (recoveryList.size < 3) {
+                    recoveryList.add(RecoveryData(index = recoveryList.size))
+                }
         } else {
             (0..2).forEach {
                 recoveryList.add(RecoveryData(index = it))
@@ -150,9 +147,7 @@ class RecoveryQuestionViewModel @Inject constructor(
         val value = _state.value
         val selectedQuestionSet = hashSetOf<String>()
         value.recoveries.forEach {
-            val question = if (it.question.question.isNullOrBlank()
-                    .not()
-            ) it.question.question else it.question.customQuestion
+            val question = if (it.question.question.isNullOrBlank().not()) it.question.question else it.question.customQuestion
             selectedQuestionSet.add(question.orEmpty())
         }
         val questions = value.securityQuestions.filter {
@@ -310,7 +305,7 @@ class RecoveryQuestionViewModel @Inject constructor(
             _event.emit(RecoveryQuestionEvent.Loading(false))
             if (result.isSuccess) {
                 val newRecoveries = state.recoveries.map {
-                    it.copy(answer = "", isShowMask = true)
+                    it.copy(answer = "", isShowMask = true, change = false)
                 }
                 _state.update {
                     it.copy(recoveries = newRecoveries)
