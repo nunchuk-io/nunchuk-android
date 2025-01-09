@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
@@ -79,6 +80,7 @@ import com.nunchuk.android.transaction.R
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.formatByWeek
+import com.nunchuk.android.utils.simpleWeekDayYearFormat
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -165,6 +167,7 @@ fun TransactionDetailView(
                     TransactionHeader(
                         args = args,
                         transaction = state.transaction,
+                        serverTransaction = state.serverTransaction,
                         allTxCoins = state.coins,
                         outputs = outputs,
                         userRole = state.userRole,
@@ -485,6 +488,7 @@ private fun PendingSignatureStatusView(pendingSigners: Int, status: TransactionS
 private fun TransactionHeader(
     args: TransactionDetailsArgs,
     transaction: Transaction,
+    serverTransaction: ServerTransaction?,
     allTxCoins: List<UnspentOutput>,
     outputs: List<TxOutput>,
     userRole: AssistedWalletRole,
@@ -521,33 +525,63 @@ private fun TransactionHeader(
             .background(color = MaterialTheme.colorScheme.lightGray)
             .padding(horizontal = 16.dp, vertical = 24.dp),
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
+        if (serverTransaction != null && transaction.status.canBroadCast() && serverTransaction.type == ServerTransactionType.SCHEDULED) {
+            val broadcastTime = Date(serverTransaction.broadcastTimeInMilis)
+            val scheduleTime = stringResource(
+                R.string.nc_broadcast_on,
+                broadcastTime.simpleWeekDayYearFormat(),
+                broadcastTime.formatByHour()
+            )
+            Row(
                 modifier = Modifier
                     .background(
                         color = statusColor,
                         shape = RoundedCornerShape(20.dp),
                     )
                     .padding(horizontal = 10.dp, vertical = 4.dp),
-                text = status,
-                color = colorResource(R.color.nc_grey_g7),
-                style = NunchukTheme.typography.caption,
-            )
-
-            if (transaction.replacedTxid.isNotEmpty()) {
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_schedule),
+                    contentDescription = "Schedule",
+                    tint = colorResource(R.color.nc_grey_g7),
+                )
                 Text(
-                    modifier = Modifier
-                        .background(
-                            color = colorResource(R.color.nc_white_color),
-                            shape = RoundedCornerShape(20.dp),
-                        )
-                        .padding(horizontal = 10.dp, vertical = 4.dp),
-                    text = stringResource(R.string.nc_replace_by_fee),
+                    text = scheduleTime,
                     color = colorResource(R.color.nc_grey_g7),
                     style = NunchukTheme.typography.caption,
                 )
+            }
+        } else {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    modifier = Modifier
+                        .background(
+                            color = statusColor,
+                            shape = RoundedCornerShape(20.dp),
+                        )
+                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                    text = status,
+                    color = colorResource(R.color.nc_grey_g7),
+                    style = NunchukTheme.typography.caption,
+                )
+
+                if (transaction.replacedTxid.isNotEmpty()) {
+                    Text(
+                        modifier = Modifier
+                            .background(
+                                color = colorResource(R.color.nc_white_color),
+                                shape = RoundedCornerShape(20.dp),
+                            )
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                        text = stringResource(R.string.nc_replace_by_fee),
+                        color = colorResource(R.color.nc_grey_g7),
+                        style = NunchukTheme.typography.caption,
+                    )
+                }
             }
         }
 
