@@ -24,6 +24,9 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
@@ -33,6 +36,9 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class AddWalletActivity : BaseComposeActivity() {
+
+    private val viewModel: AddWalletViewModel by viewModels()
+
     private val pin: String by lazy(LazyThreadSafetyMode.NONE) {
         intent.getStringExtra(DECOY_PIN).orEmpty()
     }
@@ -45,12 +51,18 @@ class AddWalletActivity : BaseComposeActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            AddWalletView(isEdit = isEdit) { walletName, addressType ->
-                openAssignSignerScreen(
-                    walletName = walletName,
-                    addressType = addressType
-                )
-            }
+            val state by viewModel.state.collectAsStateWithLifecycle()
+            AddWalletView(
+                state = state,
+                isEdit = isEdit,
+                onSelectAddressType = {
+                    viewModel.getFreeGroupWalletConfig(it)
+                }, { walletName, addressType ->
+                    openAssignSignerScreen(
+                        walletName = walletName,
+                        addressType = addressType
+                    )
+                })
         }
     }
 

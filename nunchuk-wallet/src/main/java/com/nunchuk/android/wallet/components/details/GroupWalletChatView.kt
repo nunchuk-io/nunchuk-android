@@ -42,6 +42,9 @@ import com.nunchuk.android.wallet.R
 
 @Composable
 fun GroupWalletChatView() {
+
+    var isChatExpanded by remember { mutableStateOf(true) }
+
     NunchukTheme {
         Column(
             modifier = Modifier
@@ -57,25 +60,33 @@ fun GroupWalletChatView() {
                 )
                 .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp)
         ) {
-            ChatHeader()
-
-            ChatMessages(
-                messages = listOf(
-                    "Got it! I’ll add mine now.",
-                    "Same here, just added my key. Let me know if it’s all set."
-                )
+            ChatHeader(
+                isChatExpanded = isChatExpanded,
+                onCollapseExpand = {
+                    isChatExpanded = !isChatExpanded
+                }
             )
 
-            ChatInput(onSendMessage = { message ->
-                println("Message sent: $message")
-            })
+            if (isChatExpanded) {
+                ChatMessages(
+                    messages = listOf(
+                        "Got it! I’ll add mine now.",
+                        "Same here, just added my key. Let me know if it’s all set."
+                    )
+                )
+
+                ChatInput(onSendMessage = { message ->
+                    println("Message sent: $message")
+                })
+            }
         }
     }
 }
 
 @Composable
 fun ChatHeader(
-    onCollapse: () -> Unit = {},
+    isChatExpanded: Boolean = true,
+    onCollapseExpand: () -> Unit = {},
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -106,13 +117,13 @@ fun ChatHeader(
         )
 
         NcIcon(
-            painter = painterResource(id = R.drawable.ic_expand),
+            painter = if (isChatExpanded) painterResource(id = R.drawable.ic_arrow_chat_down) else painterResource(id = R.drawable.ic_arrow_chat_up),
             contentDescription = "Expand",
             tint = MaterialTheme.colorScheme.controlFillPrimary,
             modifier = Modifier
                 .padding(start = 16.dp)
                 .size(20.dp)
-                .clickable { onCollapse() }
+                .clickable { onCollapseExpand() }
         )
     }
 }

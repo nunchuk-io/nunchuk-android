@@ -17,27 +17,27 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.wallet.personal.components.add
+package com.nunchuk.android.core.domain
 
-import com.nunchuk.android.model.FreeGroupConfig
-import com.nunchuk.android.model.FreeGroupWalletConfig
-import com.nunchuk.android.type.AddressType
-import com.nunchuk.android.type.AddressType.NATIVE_SEGWIT
-import com.nunchuk.android.type.WalletType
-import com.nunchuk.android.type.WalletType.MULTI_SIG
+import com.nunchuk.android.core.network.HeaderProvider
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import timber.log.Timber
+import javax.inject.Inject
 
-sealed class AddWalletEvent {
-    data object WalletNameRequiredEvent : AddWalletEvent()
-    data class WalletSetupDoneEvent(
-        val walletName: String,
-        val walletType: WalletType,
-        val addressType: AddressType
-    ) : AddWalletEvent()
+class SendMessageFreeGroupWalletUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val headerProvider: HeaderProvider,
+    private val nativeSdk: NunchukNativeSdk
+) : UseCase<SendMessageFreeGroupWalletUseCase.Param, Unit>(dispatcher) {
+    override suspend fun execute(parameters: Param) {
+//        return nativeSdk.sendGroupWalletMessage()
+    }
+
+    data class Param(
+        val message: String,
+        val walletId: String
+    )
 }
-
-data class AddWalletState(
-    val walletName: String = "",
-    val walletType: WalletType = MULTI_SIG,
-    val addressType: AddressType = NATIVE_SEGWIT,
-    val freeGroupWalletConfig: FreeGroupConfig = FreeGroupConfig(0, 0, 0),
-)

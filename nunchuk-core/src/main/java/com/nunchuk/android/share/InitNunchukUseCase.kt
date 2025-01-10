@@ -31,6 +31,7 @@ import com.nunchuk.android.model.ConnectionStatusHelper
 import com.nunchuk.android.model.SendEventExecutor
 import com.nunchuk.android.model.SendEventHelper
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.usecase.UseCase
 import com.nunchuk.android.utils.DeviceManager
@@ -46,6 +47,7 @@ class InitNunchukUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     private val deviceManager: DeviceManager,
     private val sessionHolder: SessionHolder,
+    private val enableGroupWalletUseCase: EnableGroupWalletUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UseCase<InitNunchukUseCase.Param, Boolean>(ioDispatcher) {
     private var lastParam : Param? = null
@@ -64,6 +66,9 @@ class InitNunchukUseCase @Inject constructor(
             deviceId = deviceManager.getDeviceId(),
             decoyPin = parameters.decoyPin
         )
+        fileLog(message = "start nativeSdk enableGroupWalletUseCase")
+        enableGroupWalletUseCase(Unit)
+        fileLog(message = "end nativeSdk enableGroupWalletUseCase")
         return true
     }
 
@@ -81,7 +86,8 @@ class InitNunchukUseCase @Inject constructor(
             passphrase = passphrase,
             accountId = accountId,
             deviceId = deviceId,
-            decoyPin = decoyPin
+            decoyPin = decoyPin,
+            baseApiUrl = if (appSettings.chain == Chain.MAIN) "http://api.nunchuk.io" else "https://api-testnet.nunchuk.io"
         )
         fileLog("end nativeSdk initNunchuk")
     }

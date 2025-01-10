@@ -467,7 +467,6 @@
         android:id="@+id/chatView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/nc_fill_primary"
         android:clickable="true"
         android:focusable="true"
         app:layout_constraintBottom_toBottomOf="parent"

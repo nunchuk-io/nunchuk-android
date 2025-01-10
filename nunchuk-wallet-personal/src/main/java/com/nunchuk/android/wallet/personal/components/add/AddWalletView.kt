@@ -40,7 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nunchuk.android.compose.NcIcon
@@ -54,16 +54,21 @@ import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.border
 import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.compose.fillDenim2
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.whisper
+import com.nunchuk.android.model.FreeGroupConfig
+import com.nunchuk.android.model.FreeGroupWalletConfig
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.wallet.personal.R
 import kotlinx.coroutines.delay
 
 @Composable
 fun AddWalletView(
+    state: AddWalletState,
     isEdit: Boolean,
-    onContinue: (String, AddressType) -> Unit
+    onSelectAddressType: (AddressType) -> Unit = {},
+    onContinue: (String, AddressType) -> Unit = { _, _ -> }
 ) {
     var walletName by rememberSaveable { mutableStateOf("") }
     var viewAll by rememberSaveable { mutableStateOf(false) }
@@ -145,7 +150,10 @@ fun AddWalletView(
                         selected = addressType == type,
                         name = getAddressType(type),
                         badge = getBadge(type),
-                        onClick = { addressType = type }
+                        onClick = {
+                            addressType = type
+                            onSelectAddressType(type)
+                        }
                     )
                 }
 
@@ -197,7 +205,7 @@ fun AddWalletView(
                     }
                 }
                 if (walletConfigType == WalletConfigType.CUSTOM) {
-                    KeysAndRequiredKeysScreen()
+                    KeysAndRequiredKeysScreen(state.freeGroupWalletConfig)
                 }
             }
         }
@@ -313,7 +321,7 @@ fun KeyManagementSection(
             Box(
                 modifier = Modifier
                     .size(36.dp)
-                    .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                    .border(1.dp, MaterialTheme.colorScheme.textPrimary, CircleShape)
                     .clickable {
                         onDecrement()
                     },
@@ -341,7 +349,7 @@ fun KeyManagementSection(
             Box(
                 modifier = Modifier
                     .size(36.dp)
-                    .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                    .border(1.dp, MaterialTheme.colorScheme.textPrimary, CircleShape)
                     .clickable { onIncrement() },
                 contentAlignment = Alignment.Center
             ) {
@@ -355,7 +363,9 @@ fun KeyManagementSection(
 }
 
 @Composable
-fun KeysAndRequiredKeysScreen() {
+fun KeysAndRequiredKeysScreen(
+    freeGroupWalletConfig: FreeGroupConfig
+) {
     Column(
         modifier = Modifier
             .border(
@@ -370,9 +380,9 @@ fun KeysAndRequiredKeysScreen() {
 
         KeyManagementSection(
             title = "Keys",
-            description = "Number of keys assigned to the wallet (up to 15).",
+            description = "Number of keys assigned to the wallet (up to ${freeGroupWalletConfig.maxKey}).",
             value = keys,
-            onIncrement = { if (keys < 15) keys++ },
+            onIncrement = { if (keys < freeGroupWalletConfig.maxKey) keys++ },
             onDecrement = { if (keys > 1) keys-- }
         )
 
@@ -388,8 +398,11 @@ fun KeysAndRequiredKeysScreen() {
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun AddWalletViewPreview() {
-    AddWalletView(isEdit = true) { _, _ -> }
+    AddWalletView(
+        state = AddWalletState(),
+        isEdit = true
+    ) { _, _ -> }
 }

@@ -17,27 +17,36 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.wallet.personal.components.add
+package com.nunchuk.android.share
 
-import com.nunchuk.android.model.FreeGroupConfig
-import com.nunchuk.android.model.FreeGroupWalletConfig
-import com.nunchuk.android.type.AddressType
-import com.nunchuk.android.type.AddressType.NATIVE_SEGWIT
-import com.nunchuk.android.type.WalletType
-import com.nunchuk.android.type.WalletType.MULTI_SIG
+import com.nunchuk.android.core.network.HeaderProvider
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import timber.log.Timber
+import javax.inject.Inject
 
-sealed class AddWalletEvent {
-    data object WalletNameRequiredEvent : AddWalletEvent()
-    data class WalletSetupDoneEvent(
-        val walletName: String,
-        val walletType: WalletType,
-        val addressType: AddressType
-    ) : AddWalletEvent()
+class EnableGroupWalletUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val headerProvider: HeaderProvider,
+    private val nativeSdk: NunchukNativeSdk
+) : UseCase<Unit, Unit>(dispatcher) {
+    override suspend fun execute(parameters: Unit) {
+        val deviceId = headerProvider.getDeviceId()
+        val appVersion = headerProvider.getAppVersion()
+        val osVersion = headerProvider.getOsVersion()
+        val osName = headerProvider.getOSName()
+        val deviceClass = headerProvider.getDeviceClass()
+        val accessToken = headerProvider.getAccessToken()
+        Timber.d("EnableGroupWalletUseCase")
+        return nativeSdk.enableGroupWallet(
+            osName = osName,
+            osVersion = osVersion,
+            appVersion = appVersion,
+            deviceId = deviceId,
+            deviceClass = deviceClass,
+            accessToken = accessToken
+        )
+    }
 }
-
-data class AddWalletState(
-    val walletName: String = "",
-    val walletType: WalletType = MULTI_SIG,
-    val addressType: AddressType = NATIVE_SEGWIT,
-    val freeGroupWalletConfig: FreeGroupConfig = FreeGroupConfig(0, 0, 0),
-)
