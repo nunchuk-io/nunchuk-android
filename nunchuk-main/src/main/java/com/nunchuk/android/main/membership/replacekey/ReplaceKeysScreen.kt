@@ -1,6 +1,5 @@
 package com.nunchuk.android.main.membership.replacekey
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcCircleImage
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
@@ -308,6 +308,18 @@ fun ReplaceKeyCard(
                                 )
                             )
                         }
+                    } else {
+                        Icon(
+                            painter = painterResource(id = R.drawable.nc_circle_checked),
+                            contentDescription = "Checked icon"
+                        )
+                        Text(
+                            modifier = Modifier.padding(start = 4.dp),
+                            style = NunchukTheme.typography.body,
+                            text = stringResource(
+                                R.string.nc_added
+                            )
+                        )
                     }
                 } else {
                     NcOutlineButton(
@@ -325,7 +337,7 @@ fun ReplaceKeyCard(
                 modifier = Modifier.padding(top = 8.dp, start = 12.dp, end = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Image(
+                NcIcon(
                     painter = painterResource(id = R.drawable.ic_replace),
                     contentDescription = "Replace icon"
                 )
@@ -345,6 +357,11 @@ private fun ReplaceKeysContentPreview(
     @PreviewParameter(SignersModelProvider::class) signers: List<SignerModel>,
 ) {
     ReplaceKeysContent(
-        uiState = ReplaceKeysUiState(walletSigners = signers)
+        uiState = ReplaceKeysUiState(
+            walletSigners = signers,
+            replaceSigners = mapOf(
+                signers[0].fingerPrint to signers[1],
+            )
+        )
     )
 }
