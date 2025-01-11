@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +44,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.nunchuk.android.compose.NcDashLineBox
@@ -64,11 +67,12 @@ const val freeGroupWalletRoute = "free_group_wallet_route"
 
 fun NavGraphBuilder.freeGroupWallet(
     onEditClicked: () -> Unit = {},
-
 ) {
     composable(freeGroupWalletRoute) {
-
+        val viewModel: FreeGroupWalletViewModel = hiltViewModel()
+        val state by viewModel.uiState.collectAsStateWithLifecycle()
         FreeGroupWalletScreen(
+            state = state,
             onAddClicked = {},
             onMoreClicked = {},
             onContinueClicked = {},
@@ -80,6 +84,7 @@ fun NavGraphBuilder.freeGroupWallet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FreeGroupWalletScreen(
+    state: FreeGroupWalletUiState = FreeGroupWalletUiState(),
     onAddClicked: (data: AddKeyData) -> Unit = {},
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
