@@ -41,8 +41,11 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
     }
 
     companion object {
-        fun start(context: Context) {
-            context.startActivity(Intent(context, FreeGroupWalletActivity::class.java))
+        const val EXTRA_GROUP_ID = "group_id"
+        fun start(context: Context, groupId: String? = null) {
+            context.startActivity(Intent(context, FreeGroupWalletActivity::class.java).apply {
+                putExtra(EXTRA_GROUP_ID, groupId)
+            })
         }
     }
 }

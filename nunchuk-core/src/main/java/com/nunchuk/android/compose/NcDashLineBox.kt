@@ -42,7 +42,7 @@ fun NcDashLineBox(
     modifier: Modifier = Modifier,
     width: Dp = 2.dp,
     dashWidth: Dp = 8.dp,
-    color: Color = colorResource(id = R.color.nc_primary_color),
+    color: Color = colorResource(id = R.color.nc_text_primary),
     content: @Composable BoxScope.() -> Unit
 ) {
         Box(

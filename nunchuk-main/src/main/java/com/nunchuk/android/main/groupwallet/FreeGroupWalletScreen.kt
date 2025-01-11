@@ -9,12 +9,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -47,42 +45,31 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcDashLineBox
 import com.nunchuk.android.compose.NcIcon
-import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
-import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.provider.SignerModelProvider
+import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.provider.WalletExtendedProvider
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.toReadableDrawableResId
-import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.model.AddKeyData
-import com.nunchuk.android.main.membership.model.getButtonText
-import com.nunchuk.android.main.membership.model.getLabel
-import com.nunchuk.android.main.membership.model.resId
-import com.nunchuk.android.model.MembershipStep
-import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
-import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.wallet.util.toReadableString
 
 const val freeGroupWalletRoute = "free_group_wallet_route"
 
 fun NavGraphBuilder.freeGroupWallet(
     onEditClicked: () -> Unit = {},
+
 ) {
     composable(freeGroupWalletRoute) {
 
         FreeGroupWalletScreen(
-            keys = emptyList(),
             onAddClicked = {},
-            onVerifyClicked = {},
             onMoreClicked = {},
             onContinueClicked = {},
             onEditClicked = onEditClicked
@@ -93,9 +80,7 @@ fun NavGraphBuilder.freeGroupWallet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FreeGroupWalletScreen(
-    keys: List<AddKeyData> = emptyList(),
     onAddClicked: (data: AddKeyData) -> Unit = {},
-    onVerifyClicked: (data: AddKeyData) -> Unit = {},
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
     onEditClicked: () -> Unit = {},
@@ -172,193 +157,36 @@ fun FreeGroupWalletScreen(
             }
         },
     ) { innerPadding ->
-        Box(
-            Modifier
+        LazyColumn(
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .padding(top = 16.dp)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 16.dp)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                item {
-                    WalletInfo(
-                        walletsExtended = WalletExtended(),
-                        onEditClicked = onEditClicked
-                    )
-                }
-
-                items(keys) { key ->
-                    AddKeyCard(
-                        item = key,
-                        onAddClicked = onAddClicked,
-                        onVerifyClicked = onVerifyClicked,
-                    )
-                }
+            item {
+                WalletInfo(
+                    walletsExtended = WalletExtended(),
+                    onEditClicked = onEditClicked
+                )
             }
+
         }
     }
 }
 
 @Composable
-internal fun AddKeyCard(
-    item: AddKeyData,
-    isMissingBackup: Boolean = false,
+private fun AddKeyCard(
     modifier: Modifier = Modifier,
-    onAddClicked: (data: AddKeyData) -> Unit = {},
-    onVerifyClicked: (data: AddKeyData) -> Unit = {},
-    isDisabled: Boolean = false
+    signer: SingleSigner? = null,
 ) {
-    if (item.signer != null) {
-        Box(
-            modifier = modifier.background(
-                color = if (item.verifyType != VerifyType.NONE) {
-                    colorResource(id = R.color.nc_fill_slime)
-                } else if (isDisabled) {
-                    colorResource(id = R.color.nc_grey_dark_color)
-                } else {
-                    colorResource(id = R.color.nc_fill_beewax)
-                },
-                shape = RoundedCornerShape(8.dp)
-            ),
-            contentAlignment = Alignment.Center,
-        ) {
-            Row(
-                modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically
-            ) {
-                NcCircleImage(
-                    resId = item.signer.toReadableDrawableResId(),
-                )
-                Column(
-                    modifier = Modifier
-                        .weight(1.0f)
-                        .padding(start = 8.dp)
-                ) {
-                    Text(
-                        text = item.signer.name,
-                        style = NunchukTheme.typography.body
-                    )
-                    Row(modifier = Modifier.padding(top = 4.dp)) {
-                        NcTag(
-                            label = item.signer.toReadableSignerType(context = LocalContext.current),
-                            backgroundColor = colorResource(
-                                id = R.color.nc_bg_mid_gray
-                            ),
-                        )
-                        if (item.signer.isShowAcctX()) {
-                            NcTag(
-                                modifier = Modifier.padding(start = 4.dp),
-                                label = stringResource(R.string.nc_acct_x, item.signer.index),
-                                backgroundColor = colorResource(
-                                    id = R.color.nc_bg_mid_gray
-                                ),
-                            )
-                        }
-                    }
-                    Text(
-                        modifier = Modifier.padding(top = 4.dp),
-                        text = item.signer.getXfpOrCardIdLabel(),
-                        style = NunchukTheme.typography.bodySmall
-                    )
-                }
-                Icon(
-                    painter = painterResource(id = R.drawable.nc_circle_checked),
-                    contentDescription = "Checked icon"
-                )
-                Text(
-                    modifier = Modifier.padding(start = 4.dp),
-                    style = NunchukTheme.typography.body,
-                    text = stringResource(
-                        R.string.nc_added
-                    )
-                )
-            }
-        }
-    } else {
-        if (item.verifyType != VerifyType.NONE) {
-            Box(
-                modifier = modifier.background(
-                    colorResource(id = R.color.nc_fill_slime),
-                    shape = RoundedCornerShape(8.dp)
-                ),
-                contentAlignment = Alignment.Center,
-            ) {
-                ConfigItem(item, isDisabled = isDisabled)
-            }
-        } else {
-            NcDashLineBox(modifier = modifier) {
-                ConfigItem(item, onAddClicked, isDisabled = isDisabled)
-            }
-        }
-    }
-}
+    NcDashLineBox(
+        modifier = modifier,
+        content = {
 
-@Composable
-private fun ConfigItem(
-    item: AddKeyData,
-    onAddClicked: ((data: AddKeyData) -> Unit)? = null,
-    isDisabled: Boolean = false
-) {
-    Row(
-        modifier = Modifier.padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        NcCircleImage(resId = item.type.resId)
-        Column(
-            modifier = Modifier
-                .weight(1.0f)
-                .padding(start = 8.dp)
-        ) {
-            Text(
-                text = item.type.getLabel(LocalContext.current),
-                style = NunchukTheme.typography.body
-            )
-            Row(modifier = Modifier.padding(top = 4.dp)) {
-                if (item.type.isAddInheritanceKey) {
-                    NcTag(
-                        label = stringResource(R.string.nc_inheritance),
-                        backgroundColor = colorResource(
-                            id = R.color.nc_bg_mid_gray
-                        ),
-                    )
-                }
-                if (item.signer?.isShowAcctX() == true) {
-                    NcTag(
-                        modifier = Modifier.padding(start = if (item.type == MembershipStep.HONEY_ADD_INHERITANCE_KEY) 4.dp else 0.dp),
-                        label = stringResource(R.string.nc_acct_x, item.signer.index),
-                        backgroundColor = colorResource(
-                            id = R.color.nc_bg_mid_gray
-                        ),
-                    )
-                }
-            }
         }
-        if (onAddClicked != null) {
-            NcOutlineButton(
-                modifier = Modifier.height(36.dp),
-                enabled = isDisabled.not(),
-                onClick = { onAddClicked(item) },
-            ) {
-                Text(
-                    text = item.type.getButtonText(LocalContext.current),
-                    style = NunchukTheme.typography.caption,
-                )
-            }
-        } else {
-            Icon(
-                painter = painterResource(id = R.drawable.nc_circle_checked),
-                contentDescription = "Checked icon"
-            )
-            Text(
-                modifier = Modifier.padding(start = 4.dp),
-                style = NunchukTheme.typography.body,
-                text = stringResource(R.string.nc_configured)
-            )
-        }
-    }
+    )
 }
 
 @Composable
@@ -473,7 +301,8 @@ internal fun WalletInfo(
                 }
 
                 Row(
-                    modifier = Modifier.padding(start = 20.dp)
+                    modifier = Modifier
+                        .padding(start = 20.dp)
                         .clickable { onEditClicked() },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -508,7 +337,7 @@ private fun WalletInfoPreview(
 @PreviewLightDark
 @Composable
 private fun GroupWalletScreenPreview(
-    @PreviewParameter(SignerModelProvider::class) signer: SignerModel,
+    @PreviewParameter(SignersModelProvider::class) signers: List<SignerModel>,
 ) {
     NunchukTheme {
         FreeGroupWalletScreen()
