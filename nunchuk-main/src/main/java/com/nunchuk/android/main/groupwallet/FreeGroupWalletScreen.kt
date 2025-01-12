@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -48,8 +49,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcDashLineBox
 import com.nunchuk.android.compose.NcIcon
+import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.SignersModelProvider
@@ -58,25 +61,38 @@ import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.wallet.util.toReadableString
 
 const val freeGroupWalletRoute = "free_group_wallet_route"
+private val avatarColors = listOf(
+    Color(0xFF1C652D),
+    Color(0xFFA66800),
+    Color(0xFFCF4018),
+    Color(0xFF7E519B),
+    Color(0xFF2F466C),
+    Color(0xFFF1AE00),
+    Color(0xFF757575),
+)
 
 fun NavGraphBuilder.freeGroupWallet(
     onEditClicked: () -> Unit = {},
+
 ) {
     composable(freeGroupWalletRoute) {
         val viewModel: FreeGroupWalletViewModel = hiltViewModel()
         val state by viewModel.uiState.collectAsStateWithLifecycle()
+
         FreeGroupWalletScreen(
             state = state,
             onAddClicked = {},
             onMoreClicked = {},
             onContinueClicked = {},
-            onEditClicked = onEditClicked
+            onEditClicked = onEditClicked,
+            onRemoveClicked = {
+
+            }
         )
     }
 }
@@ -85,7 +101,8 @@ fun NavGraphBuilder.freeGroupWallet(
 @Composable
 fun FreeGroupWalletScreen(
     state: FreeGroupWalletUiState = FreeGroupWalletUiState(),
-    onAddClicked: (data: AddKeyData) -> Unit = {},
+    onAddClicked: (Int) -> Unit = {},
+    onRemoveClicked: (Int) -> Unit = {},
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
     onEditClicked: () -> Unit = {},
@@ -177,19 +194,96 @@ fun FreeGroupWalletScreen(
                 )
             }
 
+            item {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    NcIcon(
+                        modifier = Modifier.size(24.dp),
+                        painter = painterResource(id = R.drawable.ic_mulitsig_dark),
+                        contentDescription = "Key icon",
+                    )
+
+                    Text(
+                        text = stringResource(id = R.string.nc_title_signers),
+                        style = NunchukTheme.typography.title,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+
+
+                }
+            }
+
+            items(5) { index ->
+                AddKeyCard(
+                    index = index,
+                    signer = SingleSigner(),
+                    onAddClicked = { onAddClicked(index) },
+                    onRemoveClicked = { onRemoveClicked(index) }
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun AddKeyCard(
+    index: Int,
     modifier: Modifier = Modifier,
     signer: SingleSigner? = null,
+    onAddClicked: () -> Unit,
+    onRemoveClicked: () -> Unit,
 ) {
     NcDashLineBox(
         modifier = modifier,
         content = {
-
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (signer != null) {
+//                    NcCircleImage(resId = signer.toReadableDrawableResId())
+                    NcCircleImage(
+                        iconSize = 48.dp,
+                        resId = R.drawable.ic_user,
+                        color = avatarColors[index % avatarColors.size]
+                    )
+                } else {
+                    NcCircleImage(resId = R.drawable.ic_key)
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1.0f)
+                        .padding(start = 8.dp)
+                ) {
+                    if (signer != null) {
+                        Text(
+                            text = "XFP: ${signer.masterFingerprint}",
+                            style = NunchukTheme.typography.body
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(R.string.nc_key_with_index, "#${index + 1}"),
+                            style = NunchukTheme.typography.body
+                        )
+                    }
+                }
+                if (signer != null) {
+                    NcOutlineButton(
+                        modifier = Modifier.height(36.dp),
+                        onClick = onRemoveClicked,
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_remove),)
+                    }
+                } else {
+                    NcOutlineButton(
+                        modifier = Modifier.height(36.dp),
+                        onClick = onAddClicked,
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_add_key),)
+                    }
+                }
+            }
         }
     )
 }
