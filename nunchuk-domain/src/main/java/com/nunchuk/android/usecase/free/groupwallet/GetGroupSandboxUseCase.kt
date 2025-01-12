@@ -10,10 +10,10 @@ import javax.inject.Inject
 class GetGroupSandboxUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk
-) : UseCase<String, GroupSandbox?>(dispatcher) {
-    override suspend fun execute(parameters: String): GroupSandbox? {
+) : UseCase<String, GroupSandbox>(dispatcher) {
+    override suspend fun execute(parameters: String): GroupSandbox {
         return nativeSdk.getGroupSandbox(
             groupId = parameters,
-        )
+        ) ?: throw IllegalStateException("Group not found")
     }
 }

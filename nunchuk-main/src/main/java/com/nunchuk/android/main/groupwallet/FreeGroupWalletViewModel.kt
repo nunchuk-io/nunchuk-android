@@ -3,7 +3,10 @@ package com.nunchuk.android.main.groupwallet
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.HasSignerUseCase
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
+import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class FreeGroupWalletViewModel @Inject constructor(
     private val getGroupSandboxUseCase: GetGroupSandboxUseCase,
+    private val getAllSignersUseCase: GetAllSignersUseCase,
+    private val hasSignerUseCase: HasSignerUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val groupId =
@@ -34,7 +39,10 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun getGroupSandbox() {
         viewModelScope.launch {
             getGroupSandboxUseCase(groupId).onSuccess { groupSandbox ->
-                _uiState.update { it.copy(group = groupSandbox) }
+                val signers = groupSandbox.signers.map {
+                    it.takeIf { it.masterFingerprint.isNotEmpty() }?.toModel()
+                }
+                _uiState.update { it.copy(group = groupSandbox, signers = signers) }
             }
         }
     }
