@@ -1,10 +1,13 @@
 package com.nunchuk.android.main.groupwallet
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.usecase.free.groupwallet.CreateGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +23,8 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val getGroupSandboxUseCase: GetGroupSandboxUseCase,
     private val getAllSignersUseCase: GetAllSignersUseCase,
     private val hasSignerUseCase: HasSignerUseCase,
-    savedStateHandle: SavedStateHandle
+    private val createGroupSandboxUseCase: CreateGroupSandboxUseCase,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val groupId =
         savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
@@ -29,10 +33,27 @@ class FreeGroupWalletViewModel @Inject constructor(
 
     init {
         if (groupId.isEmpty()) {
-            // init group
-            // put group id to savedStateHandle after init
+            createGroupSandbox()
         } else {
             getGroupSandbox()
+        }
+    }
+
+    private fun createGroupSandbox() {
+        viewModelScope.launch {
+            createGroupSandboxUseCase(
+                CreateGroupSandboxUseCase.Params(
+                    "Group wallet",
+                    2,
+                    3,
+                    AddressType.NATIVE_SEGWIT
+                )
+            ).onSuccess { groupSandbox ->
+                savedStateHandle[FreeGroupWalletActivity.EXTRA_GROUP_ID] = groupSandbox.id
+                _uiState.update { it.copy(group = groupSandbox) }
+            }.onFailure {
+                Log.e("group-wallet", "Failed to create group sandbox $it")
+            }
         }
     }
 

@@ -30,7 +30,7 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
                                 navigator.openAddWalletScreen(
                                     activityContext = this@FreeGroupWalletActivity,
                                     decoyPin = "",
-                                    isEdit = true
+                                    groupWalletId = it
                                 )
                             })
                         }

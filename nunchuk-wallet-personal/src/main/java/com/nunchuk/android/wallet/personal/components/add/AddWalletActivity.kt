@@ -45,9 +45,11 @@ class AddWalletActivity : BaseComposeActivity() {
         intent.getStringExtra(DECOY_PIN).orEmpty()
     }
 
-    private val isEdit: Boolean by lazy(LazyThreadSafetyMode.NONE) {
-        intent.getBooleanExtra(IS_EDIT, false)
+    private val groupWalletId: String by lazy(LazyThreadSafetyMode.NONE) {
+        intent.getStringExtra(GROUP_WALLET_ID).orEmpty()
     }
+
+    private var isAlreadyShowChangeAddressTypeDialog = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,14 +58,31 @@ class AddWalletActivity : BaseComposeActivity() {
             val state by viewModel.state.collectAsStateWithLifecycle()
             AddWalletView(
                 state = state,
-                isEdit = isEdit,
+                isEditGroupWallet = groupWalletId.isNotEmpty(),
                 onSelectAddressType = {
-                    viewModel.getFreeGroupWalletConfig(it)
-                }, { walletName, addressType ->
-                    openAssignSignerScreen(
-                        walletName = walletName,
-                        addressType = addressType
-                    )
+                    if (groupWalletId.isNotEmpty()) {
+                        val action = {
+                            viewModel.updateAddressTypeSelected(it)
+                            viewModel.getFreeGroupWalletConfig(it)
+                        }
+                        if (viewModel.state.value.groupSandbox?.addressType != it && viewModel.state.value.isHasSigner && isAlreadyShowChangeAddressTypeDialog.not()) {
+                            isAlreadyShowChangeAddressTypeDialog = true
+                            showChangeAddressTypeDialog {
+                                action()
+                            }
+                        } else {
+                            action()
+                        }
+                    }
+                }, { walletName, addressType, m, n ->
+                    if (groupWalletId.isNotEmpty()) {
+                        viewModel.updateGroupSandboxConfig(walletName, m, n)
+                    } else {
+                        openAssignSignerScreen(
+                            walletName = walletName,
+                            addressType = addressType
+                        )
+                    }
                 })
         }
     }
@@ -93,29 +112,30 @@ class AddWalletActivity : BaseComposeActivity() {
         }
     }
 
-    private fun showChangeAddressTypeDialog() {
+    private fun showChangeAddressTypeDialog(onAction: () -> Unit) {
         NCWarningDialog(this).showDialog(
             message = getString(R.string.nc_change_address_type_group_wallet),
             btnYes = getString(R.string.nc_text_continue),
             onYesClick = {
-
+                onAction()
             }
         )
     }
 
     companion object {
         private const val DECOY_PIN = "decoy_wallet"
-        private const val IS_EDIT = "is_edit"
+        const val GROUP_WALLET_ID = "group_wallet_id"
 
-
-        fun start(activityContext: Context, decoyPin: String, isEdit: Boolean) {
+        fun start(
+            activityContext: Context, decoyPin: String, groupWalletId: String
+        ) {
             activityContext.startActivity(
                 Intent(
                     activityContext,
                     AddWalletActivity::class.java
                 ).apply {
                     putExtra(DECOY_PIN, decoyPin)
-                    putExtra(IS_EDIT, isEdit)
+                    putExtra(GROUP_WALLET_ID, groupWalletId.isNotEmpty())
                 })
         }
     }

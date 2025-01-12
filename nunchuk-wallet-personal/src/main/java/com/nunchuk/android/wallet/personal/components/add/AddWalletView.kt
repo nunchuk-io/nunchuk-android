@@ -58,7 +58,6 @@ import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.model.FreeGroupConfig
-import com.nunchuk.android.model.FreeGroupWalletConfig
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.wallet.personal.R
 import kotlinx.coroutines.delay
@@ -66,14 +65,22 @@ import kotlinx.coroutines.delay
 @Composable
 fun AddWalletView(
     state: AddWalletState,
-    isEdit: Boolean,
+    isEditGroupWallet: Boolean,
     onSelectAddressType: (AddressType) -> Unit = {},
-    onContinue: (String, AddressType) -> Unit = { _, _ -> }
+    onContinue: (String, AddressType, Int, Int) -> Unit = { _, _, _, _ -> }
 ) {
     var walletName by rememberSaveable { mutableStateOf("") }
     var viewAll by rememberSaveable { mutableStateOf(false) }
-    var addressType by rememberSaveable { mutableStateOf(AddressType.NATIVE_SEGWIT) }
-    var walletConfigType by rememberSaveable { mutableStateOf(WalletConfigType.TOW_OF_THREE) }
+    var walletConfigType by rememberSaveable {
+        mutableStateOf(
+            getWalletConfigTypeBy(
+                n = state.groupSandbox?.n ?: 2,
+                m = state.groupSandbox?.m ?: 3
+            )
+        )
+    }
+    var keys by remember { mutableIntStateOf(0) }
+    var requiredKeys by remember { mutableIntStateOf(0) }
 
     val options = if (!viewAll) listOf(
         AddressType.NATIVE_SEGWIT,
@@ -111,7 +118,7 @@ fun AddWalletView(
                         .padding(16.dp),
                     enabled = walletName.isNotBlank(),
                     onClick = {
-                        onContinue(walletName, addressType)
+                        onContinue(walletName, state.addressTypeSelected, keys, requiredKeys)
                     }
                 ) {
                     Text(
@@ -147,11 +154,10 @@ fun AddWalletView(
 
                 options.forEach { type ->
                     TypeOption(
-                        selected = addressType == type,
+                        selected = state.addressTypeSelected == type,
                         name = getAddressType(type),
                         badge = getBadge(type),
                         onClick = {
-                            addressType = type
                             onSelectAddressType(type)
                         }
                     )
@@ -179,7 +185,7 @@ fun AddWalletView(
                     }
                 }
 
-                if (isEdit) {
+                if (isEditGroupWallet && state.groupSandbox != null) {
                     HorizontalDivider(
                         thickness = 1.dp,
                         modifier = Modifier.padding(vertical = 24.dp),
@@ -205,7 +211,14 @@ fun AddWalletView(
                     }
                 }
                 if (walletConfigType == WalletConfigType.CUSTOM) {
-                    KeysAndRequiredKeysScreen(state.freeGroupWalletConfig)
+                    KeysAndRequiredKeysScreen(
+                        state.freeGroupWalletConfig,
+                        m = state.groupSandbox!!.m,
+                        n = state.groupSandbox.n
+                    ) { m, n ->
+                        keys = m
+                        requiredKeys = n
+                    }
                 }
             }
         }
@@ -364,7 +377,10 @@ fun KeyManagementSection(
 
 @Composable
 fun KeysAndRequiredKeysScreen(
-    freeGroupWalletConfig: FreeGroupConfig
+    freeGroupWalletConfig: FreeGroupConfig,
+    m: Int,
+    n: Int,
+    onNumberChange: (Int, Int) -> Unit = { _, _ -> }
 ) {
     Column(
         modifier = Modifier
@@ -375,8 +391,12 @@ fun KeysAndRequiredKeysScreen(
             )
             .padding(16.dp)
     ) {
-        var keys by remember { mutableIntStateOf(6) }
-        var requiredKeys by remember { mutableIntStateOf(4) }
+        var keys by remember { mutableIntStateOf(m) }
+        var requiredKeys by remember { mutableIntStateOf(n) }
+
+        LaunchedEffect(m, n) {
+            onNumberChange(keys, requiredKeys)
+        }
 
         KeyManagementSection(
             title = "Keys",
@@ -403,6 +423,6 @@ fun KeysAndRequiredKeysScreen(
 private fun AddWalletViewPreview() {
     AddWalletView(
         state = AddWalletState(),
-        isEdit = true
-    ) { _, _ -> }
+        isEditGroupWallet = true
+    )
 }

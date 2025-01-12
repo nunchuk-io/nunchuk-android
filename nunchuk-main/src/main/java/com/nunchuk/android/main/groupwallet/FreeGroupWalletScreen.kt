@@ -80,8 +80,7 @@ private val avatarColors = listOf(
 )
 
 fun NavGraphBuilder.freeGroupWallet(
-    onEditClicked: () -> Unit = {},
-
+    onEditClicked: (String) -> Unit = {},
     ) {
     composable(freeGroupWalletRoute) {
         val viewModel: FreeGroupWalletViewModel = hiltViewModel()
@@ -92,7 +91,11 @@ fun NavGraphBuilder.freeGroupWallet(
             onAddClicked = {},
             onMoreClicked = {},
             onContinueClicked = {},
-            onEditClicked = onEditClicked,
+            onEditClicked = {
+                state.group?.let {
+                    onEditClicked(it.id)
+                }
+            },
             onRemoveClicked = {
 
             }

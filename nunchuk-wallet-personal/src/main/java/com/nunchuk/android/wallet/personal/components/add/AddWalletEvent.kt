@@ -20,24 +20,12 @@
 package com.nunchuk.android.wallet.personal.components.add
 
 import com.nunchuk.android.model.FreeGroupConfig
-import com.nunchuk.android.model.FreeGroupWalletConfig
+import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.type.AddressType
-import com.nunchuk.android.type.AddressType.NATIVE_SEGWIT
-import com.nunchuk.android.type.WalletType
-import com.nunchuk.android.type.WalletType.MULTI_SIG
-
-sealed class AddWalletEvent {
-    data object WalletNameRequiredEvent : AddWalletEvent()
-    data class WalletSetupDoneEvent(
-        val walletName: String,
-        val walletType: WalletType,
-        val addressType: AddressType
-    ) : AddWalletEvent()
-}
 
 data class AddWalletState(
-    val walletName: String = "",
-    val walletType: WalletType = MULTI_SIG,
-    val addressType: AddressType = NATIVE_SEGWIT,
     val freeGroupWalletConfig: FreeGroupConfig = FreeGroupConfig(0, 0, 0),
+    val groupSandbox: GroupSandbox? = null,
+    val addressTypeSelected: AddressType = AddressType.NATIVE_SEGWIT,
+    val isHasSigner: Boolean = false
 )
