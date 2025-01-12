@@ -35,6 +35,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.base.BaseCameraFragment
+import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -60,11 +62,17 @@ import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletActio
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletOption
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
     BottomSheetOptionListener {
+
+    @Inject
+    lateinit var signInModeHolder: SignInModeHolder
+
     private val viewModel: WalletIntermediaryViewModel by viewModels()
     private val isQuickWallet: Boolean by lazy {
         requireActivity().intent.getBooleanExtra(
@@ -129,7 +137,9 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
             UnassistedWalletTypeBottomSheet.TAG,
             viewLifecycleOwner
         ) { _, bundle ->
-            val result = bundle.parcelable<UnassistedWalletTypeBottomSheet.Result>(UnassistedWalletTypeBottomSheet.RESULT)
+            val result = bundle.parcelable<UnassistedWalletTypeBottomSheet.Result>(
+                UnassistedWalletTypeBottomSheet.RESULT
+            )
                 ?: return@setFragmentResultListener
             val walletType = result.walletType
             onWalletTypeSelected(walletType)
@@ -142,6 +152,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
             WalletType.ASSISTED -> {
                 createAssistedWallet()
             }
+
             WalletType.UNASSISTED -> {
                 UnassistedWalletTypeBottomSheet.show(childFragmentManager)
             }
@@ -155,10 +166,19 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                     openWalletEmptySignerScreen()
                 }
             }
+
             WalletType.HOT -> {
                 navigator.openHotWalletScreen(launcher, requireActivity(), isQuickWallet)
             }
-            WalletType.GROUP -> navigator.openFreeGroupWalletScreen(requireActivity())
+
+            WalletType.GROUP -> {
+                if (viewModel.isExceededGroupWalletLimit()) {
+                    showRunOutFreeGroupWallet()
+                } else {
+                    navigator.openFreeGroupWalletScreen(requireActivity())
+                }
+            }
+
             WalletType.DECOY -> {
                 navigator.openWalletSecuritySettingScreen(
                     activityContext = requireContext(),
@@ -219,6 +239,30 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                 requireActivity().openExternalLink("https://nunchuk.io/my-plan")
             }
         ).show()
+    }
+
+    private fun showRunOutFreeGroupWallet() {
+        val isGuestMode = signInModeHolder.getCurrentMode().isGuestMode()
+        val message = if (isGuestMode) {
+            getString(R.string.nc_free_group_wallet_run_out_guest_mode)
+        } else {
+            getString(R.string.nc_free_group_wallet_run_out_signed_mode)
+        }
+        if (isGuestMode) {
+            NCWarningDialog(requireActivity()).showDialog(
+                message = message,
+                btnYes = getString(R.string.nc_sign_up),
+                btnNo = getString(R.string.nc_text_got_it),
+                onYesClick = {
+                    navigator.openSignUpScreen(requireActivity())
+                }
+            )
+        } else {
+            NCInfoDialog(requireActivity()).init(
+                message = message,
+                btnYes = getString(R.string.nc_text_got_it),
+            ).show()
+        }
     }
 
     private fun observer() {

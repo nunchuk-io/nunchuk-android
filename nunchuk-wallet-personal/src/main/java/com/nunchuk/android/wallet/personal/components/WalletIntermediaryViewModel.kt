@@ -21,11 +21,12 @@ package com.nunchuk.android.wallet.personal.components
 
 import android.app.Application
 import android.net.Uri
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
 import com.nunchuk.android.core.domain.membership.SetLocalMembershipPlanFlowUseCase
+import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipPlan
@@ -35,7 +36,6 @@ import com.nunchuk.android.model.wallet.WalletOption
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.membership.GetGroupAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
-import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
@@ -58,6 +58,7 @@ class WalletIntermediaryViewModel @Inject constructor(
     private val getGroupAssistedWalletConfigUseCase: GetGroupAssistedWalletConfigUseCase,
     private val getPersonalMembershipStepUseCase: GetPersonalMembershipStepUseCase,
     private val setLocalMembershipPlanFlowUseCase: SetLocalMembershipPlanFlowUseCase,
+    private val signInModeHolder: SignInModeHolder,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletIntermediaryState())
     val state = _state.asStateFlow()
@@ -130,12 +131,12 @@ class WalletIntermediaryViewModel @Inject constructor(
         return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
     }
 
-    fun isPersonalWalletAvailable() : Boolean {
+    fun isPersonalWalletAvailable(): Boolean {
         val walletsCount = state.value.walletsCount
         return state.value.personalOptions.sumOf { walletsCount[it.slug] ?: 0 } > 0
     }
 
-    fun isGroupWalletAvailable() : Boolean {
+    fun isGroupWalletAvailable(): Boolean {
         val walletsCount = state.value.walletsCount
         return state.value.groupOptions.sumOf { walletsCount[it.slug] ?: 0 } > 0
     }
@@ -144,6 +145,14 @@ class WalletIntermediaryViewModel @Inject constructor(
         viewModelScope.launch {
             setLocalMembershipPlanFlowUseCase(plan)
         }
+    }
+
+    fun isExceededGroupWalletLimit(): Boolean {
+        val numberOfGroupWallets = state.value.numOfFreeGroupWallet
+        if (signInModeHolder.getCurrentMode().isGuestMode() && numberOfGroupWallets > 1) return true
+        if (state.value.isMembership && numberOfGroupWallets > 3) return true
+        if (numberOfGroupWallets > 3) return true
+        return false
     }
 
     val hasSigner: Boolean
@@ -164,5 +173,6 @@ data class WalletIntermediaryState(
     val personalOptions: List<WalletOption> = emptyList(),
     val groupOptions: List<WalletOption> = emptyList(),
     val personalSteps: List<MembershipStepInfo> = emptyList(),
+    val numOfFreeGroupWallet: Int = 0,
 )
 
