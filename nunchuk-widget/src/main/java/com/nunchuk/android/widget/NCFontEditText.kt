@@ -21,17 +21,25 @@ package com.nunchuk.android.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import android.text.InputType
 import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
 import android.util.AttributeSet
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatEditText
+import androidx.core.content.ContextCompat
 import com.nunchuk.android.widget.util.FontInitializer
 
 class NCFontEditText : AppCompatEditText {
     private var isMasked = true
     var onTextPaste: () -> Unit = {}
+
+    init {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            textCursorDrawable = ContextCompat.getDrawable(context, R.drawable.custom_cursor)
+        }
+    }
 
     private val initializer: FontInitializer by lazy { FontInitializer(context) }
 
