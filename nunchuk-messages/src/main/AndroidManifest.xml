@@ -22,6 +22,11 @@
             android:name=".components.group.members.GroupMembersActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity android:name=".components.freegroup.FreeGroupWalletChatActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize"/>
     </application>
 
 </manifest>

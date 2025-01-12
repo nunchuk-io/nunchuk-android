@@ -31,6 +31,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class WalletIntermediaryActivity : BaseNfcActivity<ActivityWalletIntermediaryBinding>() {
+
     override fun initializeBinding(): ActivityWalletIntermediaryBinding {
         return ActivityWalletIntermediaryBinding.inflate(layoutInflater)
     }
@@ -40,7 +41,7 @@ class WalletIntermediaryActivity : BaseNfcActivity<ActivityWalletIntermediaryBin
         setLightStatusBar()
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
-                replace(R.id.fragment_container, WalletIntermediaryFragment().apply {
+                replace(R.id.fragment_container, WalletIntermediaryNewUIFragment().apply {
                     arguments = intent.extras
                 })
             }

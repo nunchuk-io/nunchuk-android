@@ -22,6 +22,7 @@ package com.nunchuk.android.signer.components.add
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.google.zxing.client.android.Intents
@@ -37,6 +38,8 @@ import kotlin.math.roundToInt
 class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>() {
 
     private val viewModel: AddAirgapSignerViewModel by viewModels()
+    private val scanDynamicQRViewModel: ScanDynamicQRViewModel by viewModels()
+    private val isJoinGroupWalletFlow: Boolean by lazy { intent.getBooleanExtra(IS_JOIN_GROUP_WALLET_FLOW, false) }
 
     override fun onCameraPermissionGranted(fromUser: Boolean) {
 
@@ -67,6 +70,19 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
             binding.tvPercentage.isVisible = it.progress > 0.0
             binding.tvPercentage.text = "${it.progress.roundToInt()}%"
         }
+        flowObserver(scanDynamicQRViewModel.event) {
+           when(it) {
+               is ScanDynamicQREvent.JoinGroupWalletSuccess -> {
+                   setResult(Activity.RESULT_OK, Intent().apply {
+//                       putExtra(GROUP_SANDBOX_EXTRA_KEY, it.groupSandbox)
+                   })
+                   finish()
+               }
+               is ScanDynamicQREvent.Error -> {
+
+               }
+           }
+        }
     }
 
     private fun setupViews() {
@@ -74,7 +90,11 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
         barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
         binding.barcodeView.initializeFromIntent(barcodeViewIntent)
         binding.barcodeView.decodeContinuous { result ->
-            viewModel.handAddPassportSigners(result.text)
+            if (isJoinGroupWalletFlow) {
+                scanDynamicQRViewModel.handleJoinGroupWallet(result.text)
+            } else {
+                viewModel.handAddPassportSigners(result.text)
+            }
         }
 
         binding.toolbar.setNavigationOnClickListener {
@@ -93,8 +113,15 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
     }
 
     companion object {
-        fun buildIntent(activityContext: Activity) =
-            Intent(activityContext, ScanDynamicQRActivity::class.java)
+        // TODO: Create a common Scan QR
+        private const val IS_JOIN_GROUP_WALLET_FLOW = "is_join_group_wallet_flow"
+        const val GROUP_SANDBOX_EXTRA_KEY = "group_sandbox"
+        fun buildIntent(activityContext: Activity, isJoinGroupWalletFlow: Boolean = false): Intent {
+            val intent = Intent(activityContext, ScanDynamicQRActivity::class.java).apply {
+                putExtra(IS_JOIN_GROUP_WALLET_FLOW, isJoinGroupWalletFlow)
+            }
+            return intent
+        }
     }
 
 }

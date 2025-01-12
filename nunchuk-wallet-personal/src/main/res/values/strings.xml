@@ -44,5 +44,6 @@
     <string name="nc_configure_value_key_set">Configure Value Key Set</string>
     <string name="nc_configure_value_key_set_desc">Among the keys assigned to the wallet, please select the keys to create the Value Keyset. Signing transactions with the Value Keyset will help maximize privacy and fee savings.</string>
     <string name="nc_enter_wallet_link">Please enter the wallet link</string>
+    <string name="nc_change_address_type_group_wallet">Changing the address type will remove all added keys.</string>
 
 </resources>

@@ -5,6 +5,7 @@
     app:startDestination="@id/wallet_intermediary_navigation">
 
     <include app:graph="@navigation/wallet_intermediary_navigation"/>
+    <include app:graph="@navigation/wallet_intermediary_new_ui_navigation"/>
 
     <include app:graph="@navigation/personal_signer_navigation" />
 

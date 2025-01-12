@@ -17,35 +17,29 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.app.network
+package com.nunchuk.android.core.domain
 
-import android.os.Build.VERSION
-import android.os.Build.VERSION_CODES
-import com.nunchuk.android.BuildConfig
-import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.network.HeaderProvider
-import com.nunchuk.android.utils.DeviceManager
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.FreeGroupMessage
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class HeaderProviderImpl @Inject constructor(
-    private val accountManager: AccountManager,
-    private val deviceManager: DeviceManager
-) : HeaderProvider {
-
-    override fun getOsVersion(): String {
-        val version = VERSION.RELEASE
-        if (version.isNotEmpty()) {
-            return version
-        }
-        return "0"
+class GetGroupWalletMessagesUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val nativeSdk: NunchukNativeSdk
+) : UseCase<GetGroupWalletMessagesUseCase.Params, List<FreeGroupMessage>>(dispatcher) {
+    override suspend fun execute(parameters: Params): List<FreeGroupMessage> {
+        return nativeSdk.getGroupWalletMessages(
+            walletId = parameters.walletId,
+            page = parameters.page,
+            pageSize = 20
+        )
     }
 
-    override fun getDeviceId() = deviceManager.getDeviceId()
-
-    override fun getDeviceName(): String = android.os.Build.MODEL
-
-    override fun getAppVersion() = BuildConfig.VERSION_NAME
-
-    override fun getAccessToken() = accountManager.getAccount().token
-
+    data class Params(
+        val walletId: String,
+        val page: Int,
+    )
 }

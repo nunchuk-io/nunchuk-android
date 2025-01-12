@@ -34,6 +34,9 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class QuickWalletActivity : BaseActivity<ActivityQuickWalletBinding>() {
+
+    private val isQuickWallet: Boolean by lazy { intent.extras?.let { WalletIntermediaryFragmentArgs.fromBundle(it).isQuickWallet } ?: false }
+
     override fun initializeBinding(): ActivityQuickWalletBinding {
         return ActivityQuickWalletBinding.inflate(layoutInflater)
     }
@@ -42,7 +45,14 @@ class QuickWalletActivity : BaseActivity<ActivityQuickWalletBinding>() {
         super.onCreate(savedInstanceState)
         setLightStatusBar()
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
-        navHostFragment.findNavController().setGraph(R.navigation.quick_wallet_navigation, intent.extras)
+        val inflater = navHostFragment.navController.navInflater
+        val graph = inflater.inflate(R.navigation.quick_wallet_navigation)
+        if (isQuickWallet) {
+            graph.setStartDestination(R.id.walletIntermediaryFragment)
+        } else {
+            graph.setStartDestination(R.id.walletIntermediaryNewUIFragment)
+        }
+        navHostFragment.navController.setGraph(graph, intent.extras)
     }
 
     companion object {

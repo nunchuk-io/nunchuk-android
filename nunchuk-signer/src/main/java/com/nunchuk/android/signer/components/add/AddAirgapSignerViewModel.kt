@@ -24,6 +24,7 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.JoinFreeGroupWalletUseCase
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.push.PushEvent

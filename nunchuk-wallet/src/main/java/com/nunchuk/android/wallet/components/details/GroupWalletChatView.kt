@@ -195,8 +195,8 @@ fun ChatInput(onSendMessage: (String) -> Unit) {
                     style = NunchukTheme.typography.bodySmall,
                 )
             },
-            inputBoxHeight = 45.dp,
-            roundBoxRadius = 20.dp
+            inputBoxHeight = 40.dp,
+            roundBoxRadius = 8.dp
         )
         Spacer(modifier = Modifier.width(16.dp))
 

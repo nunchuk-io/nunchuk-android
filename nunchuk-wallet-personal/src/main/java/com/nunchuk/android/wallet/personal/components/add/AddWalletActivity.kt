@@ -32,6 +32,8 @@ import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.wallet.personal.R
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -89,6 +91,16 @@ class AddWalletActivity : BaseComposeActivity() {
                 )
             )
         }
+    }
+
+    private fun showChangeAddressTypeDialog() {
+        NCWarningDialog(this).showDialog(
+            message = getString(R.string.nc_change_address_type_group_wallet),
+            btnYes = getString(R.string.nc_text_continue),
+            onYesClick = {
+
+            }
+        )
     }
 
     companion object {
