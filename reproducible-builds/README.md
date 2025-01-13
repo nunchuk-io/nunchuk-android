@@ -153,14 +153,14 @@ docker run --rm -v "$(pwd)":/nunchuk-android-nativesdk nunchuk-android bash -c "
 ```
 After that's done, you have your sdk .aar file! It's located in:
 
-`./build/outputs/aar/nunchuk-android-nativesdk-arm8-release.aar`
+`./build/outputs/aar/nunchuk-android-nativesdk-arm-release.aar`
 
 Download `nunchuk-android-nativesdk-arm8-release.aar` on [nunchuk-android-nativesdk-prebuild](https://github.com/nunchuk-io/nunchuk-android-nativesdk-prebuild). Note that you must switch to the same tag/version as `nunchuk-android-nativesdk` before downloading.
 
 Run the command below to check if the two `.aar` files on GitHub and the local build match with each other
 
 ```
-diff ./build/outputs/aar/nunchuk-android-nativesdk-arm8-release.aar nunchuk-android-nativesdk-arm8-release.aar
+diff ./build/outputs/aar/nunchuk-android-nativesdk-arm-release.aar nunchuk-android-nativesdk-arm8-release.aar
 ```
 
 ## Troubleshooting
