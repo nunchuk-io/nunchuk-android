@@ -148,9 +148,8 @@ sdk_version=$(sed -n "s/.*prebuildNativeSdkVersion = '\([0-9.]*\)@aar'.*/\1/p" $
 git checkout $sdk_version
 
 # Build the SDK
-docker run --rm -v "$(pwd)":/nunchuk-android-nativesdk nunchuk-android bash -c "cd /nunchuk-android-nativesdk/src/main/native && ./.install_linux_deps.sh arm64-v8a"
-docker run --rm -v "$(pwd)":/nunchuk-android-nativesdk nunchuk-android bash -c "cd /nunchuk-android-nativesdk/src/main/native && ./.install_linux_deps.sh armeabi-v7a"
-docker run --rm -v "$(pwd)":/nunchuk-android-nativesdk nunchuk-android bash -c "cd /nunchuk-android-nativesdk && ./gradlew assembleArm8Release"
+docker run --rm -v "$(pwd)":/nunchuk-android-nativesdk nunchuk-android bash -c "cd /nunchuk-android-nativesdk/src/main/native && ./.install_deps.sh"
+docker run --rm -v "$(pwd)":/nunchuk-android-nativesdk nunchuk-android bash -c "cd /nunchuk-android-nativesdk && ./gradlew assembleArmRelease"
 ```
 After that's done, you have your sdk .aar file! It's located in:
 
