@@ -29,7 +29,7 @@ ext {
 
     // Nunchuk dep versions
     nativeSdkVersion = '1.1.81'
-    prebuildNativeSdkVersion = '1.1.82@aar'
+    prebuildNativeSdkVersion = '1.1.83@aar'
 
     // Matrix
     matrixSdkVersion = '1.5.30'
