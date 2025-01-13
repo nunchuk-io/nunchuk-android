@@ -23,6 +23,7 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.JoinFreeGroupWalletUseCase
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
 import com.nunchuk.android.core.domain.membership.SetLocalMembershipPlanFlowUseCase
 import com.nunchuk.android.core.guestmode.SignInModeHolder
@@ -34,6 +35,7 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.wallet.WalletOption
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetListGroupSandboxUseCase
 import com.nunchuk.android.usecase.membership.GetGroupAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -59,6 +61,8 @@ class WalletIntermediaryViewModel @Inject constructor(
     private val getPersonalMembershipStepUseCase: GetPersonalMembershipStepUseCase,
     private val setLocalMembershipPlanFlowUseCase: SetLocalMembershipPlanFlowUseCase,
     private val signInModeHolder: SignInModeHolder,
+    private val joinFreeGroupWalletUseCase: JoinFreeGroupWalletUseCase,
+    private val getListGroupSandboxUseCase: GetListGroupSandboxUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletIntermediaryState())
     val state = _state.asStateFlow()
@@ -95,6 +99,13 @@ class WalletIntermediaryViewModel @Inject constructor(
             }.collect { steps ->
                 _state.update {
                     it.copy(personalSteps = steps)
+                }
+            }
+        }
+        viewModelScope.launch {
+            getListGroupSandboxUseCase(Unit).onSuccess { groupSandbox ->
+                _state.update {
+                    it.copy(numOfFreeGroupWallet = groupSandbox.size)
                 }
             }
         }
@@ -149,10 +160,23 @@ class WalletIntermediaryViewModel @Inject constructor(
 
     fun isExceededGroupWalletLimit(): Boolean {
         val numberOfGroupWallets = state.value.numOfFreeGroupWallet
-        if (signInModeHolder.getCurrentMode().isGuestMode() && numberOfGroupWallets > 1) return true
-        if (state.value.isMembership && numberOfGroupWallets > 3) return true
-        if (numberOfGroupWallets > 3) return true
+        if (signInModeHolder.getCurrentMode().isGuestMode() && numberOfGroupWallets >= 1) return true
+        if (state.value.isMembership && numberOfGroupWallets >= 3) return true
+        if (numberOfGroupWallets >= 3) return true
         return false
+    }
+
+    fun handleInputWalletLink(link: String) {
+        viewModelScope.launch {
+            _event.emit(WalletIntermediaryEvent.Loading(true))
+            joinFreeGroupWalletUseCase(link).onSuccess {
+                _event.emit(WalletIntermediaryEvent.Loading(false))
+                _event.emit(WalletIntermediaryEvent.JoinGroupWalletSuccess(it.id))
+            }.onFailure {
+                _event.emit(WalletIntermediaryEvent.Loading(false))
+                _event.emit(WalletIntermediaryEvent.JoinGroupWalletFailed)
+            }
+        }
     }
 
     val hasSigner: Boolean
@@ -164,6 +188,8 @@ sealed class WalletIntermediaryEvent {
     data class OnLoadFileSuccess(val path: String) : WalletIntermediaryEvent()
     data class ShowError(val msg: String) : WalletIntermediaryEvent()
     data object NoSigner : WalletIntermediaryEvent()
+    data class JoinGroupWalletSuccess(val groupId: String) : WalletIntermediaryEvent()
+    data object JoinGroupWalletFailed : WalletIntermediaryEvent()
 }
 
 data class WalletIntermediaryState(

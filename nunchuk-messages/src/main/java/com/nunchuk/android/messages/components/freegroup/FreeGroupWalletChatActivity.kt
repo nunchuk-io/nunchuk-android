@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -52,6 +53,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
@@ -65,14 +67,19 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class FreeGroupWalletChatActivity : BaseComposeActivity() {
+
+    private val viewModel: FreeGroupWalletChatViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
             setContent {
-                FreeGroupWalletChatScreen()
+                val state by viewModel.uiState.collectAsStateWithLifecycle()
+                FreeGroupWalletChatScreen(
+                    state = state
+                )
             }
         })
     }
@@ -87,7 +94,9 @@ class FreeGroupWalletChatActivity : BaseComposeActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FreeGroupWalletChatScreen() {
+fun FreeGroupWalletChatScreen(
+    state: FreeGroupWalletChatUiState = FreeGroupWalletChatUiState()
+) {
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -157,69 +166,7 @@ fun FreeGroupWalletChatScreen() {
 
                 // Message List Section
                 ChatMessages(
-                    messages = listOf(
-                        Message(
-                            text = "Hey everyone, I’m in! Who’s next to add their key?",
-                            isSent = true,
-                            time = "7:14 PM",
-                            delivered = true
-                        ),
-                        Message(
-                            text = "Sample Message from the sender",
-                            isSent = false,
-                            senderId = "352B3521"
-                        ),
-                        Message(
-                            text = "Same here, just added my key. Let me know if it’s all set.",
-                            isSent = false,
-                            senderId = "F42B3121"
-                        ),
-                        Message(
-                            text = "Same here, just added my key. Let me know if it’s all set.",
-                            isSent = false,
-                            senderId = "F42B3121"
-                        ),
-                        Message(
-                            text = "Same here, just added my key. Let me know if it’s all set.",
-                            isSent = false,
-                            senderId = "F42B3121"
-                        ),
-                        Message(
-                            text = "Same here, just added my key. Let me know if it’s all set.",
-                            isSent = false,
-                            senderId = "F42B3121"
-                        ),
-                        Message(
-                            text = "Same here, just added my key. Let me know if it’s all set.",
-                            isSent = false,
-                            senderId = "F42B3121"
-                        ),
-                        Message(
-                            text = "Same here, just added my key. Let me know if it’s all set.",
-                            isSent = false,
-                            senderId = "F42B3121"
-                        ),
-                        Message(
-                            text = "Same here, just added my key. Let me know if it’s all set.",
-                            isSent = false,
-                            senderId = "F42B3121"
-                        ),
-                        Message(
-                            text = "Same here, just added my key. Let me know if it’s all set.",
-                            isSent = false,
-                            senderId = "F42B3121"
-                        ),
-                        Message(
-                            text = "Same here, just added my key. Let me know if it’s all set.",
-                            isSent = false,
-                            senderId = "F42B3121"
-                        ),
-                        Message(
-                            text = "Same here, just added my key. Let me know if it’s all set.",
-                            isSent = false,
-                            senderId = "F42B3121"
-                        )
-                    )
+                    messages = state.messageUis
                 )
             }
         }
@@ -263,7 +210,7 @@ fun ChatHeader(walletName: String, subtext: String) {
 }
 
 @Composable
-fun ChatMessages(messages: List<Message>) {
+fun ChatMessages(messages: List<MessageUI>) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -271,16 +218,13 @@ fun ChatMessages(messages: List<Message>) {
         reverseLayout = true,
     ) {
         items(messages) { message ->
-            if (message.isSent) {
+            if (message is MessageUI.SenderMessage) {
                 SentMessageBubble(message)
-            } else {
+            } else if (message is MessageUI.ReceiverMessage) {
                 ReceivedMessageBubble(message)
-            }
-
-            message.time?.let {
-                // Timestamp between messages
+            } else if (message is MessageUI.TimeMessage) {
                 Text(
-                    text = it,
+                    text = message.date,
                     style = NunchukTheme.typography.bodySmall,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -293,7 +237,7 @@ fun ChatMessages(messages: List<Message>) {
 }
 
 @Composable
-fun SentMessageBubble(message: Message) {
+fun SentMessageBubble(message: MessageUI.SenderMessage) {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val maxWidth = (screenWidth * 0.7f)
     Column(
@@ -312,24 +256,24 @@ fun SentMessageBubble(message: Message) {
                 .padding(12.dp)
         ) {
             Text(
-                text = message.text,
+                text = message.data.content,
                 style = NunchukTheme.typography.body,
                 color = Color.Black
             )
         }
-        if (message.delivered) {
+//        if (message.data.delivered) {
             Text(
                 text = "Delivered",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray,
                 modifier = Modifier.padding(top = 2.dp)
             )
-        }
+//        }
     }
 }
 
 @Composable
-fun ReceivedMessageBubble(message: Message) {
+fun ReceivedMessageBubble(message: MessageUI.ReceiverMessage) {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val maxWidth = (screenWidth * 0.7f)
     Column(
@@ -339,7 +283,7 @@ fun ReceivedMessageBubble(message: Message) {
         horizontalAlignment = Alignment.Start
     ) {
         Text(
-            text = message.senderId ?: "",
+            text = message.data.sender ?: "",
             style = NunchukTheme.typography.caption.copy(color = MaterialTheme.colorScheme.textSecondary),
             modifier = Modifier.padding(bottom = 2.dp, start = 50.dp)
         )
@@ -380,7 +324,7 @@ fun ReceivedMessageBubble(message: Message) {
                     .padding(12.dp)
             ) {
                 Text(
-                    text = message.text,
+                    text = message.data.content,
                     style = NunchukTheme.typography.body,
                 )
             }

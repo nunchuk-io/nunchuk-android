@@ -19,25 +19,28 @@
 
 package com.nunchuk.android.core.domain
 
-import com.nunchuk.android.core.network.HeaderProvider
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
-import timber.log.Timber
 import javax.inject.Inject
 
 class SendMessageFreeGroupWalletUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
-    private val headerProvider: HeaderProvider,
     private val nativeSdk: NunchukNativeSdk
 ) : UseCase<SendMessageFreeGroupWalletUseCase.Param, Unit>(dispatcher) {
     override suspend fun execute(parameters: Param) {
-//        return nativeSdk.sendGroupWalletMessage()
+        return nativeSdk.sendGroupWalletMessage(
+            walletId = parameters.walletId,
+            message = parameters.message,
+            singleSigner = parameters.singleSigner
+        )
     }
 
     data class Param(
         val message: String,
-        val walletId: String
+        val walletId: String,
+        val singleSigner: SingleSigner
     )
 }

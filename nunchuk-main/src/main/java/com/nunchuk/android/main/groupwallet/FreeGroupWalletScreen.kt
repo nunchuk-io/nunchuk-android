@@ -65,6 +65,7 @@ import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.wallet.util.toReadableString
 
@@ -195,7 +196,7 @@ fun FreeGroupWalletScreen(
         ) {
             item {
                 WalletInfo(
-                    walletsExtended = WalletExtended(),
+                    groupSandbox = state.group,
                     onEditClicked = onEditClicked
                 )
             }
@@ -310,13 +311,11 @@ private fun AddKeyCard(
 
 @Composable
 internal fun WalletInfo(
-    walletsExtended: WalletExtended,
+    groupSandbox: GroupSandbox? = null,
     onEditClicked: () -> Unit = {},
 ) {
-    val wallet = walletsExtended.wallet
-
-    val requireSigns = wallet.totalRequireSigns
-    val totalSigns = wallet.signers.size
+    val requireSigns = groupSandbox?.m ?: 0
+    val totalSigns = groupSandbox?.n ?: 0
     Box(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(12.dp))
@@ -340,7 +339,7 @@ internal fun WalletInfo(
                         .weight(1.0f)
                 ) {
                     Text(
-                        text = stringResource(id = R.string.nc_group_wallet),
+                        text = groupSandbox?.name.orEmpty(),
                         style = NunchukTheme.typography.titleLarge
                             .copy(color = colorResource(id = R.color.nc_white_color))
                     )
@@ -364,7 +363,7 @@ internal fun WalletInfo(
 
                         Text(
                             modifier = Modifier.padding(start = 8.dp),
-                            text = wallet.addressType.toReadableString(LocalContext.current),
+                            text = groupSandbox?.addressType?.toReadableString(LocalContext.current) ?: "",
                             style = NunchukTheme.typography.bodySmall.copy(
                                 color = colorResource(
                                     id = R.color.nc_white_color
@@ -449,7 +448,7 @@ private fun WalletInfoPreview(
     @PreviewParameter(WalletExtendedProvider::class) walletsExtended: WalletExtended,
 ) {
     NunchukTheme {
-        WalletInfo(walletsExtended)
+        WalletInfo()
     }
 }
 

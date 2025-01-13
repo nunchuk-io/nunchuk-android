@@ -34,6 +34,8 @@ import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.viewbinding.ViewBinding
+import com.nunchuk.android.compose.NcToastMessage
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.core.base.BaseCameraFragment
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
@@ -266,12 +268,18 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
     }
 
     private fun observer() {
-        flowObserver(viewModel.event) {
-            when (it) {
-                is WalletIntermediaryEvent.OnLoadFileSuccess -> handleLoadFilePath(it)
-                is WalletIntermediaryEvent.ShowError -> showError(it.msg)
-                is WalletIntermediaryEvent.Loading -> showOrHideLoading(it.isLoading)
+        flowObserver(viewModel.event) { event ->
+            when (event) {
+                is WalletIntermediaryEvent.OnLoadFileSuccess -> handleLoadFilePath(event)
+                is WalletIntermediaryEvent.ShowError -> showError(event.msg)
+                is WalletIntermediaryEvent.Loading -> showOrHideLoading(event.isLoading)
                 WalletIntermediaryEvent.NoSigner -> showNoSignerDialog()
+                WalletIntermediaryEvent.JoinGroupWalletFailed -> {
+                    showError(getString(R.string.nc_unable_access_link))
+                }
+                is WalletIntermediaryEvent.JoinGroupWalletSuccess -> {
+                    navigator.openFreeGroupWalletScreen(requireActivity(), event.groupId)
+                }
             }
         }
     }
@@ -293,7 +301,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
             confirmText = getString(R.string.nc_text_continue),
             onConfirmed = {
                 if (it.isNotEmpty()) {
-//                    viewModel.handleInputWalletLink(it)
+                    viewModel.handleInputWalletLink(it)
                 }
             },
             isMaskedInput = false
