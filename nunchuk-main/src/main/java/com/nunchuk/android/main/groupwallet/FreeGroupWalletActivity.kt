@@ -17,7 +17,7 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val groupId = intent.getStringExtra(EXTRA_GROUP_ID).orEmpty()
+        val groupId = intent.getStringExtra(EXTRA_GROUP_ID)
         setContentView(
             ComposeView(this).apply {
                 setContent {

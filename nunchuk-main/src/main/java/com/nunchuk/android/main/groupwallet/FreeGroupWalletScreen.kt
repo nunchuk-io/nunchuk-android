@@ -85,7 +85,7 @@ private val avatarColors = listOf(
 
 fun NavGraphBuilder.freeGroupWallet(
     onEditClicked: (String) -> Unit = {},
-    groupId: String
+    groupId: String?
 ) {
     composable(
         route = freeGroupWalletRoute,
@@ -93,6 +93,7 @@ fun NavGraphBuilder.freeGroupWallet(
             navArgument("group_id") {
                 type = NavType.StringType
                 defaultValue = groupId
+                nullable = true
             },
         )
     ) {
