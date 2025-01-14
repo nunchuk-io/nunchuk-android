@@ -67,10 +67,12 @@ import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.wallet.util.toReadableString
+import com.nunchuk.android.widget.NCToastMessage
 
 const val freeGroupWalletRoute = "free_group_wallet/{group_id}"
 private val avatarColors = listOf(
@@ -84,8 +86,10 @@ private val avatarColors = listOf(
 )
 
 fun NavGraphBuilder.freeGroupWallet(
+    groupId: String?,
     onEditClicked: (String) -> Unit = {},
-    groupId: String?
+    onCopyLinkClicked: (String) -> Unit = {},
+    onShowQRCodeClicked: (String) -> Unit = {},
 ) {
     composable(
         route = freeGroupWalletRoute,
@@ -120,7 +124,8 @@ fun NavGraphBuilder.freeGroupWallet(
             onRemoveClicked = {
 
             },
-
+            onCopyLinkClicked = onCopyLinkClicked,
+            onShowQRCodeClicked = onShowQRCodeClicked
         )
     }
 }
@@ -134,6 +139,8 @@ fun FreeGroupWalletScreen(
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
     onEditClicked: () -> Unit = {},
+    onCopyLinkClicked: (String) -> Unit = {},
+    onShowQRCodeClicked: (String) -> Unit = {},
 ) {
     Scaffold(
         modifier = Modifier.navigationBarsPadding(),
@@ -218,7 +225,13 @@ fun FreeGroupWalletScreen(
             item {
                 WalletInfo(
                     groupSandbox = state.group,
-                    onEditClicked = onEditClicked
+                    onEditClicked = onEditClicked,
+                    onCopyLinkClicked = {
+                        state.group?.let { onCopyLinkClicked(it.url) }
+                    },
+                    onShowQRCodeClicked = {
+                        state.group?.let { onShowQRCodeClicked(it.url) }
+                    }
                 )
             }
 
@@ -334,6 +347,8 @@ private fun AddKeyCard(
 internal fun WalletInfo(
     groupSandbox: GroupSandbox? = null,
     onEditClicked: () -> Unit = {},
+    onCopyLinkClicked: () -> Unit = {},
+    onShowQRCodeClicked: () -> Unit = {},
 ) {
     val requireSigns = groupSandbox?.m ?: 0
     val totalSigns = groupSandbox?.n ?: 0
@@ -406,7 +421,8 @@ internal fun WalletInfo(
                 modifier = Modifier.padding(top = 12.dp),
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable { onCopyLinkClicked() }
                 ) {
                     NcIcon(
                         modifier = Modifier.size(16.dp),
@@ -423,7 +439,8 @@ internal fun WalletInfo(
                 }
 
                 Row(
-                    modifier = Modifier.padding(start = 20.dp),
+                    modifier = Modifier.padding(start = 20.dp)
+                        .clickable { onShowQRCodeClicked() },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     NcIcon(
