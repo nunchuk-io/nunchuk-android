@@ -1,50 +1,76 @@
 package com.nunchuk.android.messages.components.freegroup
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetListMessageFreeGroupWalletUseCase
-import com.nunchuk.android.messages.components.detail.AbsChatModel
-import com.nunchuk.android.messages.components.detail.DateModel
-import com.nunchuk.android.messages.components.detail.Message
+import com.nunchuk.android.core.domain.SendMessageFreeGroupWalletUseCase
 import com.nunchuk.android.model.FreeGroupMessage
+import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
 import com.nunchuk.android.utils.simpleDateFormat
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.ArrayList
 import java.util.Date
-import java.util.LinkedHashMap
-import java.util.LinkedHashSet
 import javax.inject.Inject
 
 @HiltViewModel
 class FreeGroupWalletChatViewModel @Inject constructor(
-    private val getListMessageFreeGroupWalletUseCase: GetListMessageFreeGroupWalletUseCase
+    private val getListMessageFreeGroupWalletUseCase: GetListMessageFreeGroupWalletUseCase,
+    private val accountManager: AccountManager,
+    private val sendMessageFreeGroupWalletUseCase: SendMessageFreeGroupWalletUseCase,
+    private val getGroupSandboxUseCase: GetGroupSandboxUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _uiState= MutableStateFlow(FreeGroupWalletChatUiState())
+    private val groupId =
+        savedStateHandle.get<String>(FreeGroupWalletChatActivity.EXTRA_GROUP_ID).orEmpty()
+
+    private val _uiState = MutableStateFlow(FreeGroupWalletChatUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
-        getListMessage()
+        viewModelScope.launch {
+            getGroupSandboxUseCase(groupId).onSuccess { group ->
+                val signer = group.signers.map {
+                    it.takeIf { it.masterFingerprint.isNotEmpty() }
+                }.firstOrNull()
+                _uiState.update {
+                    it.copy(
+                        walletId = group.walletId,
+                        singleSigner = signer,
+                    )
+                }
+                getListMessage(group.walletId)
+            }
+        }
+        getListMessage("group.walletId") // remove this line
     }
 
-    private fun getListMessage() {
+    private fun getListMessage(walletId: String) {
+//        if (walletId.isEmpty()) return
         viewModelScope.launch {
             val messages = generateSampleFreeGroupMessages()
             _uiState.update {
-                it.copy(messages = messages, messageUis = messages.groupByDate())
+                it.copy(
+                    messages = messages,
+                    messageUis = messages.groupByDate(accountManager.getAccount().id)
+                )
             }
 //            getListMessageFreeGroupWalletUseCase(
 //                GetListMessageFreeGroupWalletUseCase.Param(
-//                    walletId = "walletId",
+//                    walletId = walletId,
 //                )
 //            ).onSuccess {
 //                _uiState.update {
-//                    it.copy(messages = it.messages, messageUis = it.messages.groupByDate())
+//                    it.copy(
+//                        messages = it.messages,
+//                        messageUis = it.messages.groupByDate(accountManager.getAccount().id)
+//                    )
 //                }
 //            }.onFailure {
 //                // Handle failure
@@ -52,6 +78,22 @@ class FreeGroupWalletChatViewModel @Inject constructor(
         }
     }
 
+    fun sendMessage(message: String) {
+        if (_uiState.value.singleSigner == null || message.isEmpty()) return
+        viewModelScope.launch {
+            sendMessageFreeGroupWalletUseCase(
+                SendMessageFreeGroupWalletUseCase.Param(
+                    message = message,
+                    walletId = _uiState.value.walletId,
+                    singleSigner = _uiState.value.singleSigner!!
+                )
+            ).onSuccess {
+                // Handle success
+            }.onFailure {
+                // Handle failure
+            }
+        }
+    }
 }
 
 fun generateSampleFreeGroupMessages(): List<FreeGroupMessage> {
@@ -73,7 +115,9 @@ fun generateSampleFreeGroupMessages(): List<FreeGroupMessage> {
 
 data class FreeGroupWalletChatUiState(
     val messages: List<FreeGroupMessage> = emptyList(),
-    val messageUis: List<MessageUI> = emptyList()
+    val messageUis: List<MessageUI> = emptyList(),
+    val singleSigner: SingleSigner? = null,
+    val walletId: String = ""
 )
 
 sealed class MessageUI {
@@ -82,7 +126,7 @@ sealed class MessageUI {
     data class ReceiverMessage(val data: FreeGroupMessage) : MessageUI()
 }
 
-internal fun List<FreeGroupMessage>.groupByDate(): List<MessageUI> {
+internal fun List<FreeGroupMessage>.groupByDate(curUserId: String): List<MessageUI> {
     val grouping: LinkedHashMap<String, Set<FreeGroupMessage>> = LinkedHashMap()
     var messages: MutableSet<FreeGroupMessage>
     for (model in this) {
@@ -96,16 +140,16 @@ internal fun List<FreeGroupMessage>.groupByDate(): List<MessageUI> {
             grouping[hashMapKey] = messages
         }
     }
-    return grouping.groupByDate()
+    return grouping.groupByDate(curUserId)
 }
 
-internal fun LinkedHashMap<String, Set<FreeGroupMessage>>.groupByDate(): List<MessageUI> {
+internal fun LinkedHashMap<String, Set<FreeGroupMessage>>.groupByDate(curUserId: String): List<MessageUI> {
     val models = ArrayList<MessageUI>()
     for (date in keys) {
         val dateItem = MessageUI.TimeMessage(date)
         models.add(dateItem)
         this[date]!!.mapTo(models) {
-            if (it.sender == "senderId") {
+            if (it.sender == curUserId) {
                 MessageUI.SenderMessage(it)
             } else {
                 MessageUI.ReceiverMessage(it)

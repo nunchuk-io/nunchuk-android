@@ -79,15 +79,22 @@ class FreeGroupWalletChatActivity : BaseComposeActivity() {
                 val state by viewModel.uiState.collectAsStateWithLifecycle()
                 FreeGroupWalletChatScreen(
                     state = state
-                )
+                ) {
+                    viewModel.sendMessage(it)
+                }
             }
         })
     }
 
     companion object {
         const val TAG = "FreeGroupWalletChatActivity"
+        const val EXTRA_GROUP_ID = "group_id"
+
         fun start(activity: Context) {
-            activity.startActivity(Intent(activity, FreeGroupWalletChatActivity::class.java))
+            activity.startActivity(Intent(activity, FreeGroupWalletChatActivity::class.java)
+                .apply {
+                    putExtra(EXTRA_GROUP_ID, "group_id")
+                })
         }
     }
 }
@@ -95,7 +102,8 @@ class FreeGroupWalletChatActivity : BaseComposeActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FreeGroupWalletChatScreen(
-    state: FreeGroupWalletChatUiState = FreeGroupWalletChatUiState()
+    state: FreeGroupWalletChatUiState = FreeGroupWalletChatUiState(),
+    onSendMessage: (String) -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold(
@@ -261,14 +269,12 @@ fun SentMessageBubble(message: MessageUI.SenderMessage) {
                 color = Color.Black
             )
         }
-//        if (message.data.delivered) {
-            Text(
-                text = "Delivered",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray,
-                modifier = Modifier.padding(top = 2.dp)
-            )
-//        }
+        Text(
+            text = "Delivered",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray,
+            modifier = Modifier.padding(top = 2.dp)
+        )
     }
 }
 
@@ -283,7 +289,7 @@ fun ReceivedMessageBubble(message: MessageUI.ReceiverMessage) {
         horizontalAlignment = Alignment.Start
     ) {
         Text(
-            text = message.data.sender ?: "",
+            text = message.data.signer,
             style = NunchukTheme.typography.caption.copy(color = MaterialTheme.colorScheme.textSecondary),
             modifier = Modifier.padding(bottom = 2.dp, start = 50.dp)
         )
@@ -375,15 +381,6 @@ fun ChatInput(onSendMessage: (String) -> Unit) {
         )
     }
 }
-
-// Message data class
-data class Message(
-    val text: String,
-    val isSent: Boolean,
-    val senderId: String? = null,
-    val time: String? = null,
-    val delivered: Boolean = false
-)
 
 @Preview
 @Composable
