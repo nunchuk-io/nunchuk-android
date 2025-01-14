@@ -26,9 +26,9 @@ fun WalletConfigType.getMN(): Pair<Int, Int> {
 }
 
 fun getWalletConfigTypeBy(n: Int, m: Int): WalletConfigType {
-    if (n == 2 && m == 3) {
+    if (n == 3 && m == 2) {
         return WalletConfigType.TOW_OF_THREE
-    } else if (n == 3 && m == 5) {
+    } else if (n == 5 && m == 3) {
         return WalletConfigType.THREE_OF_FIVE
     }
     return WalletConfigType.CUSTOM

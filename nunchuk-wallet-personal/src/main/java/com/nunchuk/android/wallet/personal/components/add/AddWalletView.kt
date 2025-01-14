@@ -70,21 +70,22 @@ fun AddWalletView(
     onContinue: (String, AddressType, Int, Int) -> Unit = { _, _, _, _ -> }
 ) {
     var walletName by rememberSaveable { mutableStateOf("") }
+    var viewAll by rememberSaveable { mutableStateOf(false) }
+    var walletConfigType by rememberSaveable {
+        mutableStateOf(WalletConfigType.TOW_OF_THREE)
+    }
+    var keys by remember { mutableIntStateOf(0) }
+    var requiredKeys by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(state.groupSandbox?.name) {
         walletName = state.groupSandbox?.name ?: ""
     }
-    var viewAll by rememberSaveable { mutableStateOf(false) }
-    var walletConfigType by rememberSaveable {
-        mutableStateOf(
-            getWalletConfigTypeBy(
-                n = state.groupSandbox?.n ?: 2,
-                m = state.groupSandbox?.m ?: 3
-            )
+    LaunchedEffect(state.groupSandbox?.n ?: 3, state.groupSandbox?.m ?: 2) {
+        walletConfigType = getWalletConfigTypeBy(
+            n = state.groupSandbox?.n ?: 3,
+            m = state.groupSandbox?.m ?: 2
         )
     }
-    var keys by remember { mutableIntStateOf(0) }
-    var requiredKeys by remember { mutableIntStateOf(0) }
 
     val options = if (!viewAll) listOf(
         AddressType.NATIVE_SEGWIT,
