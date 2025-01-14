@@ -70,6 +70,10 @@ fun AddWalletView(
     onContinue: (String, AddressType, Int, Int) -> Unit = { _, _, _, _ -> }
 ) {
     var walletName by rememberSaveable { mutableStateOf("") }
+
+    LaunchedEffect(state.groupSandbox?.name) {
+        walletName = state.groupSandbox?.name ?: ""
+    }
     var viewAll by rememberSaveable { mutableStateOf(false) }
     var walletConfigType by rememberSaveable {
         mutableStateOf(
@@ -118,11 +122,13 @@ fun AddWalletView(
                         .padding(16.dp),
                     enabled = walletName.isNotBlank(),
                     onClick = {
-                        onContinue(walletName, state.addressTypeSelected, keys, requiredKeys)
+                        onContinue(walletName, state.addressTypeSelected, requiredKeys, keys)
                     }
                 ) {
                     Text(
-                        text = stringResource(id = R.string.nc_text_continue),
+                        text = if (isEditGroupWallet) stringResource(id = R.string.nc_save_changes) else stringResource(
+                            id = R.string.nc_text_continue
+                        ),
                         style = NunchukTheme.typography.title.copy(
                             color = MaterialTheme.colorScheme.controlTextPrimary
                         )
@@ -206,6 +212,10 @@ fun AddWalletView(
                             isEndItem = option == WalletConfigType.CUSTOM,
                             onClick = {
                                 walletConfigType = option
+                                if (option != WalletConfigType.CUSTOM) {
+                                    requiredKeys = option.getMN().first
+                                    keys = option.getMN().second
+                                }
                             }
                         )
                     }
@@ -216,8 +226,8 @@ fun AddWalletView(
                         m = state.groupSandbox!!.m,
                         n = state.groupSandbox.n
                     ) { m, n ->
-                        keys = m
-                        requiredKeys = n
+                        keys = n
+                        requiredKeys = m
                     }
                 }
             }
@@ -391,11 +401,11 @@ fun KeysAndRequiredKeysScreen(
             )
             .padding(16.dp)
     ) {
-        var keys by remember { mutableIntStateOf(m) }
-        var requiredKeys by remember { mutableIntStateOf(n) }
+        var keys by remember { mutableIntStateOf(n) }
+        var requiredKeys by remember { mutableIntStateOf(m) }
 
         LaunchedEffect(m, n) {
-            onNumberChange(keys, requiredKeys)
+            onNumberChange(requiredKeys, keys)
         }
 
         KeyManagementSection(

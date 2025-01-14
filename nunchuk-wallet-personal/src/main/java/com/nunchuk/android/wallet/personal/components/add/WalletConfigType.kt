@@ -17,6 +17,14 @@ fun WalletConfigType.toOptionName(): String {
     }
 }
 
+fun WalletConfigType.getMN(): Pair<Int, Int> {
+    return when (this) {
+        WalletConfigType.TOW_OF_THREE -> Pair(2, 3)
+        WalletConfigType.THREE_OF_FIVE -> Pair(3, 5)
+        WalletConfigType.CUSTOM -> Pair(0, 0)
+    }
+}
+
 fun getWalletConfigTypeBy(n: Int, m: Int): WalletConfigType {
     if (n == 2 && m == 3) {
         return WalletConfigType.TOW_OF_THREE

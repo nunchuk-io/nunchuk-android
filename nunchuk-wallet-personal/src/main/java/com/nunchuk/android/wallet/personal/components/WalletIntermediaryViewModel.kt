@@ -35,7 +35,7 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.wallet.WalletOption
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
-import com.nunchuk.android.usecase.free.groupwallet.GetListGroupSandboxUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetGroupsSandboxUseCase
 import com.nunchuk.android.usecase.membership.GetGroupAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -62,7 +62,7 @@ class WalletIntermediaryViewModel @Inject constructor(
     private val setLocalMembershipPlanFlowUseCase: SetLocalMembershipPlanFlowUseCase,
     private val signInModeHolder: SignInModeHolder,
     private val joinFreeGroupWalletUseCase: JoinFreeGroupWalletUseCase,
-    private val getListGroupSandboxUseCase: GetListGroupSandboxUseCase,
+    private val getGroupsSandboxUseCase: GetGroupsSandboxUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletIntermediaryState())
     val state = _state.asStateFlow()
@@ -103,7 +103,7 @@ class WalletIntermediaryViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            getListGroupSandboxUseCase(Unit).onSuccess { groupSandbox ->
+            getGroupsSandboxUseCase(Unit).onSuccess { groupSandbox ->
                 _state.update {
                     it.copy(numOfFreeGroupWallet = groupSandbox.size)
                 }

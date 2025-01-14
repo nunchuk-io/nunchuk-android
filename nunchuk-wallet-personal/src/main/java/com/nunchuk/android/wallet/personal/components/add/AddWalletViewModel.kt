@@ -1,6 +1,5 @@
 package com.nunchuk.android.wallet.personal.components.add
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,10 +9,13 @@ import com.nunchuk.android.usecase.GetFreeGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.UpdateGroupSandboxConfigUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,20 +32,23 @@ class AddWalletViewModel @Inject constructor(
     private val _state = MutableStateFlow(AddWalletState())
     val state = _state.asStateFlow()
 
+    private val _event = MutableSharedFlow<AddWalletEvent>()
+    val event = _event.asSharedFlow()
+
     init {
         if (groupId.isNotEmpty()) {
             viewModelScope.launch {
-                getGroupSandboxUseCase(groupId).onSuccess { groupSandbox ->
-                    val signers = groupSandbox.signers.map {
+                getGroupSandboxUseCase(groupId).onSuccess { group ->
+                    val signers = group.signers.map {
                         it.takeIf { it.masterFingerprint.isNotEmpty() }?.toModel()
                     }
                     _state.update {
                         it.copy(
-                            groupSandbox = groupSandbox,
+                            groupSandbox = group,
                             isHasSigner = signers.isNotEmpty()
                         )
                     }
-                    getFreeGroupWalletConfig(groupSandbox.addressType)
+                    getFreeGroupWalletConfig(group.addressType)
                 }
             }
         }
@@ -59,7 +64,7 @@ class AddWalletViewModel @Inject constructor(
                         )
                     }
                 }.onFailure {
-                    Log.e("group-wallet", "Failed to get free group wallet config $it")
+                    Timber.e("group-wallet", "Failed to get free group wallet config $it")
                 }
         }
     }
@@ -74,12 +79,15 @@ class AddWalletViewModel @Inject constructor(
                     n = n,
                     addressType = state.value.addressTypeSelected
                 )
-            ).onSuccess { groupSandbox ->
+            ).onSuccess { group ->
                 _state.update {
                     it.copy(
-                        groupSandbox = groupSandbox
+                        groupSandbox = group
                     )
                 }
+                _event.emit(AddWalletEvent.UpdateGroupSandboxConfigSuccess(group))
+            }.onFailure {
+                _event.emit(AddWalletEvent.Error(it.message.orEmpty()))
             }
         }
     }

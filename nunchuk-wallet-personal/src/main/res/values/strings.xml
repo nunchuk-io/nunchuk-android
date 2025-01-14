@@ -47,5 +47,5 @@
     <string name="nc_change_address_type_group_wallet">Changing the address type will remove all added keys.</string>
     <string name="nc_free_group_wallet_run_out_guest_mode">You’ve reached the limit of 1 group wallet as a Guest user. Sign up for an account to increase the limit.</string>
     <string name="nc_free_group_wallet_run_out_signed_mode">You’ve reached the maximum of 3 group wallets on this device.</string>
-
+    <string name="nc_save_changes">Save changes</string>
 </resources>

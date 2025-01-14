@@ -26,15 +26,20 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.util.isTaproot
+import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class AddWalletActivity : BaseComposeActivity() {
@@ -66,8 +71,8 @@ class AddWalletActivity : BaseComposeActivity() {
                             viewModel.getFreeGroupWalletConfig(it)
                         }
                         if (viewModel.state.value.groupSandbox?.addressType != it && viewModel.state.value.isHasSigner && isAlreadyShowChangeAddressTypeDialog.not()) {
-                            isAlreadyShowChangeAddressTypeDialog = true
                             showChangeAddressTypeDialog {
+                                isAlreadyShowChangeAddressTypeDialog = true
                                 action()
                             }
                         } else {
@@ -84,6 +89,22 @@ class AddWalletActivity : BaseComposeActivity() {
                         )
                     }
                 })
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.event.collect { event ->
+                    when (event) {
+                        is AddWalletEvent.UpdateGroupSandboxConfigSuccess -> {
+                            finish()
+                        }
+
+                        is AddWalletEvent.Error -> {
+                            showToast(event.message)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -135,7 +156,7 @@ class AddWalletActivity : BaseComposeActivity() {
                     AddWalletActivity::class.java
                 ).apply {
                     putExtra(DECOY_PIN, decoyPin)
-                    putExtra(GROUP_WALLET_ID, groupWalletId.isNotEmpty())
+                    putExtra(GROUP_WALLET_ID, groupWalletId)
                 })
         }
     }

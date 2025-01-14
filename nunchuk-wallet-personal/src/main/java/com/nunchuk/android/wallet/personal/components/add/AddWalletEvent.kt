@@ -29,3 +29,12 @@ data class AddWalletState(
     val addressTypeSelected: AddressType = AddressType.NATIVE_SEGWIT,
     val isHasSigner: Boolean = false
 )
+
+sealed class AddWalletEvent {
+    data class UpdateGroupSandboxConfigSuccess(
+        val groupSandbox: GroupSandbox
+    ) : AddWalletEvent()
+    data class Error(
+        val message: String
+    ) : AddWalletEvent()
+}
