@@ -58,7 +58,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         }
     }
 
-    private fun getGroupSandbox() {
+    fun getGroupSandbox() {
         viewModelScope.launch {
             getGroupSandboxUseCase(groupId).onSuccess { groupSandbox ->
                 updateGroupSandbox(groupSandbox)

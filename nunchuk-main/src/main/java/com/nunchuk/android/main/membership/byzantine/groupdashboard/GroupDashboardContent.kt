@@ -27,9 +27,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ripple.LocalRippleTheme
-import androidx.compose.material.ripple.RippleAlpha
-import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -40,7 +37,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -166,47 +162,44 @@ fun GroupDashboardContent(
                         enter = scaleIn() + fadeIn(),
                         exit = scaleOut() + fadeOut()
                     ) {
-                        CompositionLocalProvider(
-                            LocalRippleTheme provides
-                                    if (isEnableStartGroupChat) LocalRippleTheme.current else NoRippleTheme
-                        ) {
-                            if (uiState.groupChat != null) {
-                                FloatingActionButton(
-                                    shape = CircleShape,
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    onClick = onGroupChatClick
-                                ) {
+                        if (uiState.groupChat != null) {
+                            FloatingActionButton(
+                                shape = CircleShape,
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                onClick = onGroupChatClick
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_messages),
+                                    contentDescription = "Search"
+                                )
+                            }
+                        } else {
+                            ExtendedFloatingActionButton(
+                                shape = RoundedCornerShape(50),
+                                onClick = {
+                                    if (isEnableStartGroupChat) onGroupChatClick()
+                                },
+                                containerColor = if (isEnableStartGroupChat) MaterialTheme.colorScheme.secondary else colorResource(
+                                    id = R.color.nc_bg_mid_gray
+                                ),
+                                text = {
+                                    Text(
+                                        text = stringResource(id = R.string.nc_start_group_chat),
+                                        color = if (isEnableStartGroupChat) Color.White else colorResource(
+                                            id = R.color.nc_grey_dark_color
+                                        )
+                                    )
+                                },
+                                icon = {
                                     Icon(
-                                        painter = painterResource(id = R.drawable.ic_messages),
-                                        contentDescription = "Search"
+                                        painter = painterResource(id = R.drawable.ic_create_message),
+                                        contentDescription = "Search",
+                                        tint = if (isEnableStartGroupChat) LocalContentColor.current else colorResource(
+                                            id = R.color.nc_grey_dark_color
+                                        )
                                     )
                                 }
-                            } else {
-                                ExtendedFloatingActionButton(shape = RoundedCornerShape(50),
-                                    onClick = {
-                                        if (isEnableStartGroupChat) onGroupChatClick()
-                                    },
-                                    containerColor = if (isEnableStartGroupChat) MaterialTheme.colorScheme.secondary else colorResource(
-                                        id = R.color.nc_bg_mid_gray
-                                    ),
-                                    text = {
-                                        Text(
-                                            text = stringResource(id = R.string.nc_start_group_chat),
-                                            color = if (isEnableStartGroupChat) Color.White else colorResource(
-                                                id = R.color.nc_grey_dark_color
-                                            )
-                                        )
-                                    },
-                                    icon = {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.ic_create_message),
-                                            contentDescription = "Search",
-                                            tint = if (isEnableStartGroupChat) LocalContentColor.current else colorResource(
-                                                id = R.color.nc_grey_dark_color
-                                            )
-                                        )
-                                    })
-                            }
+                            )
                         }
                     }
                 }
@@ -260,14 +253,6 @@ fun GroupDashboardContent(
             }
         }
     }
-}
-
-private object NoRippleTheme : RippleTheme {
-    @Composable
-    override fun defaultColor() = Color.Unspecified
-
-    @Composable
-    override fun rippleAlpha(): RippleAlpha = RippleAlpha(0.0f, 0.0f, 0.0f, 0.0f)
 }
 
 private fun LazyListScope.alertListView(

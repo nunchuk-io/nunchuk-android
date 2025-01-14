@@ -48,6 +48,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
@@ -61,16 +62,15 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.provider.WalletExtendedProvider
+import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.wallet.util.toReadableString
-import timber.log.Timber
 
 const val freeGroupWalletRoute = "free_group_wallet/{group_id}"
 private val avatarColors = listOf(
@@ -85,7 +85,7 @@ private val avatarColors = listOf(
 
 fun NavGraphBuilder.freeGroupWallet(
     onEditClicked: (String) -> Unit = {},
-    groupId : String
+    groupId: String
 ) {
     composable(
         route = freeGroupWalletRoute,
@@ -95,13 +95,20 @@ fun NavGraphBuilder.freeGroupWallet(
                 defaultValue = groupId
             },
         )
-    ) { backStackEntry ->
+    ) {
         val viewModel: FreeGroupWalletViewModel = hiltViewModel()
         val state by viewModel.uiState.collectAsStateWithLifecycle()
 
+        LifecycleResumeEffect(Unit) {
+            viewModel.getGroupSandbox()
+            onPauseOrDispose { }
+        }
+
         FreeGroupWalletScreen(
             state = state,
-            onAddClicked = {},
+            onAddClicked = {
+
+            },
             onMoreClicked = {},
             onContinueClicked = {},
             onEditClicked = {
@@ -111,7 +118,8 @@ fun NavGraphBuilder.freeGroupWallet(
             },
             onRemoveClicked = {
 
-            }
+            },
+
         )
     }
 }
@@ -265,23 +273,23 @@ private fun AddKeyCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (signer.isVisible) {
-                NcCircleImage(resId = signer.toReadableDrawableResId())
+                SignerCard(item = signer, modifier = Modifier.weight(1.0f))
             } else {
                 NcCircleImage(
                     iconSize = 48.dp,
                     resId = R.drawable.ic_user,
                     color = avatarColors[index % avatarColors.size]
                 )
-            }
-            Column(
-                modifier = Modifier
-                    .weight(1.0f)
-                    .padding(start = 8.dp)
-            ) {
-                Text(
-                    text = "XFP: ${signer.fingerPrint}",
-                    style = NunchukTheme.typography.body
-                )
+                Column(
+                    modifier = Modifier
+                        .weight(1.0f)
+                        .padding(start = 8.dp)
+                ) {
+                    Text(
+                        text = "XFP: ${signer.fingerPrint}",
+                        style = NunchukTheme.typography.body
+                    )
+                }
             }
             NcOutlineButton(
                 modifier = Modifier.height(36.dp),
@@ -375,7 +383,8 @@ internal fun WalletInfo(
 
                         Text(
                             modifier = Modifier.padding(start = 8.dp),
-                            text = groupSandbox?.addressType?.toReadableString(LocalContext.current) ?: "",
+                            text = groupSandbox?.addressType?.toReadableString(LocalContext.current)
+                                ?: "",
                             style = NunchukTheme.typography.bodySmall.copy(
                                 color = colorResource(
                                     id = R.color.nc_white_color
