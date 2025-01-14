@@ -54,6 +54,7 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.NfcLoading
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.None
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
+import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
@@ -89,6 +90,7 @@ import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
 import com.nunchuk.android.usecase.campaign.GetCurrentCampaignUseCase
 import com.nunchuk.android.usecase.campaign.GetLocalCurrentCampaignUseCase
 import com.nunchuk.android.usecase.campaign.GetLocalReferrerCodeUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetGroupsSandboxUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
@@ -99,7 +101,6 @@ import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
@@ -162,6 +163,7 @@ internal class WalletsViewModel @Inject constructor(
     private val sessionHolder: SessionHolder,
     private val migrateHomeDisplaySettingUseCase: MigrateHomeDisplaySettingUseCase,
     private val getWalletUseCase: GetWalletUseCase,
+    private val getGroupsSandboxUseCase: GetGroupsSandboxUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -330,9 +332,33 @@ internal class WalletsViewModel @Inject constructor(
                     }
                 }
         }
+        getGroupsSandbox()
     }
 
     private var mapDataJob: Job? = null
+
+    fun getGroupsSandbox() {
+        viewModelScope.launch {
+            getGroupsSandboxUseCase(Unit).onSuccess {
+                it.forEach { groupSandbox ->
+                    val groupSandboxes = hashMapOf<String, GroupSandbox>()
+                    val pendingGroupSandboxes = mutableListOf<GroupSandbox>()
+                    if (groupSandbox.finalized) {
+                        groupSandboxes[groupSandbox.id] = groupSandbox
+                    } else {
+                        pendingGroupSandboxes.add(groupSandbox)
+                    }
+                    updateState {
+                        copy(
+                            groupSandboxes = groupSandboxes,
+                            pendingGroupSandboxes = pendingGroupSandboxes
+                        )
+                    }
+                    mapGroupWalletUi()
+                }
+            }
+        }
+    }
 
     private fun getCampaign() {
         viewModelScope.launch {
@@ -449,10 +475,10 @@ internal class WalletsViewModel @Inject constructor(
         isRetrievingData.set(true)
         viewModelScope.launch {
             getWalletsUseCase.execute()
-                .flowOn(Dispatchers.IO)
+                .flowOn(IO)
                 .onException {
                     Timber.e(it)
-                }.flowOn(Dispatchers.Main)
+                }.flowOn(Main)
                 .onStart {
                     if (getState().wallets.isEmpty()) {
                         event(Loading(true))
@@ -476,11 +502,14 @@ internal class WalletsViewModel @Inject constructor(
             val groups = getState().allGroups
             val assistedWallets = getState().assistedWallets
             val alerts = getState().alerts
+            val pendingGroupSandboxes = getState().pendingGroupSandboxes
+            val groupSandboxes = getState().groupSandboxes
             val pendingGroup = groups.filter { it.isPendingWallet() }
             val isShowPendingPersonalWallet = getState().personalSteps.isNullOrEmpty().not()
             if (isShowPendingPersonalWallet) {
                 results.add(GroupWalletUi(isPendingPersonalWallet = true))
             }
+            results.addAll(pendingGroupSandboxes.map { GroupWalletUi(sandbox = it) })
             wallets.forEach { wallet ->
                 ensureActive()
                 val assistedWallet = assistedWallets.find { it.localId == wallet.wallet.id }
@@ -503,6 +532,7 @@ internal class WalletsViewModel @Inject constructor(
                     keyStatus = getState().keyHealthStatus[wallet.wallet.id].orEmpty()
                         .associateBy { it.xfp },
                     signers = signers,
+                    sandbox = groupSandboxes[wallet.wallet.id]
                 )
                 if (group != null) {
                     val role = byzantineGroupUtils.getCurrentUserRole(group)
@@ -547,14 +577,13 @@ internal class WalletsViewModel @Inject constructor(
                 groupsWithNonNullWallet.sortedByDescending { it.wallet?.wallet?.createDate }
             val mergedSortedGroups = sortedGroupsWithNullWallet + sortedGroupsWithNonNullWallet
 
-            withContext(Dispatchers.Main) {
+            withContext(Main) {
                 updateState { copy(groupWalletUis = mergedSortedGroups) }
             }
         }
     }
 
     fun updateBadge() {
-        if (isRetrievingAlert.get()) return
         viewModelScope.launch {
             val groupIds = getState().allGroups.map { it.id }
             val assistedWalletIdsWithoutGroupId =

@@ -87,6 +87,7 @@ import com.nunchuk.android.main.components.tabs.wallet.totalbalance.TotalBalance
 import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
+import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
 import com.nunchuk.android.main.intro.UniversalNfcIntroActivity
 import com.nunchuk.android.main.membership.byzantine.views.PendingWalletView
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
@@ -605,6 +606,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                         val briefWallet = assistedWallets[it.wallet?.wallet?.id.orEmpty()]
                         PendingWalletView(
                             group = it.group,
+                            sandbox = it.sandbox,
                             walletsExtended = it.wallet,
                             inviterName = it.inviterName,
                             isAssistedWallet = briefWallet?.status == WalletStatus.ACTIVE.name || it.isPendingPersonalWallet,
@@ -659,6 +661,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             onReceiveClick = {
                                 val walletId = it.wallet?.wallet?.id ?: return@PendingWalletView
                                 navigator.openReceiveTransactionScreen(requireActivity(), walletId)
+                            },
+                            onOpenFreeGroupWallet = {
+                                FreeGroupWalletActivity.start(requireActivity(), it.id)
                             }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -750,6 +755,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             retrieveData()
             updateBadge()
             getKeyHealthStatus()
+            getGroupsSandbox()
         }
     }
 

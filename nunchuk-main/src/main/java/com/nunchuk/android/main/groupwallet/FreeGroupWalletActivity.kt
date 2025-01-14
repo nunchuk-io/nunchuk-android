@@ -17,6 +17,7 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val groupId = intent.getStringExtra(EXTRA_GROUP_ID).orEmpty()
         setContentView(
             ComposeView(this).apply {
                 setContent {
@@ -24,15 +25,18 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
                     NunchukTheme {
                         NavHost(
                             navController = navController,
-                            startDestination = freeGroupWalletRoute
+                            startDestination = "free_group_wallet/$groupId",
                         ) {
-                            freeGroupWallet(onEditClicked = {
-                                navigator.openAddWalletScreen(
-                                    activityContext = this@FreeGroupWalletActivity,
-                                    decoyPin = "",
-                                    groupWalletId = it
-                                )
-                            })
+                            freeGroupWallet(
+                                groupId = groupId,
+                                onEditClicked = {
+                                    navigator.openAddWalletScreen(
+                                        activityContext = this@FreeGroupWalletActivity,
+                                        decoyPin = "",
+                                        groupWalletId = it
+                                    )
+                                },
+                            )
                         }
                     }
                 }

@@ -23,6 +23,7 @@ import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
+import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SatsCardStatus
@@ -59,6 +60,8 @@ internal data class WalletsState(
     val localReferrerCode: ReferrerCode? = null,
     val homeDisplaySetting: HomeDisplaySetting = HomeDisplaySetting(),
     val isLeaveRoom: Boolean = false,
+    val pendingGroupSandboxes: List<GroupSandbox> = mutableListOf(),
+    val groupSandboxes : HashMap<String, GroupSandbox> = hashMapOf()
 )
 
 internal sealed class WalletsEvent {
@@ -81,12 +84,14 @@ internal sealed class WalletsEvent {
     ) : WalletsEvent()
 
     data class ShowExistingKeyDialog(val key: WalletsExistingKey) : WalletsEvent()
-    data class CheckLeaveRoom(val isLeaveRoom: Boolean, val walletExtended: WalletExtended) : WalletsEvent()
+    data class CheckLeaveRoom(val isLeaveRoom: Boolean, val walletExtended: WalletExtended) :
+        WalletsEvent()
 }
 
 internal data class GroupWalletUi(
     val wallet: WalletExtended? = null,
     val group: ByzantineGroup? = null,
+    val sandbox: GroupSandbox? = null,
     val role: String = AssistedWalletRole.NONE.name,
     val inviterName: String = "",
     val badgeCount: Int = 0,

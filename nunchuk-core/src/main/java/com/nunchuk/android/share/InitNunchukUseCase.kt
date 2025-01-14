@@ -87,7 +87,7 @@ class InitNunchukUseCase @Inject constructor(
             accountId = accountId,
             deviceId = deviceId,
             decoyPin = decoyPin,
-            baseApiUrl = if (appSettings.chain == Chain.MAIN) "http://api.nunchuk.io" else "https://api-testnet.nunchuk.io"
+            baseApiUrl = if (appSettings.chain == Chain.MAIN) "https://api.nunchuk.io" else "https://api-testnet.nunchuk.io"
         )
         fileLog("end nativeSdk initNunchuk")
     }

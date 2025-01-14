@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -56,6 +57,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
+import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.User
@@ -76,6 +78,7 @@ import com.skydoves.landscapist.glide.GlideImage
 @Composable
 fun PendingWalletView(
     group: ByzantineGroup? = null,
+    sandbox: GroupSandbox? = null,
     walletsExtended: WalletExtended? = null,
     hideWalletDetail: Boolean = false,
     isAssistedWallet: Boolean = false,
@@ -95,6 +98,7 @@ fun PendingWalletView(
     onWalletClick: () -> Unit = {},
     onSendClick: () -> Unit = {},
     onReceiveClick: () -> Unit = {},
+    onOpenFreeGroupWallet: (GroupSandbox) -> Unit = {},
 ) {
     val isLimitAccess = isLimitAccess(group, role, walletStatus)
     Column(
@@ -127,11 +131,19 @@ fun PendingWalletView(
                     color = MaterialTheme.colorScheme.textPrimary
                 )
             } else if (walletsExtended == null) {
-                Text(
-                    text = stringResource(R.string.nc_pending_wallet),
-                    style = NunchukTheme.typography.title,
-                    color = MaterialTheme.colorScheme.textPrimary
-                )
+                if (sandbox != null) {
+                    Text(
+                        text = sandbox.name,
+                        style = NunchukTheme.typography.title,
+                        color = MaterialTheme.colorScheme.textPrimary
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.nc_pending_wallet),
+                        style = NunchukTheme.typography.title,
+                        color = MaterialTheme.colorScheme.textPrimary
+                    )
+                }
             } else {
                 Column {
                     ActiveWallet(
@@ -195,6 +207,28 @@ fun PendingWalletView(
                     signers = signers,
                     status = status,
                     walletStatus = walletStatus
+                )
+            }
+        } else if (sandbox != null && !sandbox.finalized) {
+            Row(
+                modifier = Modifier
+                    .clickable(
+                        enabled = isLocked.not(),
+                        onClick = { onOpenFreeGroupWallet(sandbox) },
+                    )
+                    .padding(horizontal = 12.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.nc_setup_in_progress),
+                    style = NunchukTheme.typography.bodySmall,
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                NcIcon(
+                    painter = painterResource(id = R.drawable.ic_arrow_expand),
+                    contentDescription = "Arrow"
                 )
             }
         }
@@ -386,7 +420,8 @@ fun RowScope.ByzantineBottomContent(
         Row(
             modifier = Modifier
                 .background(
-                    color = colorResource(R.color.nc_background_primary), shape = RoundedCornerShape(20.dp)
+                    color = colorResource(R.color.nc_background_primary),
+                    shape = RoundedCornerShape(20.dp)
                 )
                 .border(
                     width = 1.dp,

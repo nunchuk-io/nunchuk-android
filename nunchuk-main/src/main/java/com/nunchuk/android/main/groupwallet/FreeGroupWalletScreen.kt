@@ -50,7 +50,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcDashLineBox
 import com.nunchuk.android.compose.NcIcon
@@ -68,8 +70,9 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.wallet.util.toReadableString
+import timber.log.Timber
 
-const val freeGroupWalletRoute = "free_group_wallet_route"
+const val freeGroupWalletRoute = "free_group_wallet/{group_id}"
 private val avatarColors = listOf(
     Color(0xFF1C652D),
     Color(0xFFA66800),
@@ -82,8 +85,17 @@ private val avatarColors = listOf(
 
 fun NavGraphBuilder.freeGroupWallet(
     onEditClicked: (String) -> Unit = {},
-    ) {
-    composable(freeGroupWalletRoute) {
+    groupId : String
+) {
+    composable(
+        route = freeGroupWalletRoute,
+        arguments = listOf(
+            navArgument("group_id") {
+                type = NavType.StringType
+                defaultValue = groupId
+            },
+        )
+    ) { backStackEntry ->
         val viewModel: FreeGroupWalletViewModel = hiltViewModel()
         val state by viewModel.uiState.collectAsStateWithLifecycle()
 
