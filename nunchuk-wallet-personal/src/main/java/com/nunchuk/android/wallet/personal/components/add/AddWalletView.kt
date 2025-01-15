@@ -1,5 +1,6 @@
 package com.nunchuk.android.wallet.personal.components.add
 
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,6 +34,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -85,6 +87,8 @@ fun AddWalletView(
             n = state.groupSandbox?.n ?: 3,
             m = state.groupSandbox?.m ?: 2
         )
+        requiredKeys = walletConfigType.getMN().first
+        keys = walletConfigType.getMN().second
     }
 
     val options = if (!viewAll) listOf(
@@ -310,6 +314,7 @@ fun KeyManagementSection(
     title: String,
     description: String,
     value: Int,
+    enable: Boolean,
     onIncrement: () -> Unit,
     onDecrement: () -> Unit
 ) {
@@ -360,6 +365,7 @@ fun KeyManagementSection(
             Box(
                 modifier = Modifier
                     .padding(horizontal = 12.dp)
+                    .alpha(if (enable) 1f else 0.4f)
                     .size(48.dp)
                     .border(1.dp, Color.Gray, RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center
@@ -374,6 +380,7 @@ fun KeyManagementSection(
                 modifier = Modifier
                     .size(36.dp)
                     .border(1.dp, MaterialTheme.colorScheme.textPrimary, CircleShape)
+                    .alpha(if (enable) 1f else 0.4f)
                     .clickable { onIncrement() },
                 contentAlignment = Alignment.Center
             ) {
@@ -414,7 +421,8 @@ fun KeysAndRequiredKeysScreen(
             description = "Number of keys assigned to the wallet (up to ${freeGroupWalletConfig.maxKey}).",
             value = keys,
             onIncrement = { if (keys < freeGroupWalletConfig.maxKey) keys++ },
-            onDecrement = { if (keys > 1) keys-- }
+            onDecrement = { if (keys > 1) keys-- },
+            enable = keys <= freeGroupWalletConfig.maxKey
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -424,7 +432,8 @@ fun KeysAndRequiredKeysScreen(
             description = "Number of signatures required to unlock funds.",
             value = requiredKeys,
             onIncrement = { if (requiredKeys < keys) requiredKeys++ },
-            onDecrement = { if (requiredKeys > 1) requiredKeys-- }
+            onDecrement = { if (requiredKeys > 1) requiredKeys-- },
+            enable = requiredKeys <= keys
         )
     }
 }

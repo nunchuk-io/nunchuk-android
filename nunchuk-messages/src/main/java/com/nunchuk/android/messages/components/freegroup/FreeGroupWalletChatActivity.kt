@@ -52,6 +52,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcIcon
@@ -62,6 +63,7 @@ import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.messages.R
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -126,7 +128,7 @@ fun FreeGroupWalletChatScreen(
                     title = {
                         Column {
                             Text(
-                                text = "Group wallet",
+                                text = state.groupSandBox?.name.orEmpty(),
                                 style = NunchukTheme.typography.titleLarge,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
@@ -160,7 +162,7 @@ fun FreeGroupWalletChatScreen(
                 )
             }, bottomBar = {
                 ChatInput(onSendMessage = { message ->
-                    println("Message sent: $message") // Replace with real logic
+                    onSendMessage(message)
                 })
             }) { innerPadding ->
             Column(
@@ -169,10 +171,15 @@ fun FreeGroupWalletChatScreen(
                     .navigationBarsPadding()
                     .fillMaxHeight()
             ) {
-                // Header Section
-                ChatHeader(walletName = "1.00000001 BTC", subtext = "2/3 Multisig")
+                ChatHeader(
+                    btc = state.wallet?.getBTCAmount().orEmpty(),
+                    multisign = "${state.groupSandBox?.m ?: 0}/${state.groupSandBox?.n ?: 0} ${
+                        stringResource(
+                            R.string.nc_wallet_multisig
+                        )
+                    }"
+                )
 
-                // Message List Section
                 ChatMessages(
                     messages = state.messageUis
                 )
@@ -183,7 +190,7 @@ fun FreeGroupWalletChatScreen(
 
 
 @Composable
-fun ChatHeader(walletName: String, subtext: String) {
+fun ChatHeader(btc: String, multisign: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -192,7 +199,7 @@ fun ChatHeader(walletName: String, subtext: String) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_wallet_info), // Replace with wallet icon
+            painter = painterResource(id = R.drawable.ic_wallet_info),
             contentDescription = null,
             tint = Color.Black,
             modifier = Modifier.size(24.dp)
@@ -200,11 +207,11 @@ fun ChatHeader(walletName: String, subtext: String) {
         Spacer(modifier = Modifier.width(8.dp))
         Column {
             Text(
-                text = walletName,
+                text = btc,
                 style = NunchukTheme.typography.title,
             )
             Text(
-                text = subtext,
+                text = multisign,
                 style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.textSecondary),
             )
         }
@@ -301,12 +308,13 @@ fun ReceivedMessageBubble(message: MessageUI.ReceiverMessage) {
             Box(
                 modifier = Modifier
                     .size(28.dp)
+                    .border(1.dp, MaterialTheme.colorScheme.border, CircleShape)
                     .background(Color.White, CircleShape)
                     .padding(7.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_user),
+                    painter = painterResource(id = R.drawable.ic_user_2),
                     contentDescription = "User",
                     tint = Color.Black,
                     modifier = Modifier.size(14.dp)
@@ -382,8 +390,13 @@ fun ChatInput(onSendMessage: (String) -> Unit) {
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 fun PreviewFreeGroupWalletChatScreen() {
-    FreeGroupWalletChatScreen()
+    FreeGroupWalletChatScreen(
+        state = FreeGroupWalletChatUiState(
+            messages = generateSampleFreeGroupMessages(),
+            messageUis = generateSampleFreeGroupMessages().groupByDate("senderId")
+        )
+    )
 }
