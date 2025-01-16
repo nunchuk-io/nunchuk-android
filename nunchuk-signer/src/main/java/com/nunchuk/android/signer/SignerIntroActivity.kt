@@ -73,7 +73,8 @@ class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionCli
         navigator.openAddAirSignerScreen(
             activityContext = this,
             isMembershipFlow = false,
-            tag = tag
+            tag = tag,
+            requestedSignerIndex = requestedSignerIndex
         )
         finish()
     }
@@ -126,7 +127,8 @@ class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionCli
         navigator.openAddAirSignerScreen(
             activityContext = this,
             isMembershipFlow = false,
-            walletId = walletId
+            walletId = walletId,
+            requestedSignerIndex = requestedSignerIndex
         )
         finish()
     }
@@ -139,7 +141,7 @@ class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionCli
             keyFlow = primaryKeyFlow,
             groupId = groupId,
             walletId = walletId,
-            index = index
+            index = requestedSignerIndex
         )
         finish()
     }
@@ -160,7 +162,7 @@ class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionCli
     private val walletId by lazy { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
     // group sandbox id
     private val groupId by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
-    private val index by lazy { intent.getIntExtra(EXTRA_INDEX, -1) }
+    private val requestedSignerIndex by lazy { intent.getIntExtra(EXTRA_INDEX, -1) }
 
     companion object {
         private const val EXTRA_WALLET_ID = "wallet_id"

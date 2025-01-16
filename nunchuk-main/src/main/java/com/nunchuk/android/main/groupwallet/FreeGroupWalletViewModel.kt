@@ -8,6 +8,7 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.free.groupwallet.AddSignerToGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.CreateGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.DeleteGroupSandboxUseCase
@@ -54,9 +55,11 @@ class FreeGroupWalletViewModel @Inject constructor(
         viewModelScope.launch {
             getAllSignersUseCase(false).onSuccess { pair ->
                 val singleSigner = pair.second.distinctBy { it.masterFingerprint }
-                val signers = pair.first.map { signer ->
-                    masterSignerMapper(signer)
-                } + singleSigner.map { signer -> signer.toModel() }
+                    .filter { it.type != SignerType.SERVER }
+                val signers = pair.first.filter { it.type != SignerType.SERVER }
+                    .map { signer ->
+                        masterSignerMapper(signer)
+                    } + singleSigner.map { signer -> signer.toModel() }
                 _uiState.update { it.copy(allSigners = signers) }
             }
         }

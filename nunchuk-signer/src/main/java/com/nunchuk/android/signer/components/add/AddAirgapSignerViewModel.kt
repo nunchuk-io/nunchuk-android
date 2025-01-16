@@ -24,7 +24,6 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.arch.vm.NunchukViewModel
-import com.nunchuk.android.core.domain.JoinFreeGroupWalletUseCase
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.push.PushEvent
@@ -60,6 +59,7 @@ import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.ParseJsonSignerUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
+import com.nunchuk.android.usecase.free.groupwallet.AddSignerToGroupUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
@@ -102,6 +102,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
     private val pushEventManager: PushEventManager,
+    private val addSignerToGroupUseCase: AddSignerToGroupUseCase,
 ) : NunchukViewModel<Unit, AddAirgapSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
@@ -111,6 +112,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private var isMembershipFlow = false
     private var replacedXfp: String? = null
     private var walletId: String = ""
+    private var requestedSignerIndex = -1
 
     private val _state = MutableStateFlow(AddAirgapSignerState())
     val uiState = _state.asStateFlow()
@@ -124,11 +126,12 @@ internal class AddAirgapSignerViewModel @Inject constructor(
 
     val remainTime = membershipStepManager.remainingTime
 
-    fun init(groupId: String, isMembershipFlow: Boolean, replacedXfp: String?, walletId: String) {
+    fun init(groupId: String, isMembershipFlow: Boolean, replacedXfp: String?, walletId: String, requestedSignerIndex: Int) {
         this.groupId = groupId
         this.isMembershipFlow = isMembershipFlow
         this.replacedXfp = replacedXfp
         this.walletId = walletId
+        this.requestedSignerIndex = requestedSignerIndex
     }
 
     private val _signers = mutableListOf<SingleSigner>()
@@ -271,6 +274,19 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                         )
                     }
                     setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
+                } else if (requestedSignerIndex >= 0) {
+                    addSignerToGroupUseCase(
+                        AddSignerToGroupUseCase.Params(
+                            groupId = groupId,
+                            signer = airgap,
+                            index = requestedSignerIndex
+                        )
+                    ).onFailure {
+                        setEvent(AddAirgapSignerErrorEvent(it.message.orUnknownError()))
+                        setEvent(LoadingEventAirgap(false))
+                    }.onSuccess {
+                        setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
+                    }
                 } else {
                     setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
                 }

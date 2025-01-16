@@ -65,6 +65,7 @@ interface SignerNavigator {
         replacedXfp: String? = null,
         walletId: String = "",
         step: MembershipStep? = null,
+        requestedSignerIndex: Int = -1
     )
 
     fun openAddAirSignerScreenForResult(

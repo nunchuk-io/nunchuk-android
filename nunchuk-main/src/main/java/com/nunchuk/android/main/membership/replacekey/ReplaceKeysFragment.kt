@@ -390,8 +390,8 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             isMembershipFlow = true,
             tag = tag,
             groupId = args.groupId,
-            walletId = args.walletId,
-            replacedXfp = viewModel.replacedXfp
+            replacedXfp = viewModel.replacedXfp,
+            walletId = args.walletId
         )
     }
 

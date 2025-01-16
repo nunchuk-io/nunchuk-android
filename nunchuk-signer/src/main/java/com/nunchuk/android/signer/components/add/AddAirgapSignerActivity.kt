@@ -48,6 +48,7 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
     val replacedXfp: String? by lazy { intent.getStringExtra(EXTRA_REPLACED_XFP) }
     val walletId: String by lazy { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
     val step: MembershipStep? by lazy { intent.serializable(EXTRA_MEMBERSHIP_STEP) }
+    val requestedSignerIndex: Int by lazy { intent.getIntExtra(EXTRA_REQUESTED_SIGNER_INDEX, -1) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,6 +75,7 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val EXTRA_REPLACED_XFP = "replaced_xfp"
         private const val EXTRA_WALLET_ID = "wallet_id"
         private const val EXTRA_MEMBERSHIP_STEP = "step"
+        private const val EXTRA_REQUESTED_SIGNER_INDEX = "requested_signer_index"
 
         fun buildIntent(
             activityContext: Context,
@@ -84,7 +86,8 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
             newIndex: Int,
             replacedXfp: String? = null,
             walletId: String = "",
-            step: MembershipStep? = null
+            step: MembershipStep? = null,
+            requestedSignerIndex: Int = -1
         ) = Intent(
             activityContext,
             AddAirgapSignerActivity::class.java
@@ -97,6 +100,7 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
             putExtra(EXTRA_REPLACED_XFP, replacedXfp)
             putExtra(EXTRA_WALLET_ID, walletId)
             putExtra(EXTRA_MEMBERSHIP_STEP, step)
+            putExtra(EXTRA_REQUESTED_SIGNER_INDEX, requestedSignerIndex)
         }
     }
 

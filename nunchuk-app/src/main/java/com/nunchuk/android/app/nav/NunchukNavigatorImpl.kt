@@ -181,14 +181,14 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
         signerTag: SignerTag,
         groupId: String?,
         step: MembershipStep,
-        isAddInheritanceKey: Boolean
+        isInheritanceKey: Boolean
     ) {
         AddDesktopKeyActivity.navigate(
             activity = activity,
             signerTag = signerTag,
             groupId = groupId,
             step = step,
-            isAddInheritanceKey = isAddInheritanceKey
+            isAddInheritanceKey = isInheritanceKey
         )
     }
 }
