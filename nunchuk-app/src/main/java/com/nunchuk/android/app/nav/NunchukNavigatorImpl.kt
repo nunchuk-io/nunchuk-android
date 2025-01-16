@@ -193,7 +193,7 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
 interface AppNavigatorDelegate : AppNavigator {
 
     override fun restartApp(activityContext: Context) {
-        SplashActivity.navigate(activityContext, isFromSignOut = true)
+        SplashActivity.navigate(activityContext)
     }
 
     override fun openMembershipActivity(

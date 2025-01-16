@@ -45,10 +45,6 @@ internal class SplashActivity : AppCompatActivity() {
 
     private val viewModel: SplashViewModel by viewModels()
 
-    private val isFromSignOut: Boolean by lazy {
-        intent.getBooleanExtra(EXTRA_IS_FROM_SIGN_OUT, false)
-    }
-
     override fun onStart() {
         super.onStart()
         IntegrationValidator.validate(this)
@@ -121,12 +117,8 @@ internal class SplashActivity : AppCompatActivity() {
 
             is SplashEvent.InitErrorEvent -> NCToastMessage(this).showError(event.error)
             SplashEvent.NavUnlockPinScreenEvent -> {
-                if (isFromSignOut) {
-                    navigator.openSignInScreen(this, true)
-                } else {
-                    navigator.openSignInScreen(this, false)
-                    navigator.openUnlockPinScreen(this, UnlockPinSourceFlow.SIGN_IN_UNKNOWN_MODE)
-                }
+                navigator.openSignInScreen(this, false)
+                navigator.openUnlockPinScreen(this, UnlockPinSourceFlow.SIGN_IN_UNKNOWN_MODE)
             }
         }
         overridePendingTransition(0, 0)
@@ -134,10 +126,8 @@ internal class SplashActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val EXTRA_IS_FROM_SIGN_OUT = "is_from_sign_out"
-        fun navigate(activityContext: Context, isFromSignOut: Boolean = false) {
+        fun navigate(activityContext: Context) {
             val intent = Intent(activityContext, SplashActivity::class.java)
-                .putExtra(EXTRA_IS_FROM_SIGN_OUT, isFromSignOut)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             activityContext.startActivity(intent)
         }
