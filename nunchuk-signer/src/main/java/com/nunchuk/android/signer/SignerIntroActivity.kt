@@ -74,6 +74,7 @@ class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionCli
             activityContext = this,
             isMembershipFlow = false,
             tag = tag,
+            groupId = groupId,
             requestedSignerIndex = requestedSignerIndex
         )
         finish()
@@ -83,7 +84,9 @@ class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionCli
         navigator.openSetupMk4(
             activity = this,
             fromMembershipFlow = false,
-            isFromAddKey = true
+            isFromAddKey = true,
+            groupId = groupId,
+            newIndex = requestedSignerIndex
         )
         finish()
     }

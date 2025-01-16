@@ -78,6 +78,7 @@ class AddMk4NameFragment : BaseFragment<FragmentAddNameKeyBinding>() {
                     activity?.setResult(Activity.RESULT_OK)
                     activity?.finish()
                 }
+
                 is AddNameMk4ViewEvent.Loading -> showOrHideLoading(it.isLoading)
                 is AddNameMk4ViewEvent.ShowError -> showError(it.message)
             }
@@ -98,10 +99,20 @@ class AddMk4NameFragment : BaseFragment<FragmentAddNameKeyBinding>() {
             binding.nameCounter.text = "${it.length}/$MAX_LENGTH"
         }
         binding.btnContinue.setOnClickListener {
+            val groupId = (activity as Mk4Activity).groupId
+            val requestedSignerIndex = (activity as Mk4Activity).newIndex
             if (args.isReplaceKey) {
-                viewModel.changeKeyType(args.signer.copy(name = binding.signerName.getEditText()))
+                viewModel.changeKeyType(
+                    signer = args.signer.copy(name = binding.signerName.getEditText()),
+                    groupId = groupId,
+                    requestedSignerIndex = requestedSignerIndex
+                )
             } else {
-                viewModel.createMk4Signer(args.signer.copy(name = binding.signerName.getEditText()))
+                viewModel.createMk4Signer(
+                    args.signer.copy(name = binding.signerName.getEditText()),
+                    groupId = groupId,
+                    requestedSignerIndex = requestedSignerIndex
+                )
             }
         }
     }

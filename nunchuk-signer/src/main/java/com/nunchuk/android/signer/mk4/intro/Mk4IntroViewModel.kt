@@ -302,11 +302,6 @@ class Mk4IntroViewModel @Inject constructor(
             _event.emit(Mk4IntroViewEvent.OnContinueClicked)
         }
     }
-
-    companion object {
-        private const val SIGNER_PATH = "m/48h/0h/0h/2h"
-        private const val SIGNER_TESTNET_PATH = "m/48h/1h/0h/2h"
-    }
 }
 
 data class Mk4IntroState(val wallets: List<Wallet> = emptyList(), val signer: SingleSigner? = null)
