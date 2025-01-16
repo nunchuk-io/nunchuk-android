@@ -34,8 +34,6 @@ import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.viewbinding.ViewBinding
-import com.nunchuk.android.compose.NcToastMessage
-import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.core.base.BaseCameraFragment
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode

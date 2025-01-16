@@ -171,6 +171,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
         private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
         private const val EXTRA_REPLACED_XFP = "EXTRA_REPLACED_XFP"
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
+        private const val EXTRA_INT = "EXTRA_INT"
 
         fun start(
             activityContext: Context,
@@ -179,6 +180,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
             groupId: String? = null,
             replacedXfp: String? = null,
             walletId: String = "",
+            index: Int = -1,
         ) {
             activityContext.startActivity(
                 Intent(
@@ -190,6 +192,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                     groupId?.let { putExtra(EXTRA_GROUP_ID, it) }
                     replacedXfp?.let { putExtra(EXTRA_REPLACED_XFP, it) }
                     putExtra(EXTRA_WALLET_ID, walletId)
+                    putExtra(EXTRA_INT, index)
                 },
             )
         }

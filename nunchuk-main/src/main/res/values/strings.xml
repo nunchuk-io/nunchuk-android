@@ -378,4 +378,5 @@
     <string name="nc_empty_state_free_user_step_2">Or quickly create a hot wallet for immediate use, then back it up later.</string>
     <string name="nc_key_with_index">Key %1$s</string>
     <string name="nc_setup_in_progress">Setup in progress</string>
+    <string name="nc_cancel_group_wallet_setup">Cancel group wallet setup</string>
 </resources>

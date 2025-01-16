@@ -39,7 +39,7 @@ class TapSingerListBottomSheetViewModel @Inject constructor(
     private val _selectSingle = MutableStateFlow<SignerModel?>(null)
     val selectSingle = _selectSingle.asStateFlow()
 
-    fun onSignerSelected(signer: SignerModel) {
+    fun onSignerSelected(signer: SignerModel?) {
         _selectSingle.value = signer
     }
 

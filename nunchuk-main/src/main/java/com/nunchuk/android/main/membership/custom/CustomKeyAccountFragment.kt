@@ -39,7 +39,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
@@ -87,7 +86,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
     private val coldcardOrAirgapLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
-                findNavController().popBackStack()
+                requireActivity().onBackPressedDispatcher.onBackPressed()
             } else if (it.resultCode == GlobalResult.RESULT_INDEX_NOT_MATCH) {
                 showError(getString(R.string.nc_coldcard_index_not_match, viewModel.getNewIndex()))
             }
@@ -145,7 +144,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                         Mk4Activity.buildIntent(
                             activity = requireActivity(),
                             action = ColdcardAction.CREATE,
-                            walletId = (activity as MembershipActivity).walletId,
+                            walletId = (activity as? MembershipActivity)?.walletId,
                             newIndex = viewModel.getNewIndex(),
                             xfp = args.signer.fingerPrint,
                         )
@@ -156,11 +155,11 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                         activity = requireActivity(),
                         fromMembershipFlow = true,
                         action = ColdcardAction.CREATE,
-                        groupId = (activity as MembershipActivity).groupId,
+                        groupId = args.groupId.orEmpty(),
                         newIndex = viewModel.getNewIndex(),
                         xfp = args.signer.fingerPrint,
                         replacedXfp = args.replacedXfp,
-                        walletId = (activity as MembershipActivity).walletId,
+                        walletId = (activity as? MembershipActivity)?.walletId,
                     )
                 }
             }
@@ -171,7 +170,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                         Mk4Activity.buildIntent(
                             activity = requireActivity(),
                             action = ColdcardAction.RECOVER_KEY,
-                            walletId = (activity as MembershipActivity).walletId,
+                            walletId = (activity as? MembershipActivity)?.walletId,
                             newIndex = viewModel.getNewIndex(),
                             xfp = args.signer.fingerPrint,
                         )
@@ -182,11 +181,11 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                         activity = requireActivity(),
                         fromMembershipFlow = true,
                         action = ColdcardAction.RECOVER_KEY,
-                        groupId = (activity as MembershipActivity).groupId,
+                        groupId = args.groupId.orEmpty(),
                         newIndex = viewModel.getNewIndex(),
                         xfp = args.signer.fingerPrint,
                         replacedXfp = args.replacedXfp,
-                        walletId = (activity as MembershipActivity).walletId,
+                        walletId = (activity as? MembershipActivity)?.walletId,
                     )
                 }
             }
@@ -194,13 +193,14 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
     }
 
     private fun openCreateBackUpTapSigner(index: Int) {
-        findNavController().popBackStack()
+        requireActivity().onBackPressedDispatcher.onBackPressed()
         if (args.isFreeWallet) {
             startActivity(
                 NfcSetupActivity.buildIntent(
                     activity = requireActivity(),
                     setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
-                    walletId = (activity as MembershipActivity).walletId,
+                    walletId = args.walletId.orEmpty(),
+                    groupId = args.groupId.orEmpty(),
                     masterSignerId = args.signer.fingerPrint,
                     signerIndex = index,
                 )
@@ -210,10 +210,10 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                 activity = requireActivity(),
                 fromMembershipFlow = true,
                 masterSignerId = args.signer.fingerPrint,
-                groupId = (activity as MembershipActivity).groupId,
+                groupId = args.groupId.orEmpty(),
                 signerIndex = index,
                 replacedXfp = args.replacedXfp,
-                walletId = (activity as MembershipActivity).walletId,
+                walletId = args.walletId.orEmpty(),
             )
         }
     }
@@ -237,11 +237,11 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                                     activityContext = requireActivity(),
                                     isMembershipFlow = true,
                                     tag = tag,
-                                    groupId = (activity as MembershipActivity).groupId,
+                                    groupId = args.groupId.orEmpty(),
                                     xfp = args.signer.fingerPrint,
                                     newIndex = viewModel.getNewIndex(),
                                     replacedXfp = args.replacedXfp,
-                                    walletId = (activity as MembershipActivity).walletId,
+                                    walletId = args.walletId.orEmpty(),
                                 )
                             }
                         }
@@ -252,7 +252,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                     NCInfoDialog(requireActivity()).showDialog(
                         message = getString(R.string.nc_foreign_key_index_not_available_msg),
                         onYesClick = {
-                            findNavController().popBackStack()
+                            requireActivity().onBackPressedDispatcher.onBackPressed()
                         }
                     )
                 }
@@ -268,7 +268,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                             signer = args.signer,
                             newIndex = viewModel.getNewIndex(),
                             isMembershipFlow = true,
-                            walletId = (activity as MembershipActivity).walletId,
+                            walletId = args.walletId.orEmpty(),
                         )
                     )
                 }
@@ -279,7 +279,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                         btnNo = getString(R.string.nc_cancel),
                         btnYes = getString(R.string.nc_text_got_it),
                         onYesClick = {
-                            findNavController().popBackStack()
+                            requireActivity().onBackPressedDispatcher.onBackPressed()
                         }
                     )
                 }
@@ -296,7 +296,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                 putParcelable(GlobalResultKey.EXTRA_SIGNER, signer)
             },
         )
-        findNavController().popBackStack()
+        requireActivity().onBackPressedDispatcher.onBackPressed()
     }
 
     private fun showAddColdcardOptions() {

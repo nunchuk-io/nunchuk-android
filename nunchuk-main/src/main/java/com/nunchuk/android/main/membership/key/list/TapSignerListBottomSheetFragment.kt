@@ -39,6 +39,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -54,7 +55,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
-import androidx.fragment.app.viewModels
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -68,9 +69,9 @@ import com.nunchuk.android.compose.signer.SingleChoiceSignerCard
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.base.BaseComposeBottomSheet
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipViewModel
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.type.SignerType
 import dagger.hilt.android.AndroidEntryPoint
@@ -82,7 +83,6 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
     @Inject
     lateinit var navigator: NunchukNavigator
 
-    private val viewModel by viewModels<TapSingerListBottomSheetViewModel>()
     private val activityViewModel by activityViewModels<MembershipViewModel>()
     private val args: TapSignerListBottomSheetFragmentArgs by navArgs()
 
@@ -93,37 +93,35 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
+                val supportedSigners by activityViewModel.state.map { it.supportedTypes }
+                    .collectAsStateWithLifecycle(emptyList())
+
                 NunchukTheme {
                     TapSignerListScreen(
-                        activityViewModel = activityViewModel,
-                        viewModel = viewModel,
                         args = args,
-                        onCloseClicked = ::dismissAllowingStateLoss
+                        onCloseClicked = ::dismissAllowingStateLoss,
+                        supportedSigners = supportedSigners,
+                        onAddExistKey = { signer ->
+                            findNavController().popBackStack()
+                            setFragmentResult(
+                                REQUEST_KEY,
+                                TapSignerListBottomSheetFragmentArgs(
+                                    listOf(signer).toTypedArray(),
+                                    args.type
+                                ).toBundle()
+                            )
+                        },
+                        onAddNewKey = {
+                            findNavController().popBackStack()
+                            setFragmentResult(
+                                REQUEST_KEY, TapSignerListBottomSheetFragmentArgs(
+                                    emptyArray(),
+                                    args.type
+                                ).toBundle()
+                            )
+                        }
                     )
                 }
-            }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        flowObserver(viewModel.event) { event ->
-            findNavController().popBackStack()
-            when (event) {
-                is TapSignerListBottomSheetEvent.OnAddExistingKey -> setFragmentResult(
-                    REQUEST_KEY,
-                    TapSignerListBottomSheetFragmentArgs(
-                        listOf(event.signer).toTypedArray(),
-                        args.type
-                    ).toBundle()
-                )
-
-                TapSignerListBottomSheetEvent.OnAddNewKey -> setFragmentResult(
-                    REQUEST_KEY, TapSignerListBottomSheetFragmentArgs(
-                        emptyArray(),
-                        args.type
-                    ).toBundle()
-                )
             }
         }
     }
@@ -134,15 +132,15 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
 }
 
 @Composable
-private fun TapSignerListScreen(
-    activityViewModel: MembershipViewModel,
-    viewModel: TapSingerListBottomSheetViewModel,
+fun TapSignerListScreen(
+    viewModel: TapSingerListBottomSheetViewModel = hiltViewModel(),
     args: TapSignerListBottomSheetFragmentArgs,
     onCloseClicked: () -> Unit = {},
+    supportedSigners: List<SupportedSigner> = emptyList(),
+    onAddExistKey: (SignerModel) -> Unit = {},
+    onAddNewKey: () -> Unit = {},
 ) {
     val selectedSigner by viewModel.selectSingle.collectAsStateWithLifecycle()
-    val supportedSigners by activityViewModel.state.map { it.supportedTypes }
-        .collectAsStateWithLifecycle(emptyList())
 
     val selectableSigner = if (supportedSigners.isNotEmpty()) args.signers.partition { signer ->
         supportedSigners.any {
@@ -150,6 +148,16 @@ private fun TapSignerListScreen(
         }
     } else {
         Pair(args.signers.toList(), emptyList())
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.onSignerSelected(null)
+        viewModel.event.collect {
+            when (it) {
+                is TapSignerListBottomSheetEvent.OnAddExistingKey -> onAddExistKey(it.signer)
+                TapSignerListBottomSheetEvent.OnAddNewKey -> onAddNewKey()
+            }
+        }
     }
 
     TapSignerListContent(

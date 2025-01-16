@@ -159,6 +159,8 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                                     signer = signer,
                                     replacedXfp = viewModel.replacedXfp,
                                     isMultisigWallet = viewModel.isMultiSig(),
+                                    walletId = args.walletId,
+                                    groupId = args.groupId
                                 )
                             )
                         } else {
@@ -173,6 +175,8 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                                 replacedXfp = viewModel.replacedXfp,
                                 isFreeWallet = !viewModel.isActiveAssistedWallet,
                                 isMultisigWallet = viewModel.isMultiSig(),
+                                walletId = args.walletId,
+                                groupId = args.groupId
                             )
                         )
                     }

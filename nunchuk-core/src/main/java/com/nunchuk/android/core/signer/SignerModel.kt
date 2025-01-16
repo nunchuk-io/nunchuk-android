@@ -26,9 +26,11 @@ import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import java.util.regex.Pattern
 
 @Parcelize
+@Serializable
 data class SignerModel(
     val id: String,
     val name: String,

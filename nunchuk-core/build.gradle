@@ -2,6 +2,7 @@ apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-parcelize'
+apply plugin: 'kotlinx-serialization'
 
 android {
 
@@ -42,6 +43,7 @@ dependencies {
     implementation "com.github.Nunchuk1:LibPortal:v2@aar"
     implementation("net.java.dev.jna:jna:5.14.0@aar")
     implementation "androidx.biometric:biometric:1.1.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
 
     testImplementation otherTestDeps.junit
 }

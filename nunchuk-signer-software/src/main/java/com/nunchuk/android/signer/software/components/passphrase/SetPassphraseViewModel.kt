@@ -54,6 +54,7 @@ import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
+import com.nunchuk.android.usecase.byzantine.GetLocalGroupUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
@@ -86,6 +87,7 @@ internal class SetPassphraseViewModel @Inject constructor(
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val pushEventManager: PushEventManager,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val getLocalGroupUseCase: GetLocalGroupUseCase,
 ) : NunchukViewModel<SetPassphraseState, SetPassphraseEvent>() {
     private val args: SetPassphraseFragmentArgs by lazy {
         SetPassphraseFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -209,6 +211,11 @@ internal class SetPassphraseViewModel @Inject constructor(
                 if (replacedXfp.isNotEmpty() && walletId.isNotEmpty()) {
                     replacedKey(signer, groupId, replacedXfp, walletId)
                 } else if (groupId.isNotEmpty()) {
+                    getLocalGroupUseCase(groupId).onSuccess {
+                        syncKeyToGroup(signer, groupId)
+                    }.onFailure {
+                        syncKeyToGroupSandbox(signer, groupId)
+                    }
                     syncKeyToGroup(signer, groupId)
                 } else if (isQuickWallet) {
                     createQuickWallet(signer)
@@ -301,6 +308,10 @@ internal class SetPassphraseViewModel @Inject constructor(
                 setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
             }
         }
+    }
+
+    private fun syncKeyToGroupSandbox(masterSigner: MasterSigner, groupId: String) {
+
     }
 
     private fun syncKeyToGroup(masterSigner: MasterSigner, groupId: String) {

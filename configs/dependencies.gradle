@@ -62,6 +62,7 @@ ext {
             appdistribution     : "com.google.firebase:firebase-appdistribution-gradle:5.0.0",
             hilt                : "com.google.dagger:hilt-android-gradle-plugin:${hiltVersion}",
             safeArgs            : "androidx.navigation:navigation-safe-args-gradle-plugin:${navVersion}",
+            kotlinSerialization : "org.jetbrains.kotlin:kotlin-serialization:${kotlinStdlibVersion}"
     ]
 
     kotlinDeps = [
@@ -198,6 +199,6 @@ ext {
             'composeInsets'          : "com.google.accompanist:accompanist-insets:0.25.1",
             'composelifecycle'       : "androidx.lifecycle:lifecycle-runtime-compose:2.6.2",
             "composeConstraintLayout": "androidx.constraintlayout:constraintlayout-compose:1.0.1",
-            "navigationCompose"      : "androidx.navigation:navigation-compose:2.7.5",
+            "navigationCompose"      : "androidx.navigation:navigation-compose:2.8.5",
     ]
 }

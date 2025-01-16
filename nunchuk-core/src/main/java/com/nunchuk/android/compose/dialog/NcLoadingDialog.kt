@@ -25,6 +25,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.R
+import kotlinx.coroutines.delay
 
 @Composable
 fun NcLoadingDialog(
@@ -34,6 +35,7 @@ fun NcLoadingDialog(
 ) {
     var isShow by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
+        delay(100L)
         isShow = true
     }
     if (isShow) {

@@ -55,11 +55,15 @@ interface SignerNavigatorDelegate : SignerNavigator {
     override fun openSignerIntroScreen(
         activityContext: Context,
         walletId: String,
+        groupId: String?,
+        index: Int,
         supportedSigners: List<SupportedSigner>?
     ) {
         SignerIntroActivity.start(
             activityContext = activityContext,
             walletId = walletId,
+            groupId = groupId,
+            index = index,
             supportedSigners = supportedSigners
         )
     }
@@ -152,6 +156,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         groupId: String?,
         replacedXfp: String?,
         walletId: String,
+        index: Int,
     ) {
         SoftwareSignerIntroActivity.start(
             activityContext = activityContext,
@@ -159,7 +164,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
             primaryKeyFlow = keyFlow,
             groupId = groupId,
             replacedXfp = replacedXfp,
-            walletId = walletId
+            walletId = walletId,
+            index = index
         )
     }
 

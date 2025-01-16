@@ -138,9 +138,10 @@
             android:name="type"
             app:argType="com.nunchuk.android.type.SignerType" />
 
-        <argument android:name="description"
-            app:argType="string"
-            android:defaultValue=""/>
+        <argument
+            android:name="description"
+            android:defaultValue=""
+            app:argType="string" />
 
     </dialog>
 
@@ -527,6 +528,18 @@
             android:name="is_multisig_wallet"
             android:defaultValue="true"
             app:argType="boolean" />
+
+        <argument
+            android:name="group_id"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"/>
+
+        <argument
+            android:name="wallet_id"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null"/>
     </fragment>
 
     <fragment

@@ -35,6 +35,8 @@ interface SignerNavigator {
     fun openSignerIntroScreen(
         activityContext: Context,
         walletId: String = "",
+        groupId: String? = null,
+        index: Int = -1,
         supportedSigners: List<SupportedSigner>? = null,
     )
 
@@ -87,6 +89,7 @@ interface SignerNavigator {
         groupId: String? = null,
         replacedXfp: String? = null,
         walletId: String = "",
+        index: Int = -1,
     )
 
     /**

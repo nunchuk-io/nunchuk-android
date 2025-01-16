@@ -4,11 +4,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.HasSignerUseCase
+import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.model.GroupSandbox
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.usecase.free.groupwallet.AddSignerToGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.CreateGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
+import com.nunchuk.android.usecase.free.groupwallet.RemoveSignerFromGroupUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,18 +29,34 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val getAllSignersUseCase: GetAllSignersUseCase,
     private val hasSignerUseCase: HasSignerUseCase,
     private val createGroupSandboxUseCase: CreateGroupSandboxUseCase,
-    private val savedStateHandle: SavedStateHandle
+    private val masterSignerMapper: MasterSignerMapper,
+    private val savedStateHandle: SavedStateHandle,
+    private val addSignerToGroupUseCase: AddSignerToGroupUseCase,
+    private val removeSignerFromGroupUseCase: RemoveSignerFromGroupUseCase,
 ) : ViewModel() {
-    private val groupId =
-        savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
+    val groupId: String
+        get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
     private val _uiState = MutableStateFlow(FreeGroupWalletUiState())
     val uiState: StateFlow<FreeGroupWalletUiState> = _uiState.asStateFlow()
 
     init {
+        loadSigners()
         if (groupId.isEmpty()) {
             createGroupSandbox()
         } else {
             getGroupSandbox()
+        }
+    }
+
+    private fun loadSigners() {
+        viewModelScope.launch {
+            getAllSignersUseCase(false).onSuccess { pair ->
+                val singleSigner = pair.second.distinctBy { it.masterFingerprint }
+                val signers = pair.first.map { signer ->
+                    masterSignerMapper(signer)
+                } + singleSigner.map { signer -> signer.toModel() }
+                _uiState.update { it.copy(allSigners = signers) }
+            }
         }
     }
 
@@ -66,10 +86,52 @@ class FreeGroupWalletViewModel @Inject constructor(
         }
     }
 
-    private fun updateGroupSandbox(groupSandbox: GroupSandbox) {
+    private suspend fun updateGroupSandbox(groupSandbox: GroupSandbox) {
         val signers = groupSandbox.signers.map {
-            it.takeIf { it.masterFingerprint.isNotEmpty() }?.toModel()
+            it.takeIf { it.masterFingerprint.isNotEmpty() }?.toModel()?.copy(
+                isVisible = hasSignerUseCase(it).getOrThrow()
+            )
         }
         _uiState.update { it.copy(group = groupSandbox, signers = signers) }
+    }
+
+    fun setCurrentSignerIndex(index: Int) {
+        savedStateHandle[CURRENT_SIGNER_INDEX] = index
+    }
+
+    fun addSignerToGroup(signer: SingleSigner) {
+        viewModelScope.launch {
+            val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: return@launch
+            _uiState.update { it.copy(isLoading = true) }
+            addSignerToGroupUseCase(
+                AddSignerToGroupUseCase.Params(
+                    groupId,
+                    signer,
+                    index
+                )
+            ).onSuccess {
+                updateGroupSandbox(it)
+            }
+            _uiState.update { it.copy(isLoading = false) }
+        }
+    }
+
+    fun removeSignerFromGroup(index: Int) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            removeSignerFromGroupUseCase(
+                RemoveSignerFromGroupUseCase.Params(
+                    groupId,
+                    index
+                )
+            ).onSuccess {
+                updateGroupSandbox(it)
+            }
+            _uiState.update { it.copy(isLoading = false) }
+        }
+    }
+
+    companion object {
+        private const val CURRENT_SIGNER_INDEX = "current_signer_index"
     }
 }

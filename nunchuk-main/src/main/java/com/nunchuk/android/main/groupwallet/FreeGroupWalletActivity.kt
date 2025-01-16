@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.ui.platform.ComposeView
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -17,10 +18,11 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class FreeGroupWalletActivity : BaseComposeActivity() {
 
+    private val viewModel: FreeGroupWalletViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val groupId = intent.getStringExtra(EXTRA_GROUP_ID)
         setContentView(
             ComposeView(this).apply {
                 setContent {
@@ -28,10 +30,10 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
                     NunchukTheme {
                         NavHost(
                             navController = navController,
-                            startDestination = "free_group_wallet/$groupId",
+                            startDestination = freeGroupWalletRoute,
                         ) {
                             freeGroupWallet(
-                                groupId = groupId,
+                                viewModel = viewModel,
                                 onEditClicked = {
                                     navigator.openAddWalletScreen(
                                         activityContext = this@FreeGroupWalletActivity,
@@ -45,12 +47,33 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
                                 onCopyLinkClicked = {
                                     copyToClipboard(label = "Nunchuk", text = it)
                                     NCToastMessage(this@FreeGroupWalletActivity).show("Link copied to clipboard")
-                                }
+                                },
+                                onAddExistingKey = { signer, index ->
+                                    viewModel.setCurrentSignerIndex(index)
+                                    navController.navigateCustomKey(signer)
+                                },
+                                onAddNewKey = { index ->
+                                    viewModel.setCurrentSignerIndex(index)
+                                    openSignerIntro(index)
+                                },
+                            )
+
+                            customKeyNavigation(
+                                viewModel = viewModel,
+                                onCustomIndexDone = viewModel::addSignerToGroup
                             )
                         }
                     }
                 }
             }
+        )
+    }
+
+    private fun openSignerIntro(index: Int) {
+        navigator.openSignerIntroScreen(
+            activityContext = this,
+            groupId = viewModel.groupId,
+            index = index
         )
     }
 

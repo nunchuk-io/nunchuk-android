@@ -1,26 +1,18 @@
 package com.nunchuk.android.main.groupwallet
 
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -31,51 +23,43 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
-import com.nunchuk.android.compose.NcCircleImage
-import com.nunchuk.android.compose.NcDashLineBox
 import com.nunchuk.android.compose.NcIcon
-import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.provider.SignersModelProvider
-import com.nunchuk.android.compose.provider.WalletExtendedProvider
-import com.nunchuk.android.compose.signer.SignerCard
-import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.main.R
-import com.nunchuk.android.model.GroupSandbox
-import com.nunchuk.android.model.WalletExtended
-import com.nunchuk.android.wallet.util.toReadableString
-import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.main.groupwallet.component.FreeAddKeyCard
+import com.nunchuk.android.main.groupwallet.component.WalletInfo
+import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
+import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
+import com.nunchuk.android.type.SignerType
 
-const val freeGroupWalletRoute = "free_group_wallet/{group_id}"
-private val avatarColors = listOf(
+const val freeGroupWalletRoute = "free_group_wallet"
+val avatarColors = listOf(
     Color(0xFF1C652D),
     Color(0xFFA66800),
     Color(0xFFCF4018),
@@ -86,23 +70,21 @@ private val avatarColors = listOf(
 )
 
 fun NavGraphBuilder.freeGroupWallet(
-    groupId: String?,
+    viewModel: FreeGroupWalletViewModel,
     onEditClicked: (String) -> Unit = {},
     onCopyLinkClicked: (String) -> Unit = {},
     onShowQRCodeClicked: (String) -> Unit = {},
+    onAddNewKey: (Int) -> Unit = {},
+    onAddExistingKey: (SignerModel, Int) -> Unit,
 ) {
     composable(
         route = freeGroupWalletRoute,
-        arguments = listOf(
-            navArgument("group_id") {
-                type = NavType.StringType
-                defaultValue = groupId
-                nullable = true
-            },
-        )
     ) {
-        val viewModel: FreeGroupWalletViewModel = hiltViewModel()
         val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+        if (state.isLoading) {
+            NcLoadingDialog()
+        }
 
         LifecycleResumeEffect(Unit) {
             viewModel.getGroupSandbox()
@@ -111,9 +93,7 @@ fun NavGraphBuilder.freeGroupWallet(
 
         FreeGroupWalletScreen(
             state = state,
-            onAddClicked = {
-
-            },
+            onAddNewKey = onAddNewKey,
             onMoreClicked = {},
             onContinueClicked = {},
             onEditClicked = {
@@ -121,11 +101,10 @@ fun NavGraphBuilder.freeGroupWallet(
                     onEditClicked(it.id)
                 }
             },
-            onRemoveClicked = {
-
-            },
             onCopyLinkClicked = onCopyLinkClicked,
-            onShowQRCodeClicked = onShowQRCodeClicked
+            onShowQRCodeClicked = onShowQRCodeClicked,
+            onRemoveClicked = viewModel::removeSignerFromGroup,
+            onAddExistingKey = onAddExistingKey
         )
     }
 }
@@ -134,14 +113,19 @@ fun NavGraphBuilder.freeGroupWallet(
 @Composable
 fun FreeGroupWalletScreen(
     state: FreeGroupWalletUiState = FreeGroupWalletUiState(),
-    onAddClicked: (Int) -> Unit = {},
+    onAddNewKey: (Int) -> Unit = {},
     onRemoveClicked: (Int) -> Unit = {},
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
     onEditClicked: () -> Unit = {},
     onCopyLinkClicked: (String) -> Unit = {},
     onShowQRCodeClicked: (String) -> Unit = {},
+    onAddExistingKey: (SignerModel, Int) -> Unit = { _, _ -> },
+    onDeleteGroupClicked: () -> Unit = {},
 ) {
+    var showSignerBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var showMoreOption by rememberSaveable { mutableStateOf(false) }
+    var currentSignerIndex by rememberSaveable { mutableIntStateOf(-1) }
     Scaffold(
         modifier = Modifier.navigationBarsPadding(),
         topBar = {
@@ -193,7 +177,9 @@ fun FreeGroupWalletScreen(
                 },
                 actions = {
                     CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.textPrimary) {
-                        IconButton(onClick = onMoreClicked) {
+                        IconButton(onClick = {
+                            showMoreOption = true
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),
                                 contentDescription = "More icon"
@@ -226,12 +212,6 @@ fun FreeGroupWalletScreen(
                 WalletInfo(
                     groupSandbox = state.group,
                     onEditClicked = onEditClicked,
-                    onCopyLinkClicked = {
-                        state.group?.let { onCopyLinkClicked(it.url) }
-                    },
-                    onShowQRCodeClicked = {
-                        state.group?.let { onShowQRCodeClicked(it.url) }
-                    }
                 )
             }
 
@@ -256,238 +236,54 @@ fun FreeGroupWalletScreen(
             }
 
             itemsIndexed(state.signers) { index, signer ->
-                AddKeyCard(
+                FreeAddKeyCard(
                     index = index,
                     signer = signer,
-                    onAddClicked = { onAddClicked(index) },
+                    onAddClicked = {
+                        currentSignerIndex = index
+                        if (state.allSigners.isNotEmpty()) {
+                            showSignerBottomSheet = true
+                        } else {
+                            onAddNewKey(index)
+                        }
+                    },
                     onRemoveClicked = { onRemoveClicked(index) }
                 )
             }
         }
-    }
-}
 
-@Composable
-private fun AddKeyCard(
-    index: Int,
-    modifier: Modifier = Modifier,
-    signer: SignerModel? = null,
-    onAddClicked: () -> Unit,
-    onRemoveClicked: () -> Unit,
-) {
-    if (signer != null) {
-        Row(
-            modifier = Modifier
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.strokePrimary,
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (signer.isVisible) {
-                SignerCard(item = signer, modifier = Modifier.weight(1.0f))
-            } else {
-                NcCircleImage(
-                    iconSize = 48.dp,
-                    resId = R.drawable.ic_user,
-                    color = avatarColors[index % avatarColors.size]
-                )
-                Column(
-                    modifier = Modifier
-                        .weight(1.0f)
-                        .padding(start = 8.dp)
-                ) {
-                    Text(
-                        text = "XFP: ${signer.fingerPrint}",
-                        style = NunchukTheme.typography.body
-                    )
-                }
-            }
-            NcOutlineButton(
-                modifier = Modifier.height(36.dp),
-                onClick = onRemoveClicked,
-            ) {
-                Text(text = stringResource(id = R.string.nc_remove))
-            }
+        if (showMoreOption) {
+            NcSelectableBottomSheet(
+                options = listOf(stringResource(R.string.nc_cancel_group_wallet_setup)),
+                onSelected = {
+                    if (it == 0) {
+                        onDeleteGroupClicked()
+                    }
+                },
+                onDismiss = {
+                    showMoreOption = false
+                },
+            )
         }
-    } else {
-        NcDashLineBox(
-            modifier = modifier,
-            content = {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    NcCircleImage(resId = R.drawable.ic_key, iconSize = 24.dp)
-                    Column(
-                        modifier = Modifier
-                            .weight(1.0f)
-                            .padding(start = 8.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.nc_key_with_index, "#${index + 1}"),
-                            style = NunchukTheme.typography.body
-                        )
-                    }
-                    NcOutlineButton(
-                        modifier = Modifier.height(36.dp),
-                        onClick = onAddClicked,
-                    ) {
-                        Text(text = stringResource(id = R.string.nc_add_key))
-                    }
-                }
-            }
-        )
-    }
-}
 
-@Composable
-internal fun WalletInfo(
-    groupSandbox: GroupSandbox? = null,
-    onEditClicked: () -> Unit = {},
-    onCopyLinkClicked: () -> Unit = {},
-    onShowQRCodeClicked: () -> Unit = {},
-) {
-    val requireSigns = groupSandbox?.m ?: 0
-    val totalSigns = groupSandbox?.n ?: 0
-    Box(
-        modifier = Modifier
-            .clip(shape = RoundedCornerShape(12.dp))
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        colorResource(id = R.color.cl_084B7B),
-                        colorResource(id = R.color.cl_2B74A9)
-                    ), start = Offset.Zero, end = Offset.Infinite
+        if (showSignerBottomSheet) {
+            SelectSignerBottomSheet(
+                onDismiss = { showSignerBottomSheet = false },
+                supportedSigners = emptyList(),
+                onAddExistKey = {
+                    showSignerBottomSheet = false
+                    onAddExistingKey(it, currentSignerIndex)
+                },
+                onAddNewKey = {
+                    showSignerBottomSheet = false
+                    onAddNewKey(currentSignerIndex)
+                },
+                args = TapSignerListBottomSheetFragmentArgs(
+                    signers = state.allSigners.toTypedArray(),
+                    type = SignerType.UNKNOWN
                 )
             )
-            .padding(16.dp)
-            .fillMaxWidth()
-    ) {
-        Column {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier = Modifier
-                        .weight(1.0f)
-                ) {
-                    Text(
-                        text = groupSandbox?.name.orEmpty(),
-                        style = NunchukTheme.typography.titleLarge
-                            .copy(color = colorResource(id = R.color.nc_white_color))
-                    )
-                    Row(
-                        modifier = Modifier.padding(top = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(end = 8.dp),
-                            text = "$requireSigns/$totalSigns ${stringResource(R.string.nc_wallet_multisig)}",
-                            style = NunchukTheme.typography.bodySmall
-                                .copy(color = colorResource(id = R.color.nc_white_color))
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .clip(shape = CircleShape)
-                                .background(Color(0xFFF5F5F5))
-                        )
-
-                        Text(
-                            modifier = Modifier.padding(start = 8.dp),
-                            text = groupSandbox?.addressType?.toReadableString(LocalContext.current)
-                                ?: "",
-                            style = NunchukTheme.typography.bodySmall.copy(
-                                color = colorResource(
-                                    id = R.color.nc_white_color
-                                )
-                            )
-                        )
-                    }
-                }
-            }
-
-            HorizontalDivider(
-                modifier = Modifier.padding(top = 12.dp),
-                thickness = 0.5.dp,
-                color = colorResource(id = R.color.nc_bg_mid_gray)
-            )
-
-            Row(
-                modifier = Modifier.padding(top = 12.dp),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { onCopyLinkClicked() }
-                ) {
-                    NcIcon(
-                        modifier = Modifier.size(16.dp),
-                        painter = painterResource(id = R.drawable.ic_chain),
-                        contentDescription = "Wallet icon",
-                        tint = colorResource(id = R.color.nc_white_color)
-                    )
-
-                    Text(
-                        modifier = Modifier.padding(start = 4.dp),
-                        text = stringResource(id = R.string.nc_copy_wallet_link),
-                        style = NunchukTheme.typography.titleSmall.copy(color = colorResource(id = R.color.nc_white_color))
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.padding(start = 20.dp)
-                        .clickable { onShowQRCodeClicked() },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    NcIcon(
-                        modifier = Modifier.size(16.dp),
-                        painter = painterResource(id = R.drawable.ic_qrcode_2),
-                        contentDescription = "Wallet icon",
-                        tint = colorResource(id = R.color.nc_white_color)
-                    )
-
-                    Text(
-                        modifier = Modifier.padding(start = 4.dp),
-                        text = stringResource(id = R.string.nc_show_qr),
-                        style = NunchukTheme.typography.titleSmall.copy(color = colorResource(id = R.color.nc_white_color))
-                    )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .padding(start = 20.dp)
-                        .clickable { onEditClicked() },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    NcIcon(
-                        modifier = Modifier.size(16.dp),
-                        painter = painterResource(id = R.drawable.ic_setting_2),
-                        contentDescription = "Wallet icon",
-                        tint = colorResource(id = R.color.nc_white_color)
-                    )
-
-                    Text(
-                        modifier = Modifier.padding(start = 4.dp),
-                        text = stringResource(id = R.string.nc_settings),
-                        style = NunchukTheme.typography.titleSmall.copy(color = colorResource(id = R.color.nc_white_color))
-                    )
-                }
-            }
         }
-    }
-}
-
-@Preview
-@Composable
-private fun WalletInfoPreview(
-    @PreviewParameter(WalletExtendedProvider::class) walletsExtended: WalletExtended,
-) {
-    NunchukTheme {
-        WalletInfo()
     }
 }
 

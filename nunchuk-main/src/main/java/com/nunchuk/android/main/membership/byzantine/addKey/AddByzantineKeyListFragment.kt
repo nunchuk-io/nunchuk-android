@@ -127,7 +127,8 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                         if (hasTag || selectedSignerTag == null) {
                             findNavController().navigate(
                                 AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
-                                    signer
+                                    signer,
+                                    groupId = args.groupId
                                 )
                             )
                         } else {
@@ -141,7 +142,8 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
                         } else {
                             findNavController().navigate(
                                 AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
-                                    signer
+                                    signer,
+                                    groupId = args.groupId
                                 )
                             )
                         }
@@ -405,7 +407,8 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
 
                 is AddKeyListEvent.UpdateSignerTag -> findNavController().navigate(
                     AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToCustomKeyAccountFragmentFragment(
-                        event.signer
+                        event.signer,
+                        groupId = args.groupId
                     )
                 )
             }

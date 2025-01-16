@@ -44,7 +44,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -164,7 +163,8 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                     SignerType.NFC -> openCreateBackUpTapSigner(data.signers.first().id)
                     SignerType.PORTAL_NFC -> findNavController().navigate(
                         AddKeyListFragmentDirections.actionAddKeyListFragmentToCustomKeyAccountFragmentFragment(
-                            data.signers.first()
+                            data.signers.first(),
+                            walletId = (activity as MembershipActivity).walletId,
                         )
                     )
 
@@ -222,7 +222,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(requireActivity(), true)
             SheetOptionType.TYPE_ADD_COLDCARD_QR,
             SheetOptionType.TYPE_ADD_COLDCARD_FILE,
-            -> navigator.openSetupMk4(
+                -> navigator.openSetupMk4(
                 requireActivity(),
                 true,
                 ColdcardAction.RECOVER_KEY,
@@ -234,7 +234,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
             SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
             SheetOptionType.TYPE_ADD_AIRGAP_OTHER,
-            -> {
+                -> {
                 selectedSignerTag = getSignerTag(option.type)
                 handleShowKeysOrCreate(
                     viewModel.getAirgap(getSignerTag(option.type)),
@@ -390,7 +390,7 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             MembershipStep.IRON_ADD_HARDWARE_KEY_2,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
-            -> openSelectHardwareOption()
+                -> openSelectHardwareOption()
 
             else -> Unit
         }

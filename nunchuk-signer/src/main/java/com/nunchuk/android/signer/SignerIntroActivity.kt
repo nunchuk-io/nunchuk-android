@@ -137,7 +137,9 @@ class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionCli
         navigator.openAddSoftwareSignerScreen(
             activityContext = this,
             keyFlow = primaryKeyFlow,
-            walletId = walletId
+            groupId = groupId,
+            walletId = walletId,
+            index = index
         )
         finish()
     }
@@ -148,6 +150,7 @@ class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionCli
                 activity = this,
                 setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
                 walletId = walletId,
+                groupId = groupId
             )
         )
         finish()
@@ -155,19 +158,28 @@ class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionCli
 
     // replace key in free wallet
     private val walletId by lazy { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
+    // group sandbox id
+    private val groupId by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
+    private val index by lazy { intent.getIntExtra(EXTRA_INDEX, -1) }
 
     companion object {
         private const val EXTRA_WALLET_ID = "wallet_id"
+        private const val EXTRA_GROUP_ID = "group_id"
+        private const val EXTRA_INDEX = "index"
         private const val EXTRA_SUPPORTED_SIGNERS = "supported_signers"
 
         fun start(
             activityContext: Context,
             walletId: String? = null,
+            groupId: String? = null,
+            index: Int = -1,
             supportedSigners: List<SupportedSigner>? = null
         ) {
             activityContext.startActivity(
                 Intent(activityContext, SignerIntroActivity::class.java).apply {
                     putExtra(EXTRA_WALLET_ID, walletId)
+                    putExtra(EXTRA_GROUP_ID, groupId)
+                    putExtra(EXTRA_INDEX, index)
                     supportedSigners?.let {
                         putParcelableArrayListExtra(EXTRA_SUPPORTED_SIGNERS, ArrayList(it))
                     }
