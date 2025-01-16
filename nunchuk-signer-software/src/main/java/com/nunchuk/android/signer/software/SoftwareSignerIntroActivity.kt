@@ -61,8 +61,8 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
         }
 
         setPassphraseViewModel.event.observe(this) { event ->
-            if(handleCreateSoftwareSignerEvent(event)) return@observe
-            if(event is CreateSoftwareSignerCompletedEvent) {
+            if (handleCreateSoftwareSignerEvent(event)) return@observe
+            if (event is CreateSoftwareSignerCompletedEvent) {
                 onCreateSignerCompleted(
                     navigator = navigator,
                     masterSigner = event.masterSigner,
@@ -105,6 +105,8 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
             !groupId.isNullOrEmpty() || !replacedXfp.isNullOrEmpty() -> {
                 val signerName = if (!replacedXfp.isNullOrEmpty()) {
                     viewModel.state.value.replaceSignerName
+                } else if (signerIndex >= 0) {
+                    "Key #${signerIndex.inc()}"
                 } else {
                     "Key${viewModel.getSoftwareSignerName()}"
                 }
@@ -119,7 +121,8 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                     walletId = walletId,
                     isQuickWallet = false,
                     skipPassphrase = true,
-                    xprv = xprv
+                    xprv = xprv,
+                    index = signerIndex
                 )
             }
 
@@ -142,7 +145,8 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
             keyFlow = keyFlow,
             walletId = walletId,
             groupId = groupId,
-            replacedXfp = replacedXfp
+            replacedXfp = replacedXfp,
+            signerIndex = signerIndex
         )
     }
 
@@ -151,9 +155,9 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
             activityContext = this,
             passphrase = passphrase,
             keyFlow = keyFlow,
+            walletId = walletId,
             groupId = groupId,
-            replacedXfp = replacedXfp,
-            walletId = walletId
+            replacedXfp = replacedXfp
         )
     }
 
@@ -165,13 +169,17 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
         intent.getStringExtra(EXTRA_WALLET_ID).orEmpty()
     }
 
+    val signerIndex by lazy {
+        intent.getIntExtra(EXTRA_INDEX, -1)
+    }
+
     companion object {
         private const val EXTRA_PRIMARY_KEY_FLOW = "EXTRA_PRIMARY_KEY_FLOW"
         private const val EXTRA_PASSPHRASE = "EXTRA_PASSPHRASE"
         private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
         private const val EXTRA_REPLACED_XFP = "EXTRA_REPLACED_XFP"
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
-        private const val EXTRA_INT = "EXTRA_INT"
+        private const val EXTRA_INDEX = "EXTRA_INDEX"
 
         fun start(
             activityContext: Context,
@@ -192,7 +200,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                     groupId?.let { putExtra(EXTRA_GROUP_ID, it) }
                     replacedXfp?.let { putExtra(EXTRA_REPLACED_XFP, it) }
                     putExtra(EXTRA_WALLET_ID, walletId)
-                    putExtra(EXTRA_INT, index)
+                    putExtra(EXTRA_INDEX, index)
                 },
             )
         }

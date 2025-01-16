@@ -96,14 +96,15 @@ class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
                 } else {
                     navigator.openSelectPhraseScreen(
                         launcher = confirmSeedLauncher,
-                        requireActivity(),
+                        activityContext = requireActivity(),
                         mnemonic = event.mnemonic,
                         passphrase = args.passphrase,
                         keyFlow = args.primaryKeyFlow,
                         masterSignerId = viewModel.state.value.masterSignerId,
                         walletId = args.walletId,
                         groupId = args.groupId,
-                        replacedXfp = args.replacedXfp
+                        replacedXfp = args.replacedXfp,
+                        signerIndex = args.index,
                     )
                 }
             }
@@ -115,7 +116,7 @@ class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
         binding.seedGrid.layoutManager = GridLayoutManager(requireContext(), COLUMNS)
         binding.seedGrid.adapter = adapter
         binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
         binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
     }

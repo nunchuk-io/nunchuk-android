@@ -75,6 +75,10 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
         intent.getStringExtra(EXTRA_WALLET_ID).orEmpty()
     }
 
+    private val signerIndex: Int by lazy {
+        intent.getIntExtra(EXTRA_INDEX, -1)
+    }
+
     override fun initializeBinding() = ActivityRecoverSeedBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -126,6 +130,8 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                     !groupId.isNullOrEmpty() || replacedXfp.isNotEmpty() -> {
                         val signerName = if (replacedXfp.isNotEmpty()) {
                             viewModel.state.value?.replaceSignerName.orEmpty()
+                        } else if (signerIndex >= 0) {
+                            "Key #${signerIndex.inc()}"
                         } else {
                             "Key${membershipStepManager.getNextKeySuffixByType(SignerType.SOFTWARE)}"
                         }
@@ -209,6 +215,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
         private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
         private const val EXTRA_REPLACED_XFP = "EXTRA_REPLACED_XFP"
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
+        private const val EXTRA_INDEX = "EXTRA_INDEX"
 
         fun start(
             activityContext: Context,
@@ -217,7 +224,8 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             isRecoverHotWallet: Boolean = false,
             groupId: String? = null,
             replacedXfp: String? = null,
-            walletId: String = ""
+            walletId: String = "",
+            signerIndex: Int = -1
         ) {
             activityContext.startActivity(
                 buildIntent(
@@ -227,7 +235,8 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                     isRecoverHotWallet,
                     groupId,
                     replacedXfp,
-                    walletId
+                    walletId,
+                    signerIndex
                 )
             )
         }
@@ -239,7 +248,8 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             isRecoverHotWallet: Boolean = false,
             groupId: String? = null,
             replacedXfp: String? = null,
-            walletId: String = ""
+            walletId: String = "",
+            signerIndex: Int = -1
         ) = Intent(
             activityContext,
             RecoverSeedActivity::class.java
@@ -259,6 +269,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             putExtra(EXTRA_GROUP_ID, groupId)
             putExtra(EXTRA_REPLACED_XFP, replacedXfp)
             putExtra(EXTRA_WALLET_ID, walletId)
+            putExtra(EXTRA_INDEX, signerIndex)
         }
     }
 }

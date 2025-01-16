@@ -57,7 +57,8 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
             walletId: String,
             groupId: String?,
             replacedXfp: String? = null,
-            numberOfWords: Int
+            numberOfWords: Int,
+            signerIndex: Int
         ) {
             activityContext.startActivity(
                 buildIntent(
@@ -67,7 +68,8 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
                     walletId,
                     groupId,
                     replacedXfp,
-                    numberOfWords
+                    numberOfWords,
+                    signerIndex
                 )
             )
         }
@@ -79,7 +81,8 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
             walletId: String = "",
             groupId: String? = null,
             replacedXfp: String? = null,
-            numberOfWords: Int = 24
+            numberOfWords: Int = 24,
+            signerIndex: Int = -1
         ): Intent = Intent(
             activityContext,
             CreateNewSeedActivity::class.java
@@ -92,7 +95,8 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
                     walletId = walletId,
                     groupId = groupId,
                     replacedXfp = replacedXfp.orEmpty(),
-                    numberOfWords = numberOfWords
+                    numberOfWords = numberOfWords,
+                    index = signerIndex
                 ).toBundle()
             )
         }

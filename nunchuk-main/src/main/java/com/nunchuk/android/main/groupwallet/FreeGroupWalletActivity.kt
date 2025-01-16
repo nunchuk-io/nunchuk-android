@@ -52,10 +52,8 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
                                     viewModel.setCurrentSignerIndex(index)
                                     navController.navigateCustomKey(signer)
                                 },
-                                onAddNewKey = { index ->
-                                    viewModel.setCurrentSignerIndex(index)
-                                    openSignerIntro(index)
-                                },
+                                onAddNewKey = ::openSignerIntro,
+                                onDeleteGroup = ::finish
                             )
 
                             customKeyNavigation(

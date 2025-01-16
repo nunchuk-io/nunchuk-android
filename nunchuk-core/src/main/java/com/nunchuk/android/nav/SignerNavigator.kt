@@ -103,6 +103,7 @@ interface SignerNavigator {
         groupId: String? = null,
         replacedXfp: String? = null,
         numberOfWords: Int = 24,
+        signerIndex: Int = -1,
     )
 
     fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean = false)
@@ -118,6 +119,7 @@ interface SignerNavigator {
         walletId: String = "",
         groupId: String? = null,
         replacedXfp: String? = null,
+        signerIndex: Int = -1,
     )
 
     /**
@@ -133,6 +135,7 @@ interface SignerNavigator {
         walletId: String = "",
         groupId: String? = null,
         replacedXfp: String? = null,
+        signerIndex: Int = -1,
     )
 
     /**
@@ -163,6 +166,7 @@ interface SignerNavigator {
         groupId: String? = null,
         replacedXfp: String? = null,
         walletId: String = "",
+        signerIndex: Int = -1,
     )
 
     fun openPrimaryKeyIntroScreen(activityContext: Context)

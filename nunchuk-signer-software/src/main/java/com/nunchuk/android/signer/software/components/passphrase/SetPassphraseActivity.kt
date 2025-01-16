@@ -56,6 +56,7 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
             groupId: String? = null,
             replacedXfp: String? = null,
             walletId: String = "",
+            signerIndex: Int,
         ) {
             activityContext.startActivity(
                 Intent(activityContext, SetPassphraseActivity::class.java).putExtras(
@@ -67,6 +68,7 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
                         groupId = groupId,
                         replacedXfp = replacedXfp.orEmpty(),
                         walletId = walletId,
+                        index = signerIndex
                     ).toBundle()
                 )
             )

@@ -113,7 +113,8 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
                         walletId = args.walletId.orEmpty(),
                         isQuickWallet = false,
                         skipPassphrase = true,
-                        xprv = args.xprv.orEmpty()
+                        xprv = args.xprv.orEmpty(),
+                        index = -1
                     )
                 } else if (args.primaryKeyFlow.isSignInFlow()) {
                     viewModel.getTurnOnNotification()

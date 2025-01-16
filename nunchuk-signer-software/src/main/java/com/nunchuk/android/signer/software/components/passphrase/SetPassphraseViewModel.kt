@@ -55,6 +55,7 @@ import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.byzantine.GetLocalGroupUseCase
+import com.nunchuk.android.usecase.free.groupwallet.AddSignerToGroupUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
@@ -88,6 +89,7 @@ internal class SetPassphraseViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getLocalGroupUseCase: GetLocalGroupUseCase,
+    private val addSignerToGroupUseCase: AddSignerToGroupUseCase,
 ) : NunchukViewModel<SetPassphraseState, SetPassphraseEvent>() {
     private val args: SetPassphraseFragmentArgs by lazy {
         SetPassphraseFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -169,7 +171,8 @@ internal class SetPassphraseViewModel @Inject constructor(
             replacedXfp = args.replacedXfp,
             walletId = args.walletId,
             isQuickWallet = args.isQuickWallet,
-            skipPassphrase = getState().skipPassphrase
+            skipPassphrase = getState().skipPassphrase,
+            index = args.index
         )
     }
 
@@ -184,6 +187,7 @@ internal class SetPassphraseViewModel @Inject constructor(
         walletId: String,
         isQuickWallet: Boolean,
         skipPassphrase: Boolean,
+        index: Int,
         xprv: String = ""
     ) {
         viewModelScope.launch {
@@ -211,12 +215,11 @@ internal class SetPassphraseViewModel @Inject constructor(
                 if (replacedXfp.isNotEmpty() && walletId.isNotEmpty()) {
                     replacedKey(signer, groupId, replacedXfp, walletId)
                 } else if (groupId.isNotEmpty()) {
-                    getLocalGroupUseCase(groupId).onSuccess {
+                    if (getLocalGroupUseCase(groupId).getOrNull() != null) {
                         syncKeyToGroup(signer, groupId)
-                    }.onFailure {
-                        syncKeyToGroupSandbox(signer, groupId)
+                    } else {
+                        syncKeyToGroupSandbox(signer, groupId, index)
                     }
-                    syncKeyToGroup(signer, groupId)
                 } else if (isQuickWallet) {
                     createQuickWallet(signer)
                 } else if (primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
@@ -310,8 +313,35 @@ internal class SetPassphraseViewModel @Inject constructor(
         }
     }
 
-    private fun syncKeyToGroupSandbox(masterSigner: MasterSigner, groupId: String) {
-
+    private fun syncKeyToGroupSandbox(masterSigner: MasterSigner, groupId: String, index: Int) {
+        viewModelScope.launch {
+            getDefaultSignerFromMasterSignerUseCase(
+                GetDefaultSignerFromMasterSignerUseCase.Params(
+                    masterSignerId = masterSigner.id,
+                    walletType = WalletType.MULTI_SIG,
+                    addressType = AddressType.NATIVE_SEGWIT
+                )
+            ).onSuccess { signer ->
+                addSignerToGroupUseCase(
+                    AddSignerToGroupUseCase.Params(
+                        groupId = groupId,
+                        signer = signer,
+                        index = index
+                    )
+                ).onSuccess {
+                    setEvent(
+                        CreateSoftwareSignerCompletedEvent(
+                            masterSigner,
+                            masterSigner.device.needPassPhraseSent
+                        )
+                    )
+                }.onFailure {
+                    setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
+                }
+            }.onFailure {
+                setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
+            }
+        }
     }
 
     private fun syncKeyToGroup(masterSigner: MasterSigner, groupId: String) {

@@ -58,20 +58,22 @@ class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
             masterSignerId: String,
             walletId: String,
             groupId: String? = null,
-            replacedXfp: String? = null
+            replacedXfp: String? = null,
+            signerIndex: Int = -1
         ) = Intent(
-                    activityContext,
-                    ConfirmSeedActivity::class.java
-                ).putExtras(
-                    ConfirmSeedFragmentArgs(
-                        mnemonic = mnemonic,
-                        primaryKeyFlow = primaryKeyFlow,
-                        passphrase = passphrase,
-                        masterSignerId = masterSignerId,
-                        walletId = walletId,
-                        groupId = groupId,
-                        replacedXfp = replacedXfp.orEmpty()
-                    ).toBundle()
-                )
+            activityContext,
+            ConfirmSeedActivity::class.java
+        ).putExtras(
+            ConfirmSeedFragmentArgs(
+                mnemonic = mnemonic,
+                primaryKeyFlow = primaryKeyFlow,
+                passphrase = passphrase,
+                masterSignerId = masterSignerId,
+                walletId = walletId,
+                groupId = groupId,
+                replacedXfp = replacedXfp.orEmpty(),
+                index = signerIndex
+            ).toBundle()
+        )
     }
 }

@@ -135,6 +135,8 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
         } else if (!args.groupId.isNullOrEmpty() || args.replacedXfp.isNotEmpty()) {
             val signerName = if (args.replacedXfp.isNotEmpty()) {
                 viewModel.state.value.replaceSignerName
+            } else if (args.index >= 0) {
+                "Key #${args.index.inc()}"
             } else {
                 "Key${membershipStepManager.getNextKeySuffixByType(SignerType.SOFTWARE)}"
             }
@@ -145,7 +147,8 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
                 keyFlow = args.primaryKeyFlow,
                 groupId = args.groupId,
                 replacedXfp = args.replacedXfp,
-                walletId = args.walletId
+                walletId = args.walletId,
+                signerIndex = args.index
             )
         } else {
             openSetNameScreen()

@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -76,11 +77,18 @@ fun NavGraphBuilder.freeGroupWallet(
     onShowQRCodeClicked: (String) -> Unit = {},
     onAddNewKey: (Int) -> Unit = {},
     onAddExistingKey: (SignerModel, Int) -> Unit,
+    onDeleteGroup: () -> Unit,
 ) {
     composable(
         route = freeGroupWalletRoute,
     ) {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+        LaunchedEffect(state.isGroupDeleted) {
+            if (state.isGroupDeleted) {
+                onDeleteGroup()
+            }
+        }
 
         if (state.isLoading) {
             NcLoadingDialog()
@@ -94,7 +102,6 @@ fun NavGraphBuilder.freeGroupWallet(
         FreeGroupWalletScreen(
             state = state,
             onAddNewKey = onAddNewKey,
-            onMoreClicked = {},
             onContinueClicked = {},
             onEditClicked = {
                 state.group?.let {
@@ -104,7 +111,8 @@ fun NavGraphBuilder.freeGroupWallet(
             onCopyLinkClicked = onCopyLinkClicked,
             onShowQRCodeClicked = onShowQRCodeClicked,
             onRemoveClicked = viewModel::removeSignerFromGroup,
-            onAddExistingKey = onAddExistingKey
+            onAddExistingKey = onAddExistingKey,
+            onDeleteGroupClicked = viewModel::deleteGroupSandbox
         )
     }
 }
@@ -115,7 +123,6 @@ fun FreeGroupWalletScreen(
     state: FreeGroupWalletUiState = FreeGroupWalletUiState(),
     onAddNewKey: (Int) -> Unit = {},
     onRemoveClicked: (Int) -> Unit = {},
-    onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
     onEditClicked: () -> Unit = {},
     onCopyLinkClicked: (String) -> Unit = {},
