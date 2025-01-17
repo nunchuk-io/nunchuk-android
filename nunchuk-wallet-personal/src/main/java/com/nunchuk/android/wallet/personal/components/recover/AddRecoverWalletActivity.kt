@@ -74,6 +74,9 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
             is RecoverWalletEvent.UpdateWalletSuccessEvent -> handleSuccessRecoverEvent(walletName = event.walletName, walletId = event.walletId)
             is RecoverWalletEvent.WalletSetupDoneEvent -> handleWalletSetupDoneEvent()
             RecoverWalletEvent.WalletNameRequiredEvent -> binding.walletName.setError(getString(R.string.nc_text_required))
+            is RecoverWalletEvent.ImportGroupWalletSuccessEvent -> {
+                navigator.openFreeGroupWalletScreen(this, event.walletId)
+            }
         }
     }
 
@@ -83,6 +86,15 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
             val filePath = recoverWalletData.filePath
             if (walletName != null && filePath != null) {
                 importWallet(walletName, filePath)
+            }
+        } else if (recoverWalletData.type == RecoverWalletType.GROUP_WALLET) {
+            val filePath = recoverWalletData.filePath
+            if (walletName != null && filePath != null) {
+                viewModel.recoverGroupWallet(
+                    name = walletName,
+                    filePath = filePath,
+                    description = ""
+                )
             }
         } else {
             val walletId = recoverWalletData.walletId

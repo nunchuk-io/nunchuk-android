@@ -25,6 +25,7 @@ import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.ImportWalletUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
+import com.nunchuk.android.usecase.free.groupwallet.RecoverGroupWalletUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -39,7 +40,8 @@ import javax.inject.Inject
 internal class RecoverWalletViewModel @Inject constructor(
     private val importWalletUseCase: ImportWalletUseCase,
     private val updateWalletUseCase: UpdateWalletUseCase,
-    private val getWalletUseCase: GetWalletUseCase
+    private val getWalletUseCase: GetWalletUseCase,
+    private val recoverGroupWalletUseCase: RecoverGroupWalletUseCase
 ) : NunchukViewModel<RecoverWalletState, RecoverWalletEvent>() {
 
     override val initialState = RecoverWalletState()
@@ -58,6 +60,22 @@ internal class RecoverWalletViewModel @Inject constructor(
                 .onException { event(RecoverWalletEvent.ImportWalletErrorEvent(it.readableMessage())) }
                 .flowOn(Dispatchers.Main)
                 .collect { event(RecoverWalletEvent.ImportWalletSuccessEvent(it.id, it.name)) }
+        }
+    }
+
+    fun recoverGroupWallet(name: String, filePath: String, description: String) {
+        viewModelScope.launch {
+            recoverGroupWalletUseCase(
+                RecoverGroupWalletUseCase.Params(
+                    name = name,
+                    filePath = filePath,
+                    description = description
+                )
+            ).onSuccess {
+                event(RecoverWalletEvent.ImportGroupWalletSuccessEvent(it.id, it.name))
+            }.onFailure {
+                event(RecoverWalletEvent.ImportWalletErrorEvent(it.readableMessage()))
+            }
         }
     }
 

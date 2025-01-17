@@ -17,20 +17,32 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.wallet.personal.components.recover
+package com.nunchuk.android.usecase.free.groupwallet
 
-sealed class RecoverWalletEvent {
-    data class UpdateWalletSuccessEvent(val walletId: String, val walletName: String): RecoverWalletEvent()
-    data class UpdateWalletErrorEvent(val message: String): RecoverWalletEvent()
-    data class ImportWalletSuccessEvent(val walletId: String, val walletName: String): RecoverWalletEvent()
-    data class ImportGroupWalletSuccessEvent(val walletId: String, val walletName: String): RecoverWalletEvent()
-    data class ImportWalletErrorEvent(val message: String): RecoverWalletEvent()
-    data object WalletNameRequiredEvent : RecoverWalletEvent()
-    data class WalletSetupDoneEvent(
-        val walletName: String
-    ) : RecoverWalletEvent()
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
+
+class RecoverGroupWalletUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<RecoverGroupWalletUseCase.Params, Wallet>(ioDispatcher) {
+
+    override suspend fun execute(parameters: Params): Wallet {
+        return nativeSdk.recoverFreeGroupWallet(
+            name = parameters.name,
+            filePath = parameters.filePath,
+            description = parameters.description
+        )
+    }
+
+    data class Params(
+        val name: String,
+        val filePath: String,
+        val description: String
+    )
 }
-
-data class RecoverWalletState(
-    val walletName: String = ""
-)
