@@ -53,6 +53,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcCircleImage
+import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
@@ -172,13 +173,27 @@ fun ReviewWalletContent(
         NcScaffold(
             modifier = Modifier.navigationBarsPadding(),
             bottomBar = {
-                NcPrimaryDarkButton(
+                Column(
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth(),
-                    onClick = onContinue
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Text(text = stringResource(id = R.string.nc_wallet_create_wallet))
+                    if (args.groupId.isNotEmpty()) {
+                        NcHintMessage {
+                            Text(
+                                text = stringResource(R.string.nc_create_free_group_wallet_hint),
+                                style = NunchukTheme.typography.titleSmall
+                            )
+                        }
+                    }
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        onClick = onContinue
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_wallet_create_wallet))
+                    }
                 }
             },
             topBar = {
@@ -306,7 +321,8 @@ private fun PreviewReviewWalletContent(
             walletType = WalletType.SINGLE_SIG,
             addressType = AddressType.LEGACY,
             totalRequireSigns = 1,
-            signers = emptyList()
+            signers = emptyList(),
+            groupId = "123"
         ),
         signers = signers
     )
