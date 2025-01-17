@@ -17,27 +17,20 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.nav
+package com.nunchuk.android.usecase.free.groupwallet
 
-import android.content.Context
-import androidx.fragment.app.FragmentManager
-import com.nunchuk.android.core.constants.RoomAction
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-interface MessageNavigator {
-
-    fun openRoomDetailActivity(
-        activityContext: Context,
-        roomId: String,
-        roomAction: RoomAction = RoomAction.NONE,
-        isGroupChat: Boolean = false
-    )
-
-    fun returnRoomDetailScreen()
-
-    fun openCreateRoomScreen(fragmentManager: FragmentManager)
-
-    fun openChatInfoScreen(activityContext: Context, roomId: String, isByzantineChat: Boolean, isShowCollaborativeWallet: Boolean)
-
-    fun openChatGroupInfoScreen(activityContext: Context, roomId: String, isByzantineChat: Boolean, isShowCollaborativeWallet: Boolean)
-    fun openGroupChatScreen(activityContext: Context, walletId: String)
+class GetGroupWalletsUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val nativeSdk: NunchukNativeSdk
+) : UseCase<Unit, List<Wallet>>(dispatcher) {
+    override suspend fun execute(parameters: Unit): List<Wallet> {
+        return nativeSdk.getGroupWallets()
+    }
 }

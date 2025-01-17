@@ -3,12 +3,15 @@ package com.nunchuk.android.messages.components.freegroup
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -43,15 +47,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -90,12 +96,12 @@ class FreeGroupWalletChatActivity : BaseComposeActivity() {
 
     companion object {
         const val TAG = "FreeGroupWalletChatActivity"
-        const val EXTRA_GROUP_ID = "group_id"
+        const val EXTRA_WALLET_ID = "wallet_id"
 
-        fun start(activity: Context) {
+        fun start(activity: Context, walletId: String) {
             activity.startActivity(Intent(activity, FreeGroupWalletChatActivity::class.java)
                 .apply {
-                    putExtra(EXTRA_GROUP_ID, "group_id")
+                    putExtra(EXTRA_WALLET_ID, walletId)
                 })
         }
     }
@@ -161,9 +167,11 @@ fun FreeGroupWalletChatScreen(
                     }
                 )
             }, bottomBar = {
-                ChatInput(onSendMessage = { message ->
-                    onSendMessage(message)
-                })
+                ChatInput(
+                    modifier = Modifier.imePadding(),
+                    onSendMessage = { message ->
+                        onSendMessage(message)
+                    })
             }) { innerPadding ->
             Column(
                 modifier = Modifier
@@ -285,10 +293,13 @@ fun SentMessageBubble(message: MessageUI.SenderMessage) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ReceivedMessageBubble(message: MessageUI.ReceiverMessage) {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val maxWidth = (screenWidth * 0.7f)
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -336,6 +347,13 @@ fun ReceivedMessageBubble(message: MessageUI.ReceiverMessage) {
                         )
                     )
                     .padding(12.dp)
+                    .combinedClickable(
+                        onClick = { /* Handle click if needed */ },
+                        onLongClick = {
+                            clipboardManager.setText(AnnotatedString(message.data.content))
+                            Toast.makeText(context, "Message copied to clipboard", Toast.LENGTH_SHORT).show()
+                        }
+                    )
             ) {
                 Text(
                     text = message.data.content,
@@ -348,11 +366,14 @@ fun ReceivedMessageBubble(message: MessageUI.ReceiverMessage) {
 }
 
 @Composable
-fun ChatInput(onSendMessage: (String) -> Unit) {
+fun ChatInput(
+    modifier: Modifier = Modifier,
+    onSendMessage: (String) -> Unit
+) {
     var inputText by remember { mutableStateOf("") }
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -369,7 +390,7 @@ fun ChatInput(onSendMessage: (String) -> Unit) {
                     style = NunchukTheme.typography.bodySmall,
                 )
             },
-            inputBoxHeight = 40.dp,
+            inputBoxHeight = 45.dp,
             roundBoxRadius = 8.dp
         )
         Spacer(modifier = Modifier.width(16.dp))

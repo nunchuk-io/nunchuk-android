@@ -367,6 +367,16 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         if (state.walletExtended.wallet.needBackup) {
             handleNeedBackupWallet()
         }
+        binding.chatView.setContent {
+            GroupWalletChatView(messages = state.groupChatMessages, onSendMessage = {
+
+            }, onOpenChat = {
+                navigator.openGroupChatScreen(
+                    activityContext = requireActivity(),
+                    walletId = args.walletId,
+                )
+            })
+        }
     }
 
     private fun handleWalletBackground(state: WalletDetailsState) {
@@ -494,10 +504,6 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             }
         })
         setupPaginationAdapter()
-
-        binding.chatView.setContent {
-            GroupWalletChatView()
-        }
     }
 
     private fun animateLayout(isEnd: Boolean) {

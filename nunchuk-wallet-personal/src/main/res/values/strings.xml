@@ -19,6 +19,7 @@
     <string name="nc_wallet_qrcode">QRCode</string>
     <string name="nc_create_assisted_wallet">Create new assisted wallet (%1$d remaining)</string>
     <string name="nc_type_of_assisted_wallet">What type of assisted wallet do you want to create?</string>
+    <string name="nc_select_assisted_wallet_type">Select assisted wallet type</string>
     <string name="nc_group_wallet">Group wallet</string>
     <string name="nc_personal_wallet">Personal wallet</string>
     <string name="nc_invalid_qr">Invalid QR</string>

@@ -310,7 +310,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
         if (it.path.isNotEmpty()) {
             navigator.openAddRecoverWalletScreen(
                 requireActivity(), RecoverWalletData(
-                    type = RecoverWalletType.FILE,
+                    type = if (it.isGroupWallet) RecoverWalletType.GROUP_WALLET else RecoverWalletType.FILE,
                     filePath = it.path
                 )
             )
@@ -341,7 +341,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                     )
                 )
 
-                RecoverWalletOption.GroupWallet -> TODO()
+                RecoverWalletOption.GroupWallet -> openSelectFileChooser(WalletIntermediaryActivity.REQUEST_CODE)
             }
         }
     }
@@ -352,7 +352,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
-        if (requestCode == WalletIntermediaryActivity.REQUEST_CODE && resultCode == AppCompatActivity.RESULT_OK) {
+        if ((requestCode == WalletIntermediaryActivity.REQUEST_CODE || requestCode == WalletIntermediaryActivity.REQUEST_CODE_GROUP_WALLET) && resultCode == AppCompatActivity.RESULT_OK) {
             intent?.data?.let {
                 viewModel.extractFilePath(it)
             }
@@ -434,13 +434,15 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                 SheetOption(
                     SheetOptionType.TYPE_GROUP_WALLET,
                     stringId = R.string.nc_group_wallet,
+                    resId = R.drawable.ic_group_wallet_menu,
                 ),
                 SheetOption(
                     SheetOptionType.TYPE_PERSONAL_WALLET,
                     stringId = R.string.nc_personal_wallet,
+                    resId = R.drawable.ic_personal_wallet_menu,
                 ),
             ),
-            title = getString(R.string.nc_type_of_assisted_wallet)
+            title = getString(R.string.nc_select_assisted_wallet_type)
         ).show(childFragmentManager, "BottomSheetOption")
     }
 }

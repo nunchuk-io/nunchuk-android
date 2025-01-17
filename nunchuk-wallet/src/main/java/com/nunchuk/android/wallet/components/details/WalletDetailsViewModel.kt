@@ -26,6 +26,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.GetListMessageFreeGroupWalletUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
@@ -93,8 +94,9 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val serverTransactionCache: LruCache<String, ServerTransaction>,
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val getGroupUseCase: GetGroupUseCase,
-    private val hasSignerUseCase: HasSignerUseCase
-) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
+    private val hasSignerUseCase: HasSignerUseCase,
+    private val getListMessageFreeGroupWalletUseCase: GetListMessageFreeGroupWalletUseCase,
+    ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
@@ -152,6 +154,19 @@ internal class WalletDetailsViewModel @Inject constructor(
                         )
                     }
                 }
+        }
+        viewModelScope.launch {
+            getListMessageFreeGroupWalletUseCase(
+                GetListMessageFreeGroupWalletUseCase.Param(
+                    walletId = args.walletId,
+                )
+            ).onSuccess {
+                updateState {
+                    copy(
+                        groupChatMessages = it.takeLast(2),
+                    )
+                }
+            }
         }
     }
 

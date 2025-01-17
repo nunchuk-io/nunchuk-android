@@ -126,14 +126,14 @@ class WalletIntermediaryViewModel @Inject constructor(
         }
     }
 
-    fun extractFilePath(uri: Uri) {
+    fun extractFilePath(uri: Uri, isGroupWallet: Boolean = false) {
         viewModelScope.launch {
             _event.emit(WalletIntermediaryEvent.Loading(true))
             val result = withContext(ioDispatcher) {
                 getFileFromUri(application.contentResolver, uri, application.cacheDir)
             }
             _event.emit(WalletIntermediaryEvent.Loading(false))
-            _event.emit(WalletIntermediaryEvent.OnLoadFileSuccess(result?.absolutePath.orEmpty()))
+            _event.emit(WalletIntermediaryEvent.OnLoadFileSuccess(path = result?.absolutePath.orEmpty(), isGroupWallet = isGroupWallet))
         }
     }
 
@@ -185,7 +185,7 @@ class WalletIntermediaryViewModel @Inject constructor(
 
 sealed class WalletIntermediaryEvent {
     data class Loading(val isLoading: Boolean) : WalletIntermediaryEvent()
-    data class OnLoadFileSuccess(val path: String) : WalletIntermediaryEvent()
+    data class OnLoadFileSuccess(val path: String, val isGroupWallet: Boolean) : WalletIntermediaryEvent()
     data class ShowError(val msg: String) : WalletIntermediaryEvent()
     data object NoSigner : WalletIntermediaryEvent()
     data class JoinGroupWalletSuccess(val groupId: String) : WalletIntermediaryEvent()

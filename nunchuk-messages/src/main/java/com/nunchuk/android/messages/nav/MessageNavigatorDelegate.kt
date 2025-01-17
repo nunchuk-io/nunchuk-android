@@ -26,6 +26,7 @@ import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.messages.components.create.CreateRoomBottomSheet
 import com.nunchuk.android.messages.components.detail.RoomDetailActivity
 import com.nunchuk.android.messages.components.direct.ChatInfoActivity
+import com.nunchuk.android.messages.components.freegroup.FreeGroupWalletChatActivity
 import com.nunchuk.android.messages.components.group.ChatGroupInfoActivity
 import com.nunchuk.android.nav.MessageNavigator
 
@@ -54,6 +55,10 @@ interface MessageNavigatorDelegate : MessageNavigator {
 
     override fun openChatGroupInfoScreen(activityContext: Context, roomId: String, isByzantineChat: Boolean, isShowCollaborativeWallet: Boolean) {
         ChatGroupInfoActivity.start(activityContext, roomId, isByzantineChat, isShowCollaborativeWallet)
+    }
+
+    override fun openGroupChatScreen(activityContext: Context, walletId: String) {
+        FreeGroupWalletChatActivity.start(activityContext, walletId)
     }
 
 }

@@ -220,6 +220,12 @@ fun FreeGroupWalletScreen(
                 WalletInfo(
                     groupSandbox = state.group,
                     onEditClicked = onEditClicked,
+                    onCopyLinkClicked = {
+                        state.group?.let { onCopyLinkClicked(it.url) }
+                    },
+                    onShowQRCodeClicked = {
+                        state.group?.let { onShowQRCodeClicked(it.url) }
+                    }
                 )
             }
 

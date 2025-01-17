@@ -38,6 +38,8 @@ import com.nunchuk.android.wallet.util.toReadableString
 internal fun WalletInfo(
     groupSandbox: GroupSandbox? = null,
     onEditClicked: () -> Unit = {},
+    onCopyLinkClicked: () -> Unit = {},
+    onShowQRCodeClicked: () -> Unit = {},
 ) {
     val requireSigns = groupSandbox?.m ?: 0
     val totalSigns = groupSandbox?.n ?: 0
@@ -107,7 +109,8 @@ internal fun WalletInfo(
             )
 
             Row(
-                modifier = Modifier.padding(top = 12.dp),
+                modifier = Modifier.padding(top = 12.dp)
+                    .clickable { onCopyLinkClicked() },
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -127,7 +130,8 @@ internal fun WalletInfo(
                 }
 
                 Row(
-                    modifier = Modifier.padding(start = 20.dp),
+                    modifier = Modifier.padding(start = 20.dp)
+                        .clickable { onShowQRCodeClicked() },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     NcIcon(

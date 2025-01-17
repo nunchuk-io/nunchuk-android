@@ -253,9 +253,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                     )
                 )
 
-                RecoverWalletOption.GroupWallet -> {
-
-                }
+                RecoverWalletOption.GroupWallet -> openSelectFileChooser(WalletIntermediaryActivity.REQUEST_CODE_GROUP_WALLET)
             }
         }
     }

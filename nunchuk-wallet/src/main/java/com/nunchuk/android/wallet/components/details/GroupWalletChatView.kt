@@ -38,10 +38,15 @@ import com.nunchuk.android.compose.controlFillPrimary
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.model.FreeGroupMessage
 import com.nunchuk.android.wallet.R
 
 @Composable
-fun GroupWalletChatView() {
+fun GroupWalletChatView(
+    messages: List<FreeGroupMessage> = emptyList(),
+    onSendMessage: (String) -> Unit = {},
+    onOpenChat: () -> Unit = {}
+) {
 
     var isChatExpanded by remember { mutableStateOf(true) }
 
@@ -68,15 +73,10 @@ fun GroupWalletChatView() {
             )
 
             if (isChatExpanded) {
-                ChatMessages(
-                    messages = listOf(
-                        "Got it! I’ll add mine now.",
-                        "Same here, just added my key. Let me know if it’s all set."
-                    )
-                )
+                ChatMessages(messages = messages)
 
                 ChatInput(onSendMessage = { message ->
-                    println("Message sent: $message")
+                   onSendMessage(message)
                 })
             }
         }
@@ -87,6 +87,7 @@ fun GroupWalletChatView() {
 fun ChatHeader(
     isChatExpanded: Boolean = true,
     onCollapseExpand: () -> Unit = {},
+    onOpenChat: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -113,7 +114,9 @@ fun ChatHeader(
             painter = painterResource(id = R.drawable.ic_expand_chat),
             contentDescription = "Expand",
             tint = MaterialTheme.colorScheme.controlFillPrimary,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(20.dp).clickable {
+                onOpenChat()
+            }
         )
 
         NcIcon(
@@ -129,13 +132,13 @@ fun ChatHeader(
 }
 
 @Composable
-fun ChatMessages(messages: List<String>) {
+fun ChatMessages(messages: List<FreeGroupMessage>) {
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
     ) {
         items(messages) { message ->
-            ChatBubble(message)
+            ChatBubble(message.content)
         }
     }
 }
@@ -156,7 +159,7 @@ fun ChatBubble(message: String) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_user),
+                painter = painterResource(id = R.drawable.ic_user_2),
                 contentDescription = "User",
                 tint = Color.Black,
                 modifier = Modifier.size(14.dp)

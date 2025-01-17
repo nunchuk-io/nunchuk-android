@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet.components.details
 
+import com.nunchuk.android.model.FreeGroupMessage
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
@@ -43,4 +44,5 @@ data class WalletDetailsState(
     val isHasCoin: Boolean = true,
     val groupId: String? = null,
     val role: AssistedWalletRole = AssistedWalletRole.NONE,
+    val groupChatMessages: List<FreeGroupMessage> = emptyList(),
 )
