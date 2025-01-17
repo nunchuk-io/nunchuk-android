@@ -57,7 +57,6 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
@@ -144,7 +143,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                         Mk4Activity.buildIntent(
                             activity = requireActivity(),
                             action = ColdcardAction.CREATE,
-                            walletId = (activity as? MembershipActivity)?.walletId,
+                            walletId = args.walletId,
                             newIndex = viewModel.getNewIndex(),
                             xfp = args.signer.fingerPrint,
                         )
@@ -159,7 +158,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                         newIndex = viewModel.getNewIndex(),
                         xfp = args.signer.fingerPrint,
                         replacedXfp = args.replacedXfp,
-                        walletId = (activity as? MembershipActivity)?.walletId,
+                        walletId = args.walletId,
                     )
                 }
             }
@@ -170,9 +169,10 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                         Mk4Activity.buildIntent(
                             activity = requireActivity(),
                             action = ColdcardAction.RECOVER_KEY,
-                            walletId = (activity as? MembershipActivity)?.walletId,
+                            walletId = args.walletId,
                             newIndex = viewModel.getNewIndex(),
                             xfp = args.signer.fingerPrint,
+                            groupId = args.groupId.orEmpty()
                         )
                     )
                 } else {
@@ -185,7 +185,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                         newIndex = viewModel.getNewIndex(),
                         xfp = args.signer.fingerPrint,
                         replacedXfp = args.replacedXfp,
-                        walletId = (activity as? MembershipActivity)?.walletId,
+                        walletId = args.walletId,
                     )
                 }
             }

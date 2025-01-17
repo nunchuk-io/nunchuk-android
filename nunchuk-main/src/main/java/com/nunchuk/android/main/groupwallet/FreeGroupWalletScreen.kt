@@ -84,8 +84,8 @@ fun NavGraphBuilder.freeGroupWallet(
     ) {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-        LaunchedEffect(state.isGroupDeleted) {
-            if (state.isGroupDeleted) {
+        LaunchedEffect(state.isFinishScreen) {
+            if (state.isFinishScreen) {
                 onDeleteGroup()
             }
         }
@@ -102,7 +102,7 @@ fun NavGraphBuilder.freeGroupWallet(
         FreeGroupWalletScreen(
             state = state,
             onAddNewKey = onAddNewKey,
-            onContinueClicked = {},
+            onContinueClicked = viewModel::finalizeGroupSandbox,
             onEditClicked = {
                 state.group?.let {
                     onEditClicked(it.id)
@@ -202,6 +202,7 @@ fun FreeGroupWalletScreen(
                     .fillMaxWidth()
                     .padding(16.dp),
                 onClick = onContinueClicked,
+                enabled = state.group != null && state.signers.count { it != null } == state.group.n,
             ) {
                 Text(text = stringResource(id = R.string.nc_wallet_create_wallet))
             }

@@ -35,7 +35,8 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val addSignerToGroupUseCase: AddSignerToGroupUseCase,
     private val removeSignerFromGroupUseCase: RemoveSignerFromGroupUseCase,
     private val deleteGroupSandboxUseCase: DeleteGroupSandboxUseCase,
-    private val getSignerUseCase: GetSignerUseCase
+    private val getSignerUseCase: GetSignerUseCase,
+    private val finalizeGroupSandboxUseCase: FinalizeGroupSandboxUseCase,
 ) : ViewModel() {
     val groupId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
@@ -140,7 +141,15 @@ class FreeGroupWalletViewModel @Inject constructor(
     fun deleteGroupSandbox() {
         viewModelScope.launch {
             deleteGroupSandboxUseCase(groupId).onSuccess {
-                _uiState.update { it.copy(isGroupDeleted = true) }
+                _uiState.update { it.copy(isFinishScreen = true) }
+            }
+        }
+    }
+
+    fun finalizeGroupSandbox() {
+        viewModelScope.launch {
+            finalizeGroupSandboxUseCase(groupId).onSuccess { groupSandbox ->
+                _uiState.update { it.copy(isFinishScreen = true, group = groupSandbox) }
             }
         }
     }

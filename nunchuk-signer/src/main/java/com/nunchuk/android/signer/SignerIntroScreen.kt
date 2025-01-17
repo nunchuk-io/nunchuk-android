@@ -212,6 +212,7 @@ fun SignerIntroScreen(
                 Row(
                     modifier = Modifier
                         .padding(top = 16.dp)
+                        .fillMaxWidth()
                         .alpha(if (isGenericAirgapEnable) 1f else 0.6f)
                         .clickable(enabled = isGenericAirgapEnable) {
                             onClick(KeyType.GENERIC_AIRGAP)

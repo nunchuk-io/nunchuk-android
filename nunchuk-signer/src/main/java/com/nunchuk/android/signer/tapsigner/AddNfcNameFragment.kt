@@ -68,7 +68,8 @@ class AddNfcNameFragment : BaseChangeTapSignerNameFragment() {
 
     override fun onUpdateNameSuccess(signer: MasterSigner) {
         val isReplaceKey = (activity as NfcSetupActivity).walletId.isNotEmpty()
-        if (!isReplaceKey) {
+        val isAddKeyToGroup = (activity as NfcSetupActivity).groupId.isNotEmpty()
+        if (!isReplaceKey && !isAddKeyToGroup) {
             navigator.openSignerInfoScreen(
                 activityContext = requireActivity(),
                 isMasterSigner = true,

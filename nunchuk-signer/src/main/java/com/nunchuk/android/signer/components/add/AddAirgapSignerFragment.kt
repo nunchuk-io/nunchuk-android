@@ -311,8 +311,9 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
         requireActivity().setResult(Activity.RESULT_OK)
         requireActivity().finish()
         val replacingWalletId = (requireActivity() as AddAirgapSignerActivity).walletId
+        val groupId = (requireActivity() as AddAirgapSignerActivity).groupId
         // if replace key in wallet flow, we don't open signer info screen
-        if (replacingWalletId.isNotEmpty()) return
+        if (replacingWalletId.isNotEmpty() || groupId.isNotEmpty()) return
         if ((requireActivity() as AddAirgapSignerActivity).isMembershipFlow.not()) {
             navigator.openSignerInfoScreen(
                 requireContext(),

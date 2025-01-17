@@ -31,13 +31,12 @@ import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
-import com.nunchuk.android.signer.tapsigner.SetUpNfcOptionSheet
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.utils.parcelableArrayList
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionClickListener {
+class SignerIntroActivity : BaseComposeActivity() {
     private val supportedSigners: List<SupportedSigner> by lazy {
         intent.parcelableArrayList<SupportedSigner>(EXTRA_SUPPORTED_SIGNERS).orEmpty()
     }
@@ -91,29 +90,6 @@ class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionCli
         finish()
     }
 
-    override fun onOptionClickListener(option: SetUpNfcOptionSheet.SetUpNfcOption) {
-        when (option) {
-            SetUpNfcOptionSheet.SetUpNfcOption.ADD_NEW -> navigateToSetupTapSigner()
-            SetUpNfcOptionSheet.SetUpNfcOption.RECOVER -> {
-                startActivity(
-                    NfcSetupActivity.buildIntent(
-                        activity = this,
-                        setUpAction = NfcSetupActivity.RECOVER_NFC,
-                        walletId = walletId
-                    )
-                )
-            }
-
-            SetUpNfcOptionSheet.SetUpNfcOption.Mk4 -> {
-
-            }
-
-            SetUpNfcOptionSheet.SetUpNfcOption.PORTAL -> {
-
-            }
-        }
-    }
-
     private fun openPortalScreen() {
         navigator.openPortalScreen(
             activity = this,
@@ -131,6 +107,7 @@ class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionCli
             activityContext = this,
             isMembershipFlow = false,
             walletId = walletId,
+            groupId = groupId,
             requestedSignerIndex = requestedSignerIndex
         )
         finish()
@@ -155,7 +132,8 @@ class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionCli
                 activity = this,
                 setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
                 walletId = walletId,
-                groupId = groupId
+                groupId = groupId,
+                requestedSignerIndex = requestedSignerIndex
             )
         )
         finish()
@@ -163,6 +141,7 @@ class SignerIntroActivity : BaseComposeActivity(), SetUpNfcOptionSheet.OptionCli
 
     // replace key in free wallet
     private val walletId by lazy { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
+
     // group sandbox id
     private val groupId by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
     private val requestedSignerIndex by lazy { intent.getIntExtra(EXTRA_INDEX, -1) }

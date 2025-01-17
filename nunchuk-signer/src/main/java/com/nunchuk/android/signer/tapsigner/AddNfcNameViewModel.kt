@@ -35,6 +35,7 @@ import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.UpdateMasterSignerUseCase
+import com.nunchuk.android.usecase.free.groupwallet.AddSignerToGroupUseCase
 import com.nunchuk.android.usecase.signer.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -55,6 +56,7 @@ class AddNfcNameViewModel @Inject constructor(
     private val getSignerFromTapsignerMasterSignerUseCase: GetSignerFromTapsignerMasterSignerUseCase,
     private val pushEventManager: PushEventManager,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val addSignerToGroupUseCase: AddSignerToGroupUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -75,7 +77,9 @@ class AddNfcNameViewModel @Inject constructor(
         name: String,
         shouldCreateBackUp: Boolean = false,
         index: Int,
-        walletId: String
+        walletId: String,
+        groupId: String,
+        requestedSignerIndex: Int
     ) {
         isoDep ?: return
         viewModelScope.launch {
@@ -101,6 +105,8 @@ class AddNfcNameViewModel @Inject constructor(
                     // for replace key free wallet
                     if (walletId.isNotEmpty()) {
                         loadSingleSigner(index, isoDep, cvc, signer, walletId)
+                    } else if (index >= 0 && groupId.isNotEmpty()) {
+                        addKeyToFreeGroup(isoDep, cvc, signer, groupId, index, requestedSignerIndex)
                     }
                     _event.emit(AddNfcNameEvent.Success(signer))
                 }
@@ -118,6 +124,45 @@ class AddNfcNameViewModel @Inject constructor(
         }
     }
 
+    private suspend fun addKeyToFreeGroup(
+        isoDep: IsoDep,
+        cvc: String,
+        signer: MasterSigner,
+        groupId: String,
+        index: Int,
+        requestedSignerIndex: Int
+    ) {
+        if (index > 0) {
+            getSignerFromTapsignerMasterSignerUseCase(
+                GetSignerFromTapsignerMasterSignerUseCase.Data(
+                    isoDep = isoDep,
+                    cvc = cvc,
+                    masterSignerId = signer.id,
+                    index = index,
+                    walletType = WalletType.MULTI_SIG
+                )
+            )
+        }
+        getSignerFromMasterSignerUseCase(
+            GetSignerFromMasterSignerUseCase.Param(
+                xfp = signer.id,
+                walletType = WalletType.MULTI_SIG,
+                addressType = AddressType.NATIVE_SEGWIT,
+                index = index
+            )
+        ).map {
+            if (it != null) {
+                addSignerToGroupUseCase(
+                    AddSignerToGroupUseCase.Params(
+                        groupId = groupId,
+                        signer = it,
+                        index = requestedSignerIndex
+                    )
+                )
+            }
+        }
+    }
+
     private suspend fun loadSingleSigner(
         index: Int,
         isoDep: IsoDep,
@@ -125,33 +170,34 @@ class AddNfcNameViewModel @Inject constructor(
         signer: MasterSigner,
         walletId: String
     ) {
-            getWalletDetail2UseCase(walletId).onSuccess { wallet ->
-                val walletType = if (wallet.signers.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
-                if (index > 0) {
-                    getSignerFromTapsignerMasterSignerUseCase(
-                        GetSignerFromTapsignerMasterSignerUseCase.Data(
-                            isoDep = isoDep,
-                            cvc = cvc,
-                            masterSignerId = signer.id,
-                            index = index,
-                            walletType = walletType
-                        )
+        getWalletDetail2UseCase(walletId).onSuccess { wallet ->
+            val walletType =
+                if (wallet.signers.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
+            if (index > 0) {
+                getSignerFromTapsignerMasterSignerUseCase(
+                    GetSignerFromTapsignerMasterSignerUseCase.Data(
+                        isoDep = isoDep,
+                        cvc = cvc,
+                        masterSignerId = signer.id,
+                        index = index,
+                        walletType = walletType
                     )
-                }
+                )
+            }
 
-                getSignerFromMasterSignerUseCase(
-                    GetSignerFromMasterSignerUseCase.Param(
-                        xfp = signer.id,
-                        walletType = walletType,
-                        addressType = AddressType.NATIVE_SEGWIT,
-                        index = index
-                    )
-                ).onSuccess { singleSigner ->
-                    singleSigner?.let {
-                        pushEventManager.push(PushEvent.LocalUserSignerAdded(it))
-                    }
+            getSignerFromMasterSignerUseCase(
+                GetSignerFromMasterSignerUseCase.Param(
+                    xfp = signer.id,
+                    walletType = walletType,
+                    addressType = AddressType.NATIVE_SEGWIT,
+                    index = index
+                )
+            ).onSuccess { singleSigner ->
+                singleSigner?.let {
+                    pushEventManager.push(PushEvent.LocalUserSignerAdded(it))
                 }
             }
+        }
     }
 
     fun setReplaceKeyFlow(replace: Boolean) {
