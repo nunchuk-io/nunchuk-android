@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.groupwallet
+package com.nunchuk.android.usecase.free.groupwallet
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.GroupSandbox

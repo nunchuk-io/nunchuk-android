@@ -42,6 +42,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -50,12 +51,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
+import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.textPrimary
@@ -95,18 +99,12 @@ class ReviewWalletActivity : BaseComposeActivity() {
         enableEdgeToEdge()
 
         setContent {
+            val signers by viewModel.signers.collectAsStateWithLifecycle()
             ReviewWalletContent(
                 args = args,
-                signers = viewModel.mapSigners()
+                signers = signers
             ) {
-                viewModel.handleContinueEvent(
-                    walletName = args.walletName,
-                    walletType = args.walletType,
-                    addressType = args.addressType,
-                    totalRequireSigns = args.totalRequireSigns,
-                    signers = args.signers,
-                    decoyPin = args.decoyPin
-                )
+                viewModel.handleContinueEvent()
             }
         }
 
@@ -122,7 +120,13 @@ class ReviewWalletActivity : BaseComposeActivity() {
             is SetLoadingEvent -> showOrHideLoading(event.showLoading)
             is CreateWalletSuccessEvent -> onCreateWalletSuccess(event)
             is CreateWalletErrorEvent -> onCreateWalletError(event)
+            is ReviewWalletEvent.CreateFreeGroupWalletSuccessEvent -> onCreateFreeGroupWallet(event)
         }
+    }
+
+    private fun onCreateFreeGroupWallet(event: ReviewWalletEvent.CreateFreeGroupWalletSuccessEvent) {
+        navigator.openMainScreen(this)
+        navigator.openWalletDetailsScreen(this, event.walletId)
     }
 
     private fun onCreateWalletError(event: CreateWalletErrorEvent) {
@@ -260,10 +264,34 @@ fun ReviewWalletContent(
                 }
 
                 items(signers) {
-                    SignerCard(item = it)
+                    if (it.isVisible) {
+                        SignerCard(item = it)
+                    } else {
+                        UserSignerCard(item = it)
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun UserSignerCard(item: SignerModel) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        NcCircleImage(
+            resId = R.drawable.ic_user_2,
+            color = MaterialTheme.colorScheme.greyLight,
+            iconTintColor = MaterialTheme.colorScheme.textPrimary,
+        )
+
+        Text(
+            text = "XFP: ${item.fingerPrint}",
+            style = NunchukTheme.typography.body
+        )
     }
 }
 

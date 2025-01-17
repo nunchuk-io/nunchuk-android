@@ -24,5 +24,6 @@ import com.nunchuk.android.model.Wallet
 sealed class ReviewWalletEvent {
     data class SetLoadingEvent(val showLoading: Boolean) : ReviewWalletEvent()
     data class CreateWalletSuccessEvent(val wallet: Wallet) : ReviewWalletEvent()
+    data class CreateFreeGroupWalletSuccessEvent(val walletId: String) : ReviewWalletEvent()
     data class CreateWalletErrorEvent(val message: String) : ReviewWalletEvent()
 }

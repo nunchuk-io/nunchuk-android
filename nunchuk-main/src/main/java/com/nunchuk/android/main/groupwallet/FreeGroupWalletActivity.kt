@@ -12,6 +12,8 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.main.groupwallet.join.CommonQRCodeActivity
+import com.nunchuk.android.nav.args.ReviewWalletArgs
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -53,7 +55,20 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
                                     navController.navigateCustomKey(signer)
                                 },
                                 onAddNewKey = ::openSignerIntro,
-                                onDeleteGroup = ::finish
+                                onGroupDeleted = ::finish,
+                                onContinueClicked = { group ->
+                                    navigator.openReviewWalletScreen(
+                                        activityContext = this@FreeGroupWalletActivity,
+                                        args = ReviewWalletArgs(
+                                            walletName = group.name,
+                                            walletType = WalletType.MULTI_SIG,
+                                            addressType = group.addressType,
+                                            totalRequireSigns = group.m,
+                                            signers = group.signers,
+                                            groupId = group.id
+                                        )
+                                    )
+                                }
                             )
 
                             customKeyNavigation(

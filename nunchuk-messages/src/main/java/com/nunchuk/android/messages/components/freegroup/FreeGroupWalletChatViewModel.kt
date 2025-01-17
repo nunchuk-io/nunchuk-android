@@ -11,7 +11,6 @@ import com.nunchuk.android.model.FreeGroupMessage
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.simpleDateFormat

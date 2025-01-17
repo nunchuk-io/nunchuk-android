@@ -26,19 +26,22 @@ import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.args.ReviewWalletArgs
-import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.type.WalletType.ESCROW
 import com.nunchuk.android.type.WalletType.SINGLE_SIG
 import com.nunchuk.android.usecase.CreateWalletUseCase
+import com.nunchuk.android.usecase.free.groupwallet.FinalizeGroupSandboxUseCase
+import com.nunchuk.android.usecase.signer.GetSignerUseCase
 import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.CreateWalletErrorEvent
 import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.CreateWalletSuccessEvent
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -46,49 +49,81 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     @Assisted private val args: ReviewWalletArgs,
     private val createWalletUseCase: CreateWalletUseCase,
     private val accountManager: AccountManager,
-    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase
+    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
+    private val getSignerUseCase: GetSignerUseCase,
+    private val finalizeGroupSandboxUseCase: FinalizeGroupSandboxUseCase
 ) : NunchukViewModel<Unit, ReviewWalletEvent>() {
+    private val _signers = MutableStateFlow<List<SignerModel>>(emptyList())
+    val signers = _signers.asStateFlow()
 
     override val initialState = Unit
 
-    fun handleContinueEvent(
-        walletName: String,
-        walletType: WalletType,
-        addressType: AddressType,
-        totalRequireSigns: Int,
-        signers: List<SingleSigner>,
-        decoyPin: String
-    ) {
-        val totalSigns = signers.size
-        val normalizeWalletType =
-            if (walletType == ESCROW) ESCROW else if (totalSigns > 1) WalletType.MULTI_SIG else SINGLE_SIG
+    init {
+        mapSigners()
+    }
+
+    fun handleContinueEvent() {
+        if (args.groupId.isNotEmpty()) {
+            createFreeGroupWallet()
+        } else {
+            createNormalWallet()
+        }
+    }
+
+    private fun createFreeGroupWallet() {
         viewModelScope.launch {
-            createWalletUseCase(
-                CreateWalletUseCase.Params(
-                    name = walletName,
-                    totalRequireSigns = totalRequireSigns,
-                    signers = signers,
-                    addressType = addressType,
-                    isEscrow = normalizeWalletType == ESCROW,
-                    decoyPin = decoyPin,
-                )
-            ).onSuccess {
-                event(CreateWalletSuccessEvent(it))
+            finalizeGroupSandboxUseCase(args.groupId).onSuccess {
+                setEvent(ReviewWalletEvent.CreateFreeGroupWalletSuccessEvent(it.walletId))
             }.onFailure {
-                event(CreateWalletErrorEvent(it.message.orUnknownError()))
+                setEvent(CreateWalletErrorEvent(it.message.orUnknownError()))
             }
         }
     }
 
-    fun mapSigners(): List<SignerModel> {
-        return args.signers.map {
-            it.toModel(isPrimaryKey = it.hasMasterSigner && accountManager.getPrimaryKeyInfo()?.xfp == it.masterFingerprint)
-        }.map {
-            if (it.type == SignerType.NFC) {
-                val status = runBlocking { getTapSignerStatusByIdUseCase(it.id) }
-                return@map it.copy(cardId = status.getOrNull()?.ident.orEmpty())
+    private fun createNormalWallet() {
+        val totalSigns = args.signers.size
+        val normalizeWalletType =
+            if (args.walletType == ESCROW) ESCROW else if (totalSigns > 1) WalletType.MULTI_SIG else SINGLE_SIG
+        viewModelScope.launch {
+            createWalletUseCase(
+                CreateWalletUseCase.Params(
+                    name = args.walletName,
+                    totalRequireSigns = args.totalRequireSigns,
+                    signers = args.signers,
+                    addressType = args.addressType,
+                    isEscrow = normalizeWalletType == ESCROW,
+                    decoyPin = args.decoyPin,
+                )
+            ).onSuccess {
+                setEvent(CreateWalletSuccessEvent(it))
+            }.onFailure {
+                setEvent(CreateWalletErrorEvent(it.message.orUnknownError()))
             }
-            return@map it
+        }
+    }
+
+    private fun mapSigners() {
+        viewModelScope.launch {
+            if (args.groupId.isNotEmpty()) {
+                _signers.update {
+                    args.signers.map {
+                        getSignerUseCase(it).getOrNull()?.toModel()?.copy(isVisible = true)
+                            ?: it.toModel()
+                    }
+                }
+            } else {
+                _signers.update {
+                    args.signers.map {
+                        it.toModel(isPrimaryKey = it.hasMasterSigner && accountManager.getPrimaryKeyInfo()?.xfp == it.masterFingerprint)
+                    }.map {
+                        if (it.type == SignerType.NFC) {
+                            val status = runBlocking { getTapSignerStatusByIdUseCase(it.id) }
+                            return@map it.copy(cardId = status.getOrNull()?.ident.orEmpty())
+                        }
+                        return@map it
+                    }
+                }
+            }
         }
     }
 

@@ -57,6 +57,7 @@ import com.nunchuk.android.main.groupwallet.component.FreeAddKeyCard
 import com.nunchuk.android.main.groupwallet.component.WalletInfo
 import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
+import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.type.SignerType
 
 const val freeGroupWalletRoute = "free_group_wallet"
@@ -77,7 +78,8 @@ fun NavGraphBuilder.freeGroupWallet(
     onShowQRCodeClicked: (String) -> Unit = {},
     onAddNewKey: (Int) -> Unit = {},
     onAddExistingKey: (SignerModel, Int) -> Unit,
-    onDeleteGroup: () -> Unit,
+    onGroupDeleted: () -> Unit,
+    onContinueClicked: (GroupSandbox) -> Unit = {},
 ) {
     composable(
         route = freeGroupWalletRoute,
@@ -86,7 +88,7 @@ fun NavGraphBuilder.freeGroupWallet(
 
         LaunchedEffect(state.isFinishScreen) {
             if (state.isFinishScreen) {
-                onDeleteGroup()
+                onGroupDeleted()
             }
         }
 
@@ -102,7 +104,7 @@ fun NavGraphBuilder.freeGroupWallet(
         FreeGroupWalletScreen(
             state = state,
             onAddNewKey = onAddNewKey,
-            onContinueClicked = viewModel::finalizeGroupSandbox,
+            onContinueClicked = onContinueClicked,
             onEditClicked = {
                 state.group?.let {
                     onEditClicked(it.id)
@@ -123,7 +125,7 @@ fun FreeGroupWalletScreen(
     state: FreeGroupWalletUiState = FreeGroupWalletUiState(),
     onAddNewKey: (Int) -> Unit = {},
     onRemoveClicked: (Int) -> Unit = {},
-    onContinueClicked: () -> Unit = {},
+    onContinueClicked: (GroupSandbox) -> Unit = {},
     onEditClicked: () -> Unit = {},
     onCopyLinkClicked: (String) -> Unit = {},
     onShowQRCodeClicked: (String) -> Unit = {},
@@ -149,8 +151,6 @@ fun FreeGroupWalletScreen(
                         )
                     }
                 },
-
-
                 title = {
                     Column {
                         Text(
@@ -201,7 +201,7 @@ fun FreeGroupWalletScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                onClick = onContinueClicked,
+                onClick = { onContinueClicked(state.group!!) },
                 enabled = state.group != null && state.signers.count { it != null } == state.group.n,
             ) {
                 Text(text = stringResource(id = R.string.nc_wallet_create_wallet))
