@@ -34,11 +34,10 @@ class GetListMessageFreeGroupWalletUseCase @Inject constructor(
     override suspend fun execute(parameters: Param): List<FreeGroupMessage> {
         return nativeSdk.getGroupWalletMessages(
             walletId = parameters.walletId,
-            pageSize = Int.MAX_VALUE,
+            pageSize = 50,
             page = 1
         )
     }
 
-    data class Param(val walletId: String,
-    )
+    data class Param(val walletId: String, )
 }

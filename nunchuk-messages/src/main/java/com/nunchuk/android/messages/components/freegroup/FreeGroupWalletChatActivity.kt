@@ -134,7 +134,7 @@ fun FreeGroupWalletChatScreen(
                     title = {
                         Column {
                             Text(
-                                text = state.groupSandBox?.name.orEmpty(),
+                                text = state.wallet?.name.orEmpty(),
                                 style = NunchukTheme.typography.titleLarge,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
@@ -181,7 +181,7 @@ fun FreeGroupWalletChatScreen(
             ) {
                 ChatHeader(
                     btc = state.wallet?.getBTCAmount().orEmpty(),
-                    multisign = "${state.groupSandBox?.m ?: 0}/${state.groupSandBox?.n ?: 0} ${
+                    multisign = "${state.wallet?.totalRequireSigns ?: 0}/${state.wallet?.signers?.size ?: 0} ${
                         stringResource(
                             R.string.nc_wallet_multisig
                         )

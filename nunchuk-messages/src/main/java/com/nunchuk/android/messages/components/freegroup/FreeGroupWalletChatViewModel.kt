@@ -70,15 +70,14 @@ class FreeGroupWalletChatViewModel @Inject constructor(
                 }
             }
         }
-        getListMessage() // remove this line
     }
 
     private fun getWalletDetail() {
-                if (walletId.isEmpty()) return
+        if (walletId.isEmpty()) return
         viewModelScope.launch {
-            getWalletDetail2UseCase(walletId).onSuccess {
+            getWalletDetail2UseCase(walletId).onSuccess { wallet ->
                 _uiState.update {
-                    it.copy(wallet = it.wallet)
+                    it.copy(wallet = wallet)
                 }
             }.onFailure {
                 // Handle failure
@@ -87,34 +86,27 @@ class FreeGroupWalletChatViewModel @Inject constructor(
     }
 
     private fun getListMessage() {
-//        if (walletId.isEmpty()) return
+        if (walletId.isEmpty()) return
         viewModelScope.launch {
-            val messages = generateSampleFreeGroupMessages()
-            _uiState.update {
-                it.copy(
-                    messages = messages,
-                    messageUis = messages.groupByDate(accountManager.getAccount().id)
+            getListMessageFreeGroupWalletUseCase(
+                GetListMessageFreeGroupWalletUseCase.Param(
+                    walletId = walletId,
                 )
-            }
-//            getListMessageFreeGroupWalletUseCase(
-//                GetListMessageFreeGroupWalletUseCase.Param(
-//                    walletId = walletId,
-//                )
-//            ).onSuccess {
+            ).onSuccess {
 //                _uiState.update {
 //                    it.copy(
 //                        messages = it.messages,
 //                        messageUis = it.messages.groupByDate(accountManager.getAccount().id)
 //                    )
 //                }
-//            }.onFailure {
-//                // Handle failure
-//            }
+            }.onFailure {
+                // Handle failure
+            }
         }
     }
 
     fun sendMessage(message: String) {
-//        if (_uiState.value.singleSigner == null || message.isEmpty()) return
+        if (_uiState.value.singleSigner == null || message.isEmpty()) return
         viewModelScope.launch {
             sendMessageFreeGroupWalletUseCase(
                 SendMessageFreeGroupWalletUseCase.Param(
@@ -125,7 +117,6 @@ class FreeGroupWalletChatViewModel @Inject constructor(
             ).onSuccess {
 
             }.onFailure {
-                Timber.e("Failed to send message: $it")
             }
         }
     }
@@ -165,7 +156,6 @@ data class FreeGroupWalletChatUiState(
     val messageUis: List<MessageUI> = emptyList(),
     val singleSigner: SingleSigner? = null,
     val wallet: Wallet? = null,
-    val groupSandBox: GroupSandbox? = null
 )
 
 sealed class MessageUI {
