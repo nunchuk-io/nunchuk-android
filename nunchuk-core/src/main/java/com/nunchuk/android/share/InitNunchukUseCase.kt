@@ -37,6 +37,8 @@ import com.nunchuk.android.usecase.UseCase
 import com.nunchuk.android.utils.DeviceManager
 import com.nunchuk.android.utils.trySafe
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -49,6 +51,7 @@ class InitNunchukUseCase @Inject constructor(
     private val sessionHolder: SessionHolder,
     private val enableGroupWalletUseCase: EnableGroupWalletUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val applicationScope: CoroutineScope
 ) : UseCase<InitNunchukUseCase.Param, Boolean>(ioDispatcher) {
     private var lastParam : Param? = null
     private var lastSettings : AppSettings? = null
@@ -67,7 +70,11 @@ class InitNunchukUseCase @Inject constructor(
             decoyPin = parameters.decoyPin
         )
         fileLog(message = "start nativeSdk enableGroupWalletUseCase")
-        enableGroupWalletUseCase(Unit)
+        Timber.d("Thread: ${Thread.currentThread().name}")
+        applicationScope.launch {
+            enableGroupWalletUseCase(Unit)
+            nativeSdk.registerGlobalListener()
+        }
         fileLog(message = "end nativeSdk enableGroupWalletUseCase")
         return true
     }
