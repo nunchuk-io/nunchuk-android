@@ -9,37 +9,40 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.supervisorScope
-import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
 
 class GetGroupMessageAccountUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk,
-) : UseCase<Unit, List<RoomSummary>>(dispatcher) {
-    override suspend fun execute(parameters: Unit): List<RoomSummary> {
+) : UseCase<Unit, List<GroupWalletMessage>>(dispatcher) {
+    override suspend fun execute(parameters: Unit): List<GroupWalletMessage> {
         val groupWallets = nativeSdk.getGroupWallets()
-        return supervisorScope {
+        val messages = supervisorScope {
             groupWallets.map { wallet ->
                 async {
                     val message = nativeSdk.getGroupWalletMessages(wallet.id, 0, 10).firstOrNull()
-                    message?.toRoomSummary(wallet) ?: RoomSummary(
-                        roomId = wallet.id,
-                        encryptionEventTs = 0,
-                        isEncrypted = false,
-                        typingUsers = emptyList(),
-                    )
+                    message?.groupWalletMessage(wallet)
                 }
             }.awaitAll()
         }
+        return messages.filterNotNull()
     }
 
-    private fun FreeGroupMessage.toRoomSummary(wallet: Wallet): RoomSummary {
-        return RoomSummary(
-            roomId = this.id,
-            encryptionEventTs = this.timestamp * 1000,
-            isEncrypted = true,
-            typingUsers = emptyList(),
-            name = wallet.name,
+    private fun FreeGroupMessage.groupWalletMessage(wallet: Wallet): GroupWalletMessage {
+        return GroupWalletMessage(
+            id = id,
+            content = content,
+            timestamp = timestamp * 1000,
+            walletName = wallet.name,
+            walletId = wallet.id,
         )
     }
 }
+
+data class GroupWalletMessage(
+    val id: String,
+    val content: String,
+    val timestamp: Long,
+    val walletName: String,
+    val walletId: String,
+)

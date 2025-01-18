@@ -86,10 +86,14 @@ class FreeGroupWalletChatActivity : BaseComposeActivity() {
             setContent {
                 val state by viewModel.uiState.collectAsStateWithLifecycle()
                 FreeGroupWalletChatScreen(
-                    state = state
-                ) {
-                    viewModel.sendMessage(it)
-                }
+                    state = state,
+                    onSendMessage = { message ->
+                        viewModel.sendMessage(message)
+                    },
+                    onWalletInfoClick = {
+                        navigator.openWalletDetailsScreen(this@FreeGroupWalletChatActivity, it)
+                    }
+                )
             }
         })
     }
@@ -111,7 +115,8 @@ class FreeGroupWalletChatActivity : BaseComposeActivity() {
 @Composable
 fun FreeGroupWalletChatScreen(
     state: FreeGroupWalletChatUiState = FreeGroupWalletChatUiState(),
-    onSendMessage: (String) -> Unit = {}
+    onSendMessage: (String) -> Unit = {},
+    onWalletInfoClick: (String) -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold(
@@ -185,7 +190,8 @@ fun FreeGroupWalletChatScreen(
                         stringResource(
                             R.string.nc_wallet_multisig
                         )
-                    }"
+                    }",
+                    onClick = { onWalletInfoClick(state.wallet?.id.orEmpty()) }
                 )
 
                 ChatMessages(
@@ -198,12 +204,13 @@ fun FreeGroupWalletChatScreen(
 
 
 @Composable
-fun ChatHeader(btc: String, multisign: String) {
+fun ChatHeader(btc: String, multisign: String, onClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.lightGray)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -357,7 +364,13 @@ fun ReceivedMessageBubble(message: MessageUI.ReceiverMessage) {
                         onClick = { /* Handle click if needed */ },
                         onLongClick = {
                             clipboardManager.setText(AnnotatedString(message.data.content))
-                            Toast.makeText(context, "Message copied to clipboard", Toast.LENGTH_SHORT).show()
+                            Toast
+                                .makeText(
+                                    context,
+                                    "Message copied to clipboard",
+                                    Toast.LENGTH_SHORT
+                                )
+                                .show()
                         }
                     )
             ) {

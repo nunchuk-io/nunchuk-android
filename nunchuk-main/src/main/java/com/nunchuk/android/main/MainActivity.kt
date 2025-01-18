@@ -166,7 +166,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
 
     private fun handleRoomState(state: RoomsState) {
         val count =
-            state.rooms.filterIsInstance<RoomMessage.MatrixRoom>().map { it.roomSummary }.sumOf { if (it.shouldShow() && it.hasUnreadMessages) it.notificationCount else 0 }
+            state.rooms.filterIsInstance<RoomMessage.MatrixRoom>().map { it.data }.sumOf { if (it.shouldShow() && it.hasUnreadMessages) it.notificationCount else 0 }
         messageBadge.apply {
             isVisible = count > 0
             number = count

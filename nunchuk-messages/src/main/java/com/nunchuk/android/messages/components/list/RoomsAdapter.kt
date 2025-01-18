@@ -88,10 +88,10 @@ class RoomViewHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
     private var hideMessageJob : Job? = null
 
-    fun bind(data: RoomMessage) {
-        binding.itemLayout.setOnClickListener { enterRoom(data) }
-        if (data is RoomMessage.MatrixRoom) {
-            val matrixData = data.roomSummary
+    fun bind(message: RoomMessage) {
+        binding.itemLayout.setOnClickListener { enterRoom(message) }
+        if (message is RoomMessage.MatrixRoom) {
+            val matrixData = message.data
             val roomName = matrixData.getRoomName(currentName)
             binding.name.text = roomName
             bindLastMessage(matrixData)
@@ -112,15 +112,15 @@ class RoomViewHolder(
             bindCount(matrixData)
             binding.shareIcon.isVisible = matrixData.roomId in roomWallets
             binding.encryptedIcon.isVisible = matrixData.isEncrypted
-            binding.delete.setOnClickListener { removeRoom(data, binding.shareIcon.isVisible) }
+            binding.delete.setOnClickListener { removeRoom(message, binding.shareIcon.isVisible) }
 
             binding.swipeLayout.showMode = SwipeLayout.ShowMode.LayDown
             binding.swipeLayout.addDrag(SwipeLayout.DragEdge.Left, binding.actionLayout)
             binding.swipeLayout.isSwipeEnabled =
                 groupChatRooms[matrixData.roomId]?.isMasterOrAdmin == true || groupChatRooms[matrixData.roomId] == null
-        } else if (data is RoomMessage.GroupWalletRoom) {
-            val groupData = data.roomSummary
-            binding.name.text = groupData.name
+        } else if (message is RoomMessage.GroupWalletRoom) {
+            val groupData = message.data
+            binding.name.text = groupData.walletName
             binding.avatar.isVisible = true
             binding.avatar.setBackgroundResource(R.drawable.ic_groups_menu)
             binding.avatarHolder.setBackgroundResource(R.drawable.nc_circle_group_wallet_background)
@@ -131,9 +131,9 @@ class RoomViewHolder(
             binding.badge.text = "3"
             binding.count.isVisible = false
             binding.message.isVisible = true
-            binding.message.text = "groupData."
+            binding.message.text = groupData.content
             binding.time.isVisible = true
-            binding.time.text = Date().formatMessageDate()
+            binding.time.text = Date(groupData.timestamp).formatMessageDate()
         }
     }
 

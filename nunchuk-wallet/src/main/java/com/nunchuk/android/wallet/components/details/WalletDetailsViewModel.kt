@@ -165,7 +165,7 @@ internal class WalletDetailsViewModel @Inject constructor(
             ).onSuccess {
                 updateState {
                     copy(
-                        groupChatMessages = it.take(2),
+                        groupChatMessages = it,
                     )
                 }
             }

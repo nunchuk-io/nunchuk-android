@@ -270,7 +270,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         mainActivityViewModel.event.observe(viewLifecycleOwner, ::handleMainActivityEvent)
         roomViewModel.state.observe(viewLifecycleOwner) {
             if (walletsViewModel.isPremiumUser().not()) {
-                it.rooms.filterIsInstance<RoomMessage.MatrixRoom>().map { it.roomSummary }.forEach { room ->
+                it.rooms.filterIsInstance<RoomMessage.MatrixRoom>().map { it.data }.forEach { room ->
                     room.latestPreviewableEvent?.takeIf { event ->
                         event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_PENDING
                                 || event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_ACTIVE

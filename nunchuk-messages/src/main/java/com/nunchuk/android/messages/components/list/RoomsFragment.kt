@@ -102,9 +102,9 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     }
 
     private fun openRoomDetailScreen(summary: RoomMessage) {
-        if (summary is RoomMessage.MatrixRoom) openRoomDetailScreen(summary.roomSummary.roomId)
+        if (summary is RoomMessage.MatrixRoom) openRoomDetailScreen(summary.data.roomId)
         else if (summary is RoomMessage.GroupWalletRoom) {
-            navigator.openGroupChatScreen(requireContext(), summary.walletId)
+            navigator.openGroupChatScreen(requireContext(), summary.data.walletId)
         }
     }
 
@@ -132,7 +132,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         }
         val visibleRooms = state.rooms.filter {
             it is RoomMessage.GroupWalletRoom ||
-                    ((it as? RoomMessage.MatrixRoom)?.roomSummary?.shouldShow() == true)
+                    ((it as? RoomMessage.MatrixRoom)?.data?.shouldShow() == true)
         }
         adapter.submitList(visibleRooms)
         handleShowEmptyState()
@@ -161,7 +161,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
 
     private fun handleRemoveRoom(roomMessage: RoomMessage, hasSharedWallet: Boolean) {
         if (roomMessage !is RoomMessage.MatrixRoom) return
-        val roomSummary = roomMessage.roomSummary
+        val roomSummary = roomMessage.data
         if (hasSharedWallet) {
             NCWarningDialog(requireActivity())
                 .showDialog(
@@ -172,7 +172,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
                     },
                     onNoClick = {
                         val position = viewModel.getVisibleRooms()
-                            .indexOfFirst { it is RoomMessage.MatrixRoom && it.roomSummary.roomId == roomSummary.roomId }
+                            .indexOfFirst { it is RoomMessage.MatrixRoom && it.data.roomId == roomSummary.roomId }
                         if (position in 0 until adapter.itemCount) {
                             adapter.notifyItemChanged(position)
                         }

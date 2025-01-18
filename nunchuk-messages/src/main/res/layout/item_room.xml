@@ -80,7 +80,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:scaleType="fitCenter"
-                android:src="@drawable/ic_members"
+                tools:src="@drawable/ic_members"
                 app:layout_constraintBottom_toBottomOf="@+id/avatarHolder"
                 app:layout_constraintEnd_toEndOf="@+id/avatarHolder"
                 app:layout_constraintStart_toStartOf="@+id/avatarHolder"

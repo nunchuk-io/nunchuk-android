@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.messages.components.list
 
+import com.nunchuk.android.messages.usecase.message.GroupWalletMessage
 import com.nunchuk.android.model.GroupChatRoom
 import com.nunchuk.android.model.RoomWallet
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -28,7 +29,7 @@ data class RoomsState(
     val roomWallets: List<RoomWallet>,
     val groupChatRooms: MutableMap<String, GroupChatRoom>,
     val walletIds: List<String> = emptyList(),
-    val groupWalletMessages: List<RoomSummary> = emptyList(),
+    val groupWalletMessages: List<GroupWalletMessage> = emptyList(),
     val matrixRooms: List<RoomSummary> = emptyList(),
 ) {
 
@@ -38,10 +39,11 @@ data class RoomsState(
 
 }
 
-sealed class RoomMessage {
-    data class MatrixRoom(val roomSummary: RoomSummary) : RoomMessage()
-    data class GroupWalletRoom(val roomSummary: RoomSummary,
-        val walletId: String) : RoomMessage()
+sealed class RoomMessage(val time: Long) {
+    data class MatrixRoom(val data: RoomSummary) :
+        RoomMessage(data.latestPreviewableEvent?.root?.originServerTs ?: 0L)
+
+    data class GroupWalletRoom(val data: GroupWalletMessage) : RoomMessage(data.timestamp)
 }
 
 sealed class RoomsEvent {

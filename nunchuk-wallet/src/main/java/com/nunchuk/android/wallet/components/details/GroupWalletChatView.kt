@@ -66,6 +66,7 @@ fun GroupWalletChatView(
                 .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp)
         ) {
             ChatHeader(
+                numberOfMessages = messages.size,
                 isChatExpanded = isChatExpanded,
                 onCollapseExpand = {
                     isChatExpanded = !isChatExpanded
@@ -74,7 +75,7 @@ fun GroupWalletChatView(
             )
 
             if (isChatExpanded) {
-                ChatMessages(messages = messages)
+                ChatMessages(messages = messages.take(2))
 
                 ChatInput(onSendMessage = { message ->
                    onSendMessage(message)
@@ -86,6 +87,7 @@ fun GroupWalletChatView(
 
 @Composable
 fun ChatHeader(
+    numberOfMessages: Int = 0,
     isChatExpanded: Boolean = true,
     onCollapseExpand: () -> Unit = {},
     onOpenChat: () -> Unit = {}
@@ -105,7 +107,7 @@ fun ChatHeader(
                 .padding(horizontal = 8.dp, vertical = 4.dp)
         ) {
             Text(
-                text = "25",
+                text = numberOfMessages.toString(),
                 style = NunchukTheme.typography.bodySmall
             )
         }
@@ -136,7 +138,8 @@ fun ChatHeader(
 fun ChatMessages(messages: List<FreeGroupMessage>) {
     LazyColumn(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth(),
+        reverseLayout = true
     ) {
         items(messages) { message ->
             ChatBubble(message.content)
