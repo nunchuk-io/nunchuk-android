@@ -30,7 +30,9 @@ import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.signer.databinding.ActivityScanDynamicQrBinding
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToInt
@@ -78,7 +80,7 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
                    finish()
                }
                is ScanDynamicQREvent.Error -> {
-
+                   NCToastMessage(this).showInfo(it.message) // update to nc_unable_access_link
                }
            }
         }

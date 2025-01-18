@@ -62,6 +62,7 @@ import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletActio
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletOption
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCInputDialog
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -283,7 +284,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                 is WalletIntermediaryEvent.Loading -> showOrHideLoading(event.isLoading)
                 WalletIntermediaryEvent.NoSigner -> showNoSignerDialog()
                 WalletIntermediaryEvent.JoinGroupWalletFailed -> {
-                    showError(getString(R.string.nc_unable_access_link))
+                    NCToastMessage(requireActivity()).showInfo(getString(R.string.nc_unable_access_link))
                 }
 
                 is WalletIntermediaryEvent.JoinGroupWalletSuccess -> {

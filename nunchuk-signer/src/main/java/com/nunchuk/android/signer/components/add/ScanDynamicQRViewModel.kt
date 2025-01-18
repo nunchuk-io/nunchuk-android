@@ -25,7 +25,7 @@ class ScanDynamicQRViewModel @Inject constructor(
         joinFreeGroupWalletUseCase(content).onSuccess {
             _event.emit(ScanDynamicQREvent.JoinGroupWalletSuccess(it))
         }.onFailure {
-            isHandlingQRContent = false
+            _event.emit(ScanDynamicQREvent.Error(it.message ?: "Unknown error"))
         }
     }
 }
