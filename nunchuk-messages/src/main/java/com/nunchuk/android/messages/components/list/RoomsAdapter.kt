@@ -21,12 +21,14 @@ package com.nunchuk.android.messages.components.list
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.shorten
+import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.databinding.ItemRoomBinding
 import com.nunchuk.android.messages.util.lastMessage
 import com.nunchuk.android.messages.util.time
@@ -45,9 +47,9 @@ class RoomAdapter(
     private val scope: CoroutineScope,
     private val sessionHolder: SessionHolder,
     private val currentName: String,
-    private val enterRoom: (RoomSummary) -> Unit,
-    private val removeRoom: (RoomSummary, hasSharedWallet: Boolean) -> Unit
-) : ListAdapter<RoomSummary, RoomViewHolder>(RoomSummaryComparator) {
+    private val enterRoom: (RoomMessage) -> Unit,
+    private val removeRoom: (RoomMessage, hasSharedWallet: Boolean) -> Unit
+) : ListAdapter<RoomMessage, RoomViewHolder>(RoomSummaryComparator) {
 
     val roomWallets: MutableSet<String> = mutableSetOf()
     val groupChatRooms: HashMap<String, GroupChatRoom> = hashMapOf()
@@ -81,38 +83,58 @@ class RoomViewHolder(
     private val roomWallets: MutableSet<String>,
     private val groupChatRooms: HashMap<String, GroupChatRoom>,
     private val currentName: String,
-    private val enterRoom: (RoomSummary) -> Unit,
-    private val removeRoom: (RoomSummary, hasSharedWallet: Boolean) -> Unit
+    private val enterRoom: (RoomMessage) -> Unit,
+    private val removeRoom: (RoomMessage, hasSharedWallet: Boolean) -> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
     private var hideMessageJob : Job? = null
 
-    fun bind(data: RoomSummary) {
-        val roomName = data.getRoomName(currentName)
-        binding.name.text = roomName
-        bindLastMessage(data)
-        binding.message.isVisible = data.latestPreviewableEvent != null
-        binding.time.isVisible = data.latestPreviewableEvent != null
-
-        val isGroupChat = !data.isDirectChat()
-        if (isGroupChat) {
-            binding.avatarHolder.text = ""
-            binding.badge.text = "${data.getMembersCount()}"
-        } else {
-            binding.avatarHolder.text = roomName.shorten()
-        }
-        binding.badge.isVisible = isGroupChat
-        binding.avatar.isVisible = isGroupChat
-        bindCount(data)
-        binding.shareIcon.isVisible = data.roomId in roomWallets
-        binding.encryptedIcon.isVisible = data.isEncrypted
-
+    fun bind(data: RoomMessage) {
         binding.itemLayout.setOnClickListener { enterRoom(data) }
-        binding.delete.setOnClickListener { removeRoom(data, binding.shareIcon.isVisible) }
+        if (data is RoomMessage.MatrixRoom) {
+            val matrixData = data.roomSummary
+            val roomName = matrixData.getRoomName(currentName)
+            binding.name.text = roomName
+            bindLastMessage(matrixData)
+            binding.message.isVisible = matrixData.latestPreviewableEvent != null
+            binding.time.isVisible = matrixData.latestPreviewableEvent != null
 
-        binding.swipeLayout.showMode = SwipeLayout.ShowMode.LayDown
-        binding.swipeLayout.addDrag(SwipeLayout.DragEdge.Left, binding.actionLayout)
-        binding.swipeLayout.isSwipeEnabled =
-            groupChatRooms[data.roomId]?.isMasterOrAdmin == true || groupChatRooms[data.roomId] == null
+            val isGroupChat = !matrixData.isDirectChat()
+            if (isGroupChat) {
+                binding.avatarHolder.text = ""
+                binding.badge.text = "${matrixData.getMembersCount()}"
+            } else {
+                binding.avatarHolder.text = roomName.shorten()
+            }
+            binding.badge.isVisible = isGroupChat
+            binding.avatar.isVisible = isGroupChat
+            binding.avatarHolder.setBackgroundResource(R.drawable.nc_circle_beeswax_light_background)
+            binding.avatar.setBackgroundResource(R.drawable.ic_members)
+            bindCount(matrixData)
+            binding.shareIcon.isVisible = matrixData.roomId in roomWallets
+            binding.encryptedIcon.isVisible = matrixData.isEncrypted
+            binding.delete.setOnClickListener { removeRoom(data, binding.shareIcon.isVisible) }
+
+            binding.swipeLayout.showMode = SwipeLayout.ShowMode.LayDown
+            binding.swipeLayout.addDrag(SwipeLayout.DragEdge.Left, binding.actionLayout)
+            binding.swipeLayout.isSwipeEnabled =
+                groupChatRooms[matrixData.roomId]?.isMasterOrAdmin == true || groupChatRooms[matrixData.roomId] == null
+        } else if (data is RoomMessage.GroupWalletRoom) {
+            val groupData = data.roomSummary
+            binding.name.text = groupData.name
+            binding.avatar.isVisible = true
+            binding.avatar.setBackgroundResource(R.drawable.ic_groups_menu)
+            binding.avatarHolder.setBackgroundResource(R.drawable.nc_circle_group_wallet_background)
+            binding.avatarHolder.text = ""
+            binding.shareIcon.isVisible = false
+            binding.encryptedIcon.isVisible = false
+            binding.badge.isVisible = false
+            binding.badge.text = "3"
+            binding.count.isVisible = false
+            binding.message.isVisible = true
+            binding.message.text = "groupData."
+            binding.time.isVisible = true
+            binding.time.text = Date().formatMessageDate()
+        }
     }
 
     private fun bindLastMessage(summary: RoomSummary) {
@@ -154,14 +176,16 @@ class RoomViewHolder(
     }
 }
 
-object RoomSummaryComparator : DiffUtil.ItemCallback<RoomSummary>() {
+object RoomSummaryComparator : DiffUtil.ItemCallback<RoomMessage>() {
 
     override fun areItemsTheSame(
-        item1: RoomSummary,
-        item2: RoomSummary
-    ) = (item1.roomId == item2.roomId)
+        item1: RoomMessage,
+        item2: RoomMessage
+    ): Boolean {
+        return item1 == item2
+    }
 
-    override fun areContentsTheSame(item1: RoomSummary, item2: RoomSummary): Boolean {
+    override fun areContentsTheSame(item1: RoomMessage, item2: RoomMessage): Boolean {
         return item1 == item2
     }
 }

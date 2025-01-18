@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.messages.components.list
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
@@ -31,17 +32,21 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.messages.usecase.message.GetGroupChatRoomsUseCase
+import com.nunchuk.android.messages.usecase.message.GetGroupMessageAccountUseCase
 import com.nunchuk.android.messages.usecase.message.GetOrCreateSupportRoomUseCase
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.util.sortByLastMessage
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
+import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.membership.DeleteGroupChatUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
@@ -56,6 +61,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -68,6 +74,7 @@ class RoomsViewModel @Inject constructor(
     private val deleteGroupChatUseCase: DeleteGroupChatUseCase,
     private val getGroupChatRoomsUseCase: GetGroupChatRoomsUseCase,
     getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
+    private val getGroupMessageAccountUseCase: GetGroupMessageAccountUseCase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<RoomsState, RoomsEvent>() {
 
@@ -81,6 +88,18 @@ class RoomsViewModel @Inject constructor(
 
     init {
         listenRoomSummaries()
+        getGroupMessageAccount()
+    }
+
+    private fun getGroupMessageAccount() {
+        viewModelScope.launch {
+            getGroupMessageAccountUseCase(Unit)
+                .onSuccess { rooms ->
+                    Log.e("group-wallet", "getGroupMessageAccount success ${rooms.size}")
+                    updateState { copy(groupWalletMessages = rooms) }
+                    combineRooms()
+                }
+        }
     }
 
     fun handleMatrixSignedIn() {
@@ -110,14 +129,14 @@ class RoomsViewModel @Inject constructor(
 
     private suspend fun listenRoomEvents(rooms: List<RoomSummary>) {
         val roomIds = rooms.map { it.roomId }
-            getGroupChatRoomsUseCase(GetGroupChatRoomsUseCase.Params(roomIds))
-                .onSuccess { result ->
-                    updateState {
-                        copy(
-                            groupChatRooms = result.associateBy { it.roomId }.toMutableMap()
-                        )
-                    }
-        }
+        getGroupChatRoomsUseCase(GetGroupChatRoomsUseCase.Params(roomIds))
+            .onSuccess { result ->
+                updateState {
+                    copy(
+                        groupChatRooms = result.associateBy { it.roomId }.toMutableMap()
+                    )
+                }
+            }
     }
 
     private suspend fun retrieveMessages(rooms: List<RoomSummary>) {
@@ -160,12 +179,14 @@ class RoomsViewModel @Inject constructor(
 
     private fun onRetrieveMessageSuccess(p: Pair<List<RoomSummary>, List<RoomWallet>>) {
         setEvent(RoomsEvent.LoadingEvent(false))
+        val rooms = p.first.sortByLastMessage(p.second)
         updateState {
             copy(
-                rooms = p.first.sortByLastMessage(p.second),
+                matrixRooms = rooms,
                 roomWallets = p.second
             )
         }
+        combineRooms()
     }
 
     fun removeRoom(roomSummary: RoomSummary) {
@@ -218,10 +239,23 @@ class RoomsViewModel @Inject constructor(
         }
     }
 
-    fun getVisibleRooms() = getState().rooms.filter { it.shouldShow() }
+    fun getVisibleRooms() =
+        getState().rooms.filter { it is RoomMessage.GroupWalletRoom || ((it as? RoomMessage.MatrixRoom)?.roomSummary?.shouldShow() == true) }
 
     private fun getRoom(roomSummary: RoomSummary) =
         sessionHolder.getSafeActiveSession()?.roomService()?.getRoom(roomSummary.roomId)
+
+    private fun combineRooms() {
+        val result = mutableListOf<RoomMessage>()
+        val groupWalletRooms = getState().groupWalletMessages
+        val matrixRooms = getState().matrixRooms
+        result.addAll(groupWalletRooms.map { RoomMessage.GroupWalletRoom(it, "a") } + matrixRooms.map {
+            RoomMessage.MatrixRoom(
+                it
+            )
+        })
+        updateState { copy(rooms = result) }
+    }
 
     companion object {
         private const val TAG_SYNC = "io.nunchuk.sync"

@@ -35,7 +35,7 @@ class GetListMessageFreeGroupWalletUseCase @Inject constructor(
         return nativeSdk.getGroupWalletMessages(
             walletId = parameters.walletId,
             pageSize = 50,
-            page = 1
+            page = 0
         )
     }
 

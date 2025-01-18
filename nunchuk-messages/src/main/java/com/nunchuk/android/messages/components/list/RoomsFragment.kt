@@ -42,7 +42,6 @@ import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
-import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -102,8 +101,11 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         binding.viewStubEmptyState.ivContactAdd.setImageResource(R.drawable.ic_messages_new)
     }
 
-    private fun openRoomDetailScreen(summary: RoomSummary) {
-        openRoomDetailScreen(summary.roomId)
+    private fun openRoomDetailScreen(summary: RoomMessage) {
+        if (summary is RoomMessage.MatrixRoom) openRoomDetailScreen(summary.roomSummary.roomId)
+        else if (summary is RoomMessage.GroupWalletRoom) {
+            navigator.openGroupChatScreen(requireContext(), summary.walletId)
+        }
     }
 
     private fun openRoomDetailScreen(roomId: String) {
@@ -128,7 +130,10 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
             clear()
             putAll(state.groupChatRooms)
         }
-        val visibleRooms = state.rooms.filter(RoomSummary::shouldShow)
+        val visibleRooms = state.rooms.filter {
+            it is RoomMessage.GroupWalletRoom ||
+                    ((it as? RoomMessage.MatrixRoom)?.roomSummary?.shouldShow() == true)
+        }
         adapter.submitList(visibleRooms)
         handleShowEmptyState()
 
@@ -148,22 +153,26 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
             is LoadingEvent -> showOrHideLoading(event.loading)
             is RoomsEvent.CreateSupportRoomSuccess -> openRoomDetailScreen(event.roomId)
             is RoomsEvent.ShowError -> showError(event.message)
-            is RoomsEvent.RemoveRoomSuccess -> deleteRoom(event.roomSummary)
+            is RoomsEvent.RemoveRoomSuccess -> {
+//                deleteRoom(event.roomSummary)
+            }
         }
     }
 
-    private fun handleRemoveRoom(roomSummary: RoomSummary, hasSharedWallet: Boolean) {
+    private fun handleRemoveRoom(roomMessage: RoomMessage, hasSharedWallet: Boolean) {
+        if (roomMessage !is RoomMessage.MatrixRoom) return
+        val roomSummary = roomMessage.roomSummary
         if (hasSharedWallet) {
             NCWarningDialog(requireActivity())
                 .showDialog(
                     message = getString(R.string.nc_warning_delete_shared_wallet),
                     onYesClick = {
                         viewModel.removeRoom(roomSummary)
-                        deleteRoom(roomSummary)
+                        deleteRoom(roomMessage)
                     },
                     onNoClick = {
                         val position = viewModel.getVisibleRooms()
-                            .indexOfFirst { it.roomId == roomSummary.roomId }
+                            .indexOfFirst { it is RoomMessage.MatrixRoom && it.roomSummary.roomId == roomSummary.roomId }
                         if (position in 0 until adapter.itemCount) {
                             adapter.notifyItemChanged(position)
                         }
@@ -174,7 +183,7 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         }
     }
 
-    private fun deleteRoom(roomSummary: RoomSummary) {
+    private fun deleteRoom(roomSummary: RoomMessage) {
         val newList = viewModel.getVisibleRooms().toMutableList().apply {
             remove(roomSummary)
         }

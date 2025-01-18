@@ -23,12 +23,25 @@ import com.nunchuk.android.model.GroupChatRoom
 import com.nunchuk.android.model.RoomWallet
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 
-data class RoomsState(val rooms: List<RoomSummary>, val roomWallets: List<RoomWallet>, val groupChatRooms: MutableMap<String, GroupChatRoom>) {
+data class RoomsState(
+    val rooms: List<RoomMessage>,
+    val roomWallets: List<RoomWallet>,
+    val groupChatRooms: MutableMap<String, GroupChatRoom>,
+    val walletIds: List<String> = emptyList(),
+    val groupWalletMessages: List<RoomSummary> = emptyList(),
+    val matrixRooms: List<RoomSummary> = emptyList(),
+) {
 
     companion object {
         fun empty() = RoomsState(emptyList(), emptyList(), HashMap())
     }
 
+}
+
+sealed class RoomMessage {
+    data class MatrixRoom(val roomSummary: RoomSummary) : RoomMessage()
+    data class GroupWalletRoom(val roomSummary: RoomSummary,
+        val walletId: String) : RoomMessage()
 }
 
 sealed class RoomsEvent {

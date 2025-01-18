@@ -241,19 +241,25 @@ fun ChatMessages(messages: List<MessageUI>) {
         reverseLayout = true,
     ) {
         items(messages) { message ->
-            if (message is MessageUI.SenderMessage) {
-                SentMessageBubble(message)
-            } else if (message is MessageUI.ReceiverMessage) {
-                ReceivedMessageBubble(message)
-            } else if (message is MessageUI.TimeMessage) {
-                Text(
-                    text = message.date,
-                    style = NunchukTheme.typography.bodySmall,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    textAlign = TextAlign.Center
-                )
+            when (message) {
+                is MessageUI.SenderMessage -> {
+                    SentMessageBubble(message)
+                }
+
+                is MessageUI.ReceiverMessage -> {
+                    ReceivedMessageBubble(message)
+                }
+
+                is MessageUI.TimeMessage -> {
+                    Text(
+                        text = message.date,
+                        style = NunchukTheme.typography.bodySmall,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }

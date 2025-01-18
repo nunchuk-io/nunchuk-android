@@ -69,7 +69,8 @@ fun GroupWalletChatView(
                 isChatExpanded = isChatExpanded,
                 onCollapseExpand = {
                     isChatExpanded = !isChatExpanded
-                }
+                },
+                onOpenChat = onOpenChat
             )
 
             if (isChatExpanded) {

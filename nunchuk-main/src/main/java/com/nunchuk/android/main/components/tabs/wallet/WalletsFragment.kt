@@ -91,6 +91,8 @@ import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
 import com.nunchuk.android.main.intro.UniversalNfcIntroActivity
 import com.nunchuk.android.main.membership.byzantine.views.PendingWalletView
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
+import com.nunchuk.android.messages.components.freegroup.FreeGroupWalletChatActivity
+import com.nunchuk.android.messages.components.list.RoomMessage
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_ACTIVE
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_PENDING
@@ -268,7 +270,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         mainActivityViewModel.event.observe(viewLifecycleOwner, ::handleMainActivityEvent)
         roomViewModel.state.observe(viewLifecycleOwner) {
             if (walletsViewModel.isPremiumUser().not()) {
-                it.rooms.forEach { room ->
+                it.rooms.filterIsInstance<RoomMessage.MatrixRoom>().map { it.roomSummary }.forEach { room ->
                     room.latestPreviewableEvent?.takeIf { event ->
                         event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_PENDING
                                 || event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_ACTIVE

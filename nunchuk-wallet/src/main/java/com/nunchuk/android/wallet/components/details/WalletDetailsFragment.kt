@@ -369,7 +369,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         }
         binding.chatView.setContent {
             GroupWalletChatView(messages = state.groupChatMessages, onSendMessage = {
-
+                viewModel.sendMessage(it)
             }, onOpenChat = {
                 navigator.openGroupChatScreen(
                     activityContext = requireActivity(),

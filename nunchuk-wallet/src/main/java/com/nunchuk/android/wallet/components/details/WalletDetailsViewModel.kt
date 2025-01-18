@@ -54,6 +54,7 @@ import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
+import com.nunchuk.android.utils.GroupChatManager
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.ImportPSBTSuccess
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.Loading
@@ -96,6 +97,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val getGroupUseCase: GetGroupUseCase,
     private val hasSignerUseCase: HasSignerUseCase,
     private val getListMessageFreeGroupWalletUseCase: GetListMessageFreeGroupWalletUseCase,
+    private val groupChatManager: GroupChatManager,
     ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -163,10 +165,13 @@ internal class WalletDetailsViewModel @Inject constructor(
             ).onSuccess {
                 updateState {
                     copy(
-                        groupChatMessages = it.takeLast(2),
+                        groupChatMessages = it.take(2),
                     )
                 }
             }
+        }
+        viewModelScope.launch {
+            groupChatManager.init(args.walletId)
         }
     }
 
@@ -370,4 +375,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     fun getWallet() = getState().walletExtended.wallet
 
     suspend fun hasSigner(signer: SingleSigner) = hasSignerUseCase(signer)
+
+    fun sendMessage(message: String) = viewModelScope.launch {
+        groupChatManager.sendMessage(message, args.walletId)
+    }
 }

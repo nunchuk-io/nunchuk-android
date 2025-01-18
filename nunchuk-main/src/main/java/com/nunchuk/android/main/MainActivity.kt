@@ -46,6 +46,7 @@ import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.main.components.tabs.wallet.WalletsViewModel
 import com.nunchuk.android.main.databinding.ActivityMainBinding
 import com.nunchuk.android.main.di.MainAppEvent
+import com.nunchuk.android.messages.components.list.RoomMessage
 import com.nunchuk.android.messages.components.list.RoomsState
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.messages.components.list.shouldShow
@@ -165,7 +166,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
 
     private fun handleRoomState(state: RoomsState) {
         val count =
-            state.rooms.sumOf { if (it.shouldShow() && it.hasUnreadMessages) it.notificationCount else 0 }
+            state.rooms.filterIsInstance<RoomMessage.MatrixRoom>().map { it.roomSummary }.sumOf { if (it.shouldShow() && it.hasUnreadMessages) it.notificationCount else 0 }
         messageBadge.apply {
             isVisible = count > 0
             number = count
