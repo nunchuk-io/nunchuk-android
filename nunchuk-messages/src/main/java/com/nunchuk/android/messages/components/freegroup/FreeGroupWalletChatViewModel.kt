@@ -1,9 +1,11 @@
 package com.nunchuk.android.messages.components.freegroup
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
 import com.nunchuk.android.core.domain.GetListMessageFreeGroupWalletUseCase
 import com.nunchuk.android.listener.GroupMessageListener
 import com.nunchuk.android.messages.util.GroupChatManager
@@ -22,9 +24,9 @@ import javax.inject.Inject
 @HiltViewModel
 class FreeGroupWalletChatViewModel @Inject constructor(
     private val getListMessageFreeGroupWalletUseCase: GetListMessageFreeGroupWalletUseCase,
-    private val accountManager: AccountManager,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val groupChatManager: GroupChatManager,
+    private val getGroupDeviceUIDUseCase: GetGroupDeviceUIDUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -36,25 +38,31 @@ class FreeGroupWalletChatViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            groupChatManager.init(walletId)
-        }
-
-        viewModelScope.launch {
-            getListMessage()
-            getWalletDetail()
-        }
-        viewModelScope.launch {
             GroupMessageListener.getMessageFlow().collect { message ->
+                Log.e("group-wallet", "message: $message")
                 if (message.walletId == walletId) {
                     val newMessages = _uiState.value.messages + message
                     _uiState.update {
                         it.copy(
                             messages = newMessages,
-                            messageUis = newMessages.groupByDate(accountManager.getAccount().id)
+                            messageUis = newMessages.groupByDate(_uiState.value.uid)
                         )
                     }
                 }
             }
+        }
+
+        viewModelScope.launch {
+            groupChatManager.init(walletId)
+        }
+
+        viewModelScope.launch {
+            val uid = getGroupDeviceUIDUseCase(Unit).getOrNull()
+            _uiState.update {
+                it.copy(uid = uid.orEmpty())
+            }
+            getListMessage()
+            getWalletDetail()
         }
     }
 
@@ -82,7 +90,7 @@ class FreeGroupWalletChatViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         messages = result,
-                        messageUis = result.groupByDate(accountManager.getAccount().id)
+                        messageUis = result.groupByDate(_uiState.value.uid)
                     )
                 }
             }.onFailure {
@@ -129,6 +137,7 @@ data class FreeGroupWalletChatUiState(
     val messages: List<FreeGroupMessage> = emptyList(),
     val messageUis: List<MessageUI> = emptyList(),
     val wallet: Wallet? = null,
+    val uid: String = ""
 )
 
 sealed class MessageUI {

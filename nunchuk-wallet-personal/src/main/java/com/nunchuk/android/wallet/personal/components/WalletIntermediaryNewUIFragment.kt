@@ -118,10 +118,14 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                         onWalletTypeSelected(it)
                     },
                     onScanQRClicked = {
-                        navigator.openScanQrCodeScreen(requireActivity(), true)
+                        checkRunOutGroupWallet {
+                            navigator.openScanQrCodeScreen(requireActivity(), true)
+                        }
                     },
                     onJoinGroupWalletClicked = {
-                        showInputGroupWalletLinkDialog()
+                        checkRunOutGroupWallet {
+                            showInputGroupWalletLinkDialog()
+                        }
                     },
                 )
             }
@@ -172,9 +176,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
             }
 
             WalletType.GROUP -> {
-                if (viewModel.isExceededGroupWalletLimit()) {
-                    showRunOutFreeGroupWallet()
-                } else {
+                checkRunOutGroupWallet {
                     navigator.openFreeGroupWalletScreen(requireActivity())
                 }
             }
@@ -185,6 +187,14 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                     args = WalletSecurityArgs(type = WalletSecurityType.CREATE_DECOY_WALLET)
                 )
             }
+        }
+    }
+
+    private fun checkRunOutGroupWallet(action: () -> Unit) {
+        if (viewModel.isExceededGroupWalletLimit()) {
+            showRunOutFreeGroupWallet()
+        } else {
+            action()
         }
     }
 
@@ -275,6 +285,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                 WalletIntermediaryEvent.JoinGroupWalletFailed -> {
                     showError(getString(R.string.nc_unable_access_link))
                 }
+
                 is WalletIntermediaryEvent.JoinGroupWalletSuccess -> {
                     navigator.openFreeGroupWalletScreen(requireActivity(), event.groupId)
                 }
