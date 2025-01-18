@@ -18,6 +18,7 @@ import com.nunchuk.android.usecase.free.groupwallet.CreateGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.DeleteGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupOnlineUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetGroupsSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.RemoveSignerFromGroupUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.signer.GetSignerUseCase
@@ -43,7 +44,8 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val deleteGroupSandboxUseCase: DeleteGroupSandboxUseCase,
     private val getSignerUseCase: GetSignerUseCase,
     private val getGroupOnlineUseCase: GetGroupOnlineUseCase,
-    private val pushEventManager: PushEventManager
+    private val pushEventManager: PushEventManager,
+    private val getGroupsSandboxUseCase: GetGroupsSandboxUseCase,
 ) : ViewModel() {
     val groupId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
@@ -106,9 +108,15 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun createGroupSandbox() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
+            val numOfGroups = getGroupsSandboxUseCase(Unit).getOrNull()?.size ?: 0
+            val groupName = if (numOfGroups == 0) {
+                "Group wallet"
+            } else {
+                "Group wallet #${numOfGroups + 1}"
+            }
             createGroupSandboxUseCase(
                 CreateGroupSandboxUseCase.Params(
-                    "Group wallet",
+                    groupName,
                     2,
                     3,
                     AddressType.NATIVE_SEGWIT
