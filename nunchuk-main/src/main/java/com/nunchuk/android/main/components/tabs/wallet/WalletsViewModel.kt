@@ -340,22 +340,22 @@ internal class WalletsViewModel @Inject constructor(
     fun getGroupsSandbox() {
         viewModelScope.launch {
             getGroupsSandboxUseCase(Unit).onSuccess {
+                val groupSandboxes = hashMapOf<String, GroupSandbox>()
+                val pendingGroupSandboxes = mutableListOf<GroupSandbox>()
                 it.forEach { groupSandbox ->
-                    val groupSandboxes = hashMapOf<String, GroupSandbox>()
-                    val pendingGroupSandboxes = mutableListOf<GroupSandbox>()
                     if (groupSandbox.finalized) {
                         groupSandboxes[groupSandbox.id] = groupSandbox
                     } else {
                         pendingGroupSandboxes.add(groupSandbox)
                     }
-                    updateState {
-                        copy(
-                            groupSandboxes = groupSandboxes,
-                            pendingGroupSandboxes = pendingGroupSandboxes
-                        )
-                    }
-                    mapGroupWalletUi()
                 }
+                updateState {
+                    copy(
+                        groupSandboxes = groupSandboxes,
+                        pendingGroupSandboxes = pendingGroupSandboxes
+                    )
+                }
+                mapGroupWalletUi()
             }
         }
     }

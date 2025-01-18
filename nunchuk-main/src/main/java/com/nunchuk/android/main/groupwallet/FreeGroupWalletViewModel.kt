@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.listener.GroupSandboxListener
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
@@ -44,10 +45,21 @@ class FreeGroupWalletViewModel @Inject constructor(
 
     init {
         loadSigners()
+        listenGroupSandbox()
         if (groupId.isEmpty()) {
             createGroupSandbox()
         } else {
             getGroupSandbox()
+        }
+    }
+
+    private fun listenGroupSandbox() {
+        viewModelScope.launch {
+            GroupSandboxListener.getGroupFlow().collect { groupSandbox ->
+                if (groupSandbox.id == groupId) {
+                    updateGroupSandbox(groupSandbox)
+                }
+            }
         }
     }
 

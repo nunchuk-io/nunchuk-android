@@ -379,4 +379,5 @@
     <string name="nc_key_with_index">Key %1$s</string>
     <string name="nc_setup_in_progress">Setup in progress</string>
     <string name="nc_cancel_group_wallet_setup">Cancel group wallet setup</string>
+    <string name="nc_ask_for_delete_group_wallet">Are you sure you want to cancel the group wallet setup? Canceling will invalidate the session link and remove all associated data.</string>
 </resources>

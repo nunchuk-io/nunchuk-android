@@ -47,6 +47,7 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.textPrimary
@@ -134,6 +135,7 @@ fun FreeGroupWalletScreen(
 ) {
     var showSignerBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showMoreOption by rememberSaveable { mutableStateOf(false) }
+    var showAskForDeleteDialog by rememberSaveable { mutableStateOf(false) }
     var currentSignerIndex by rememberSaveable { mutableIntStateOf(-1) }
     Scaffold(
         modifier = Modifier.navigationBarsPadding(),
@@ -271,7 +273,7 @@ fun FreeGroupWalletScreen(
                 options = listOf(stringResource(R.string.nc_cancel_group_wallet_setup)),
                 onSelected = {
                     if (it == 0) {
-                        onDeleteGroupClicked()
+                        showAskForDeleteDialog = true
                     }
                 },
                 onDismiss = {
@@ -296,6 +298,19 @@ fun FreeGroupWalletScreen(
                     signers = state.allSigners.toTypedArray(),
                     type = SignerType.UNKNOWN
                 )
+            )
+        }
+
+        if (showAskForDeleteDialog) {
+            NcConfirmationDialog(
+                message = stringResource(id = R.string.nc_ask_for_delete_group_wallet),
+                onPositiveClick = {
+                    onDeleteGroupClicked()
+                    showAskForDeleteDialog = false
+                },
+                onDismiss = {
+                    showAskForDeleteDialog = false
+                }
             )
         }
     }

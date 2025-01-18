@@ -752,10 +752,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     override fun onResume() {
         super.onResume()
         with(walletsViewModel) {
+            getGroupsSandbox()
             retrieveData()
             updateBadge()
             getKeyHealthStatus()
-            getGroupsSandbox()
         }
     }
 
