@@ -153,6 +153,8 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                     onSignerExisted = {
                         // replace key case
                         val walletId = (activity as NfcSetupActivity).walletId
+                        // free group wallet case
+                        val groupId = (activity as NfcSetupActivity).groupId
                         if (args.isMembershipFlow) {
                             if (viewModel.isKeyAddedToAssistedWallet(it.status.masterSignerId.orEmpty())) {
                                 showError(getString(R.string.nc_error_add_same_key))
@@ -174,7 +176,7 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                                     viewModel.getMasterSigner(it.status.masterSignerId.orEmpty())
                                 }
                             ).show()
-                        } else if (walletId.isNotEmpty()) {
+                        } else if (walletId.isNotEmpty() || groupId.isNotEmpty()) {
                             // replace key in free wallet flow
                             findNavController().navigate(
                                 AddTapSignerIntroFragmentDirections.actionAddTapSignerIntroFragmentToTapSignerIdFragment(

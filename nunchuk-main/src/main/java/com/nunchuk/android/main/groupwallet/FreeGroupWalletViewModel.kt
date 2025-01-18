@@ -4,7 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.listener.GroupOnlineListener
 import com.nunchuk.android.listener.GroupSandboxListener
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.SingleSigner
@@ -13,6 +16,7 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.free.groupwallet.AddSignerToGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.CreateGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.DeleteGroupSandboxUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetGroupOnlineUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.RemoveSignerFromGroupUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
@@ -21,6 +25,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -37,6 +42,8 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val removeSignerFromGroupUseCase: RemoveSignerFromGroupUseCase,
     private val deleteGroupSandboxUseCase: DeleteGroupSandboxUseCase,
     private val getSignerUseCase: GetSignerUseCase,
+    private val getGroupOnlineUseCase: GetGroupOnlineUseCase,
+    private val pushEventManager: PushEventManager
 ) : ViewModel() {
     val groupId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
@@ -46,10 +53,29 @@ class FreeGroupWalletViewModel @Inject constructor(
     init {
         loadSigners()
         listenGroupSandbox()
+        listenGroupOnline()
         if (groupId.isEmpty()) {
             createGroupSandbox()
         } else {
             getGroupSandbox()
+            getGroupOnline()
+        }
+        viewModelScope.launch {
+            pushEventManager.event.filterIsInstance<PushEvent.LocalUserSignerAdded>()
+                .collect {
+                    Timber.d("Pushing event: $it")
+                    addSignerToGroup(it.signer)
+                }
+        }
+    }
+
+    private fun listenGroupOnline() {
+        viewModelScope.launch {
+            GroupOnlineListener.getGroupFlow().collect { groupOnline ->
+                if (groupOnline.groupId == groupId) {
+                    _uiState.update { it.copy(numberOfOnlineUsers = groupOnline.online) }
+                }
+            }
         }
     }
 
@@ -79,6 +105,7 @@ class FreeGroupWalletViewModel @Inject constructor(
 
     private fun createGroupSandbox() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             createGroupSandboxUseCase(
                 CreateGroupSandboxUseCase.Params(
                     "Group wallet",
@@ -92,14 +119,25 @@ class FreeGroupWalletViewModel @Inject constructor(
             }.onFailure {
                 Timber.e("Failed to create group sandbox $it")
             }
+            _uiState.update { it.copy(isLoading = false) }
+        }
+    }
+
+    fun getGroupOnline() {
+        viewModelScope.launch {
+            getGroupOnlineUseCase(groupId).onSuccess { groupOnline ->
+                _uiState.update { it.copy(numberOfOnlineUsers = groupOnline) }
+            }
         }
     }
 
     fun getGroupSandbox() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             getGroupSandboxUseCase(groupId).onSuccess { groupSandbox ->
                 updateGroupSandbox(groupSandbox)
             }
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
@@ -129,6 +167,8 @@ class FreeGroupWalletViewModel @Inject constructor(
                 )
             ).onSuccess {
                 updateGroupSandbox(it)
+            }.onFailure {
+                Timber.e("Failed to add signer to group $it")
             }
             _uiState.update { it.copy(isLoading = false) }
         }

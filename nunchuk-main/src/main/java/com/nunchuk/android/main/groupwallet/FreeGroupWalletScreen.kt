@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -28,7 +27,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -55,6 +53,7 @@ import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.component.FreeAddKeyCard
+import com.nunchuk.android.main.groupwallet.component.UserOnline
 import com.nunchuk.android.main.groupwallet.component.WalletInfo
 import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
@@ -232,23 +231,7 @@ fun FreeGroupWalletScreen(
             }
 
             item {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    NcIcon(
-                        modifier = Modifier.size(24.dp),
-                        painter = painterResource(id = R.drawable.ic_mulitsig_dark),
-                        contentDescription = "Key icon",
-                    )
-
-                    Text(
-                        text = stringResource(id = R.string.nc_title_signers),
-                        style = NunchukTheme.typography.title,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
-
-
-                }
+                UserOnline(state.numberOfOnlineUsers)
             }
 
             itemsIndexed(state.signers) { index, signer ->

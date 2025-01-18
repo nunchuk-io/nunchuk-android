@@ -164,7 +164,6 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
             isMembershipFlow = (activity as AddAirgapSignerActivity).isMembershipFlow,
             replacedXfp = (activity as AddAirgapSignerActivity).replacedXfp,
             walletId = (activity as AddAirgapSignerActivity).walletId,
-            requestedSignerIndex = (activity as AddAirgapSignerActivity).requestedSignerIndex,
         )
     }
 

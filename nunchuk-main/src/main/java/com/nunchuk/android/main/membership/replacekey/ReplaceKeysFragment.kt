@@ -159,6 +159,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                                     signer = signer,
                                     replacedXfp = viewModel.replacedXfp,
                                     isMultisigWallet = viewModel.isMultiSig(),
+                                    isFreeWallet = !viewModel.isActiveAssistedWallet,
                                     walletId = args.walletId,
                                     groupId = args.groupId
                                 )

@@ -80,6 +80,7 @@ class PortalDeviceViewModel @Inject constructor(
 
     init {
         val walletId = savedStateHandle.get<String>(PortalDeviceArgs.EXTRA_WALLET_ID).orEmpty()
+        val groupId = savedStateHandle.get<String>(PortalDeviceArgs.EXTRA_GROUP_ID).orEmpty()
         if (walletId.isNotEmpty()) {
             viewModelScope.launch {
                 getWalletDetail2UseCase(walletId).onSuccess {
@@ -87,6 +88,9 @@ class PortalDeviceViewModel @Inject constructor(
                     savedStateHandle[EXTRA_ADDRESS_TYPE] = it.addressType
                 }
             }
+        } else if (groupId.isNotEmpty()) {
+            savedStateHandle[EXTRA_MULTISIG] = true
+            savedStateHandle[EXTRA_ADDRESS_TYPE] = AddressType.NATIVE_SEGWIT
         }
     }
 

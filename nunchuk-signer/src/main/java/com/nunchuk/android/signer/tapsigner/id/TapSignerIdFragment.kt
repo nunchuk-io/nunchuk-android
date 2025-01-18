@@ -119,12 +119,13 @@ class TapSignerIdFragment : MembershipFragment() {
                 )
             } else {
                 val walletId = (requireActivity() as NfcSetupActivity).walletId
-                if (walletId.isNotEmpty()) {
+                val groupId = (requireActivity() as NfcSetupActivity).groupId
+                if (walletId.isNotEmpty() || groupId.isNotEmpty()) {
                     viewModel.getSignerFromTapsignerMasterSigner(
                         isoDep = IsoDep.get(it.tag) ?: return@flowObserver,
                         cvc = nfcViewModel.inputCvc.orEmpty(),
                         index = (requireActivity() as NfcSetupActivity).signerIndex,
-                        walletId = walletId
+                        walletId = walletId,
                     )
                 }
             }

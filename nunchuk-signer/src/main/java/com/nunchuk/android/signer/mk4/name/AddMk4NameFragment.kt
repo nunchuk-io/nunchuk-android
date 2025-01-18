@@ -62,8 +62,8 @@ class AddMk4NameFragment : BaseFragment<FragmentAddNameKeyBinding>() {
                 is AddNameMk4ViewEvent.CreateMk4SignerSuccess -> {
                     // for replace key in free wallet
                     val walletId = (activity as Mk4Activity).walletId
-                    val isReplaceKeyInFreeWallet = walletId.isNullOrEmpty().not()
-                    if (!isReplaceKeyInFreeWallet) {
+                    val groupId = (activity as Mk4Activity).groupId
+                    if (walletId.isNullOrEmpty() && groupId.isEmpty()) {
                         navigator.openSignerInfoScreen(
                             activityContext = requireActivity(),
                             isMasterSigner = it.signer.hasMasterSigner,
@@ -99,19 +99,13 @@ class AddMk4NameFragment : BaseFragment<FragmentAddNameKeyBinding>() {
             binding.nameCounter.text = "${it.length}/$MAX_LENGTH"
         }
         binding.btnContinue.setOnClickListener {
-            val groupId = (activity as Mk4Activity).groupId
-            val requestedSignerIndex = (activity as Mk4Activity).newIndex
             if (args.isReplaceKey) {
                 viewModel.changeKeyType(
                     signer = args.signer.copy(name = binding.signerName.getEditText()),
-                    groupId = groupId,
-                    requestedSignerIndex = requestedSignerIndex
                 )
             } else {
                 viewModel.createMk4Signer(
                     args.signer.copy(name = binding.signerName.getEditText()),
-                    groupId = groupId,
-                    requestedSignerIndex = requestedSignerIndex
                 )
             }
         }

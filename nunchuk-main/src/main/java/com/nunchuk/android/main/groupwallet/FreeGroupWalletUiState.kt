@@ -9,4 +9,5 @@ data class FreeGroupWalletUiState(
     val allSigners: List<SignerModel> = emptyList(),
     val isLoading: Boolean = false,
     val isFinishScreen: Boolean = false,
+    val numberOfOnlineUsers: Int = 1,
 )

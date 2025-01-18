@@ -103,4 +103,7 @@ val ColorScheme.backgroundMidGray: Color
 val ColorScheme.backgroundLightGray: Color
     get() = greyLight
 
+val ColorScheme.primaryT1: Color
+    get() = if (isDark) Color(0xFF1C1C1E) else Color(0xFF031F2B)
+
 

@@ -84,25 +84,40 @@ class TapSignerIdViewModel @Inject constructor(
 
     fun getSignerFromTapsignerMasterSigner(isoDep: IsoDep, cvc: String, index: Int, walletId: String) {
         viewModelScope.launch {
-            getWalletDetail2UseCase(walletId).onSuccess {
-                val walletType = if (it.signers.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
-                getSignerFromTapsignerMasterSignerUseCase(
-                    GetSignerFromTapsignerMasterSignerUseCase.Data(
-                        isoDep = isoDep,
-                        cvc = cvc,
-                        masterSignerId = args.masterSignerId,
-                        index = index,
-                        walletType = walletType
-                    )
-                ).onSuccess { singleSigner ->
-                    singleSigner?.let {
-                        pushEventManager.push(PushEvent.LocalUserSignerAdded(singleSigner))
-                    }
-                    _event.emit(TapSignerIdEvent.OnGetSingleWalletDone)
+            if (walletId.isNotEmpty()) {
+                getWalletDetail2UseCase(walletId).onSuccess {
+                    val walletType =
+                        if (it.signers.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
+                    getSignerSigner(isoDep, cvc, index, walletType)
                 }
+            } else {
+                getSignerSigner(isoDep, cvc, index, WalletType.MULTI_SIG)
             }
         }
     }
+
+    private suspend fun getSignerSigner(
+        isoDep: IsoDep,
+        cvc: String,
+        index: Int,
+        walletType: WalletType
+    ) {
+        getSignerFromTapsignerMasterSignerUseCase(
+            GetSignerFromTapsignerMasterSignerUseCase.Data(
+                isoDep = isoDep,
+                cvc = cvc,
+                masterSignerId = args.masterSignerId,
+                index = index,
+                walletType = walletType
+            )
+        ).onSuccess { singleSigner ->
+            singleSigner?.let {
+                pushEventManager.push(PushEvent.LocalUserSignerAdded(singleSigner))
+            }
+            _event.emit(TapSignerIdEvent.OnGetSingleWalletDone)
+        }
+    }
+
 
     fun onContinueClicked() {
         viewModelScope.launch {

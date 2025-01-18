@@ -108,7 +108,6 @@ interface SignerNavigatorDelegate : SignerNavigator {
         replacedXfp: String?,
         walletId: String,
         step: MembershipStep?,
-        requestedSignerIndex: Int,
     ) {
         activityContext.startActivity(
             AddAirgapSignerActivity.buildIntent(
@@ -121,7 +120,6 @@ interface SignerNavigatorDelegate : SignerNavigator {
                 replacedXfp = replacedXfp,
                 walletId = walletId,
                 step = step,
-                requestedSignerIndex = requestedSignerIndex
             )
         )
     }

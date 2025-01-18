@@ -23,6 +23,7 @@ data class PortalDeviceArgs(
     val walletId: String = "",
     val signer: SignerModel? = null,
     val newIndex: Int = 0,
+    val groupId: String = "",
 ) : Parcelable {
     companion object {
         private const val EXTRA_TYPE = "EXTRA_TYPE"
@@ -30,6 +31,7 @@ data class PortalDeviceArgs(
         private const val EXTRA_IS_MEMBERSHIP_FLOW = "EXTRA_IS_MEMBERSHIP_FLOW"
         private const val EXTRA_XFP = "EXTRA_XFP"
         private const val EXTRA_NEW_INDEX = "EXTRA_NEW_INDEX"
+        const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
 
         fun fromBundle(bundle: Bundle): PortalDeviceArgs {
             return PortalDeviceArgs(
@@ -38,6 +40,7 @@ data class PortalDeviceArgs(
                 isMembershipFlow = bundle.getBoolean(EXTRA_IS_MEMBERSHIP_FLOW, false),
                 signer = bundle.parcelable(EXTRA_XFP),
                 newIndex = bundle.getInt(EXTRA_NEW_INDEX, 0),
+                groupId = bundle.getString(EXTRA_GROUP_ID, "")
             )
         }
     }
@@ -49,6 +52,7 @@ data class PortalDeviceArgs(
             putBoolean(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
             putParcelable(EXTRA_XFP, signer)
             putInt(EXTRA_NEW_INDEX, newIndex)
+            putString(EXTRA_GROUP_ID, groupId)
         }
     }
 }

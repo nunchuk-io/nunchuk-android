@@ -81,6 +81,8 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                                 } else if (args.isMembershipFlow) {
                                     viewModel.setPendingAction(GetXpub)
                                     return@LaunchedEffect
+                                } else if (args.groupId.isNotEmpty() || args.walletId.isNotEmpty()) {
+                                    navigationController.navigateToSelectIndex()
                                 } else {
                                     navigationController.navigateToSelectWalletType()
                                 }
@@ -92,6 +94,12 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                                 if (args.isMembershipFlow) {
                                     viewModel.setPendingAction(GetXpub)
                                     return@LaunchedEffect
+                                } else if (args.groupId.isNotEmpty() || args.walletId.isNotEmpty()) {
+                                    navigationController.navigateToSelectIndex(
+                                        navOptions = NavOptions.Builder()
+                                            .setPopUpTo(portalIntroRoute, false)
+                                            .build()
+                                    )
                                 } else {
                                     navigationController.navigateToSelectWalletType(
                                         navOptions = NavOptions.Builder()
@@ -112,7 +120,7 @@ class PortalDeviceActivity : BaseComposeNfcActivity() {
                                             putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
                                         },
                                     )
-                                } else {
+                                } else if (args.groupId.isEmpty()) {
                                     navigator.openSignerInfoScreen(
                                         activityContext = this@PortalDeviceActivity,
                                         isMasterSigner = signer.hasMasterSigner,

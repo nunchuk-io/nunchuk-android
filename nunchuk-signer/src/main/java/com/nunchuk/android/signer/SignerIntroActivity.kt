@@ -73,8 +73,7 @@ class SignerIntroActivity : BaseComposeActivity() {
             activityContext = this,
             isMembershipFlow = false,
             tag = tag,
-            groupId = groupId,
-            requestedSignerIndex = requestedSignerIndex
+            groupId = groupId
         )
         finish()
     }
@@ -85,7 +84,6 @@ class SignerIntroActivity : BaseComposeActivity() {
             fromMembershipFlow = false,
             isFromAddKey = true,
             groupId = groupId,
-            newIndex = requestedSignerIndex
         )
         finish()
     }
@@ -96,7 +94,8 @@ class SignerIntroActivity : BaseComposeActivity() {
             args = PortalDeviceArgs(
                 type = PortalDeviceFlow.SETUP,
                 isMembershipFlow = walletId.isNotEmpty(),
-                walletId = walletId
+                walletId = walletId,
+                groupId = groupId,
             )
         )
         finish()
@@ -106,9 +105,8 @@ class SignerIntroActivity : BaseComposeActivity() {
         navigator.openAddAirSignerScreen(
             activityContext = this,
             isMembershipFlow = false,
-            walletId = walletId,
             groupId = groupId,
-            requestedSignerIndex = requestedSignerIndex
+            walletId = walletId
         )
         finish()
     }
