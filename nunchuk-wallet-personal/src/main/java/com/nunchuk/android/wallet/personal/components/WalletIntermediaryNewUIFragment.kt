@@ -118,7 +118,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                         onWalletTypeSelected(it)
                     },
                     onScanQRClicked = {
-
+                        navigator.openScanQrCodeScreen(requireActivity(), true)
                     },
                     onJoinGroupWalletClicked = {
                         showInputGroupWalletLinkDialog()

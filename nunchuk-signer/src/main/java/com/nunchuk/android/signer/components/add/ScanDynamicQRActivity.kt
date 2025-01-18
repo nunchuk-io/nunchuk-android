@@ -20,6 +20,7 @@
 package com.nunchuk.android.signer.components.add
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -73,9 +74,7 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
         flowObserver(scanDynamicQRViewModel.event) {
            when(it) {
                is ScanDynamicQREvent.JoinGroupWalletSuccess -> {
-                   setResult(Activity.RESULT_OK, Intent().apply {
-//                       putExtra(GROUP_SANDBOX_EXTRA_KEY, it.groupSandbox)
-                   })
+                    navigator.openFreeGroupWalletScreen(this, it.groupSandbox.id)
                    finish()
                }
                is ScanDynamicQREvent.Error -> {
@@ -113,10 +112,8 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
     }
 
     companion object {
-        // TODO: Create a common Scan QR
         private const val IS_JOIN_GROUP_WALLET_FLOW = "is_join_group_wallet_flow"
-        const val GROUP_SANDBOX_EXTRA_KEY = "group_sandbox"
-        fun buildIntent(activityContext: Activity, isJoinGroupWalletFlow: Boolean = false): Intent {
+        fun buildIntent(activityContext: Context, isJoinGroupWalletFlow: Boolean = false): Intent {
             val intent = Intent(activityContext, ScanDynamicQRActivity::class.java).apply {
                 putExtra(IS_JOIN_GROUP_WALLET_FLOW, isJoinGroupWalletFlow)
             }

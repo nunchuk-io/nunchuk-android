@@ -30,6 +30,7 @@ import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.SignerNavigator
 import com.nunchuk.android.signer.SignerIntroActivity
 import com.nunchuk.android.signer.components.add.AddAirgapSignerActivity
+import com.nunchuk.android.signer.components.add.ScanDynamicQRActivity
 import com.nunchuk.android.signer.components.details.SignerInfoActivity
 import com.nunchuk.android.signer.software.SoftwareSignerIntroActivity
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedActivity
@@ -340,5 +341,11 @@ interface SignerNavigatorDelegate : SignerNavigator {
 
     override fun openPrimaryKeyReplaceIntroScreen(activityContext: Context, keyFlow: Int) {
         PKeyReplaceKeyIntroActivity.start(activityContext)
+    }
+
+    override fun openScanQrCodeScreen(activityContext: Context, isGroupWalletFlow: Boolean) {
+        ScanDynamicQRActivity.buildIntent(activityContext, isGroupWalletFlow).let {
+            activityContext.startActivity(it)
+        }
     }
 }

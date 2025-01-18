@@ -208,4 +208,6 @@ interface SignerNavigator {
         activityContext: Context,
         @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
     )
+
+    fun openScanQrCodeScreen(activityContext: Context, isGroupWalletFlow: Boolean = false)
 }
