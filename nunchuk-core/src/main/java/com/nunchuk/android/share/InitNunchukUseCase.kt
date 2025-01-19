@@ -50,6 +50,7 @@ class InitNunchukUseCase @Inject constructor(
     private val deviceManager: DeviceManager,
     private val sessionHolder: SessionHolder,
     private val enableGroupWalletUseCase: EnableGroupWalletUseCase,
+    private val startConsumeGroupWalletEventUseCase: StartConsumeGroupWalletEventUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val applicationScope: CoroutineScope
 ) : UseCase<InitNunchukUseCase.Param, Boolean>(ioDispatcher) {
@@ -74,6 +75,7 @@ class InitNunchukUseCase @Inject constructor(
         applicationScope.launch {
             enableGroupWalletUseCase(Unit)
             nativeSdk.registerGlobalListener()
+            startConsumeGroupWalletEventUseCase(Unit)
         }
         fileLog(message = "end nativeSdk enableGroupWalletUseCase")
         return true

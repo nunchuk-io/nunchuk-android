@@ -45,6 +45,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -108,6 +109,8 @@ class RoomsViewModel @Inject constructor(
                         )
                     }
                     combineRooms()
+                } else {
+                    getGroupMessageAccount()
                 }
             }
         }
@@ -115,6 +118,7 @@ class RoomsViewModel @Inject constructor(
 
     private fun getGroupMessageAccount() {
         viewModelScope.launch {
+            delay(100)
             getGroupMessageAccountUseCase(Unit)
                 .onSuccess { messages ->
                     updateState {
