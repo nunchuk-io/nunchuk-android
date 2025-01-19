@@ -40,7 +40,8 @@ fun ActiveWallet(
     isAssistedWallet: Boolean,
     role: String = AssistedWalletRole.NONE.name,
     useLargeFont: Boolean = false,
-    walletStatus: String = ""
+    walletStatus: String = "",
+    isSandboxWallet: Boolean = false,
 ) {
     val wallet = walletsExtended.wallet
     val balance = "(${wallet.getCurrencyAmount()})"
@@ -74,9 +75,19 @@ fun ActiveWallet(
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.End
         ) {
-            if (walletsExtended.isShared || isAssistedWallet || walletStatus == WalletStatus.REPLACED.name || walletStatus == WalletStatus.LOCKED.name) {
+            if (walletsExtended.isShared || isAssistedWallet
+                || walletStatus == WalletStatus.REPLACED.name
+                || walletStatus == WalletStatus.LOCKED.name
+                || isSandboxWallet
+            ) {
                 Badge(containerColor = Color.White) {
-                    if (walletStatus != WalletStatus.REPLACED.name) {
+                    if (isSandboxWallet) {
+                        Icon(
+                            modifier = Modifier.padding(start = 8.dp),
+                            painter = painterResource(id = R.drawable.ic_circle_three),
+                            contentDescription = "Wallet"
+                        )
+                    } else if (walletStatus != WalletStatus.REPLACED.name) {
                         Icon(
                             modifier = Modifier.padding(start = 8.dp),
                             painter = painterResource(id = R.drawable.ic_wallet_small),
@@ -88,6 +99,10 @@ fun ActiveWallet(
                     } else if (isAssistedWallet || walletStatus == WalletStatus.LOCKED.name) {
                         Utils.maskValue(
                             stringResource(R.string.nc_assisted), hideWalletDetail
+                        )
+                    } else if (isSandboxWallet) {
+                        Utils.maskValue(
+                            stringResource(R.string.nc_shared), hideWalletDetail
                         )
                     } else {
                         Utils.maskValue(

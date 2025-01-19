@@ -154,7 +154,8 @@ fun PendingWalletView(
                         isAssistedWallet = isAssistedWallet,
                         role = role,
                         useLargeFont = useLargeFont,
-                        walletStatus = walletStatus.orEmpty()
+                        walletStatus = walletStatus.orEmpty(),
+                        isSandboxWallet = isSandboxWallet
                     )
                     if (showShortcuts) {
                         val allowShowShortcuts =

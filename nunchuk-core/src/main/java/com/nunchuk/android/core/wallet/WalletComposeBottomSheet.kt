@@ -416,7 +416,7 @@ fun AssistedWallet(
                 isAssistedWallet = isAssistedWallet,
                 role = role,
                 useLargeFont = false,
-                walletStatus = walletStatus
+                walletStatus = walletStatus,
             )
         }
     }
