@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet.components.details
 
+import android.util.Log
 import android.util.LruCache
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -34,6 +35,7 @@ import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.listener.GroupMessageListener
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.RoomWallet
@@ -172,6 +174,19 @@ internal class WalletDetailsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             groupChatManager.init(args.walletId)
+        }
+        viewModelScope.launch {
+            GroupMessageListener.getMessageFlow().collect { message ->
+                if (message.walletId == args.walletId) {
+                    val groupChatMessages = getState().groupChatMessages.toMutableList()
+                    groupChatMessages.add(0, message)
+                    updateState {
+                        copy(
+                            groupChatMessages = groupChatMessages
+                        )
+                    }
+                }
+            }
         }
     }
 

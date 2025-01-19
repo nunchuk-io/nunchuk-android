@@ -29,6 +29,7 @@ import com.nunchuk.android.core.util.SUPPORT_ROOM_TYPE
 import com.nunchuk.android.core.util.SUPPORT_TEST_NET_ROOM_TYPE
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.listener.GroupMessageListener
 import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.messages.usecase.message.GetGroupChatRoomsUseCase
 import com.nunchuk.android.messages.usecase.message.GetGroupMessageAccountUseCase
@@ -84,13 +85,44 @@ class RoomsViewModel @Inject constructor(
     init {
         listenRoomSummaries()
         getGroupMessageAccount()
+        listenGroupMessages()
+    }
+
+    private fun listenGroupMessages() {
+        viewModelScope.launch {
+            GroupMessageListener.getMessageFlow().collect { message ->
+                if (getState().groupWalletWalletIds.contains(message.walletId)) {
+                    updateState {
+                        copy(
+                            groupWalletMessages = getState().groupWalletMessages.map {
+                                if (it.walletId == message.walletId) {
+                                    it.copy(
+                                        id = message.id,
+                                        content = message.content,
+                                        timestamp = message.timestamp * 1000,
+                                    )
+                                } else {
+                                    it
+                                }
+                            }
+                        )
+                    }
+                    combineRooms()
+                }
+            }
+        }
     }
 
     private fun getGroupMessageAccount() {
         viewModelScope.launch {
             getGroupMessageAccountUseCase(Unit)
                 .onSuccess { messages ->
-                    updateState { copy(groupWalletMessages = messages) }
+                    updateState {
+                        copy(
+                            groupWalletMessages = messages,
+                            groupWalletWalletIds = messages.map { it.walletId }.toSet()
+                        )
+                    }
                     combineRooms()
                 }
         }

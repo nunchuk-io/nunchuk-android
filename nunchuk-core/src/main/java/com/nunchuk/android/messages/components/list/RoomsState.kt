@@ -31,6 +31,7 @@ data class RoomsState(
     val walletIds: List<String> = emptyList(),
     val groupWalletMessages: List<GroupWalletMessage> = emptyList(),
     val matrixRooms: List<RoomSummary> = emptyList(),
+    val groupWalletWalletIds: Set<String> = emptySet(),
 ) {
 
     companion object {

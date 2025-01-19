@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
 import com.nunchuk.android.core.domain.GetListMessageFreeGroupWalletUseCase
 import com.nunchuk.android.listener.GroupMessageListener
@@ -41,13 +40,7 @@ class FreeGroupWalletChatViewModel @Inject constructor(
             GroupMessageListener.getMessageFlow().collect { message ->
                 Log.e("group-wallet", "message: $message")
                 if (message.walletId == walletId) {
-                    val newMessages = _uiState.value.messages + message
-                    _uiState.update {
-                        it.copy(
-                            messages = newMessages,
-                            messageUis = newMessages.groupByDate(_uiState.value.uid)
-                        )
-                    }
+                    addNewMessage(message)
                 }
             }
         }
@@ -101,6 +94,17 @@ class FreeGroupWalletChatViewModel @Inject constructor(
 
     fun sendMessage(message: String) = viewModelScope.launch {
         groupChatManager.sendMessage(message, walletId)
+    }
+
+    private fun addNewMessage(newMessage: FreeGroupMessage) {
+        val newMessages = _uiState.value.messages.toMutableList()
+        newMessages.add(0, newMessage)
+        _uiState.update {
+            it.copy(
+                messages = newMessages,
+                messageUis = newMessages.groupByDate(_uiState.value.uid)
+            )
+        }
     }
 }
 
