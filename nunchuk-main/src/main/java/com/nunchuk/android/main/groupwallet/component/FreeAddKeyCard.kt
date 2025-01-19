@@ -61,11 +61,13 @@ fun FreeAddKeyCard(
                     )
                 }
             }
-            NcOutlineButton(
-                modifier = Modifier.height(36.dp),
-                onClick = onRemoveClicked,
-            ) {
-                Text(text = stringResource(id = R.string.nc_remove))
+            if (signer.isVisible) {
+                NcOutlineButton(
+                    modifier = Modifier.height(36.dp),
+                    onClick = onRemoveClicked,
+                ) {
+                    Text(text = stringResource(id = R.string.nc_remove))
+                }
             }
         }
     } else {

@@ -54,7 +54,6 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.NfcLoading
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.None
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
-import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
@@ -90,7 +89,8 @@ import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
 import com.nunchuk.android.usecase.campaign.GetCurrentCampaignUseCase
 import com.nunchuk.android.usecase.campaign.GetLocalCurrentCampaignUseCase
 import com.nunchuk.android.usecase.campaign.GetLocalReferrerCodeUseCase
-import com.nunchuk.android.usecase.free.groupwallet.GetGroupsSandboxUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetPendingGroupsSandboxUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
@@ -163,7 +163,8 @@ internal class WalletsViewModel @Inject constructor(
     private val sessionHolder: SessionHolder,
     private val migrateHomeDisplaySettingUseCase: MigrateHomeDisplaySettingUseCase,
     private val getWalletUseCase: GetWalletUseCase,
-    private val getGroupsSandboxUseCase: GetGroupsSandboxUseCase,
+    private val getPendingGroupsSandboxUseCase: GetPendingGroupsSandboxUseCase,
+    private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -339,24 +340,25 @@ internal class WalletsViewModel @Inject constructor(
 
     fun getGroupsSandbox() {
         viewModelScope.launch {
-            getGroupsSandboxUseCase(Unit).onSuccess {
-                val groupSandboxes = hashMapOf<String, GroupSandbox>()
-                val pendingGroupSandboxes = mutableListOf<GroupSandbox>()
-                it.forEach { groupSandbox ->
-                    if (groupSandbox.finalized) {
-                        groupSandboxes[groupSandbox.id] = groupSandbox
-                    } else {
-                        pendingGroupSandboxes.add(groupSandbox)
-                    }
-                }
-                updateState {
-                    copy(
-                        groupSandboxes = groupSandboxes,
-                        pendingGroupSandboxes = pendingGroupSandboxes
-                    )
-                }
-                mapGroupWalletUi()
+            val pendingWalletsDeferred = async {
+                getPendingGroupsSandboxUseCase(Unit).getOrNull().orEmpty()
             }
+
+            val groupSandboxWalletsDeferred = async {
+                getGroupWalletsUseCase(Unit).getOrNull().orEmpty()
+            }
+
+            val pendingWallets = pendingWalletsDeferred.await()
+            val groupSandboxWallets = groupSandboxWalletsDeferred.await().map { it.id }.toSet()
+
+            updateState {
+                copy(
+                    pendingGroupSandboxes = pendingWallets,
+                    groupSandboxWalletIds = groupSandboxWallets
+                )
+            }
+
+            mapGroupWalletUi()
         }
     }
 
@@ -503,7 +505,7 @@ internal class WalletsViewModel @Inject constructor(
             val assistedWallets = getState().assistedWallets
             val alerts = getState().alerts
             val pendingGroupSandboxes = getState().pendingGroupSandboxes
-            val groupSandboxes = getState().groupSandboxes
+            val groupSandboxWalletIds = getState().groupSandboxWalletIds
             val pendingGroup = groups.filter { it.isPendingWallet() }
             val isShowPendingPersonalWallet = getState().personalSteps.isNullOrEmpty().not()
             if (isShowPendingPersonalWallet) {
@@ -532,7 +534,7 @@ internal class WalletsViewModel @Inject constructor(
                     keyStatus = getState().keyHealthStatus[wallet.wallet.id].orEmpty()
                         .associateBy { it.xfp },
                     signers = signers,
-                    sandbox = groupSandboxes[wallet.wallet.id]
+                    isSandboxWallet = groupSandboxWalletIds.contains(wallet.wallet.id)
                 )
                 if (group != null) {
                     val role = byzantineGroupUtils.getCurrentUserRole(group)

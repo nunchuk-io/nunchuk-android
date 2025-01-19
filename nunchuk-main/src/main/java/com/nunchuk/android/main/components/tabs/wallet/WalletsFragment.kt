@@ -91,7 +91,6 @@ import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
 import com.nunchuk.android.main.intro.UniversalNfcIntroActivity
 import com.nunchuk.android.main.membership.byzantine.views.PendingWalletView
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
-import com.nunchuk.android.messages.components.freegroup.FreeGroupWalletChatActivity
 import com.nunchuk.android.messages.components.list.RoomMessage
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_ACTIVE
@@ -609,6 +608,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                         PendingWalletView(
                             group = it.group,
                             sandbox = it.sandbox,
+                            isSandboxWallet = it.isSandboxWallet,
                             walletsExtended = it.wallet,
                             inviterName = it.inviterName,
                             isAssistedWallet = briefWallet?.status == WalletStatus.ACTIVE.name || it.isPendingPersonalWallet,

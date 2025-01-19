@@ -100,7 +100,8 @@ internal fun WalletConfigView(
                                     wallet = state.walletExtended.wallet,
                                     isLimitAccess = isLimitAccess,
                                     isAssistedWallet = state.isAssistedWallet,
-                                    hasGroup = state.group != null
+                                    hasGroup = state.group != null,
+                                    isFreeGroupWallet = state.isGroupSandboxWallet
                                 ),
                                 start = Offset.Zero,
                                 end = Offset.Infinite,

@@ -79,6 +79,7 @@ import com.skydoves.landscapist.glide.GlideImage
 fun PendingWalletView(
     group: ByzantineGroup? = null,
     sandbox: GroupSandbox? = null,
+    isSandboxWallet: Boolean = false,
     walletsExtended: WalletExtended? = null,
     hideWalletDetail: Boolean = false,
     isAssistedWallet: Boolean = false,
@@ -117,7 +118,8 @@ fun PendingWalletView(
                             isAssistedWallet = isAssistedWallet,
                             isLimitAccess = isLimitAccess,
                             isJoined = inviterName.isEmpty(),
-                            hasGroup = group != null
+                            hasGroup = group != null,
+                            isFreeGroupWallet = isSandboxWallet
                         ), start = Offset.Zero, end = Offset.Infinite
                     )
                 )

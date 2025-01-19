@@ -61,7 +61,7 @@ internal data class WalletsState(
     val homeDisplaySetting: HomeDisplaySetting = HomeDisplaySetting(),
     val isLeaveRoom: Boolean = false,
     val pendingGroupSandboxes: List<GroupSandbox> = mutableListOf(),
-    val groupSandboxes : HashMap<String, GroupSandbox> = hashMapOf()
+    val groupSandboxWalletIds : Set<String> = emptySet()
 )
 
 internal sealed class WalletsEvent {
@@ -99,4 +99,5 @@ internal data class GroupWalletUi(
     val keyStatus: Map<String, KeyHealthStatus> = emptyMap(),
     val signers: List<SignerModel> = emptyList(),
     val isPendingPersonalWallet: Boolean = false,
+    val isSandboxWallet: Boolean = false,
 )

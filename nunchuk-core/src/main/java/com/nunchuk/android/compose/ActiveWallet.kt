@@ -148,6 +148,7 @@ fun getWalletColors(
     hasGroup: Boolean,
     isAssistedWallet: Boolean,
     isLimitAccess: Boolean,
+    isFreeGroupWallet: Boolean
 ): List<Color> {
     val colors = if (!isJoined || wallet == null) {
         listOf(MaterialTheme.colorScheme.fillBeewax, MaterialTheme.colorScheme.fillBeewax)
@@ -159,6 +160,11 @@ fun getWalletColors(
         listOf(
             colorResource(id = R.color.nc_beeswax_dark),
             colorResource(id = R.color.nc_beeswax_dark)
+        )
+    } else if (isFreeGroupWallet) {
+        listOf(
+            colorResource(id = R.color.cl_084B7B),
+            colorResource(id = R.color.cl_2B74A9)
         )
     } else {
         listOf(

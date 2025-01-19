@@ -38,4 +38,5 @@ data class WalletConfigState(
     val transactions: List<Transaction> = emptyList(),
     val assistedWallet: AssistedWalletBrief? = null,
     val group: ByzantineGroup? = null,
+    val isGroupSandboxWallet: Boolean = false,
 )

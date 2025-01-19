@@ -57,6 +57,7 @@ import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
 import com.nunchuk.android.usecase.membership.ExportCoinControlBIP329UseCase
 import com.nunchuk.android.usecase.membership.ExportTxCoinControlUseCase
 import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
@@ -115,6 +116,7 @@ internal class WalletConfigViewModel @Inject constructor(
     getContactsUseCase: GetContactsUseCase,
     private val savedStateHandle: SavedStateHandle,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
+    private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletConfigState())
@@ -150,6 +152,13 @@ internal class WalletConfigViewModel @Inject constructor(
                 _progressFlow.emit(progress)
             }
         }
+        viewModelScope.launch {
+            getGroupWalletsUseCase(Unit).onSuccess { wallets ->
+                _state.update {
+                    it.copy(isGroupSandboxWallet = wallets.any { wallet -> wallet.id == walletId })
+                }
+            }
+        }
     }
 
     private fun getWalletAlias() {
@@ -178,7 +187,9 @@ internal class WalletConfigViewModel @Inject constructor(
                         walletExtended = it,
                         signers = mapSigners(it.wallet.signers, it.roomWallet),
                         isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
-                        isInactiveAssistedWallet = assistedWalletManager.isInactiveAssistedWallet(walletId),
+                        isInactiveAssistedWallet = assistedWalletManager.isInactiveAssistedWallet(
+                            walletId
+                        ),
                         assistedWallet = assistedWalletManager.getBriefWallet(walletId)
                     )
                 }
@@ -334,7 +345,8 @@ internal class WalletConfigViewModel @Inject constructor(
             getTransactionHistoryUseCase.execute(walletId).flowOn(Dispatchers.IO)
                 .collect { transactions ->
                     _event.emit(WalletConfigEvent.Loading(false))
-                    val isPendingTransactionExisting = transactions.any { it.status.isPending() }
+                    val isPendingTransactionExisting =
+                        transactions.any { it.status.isPending() }
                     _state.update {
                         it.copy(
                             isShowDeleteAssistedWallet = isPendingTransactionExisting.not(),
@@ -430,7 +442,12 @@ internal class WalletConfigViewModel @Inject constructor(
     private fun exportWalletToFile(walletId: String, filePath: String, format: ExportFormat) {
         viewModelScope.launch {
             when (val event = exportWalletUseCase.execute(walletId, filePath, format)) {
-                is Result.Success -> _event.emit(WalletConfigEvent.UploadWalletConfigEvent(filePath))
+                is Result.Success -> _event.emit(
+                    WalletConfigEvent.UploadWalletConfigEvent(
+                        filePath
+                    )
+                )
+
                 is Result.Error -> showError(event.exception)
             }
         }

@@ -3,6 +3,7 @@ package com.nunchuk.android.main.groupwallet
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
@@ -18,7 +19,7 @@ import com.nunchuk.android.usecase.free.groupwallet.CreateGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.DeleteGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupOnlineUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
-import com.nunchuk.android.usecase.free.groupwallet.GetGroupsSandboxUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetPendingGroupsSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.RemoveSignerFromGroupUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.signer.GetSignerUseCase
@@ -45,7 +46,8 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val getSignerUseCase: GetSignerUseCase,
     private val getGroupOnlineUseCase: GetGroupOnlineUseCase,
     private val pushEventManager: PushEventManager,
-    private val getGroupsSandboxUseCase: GetGroupsSandboxUseCase,
+    private val getPendingGroupsSandboxUseCase: GetPendingGroupsSandboxUseCase,
+    private val hasSignerUseCase: HasSignerUseCase
 ) : ViewModel() {
     val groupId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
@@ -85,7 +87,11 @@ class FreeGroupWalletViewModel @Inject constructor(
         viewModelScope.launch {
             GroupSandboxListener.getGroupFlow().collect { groupSandbox ->
                 if (groupSandbox.id == groupId) {
-                    updateGroupSandbox(groupSandbox)
+                    if (groupSandbox.finalized) {
+                        _uiState.update { it.copy(isFinishScreen = true) }
+                    } else {
+                        updateGroupSandbox(groupSandbox)
+                    }
                 }
             }
         }
@@ -108,7 +114,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun createGroupSandbox() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val numOfGroups = getGroupsSandboxUseCase(Unit).getOrNull()?.size ?: 0
+            val numOfGroups = getPendingGroupsSandboxUseCase(Unit).getOrNull()?.size ?: 0
             val groupName = if (numOfGroups == 0) {
                 "Group wallet"
             } else {
@@ -151,9 +157,13 @@ class FreeGroupWalletViewModel @Inject constructor(
 
     private suspend fun updateGroupSandbox(groupSandbox: GroupSandbox) {
         val signers = groupSandbox.signers.map {
+
             it.takeIf { it.masterFingerprint.isNotEmpty() }?.let { signer ->
-                getSignerUseCase(signer).getOrNull()?.toModel()?.copy(isVisible = true)
-                    ?: it.toModel()
+                if (hasSignerUseCase(signer).getOrNull() == true) {
+                    getSignerUseCase(signer).getOrThrow().toModel().copy(isVisible = true)
+                } else {
+                    it.toModel().copy(isVisible = false)
+                }
             }
         }
         _uiState.update { it.copy(group = groupSandbox, signers = signers) }

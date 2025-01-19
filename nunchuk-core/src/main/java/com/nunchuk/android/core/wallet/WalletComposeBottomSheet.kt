@@ -391,6 +391,7 @@ fun AssistedWallet(
         isAssistedWallet = isAssistedWallet,
         hasGroup = group != null,
         isLimitAccess = isLimitAccess,
+        isFreeGroupWallet = false
     )
     Column(
         modifier = Modifier

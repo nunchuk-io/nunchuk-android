@@ -7,7 +7,7 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetGroupsSandboxUseCase @Inject constructor(
+class GetPendingGroupsSandboxUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     @IoDispatcher dispatcher: CoroutineDispatcher,
 ) : UseCase<Unit, List<GroupSandbox>>(dispatcher) {
