@@ -45,4 +45,5 @@ data class WalletDetailsState(
     val groupId: String? = null,
     val role: AssistedWalletRole = AssistedWalletRole.NONE,
     val groupChatMessages: List<FreeGroupMessage> = emptyList(),
+    val isFreeGroupWallet: Boolean = false,
 )

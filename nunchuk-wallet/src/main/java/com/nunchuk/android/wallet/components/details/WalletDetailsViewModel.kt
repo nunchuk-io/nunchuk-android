@@ -54,6 +54,7 @@ import com.nunchuk.android.usecase.NewAddressUseCase
 import com.nunchuk.android.usecase.SetSelectedWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.GroupChatManager
@@ -100,6 +101,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val hasSignerUseCase: HasSignerUseCase,
     private val getListMessageFreeGroupWalletUseCase: GetListMessageFreeGroupWalletUseCase,
     private val groupChatManager: GroupChatManager,
+    private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
     ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -173,7 +175,13 @@ internal class WalletDetailsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            groupChatManager.init(args.walletId)
+            getGroupWalletsUseCase(Unit).onSuccess { wallets ->
+                val wallet = wallets.filter { it.id == args.walletId }
+                if (wallet.isNotEmpty()) {
+                    groupChatManager.init(args.walletId)
+                }
+                updateState { copy(isFreeGroupWallet = wallet.isNotEmpty()) }
+            }
         }
         viewModelScope.launch {
             GroupMessageListener.getMessageFlow().collect { message ->

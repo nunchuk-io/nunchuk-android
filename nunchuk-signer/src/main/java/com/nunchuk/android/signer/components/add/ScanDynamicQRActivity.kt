@@ -29,6 +29,7 @@ import androidx.core.view.isVisible
 import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.base.BaseCameraActivity
+import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.signer.databinding.ActivityScanDynamicQrBinding
@@ -43,6 +44,12 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
     private val viewModel: AddAirgapSignerViewModel by viewModels()
     private val scanDynamicQRViewModel: ScanDynamicQRViewModel by viewModels()
     private val isJoinGroupWalletFlow: Boolean by lazy { intent.getBooleanExtra(IS_JOIN_GROUP_WALLET_FLOW, false) }
+
+    private val controller: IntentSharingController by lazy(LazyThreadSafetyMode.NONE) {
+        IntentSharingController.from(
+            this
+        )
+    }
 
     override fun onCameraPermissionGranted(fromUser: Boolean) {
 

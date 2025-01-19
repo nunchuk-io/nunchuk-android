@@ -19,8 +19,11 @@
 
 package com.nunchuk.android.core.qr
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.net.Uri
+import androidx.core.content.FileProvider
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.EncodeHintType.ERROR_CORRECTION
@@ -28,6 +31,8 @@ import com.google.zxing.EncodeHintType.MARGIN
 import com.google.zxing.common.BitMatrix
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
+import java.io.File
+import java.io.FileOutputStream
 
 internal const val WIDTH = 400
 internal const val DEFAULT_MARGIN = 2
@@ -51,4 +56,23 @@ fun String.convertToQRCode(width: Int = WIDTH, height: Int = WIDTH, margin: Int 
     return Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565).apply {
         setPixels(pixels, 0, width, 0, 0, width, height)
     }
+}
+
+fun shareBitmap(context: Context, bitmap: Bitmap): String? {
+    try {
+        val fileName = "shared_image_${System.currentTimeMillis()}.png"
+        val cachePath = File(context.externalCacheDir, "shared_images")
+        if (!cachePath.exists()) cachePath.mkdirs()
+
+        val file = File(cachePath, fileName)
+        val fileOutputStream = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+        fileOutputStream.flush()
+        fileOutputStream.close()
+
+        return file.absolutePath
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return null
 }

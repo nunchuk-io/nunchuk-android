@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,17 +36,30 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.qr.convertToQRCode
+import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.main.R
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class CommonQRCodeActivity : BaseComposeActivity() {
 
     private val qrCode by lazy { intent.getStringExtra(EXTRA_QR_CODE) ?: "" }
+
+    private val viewModel: CommonQRCodeViewModel by viewModels()
+
+    private val controller: IntentSharingController by lazy(LazyThreadSafetyMode.NONE) {
+        IntentSharingController.from(
+            this
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,10 +70,31 @@ class CommonQRCodeActivity : BaseComposeActivity() {
             setContent {
                 CommonQRCodeScreen(
                     qrCodeBitmap = qrCode.convertToQRCode(),
-                    onShareClicked = {}
+                    onShareClicked = {
+                        viewModel.shareQRCode(it)
+                    }
                 )
             }
         })
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.event.collect { event ->
+                    when (event) {
+                        is CommonQRCodeEvent.ShareQRCodeSuccess -> {
+                            shareConfigurationFile(event.filePath)
+                        }
+
+                        is CommonQRCodeEvent.Error -> {
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun shareConfigurationFile(filePath: String) {
+        controller.shareFile(filePath)
     }
 
     companion object {
@@ -75,7 +110,7 @@ class CommonQRCodeActivity : BaseComposeActivity() {
 @Composable
 fun CommonQRCodeScreen(
     qrCodeBitmap: Bitmap?,
-    onShareClicked: () -> Unit = {}
+    onShareClicked: (Bitmap) -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold(topBar = {
@@ -127,7 +162,9 @@ fun CommonQRCodeScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 IconButton(
-                    onClick = onShareClicked,
+                    onClick = {
+                        onShareClicked(qrCodeBitmap)
+                    },
                     modifier = Modifier
                         .size(56.dp)
                         .background(

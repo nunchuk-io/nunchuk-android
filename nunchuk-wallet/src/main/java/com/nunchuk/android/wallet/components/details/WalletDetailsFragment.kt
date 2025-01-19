@@ -367,6 +367,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         if (state.walletExtended.wallet.needBackup) {
             handleNeedBackupWallet()
         }
+        binding.chatView.isVisible = state.isFreeGroupWallet
         binding.chatView.setContent {
             GroupWalletChatView(messages = state.groupChatMessages, onSendMessage = {
                 viewModel.sendMessage(it)
