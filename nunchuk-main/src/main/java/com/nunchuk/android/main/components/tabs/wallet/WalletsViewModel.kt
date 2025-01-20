@@ -45,6 +45,8 @@ import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.listener.GroupDeleteListener
+import com.nunchuk.android.listener.GroupSandboxListener
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GetTapSignerStatusSuccess
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GoToSatsCardScreen
@@ -334,6 +336,29 @@ internal class WalletsViewModel @Inject constructor(
                 }
         }
         getGroupsSandbox()
+        listenGroupSandbox()
+        listenGroupDelete()
+    }
+
+    private fun listenGroupSandbox() {
+        viewModelScope.launch {
+            GroupSandboxListener.getGroupFlow().collect { groupSandbox ->
+                if (groupSandbox.finalized) {
+                    val pendingGroupSandboxes = getState().pendingGroupSandboxes.filter { it.id == groupSandbox.id }
+                    updateState { copy(pendingGroupSandboxes = pendingGroupSandboxes) }
+                    mapGroupWalletUi()
+                }
+            }
+        }
+    }
+
+    private fun listenGroupDelete() {
+        viewModelScope.launch {
+            GroupDeleteListener.groupDeleteFlow.collect { groupId ->
+                val pendingGroupSandboxes = getState().pendingGroupSandboxes.filter { it.id == groupId }
+                updateState { copy(pendingGroupSandboxes = pendingGroupSandboxes) }
+            }
+        }
     }
 
     private var mapDataJob: Job? = null

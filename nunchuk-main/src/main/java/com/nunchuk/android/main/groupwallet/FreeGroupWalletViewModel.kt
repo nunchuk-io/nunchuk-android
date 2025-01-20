@@ -8,6 +8,8 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.exception.NCNativeException
+import com.nunchuk.android.listener.GroupDeleteListener
 import com.nunchuk.android.listener.GroupOnlineListener
 import com.nunchuk.android.listener.GroupSandboxListener
 import com.nunchuk.android.model.GroupSandbox
@@ -58,6 +60,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         loadSigners()
         listenGroupSandbox()
         listenGroupOnline()
+        listenGroupDelete()
         if (groupId.isEmpty()) {
             createGroupSandbox()
         } else {
@@ -92,6 +95,16 @@ class FreeGroupWalletViewModel @Inject constructor(
                     } else {
                         updateGroupSandbox(groupSandbox)
                     }
+                }
+            }
+        }
+    }
+
+    private fun listenGroupDelete() {
+        viewModelScope.launch {
+            GroupDeleteListener.groupDeleteFlow.collect { it ->
+                if (it == groupId) {
+                    _uiState.update { it.copy(isFinishScreen = true) }
                 }
             }
         }
@@ -146,12 +159,21 @@ class FreeGroupWalletViewModel @Inject constructor(
     }
 
     fun getGroupSandbox() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            getGroupSandboxUseCase(groupId).onSuccess { groupSandbox ->
-                updateGroupSandbox(groupSandbox)
+        if (groupId.isNotEmpty()) {
+            Timber.d("Get group sandbox $groupId")
+            viewModelScope.launch {
+                _uiState.update { it.copy(isLoading = true) }
+                getGroupSandboxUseCase(groupId).onSuccess { groupSandbox ->
+                    updateGroupSandbox(groupSandbox)
+                }.onFailure {
+                    Timber.e("Failed to get group sandbox $it")
+                    if (it is NCNativeException && it.message.contains("-7008")) {
+                        Timber.d("Group not found, finish screen")
+                        _uiState.update { it.copy(isFinishScreen = true) }
+                    }
+                }
+                _uiState.update { it.copy(isLoading = false) }
             }
-            _uiState.update { it.copy(isLoading = false) }
         }
     }
 

@@ -203,7 +203,7 @@ fun FreeGroupWalletScreen(
                     .fillMaxWidth()
                     .padding(16.dp),
                 onClick = { onContinueClicked(state.group!!) },
-                enabled = state.group != null && state.signers.count { it != null } == state.group.n,
+                enabled = state.group != null && state.signers.count { it != null } == state.group.n && state.group.n > 0,
             ) {
                 Text(text = stringResource(id = R.string.nc_wallet_create_wallet))
             }
@@ -266,6 +266,10 @@ fun FreeGroupWalletScreen(
         }
 
         if (showSignerBottomSheet) {
+            val addedSigners = state.signers.filterNotNull().map { it.fingerPrint }.toSet()
+            val allSigners = state.allSigners.filter {
+                !addedSigners.contains(it.fingerPrint)
+            }
             SelectSignerBottomSheet(
                 onDismiss = { showSignerBottomSheet = false },
                 supportedSigners = emptyList(),
@@ -278,7 +282,7 @@ fun FreeGroupWalletScreen(
                     onAddNewKey(currentSignerIndex)
                 },
                 args = TapSignerListBottomSheetFragmentArgs(
-                    signers = state.allSigners.toTypedArray(),
+                    signers = allSigners.toTypedArray(),
                     type = SignerType.UNKNOWN
                 )
             )
