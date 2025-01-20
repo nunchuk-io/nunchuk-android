@@ -91,7 +91,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             GroupSandboxListener.getGroupFlow().collect { groupSandbox ->
                 if (groupSandbox.id == groupId) {
                     if (groupSandbox.finalized) {
-                        _uiState.update { it.copy(isFinishScreen = true) }
+                        _uiState.update { it.copy(walletCreatedByOthers = true) }
                     } else {
                         updateGroupSandbox(groupSandbox)
                     }

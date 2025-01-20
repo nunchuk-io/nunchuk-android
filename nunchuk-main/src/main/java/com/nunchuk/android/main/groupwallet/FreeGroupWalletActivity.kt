@@ -58,7 +58,7 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
                                     viewModel.setCurrentSignerIndex(it)
                                     openSignerIntro(it)
                                 },
-                                onGroupDeleted = ::finish,
+                                finishScreen = ::finish,
                                 onContinueClicked = { group ->
                                     navigator.openReviewWalletScreen(
                                         activityContext = this@FreeGroupWalletActivity,
@@ -71,6 +71,9 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
                                             groupId = group.id
                                         )
                                     )
+                                },
+                                returnToHome = {
+                                    navigator.returnToMainScreen(this@FreeGroupWalletActivity)
                                 }
                             )
 

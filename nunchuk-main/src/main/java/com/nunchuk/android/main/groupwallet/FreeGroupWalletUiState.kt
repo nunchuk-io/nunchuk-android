@@ -10,4 +10,5 @@ data class FreeGroupWalletUiState(
     val isLoading: Boolean = false,
     val isFinishScreen: Boolean = false,
     val numberOfOnlineUsers: Int = 1,
+    val walletCreatedByOthers: Boolean = false
 )

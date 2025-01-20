@@ -852,4 +852,5 @@
     <string name="nc_unable_access_link_desc">Your link has expired or the wallet has already been created.</string>
     <string name="nc_unable_access_link">Unable to access link</string>
     <string name="nc_shared">Shared</string>
+    <string name="nc_return_to_home_screen">Return to home screen</string>
 </resources>

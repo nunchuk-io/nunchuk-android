@@ -46,6 +46,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
+import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.textPrimary
@@ -78,7 +79,8 @@ fun NavGraphBuilder.freeGroupWallet(
     onShowQRCodeClicked: (String) -> Unit = {},
     onAddNewKey: (Int) -> Unit = {},
     onAddExistingKey: (SignerModel, Int) -> Unit,
-    onGroupDeleted: () -> Unit,
+    finishScreen: () -> Unit,
+    returnToHome: () -> Unit,
     onContinueClicked: (GroupSandbox) -> Unit = {},
 ) {
     composable(
@@ -88,7 +90,7 @@ fun NavGraphBuilder.freeGroupWallet(
 
         LaunchedEffect(state.isFinishScreen) {
             if (state.isFinishScreen) {
-                onGroupDeleted()
+                finishScreen()
             }
         }
 
@@ -114,7 +116,8 @@ fun NavGraphBuilder.freeGroupWallet(
             onShowQRCodeClicked = onShowQRCodeClicked,
             onRemoveClicked = viewModel::removeSignerFromGroup,
             onAddExistingKey = onAddExistingKey,
-            onDeleteGroupClicked = viewModel::deleteGroupSandbox
+            onDeleteGroupClicked = viewModel::deleteGroupSandbox,
+            returnToHome = returnToHome
         )
     }
 }
@@ -131,6 +134,7 @@ fun FreeGroupWalletScreen(
     onShowQRCodeClicked: (String) -> Unit = {},
     onAddExistingKey: (SignerModel, Int) -> Unit = { _, _ -> },
     onDeleteGroupClicked: () -> Unit = {},
+    returnToHome: () -> Unit = {},
 ) {
     var showSignerBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showMoreOption by rememberSaveable { mutableStateOf(false) }
@@ -298,6 +302,19 @@ fun FreeGroupWalletScreen(
                 onDismiss = {
                     showAskForDeleteDialog = false
                 }
+            )
+        }
+
+        if (state.walletCreatedByOthers) {
+            NcInfoDialog(
+                message = stringResource(id = R.string.nc_group_wallet_created_by_others),
+                onPositiveClick = {
+                    returnToHome()
+                },
+                onDismiss = {
+                    returnToHome()
+                },
+                positiveButtonText = stringResource(R.string.nc_return_to_home_screen)
             )
         }
     }

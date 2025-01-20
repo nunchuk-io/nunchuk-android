@@ -344,7 +344,7 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             GroupSandboxListener.getGroupFlow().collect { groupSandbox ->
                 if (groupSandbox.finalized) {
-                    val pendingGroupSandboxes = getState().pendingGroupSandboxes.filter { it.id == groupSandbox.id }
+                    val pendingGroupSandboxes = getState().pendingGroupSandboxes.filter { it.id != groupSandbox.id }
                     updateState { copy(pendingGroupSandboxes = pendingGroupSandboxes) }
                     mapGroupWalletUi()
                 }
@@ -355,8 +355,9 @@ internal class WalletsViewModel @Inject constructor(
     private fun listenGroupDelete() {
         viewModelScope.launch {
             GroupDeleteListener.groupDeleteFlow.collect { groupId ->
-                val pendingGroupSandboxes = getState().pendingGroupSandboxes.filter { it.id == groupId }
+                val pendingGroupSandboxes = getState().pendingGroupSandboxes.filter { it.id != groupId }
                 updateState { copy(pendingGroupSandboxes = pendingGroupSandboxes) }
+                mapGroupWalletUi()
             }
         }
     }
