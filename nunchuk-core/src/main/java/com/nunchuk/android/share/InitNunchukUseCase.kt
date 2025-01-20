@@ -73,9 +73,13 @@ class InitNunchukUseCase @Inject constructor(
         fileLog(message = "start nativeSdk enableGroupWalletUseCase")
         Timber.d("Thread: ${Thread.currentThread().name}")
         applicationScope.launch {
-            enableGroupWalletUseCase(Unit)
-            nativeSdk.registerGlobalListener()
-            startConsumeGroupWalletEventUseCase(Unit)
+            runCatching {
+                enableGroupWalletUseCase(Unit)
+                nativeSdk.registerGlobalListener()
+                startConsumeGroupWalletEventUseCase(Unit)
+            }.onFailure {
+                Timber.e(it)
+            }
         }
         fileLog(message = "end nativeSdk enableGroupWalletUseCase")
         return true

@@ -181,7 +181,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
     private fun configureToolbar(state: WalletDetailsState) {
         val searchMenu = binding.toolbar.menu.findItem(R.id.menu_search)
-        searchMenu.isVisible = state.walletExtended.wallet.name.isNotEmpty()
+        searchMenu.isVisible = state.walletExtended.wallet.name.isNotEmpty() && state.isFreeGroupWallet.not()
         if (state.groupId.isNullOrEmpty()
                 .not() && state.walletStatus != WalletStatus.REPLACED.name
         ) {
@@ -196,6 +196,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.toolbar.menu.findItem(R.id.menu_more).isVisible =
             state.walletStatus != WalletStatus.LOCKED.name && viewModel.isFacilitatorAdmin()
                 .not() && viewModel.isEmptyTransaction().not()
+                    || state.isFreeGroupWallet
     }
 
     override fun onOptionClicked(option: SheetOption) {
@@ -589,7 +590,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 R.string.nc_import_transaction
             )
         )
-        if (viewModel.isAssistedWallet) {
+        if (viewModel.isAssistedWallet || viewModel.isFreeGroupWallet()) {
             options.add(
                 SheetOption(
                     SheetOptionType.TYPE_SEARCH_TX,

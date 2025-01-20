@@ -118,7 +118,7 @@ class RoomsViewModel @Inject constructor(
 
     private fun getGroupMessageAccount() {
         viewModelScope.launch {
-            delay(100)
+            delay(500)
             getGroupMessageAccountUseCase(Unit)
                 .onSuccess { messages ->
                     updateState {

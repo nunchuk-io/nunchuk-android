@@ -397,6 +397,8 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun getWallet() = getState().walletExtended.wallet
 
+    fun isFreeGroupWallet() = getState().isFreeGroupWallet
+
     suspend fun hasSigner(signer: SingleSigner) = hasSignerUseCase(signer)
 
     fun sendMessage(message: String) = viewModelScope.launch {

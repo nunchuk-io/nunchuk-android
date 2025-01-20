@@ -1,6 +1,5 @@
 package com.nunchuk.android.wallet.personal.components.add
 
-import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -412,7 +411,7 @@ fun KeysAndRequiredKeysScreen(
         var keys by remember { mutableIntStateOf(n) }
         var requiredKeys by remember { mutableIntStateOf(m) }
 
-        LaunchedEffect(m, n) {
+        LaunchedEffect(keys, requiredKeys) {
             onNumberChange(requiredKeys, keys)
         }
 
@@ -422,7 +421,7 @@ fun KeysAndRequiredKeysScreen(
             value = keys,
             onIncrement = { if (keys < freeGroupWalletConfig.maxKey) keys++ },
             onDecrement = { if (keys > 1) keys-- },
-            enable = keys <= freeGroupWalletConfig.maxKey
+            enable = keys < freeGroupWalletConfig.maxKey
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -433,7 +432,7 @@ fun KeysAndRequiredKeysScreen(
             value = requiredKeys,
             onIncrement = { if (requiredKeys < keys) requiredKeys++ },
             onDecrement = { if (requiredKeys > 1) requiredKeys-- },
-            enable = requiredKeys <= keys
+            enable = requiredKeys < keys
         )
     }
 }
