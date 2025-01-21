@@ -22,6 +22,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.groupchathistory.GroupChatHistoryArgs
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -41,7 +42,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessState
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
-import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment
+import com.nunchuk.android.core.groupchathistory.GroupChatHistoryFragment
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentActivity
 import com.nunchuk.android.main.membership.model.toGroupWalletType
@@ -317,12 +318,15 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                 is GroupDashboardEvent.Loading -> showOrHideLoading(event.loading)
                 is GroupDashboardEvent.GetHistoryPeriodSuccess -> {
                     viewModel.groupChat()?.roomId?.let { roomId ->
-                        findNavController().navigate(
-                            GroupDashboardFragmentDirections.actionGroupDashboardFragmentToGroupChatHistoryFragment(
-                                periods = event.periods.toTypedArray(),
-                                groupId = viewModel.getByzantineGroup()?.id.orEmpty(),
-                                historyPeriodId = viewModel.groupChat()?.historyPeriod?.id.orEmpty(),
-                                roomId = roomId
+                        GroupChatHistoryFragment.show(
+                            childFragmentManager,
+                            GroupChatHistoryArgs(
+                                historyPeriods = event.periods,
+                                historyPeriodIdSelected = viewModel.groupChat()?.historyPeriod?.id.orEmpty(),
+                                isFreeGroupWalletFlow = false,
+                                roomId = roomId,
+                                groupId = viewModel.getGroupId(),
+                                walletId = viewModel.getWalletId()
                             )
                         )
                     }

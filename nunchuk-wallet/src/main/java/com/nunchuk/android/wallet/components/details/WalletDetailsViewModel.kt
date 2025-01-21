@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.wallet.components.details
 
-import android.util.Log
 import android.util.LruCache
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -38,6 +37,7 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.listener.GroupMessageListener
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
+import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
@@ -46,6 +46,8 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.usecase.GetAddressesUseCase
+import com.nunchuk.android.usecase.GetGlobalGroupWalletConfigUseCase
+import com.nunchuk.android.usecase.GetGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -70,6 +72,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
@@ -102,6 +105,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val getListMessageFreeGroupWalletUseCase: GetListMessageFreeGroupWalletUseCase,
     private val groupChatManager: GroupChatManager,
     private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
+    private val getGlobalGroupWalletConfigUseCase: GetGlobalGroupWalletConfigUseCase,
+    private val getGroupWalletConfigUseCase: GetGroupWalletConfigUseCase
     ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -198,6 +203,42 @@ internal class WalletDetailsViewModel @Inject constructor(
         }
     }
 
+    private fun getFreeGroupWalletConfig() {
+        viewModelScope.launch {
+            val globalConfigResult = async {
+                getGlobalGroupWalletConfigUseCase(getWallet().addressType)
+            }
+            val walletConfigResult = async {
+                getGroupWalletConfigUseCase(args.walletId)
+            }
+            val globalConfig = globalConfigResult.await()
+            val walletConfig = walletConfigResult.await()
+            val historyPeriods = globalConfig.getOrNull()?.retentionDaysOptions?.toList()?.sortedDescending()?.map {
+                HistoryPeriod(
+                    id = it.toString(),
+                    durationInMillis = it.toLong(),
+                    displayName = "$it days",
+                    enabled = true
+                )
+            }.orEmpty()
+
+            updateState {
+                copy(
+                    historyPeriods = historyPeriods,
+                    selectedHistoryPeriod = historyPeriods.firstOrNull { it.id == walletConfig.getOrNull()?.chatRetentionDays.toString() } ?: historyPeriods.first()
+                )
+            }
+        }
+    }
+
+    fun updateGroupChatHistoryPeriod(period: HistoryPeriod) {
+        updateState {
+            copy(
+                selectedHistoryPeriod = period
+            )
+        }
+    }
+
     private fun getCoins() {
         viewModelScope.launch {
             getAllCoinUseCase(args.walletId).onSuccess { coins ->
@@ -255,6 +296,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                     } else {
                         event(Loading(false))
                     }
+                    getFreeGroupWalletConfig()
                 }
         }
     }

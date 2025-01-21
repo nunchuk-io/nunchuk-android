@@ -118,7 +118,6 @@
     <string name="nc_alert">Alert</string>
     <string name="nc_pending_wallet_invite_member">%s invited you to join a group wallet.</string>
     <string name="nc_view_recurring_payments">View recurring payments</string>
-    <string name="nc_chat_setting_updated">Chat setting updated</string>
     <string name="nc_deny_wallet_invitation_dialog">Are you sure you want to deny this wallet invitation?</string>
     <string name="nc_deny_wallet_invitation_msg">Wallet invitation has been denied</string>
     <string name="nc_group_wallet_creation_pending">Group wallet creation pending</string>

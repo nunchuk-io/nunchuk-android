@@ -20,14 +20,6 @@
             app:nullable="true" />
 
         <action
-            android:id="@+id/action_groupDashboardFragment_to_groupChatHistoryFragment"
-            app:destination="@id/groupChatHistoryFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-
-        <action
             android:id="@+id/action_groupDashboardFragment_to_groupChatHistoryIntroFragment"
             app:destination="@id/groupChatHistoryIntroFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
@@ -165,30 +157,6 @@
     </fragment>
 
     <include app:graph="@navigation/invite_member_navigation" />
-
-    <dialog
-        android:id="@+id/groupChatHistoryFragment"
-        android:name="com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryFragment"
-        android:label="GroupChatHistoryFragment">
-
-        <argument
-            android:name="periods"
-            app:argType="com.nunchuk.android.model.HistoryPeriod[]" />
-
-        <argument
-            android:name="history_period_id"
-            android:defaultValue=""
-            app:argType="string" />
-
-        <argument
-            android:name="group_id"
-            android:defaultValue=""
-            app:argType="string" />
-
-        <argument android:name="room_id"
-            app:argType="string" />
-
-    </dialog>
 
     <fragment
         android:id="@+id/healthCheckFragment"

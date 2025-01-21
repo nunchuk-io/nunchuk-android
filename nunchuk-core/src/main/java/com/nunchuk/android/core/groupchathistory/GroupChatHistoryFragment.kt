@@ -1,6 +1,7 @@
-package com.nunchuk.android.main.membership.byzantine.groupchathistory
+package com.nunchuk.android.core.groupchathistory
 
 import android.os.Bundle
+import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
+import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -35,18 +37,27 @@ import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseComposeBottomSheet
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.main.R
+import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
+import com.nunchuk.android.core.wallet.WalletComposeBottomSheet.Companion.TAG
 import com.nunchuk.android.model.HistoryPeriod
+import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.parcelize.Parcelize
 
 @AndroidEntryPoint
 class GroupChatHistoryFragment : BaseComposeBottomSheet() {
 
     private val viewModel: GroupChatHistoryViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel.init(requireArguments().parcelable(EXTRA_ARGS)!!)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -80,9 +91,30 @@ class GroupChatHistoryFragment : BaseComposeBottomSheet() {
 
     companion object {
         const val REQUEST_KEY = "GroupChatHistoryFragment"
+        const val EXTRA_ARGS = "EXTRA_ARGS"
         const val EXTRA_HISTORY_PERIOD = "EXTRA_HISTORY_PERIOD"
+
+        fun show(
+            fragmentManager: FragmentManager,
+            args: GroupChatHistoryArgs
+        ) = GroupChatHistoryFragment().apply {
+            arguments = Bundle().apply {
+                putParcelable(EXTRA_ARGS, args)
+            }
+            show(fragmentManager, TAG)
+        }
     }
 }
+
+@Parcelize
+data class GroupChatHistoryArgs(
+    val historyPeriods: List<HistoryPeriod>,
+    val historyPeriodIdSelected: String,
+    val isFreeGroupWalletFlow: Boolean,
+    val roomId: String,
+    val groupId: String,
+    val walletId: String,
+) : Parcelable
 
 @Composable
 fun GroupChatHistoryScreen(
@@ -92,7 +124,7 @@ fun GroupChatHistoryScreen(
     GroupChatHistoryScreenContent(
         periods = state.historyPeriods,
         selectPeriodId = state.selectedHistoryPeriodId,
-        onSaveClick = viewModel::saveHistoryPeriod,
+        onSaveClick = viewModel::onSave,
         onCheckedChange = viewModel::setHistoryPeriod,
     )
 }

@@ -144,11 +144,11 @@ fun CommonQRCodeScreen(
                         contentDescription = "QR Code",
                         modifier = Modifier.fillMaxSize()
                     )
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_nunchuk_logo_circle),
-                        contentDescription = "Logo",
-                        modifier = Modifier.size(78.dp)
-                    )
+//                    Image(
+//                        painter = painterResource(id = R.drawable.ic_nunchuk_logo_circle),
+//                        contentDescription = "Logo",
+//                        modifier = Modifier.size(78.dp)
+//                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))

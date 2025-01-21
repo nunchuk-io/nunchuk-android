@@ -2,7 +2,7 @@ package com.nunchuk.android.main.membership.byzantine.healthcheckreminder
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.nunchuk.android.main.membership.byzantine.groupchathistory.GroupChatHistoryEvent
+import com.nunchuk.android.core.groupchathistory.GroupChatHistoryEvent
 import com.nunchuk.android.model.HealthReminderFrequency
 import com.nunchuk.android.model.toHealthReminderFrequency
 import dagger.hilt.android.lifecycle.HiltViewModel

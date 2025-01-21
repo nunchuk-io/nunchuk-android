@@ -29,6 +29,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.fragment.app.clearFragmentResult
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -43,6 +45,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.constants.RoomAction
+import com.nunchuk.android.core.groupchathistory.GroupChatHistoryArgs
+import com.nunchuk.android.core.groupchathistory.GroupChatHistoryFragment
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
@@ -66,10 +70,13 @@ import com.nunchuk.android.core.util.openSelectFileChooser
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showSuccess
+import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.utils.Utils
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.config.WalletConfigAction
@@ -177,6 +184,14 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         super.onViewCreated(view, savedInstanceState)
         setupViews()
         observeEvent()
+
+        setFragmentResultListener(GroupChatHistoryFragment.REQUEST_KEY) { _, bundle ->
+            val historyPeriod =
+                bundle.parcelable<HistoryPeriod>(GroupChatHistoryFragment.EXTRA_HISTORY_PERIOD) ?: return@setFragmentResultListener
+            viewModel.updateGroupChatHistoryPeriod(historyPeriod)
+            showSuccess(message = getString(R.string.nc_chat_setting_updated))
+            clearFragmentResult(GroupChatHistoryFragment.REQUEST_KEY)
+        }
     }
 
     private fun configureToolbar(state: WalletDetailsState) {
@@ -205,6 +220,19 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             SheetOptionType.TYPE_IMPORT_PSBT -> handleImportPSBT()
             SheetOptionType.TYPE_IMPORT_PSBT_QR -> openImportTransactionScreen()
             SheetOptionType.TYPE_SEARCH_TX -> openSearchTransaction()
+            SheetOptionType.TYPE_GROUP_CHAT_HISTORY -> {
+                GroupChatHistoryFragment.show(
+                    childFragmentManager,
+                    GroupChatHistoryArgs(
+                        historyPeriods = viewModel.state.value?.historyPeriods.orEmpty(),
+                        historyPeriodIdSelected = "7",
+                        isFreeGroupWalletFlow = viewModel.isFreeGroupWallet(),
+                        walletId = args.walletId,
+                        roomId = "",
+                        groupId = ""
+                    )
+                )
+            }
             else -> {}
         }
     }
@@ -596,6 +624,15 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                     SheetOptionType.TYPE_SEARCH_TX,
                     R.drawable.ic_search_dark,
                     R.string.nc_search_transactions
+                )
+            )
+        }
+        if (viewModel.isFreeGroupWallet()) {
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_GROUP_CHAT_HISTORY,
+                    R.drawable.ic_clock,
+                    R.string.nc_manage_group_chat_history
                 )
             )
         }

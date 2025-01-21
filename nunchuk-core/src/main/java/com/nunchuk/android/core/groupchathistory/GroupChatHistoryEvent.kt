@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.membership.byzantine.groupchathistory
+package com.nunchuk.android.core.groupchathistory
 
 import com.nunchuk.android.model.HistoryPeriod
 

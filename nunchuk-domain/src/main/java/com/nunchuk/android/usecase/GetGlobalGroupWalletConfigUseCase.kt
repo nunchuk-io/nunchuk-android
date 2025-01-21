@@ -26,7 +26,7 @@ import com.nunchuk.android.type.AddressType
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetFreeGroupWalletConfigUseCase @Inject constructor(
+class GetGlobalGroupWalletConfigUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : UseCase<AddressType, FreeGroupConfig>(ioDispatcher) {

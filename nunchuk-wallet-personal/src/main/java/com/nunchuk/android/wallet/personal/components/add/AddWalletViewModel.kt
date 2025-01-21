@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.type.AddressType
-import com.nunchuk.android.usecase.GetFreeGroupWalletConfigUseCase
+import com.nunchuk.android.usecase.GetGlobalGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.UpdateGroupSandboxConfigUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddWalletViewModel @Inject constructor(
-    private val getFreeGroupWalletConfigUseCase: GetFreeGroupWalletConfigUseCase,
+    private val getGlobalGroupWalletConfigUseCase: GetGlobalGroupWalletConfigUseCase,
     private val getGroupSandboxUseCase: GetGroupSandboxUseCase,
     private val updateGroupSandboxConfigUseCase: UpdateGroupSandboxConfigUseCase,
     savedStateHandle: SavedStateHandle
@@ -56,7 +56,7 @@ class AddWalletViewModel @Inject constructor(
 
     fun getFreeGroupWalletConfig(addressType: AddressType) = viewModelScope.launch {
         viewModelScope.launch {
-            getFreeGroupWalletConfigUseCase(addressType)
+            getGlobalGroupWalletConfigUseCase(addressType)
                 .onSuccess { result ->
                     _state.update {
                         it.copy(
