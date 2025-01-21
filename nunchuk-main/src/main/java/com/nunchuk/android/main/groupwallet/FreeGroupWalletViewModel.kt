@@ -91,7 +91,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             GroupSandboxListener.getGroupFlow().collect { groupSandbox ->
                 if (groupSandbox.id == groupId) {
                     if (groupSandbox.finalized) {
-                        _uiState.update { it.copy(walletCreatedByOthers = true) }
+                        _uiState.update { it.copy(groupWalletUnavailable = true) }
                     } else {
                         updateGroupSandbox(groupSandbox)
                     }
@@ -104,7 +104,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         viewModelScope.launch {
             GroupDeleteListener.groupDeleteFlow.collect { it ->
                 if (it == groupId) {
-                    _uiState.update { it.copy(isFinishScreen = true) }
+                    _uiState.update { it.copy(groupWalletUnavailable = true) }
                 }
             }
         }

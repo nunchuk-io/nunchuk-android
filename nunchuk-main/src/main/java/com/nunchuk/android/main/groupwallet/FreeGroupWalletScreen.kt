@@ -274,22 +274,27 @@ fun FreeGroupWalletScreen(
             val allSigners = state.allSigners.filter {
                 !addedSigners.contains(it.fingerPrint)
             }
-            SelectSignerBottomSheet(
-                onDismiss = { showSignerBottomSheet = false },
-                supportedSigners = emptyList(),
-                onAddExistKey = {
-                    showSignerBottomSheet = false
-                    onAddExistingKey(it, currentSignerIndex)
-                },
-                onAddNewKey = {
-                    showSignerBottomSheet = false
-                    onAddNewKey(currentSignerIndex)
-                },
-                args = TapSignerListBottomSheetFragmentArgs(
-                    signers = allSigners.toTypedArray(),
-                    type = SignerType.UNKNOWN
+            if (allSigners.isNotEmpty()) {
+                SelectSignerBottomSheet(
+                    onDismiss = { showSignerBottomSheet = false },
+                    supportedSigners = emptyList(),
+                    onAddExistKey = {
+                        showSignerBottomSheet = false
+                        onAddExistingKey(it, currentSignerIndex)
+                    },
+                    onAddNewKey = {
+                        showSignerBottomSheet = false
+                        onAddNewKey(currentSignerIndex)
+                    },
+                    args = TapSignerListBottomSheetFragmentArgs(
+                        signers = allSigners.toTypedArray(),
+                        type = SignerType.UNKNOWN
+                    )
                 )
-            )
+            } else {
+                showSignerBottomSheet = false
+                onAddNewKey(currentSignerIndex)
+            }
         }
 
         if (showAskForDeleteDialog) {
@@ -305,8 +310,9 @@ fun FreeGroupWalletScreen(
             )
         }
 
-        if (state.walletCreatedByOthers) {
+        if (state.groupWalletUnavailable) {
             NcInfoDialog(
+                title = stringResource(id = R.string.nc_unable_access_link),
                 message = stringResource(id = R.string.nc_group_wallet_created_by_others),
                 onPositiveClick = {
                     returnToHome()
