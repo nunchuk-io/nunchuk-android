@@ -443,6 +443,16 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                     R.color.nc_denim_tint_color
                 )
             )
+        } else if (state.isFreeGroupWallet) {
+            binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_free_group_wallet_background)
+            requireActivity().window.statusBarColor =
+                ContextCompat.getColor(requireContext(), R.color.cl_2B74A9)
+            binding.cashAmount.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.nc_white_color
+                )
+            )
         } else {
             binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_gradient_background)
             requireActivity().window.statusBarColor =
