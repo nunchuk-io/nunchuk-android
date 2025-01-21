@@ -20,18 +20,24 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.GlobalGroupWalletConfig
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.type.AddressType
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetGlobalGroupWalletConfigUseCase @Inject constructor(
+class SetGroupWalletLastReadMessageUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : UseCase<AddressType, GlobalGroupWalletConfig>(ioDispatcher) {
+) : UseCase<SetGroupWalletLastReadMessageUseCase.Params, Unit>(ioDispatcher) {
 
-    override suspend fun execute(parameters: AddressType): GlobalGroupWalletConfig {
-        return nunchukNativeSdk.getFreeGroupWalletConfig(parameters)
+    override suspend fun execute(parameters: Params) {
+        return nunchukNativeSdk.setGroupWalletLastReadMessage(
+            walletId = parameters.walletId,
+            messageId = parameters.lastReadMessageId
+        )
     }
+
+    data class Params(
+        val walletId: String,
+        val lastReadMessageId: String,
+    )
 }

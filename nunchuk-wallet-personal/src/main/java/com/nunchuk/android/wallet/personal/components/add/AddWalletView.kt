@@ -58,7 +58,7 @@ import com.nunchuk.android.compose.fillDenim2
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.whisper
-import com.nunchuk.android.model.FreeGroupConfig
+import com.nunchuk.android.model.GlobalGroupWalletConfig
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.wallet.personal.R
 import kotlinx.coroutines.delay
@@ -394,7 +394,7 @@ fun KeyManagementSection(
 
 @Composable
 fun KeysAndRequiredKeysScreen(
-    freeGroupWalletConfig: FreeGroupConfig,
+    freeGroupWalletConfig: GlobalGroupWalletConfig,
     m: Int,
     n: Int,
     onNumberChange: (Int, Int) -> Unit = { _, _ -> }

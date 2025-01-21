@@ -10,6 +10,7 @@ import com.nunchuk.android.listener.GroupMessageListener
 import com.nunchuk.android.messages.util.GroupChatManager
 import com.nunchuk.android.model.FreeGroupMessage
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.usecase.SetGroupWalletLastReadMessageUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.simpleDateFormat
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,6 +27,7 @@ class FreeGroupWalletChatViewModel @Inject constructor(
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val groupChatManager: GroupChatManager,
     private val getGroupDeviceUIDUseCase: GetGroupDeviceUIDUseCase,
+    private val setGroupWalletLastReadMessageUseCase: SetGroupWalletLastReadMessageUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -38,9 +40,9 @@ class FreeGroupWalletChatViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             GroupMessageListener.getMessageFlow().collect { message ->
-                Log.e("group-wallet", "message: $message")
                 if (message.walletId == walletId) {
                     addNewMessage(message)
+                    setLastReadMessage(message.id)
                 }
             }
         }
@@ -56,6 +58,17 @@ class FreeGroupWalletChatViewModel @Inject constructor(
             }
             getListMessage()
             getWalletDetail()
+        }
+    }
+
+    private fun setLastReadMessage(messageId: String) {
+        viewModelScope.launch {
+            setGroupWalletLastReadMessageUseCase(
+                SetGroupWalletLastReadMessageUseCase.Params(
+                    walletId = walletId,
+                    lastReadMessageId = messageId
+                )
+            )
         }
     }
 
@@ -86,6 +99,7 @@ class FreeGroupWalletChatViewModel @Inject constructor(
                         messageUis = result.groupByDate(_uiState.value.uid)
                     )
                 }
+                result.firstOrNull()?.let { setLastReadMessage(it.id) }
             }.onFailure {
                 // Handle failure
             }

@@ -19,12 +19,12 @@
 
 package com.nunchuk.android.wallet.personal.components.add
 
-import com.nunchuk.android.model.FreeGroupConfig
+import com.nunchuk.android.model.GlobalGroupWalletConfig
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.type.AddressType
 
 data class AddWalletState(
-    val freeGroupWalletConfig: FreeGroupConfig = FreeGroupConfig(0, 0, 0, emptySet()),
+    val freeGroupWalletConfig: GlobalGroupWalletConfig = GlobalGroupWalletConfig(0, 0, 0, emptySet()),
     val groupSandbox: GroupSandbox? = null,
     val addressTypeSelected: AddressType = AddressType.NATIVE_SEGWIT,
     val isHasSigner: Boolean = false

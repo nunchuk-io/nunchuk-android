@@ -21,14 +21,18 @@ class GetGroupMessageAccountUseCase @Inject constructor(
             groupWallets.map { wallet ->
                 async {
                     val message = nativeSdk.getGroupWalletMessages(wallet.id, 0, 10).firstOrNull()
-                    message?.groupWalletMessage(wallet)
+                    val unreadCount = nativeSdk.getGroupWalletUnreadMessagesCount(wallet.id)
+                    message?.groupWalletMessage(wallet, unreadCount)
                 }
             }.awaitAll()
         }
         return messages.filterNotNull()
     }
 
-    private fun FreeGroupMessage.groupWalletMessage(wallet: Wallet): GroupWalletMessage {
+    private fun FreeGroupMessage.groupWalletMessage(
+        wallet: Wallet,
+        unreadCount: Int
+    ): GroupWalletMessage {
         return GroupWalletMessage(
             id = id,
             content = content,
@@ -36,6 +40,7 @@ class GetGroupMessageAccountUseCase @Inject constructor(
             walletName = wallet.name,
             walletId = wallet.id,
             numOfUsers = wallet.totalRequireSigns,
+            unreadCount = unreadCount
         )
     }
 }
@@ -47,4 +52,5 @@ data class GroupWalletMessage(
     val walletName: String,
     val walletId: String,
     val numOfUsers: Int = 0,
+    val unreadCount: Int = 0,
 )

@@ -53,6 +53,7 @@ import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
 import com.nunchuk.android.usecase.NewAddressUseCase
+import com.nunchuk.android.usecase.SetGroupWalletLastReadMessageUseCase
 import com.nunchuk.android.usecase.SetSelectedWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
@@ -106,8 +107,9 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val groupChatManager: GroupChatManager,
     private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
     private val getGlobalGroupWalletConfigUseCase: GetGlobalGroupWalletConfigUseCase,
-    private val getGroupWalletConfigUseCase: GetGroupWalletConfigUseCase
-    ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
+    private val getGroupWalletConfigUseCase: GetGroupWalletConfigUseCase,
+    private val setGroupWalletLastReadMessageUseCase: SetGroupWalletLastReadMessageUseCase,
+) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
@@ -198,6 +200,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                             groupChatMessages = groupChatMessages
                         )
                     }
+                    setLastReadMessage(message.id)
                 }
             }
         }
@@ -213,21 +216,34 @@ internal class WalletDetailsViewModel @Inject constructor(
             }
             val globalConfig = globalConfigResult.await()
             val walletConfig = walletConfigResult.await()
-            val historyPeriods = globalConfig.getOrNull()?.retentionDaysOptions?.toList()?.sortedDescending()?.map {
-                HistoryPeriod(
-                    id = it.toString(),
-                    durationInMillis = it.toLong(),
-                    displayName = "$it days",
-                    enabled = true
-                )
-            }.orEmpty()
+            val historyPeriods =
+                globalConfig.getOrNull()?.retentionDaysOptions?.toList()?.sortedDescending()?.map {
+                    HistoryPeriod(
+                        id = it.toString(),
+                        durationInMillis = it.toLong(),
+                        displayName = "$it days",
+                        enabled = true
+                    )
+                }.orEmpty()
 
             updateState {
                 copy(
                     historyPeriods = historyPeriods,
-                    selectedHistoryPeriod = historyPeriods.firstOrNull { it.id == walletConfig.getOrNull()?.chatRetentionDays.toString() } ?: historyPeriods.first()
+                    selectedHistoryPeriod = historyPeriods.firstOrNull { it.id == walletConfig.getOrNull()?.chatRetentionDays.toString() }
+                        ?: historyPeriods.first()
                 )
             }
+        }
+    }
+
+    private fun setLastReadMessage(messageId: String) {
+        viewModelScope.launch {
+            setGroupWalletLastReadMessageUseCase(
+                SetGroupWalletLastReadMessageUseCase.Params(
+                    walletId = args.walletId,
+                    lastReadMessageId = messageId
+                )
+            )
         }
     }
 

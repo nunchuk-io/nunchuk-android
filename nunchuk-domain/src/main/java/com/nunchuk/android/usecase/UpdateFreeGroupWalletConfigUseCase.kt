@@ -20,9 +20,7 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.FreeGroupConfig
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.type.AddressType
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 

@@ -129,7 +129,12 @@ class RoomViewHolder(
             binding.encryptedIcon.isVisible = false
             binding.badge.isVisible = true
             binding.badge.text = "${groupData.numOfUsers}"
-            binding.count.isVisible = false
+            binding.count.isVisible = groupData.unreadCount > 0
+            if (groupData.unreadCount <= 99) {
+                binding.count.text = "${groupData.unreadCount}"
+            } else {
+                binding.count.text = "99+"
+            }
             binding.message.isVisible = true
             binding.message.text = groupData.content
             binding.time.isVisible = true
