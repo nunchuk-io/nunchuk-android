@@ -17,24 +17,29 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.wallet.personal.components.add
+package com.nunchuk.android.usecase
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.FreeGroupConfig
-import com.nunchuk.android.model.GroupSandbox
+import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.AddressType
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class AddWalletState(
-    val freeGroupWalletConfig: FreeGroupConfig = FreeGroupConfig(0, 0, 0, emptySet()),
-    val groupSandbox: GroupSandbox? = null,
-    val addressTypeSelected: AddressType = AddressType.NATIVE_SEGWIT,
-    val isHasSigner: Boolean = false
-)
+class UpdateFreeGroupWalletConfigUseCase @Inject constructor(
+    private val nunchukNativeSdk: NunchukNativeSdk,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<UpdateFreeGroupWalletConfigUseCase.Params, Unit>(ioDispatcher) {
 
-sealed class AddWalletEvent {
-    data class UpdateGroupSandboxConfigSuccess(
-        val groupSandbox: GroupSandbox
-    ) : AddWalletEvent()
-    data class Error(
-        val message: String
-    ) : AddWalletEvent()
+    override suspend fun execute(parameters: Params) {
+        nunchukNativeSdk.updateGroupWalletConfig(
+            walletId = parameters.walletId,
+            chatRetentionDays = parameters.chatRetentionDays
+        )
+    }
+
+    data class Params(
+        val walletId: String,
+        val chatRetentionDays: Int,
+    )
 }

@@ -127,8 +127,8 @@ class RoomViewHolder(
             binding.avatarHolder.text = ""
             binding.shareIcon.isVisible = false
             binding.encryptedIcon.isVisible = false
-            binding.badge.isVisible = false
-            binding.badge.text = "3"
+            binding.badge.isVisible = true
+            binding.badge.text = "${groupData.numOfUsers}"
             binding.count.isVisible = false
             binding.message.isVisible = true
             binding.message.text = groupData.content

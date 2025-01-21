@@ -232,7 +232,9 @@ fun Action(
         )
 
         NcIcon(
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier.size(24.dp) .clickable {
+                onJoinGroupWalletClicked()
+            },
             painter = painterResource(id = R.drawable.ic_arrow_right_new),
             contentDescription = "Arrow Right Icon"
         )
@@ -265,7 +267,9 @@ fun Action(
         Spacer(modifier = Modifier.weight(1f))
 
         NcIcon(
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier.size(24.dp).clickable {
+                onRecoverWalletClicked()
+            },
             painter = painterResource(id = R.drawable.ic_arrow_right_new),
             contentDescription = "Arrow Right Icon"
         )

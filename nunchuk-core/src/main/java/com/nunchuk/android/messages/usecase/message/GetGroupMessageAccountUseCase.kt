@@ -35,6 +35,7 @@ class GetGroupMessageAccountUseCase @Inject constructor(
             timestamp = timestamp * 1000,
             walletName = wallet.name,
             walletId = wallet.id,
+            numOfUsers = wallet.totalRequireSigns,
         )
     }
 }
@@ -45,4 +46,5 @@ data class GroupWalletMessage(
     val timestamp: Long,
     val walletName: String,
     val walletId: String,
+    val numOfUsers: Int = 0,
 )
