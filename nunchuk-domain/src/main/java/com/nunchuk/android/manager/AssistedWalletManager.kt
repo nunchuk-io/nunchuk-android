@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.manager
 
+import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 
@@ -29,4 +30,6 @@ interface AssistedWalletManager {
     fun getWalletAlias(walletId: String): String
     fun getWalletPlan(walletId: String): MembershipPlan
     fun getBriefWallet(walletId: String): AssistedWalletBrief?
+    fun getGroup(groupId: String): ByzantineGroup?
+    fun isGroupAssistedWallet(groupId: String?): Boolean
 }

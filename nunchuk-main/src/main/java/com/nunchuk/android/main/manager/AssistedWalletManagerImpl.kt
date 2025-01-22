@@ -24,6 +24,7 @@ import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.wallet.WalletStatus
+import com.nunchuk.android.usecase.GetGroupsUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -33,7 +34,16 @@ import javax.inject.Inject
 internal class AssistedWalletManagerImpl @Inject constructor(
     getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     applicationScope: CoroutineScope,
+    getGroupsUseCase: GetGroupsUseCase,
 ) : AssistedWalletManager {
+
+    private val _assistedGroups = getGroupsUseCase(Unit).map {
+        it.getOrElse { emptyList() }.associateBy { it.id }
+    }.stateIn(
+        applicationScope,
+        SharingStarted.Eagerly,
+        emptyMap()
+    )
 
     private val _assistedWalletBrief =
         getAssistedWalletsFlowUseCase(Unit).map { wallets ->
@@ -63,5 +73,11 @@ internal class AssistedWalletManagerImpl @Inject constructor(
 
     override fun getBriefWallet(walletId: String): AssistedWalletBrief? {
         return _assistedWalletBrief.value[walletId]
+    }
+
+    override fun getGroup(groupId: String) = _assistedGroups.value[groupId]
+
+    override fun isGroupAssistedWallet(groupId: String?): Boolean {
+        return !groupId.isNullOrEmpty() && _assistedGroups.value[groupId] != null
     }
 }

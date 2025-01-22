@@ -83,7 +83,7 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
                     skipPassphrase = event.skipPassphrase,
                     keyFlow = args.primaryKeyFlow,
                     replacedXfp = "",
-                    groupId = "",
+                    groupId = args.groupId.orEmpty(),
                     passphrase = "",
                     mnemonic = args.mnemonic,
                     signerName = viewModel.getSignerName(),
@@ -108,13 +108,12 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
                         mnemonic = args.mnemonic,
                         passphrase = "",
                         primaryKeyFlow = args.primaryKeyFlow,
-                        groupId = "",
+                        groupId = args.groupId.orEmpty(),
                         replacedXfp = "",
                         walletId = args.walletId.orEmpty(),
                         isQuickWallet = false,
                         skipPassphrase = true,
                         xprv = args.xprv.orEmpty(),
-                        index = -1
                     )
                 } else if (args.primaryKeyFlow.isSignInFlow()) {
                     viewModel.getTurnOnNotification()
@@ -173,7 +172,8 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
             signerName = signerName,
             passphrase = passphrase,
             keyFlow = args.primaryKeyFlow,
-            walletId = args.walletId.orEmpty()
+            walletId = args.walletId.orEmpty(),
+            groupId = args.groupId.orEmpty(),
         )
     }
 
@@ -197,6 +197,7 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
             passphrase: String,
             address: String?,
             walletId: String?,
+            groupId: String?,
             xprv: String?
         ) {
             activityContext.startActivity(
@@ -207,7 +208,8 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
                     passphrase = passphrase,
                     address = address,
                     walletId = walletId,
-                    xprv = xprv
+                    xprv = xprv,
+                    groupId = groupId
                 ).buildIntent(
                     activityContext
                 )

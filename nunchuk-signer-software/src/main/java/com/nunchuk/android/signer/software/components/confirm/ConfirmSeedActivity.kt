@@ -59,7 +59,6 @@ class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
             walletId: String,
             groupId: String? = null,
             replacedXfp: String? = null,
-            signerIndex: Int = -1
         ) = Intent(
             activityContext,
             ConfirmSeedActivity::class.java
@@ -72,7 +71,6 @@ class ConfirmSeedActivity : BaseActivity<ActivityConfirmSeedBinding>() {
                 walletId = walletId,
                 groupId = groupId,
                 replacedXfp = replacedXfp.orEmpty(),
-                index = signerIndex
             ).toBundle()
         )
     }

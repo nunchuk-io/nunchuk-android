@@ -38,6 +38,7 @@ import com.nunchuk.android.utils.DeviceManager
 import com.nunchuk.android.utils.trySafe
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -56,6 +57,7 @@ class InitNunchukUseCase @Inject constructor(
 ) : UseCase<InitNunchukUseCase.Param, Boolean>(ioDispatcher) {
     private var lastParam : Param? = null
     private var lastSettings : AppSettings? = null
+    private var consumeJob: Job? = null
 
     override suspend fun execute(parameters: Param) : Boolean {
         val settings = getAppSettingUseCase(Unit).getOrThrow()
@@ -63,6 +65,8 @@ class InitNunchukUseCase @Inject constructor(
         lastSettings = settings
         lastParam = parameters
         Timber.d("InitNunchukUseCase: $settings")
+        nativeSdk.stopConsumeGroupEvent()
+        consumeJob?.cancel()
         initNunchuk(
             appSettings = settings,
             passphrase = parameters.passphrase,
@@ -72,7 +76,7 @@ class InitNunchukUseCase @Inject constructor(
         )
         fileLog(message = "start nativeSdk enableGroupWalletUseCase")
         Timber.d("Thread: ${Thread.currentThread().name}")
-        applicationScope.launch {
+        consumeJob = applicationScope.launch {
             runCatching {
                 enableGroupWalletUseCase(Unit)
                 nativeSdk.registerGlobalListener()

@@ -33,6 +33,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.signer.KeyFlow.isAddPortalFlow
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.ConfirmSeedCompletedEvent
@@ -51,6 +52,9 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
 
     @Inject
     lateinit var membershipStepManager: MembershipStepManager
+
+    @Inject
+    lateinit var assistedWalletManager: AssistedWalletManager
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -132,11 +136,9 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
                     primaryKeyFlow = args.primaryKeyFlow,
                 )
             )
-        } else if (!args.groupId.isNullOrEmpty() || args.replacedXfp.isNotEmpty()) {
+        } else if (assistedWalletManager.isGroupAssistedWallet(args.groupId) || args.replacedXfp.isNotEmpty()) {
             val signerName = if (args.replacedXfp.isNotEmpty()) {
                 viewModel.state.value.replaceSignerName
-            } else if (args.index >= 0) {
-                "Key #${args.index.inc()}"
             } else {
                 "Key${membershipStepManager.getNextKeySuffixByType(SignerType.SOFTWARE)}"
             }
@@ -147,8 +149,7 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
                 keyFlow = args.primaryKeyFlow,
                 groupId = args.groupId,
                 replacedXfp = args.replacedXfp,
-                walletId = args.walletId,
-                signerIndex = args.index
+                walletId = args.walletId
             )
         } else {
             openSetNameScreen()
@@ -161,7 +162,8 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
             mnemonic = args.mnemonic,
             keyFlow = args.primaryKeyFlow,
             passphrase = args.passphrase,
-            walletId = args.walletId
+            walletId = args.walletId,
+            groupId = args.groupId,
         )
     }
 

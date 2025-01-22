@@ -33,6 +33,7 @@ import com.nunchuk.android.core.signer.KeyFlow.isSignUpFlow
 import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
@@ -54,8 +55,6 @@ import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
-import com.nunchuk.android.usecase.byzantine.GetLocalGroupUseCase
-import com.nunchuk.android.usecase.free.groupwallet.AddSignerToGroupUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
@@ -88,8 +87,7 @@ internal class SetPassphraseViewModel @Inject constructor(
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val pushEventManager: PushEventManager,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
-    private val getLocalGroupUseCase: GetLocalGroupUseCase,
-    private val addSignerToGroupUseCase: AddSignerToGroupUseCase,
+    private val assistedWalletManager: AssistedWalletManager
 ) : NunchukViewModel<SetPassphraseState, SetPassphraseEvent>() {
     private val args: SetPassphraseFragmentArgs by lazy {
         SetPassphraseFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -172,7 +170,6 @@ internal class SetPassphraseViewModel @Inject constructor(
             walletId = args.walletId,
             isQuickWallet = args.isQuickWallet,
             skipPassphrase = getState().skipPassphrase,
-            index = args.index
         )
     }
 
@@ -187,7 +184,6 @@ internal class SetPassphraseViewModel @Inject constructor(
         walletId: String,
         isQuickWallet: Boolean,
         skipPassphrase: Boolean,
-        index: Int,
         xprv: String = ""
     ) {
         viewModelScope.launch {
@@ -214,17 +210,17 @@ internal class SetPassphraseViewModel @Inject constructor(
             }.onSuccess { signer ->
                 if (replacedXfp.isNotEmpty() && walletId.isNotEmpty()) {
                     replacedKey(signer, groupId, replacedXfp, walletId)
-                } else if (groupId.isNotEmpty()) {
-                    if (getLocalGroupUseCase(groupId).getOrNull() != null) {
-                        syncKeyToGroup(signer, groupId)
-                    } else {
-                        syncKeyToGroupSandbox(signer, groupId, index)
-                    }
+                } else if (groupId.isNotEmpty() && assistedWalletManager.isGroupAssistedWallet(groupId)) {
+                    syncKeyToGroup(signer, groupId)
                 } else if (isQuickWallet) {
                     createQuickWallet(signer)
-                } else if (primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
-                    // for replace key in free wallet flow
-                    getSingleSignerForFreeWallet(signer, walletId)
+                } else if (primaryKeyFlow.isReplaceKeyInFreeWalletFlow() || groupId.isNotEmpty()) {
+                    // for replace key in free wallet flow and group sandbox
+                    if (groupId.isNotEmpty()) {
+                        getSingleSignerForFreeWallet(signer, WalletType.MULTI_SIG)
+                    } else {
+                        getSingleSignerForFreeWallet(signer, walletId)
+                    }
                     setEvent(
                         CreateSoftwareSignerCompletedEvent(
                             masterSigner = signer,
@@ -263,16 +259,20 @@ internal class SetPassphraseViewModel @Inject constructor(
             getWalletDetail2UseCase(walletId).onSuccess { wallet ->
                 val walletType =
                     if (wallet.signers.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
-                getDefaultSignerFromMasterSignerUseCase(
-                    GetDefaultSignerFromMasterSignerUseCase.Params(
-                        masterSignerId = signer.id,
-                        walletType = walletType,
-                        addressType = AddressType.NATIVE_SEGWIT
-                    )
-                ).onSuccess { singleSigner ->
-                    pushEventManager.push(PushEvent.LocalUserSignerAdded(singleSigner))
-                }
+                getSingleSignerForFreeWallet(signer, walletType)
             }
+        }
+    }
+
+    private suspend fun getSingleSignerForFreeWallet(signer: MasterSigner, type: WalletType) {
+        getDefaultSignerFromMasterSignerUseCase(
+            GetDefaultSignerFromMasterSignerUseCase.Params(
+                masterSignerId = signer.id,
+                walletType = type,
+                addressType = AddressType.NATIVE_SEGWIT
+            )
+        ).onSuccess { singleSigner ->
+            pushEventManager.push(PushEvent.LocalUserSignerAdded(singleSigner))
         }
     }
 
@@ -296,37 +296,6 @@ internal class SetPassphraseViewModel @Inject constructor(
                         xfp = replacedXfp,
                         signer = signer,
                         walletId = walletId,
-                    )
-                ).onSuccess {
-                    setEvent(
-                        CreateSoftwareSignerCompletedEvent(
-                            masterSigner,
-                            masterSigner.device.needPassPhraseSent
-                        )
-                    )
-                }.onFailure {
-                    setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
-                }
-            }.onFailure {
-                setEvent(CreateSoftwareSignerErrorEvent(it.message.orUnknownError()))
-            }
-        }
-    }
-
-    private fun syncKeyToGroupSandbox(masterSigner: MasterSigner, groupId: String, index: Int) {
-        viewModelScope.launch {
-            getDefaultSignerFromMasterSignerUseCase(
-                GetDefaultSignerFromMasterSignerUseCase.Params(
-                    masterSignerId = masterSigner.id,
-                    walletType = WalletType.MULTI_SIG,
-                    addressType = AddressType.NATIVE_SEGWIT
-                )
-            ).onSuccess { signer ->
-                addSignerToGroupUseCase(
-                    AddSignerToGroupUseCase.Params(
-                        groupId = groupId,
-                        signer = signer,
-                        index = index
                     )
                 ).onSuccess {
                     setEvent(
@@ -431,6 +400,8 @@ internal class SetPassphraseViewModel @Inject constructor(
                 }
         }
     }
+
+    fun isGroupAssistedWallet(groupId: String?) = assistedWalletManager.isGroupAssistedWallet(groupId)
 
     companion object {
         private const val DEFAULT_WALLET_NAME = "My Wallet"

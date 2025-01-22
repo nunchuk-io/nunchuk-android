@@ -58,7 +58,6 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
             groupId: String?,
             replacedXfp: String? = null,
             numberOfWords: Int,
-            signerIndex: Int
         ) {
             activityContext.startActivity(
                 buildIntent(
@@ -69,7 +68,6 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
                     groupId,
                     replacedXfp,
                     numberOfWords,
-                    signerIndex
                 )
             )
         }
@@ -82,7 +80,6 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
             groupId: String? = null,
             replacedXfp: String? = null,
             numberOfWords: Int = 24,
-            signerIndex: Int = -1
         ): Intent = Intent(
             activityContext,
             CreateNewSeedActivity::class.java
@@ -96,7 +93,6 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
                     groupId = groupId,
                     replacedXfp = replacedXfp.orEmpty(),
                     numberOfWords = numberOfWords,
-                    index = signerIndex
                 ).toBundle()
             )
         }

@@ -104,7 +104,6 @@ class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
                         walletId = args.walletId,
                         groupId = args.groupId,
                         replacedXfp = args.replacedXfp,
-                        signerIndex = args.index,
                     )
                 }
             }

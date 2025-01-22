@@ -167,7 +167,7 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                                     )
                                 )
                             }
-                        } else if (viewModel.isInAssistedWallet(it.status.masterSignerId.orEmpty()) && walletId.isEmpty()) {
+                        } else if (viewModel.isInAssistedWallet(it.status.masterSignerId.orEmpty()) && walletId.isEmpty() && groupId.isEmpty()) {
                             NCInfoDialog(requireActivity()).showDialog(
                                 message = getString(R.string.nc_key_has_added_change_key),
                                 btnYes = getString(R.string.nc_text_yes),

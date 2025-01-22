@@ -39,10 +39,6 @@
             android:name="number_of_words"
             app:argType="integer"
             android:defaultValue="24"/>
-        <argument
-            android:name="index"
-            android:defaultValue="-1"
-            app:argType="integer"/>
         <action
             android:id="@+id/action_createNewSeedFragment_to_confirmSeedFragment"
             app:destination="@id/confirmSeedFragment"
@@ -88,10 +84,6 @@
             android:name="replaced_xfp"
             app:argType="string"
             android:defaultValue=""/>
-        <argument
-            android:name="index"
-            android:defaultValue="-1"
-            app:argType="integer"/>
         <action
             android:id="@+id/action_confirmSeedFragment_to_setPassphraseFragment"
             app:destination="@id/setPassphraseFragment"
@@ -136,11 +128,6 @@
             android:name="wallet_id"
             android:defaultValue=""
             app:argType="string" />
-        <argument
-            android:name="index"
-            android:defaultValue="-1"
-            app:argType="integer"/>
-
     </fragment>
 
 

@@ -16,7 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -25,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -43,7 +44,10 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSelectableBottomSheet
+import com.nunchuk.android.compose.NcSnackbarVisuals
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcInfoDialog
@@ -87,6 +91,7 @@ fun NavGraphBuilder.freeGroupWallet(
         route = freeGroupWalletRoute,
     ) {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
+        val snackState = remember { SnackbarHostState() }
 
         LaunchedEffect(state.isFinishScreen) {
             if (state.isFinishScreen) {
@@ -103,7 +108,20 @@ fun NavGraphBuilder.freeGroupWallet(
             onPauseOrDispose { }
         }
 
+        LaunchedEffect(state.errorMessage) {
+            if (state.errorMessage.isNotEmpty()) {
+                snackState.showSnackbar(
+                    NcSnackbarVisuals(
+                        message = state.errorMessage,
+                        type = NcToastType.ERROR
+                    )
+                )
+                viewModel.markMessageHandled()
+            }
+        }
+
         FreeGroupWalletScreen(
+            snackState = snackState,
             state = state,
             onAddNewKey = onAddNewKey,
             onContinueClicked = onContinueClicked,
@@ -126,6 +144,7 @@ fun NavGraphBuilder.freeGroupWallet(
 @Composable
 fun FreeGroupWalletScreen(
     state: FreeGroupWalletUiState = FreeGroupWalletUiState(),
+    snackState: SnackbarHostState = remember { SnackbarHostState() },
     onAddNewKey: (Int) -> Unit = {},
     onRemoveClicked: (Int) -> Unit = {},
     onContinueClicked: (GroupSandbox) -> Unit = {},
@@ -140,7 +159,8 @@ fun FreeGroupWalletScreen(
     var showMoreOption by rememberSaveable { mutableStateOf(false) }
     var showAskForDeleteDialog by rememberSaveable { mutableStateOf(false) }
     var currentSignerIndex by rememberSaveable { mutableIntStateOf(-1) }
-    Scaffold(
+    NcScaffold(
+        snackState = snackState,
         modifier = Modifier.navigationBarsPadding(),
         topBar = {
             val onBackPressOwner = LocalOnBackPressedDispatcherOwner.current

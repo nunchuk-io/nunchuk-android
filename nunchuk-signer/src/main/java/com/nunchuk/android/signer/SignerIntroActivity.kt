@@ -119,7 +119,6 @@ class SignerIntroActivity : BaseComposeActivity() {
             keyFlow = primaryKeyFlow,
             groupId = groupId,
             walletId = walletId,
-            index = requestedSignerIndex
         )
         finish()
     }

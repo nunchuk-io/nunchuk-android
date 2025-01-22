@@ -8,6 +8,7 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.listener.GroupDeleteListener
 import com.nunchuk.android.listener.GroupOnlineListener
@@ -150,7 +151,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         }
     }
 
-    fun getGroupOnline() {
+    private fun getGroupOnline() {
         viewModelScope.launch {
             getGroupOnlineUseCase(groupId).onSuccess { groupOnline ->
                 _uiState.update { it.copy(numberOfOnlineUsers = groupOnline) }
@@ -207,8 +208,9 @@ class FreeGroupWalletViewModel @Inject constructor(
                 )
             ).onSuccess {
                 updateGroupSandbox(it)
-            }.onFailure {
-                Timber.e("Failed to add signer to group $it")
+            }.onFailure { error ->
+                Timber.e("Failed to add signer to group $error")
+                _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
             }
             _uiState.update { it.copy(isLoading = false) }
         }
@@ -224,6 +226,9 @@ class FreeGroupWalletViewModel @Inject constructor(
                 )
             ).onSuccess {
                 updateGroupSandbox(it)
+            }.onFailure { error ->
+                Timber.e("Failed to remove signer from group $error")
+                _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
             }
             _uiState.update { it.copy(isLoading = false) }
         }
@@ -233,8 +238,14 @@ class FreeGroupWalletViewModel @Inject constructor(
         viewModelScope.launch {
             deleteGroupSandboxUseCase(groupId).onSuccess {
                 _uiState.update { it.copy(isFinishScreen = true, group = null) }
+            }.onFailure { error ->
+                _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
             }
         }
+    }
+
+    fun markMessageHandled() {
+        _uiState.update { it.copy(errorMessage = "") }
     }
 
     companion object {

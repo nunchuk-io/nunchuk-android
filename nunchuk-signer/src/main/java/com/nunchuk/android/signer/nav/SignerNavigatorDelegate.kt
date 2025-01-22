@@ -157,7 +157,6 @@ interface SignerNavigatorDelegate : SignerNavigator {
         groupId: String?,
         replacedXfp: String?,
         walletId: String,
-        index: Int,
     ) {
         SoftwareSignerIntroActivity.start(
             activityContext = activityContext,
@@ -166,7 +165,6 @@ interface SignerNavigatorDelegate : SignerNavigator {
             groupId = groupId,
             replacedXfp = replacedXfp,
             walletId = walletId,
-            index = index
         )
     }
 
@@ -178,7 +176,6 @@ interface SignerNavigatorDelegate : SignerNavigator {
         groupId: String?,
         replacedXfp: String?,
         numberOfWords: Int,
-        signerIndex: Int,
     ) {
         CreateNewSeedActivity.start(
             activityContext = activityContext,
@@ -188,7 +185,6 @@ interface SignerNavigatorDelegate : SignerNavigator {
             groupId = groupId,
             replacedXfp = replacedXfp,
             numberOfWords = numberOfWords,
-            signerIndex = signerIndex
         )
     }
 
@@ -200,7 +196,6 @@ interface SignerNavigatorDelegate : SignerNavigator {
         walletId: String,
         groupId: String?,
         replacedXfp: String?,
-        signerIndex: Int,
     ) {
         RecoverSeedActivity.start(
             activityContext = activityContext,
@@ -223,7 +218,6 @@ interface SignerNavigatorDelegate : SignerNavigator {
         walletId: String,
         groupId: String?,
         replacedXfp: String?,
-        signerIndex: Int,
     ) {
         launcher.launch(
             ConfirmSeedActivity.buildIntent(
@@ -235,7 +229,6 @@ interface SignerNavigatorDelegate : SignerNavigator {
                 walletId = walletId,
                 groupId = groupId,
                 replacedXfp = replacedXfp,
-                signerIndex = signerIndex
             )
         )
     }
@@ -248,6 +241,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         passphrase: String,
         address: String?,
         walletId: String?,
+        groupId: String?,
         xprv: String?,
     ) {
         AddSoftwareSignerNameActivity.start(
@@ -258,7 +252,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
             passphrase = passphrase,
             address = address,
             walletId = walletId,
-            xprv = xprv
+            xprv = xprv,
+            groupId = groupId
         )
     }
 
@@ -270,8 +265,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         @KeyFlow.PrimaryFlowInfo keyFlow: Int,
         groupId: String?,
         replacedXfp: String?,
-        walletId: String,
-        signerIndex: Int
+        walletId: String
     ) {
         SetPassphraseActivity.start(
             activityContext = activityContext,
@@ -282,7 +276,6 @@ interface SignerNavigatorDelegate : SignerNavigator {
             groupId = groupId,
             replacedXfp = replacedXfp,
             walletId = walletId,
-            signerIndex = signerIndex
         )
     }
 
