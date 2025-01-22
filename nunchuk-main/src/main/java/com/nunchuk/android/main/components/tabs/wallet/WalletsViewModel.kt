@@ -33,12 +33,10 @@ import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
-import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
-import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
@@ -57,11 +55,9 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.None
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
 import com.nunchuk.android.model.KeyPolicy
-import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SatsCardStatus
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
@@ -132,7 +128,6 @@ internal class WalletsViewModel @Inject constructor(
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val getNfcCardStatusUseCase: GetNfcCardStatusUseCase,
     private val membershipStepManager: MembershipStepManager,
-    private val masterSignerMapper: MasterSignerMapper,
     private val accountManager: AccountManager,
     private val getUserSubscriptionUseCase: GetUserSubscriptionUseCase,
     private val getServerWalletsUseCase: GetServerWalletsUseCase,
@@ -346,7 +341,7 @@ internal class WalletsViewModel @Inject constructor(
                 if (groupSandbox.finalized) {
                     val pendingGroupSandboxes = getState().pendingGroupSandboxes.filter { it.id != groupSandbox.id }
                     updateState { copy(pendingGroupSandboxes = pendingGroupSandboxes) }
-                    mapGroupWalletUi()
+                    retrieveData()
                 }
             }
         }
@@ -679,14 +674,6 @@ internal class WalletsViewModel @Inject constructor(
                 setEvent(ShowErrorEvent(result.exceptionOrNull()))
             }
         }
-    }
-
-    private suspend fun mapSigners(
-        singleSigners: List<SingleSigner>, masterSigners: List<MasterSigner>,
-    ): List<SignerModel> {
-        return masterSigners.map {
-            masterSignerMapper(it)
-        } + singleSigners.map(SingleSigner::toModel)
     }
 
     // Don't change, logic is very complicated :D

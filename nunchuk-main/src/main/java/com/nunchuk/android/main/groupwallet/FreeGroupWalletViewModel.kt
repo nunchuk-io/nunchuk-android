@@ -7,7 +7,6 @@ import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
-import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.exception.NCNativeException
@@ -249,10 +248,6 @@ class FreeGroupWalletViewModel @Inject constructor(
 
     fun markMessageHandled() {
         _uiState.update { it.copy(errorMessage = "") }
-    }
-
-    fun getSigners(): List<SignerModel> {
-        return _uiState.value.signers.filterNotNull()
     }
 
     companion object {
