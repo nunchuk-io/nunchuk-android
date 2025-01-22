@@ -7,6 +7,7 @@ import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.exception.NCNativeException
@@ -90,6 +91,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun listenGroupSandbox() {
         viewModelScope.launch {
             GroupSandboxListener.getGroupFlow().collect { groupSandbox ->
+                Timber.d("GroupSandboxListener $groupSandbox")
                 if (groupSandbox.id == groupId) {
                     if (groupSandbox.finalized) {
                         _uiState.update { it.copy(groupWalletUnavailable = true) }
@@ -104,6 +106,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun listenGroupDelete() {
         viewModelScope.launch {
             GroupDeleteListener.groupDeleteFlow.collect { it ->
+                Timber.d("GroupDeleteListener $it")
                 if (it == groupId) {
                     _uiState.update { it.copy(groupWalletUnavailable = true) }
                 }
@@ -246,6 +249,10 @@ class FreeGroupWalletViewModel @Inject constructor(
 
     fun markMessageHandled() {
         _uiState.update { it.copy(errorMessage = "") }
+    }
+
+    fun getSigners(): List<SignerModel> {
+        return _uiState.value.signers.filterNotNull()
     }
 
     companion object {
