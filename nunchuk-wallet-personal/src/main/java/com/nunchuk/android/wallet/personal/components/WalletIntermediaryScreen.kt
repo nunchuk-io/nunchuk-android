@@ -196,6 +196,9 @@ fun Action(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable {
+                onJoinGroupWalletClicked()
+            }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -205,10 +208,7 @@ fun Action(
         )
 
         Text(
-            modifier = Modifier.padding(start = 8.dp)
-                .clickable {
-                    onJoinGroupWalletClicked()
-                },
+            modifier = Modifier.padding(start = 8.dp),
             text = stringResource(id = R.string.nc_join_group_wallet),
             style = NunchukTheme.typography.body,
         )
@@ -232,9 +232,7 @@ fun Action(
         )
 
         NcIcon(
-            modifier = Modifier.size(24.dp) .clickable {
-                onJoinGroupWalletClicked()
-            },
+            modifier = Modifier.size(24.dp),
             painter = painterResource(id = R.drawable.ic_arrow_right_new),
             contentDescription = "Arrow Right Icon"
         )

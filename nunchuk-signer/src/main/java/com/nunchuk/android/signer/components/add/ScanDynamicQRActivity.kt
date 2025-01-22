@@ -23,15 +23,12 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.google.zxing.client.android.Intents
-import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.base.BaseCameraActivity
-import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivityScanDynamicQrBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -43,13 +40,13 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
 
     private val viewModel: AddAirgapSignerViewModel by viewModels()
     private val scanDynamicQRViewModel: ScanDynamicQRViewModel by viewModels()
-    private val isJoinGroupWalletFlow: Boolean by lazy { intent.getBooleanExtra(IS_JOIN_GROUP_WALLET_FLOW, false) }
-
-    private val controller: IntentSharingController by lazy(LazyThreadSafetyMode.NONE) {
-        IntentSharingController.from(
-            this
+    private val isJoinGroupWalletFlow: Boolean by lazy {
+        intent.getBooleanExtra(
+            IS_JOIN_GROUP_WALLET_FLOW,
+            false
         )
     }
+
 
     override fun onCameraPermissionGranted(fromUser: Boolean) {
 
@@ -81,15 +78,16 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
             binding.tvPercentage.text = "${it.progress.roundToInt()}%"
         }
         flowObserver(scanDynamicQRViewModel.event) {
-           when(it) {
-               is ScanDynamicQREvent.JoinGroupWalletSuccess -> {
+            when (it) {
+                is ScanDynamicQREvent.JoinGroupWalletSuccess -> {
                     navigator.openFreeGroupWalletScreen(this, it.groupSandbox.id)
-                   finish()
-               }
-               is ScanDynamicQREvent.Error -> {
-                   NCToastMessage(this).showInfo(it.message) // update to nc_unable_access_link
-               }
-           }
+                    finish()
+                }
+
+                is ScanDynamicQREvent.Error -> {
+                    NCToastMessage(this).showInfo(getString(R.string.nc_unable_access_link))
+                }
+            }
         }
     }
 

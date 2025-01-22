@@ -105,7 +105,7 @@ class NCToastMessage(private val activity: Activity) : DefaultLifecycleObserver 
     fun showInfo(message: String) = showMessage(
         message = message,
         background = R.drawable.nc_toast_info_background,
-        textColor = R.color.nc_primary_color,
+        textColor = R.color.nc_fill_primary,
         icon = R.drawable.ic_info
     )
 
