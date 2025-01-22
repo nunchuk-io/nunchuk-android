@@ -77,7 +77,9 @@ internal fun WalletEmptyStateView(
                 ConditionInfo.FreeGuestUser(hasSigner = hasSigner)
             }
 
-            else -> ConditionInfo.None
+            else -> {
+                ConditionInfo.FreeGuestUser(hasSigner = hasSigner)
+            }
         }
         val emptyState = when (conditionInfo) {
             is ConditionInfo.PersonalPlanUser -> EmptyStatePersonalPlanUser(

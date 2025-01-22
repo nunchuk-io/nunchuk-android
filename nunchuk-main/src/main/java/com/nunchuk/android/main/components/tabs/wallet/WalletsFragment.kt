@@ -551,7 +551,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun showIntro(state: WalletsState) {
         binding.introContainer.isGone = walletsViewModel.getGroupStage() == MembershipStage.DONE
-                || state.allGroups.isNotEmpty() || state.wallets.isEmpty()
+                || state.allGroups.isNotEmpty() || isShowEmptyState(state)
         if (state.plans != null && state.plans.isEmpty() && state.banner != null) {
             if (state.banner.type == Banner.Type.TYPE_01 && state.isHideUpsellBanner.not() && state.allGroups.isEmpty()) {
                 binding.containerNonSubscriber.isVisible = true
