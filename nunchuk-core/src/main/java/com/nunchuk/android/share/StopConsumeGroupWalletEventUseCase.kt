@@ -25,11 +25,11 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class StartConsumeGroupWalletEventUseCase @Inject constructor(
+class StopConsumeGroupWalletEventUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk
 ) : UseCase<Unit, Unit>(dispatcher) {
     override suspend fun execute(parameters: Unit) {
-       return nativeSdk.startConsumeGroupEvent()
+       return nativeSdk.stopConsumeGroupEvent()
     }
 }

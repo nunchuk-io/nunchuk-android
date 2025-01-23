@@ -57,6 +57,7 @@ import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.listener.BlockListener
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
@@ -498,7 +499,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 txId = txId,
                 isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
             ).flowOn(IO).onException {
-                if ((it as? NunchukApiException)?.code == ApiErrorCode.TRANSACTION_CANCEL) {
+                if (it is NCNativeException && it.message.contains("-2003")) {
+                    _event.emit(DeleteTransactionSuccess())
+                } else if ((it as? NunchukApiException)?.code == ApiErrorCode.TRANSACTION_CANCEL) {
                     handleDeleteTransactionEvent(isCancel = true, onlyLocal = true)
                 } else if (it.isNoInternetException.not()) {
                     _event.emit(TransactionDetailsError(it.message.orEmpty()))
