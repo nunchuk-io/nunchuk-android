@@ -297,7 +297,7 @@ fun FreeGroupWalletScreen(
             if (allSigners.isNotEmpty()) {
                 SelectSignerBottomSheet(
                     onDismiss = { showSignerBottomSheet = false },
-                    supportedSigners = emptyList(),
+                    supportedSigners = state.supportedTypes,
                     onAddExistKey = {
                         showSignerBottomSheet = false
                         onAddExistingKey(it, currentSignerIndex)

@@ -8,6 +8,7 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.listener.GroupDeleteListener
@@ -26,11 +27,14 @@ import com.nunchuk.android.usecase.free.groupwallet.GetPendingGroupsSandboxUseCa
 import com.nunchuk.android.usecase.free.groupwallet.RemoveSignerFromGroupUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.signer.GetSignerUseCase
+import com.nunchuk.android.usecase.signer.GetSupportedSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -50,7 +54,8 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val getGroupOnlineUseCase: GetGroupOnlineUseCase,
     private val pushEventManager: PushEventManager,
     private val getPendingGroupsSandboxUseCase: GetPendingGroupsSandboxUseCase,
-    private val hasSignerUseCase: HasSignerUseCase
+    private val hasSignerUseCase: HasSignerUseCase,
+    private val getSupportedSignersUseCase: GetSupportedSignersUseCase,
 ) : ViewModel() {
     val groupId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
@@ -74,6 +79,19 @@ class FreeGroupWalletViewModel @Inject constructor(
                     Timber.d("Pushing event: $it")
                     addSignerToGroup(it.signer)
                 }
+        }
+        viewModelScope.launch {
+            _uiState.mapNotNull { it.group?.addressType }.distinctUntilChanged()
+                .collect { addressType ->
+                    if (addressType.isTaproot() && _uiState.value.supportedTypes.isEmpty()) {
+                        getSupportedSignersUseCase(Unit).onSuccess { supportedTypes ->
+                            _uiState.update { it.copy(supportedTypes = supportedTypes) }
+                        }
+                    }
+                }
+            getSupportedSignersUseCase(Unit).onSuccess { supportedTypes ->
+                _uiState.update { it.copy(supportedTypes = supportedTypes) }
+            }
         }
     }
 

@@ -2,6 +2,7 @@ package com.nunchuk.android.main.groupwallet
 
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.GroupSandbox
+import com.nunchuk.android.model.signer.SupportedSigner
 
 data class FreeGroupWalletUiState(
     val group: GroupSandbox? = null,
@@ -11,5 +12,6 @@ data class FreeGroupWalletUiState(
     val isFinishScreen: Boolean = false,
     val numberOfOnlineUsers: Int = 1,
     val groupWalletUnavailable: Boolean = false,
-    val errorMessage: String = ""
+    val errorMessage: String = "",
+    val supportedTypes: List<SupportedSigner> = emptyList()
 )
