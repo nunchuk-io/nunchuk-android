@@ -56,6 +56,7 @@ import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.component.FreeAddKeyCard
 import com.nunchuk.android.main.groupwallet.component.UserOnline
@@ -297,7 +298,7 @@ fun FreeGroupWalletScreen(
             if (allSigners.isNotEmpty()) {
                 SelectSignerBottomSheet(
                     onDismiss = { showSignerBottomSheet = false },
-                    supportedSigners = state.supportedTypes,
+                    supportedSigners = state.supportedTypes.takeIf { state.group?.addressType?.isTaproot() == true }.orEmpty(),
                     onAddExistKey = {
                         showSignerBottomSheet = false
                         onAddExistingKey(it, currentSignerIndex)
