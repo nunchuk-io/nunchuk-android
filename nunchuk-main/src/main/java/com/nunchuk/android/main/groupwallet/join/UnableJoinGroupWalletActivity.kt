@@ -1,9 +1,12 @@
 package com.nunchuk.android.main.groupwallet.join
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -43,14 +46,32 @@ class UnableJoinGroupWalletActivity : BaseComposeActivity() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                UnableJoinGroupWalletScreen()
+                UnableJoinGroupWalletScreen(
+                    link = intent.getStringExtra(EXTRA_LINK) ?: ""
+                ) {
+                    finish()
+                }
             }
         })
+    }
+
+    companion object {
+        const val TAG = "UnableJoinGroupWalletActivity"
+        private const val EXTRA_LINK = "extra_link"
+        fun start(context: Context, link: String) {
+            context.startActivity(Intent(context, UnableJoinGroupWalletActivity::class.java)
+                .apply {
+                    putExtra(EXTRA_LINK, link)
+                })
+        }
     }
 }
 
 @Composable
-fun UnableJoinGroupWalletScreen() {
+fun UnableJoinGroupWalletScreen(
+    link: String = "",
+    onGotItClicked: () -> Unit = {}
+) {
     NunchukTheme {
         Scaffold(topBar = {
             NcTopAppBar(
@@ -112,15 +133,16 @@ fun UnableJoinGroupWalletScreen() {
                             shape = RoundedCornerShape(8.dp)
                         )
                         .padding(16.dp)
+                        .clickable {
+                            onGotItClicked()
+                        }
                 ) {
                     Text(
-                        text = "https://nunchuk.io/dw/id/groupwallet2",
+                        text = link,
                         style = NunchukTheme.typography.body,
                         textAlign = TextAlign.Center
                     )
                 }
-
-
             }
         }
     }

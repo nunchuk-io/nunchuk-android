@@ -25,6 +25,7 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.BuildConfig
+import com.nunchuk.android.core.util.DeeplinkHolder
 import com.nunchuk.android.core.util.UnlockPinSourceFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.nav.NunchukNavigator
@@ -33,15 +34,23 @@ import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setTransparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import io.branch.indexing.BranchUniversalObject
 import io.branch.referral.Branch
+import io.branch.referral.BranchError
+import io.branch.referral.util.LinkProperties
 import io.branch.referral.validators.IntegrationValidator
+import org.json.JSONObject
 import timber.log.Timber
 import javax.inject.Inject
+
 
 @AndroidEntryPoint
 internal class SplashActivity : AppCompatActivity() {
     @Inject
     lateinit var navigator: NunchukNavigator
+
+    @Inject
+    lateinit var deeplinkHolder: DeeplinkHolder
 
     private val viewModel: SplashViewModel by viewModels()
 
@@ -49,42 +58,45 @@ internal class SplashActivity : AppCompatActivity() {
         super.onStart()
         IntegrationValidator.validate(this)
         Branch.sessionBuilder(this).withCallback { branchUniversalObject, linkProperties, error ->
-            if (BuildConfig.DEBUG) {
-                if (error != null) {
-                    Timber.tag("BranchSDK_Tester")
-                        .e("branch init failed. Caused by -%s", error.message)
-                } else {
-                    Timber.tag("BranchSDK_Tester").e("branch init complete!")
-                    if (branchUniversalObject != null) {
-                        Timber.tag("BranchSDK_Tester").e("title %s", branchUniversalObject.title)
-                        Timber.tag("BranchSDK_Tester")
-                            .e("CanonicalIdentifier %s", branchUniversalObject.canonicalIdentifier)
-                        Timber.tag("BranchSDK_Tester")
-                            .e("metadata %s", branchUniversalObject.contentMetadata.convertToJson())
-                    }
-                    if (linkProperties != null) {
-                        Timber.tag("BranchSDK_Tester").e("Channel %s", linkProperties.channel)
-                        Timber.tag("BranchSDK_Tester")
-                            .e("control params %s", linkProperties.controlParams)
-                    }
-                }
-            }
+            handleBranchDeepLink(branchUniversalObject, linkProperties, error)
         }.withData(this.intent.data).init()
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         this.intent = intent
-        if (intent.hasExtra("branch_force_new_session") && intent.getBooleanExtra("branch_force_new_session",false)) {
-            Branch.sessionBuilder(this).withCallback { referringParams, error ->
-                if (BuildConfig.DEBUG) {
-                    if (error != null) {
-                        Timber.tag("BranchSDK_Tester").e(error.message)
-                    } else if (referringParams != null) {
-                        Timber.tag("BranchSDK_Tester").e(referringParams.toString())
-                    }
-                }
+        if (intent.hasExtra("branch_force_new_session") && intent.getBooleanExtra(
+                "branch_force_new_session",
+                false
+            )
+        ) {
+            Branch.sessionBuilder(this).withCallback { branchUniversalObject, linkProperties, error ->
+                handleBranchDeepLink(branchUniversalObject, linkProperties, error)
             }.reInit()
+        }
+    }
+
+    private fun handleBranchDeepLink(branchUniversalObject: BranchUniversalObject?, linkProperties: LinkProperties?, error: BranchError?) {
+        if (error != null) {
+            Timber.tag("BranchSDK_Tester")
+                .e("branch init failed. Caused by -%s", error.message)
+        } else {
+            Timber.tag("BranchSDK_Tester")
+                .e("branch init complete! - %s, %s", branchUniversalObject, linkProperties)
+            if (branchUniversalObject != null) {
+                Timber.tag("BranchSDK_Tester").e("title %s", branchUniversalObject.title)
+                Timber.tag("BranchSDK_Tester")
+                    .e("CanonicalIdentifier %s", branchUniversalObject.canonicalIdentifier)
+                Timber.tag("BranchSDK_Tester")
+                    .e("metadata %s", branchUniversalObject.contentMetadata?.convertToJson())
+                val metaData = branchUniversalObject.contentMetadata?.convertToJson()
+                deeplinkHolder.setDeeplinkInfo(metaData.toString())
+            }
+            if (linkProperties != null) {
+                Timber.tag("BranchSDK_Tester").e("Channel %s", linkProperties.channel)
+                Timber.tag("BranchSDK_Tester")
+                    .e("control params %s", linkProperties.controlParams)
+            }
         }
     }
 

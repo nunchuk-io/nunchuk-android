@@ -57,6 +57,7 @@ import com.nunchuk.android.core.referral.ReferralArgs
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
+import com.nunchuk.android.core.util.DeeplinkHolder
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.formatMMMddyyyyDate
@@ -88,6 +89,7 @@ import com.nunchuk.android.main.databinding.FragmentWalletsBinding
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
 import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
+import com.nunchuk.android.main.groupwallet.join.UnableJoinGroupWalletActivity
 import com.nunchuk.android.main.intro.UniversalNfcIntroActivity
 import com.nunchuk.android.main.membership.byzantine.views.PendingWalletView
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
@@ -136,6 +138,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     @Inject
     lateinit var sessionHolder: SessionHolder
 
+    @Inject
+    lateinit var deeplinkHolder: DeeplinkHolder
+
     private val walletsViewModel: WalletsViewModel by activityViewModels()
 
     private val roomViewModel: RoomsViewModel by activityViewModels()
@@ -171,6 +176,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         setupViews()
 
         observeEvent()
+
+        deeplinkHolder.info?.let {
+            walletsViewModel.joinGroupWallet(it.groupId)
+        }
     }
 
     private fun setupViews() {
@@ -378,6 +387,17 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 event.walletExtended,
                 event.isLeaveRoom
             )
+
+            WalletsEvent.JoinFreeGroupWalletFailed -> {
+                UnableJoinGroupWalletActivity.start(requireActivity(), link = deeplinkHolder.info?.referringLink.orEmpty())
+            }
+
+            is WalletsEvent.JoinFreeGroupWalletSuccess -> {
+                navigator.openFreeGroupWalletScreen(
+                    activityContext = requireActivity(),
+                    groupId = event.groupSandbox.id,
+                )
+            }
         }
         walletsViewModel.clearEvent()
     }

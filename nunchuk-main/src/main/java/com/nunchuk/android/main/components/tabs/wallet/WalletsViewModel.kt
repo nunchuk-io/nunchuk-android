@@ -29,6 +29,7 @@ import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
+import com.nunchuk.android.core.domain.JoinFreeGroupWalletByIdUseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
@@ -162,6 +163,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val getPendingGroupsSandboxUseCase: GetPendingGroupsSandboxUseCase,
     private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
+    private val joinFreeGroupWalletByIdUseCase: JoinFreeGroupWalletByIdUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -381,6 +383,15 @@ internal class WalletsViewModel @Inject constructor(
 
             mapGroupWalletUi()
         }
+    }
+
+    fun joinGroupWallet(groupId: String) = viewModelScope.launch {
+        joinFreeGroupWalletByIdUseCase(groupId)
+            .onSuccess {
+                setEvent(WalletsEvent.JoinFreeGroupWalletSuccess(it))
+            }.onFailure {
+                setEvent(WalletsEvent.JoinFreeGroupWalletFailed)
+            }
     }
 
     private fun getCampaign() {
