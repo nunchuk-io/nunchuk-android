@@ -35,7 +35,7 @@ import com.nunchuk.android.type.WalletType
 
 interface PersonalWalletNavigator {
 
-    fun openAddWalletScreen(activityContext: Context, decoyPin: String = "", groupWalletId: String = "")
+    fun openAddWalletScreen(activityContext: Context, decoyPin: String = "", groupWalletId: String = "", hasGroupSigner: Boolean = false)
 
     fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean)
 

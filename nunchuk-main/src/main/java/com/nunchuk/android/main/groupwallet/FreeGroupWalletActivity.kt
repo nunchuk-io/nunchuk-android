@@ -36,11 +36,12 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
                         ) {
                             freeGroupWallet(
                                 viewModel = viewModel,
-                                onEditClicked = {
+                                onEditClicked = { groupId, hasGroupSigner ->
                                     navigator.openAddWalletScreen(
                                         activityContext = this@FreeGroupWalletActivity,
                                         decoyPin = "",
-                                        groupWalletId = it
+                                        groupWalletId = groupId,
+                                        hasGroupSigner = hasGroupSigner
                                     )
                                 },
                                 onShowQRCodeClicked = {

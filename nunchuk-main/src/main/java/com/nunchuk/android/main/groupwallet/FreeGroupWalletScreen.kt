@@ -79,7 +79,7 @@ val avatarColors = listOf(
 
 fun NavGraphBuilder.freeGroupWallet(
     viewModel: FreeGroupWalletViewModel,
-    onEditClicked: (String) -> Unit = {},
+    onEditClicked: (String, Boolean) -> Unit = { _, _ -> },
     onCopyLinkClicked: (String) -> Unit = {},
     onShowQRCodeClicked: (String) -> Unit = {},
     onAddNewKey: (Int) -> Unit = {},
@@ -129,7 +129,7 @@ fun NavGraphBuilder.freeGroupWallet(
             onContinueClicked = onContinueClicked,
             onEditClicked = {
                 state.group?.let {
-                    onEditClicked(it.id)
+                    onEditClicked(it.id, state.signers.any { it != null })
                 }
             },
             onCopyLinkClicked = onCopyLinkClicked,

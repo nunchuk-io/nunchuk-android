@@ -27,7 +27,6 @@ data class AddWalletState(
     val freeGroupWalletConfig: GlobalGroupWalletConfig = GlobalGroupWalletConfig(0, 0, 0, emptySet()),
     val groupSandbox: GroupSandbox? = null,
     val addressTypeSelected: AddressType = AddressType.NATIVE_SEGWIT,
-    val isHasSigner: Boolean = false
 )
 
 sealed class AddWalletEvent {

@@ -39,13 +39,9 @@ class AddWalletViewModel @Inject constructor(
         if (groupId.isNotEmpty()) {
             viewModelScope.launch {
                 getGroupSandboxUseCase(groupId).onSuccess { group ->
-                    val signers = group.signers.map {
-                        it.takeIf { it.masterFingerprint.isNotEmpty() }?.toModel()
-                    }
                     _state.update {
                         it.copy(
                             groupSandbox = group,
-                            isHasSigner = signers.isNotEmpty(),
                             addressTypeSelected = group.addressType
                         )
                     }

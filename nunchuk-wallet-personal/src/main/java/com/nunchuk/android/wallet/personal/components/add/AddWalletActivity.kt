@@ -54,6 +54,10 @@ class AddWalletActivity : BaseComposeActivity() {
         intent.getStringExtra(GROUP_WALLET_ID).orEmpty()
     }
 
+    private val hasGroupSigner: Boolean by lazy(LazyThreadSafetyMode.NONE) {
+        intent.getBooleanExtra(HAS_GROUP_SIGNER, false)
+    }
+
     private var isAlreadyShowChangeAddressTypeDialog = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,7 +74,7 @@ class AddWalletActivity : BaseComposeActivity() {
                             viewModel.updateAddressTypeSelected(it)
                             viewModel.getFreeGroupWalletConfig(it)
                         }
-                        if (viewModel.state.value.groupSandbox?.addressType != it && viewModel.state.value.isHasSigner && isAlreadyShowChangeAddressTypeDialog.not()) {
+                        if (viewModel.state.value.groupSandbox?.addressType != it && hasGroupSigner && isAlreadyShowChangeAddressTypeDialog.not()) {
                             showChangeAddressTypeDialog {
                                 isAlreadyShowChangeAddressTypeDialog = true
                                 action()
@@ -148,9 +152,11 @@ class AddWalletActivity : BaseComposeActivity() {
     companion object {
         private const val DECOY_PIN = "decoy_wallet"
         const val GROUP_WALLET_ID = "group_wallet_id"
+        private const val HAS_GROUP_SIGNER = "has_group_signer"
 
         fun start(
-            activityContext: Context, decoyPin: String, groupWalletId: String
+            activityContext: Context, decoyPin: String, groupWalletId: String,
+            hasGroupSigner: Boolean
         ) {
             activityContext.startActivity(
                 Intent(
@@ -159,6 +165,7 @@ class AddWalletActivity : BaseComposeActivity() {
                 ).apply {
                     putExtra(DECOY_PIN, decoyPin)
                     putExtra(GROUP_WALLET_ID, groupWalletId)
+                    putExtra(HAS_GROUP_SIGNER, hasGroupSigner)
                 })
         }
     }
