@@ -45,7 +45,8 @@ class AddWalletViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             groupSandbox = group,
-                            isHasSigner = signers.isNotEmpty()
+                            isHasSigner = signers.isNotEmpty(),
+                            addressTypeSelected = group.addressType
                         )
                     }
                     getFreeGroupWalletConfig(group.addressType)
