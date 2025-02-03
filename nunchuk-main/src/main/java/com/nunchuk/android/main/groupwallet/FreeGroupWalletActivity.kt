@@ -50,12 +50,10 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
                                     copyToClipboard(label = "Nunchuk", text = it)
                                     NCToastMessage(this@FreeGroupWalletActivity).show("Link copied to clipboard")
                                 },
-                                onAddExistingKey = { signer, index ->
-                                    viewModel.setCurrentSignerIndex(index)
+                                onAddExistingKey = { signer, _ ->
                                     viewModel.addExistingSigner(signer)
                                 },
                                 onAddNewKey = {
-                                    viewModel.setCurrentSignerIndex(it)
                                     openSignerIntro(it)
                                 },
                                 finishScreen = ::finish,
@@ -74,6 +72,10 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
                                 },
                                 returnToHome = {
                                     navigator.returnToMainScreen(this@FreeGroupWalletActivity)
+                                },
+                                onStartAddKey = {
+                                    viewModel.setCurrentSignerIndex(it)
+                                    viewModel.setSlotOccupied(true)
                                 }
                             )
 
@@ -86,6 +88,11 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
                 }
             }
         )
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.setSlotOccupied(false)
     }
 
     private fun openSignerIntro(index: Int) {

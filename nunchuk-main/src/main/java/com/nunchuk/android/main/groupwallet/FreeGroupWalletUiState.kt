@@ -13,5 +13,6 @@ data class FreeGroupWalletUiState(
     val numberOfOnlineUsers: Int = 1,
     val groupWalletUnavailable: Boolean = false,
     val errorMessage: String = "",
-    val supportedTypes: List<SupportedSigner> = emptyList()
+    val supportedTypes: List<SupportedSigner> = emptyList(),
+    val occupiedSlotsIndex : Set<Int> = emptySet()
 )

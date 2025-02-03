@@ -87,6 +87,7 @@ fun NavGraphBuilder.freeGroupWallet(
     finishScreen: () -> Unit,
     returnToHome: () -> Unit,
     onContinueClicked: (GroupSandbox) -> Unit = {},
+    onStartAddKey: (Int) -> Unit = {},
 ) {
     composable(
         route = freeGroupWalletRoute,
@@ -136,7 +137,8 @@ fun NavGraphBuilder.freeGroupWallet(
             onRemoveClicked = viewModel::removeSignerFromGroup,
             onAddExistingKey = onAddExistingKey,
             onDeleteGroupClicked = viewModel::deleteGroupSandbox,
-            returnToHome = returnToHome
+            returnToHome = returnToHome,
+            onStartAddKey = onStartAddKey
         )
     }
 }
@@ -155,6 +157,7 @@ fun FreeGroupWalletScreen(
     onAddExistingKey: (SignerModel, Int) -> Unit = { _, _ -> },
     onDeleteGroupClicked: () -> Unit = {},
     returnToHome: () -> Unit = {},
+    onStartAddKey: (Int) -> Unit = {},
 ) {
     var showSignerBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showMoreOption by rememberSaveable { mutableStateOf(false) }
@@ -263,9 +266,11 @@ fun FreeGroupWalletScreen(
             itemsIndexed(state.signers) { index, signer ->
                 FreeAddKeyCard(
                     index = index,
+                    isOccupied = state.occupiedSlotsIndex.contains(index),
                     signer = signer,
                     onAddClicked = {
                         currentSignerIndex = index
+                        onStartAddKey(index)
                         if (state.allSigners.isNotEmpty()) {
                             showSignerBottomSheet = true
                         } else {

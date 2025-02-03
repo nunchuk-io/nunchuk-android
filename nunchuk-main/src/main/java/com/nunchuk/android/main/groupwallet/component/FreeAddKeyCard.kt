@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.groupwallet.component
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -17,6 +18,7 @@ import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcDashLineBox
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.beeswaxDark
 import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.signer.SignerModel
@@ -26,6 +28,7 @@ import com.nunchuk.android.main.groupwallet.avatarColors
 @Composable
 fun FreeAddKeyCard(
     index: Int,
+    isOccupied: Boolean,
     modifier: Modifier = Modifier,
     signer: SignerModel? = null,
     onAddClicked: () -> Unit,
@@ -82,12 +85,21 @@ fun FreeAddKeyCard(
                     Column(
                         modifier = Modifier
                             .weight(1.0f)
-                            .padding(start = 8.dp)
+                            .padding(start = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
                             text = stringResource(R.string.nc_key_with_index, "#${index + 1}"),
                             style = NunchukTheme.typography.body
                         )
+
+                        if (isOccupied) {
+                            Text(
+                                text = stringResource(id = R.string.nc_occupied),
+                                style = NunchukTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.beeswaxDark
+                            )
+                        }
                     }
                     NcOutlineButton(
                         modifier = Modifier.height(36.dp),

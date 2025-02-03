@@ -3,6 +3,7 @@ package com.nunchuk.android.main.groupwallet
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
@@ -34,6 +35,7 @@ import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.signer.GetSignerUseCase
 import com.nunchuk.android.usecase.signer.GetSupportedSignersUseCase
 import com.nunchuk.android.usecase.signer.GetUnusedSignerFromMasterSignerV2UseCase
+import com.nunchuk.android.usecase.signer.SetSlotOccupiedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,6 +47,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.minutes
 
 @HiltViewModel
 class FreeGroupWalletViewModel @Inject constructor(
@@ -64,6 +67,8 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val hasSignerUseCase: HasSignerUseCase,
     private val getSupportedSignersUseCase: GetSupportedSignersUseCase,
     private val getUnusedSignerFromMasterSignerV2UseCase: GetUnusedSignerFromMasterSignerV2UseCase,
+    private val setSlotOccupiedUseCase: SetSlotOccupiedUseCase,
+    private val getGroupDeviceUIDUseCase: GetGroupDeviceUIDUseCase
 ) : ViewModel() {
     val groupId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
@@ -71,6 +76,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     val uiState: StateFlow<FreeGroupWalletUiState> = _uiState.asStateFlow()
     private val singleSigners = mutableListOf<SingleSigner>()
     private val masterSigners = mutableListOf<MasterSigner>()
+    private var deviceUID: String = ""
 
     init {
         loadSigners()
@@ -101,6 +107,11 @@ class FreeGroupWalletViewModel @Inject constructor(
                 }
             getSupportedSignersUseCase(Unit).onSuccess { supportedTypes ->
                 _uiState.update { it.copy(supportedTypes = supportedTypes) }
+            }
+        }
+        viewModelScope.launch {
+            getGroupDeviceUIDUseCase(Unit).onSuccess { uid ->
+                deviceUID = uid
             }
         }
     }
@@ -207,7 +218,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                     Timber.e("Failed to get group sandbox $it")
                     if (it is NCNativeException && it.message.contains("-7008")) {
                         Timber.d("Group not found, finish screen")
-                        _uiState.update { it.copy(isFinishScreen = true) }
+                        _uiState.update { state -> state.copy(isFinishScreen = true) }
                     }
                 }
                 _uiState.update { it.copy(isLoading = false) }
@@ -217,7 +228,6 @@ class FreeGroupWalletViewModel @Inject constructor(
 
     private suspend fun updateGroupSandbox(groupSandbox: GroupSandbox) {
         val signers = groupSandbox.signers.map {
-
             it.takeIf { it.masterFingerprint.isNotEmpty() }?.let { signer ->
                 if (hasSignerUseCase(signer).getOrNull() == true) {
                     singleSignerMapper(getSignerUseCase(signer).getOrThrow()).copy(isVisible = true)
@@ -226,7 +236,16 @@ class FreeGroupWalletViewModel @Inject constructor(
                 }
             }
         }
-        _uiState.update { it.copy(group = groupSandbox, signers = signers) }
+        val currentTimeInSeconds = System.currentTimeMillis() / 1000
+        val timeout = 5.minutes.inWholeSeconds
+        val occupiedSlots = groupSandbox.occupiedSlots.mapIndexedNotNull { index, occupiedSlot ->
+            if (occupiedSlot != null && occupiedSlot.deviceId != deviceUID && occupiedSlot.time + timeout > currentTimeInSeconds) {
+                index
+            } else {
+                null
+            }
+        }.toSet()
+        _uiState.update { it.copy(group = groupSandbox, signers = signers, occupiedSlotsIndex = occupiedSlots) }
     }
 
     fun setCurrentSignerIndex(index: Int) {
@@ -294,6 +313,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     fun addExistingSigner(signer: SignerModel) {
         val addressType = _uiState.value.group?.addressType ?: return
         _uiState.update { it.copy(isLoading = true) }
+        setSlotOccupied(false)
         viewModelScope.launch {
             if (signer.isMasterSigner) {
                 val masterSigner =
@@ -319,6 +339,23 @@ class FreeGroupWalletViewModel @Inject constructor(
             }
         }
         _uiState.update { it.copy(isLoading = false) }
+    }
+
+    fun setSlotOccupied(value: Boolean) {
+        viewModelScope.launch {
+            val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: return@launch
+            setSlotOccupiedUseCase(
+                SetSlotOccupiedUseCase.Params(
+                    groupId,
+                    index,
+                    value
+                )
+            ).onSuccess {
+                Timber.d("Slot $index is occupied: $value")
+            }.onFailure {
+                Timber.e("Failed to set slot occupied $it")
+            }
+        }
     }
 
     companion object {
