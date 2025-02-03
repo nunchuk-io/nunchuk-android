@@ -52,7 +52,7 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
                                 },
                                 onAddExistingKey = { signer, index ->
                                     viewModel.setCurrentSignerIndex(index)
-                                    navController.navigateCustomKey(signer)
+                                    viewModel.addExistingSigner(signer)
                                 },
                                 onAddNewKey = {
                                     viewModel.setCurrentSignerIndex(it)

@@ -56,7 +56,7 @@ fun FreeAddKeyCard(
                         .padding(start = 8.dp)
                 ) {
                     Text(
-                        text = "XFP: ${signer.fingerPrint}",
+                        text = signer.getXfpOrCardIdLabel(),
                         style = NunchukTheme.typography.body
                     )
                 }

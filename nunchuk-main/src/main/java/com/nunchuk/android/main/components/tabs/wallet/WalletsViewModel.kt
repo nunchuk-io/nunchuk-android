@@ -179,6 +179,7 @@ internal class WalletsViewModel @Inject constructor(
     private var isRetrievingData = AtomicBoolean(false)
     private var isRetrievingAlert = AtomicBoolean(false)
     private var isRetrievingKeyHealthStatus = AtomicBoolean(false)
+    private var loadGroupWalletJob : Job? = null
 
     private var walletsRequestKey = ""
 
@@ -362,7 +363,8 @@ internal class WalletsViewModel @Inject constructor(
     private var mapDataJob: Job? = null
 
     fun getGroupsSandbox() {
-        viewModelScope.launch {
+        loadGroupWalletJob?.cancel()
+        loadGroupWalletJob = viewModelScope.launch {
             val pendingWalletsDeferred = async {
                 getPendingGroupsSandboxUseCase(Unit).getOrNull().orEmpty()
             }

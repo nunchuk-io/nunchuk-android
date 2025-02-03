@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orUnknownError
@@ -15,10 +17,12 @@ import com.nunchuk.android.listener.GroupDeleteListener
 import com.nunchuk.android.listener.GroupOnlineListener
 import com.nunchuk.android.listener.GroupSandboxListener
 import com.nunchuk.android.model.GroupSandbox
+import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.free.groupwallet.AddSignerToGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.CreateGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.DeleteGroupSandboxUseCase
@@ -29,6 +33,7 @@ import com.nunchuk.android.usecase.free.groupwallet.RemoveSignerFromGroupUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.signer.GetSignerUseCase
 import com.nunchuk.android.usecase.signer.GetSupportedSignersUseCase
+import com.nunchuk.android.usecase.signer.GetUnusedSignerFromMasterSignerV2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,6 +52,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val getAllSignersUseCase: GetAllSignersUseCase,
     private val createGroupSandboxUseCase: CreateGroupSandboxUseCase,
     private val masterSignerMapper: MasterSignerMapper,
+    private val singleSignerMapper: SingleSignerMapper,
     private val savedStateHandle: SavedStateHandle,
     private val addSignerToGroupUseCase: AddSignerToGroupUseCase,
     private val removeSignerFromGroupUseCase: RemoveSignerFromGroupUseCase,
@@ -57,11 +63,14 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val getPendingGroupsSandboxUseCase: GetPendingGroupsSandboxUseCase,
     private val hasSignerUseCase: HasSignerUseCase,
     private val getSupportedSignersUseCase: GetSupportedSignersUseCase,
+    private val getUnusedSignerFromMasterSignerV2UseCase: GetUnusedSignerFromMasterSignerV2UseCase,
 ) : ViewModel() {
     val groupId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
     private val _uiState = MutableStateFlow(FreeGroupWalletUiState())
     val uiState: StateFlow<FreeGroupWalletUiState> = _uiState.asStateFlow()
+    private val singleSigners = mutableListOf<SingleSigner>()
+    private val masterSigners = mutableListOf<MasterSigner>()
 
     init {
         loadSigners()
@@ -135,8 +144,15 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun loadSigners() {
         viewModelScope.launch {
             getAllSignersUseCase(false).onSuccess { pair ->
-                val singleSigner = pair.second.distinctBy { it.masterFingerprint }
-                    .filter { it.type != SignerType.SERVER }
+                val singleSigner = pair.second.filter { it.type != SignerType.SERVER }
+                singleSigners.apply {
+                    clear()
+                    addAll(singleSigner)
+                }
+                masterSigners.apply {
+                    clear()
+                    addAll(pair.first)
+                }
                 val signers = pair.first.filter { it.type != SignerType.SERVER }
                     .map { signer ->
                         masterSignerMapper(signer)
@@ -204,7 +220,7 @@ class FreeGroupWalletViewModel @Inject constructor(
 
             it.takeIf { it.masterFingerprint.isNotEmpty() }?.let { signer ->
                 if (hasSignerUseCase(signer).getOrNull() == true) {
-                    getSignerUseCase(signer).getOrThrow().toModel().copy(isVisible = true)
+                    singleSignerMapper(getSignerUseCase(signer).getOrThrow()).copy(isVisible = true)
                 } else {
                     it.toModel().copy(isVisible = false)
                 }
@@ -273,6 +289,36 @@ class FreeGroupWalletViewModel @Inject constructor(
         return _uiState.value.let { state ->
             state.supportedTypes.takeIf { state.group?.addressType?.isTaproot() == true }.orEmpty()
         }
+    }
+
+    fun addExistingSigner(signer: SignerModel) {
+        val addressType = _uiState.value.group?.addressType ?: return
+        _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            if (signer.isMasterSigner) {
+                val masterSigner =
+                    masterSigners.find { it.id == signer.fingerPrint } ?: return@launch
+                getUnusedSignerFromMasterSignerV2UseCase(
+                    GetUnusedSignerFromMasterSignerV2UseCase.Params(
+                        masterSigner,
+                        WalletType.MULTI_SIG,
+                        addressType
+                    )
+                ).onSuccess { singleSigner ->
+                    addSignerToGroup(singleSigner)
+                }.onFailure { error ->
+                    Timber.e("Failed to add signer to group $error")
+                    _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+                }
+            } else {
+                val singleSigner = singleSigners.find {
+                    it.masterFingerprint == signer.fingerPrint &&
+                            it.derivationPath == signer.derivationPath
+                } ?: return@launch
+                addSignerToGroup(singleSigner)
+            }
+        }
+        _uiState.update { it.copy(isLoading = false) }
     }
 
     companion object {
