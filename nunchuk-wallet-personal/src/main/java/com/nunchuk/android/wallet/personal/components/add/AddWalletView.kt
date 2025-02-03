@@ -350,7 +350,7 @@ fun KeyManagementSection(
                 modifier = Modifier
                     .size(36.dp)
                     .border(1.dp, MaterialTheme.colorScheme.textPrimary, CircleShape)
-                    .clickable {
+                    .clickable(enable) {
                         onDecrement()
                     },
                 contentAlignment = Alignment.Center
@@ -378,9 +378,9 @@ fun KeyManagementSection(
             Box(
                 modifier = Modifier
                     .size(36.dp)
-                    .border(1.dp, MaterialTheme.colorScheme.textPrimary, CircleShape)
                     .alpha(if (enable) 1f else 0.4f)
-                    .clickable { onIncrement() },
+                    .border(1.dp, MaterialTheme.colorScheme.textPrimary, CircleShape)
+                    .clickable(enable) { onIncrement() },
                 contentAlignment = Alignment.Center
             ) {
                 NcIcon(
@@ -420,7 +420,7 @@ fun KeysAndRequiredKeysScreen(
             description = "Number of keys assigned to the wallet (up to ${freeGroupWalletConfig.maxKey}).",
             value = keys,
             onIncrement = { if (keys < freeGroupWalletConfig.maxKey) keys++ },
-            onDecrement = { if (keys > 1) keys-- },
+            onDecrement = { if (keys > 1 && keys > requiredKeys) keys-- },
             enable = keys < freeGroupWalletConfig.maxKey
         )
 
