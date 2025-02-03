@@ -376,7 +376,7 @@ internal class WalletsViewModel @Inject constructor(
 
             updateState {
                 copy(
-                    pendingGroupSandboxes = pendingWallets,
+                    pendingGroupSandboxes = pendingWallets.filter { !it.finalized },
                     groupSandboxWalletIds = groupSandboxWallets
                 )
             }
