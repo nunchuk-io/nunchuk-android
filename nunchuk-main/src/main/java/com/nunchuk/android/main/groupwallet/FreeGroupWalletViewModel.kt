@@ -192,8 +192,9 @@ class FreeGroupWalletViewModel @Inject constructor(
             ).onSuccess { groupSandbox ->
                 savedStateHandle[FreeGroupWalletActivity.EXTRA_GROUP_ID] = groupSandbox.id
                 updateGroupSandbox(groupSandbox)
-            }.onFailure {
-                Timber.e("Failed to create group sandbox $it")
+            }.onFailure { error ->
+                Timber.e("Failed to create group sandbox $error")
+                _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
             }
             _uiState.update { it.copy(isLoading = false) }
         }
