@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.nunchuk.android.messages.components.freegroup
 
 import android.content.Context
@@ -276,6 +278,8 @@ fun ChatMessages(messages: List<MessageUI>) {
 fun SentMessageBubble(message: MessageUI.SenderMessage) {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val maxWidth = (screenWidth * 0.7f)
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -290,6 +294,19 @@ fun SentMessageBubble(message: MessageUI.SenderMessage) {
                     RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
                 )
                 .padding(12.dp)
+                .combinedClickable(
+                    onClick = { /* Handle click if needed */ },
+                    onLongClick = {
+                        clipboardManager.setText(AnnotatedString(message.data.content))
+                        Toast
+                            .makeText(
+                                context,
+                                "Message copied to clipboard",
+                                Toast.LENGTH_SHORT
+                            )
+                            .show()
+                    }
+                )
         ) {
             Text(
                 text = message.data.content,
