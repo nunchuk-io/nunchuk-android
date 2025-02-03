@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +42,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.wallet.personal.R
 
 @Composable
@@ -50,7 +52,7 @@ fun WalletIntermediaryScreen(
     onWalletTypeSelected: (WalletType) -> Unit = {},
     onRecoverWalletClicked: () -> Unit = {},
     onJoinGroupWalletClicked: () -> Unit = {},
-    onScanQRClicked: () -> Unit = {}
+    onScanQRClicked: () -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold(
@@ -216,7 +218,8 @@ fun Action(
         Spacer(modifier = Modifier.weight(1f))
 
         NcIcon(
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier
+                .size(24.dp)
                 .clickable {
                     onScanQRClicked()
                 },
@@ -265,9 +268,11 @@ fun Action(
         Spacer(modifier = Modifier.weight(1f))
 
         NcIcon(
-            modifier = Modifier.size(24.dp).clickable {
-                onRecoverWalletClicked()
-            },
+            modifier = Modifier
+                .size(24.dp)
+                .clickable {
+                    onRecoverWalletClicked()
+                },
             painter = painterResource(id = R.drawable.ic_arrow_right_new),
             contentDescription = "Arrow Right Icon"
         )
@@ -276,6 +281,7 @@ fun Action(
 
 @Composable
 fun Bottom() {
+    val context = LocalContext.current
     Box(
         modifier = Modifier
             .padding(start = 16.dp, end = 16.dp, bottom = 24.dp)
@@ -284,6 +290,9 @@ fun Bottom() {
                 shape = RoundedCornerShape(8.dp),
             )
             .fillMaxWidth()
+            .clickable {
+                context.openExternalLink("https://nunchuk.io/individuals")
+            }
     ) {
         Row(
             modifier = Modifier

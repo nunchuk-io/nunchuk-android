@@ -78,6 +78,8 @@ class AddWalletActivity : BaseComposeActivity() {
                         } else {
                             action()
                         }
+                    } else {
+                        viewModel.updateAddressTypeSelected(it)
                     }
                 }, { walletName, addressType, m, n ->
                     if (groupWalletId.isNotEmpty()) {
