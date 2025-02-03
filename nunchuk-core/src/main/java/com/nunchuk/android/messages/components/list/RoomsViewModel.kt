@@ -29,6 +29,7 @@ import com.nunchuk.android.core.util.SUPPORT_ROOM_TYPE
 import com.nunchuk.android.core.util.SUPPORT_TEST_NET_ROOM_TYPE
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.listener.GroupDeleteListener
 import com.nunchuk.android.listener.GroupMessageListener
 import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.messages.usecase.message.GetGroupChatRoomsUseCase
@@ -114,9 +115,14 @@ class RoomsViewModel @Inject constructor(
                 }
             }
         }
+        viewModelScope.launch {
+            GroupDeleteListener.groupDeleteFlow.collect { _ ->
+                getGroupMessageAccount()
+            }
+        }
     }
 
-    private fun getGroupMessageAccount() {
+    fun getGroupMessageAccount() {
         viewModelScope.launch {
             delay(500)
             getGroupMessageAccountUseCase(Unit)

@@ -190,6 +190,11 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
         adapter.submitList(newList)
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.getGroupMessageAccount()
+    }
+
     companion object {
         fun newInstance() = RoomsFragment()
     }
