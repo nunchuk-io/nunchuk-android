@@ -92,7 +92,8 @@ class FreeGroupWalletActivity : BaseComposeActivity() {
         navigator.openSignerIntroScreen(
             activityContext = this,
             groupId = viewModel.groupId,
-            index = index
+            index = index,
+            supportedSigners = viewModel.getSuggestedSigners()
         )
     }
 

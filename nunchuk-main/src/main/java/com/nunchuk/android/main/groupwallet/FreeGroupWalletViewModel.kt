@@ -16,6 +16,7 @@ import com.nunchuk.android.listener.GroupOnlineListener
 import com.nunchuk.android.listener.GroupSandboxListener
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.free.groupwallet.AddSignerToGroupUseCase
@@ -266,6 +267,12 @@ class FreeGroupWalletViewModel @Inject constructor(
 
     fun markMessageHandled() {
         _uiState.update { it.copy(errorMessage = "") }
+    }
+
+    fun getSuggestedSigners(): List<SupportedSigner> {
+        return _uiState.value.let { state ->
+            state.supportedTypes.takeIf { state.group?.addressType?.isTaproot() == true }.orEmpty()
+        }
     }
 
     companion object {
