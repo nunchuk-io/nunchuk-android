@@ -160,6 +160,7 @@ fun FreeGroupWalletScreen(
     var showMoreOption by rememberSaveable { mutableStateOf(false) }
     var showAskForDeleteDialog by rememberSaveable { mutableStateOf(false) }
     var currentSignerIndex by rememberSaveable { mutableIntStateOf(-1) }
+    var showDeleteSignerDialog by rememberSaveable { mutableStateOf(false) }
     NcScaffold(
         snackState = snackState,
         modifier = Modifier.navigationBarsPadding(),
@@ -271,7 +272,10 @@ fun FreeGroupWalletScreen(
                             onAddNewKey(index)
                         }
                     },
-                    onRemoveClicked = { onRemoveClicked(index) }
+                    onRemoveClicked = {
+                        currentSignerIndex = index
+                        showDeleteSignerDialog = true
+                    }
                 )
             }
         }
@@ -342,6 +346,19 @@ fun FreeGroupWalletScreen(
                     returnToHome()
                 },
                 positiveButtonText = stringResource(R.string.nc_return_to_home_screen)
+            )
+        }
+        if (showDeleteSignerDialog) {
+            NcConfirmationDialog(
+                title = stringResource(id = R.string.nc_text_warning),
+                message = stringResource(id = R.string.nc_ask_for_delete_signer),
+                onPositiveClick = {
+                    onRemoveClicked(currentSignerIndex)
+                    showDeleteSignerDialog = false
+                },
+                onDismiss = {
+                    showDeleteSignerDialog = false
+                }
             )
         }
     }
