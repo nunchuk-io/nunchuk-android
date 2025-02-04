@@ -33,10 +33,12 @@ import com.nunchuk.android.log.FileLogTree
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.usecase.darkmode.ConfigThemeUseCase
 import com.nunchuk.android.util.FileHelper
+import dagger.Lazy
 import dagger.hilt.android.HiltAndroidApp
 import io.branch.referral.Branch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.matrix.android.sdk.api.Matrix
 import timber.log.Timber
@@ -50,10 +52,10 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
     lateinit var fileHelper: FileHelper
 
     @Inject
-    lateinit var matrix: Matrix
+    lateinit var matrix: Lazy<Matrix>
 
     @Inject
-    lateinit var matrixInitializerUseCase: MatrixInitializerUseCase
+    lateinit var matrixInitializerUseCase: Lazy<MatrixInitializerUseCase>
 
     @Inject
     lateinit var accountManager: AccountManager
@@ -80,8 +82,10 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
             Branch.enableLogging()
         }
         Branch.getAutoInstance(this)
+        applicationScope.launch {
+            matrixInitializerUseCase.get()(Unit)
+        }
         runBlocking {
-            matrixInitializerUseCase(Unit)
             val account = accountManager.getAccount()
             val accountId = if (account.loginType == SignInMode.PRIMARY_KEY.value) {
                 account.username
@@ -109,7 +113,7 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
     }
 
     override fun getWorkManagerConfiguration() = Configuration.Builder()
-        .setWorkerFactory(matrix.getWorkerFactory())
+        .setWorkerFactory(matrix.get().getWorkerFactory())
         .setExecutor(Executors.newCachedThreadPool())
         .build()
 }
