@@ -24,6 +24,7 @@ import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
 import com.nunchuk.android.BuildConfig
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.appearance.ThemeManager
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
@@ -68,6 +69,9 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
 
     @Inject
     lateinit var applicationScope: CoroutineScope
+
+    @Inject
+    lateinit var themeManager: ThemeManager
 
     override fun onCreate() {
         super.onCreate()

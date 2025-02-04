@@ -40,11 +40,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.core.R
-import com.nunchuk.android.core.appearance.ThemeViewModel
+import com.nunchuk.android.core.appearance.ThemeEntrypoint
+import com.nunchuk.android.core.appearance.ThemeManager
 import com.nunchuk.android.model.ThemeMode
+import dagger.hilt.android.EntryPointAccessors
 
 private val PrimaryColor = Color(0xff031F2B)
 private val SecondaryColor = Color(0xff031F2B)
@@ -141,7 +142,10 @@ fun NunchukTheme(
             content = content
         )
     } else {
-        val viewModel: ThemeViewModel = hiltViewModel()
+        val viewModel: ThemeManager = EntryPointAccessors.fromApplication(
+            view.context.applicationContext,
+            ThemeEntrypoint::class.java
+        ).provideThemeManager()
         val mode by viewModel.mode.collectAsStateWithLifecycle()
         if (mode != null) {
             val isDark = when (mode!!) {
