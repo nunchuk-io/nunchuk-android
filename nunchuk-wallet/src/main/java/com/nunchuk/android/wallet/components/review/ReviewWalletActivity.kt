@@ -192,7 +192,7 @@ fun ReviewWalletContent(
                             .fillMaxWidth(),
                         onClick = onContinue
                     ) {
-                        Text(text = stringResource(id = R.string.nc_wallet_create_wallet))
+                        Text(text = stringResource(id = R.string.nc_text_continue))
                     }
                 }
             },

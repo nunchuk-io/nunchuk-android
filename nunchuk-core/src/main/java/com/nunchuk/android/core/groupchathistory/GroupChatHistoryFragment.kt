@@ -157,7 +157,7 @@ fun GroupChatHistoryScreenContent(
         ) {
             items(periods) { period ->
                 Row(
-                    modifier = Modifier.padding(vertical = 12.dp),
+                    modifier = Modifier.padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(

@@ -61,6 +61,11 @@ fun UserOnline(numberOfOnlineUsers: Int) {
                         .padding(start = 48.dp)
                         .size(28.dp)
                         .background(
+                            color = colorResource(id = R.color.nc_stroke_primary),
+                            shape = CircleShape
+                        )
+                        .padding(1.dp)
+                        .background(
                             color = MaterialTheme.colorScheme.primaryT1,
                             shape = CircleShape
                         ),

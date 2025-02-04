@@ -31,6 +31,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcExpandableTextInline
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
@@ -171,11 +172,10 @@ fun ChatBubble(message: String) {
         }
 
         Spacer(modifier = Modifier.width(8.dp))
-        Text(
+        NcExpandableTextInline(
             text = message,
             style = NunchukTheme.typography.bodySmall,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
+            collapsedMaxLine = 2,
         )
     }
 }

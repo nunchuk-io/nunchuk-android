@@ -34,7 +34,7 @@ class GetListMessageFreeGroupWalletUseCase @Inject constructor(
     override suspend fun execute(parameters: Param): List<FreeGroupMessage> {
         return nativeSdk.getGroupWalletMessages(
             walletId = parameters.walletId,
-            pageSize = 50,
+            pageSize = 100,
             page = 0
         )
     }
