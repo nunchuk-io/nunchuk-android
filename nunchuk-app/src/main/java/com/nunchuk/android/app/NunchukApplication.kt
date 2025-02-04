@@ -73,7 +73,7 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
     lateinit var applicationScope: CoroutineScope
 
     @Inject
-    lateinit var themeManager: ThemeManager
+    lateinit var themeManager: ThemeManager // DO NOT REMOVE
 
     override fun onCreate() {
         super.onCreate()

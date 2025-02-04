@@ -113,7 +113,7 @@ fun UnableJoinGroupWalletScreen(
 
                 Text(
                     text = stringResource(id = R.string.nc_unable_access_link),
-                    style = NunchukTheme.typography.title,
+                    style = NunchukTheme.typography.heading,
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
