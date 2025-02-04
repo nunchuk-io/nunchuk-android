@@ -432,7 +432,7 @@ fun KeysAndRequiredKeysScreen(
             value = requiredKeys,
             onIncrement = { if (requiredKeys < keys) requiredKeys++ },
             onDecrement = { if (requiredKeys > 1) requiredKeys-- },
-            enable = requiredKeys < keys
+            enable = requiredKeys <= keys
         )
     }
 }
