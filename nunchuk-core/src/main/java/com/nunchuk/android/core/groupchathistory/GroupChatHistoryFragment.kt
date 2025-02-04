@@ -33,7 +33,6 @@ import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NunchukTheme
@@ -42,7 +41,6 @@ import com.nunchuk.android.core.base.BaseComposeBottomSheet
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.core.wallet.WalletComposeBottomSheet.Companion.TAG
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.utils.parcelable
@@ -79,11 +77,10 @@ class GroupChatHistoryFragment : BaseComposeBottomSheet() {
                 is GroupChatHistoryEvent.Error -> showError(message = event.message)
                 is GroupChatHistoryEvent.Loading -> showOrHideLoading(loading = event.loading)
                 is GroupChatHistoryEvent.UpdateGroupChatSuccess -> {
-                    setFragmentResult(
-                        REQUEST_KEY,
-                        bundleOf(EXTRA_HISTORY_PERIOD to event.historyPeriod)
-                    )
-                    findNavController().popBackStack()
+                    val result = Bundle()
+                    result.putParcelable(EXTRA_HISTORY_PERIOD, event.historyPeriod)
+                    requireActivity().supportFragmentManager.setFragmentResult(REQUEST_KEY, result)
+                    dismiss()
                 }
             }
         }

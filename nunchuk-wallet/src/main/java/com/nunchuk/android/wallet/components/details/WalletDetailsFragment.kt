@@ -185,7 +185,9 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         setupViews()
         observeEvent()
 
-        setFragmentResultListener(GroupChatHistoryFragment.REQUEST_KEY) { _, bundle ->
+        requireActivity().supportFragmentManager.setFragmentResultListener(
+            GroupChatHistoryFragment.REQUEST_KEY, this
+        ) { _: String?, bundle: Bundle ->
             val historyPeriod =
                 bundle.parcelable<HistoryPeriod>(GroupChatHistoryFragment.EXTRA_HISTORY_PERIOD) ?: return@setFragmentResultListener
             viewModel.updateGroupChatHistoryPeriod(historyPeriod)
@@ -225,7 +227,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                     childFragmentManager,
                     GroupChatHistoryArgs(
                         historyPeriods = viewModel.state.value?.historyPeriods.orEmpty(),
-                        historyPeriodIdSelected = "7",
+                        historyPeriodIdSelected = viewModel.state.value?.selectedHistoryPeriod?.id ?: "7",
                         isFreeGroupWalletFlow = viewModel.isFreeGroupWallet(),
                         walletId = args.walletId,
                         roomId = "",

@@ -49,7 +49,7 @@ class GroupChatHistoryViewModel @Inject constructor(
         }
     }
 
-    fun saveHistoryPeriodFreeGroupWallet() {
+    private fun saveHistoryPeriodFreeGroupWallet() {
         viewModelScope.launch {
             updateFreeGroupWalletConfigUseCase(
                 UpdateFreeGroupWalletConfigUseCase.Params(

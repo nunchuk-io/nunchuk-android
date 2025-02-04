@@ -276,7 +276,9 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setFragmentResultListener(GroupChatHistoryFragment.REQUEST_KEY) { _, bundle ->
+        requireActivity().supportFragmentManager.setFragmentResultListener(
+            GroupChatHistoryFragment.REQUEST_KEY, this
+        ) { _: String?, bundle: Bundle ->
             val historyPeriod =
                 bundle.parcelable<HistoryPeriod>(GroupChatHistoryFragment.EXTRA_HISTORY_PERIOD)
             viewModel.updateGroupChatHistoryPeriod(historyPeriod)
