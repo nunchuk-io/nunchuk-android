@@ -228,6 +228,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     }
 
     private suspend fun updateGroupSandbox(groupSandbox: GroupSandbox) {
+        Timber.d("Update group sandbox $groupSandbox")
         val signers = groupSandbox.signers.map {
             it.takeIf { it.masterFingerprint.isNotEmpty() }?.let { signer ->
                 if (hasSignerUseCase(signer).getOrNull() == true) {
@@ -256,6 +257,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     fun addSignerToGroup(signer: SingleSigner) {
         viewModelScope.launch {
             val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: return@launch
+            Timber.d("Add signer to group $signer at index $index")
             _uiState.update { it.copy(isLoading = true) }
             addSignerToGroupUseCase(
                 AddSignerToGroupUseCase.Params(
@@ -314,7 +316,6 @@ class FreeGroupWalletViewModel @Inject constructor(
     fun addExistingSigner(signer: SignerModel) {
         val addressType = _uiState.value.group?.addressType ?: return
         _uiState.update { it.copy(isLoading = true) }
-        setSlotOccupied(false)
         viewModelScope.launch {
             if (signer.isMasterSigner) {
                 val masterSigner =
@@ -326,6 +327,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                         addressType
                     )
                 ).onSuccess { singleSigner ->
+                    Timber.d("Unused signer $singleSigner")
                     addSignerToGroup(singleSigner)
                 }.onFailure { error ->
                     Timber.e("Failed to add signer to group $error")
