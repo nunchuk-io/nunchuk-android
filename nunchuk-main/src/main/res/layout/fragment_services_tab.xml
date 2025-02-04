@@ -14,7 +14,7 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:background="@color/nc_primary_color"
             android:gravity="center"
@@ -24,7 +24,7 @@
                 android:id="@+id/toolbarTitle"
                 style="@style/NCToolbar.Text"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="?attr/actionBarSize"
                 android:text="@string/nc_services_tab"
                 android:textColor="@color/nc_white_color" />
         </androidx.appcompat.widget.Toolbar>

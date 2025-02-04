@@ -51,6 +51,7 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.campaigns.CampaignType
 import com.nunchuk.android.settings.AccountEvent.SignOutEvent
 import com.nunchuk.android.settings.databinding.FragmentAccountBinding
+import com.nunchuk.android.utils.consumeEdgeToEdge
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -284,6 +285,7 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
     }
 
     private fun setupViews() {
+        binding.toolbar.consumeEdgeToEdge()
         binding.btnSignOut.setOnClickListener { viewModel.handleSignOutEvent() }
         binding.signIn.setOnClickListener {
             navigator.openSignInScreen(

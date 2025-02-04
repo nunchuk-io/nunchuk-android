@@ -46,6 +46,7 @@ import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.isByzantineOrFinney
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.consumeEdgeToEdge
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.widget.NCInfoDialog
@@ -227,6 +228,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
     }
 
     private fun setupViews() {
+        binding.toolbar.consumeEdgeToEdge()
         adapter = ServicesTabAdapter(itemClick = {
             onTabItemClick(it)
         }, bannerClick = {

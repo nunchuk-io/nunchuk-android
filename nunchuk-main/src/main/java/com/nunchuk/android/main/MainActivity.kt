@@ -23,8 +23,10 @@ import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -106,7 +108,11 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     }
     private var dialogUpdateRecommend: Dialog? = null
 
-    override fun initializeBinding() = ActivityMainBinding.inflate(layoutInflater)
+    override fun initializeBinding() = ActivityMainBinding.inflate(layoutInflater).also {
+        enableEdgeToEdge()
+        WindowCompat.getInsetsController(window, window.decorView)
+            .isAppearanceLightStatusBars = false
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -116,6 +116,7 @@ import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.util.handleTapSignerStatus
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
+import com.nunchuk.android.utils.consumeEdgeToEdge
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
@@ -172,6 +173,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun setupViews() {
+        binding.toolbar.consumeEdgeToEdge()
         binding.ivAddWallet.setOnClickListener { walletsViewModel.handleAddWallet() }
         binding.ivNfc.setOnClickListener {
             if (walletsViewModel.isShownNfcUniversal.value) {

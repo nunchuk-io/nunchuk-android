@@ -29,6 +29,7 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.main.databinding.FragmentChatBinding
+import com.nunchuk.android.utils.consumeEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -61,6 +62,7 @@ internal class ChatFragment : BaseFragment<FragmentChatBinding>() {
     }
 
     private fun setupViews() {
+        binding.toolbar.consumeEdgeToEdge()
         binding.containerNotSignIn.isVisible = signInModeHolder.getCurrentMode().isGuestMode()
         binding.pagers.isVisible = binding.containerNotSignIn.isGone
         val tabs = binding.tabs
