@@ -420,7 +420,7 @@ fun KeysAndRequiredKeysScreen(
             description = "Number of keys assigned to the wallet (up to ${freeGroupWalletConfig.maxKey}).",
             value = keys,
             onIncrement = { if (keys < freeGroupWalletConfig.maxKey) keys++ },
-            onDecrement = { if (keys > 1 && keys > requiredKeys) keys-- },
+            onDecrement = { if (keys > 2 && keys > requiredKeys) keys-- },
             enable = keys < freeGroupWalletConfig.maxKey
         )
 
