@@ -39,6 +39,7 @@ import com.nunchuk.android.utils.trySafe
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -77,16 +78,37 @@ class InitNunchukUseCase @Inject constructor(
         fileLog(message = "start nativeSdk enableGroupWalletUseCase")
         Timber.d("Thread: ${Thread.currentThread().name}")
         consumeJob = applicationScope.launch {
-            runCatching {
-                enableGroupWalletUseCase(Unit)
-                nativeSdk.registerGlobalListener()
-                startConsumeGroupWalletEventUseCase(Unit)
-            }.onFailure {
-                Timber.e(it)
-            }
+            initGroupWallet()
         }
         fileLog(message = "end nativeSdk enableGroupWalletUseCase")
         return true
+    }
+
+    private suspend fun initGroupWallet() {
+        var retryCount = 0
+        val maxRetries = 3
+        val retryDelay = 500L
+
+        while (true) {
+            val result = runCatching {
+                enableGroupWalletUseCase(Unit)
+                nativeSdk.registerGlobalListener()
+                startConsumeGroupWalletEventUseCase(Unit)
+            }
+
+            if (result.isSuccess) {
+                break
+            } else {
+                if (retryCount < maxRetries) {
+                    retryCount++
+                    Timber.e(result.exceptionOrNull(), "Attempt $retryCount failed")
+                    delay(retryDelay)
+                } else {
+                    Timber.e(result.exceptionOrNull(), "All $maxRetries retry attempts failed")
+                    break
+                }
+            }
+        }
     }
 
     private fun initNunchuk(
