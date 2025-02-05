@@ -194,6 +194,7 @@ internal class WalletDetailsViewModel @Inject constructor(
             GroupMessageListener.getMessageFlow().collect { message ->
                 if (message.walletId == args.walletId) {
                     val groupChatMessages = getState().groupChatMessages.toMutableList()
+                    if (groupChatMessages.contains(message)) return@collect
                     groupChatMessages.add(0, message)
                     updateState {
                         copy(

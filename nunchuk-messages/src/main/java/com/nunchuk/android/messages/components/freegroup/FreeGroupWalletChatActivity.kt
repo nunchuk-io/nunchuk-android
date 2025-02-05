@@ -67,6 +67,7 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
+import com.nunchuk.android.compose.fillDenim
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
@@ -218,7 +219,7 @@ fun ChatHeader(btc: String, multisign: String, onClick: () -> Unit = {}) {
         Icon(
             painter = painterResource(id = R.drawable.ic_wallet_info),
             contentDescription = null,
-            tint = Color.Black,
+            tint = MaterialTheme.colorScheme.textPrimary,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -290,7 +291,7 @@ fun SentMessageBubble(message: MessageUI.SenderMessage) {
             modifier = Modifier
                 .widthIn(max = maxWidth)
                 .background(
-                    Color(0xFFD0E6FF),
+                    MaterialTheme.colorScheme.fillDenim,
                     RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
                 )
                 .padding(12.dp)
@@ -311,13 +312,13 @@ fun SentMessageBubble(message: MessageUI.SenderMessage) {
             Text(
                 text = message.data.content,
                 style = NunchukTheme.typography.body,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.textPrimary
             )
         }
         Text(
             text = "Delivered",
             style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.textSecondary,
             modifier = Modifier.padding(top = 2.dp)
         )
     }

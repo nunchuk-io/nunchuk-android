@@ -35,6 +35,9 @@ class GroupChatManager @Inject constructor(
             selectedSigner = signers.find { signer ->
                 allSigner.any { it.id == signer.masterSignerId && it.isVisible }
             }
+            if (selectedSigner == null) {
+                selectedSigner = signers.firstOrNull()
+            }
         }.onFailure {
             // Handle failure
         }

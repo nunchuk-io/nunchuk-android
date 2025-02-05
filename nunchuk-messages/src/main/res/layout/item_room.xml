@@ -180,7 +180,7 @@
                 android:backgroundTint="@color/nc_orange_color"
                 android:gravity="center"
                 android:padding="@dimen/nc_padding_2"
-                android:textColor="@color/nc_white_color"
+                android:textColor="@color/nc_background_primary"
                 android:textSize="@dimen/nc_text_size_12"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/time"
