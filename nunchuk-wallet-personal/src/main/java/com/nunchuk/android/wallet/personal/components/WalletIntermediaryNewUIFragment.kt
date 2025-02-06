@@ -366,7 +366,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
         super.onActivityResult(requestCode, resultCode, intent)
         if ((requestCode == WalletIntermediaryActivity.REQUEST_CODE || requestCode == WalletIntermediaryActivity.REQUEST_CODE_GROUP_WALLET) && resultCode == AppCompatActivity.RESULT_OK) {
             intent?.data?.let {
-                viewModel.extractFilePath(it)
+                viewModel.extractFilePath(it, isGroupWallet = requestCode == WalletIntermediaryActivity.REQUEST_CODE_GROUP_WALLET)
             }
         }
     }
