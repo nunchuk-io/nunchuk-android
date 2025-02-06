@@ -186,6 +186,10 @@ class BatchTransactionViewModel @Inject constructor(
         }
         isBtc?.let {
             recipient = recipient.copy(isBtc = it)
+            val recipients = _state.value.recipients.map {  recipient ->
+                recipient.copy(isBtc = it)
+            }.toMutableList()
+            _state.update { it.copy(recipients = recipients) }
         }
         address?.let {
             recipient = recipient.copy(address = it)
