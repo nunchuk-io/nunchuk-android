@@ -223,7 +223,11 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
 
                         is WalletAuthenticationEvent.NoInternetConnectionToSign -> showWarning(getString(R.string.nc_no_internet_connection_sign_dummy_tx))
                         is WalletAuthenticationEvent.NoInternetConnectionForceSync -> showError(getString(R.string.nc_no_internet_connection_force_sync))
-                        is WalletAuthenticationEvent.SignFailed -> handleSignedFailed(event.singleSigner)
+                        is WalletAuthenticationEvent.SignFailed -> {
+                            if (!nfcViewModel.handleNfcError(event.e)) {
+                                handleSignedFailed(event.singleSigner)
+                            }
+                        }
                         is WalletAuthenticationEvent.Loading,
                         is WalletAuthenticationEvent.FinalizeDummyTxSuccess,
                         is WalletAuthenticationEvent.ShowError,
@@ -283,8 +287,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
             && (singleSigner.type == SignerType.COLDCARD_NFC
                     || (singleSigner.type == SignerType.HARDWARE && singleSigner.tags.contains(
                 SignerTag.COLDCARD
-            ))
-                    || singleSigner.type == SignerType.AIRGAP)
+            )) || singleSigner.type == SignerType.AIRGAP)
         ) {
             NCWarningDialog(requireActivity())
                 .showDialog(

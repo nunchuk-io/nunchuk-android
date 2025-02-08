@@ -42,12 +42,16 @@ sealed class WalletAuthenticationEvent {
     data object CanNotSignHardwareKey : WalletAuthenticationEvent()
     data object GenerateColdcardHealthMessagesSuccess : WalletAuthenticationEvent()
     data object ShowAirgapOption : WalletAuthenticationEvent()
-    data class RequestSignPortal(val fingerprint: String, val psbt: String) : WalletAuthenticationEvent()
+    data class RequestSignPortal(val fingerprint: String, val psbt: String) :
+        WalletAuthenticationEvent()
+
     data object ExportTransactionToColdcardSuccess : WalletAuthenticationEvent()
     data object CanNotSignDummyTx : WalletAuthenticationEvent()
     data class FinalizeDummyTxSuccess(val isGoBack: Boolean) : WalletAuthenticationEvent()
     data class ForceSyncSuccess(val isSuccess: Boolean) : WalletAuthenticationEvent()
-    data class SignFailed(val singleSigner: SingleSigner) : WalletAuthenticationEvent()
+    data class SignFailed(val singleSigner: SingleSigner, val e: Throwable? = null) :
+        WalletAuthenticationEvent()
+
     data object PromptPassphrase : WalletAuthenticationEvent()
     data object NoInternetConnectionToSign : WalletAuthenticationEvent()
     data object NoInternetConnectionForceSync : WalletAuthenticationEvent()
