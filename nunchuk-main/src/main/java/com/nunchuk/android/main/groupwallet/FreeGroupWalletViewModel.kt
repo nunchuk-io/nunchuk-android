@@ -37,6 +37,7 @@ import com.nunchuk.android.usecase.signer.GetSupportedSignersUseCase
 import com.nunchuk.android.usecase.signer.GetUnusedSignerFromMasterSignerV2UseCase
 import com.nunchuk.android.usecase.signer.SetSlotOccupiedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,10 +45,11 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
 class FreeGroupWalletViewModel @Inject constructor(
@@ -112,6 +114,14 @@ class FreeGroupWalletViewModel @Inject constructor(
         viewModelScope.launch {
             getGroupDeviceUIDUseCase(Unit).onSuccess { uid ->
                 deviceUID = uid
+            }
+        }
+        viewModelScope.launch {
+            while (isActive) {
+                uiState.value.group?.let { group ->
+                    updateOccupiedSlots(group)
+                }
+                delay(30.seconds.inWholeMilliseconds)
             }
         }
     }
@@ -238,8 +248,14 @@ class FreeGroupWalletViewModel @Inject constructor(
                 }
             }
         }
+        _uiState.update { it.copy(group = groupSandbox, signers = signers) }
+        updateOccupiedSlots(groupSandbox)
+    }
+
+    private fun updateOccupiedSlots(groupSandbox: GroupSandbox) {
+        if (groupSandbox.occupiedSlots.isEmpty()) return
         val currentTimeInSeconds = System.currentTimeMillis() / 1000
-        val timeout = 5.minutes.inWholeSeconds
+        val timeout = 30.seconds.inWholeSeconds
         val occupiedSlots = groupSandbox.occupiedSlots.mapIndexedNotNull { index, occupiedSlot ->
             if (occupiedSlot != null && occupiedSlot.deviceId != deviceUID && occupiedSlot.time + timeout > currentTimeInSeconds) {
                 index
@@ -247,7 +263,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 null
             }
         }.toSet()
-        _uiState.update { it.copy(group = groupSandbox, signers = signers, occupiedSlotsIndex = occupiedSlots) }
+        _uiState.update { it.copy(occupiedSlotsIndex = occupiedSlots) }
     }
 
     fun setCurrentSignerIndex(index: Int) {
