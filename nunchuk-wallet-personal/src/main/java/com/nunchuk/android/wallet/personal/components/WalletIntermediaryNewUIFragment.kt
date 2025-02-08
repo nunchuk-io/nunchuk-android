@@ -192,10 +192,12 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
     }
 
     private fun checkRunOutGroupWallet(action: () -> Unit) {
-        if (viewModel.isExceededGroupWalletLimit()) {
-            showRunOutFreeGroupWallet()
-        } else {
-            action()
+        viewModel.checkRemainingGroupWalletLimit {
+            if (it) {
+                showRunOutFreeGroupWallet()
+            } else {
+                action()
+            }
         }
     }
 
@@ -290,6 +292,11 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                 is WalletIntermediaryEvent.JoinGroupWalletSuccess -> {
                     navigator.openFreeGroupWalletScreen(requireActivity(), event.groupId)
                 }
+
+                is WalletIntermediaryEvent.ImportWalletSuccessEvent -> {
+//                    navigator.openFreeGroupWalletRecoverScreen(requireActivity(), event.walletId)
+                    requireActivity().finish()
+                }
             }
         }
     }
@@ -320,13 +327,17 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
 
     private fun handleLoadFilePath(it: WalletIntermediaryEvent.OnLoadFileSuccess) {
         if (it.path.isNotEmpty()) {
-            navigator.openAddRecoverWalletScreen(
-                requireActivity(), RecoverWalletData(
-                    type = if (it.isGroupWallet) RecoverWalletType.GROUP_WALLET else RecoverWalletType.FILE,
-                    filePath = it.path
+            if (it.isGroupWallet) {
+                viewModel.importWallet(it.path, "Group Wallet", "")
+            } else {
+                navigator.openAddRecoverWalletScreen(
+                    requireActivity(), RecoverWalletData(
+                        type = RecoverWalletType.FILE,
+                        filePath = it.path
+                    )
                 )
-            )
-            requireActivity().finish()
+                requireActivity().finish()
+            }
         }
     }
 
@@ -353,7 +364,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                     )
                 )
 
-                RecoverWalletOption.GroupWallet -> openSelectFileChooser(WalletIntermediaryActivity.REQUEST_CODE)
+                RecoverWalletOption.GroupWallet -> openSelectFileChooser(WalletIntermediaryActivity.REQUEST_CODE_GROUP_WALLET)
             }
         }
     }
@@ -366,7 +377,10 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
         super.onActivityResult(requestCode, resultCode, intent)
         if ((requestCode == WalletIntermediaryActivity.REQUEST_CODE || requestCode == WalletIntermediaryActivity.REQUEST_CODE_GROUP_WALLET) && resultCode == AppCompatActivity.RESULT_OK) {
             intent?.data?.let {
-                viewModel.extractFilePath(it, isGroupWallet = requestCode == WalletIntermediaryActivity.REQUEST_CODE_GROUP_WALLET)
+                viewModel.extractFilePath(
+                    it,
+                    isGroupWallet = requestCode == WalletIntermediaryActivity.REQUEST_CODE_GROUP_WALLET
+                )
             }
         }
     }

@@ -172,6 +172,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<FragmentWalletIntermediary
                 WalletIntermediaryEvent.NoSigner -> showNoSignerDialog()
                 WalletIntermediaryEvent.JoinGroupWalletFailed -> TODO()
                 is WalletIntermediaryEvent.JoinGroupWalletSuccess -> TODO()
+                is WalletIntermediaryEvent.ImportWalletSuccessEvent -> TODO()
             }
         }
         flowObserver(viewModel.state) {

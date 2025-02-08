@@ -29,22 +29,29 @@ import com.nunchuk.android.core.domain.membership.SetLocalMembershipPlanFlowUseC
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.util.getFileFromUri
+import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.wallet.WalletOption
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
+import com.nunchuk.android.usecase.GetGlobalGroupWalletConfigUseCase
+import com.nunchuk.android.usecase.ImportWalletUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetPendingGroupsSandboxUseCase
 import com.nunchuk.android.usecase.membership.GetGroupAssistedWalletConfigUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
+import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -63,6 +70,8 @@ class WalletIntermediaryViewModel @Inject constructor(
     private val signInModeHolder: SignInModeHolder,
     private val joinFreeGroupWalletUseCase: JoinFreeGroupWalletUseCase,
     private val getPendingGroupsSandboxUseCase: GetPendingGroupsSandboxUseCase,
+    private val importWalletUseCase: ImportWalletUseCase,
+    private val getGlobalGroupWalletConfigUseCase: GetGlobalGroupWalletConfigUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletIntermediaryState())
     val state = _state.asStateFlow()
@@ -133,7 +142,12 @@ class WalletIntermediaryViewModel @Inject constructor(
                 getFileFromUri(application.contentResolver, uri, application.cacheDir)
             }
             _event.emit(WalletIntermediaryEvent.Loading(false))
-            _event.emit(WalletIntermediaryEvent.OnLoadFileSuccess(path = result?.absolutePath.orEmpty(), isGroupWallet = isGroupWallet))
+            _event.emit(
+                WalletIntermediaryEvent.OnLoadFileSuccess(
+                    path = result?.absolutePath.orEmpty(),
+                    isGroupWallet = isGroupWallet
+                )
+            )
         }
     }
 
@@ -160,10 +174,18 @@ class WalletIntermediaryViewModel @Inject constructor(
 
     fun isExceededGroupWalletLimit(): Boolean {
         val numberOfGroupWallets = state.value.numOfFreeGroupWallet
-        if (signInModeHolder.getCurrentMode().isGuestMode() && numberOfGroupWallets >= 1) return true
+        if (signInModeHolder.getCurrentMode()
+                .isGuestMode() && numberOfGroupWallets >= 1
+        ) return true
         if (state.value.isMembership && numberOfGroupWallets >= 3) return true
         if (numberOfGroupWallets >= 3) return true
         return false
+    }
+
+    fun checkRemainingGroupWalletLimit(onAction: (Boolean) -> Unit) = viewModelScope.launch {
+       getGlobalGroupWalletConfigUseCase(AddressType.NATIVE_SEGWIT).onSuccess {
+           onAction(it.remain <= 0)
+       }
     }
 
     fun handleInputWalletLink(link: String) {
@@ -179,17 +201,33 @@ class WalletIntermediaryViewModel @Inject constructor(
         }
     }
 
+    fun importWallet(filePath: String, name: String, description: String) {
+        viewModelScope.launch {
+            importWalletUseCase.execute(filePath, name, description)
+                .flowOn(Dispatchers.IO)
+                .onException { _event.emit(WalletIntermediaryEvent.ShowError(it.readableMessage())) }
+                .flowOn(Dispatchers.Main)
+                .collect {
+                    _event.emit(WalletIntermediaryEvent.ImportWalletSuccessEvent(it.id, it.name))
+                }
+        }
+    }
+
     val hasSigner: Boolean
         get() = _state.value.isHasSigner
 }
 
 sealed class WalletIntermediaryEvent {
     data class Loading(val isLoading: Boolean) : WalletIntermediaryEvent()
-    data class OnLoadFileSuccess(val path: String, val isGroupWallet: Boolean) : WalletIntermediaryEvent()
+    data class OnLoadFileSuccess(val path: String, val isGroupWallet: Boolean) :
+        WalletIntermediaryEvent()
+
     data class ShowError(val msg: String) : WalletIntermediaryEvent()
     data object NoSigner : WalletIntermediaryEvent()
     data class JoinGroupWalletSuccess(val groupId: String) : WalletIntermediaryEvent()
     data object JoinGroupWalletFailed : WalletIntermediaryEvent()
+    data class ImportWalletSuccessEvent(val walletId: String, val walletName: String) :
+        WalletIntermediaryEvent()
 }
 
 data class WalletIntermediaryState(
