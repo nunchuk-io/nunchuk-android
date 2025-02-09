@@ -164,6 +164,7 @@ fun FreeGroupWalletScreen(
     var showAskForDeleteDialog by rememberSaveable { mutableStateOf(false) }
     var currentSignerIndex by rememberSaveable { mutableIntStateOf(-1) }
     var showDeleteSignerDialog by rememberSaveable { mutableStateOf(false) }
+    var showKeyNotSynced by rememberSaveable { mutableStateOf(false) }
     NcScaffold(
         snackState = snackState,
         modifier = Modifier.navigationBarsPadding(),
@@ -231,7 +232,13 @@ fun FreeGroupWalletScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                onClick = { onContinueClicked(state.group!!) },
+                onClick = {
+                    if (state.signers.any { it?.name == KEY_NOT_SYNCED_NAME }) {
+                        showKeyNotSynced = true
+                    } else {
+                        onContinueClicked(state.group!!)
+                    }
+                },
                 enabled = state.group != null && state.signers.count { it != null } == state.group.n && state.group.n > 0,
             ) {
                 Text(text = stringResource(id = R.string.nc_wallet_create_wallet))
@@ -307,7 +314,8 @@ fun FreeGroupWalletScreen(
             if (allSigners.isNotEmpty()) {
                 SelectSignerBottomSheet(
                     onDismiss = { showSignerBottomSheet = false },
-                    supportedSigners = state.supportedTypes.takeIf { state.group?.addressType?.isTaproot() == true }.orEmpty(),
+                    supportedSigners = state.supportedTypes.takeIf { state.group?.addressType?.isTaproot() == true }
+                        .orEmpty(),
                     onAddExistKey = {
                         showSignerBottomSheet = false
                         onAddExistingKey(it, currentSignerIndex)
@@ -366,6 +374,19 @@ fun FreeGroupWalletScreen(
                 }
             )
         }
+        if (showKeyNotSynced) {
+            NcInfoDialog(
+                title = stringResource(R.string.nc_waiting_for_other_devices),
+                message = stringResource(id = R.string.nc_key_not_synced_desc),
+                positiveButtonText = stringResource(R.string.nc_ok),
+                onPositiveClick = {
+                    showKeyNotSynced = false
+                },
+                onDismiss = {
+                    showKeyNotSynced = false
+                }
+            )
+        }
     }
 }
 
@@ -374,9 +395,10 @@ fun FreeGroupWalletScreen(
 private fun GroupWalletScreenPreview(
     @PreviewParameter(SignersModelProvider::class) signers: List<SignerModel>,
 ) {
+    val addedSigner = signers.first().copy(name = KEY_NOT_SYNCED_NAME)
     NunchukTheme {
         FreeGroupWalletScreen(
-            state = FreeGroupWalletUiState(signers = signers + null)
+            state = FreeGroupWalletUiState(signers = signers + addedSigner + null)
         )
     }
 }

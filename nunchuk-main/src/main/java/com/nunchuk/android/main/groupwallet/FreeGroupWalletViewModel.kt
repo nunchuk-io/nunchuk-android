@@ -37,6 +37,7 @@ import com.nunchuk.android.usecase.signer.GetSupportedSignersUseCase
 import com.nunchuk.android.usecase.signer.GetUnusedSignerFromMasterSignerV2UseCase
 import com.nunchuk.android.usecase.signer.SetSlotOccupiedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -50,6 +51,8 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
+
+const val KEY_NOT_SYNCED_NAME = "ADDED"
 
 @HiltViewModel
 class FreeGroupWalletViewModel @Inject constructor(
@@ -79,6 +82,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val singleSigners = mutableListOf<SingleSigner>()
     private val masterSigners = mutableListOf<MasterSigner>()
     private var deviceUID: String = ""
+    private var addSignerJob: Job? = null
 
     init {
         loadSigners()
@@ -240,7 +244,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     private suspend fun updateGroupSandbox(groupSandbox: GroupSandbox) {
         Timber.d("Update group sandbox $groupSandbox")
         val signers = groupSandbox.signers.map {
-            it.takeIf { it.masterFingerprint.isNotEmpty() }?.let { signer ->
+            it.takeIf { it.masterFingerprint.isNotEmpty() || it.name == KEY_NOT_SYNCED_NAME }?.let { signer ->
                 if (hasSignerUseCase(signer).getOrNull() == true) {
                     singleSignerMapper(getSignerUseCase(signer).getOrThrow()).copy(isVisible = true)
                 } else {
@@ -271,7 +275,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     }
 
     fun addSignerToGroup(signer: SingleSigner) {
-        viewModelScope.launch {
+        addSignerJob = viewModelScope.launch {
             val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: return@launch
             Timber.d("Add signer to group $signer at index $index")
             _uiState.update { it.copy(isLoading = true) }
@@ -361,6 +365,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     }
 
     fun setSlotOccupied(value: Boolean) {
+        if (addSignerJob?.isActive == true) return
         viewModelScope.launch {
             val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: return@launch
             setSlotOccupiedUseCase(
