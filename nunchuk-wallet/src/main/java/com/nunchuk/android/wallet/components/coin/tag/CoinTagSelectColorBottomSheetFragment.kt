@@ -53,6 +53,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeBottomSheet
 import com.nunchuk.android.core.util.hexToColor
+import com.nunchuk.android.utils.CoinTagColorUtil
 import com.nunchuk.android.wallet.R
 import dagger.hilt.android.AndroidEntryPoint
 

@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.utils.CoinTagColorUtil
 
 @Composable
 fun CoinTagView(
@@ -70,7 +71,7 @@ fun CoinTagView(
             modifier = Modifier
                 .size(circleSize)
                 .clip(CircleShape)
-                .background(Color(tag.color.toColorInt()))
+                .background(Color(tag.color.ifBlank { CoinTagColorUtil.hexColors.first() }.toColorInt()))
         )
         Text(
             modifier = Modifier.padding(start = 4.dp),

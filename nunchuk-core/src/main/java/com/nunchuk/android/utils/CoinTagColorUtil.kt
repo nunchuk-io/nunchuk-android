@@ -17,7 +17,7 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.wallet.components.coin.tag
+package com.nunchuk.android.utils
 
 object CoinTagColorUtil {
 

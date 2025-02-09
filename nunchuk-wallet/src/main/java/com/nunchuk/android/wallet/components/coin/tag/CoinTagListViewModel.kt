@@ -29,6 +29,7 @@ import com.nunchuk.android.model.CoinTagAddition
 import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
 import com.nunchuk.android.usecase.coin.CreateCoinTagUseCase
 import com.nunchuk.android.usecase.coin.RemoveCoinFromTagUseCase
+import com.nunchuk.android.utils.CoinTagColorUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow

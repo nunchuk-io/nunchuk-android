@@ -87,11 +87,11 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.CoinStatus
+import com.nunchuk.android.utils.CoinTagColorUtil
 import com.nunchuk.android.wallet.CoinNavigationDirections
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.list.CoinListType
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
-import com.nunchuk.android.wallet.components.coin.tag.CoinTagColorUtil
 import com.nunchuk.android.wallet.components.coin.tag.CoinTagSelectColorBottomSheetFragment
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint

@@ -20,7 +20,13 @@
 package com.nunchuk.android.core.util
 
 import androidx.compose.ui.graphics.Color
+import com.nunchuk.android.utils.CoinTagColorUtil
 
 fun String.hexToColor(): Color {
-    return Color(android.graphics.Color.parseColor(this))
+    val colorStr = this.ifBlank { CoinTagColorUtil.hexColors.first() }
+    return try {
+        Color(android.graphics.Color.parseColor(colorStr))
+    } catch (e: Exception) {
+        Color.LightGray
+    }
 }

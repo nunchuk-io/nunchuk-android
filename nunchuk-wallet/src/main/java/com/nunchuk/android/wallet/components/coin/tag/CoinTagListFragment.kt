@@ -80,10 +80,10 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.CoinTagAddition
+import com.nunchuk.android.utils.CoinTagColorUtil.hexColors
 import com.nunchuk.android.utils.MaxLengthTransformation
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
-import com.nunchuk.android.wallet.components.coin.tag.CoinTagColorUtil.hexColors
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
