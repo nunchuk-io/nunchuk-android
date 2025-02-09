@@ -1,15 +1,18 @@
-package com.nunchuk.android.main.groupwallet
+package com.nunchuk.android.main.groupwallet.recover
 
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,8 +31,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -42,7 +45,9 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.nunchuk.android.compose.NcDashLineBox
 import com.nunchuk.android.compose.NcIcon
+import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSelectableBottomSheet
@@ -53,44 +58,27 @@ import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.provider.SignersModelProvider
+import com.nunchuk.android.compose.provider.WalletExtendedProvider
+import com.nunchuk.android.compose.signer.SignerCard
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.groupwallet.component.FreeAddKeyCard
-import com.nunchuk.android.main.groupwallet.component.UserOnline
 import com.nunchuk.android.main.groupwallet.component.WalletInfo
-import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
-import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
-import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.type.SignerType
 
-const val freeGroupWalletRoute = "free_group_wallet"
-val avatarColors = listOf(
-    Color(0xFF1C652D),
-    Color(0xFFA66800),
-    Color(0xFFCF4018),
-    Color(0xFF7E519B),
-    Color(0xFF2F466C),
-    Color(0xFFF1AE00),
-    Color(0xFF757575),
-)
+const val freeGroupWalletRecoverRoute = "free_group_wallet_recover"
 
-fun NavGraphBuilder.freeGroupWallet(
-    viewModel: FreeGroupWalletViewModel,
-    onEditClicked: (String, Boolean) -> Unit = { _, _ -> },
-    onCopyLinkClicked: (String) -> Unit = {},
-    onShowQRCodeClicked: (String) -> Unit = {},
+fun NavGraphBuilder.freeGroupWalletRecover(
+    viewModel: FreeGroupWalletRecoverViewModel,
     onAddNewKey: (Int) -> Unit = {},
-    onAddExistingKey: (SignerModel, Int) -> Unit,
     finishScreen: () -> Unit,
-    returnToHome: () -> Unit,
-    onContinueClicked: (GroupSandbox) -> Unit = {},
-    onStartAddKey: (Int) -> Unit = {},
+    onOpenWalletDetail: (String) -> Unit = {},
+    onEditClicked: () -> Unit = {},
 ) {
     composable(
-        route = freeGroupWalletRoute,
+        route = freeGroupWalletRecoverRoute,
     ) {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val snackState = remember { SnackbarHostState() }
@@ -106,7 +94,7 @@ fun NavGraphBuilder.freeGroupWallet(
         }
 
         LifecycleResumeEffect(Unit) {
-            viewModel.getGroupSandbox()
+            viewModel.loadInfo()
             onPauseOrDispose { }
         }
 
@@ -122,49 +110,54 @@ fun NavGraphBuilder.freeGroupWallet(
             }
         }
 
-        FreeGroupWalletScreen(
+        LaunchedEffect(state.event) {
+            when (state.event) {
+                FreeGroupWalletRecoverEvent.RecoverSuccess -> {
+                    onOpenWalletDetail(state.wallet?.id.orEmpty())
+                    finishScreen()
+                }
+                else -> {
+                }
+            }
+            viewModel.markEventHandled()
+        }
+
+        FreeGroupWalletRecoverScreen(
             snackState = snackState,
             state = state,
-            onAddNewKey = onAddNewKey,
-            onContinueClicked = onContinueClicked,
-            onEditClicked = {
-                state.group?.let {
-                    onEditClicked(it.id, state.signers.any { it != null })
-                }
+            onAddNewKey = {
+                viewModel.setCurrentSignerIndex(it)
+                onAddNewKey(it)
             },
-            onCopyLinkClicked = onCopyLinkClicked,
-            onShowQRCodeClicked = onShowQRCodeClicked,
-            onRemoveClicked = viewModel::removeSignerFromGroup,
-            onAddExistingKey = onAddExistingKey,
-            onDeleteGroupClicked = viewModel::deleteGroupSandbox,
-            returnToHome = returnToHome,
-            onStartAddKey = onStartAddKey
+            onContinueClicked = {
+                viewModel.recoverGroupWallet()
+            },
+            onGotItClick = {
+                viewModel.showAddKeyErrorDialogHandled()
+            },
+            onEditClicked = onEditClicked,
+            onCancelClicked = {
+                finishScreen()
+            }
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FreeGroupWalletScreen(
-    state: FreeGroupWalletUiState = FreeGroupWalletUiState(),
+fun FreeGroupWalletRecoverScreen(
+    state: FreeGroupWalletRecoverUiState = FreeGroupWalletRecoverUiState(),
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     onAddNewKey: (Int) -> Unit = {},
-    onRemoveClicked: (Int) -> Unit = {},
-    onContinueClicked: (GroupSandbox) -> Unit = {},
+    onContinueClicked: () -> Unit = {},
+    onGotItClick: () -> Unit = {},
     onEditClicked: () -> Unit = {},
-    onCopyLinkClicked: (String) -> Unit = {},
-    onShowQRCodeClicked: (String) -> Unit = {},
-    onAddExistingKey: (SignerModel, Int) -> Unit = { _, _ -> },
-    onDeleteGroupClicked: () -> Unit = {},
-    returnToHome: () -> Unit = {},
-    onStartAddKey: (Int) -> Unit = {},
+    onCancelClicked: () -> Unit = {},
 ) {
-    var showSignerBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showMoreOption by rememberSaveable { mutableStateOf(false) }
-    var showAskForDeleteDialog by rememberSaveable { mutableStateOf(false) }
     var currentSignerIndex by rememberSaveable { mutableIntStateOf(-1) }
-    var showDeleteSignerDialog by rememberSaveable { mutableStateOf(false) }
-    var showKeyNotSynced by rememberSaveable { mutableStateOf(false) }
+    var showAskForDeleteDialog by rememberSaveable { mutableStateOf(false) }
+
     NcScaffold(
         snackState = snackState,
         modifier = Modifier.navigationBarsPadding(),
@@ -232,16 +225,10 @@ fun FreeGroupWalletScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                onClick = {
-                    if (state.signers.any { it?.name == KEY_NOT_SYNCED_NAME }) {
-                        showKeyNotSynced = true
-                    } else {
-                        onContinueClicked(state.group!!)
-                    }
-                },
-                enabled = state.group != null && state.signers.count { it != null } == state.group.n && state.group.n > 0,
+                onClick = { onContinueClicked() },
+                enabled = state.wallet != null && state.signerUis.count { it.isInDevice } == state.wallet.signers.size,
             ) {
-                Text(text = stringResource(id = R.string.nc_wallet_create_wallet))
+                Text(text = stringResource(id = R.string.nc_recover_wallet))
             }
         },
     ) { innerPadding ->
@@ -254,50 +241,62 @@ fun FreeGroupWalletScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
+                val requireSigns = state.wallet?.totalRequireSigns ?: 0
+                val totalSigns = state.wallet?.signers?.size ?: 0
                 WalletInfo(
-                    name = state.group?.name ?: "",
-                    requireSigns = state.group?.m ?: 0,
-                    totalSigns = state.group?.n ?: 0,
-                    addressType = state.group?.addressType,
-                    onEditClicked = onEditClicked,
-                    onCopyLinkClicked = {
-                        state.group?.let { onCopyLinkClicked(it.url) }
-                    },
-                    onShowQRCodeClicked = {
-                        state.group?.let { onShowQRCodeClicked(it.url) }
-                    }
+                    requireSigns = requireSigns,
+                    totalSigns = totalSigns,
+                    name = state.wallet?.name.orEmpty(),
+                    addressType = state.wallet?.addressType,
+                    copyLinkEnabled = false,
+                    showQRCodeEnabled = false,
+                    onEditClicked = onEditClicked
                 )
             }
 
-            item {
-                UserOnline(state.numberOfOnlineUsers)
-            }
-
-            itemsIndexed(state.signers) { index, signer ->
-                FreeAddKeyCard(
+            itemsIndexed(state.signerUis) { index, ui ->
+                FreeAddKeyRecoverCard(
                     index = index,
-                    isOccupied = state.occupiedSlotsIndex.contains(index),
-                    signer = signer,
+                    signer = ui.signer,
+                    isInDevice = ui.isInDevice,
                     onAddClicked = {
-                        currentSignerIndex = index
-                        onStartAddKey(index)
-                        if (state.allSigners.isNotEmpty()) {
-                            showSignerBottomSheet = true
-                        } else {
-                            onAddNewKey(index)
-                        }
+                        currentSignerIndex = ui.index
+                        onAddNewKey(ui.index)
                     },
-                    onRemoveClicked = {
-                        currentSignerIndex = index
-                        showDeleteSignerDialog = true
-                    }
                 )
             }
         }
 
+        if (state.showAddKeyErrorDialog) {
+            NcInfoDialog(
+                title = stringResource(id = R.string.nc_error),
+                message = stringResource(id = R.string.nc_failed_add_key_correct_key_from_config),
+                onPositiveClick = {
+                    onGotItClick()
+                },
+                onDismiss = {
+                    onGotItClick()
+                },
+                positiveButtonText = stringResource(R.string.nc_text_got_it)
+            )
+        }
+
+        if (showAskForDeleteDialog) {
+            NcConfirmationDialog(
+                message = stringResource(id = R.string.nc_ask_for_cancel_group_wallet_recovery),
+                onPositiveClick = {
+                    onCancelClicked()
+                    showAskForDeleteDialog = false
+                },
+                onDismiss = {
+                    showAskForDeleteDialog = false
+                }
+            )
+        }
+
         if (showMoreOption) {
             NcSelectableBottomSheet(
-                options = listOf(stringResource(R.string.nc_cancel_group_wallet_setup)),
+                options = listOf(stringResource(R.string.nc_cancel_group_wallet_recovery)),
                 onSelected = {
                     if (it == 0) {
                         showAskForDeleteDialog = true
@@ -308,88 +307,53 @@ fun FreeGroupWalletScreen(
                 },
             )
         }
+    }
+}
 
-        if (showSignerBottomSheet) {
-            val addedSigners = state.signers.filterNotNull().map { it.fingerPrint }.toSet()
-            val allSigners = state.allSigners.filter {
-                !addedSigners.contains(it.fingerPrint)
-            }
-            if (allSigners.isNotEmpty()) {
-                SelectSignerBottomSheet(
-                    onDismiss = { showSignerBottomSheet = false },
-                    supportedSigners = state.supportedTypes.takeIf { state.group?.addressType?.isTaproot() == true }
-                        .orEmpty(),
-                    onAddExistKey = {
-                        showSignerBottomSheet = false
-                        onAddExistingKey(it, currentSignerIndex)
-                    },
-                    onAddNewKey = {
-                        showSignerBottomSheet = false
-                        onAddNewKey(currentSignerIndex)
-                    },
-                    args = TapSignerListBottomSheetFragmentArgs(
-                        signers = allSigners.toTypedArray(),
-                        type = SignerType.UNKNOWN
-                    )
+@Composable
+fun FreeAddKeyRecoverCard(
+    index: Int,
+    modifier: Modifier = Modifier,
+    signer: SignerModel,
+    isInDevice: Boolean = false,
+    onAddClicked: () -> Unit,
+) {
+    if (isInDevice) {
+        Row(
+            modifier = Modifier
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.strokePrimary,
+                    shape = RoundedCornerShape(8.dp)
                 )
-            } else {
-                showSignerBottomSheet = false
-                onAddNewKey(currentSignerIndex)
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SignerCard(item = signer, modifier = Modifier.weight(1.0f))
+        }
+    } else {
+        NcDashLineBox(
+            modifier = modifier,
+            content = {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SignerCard(
+                        item = signer.copy(name = stringResource(R.string.nc_key_with_index, "#${index + 1}"),),
+                        modifier = Modifier.weight(1.0f),
+                        signerIcon = R.drawable.ic_signer_empty_state,
+                        isShowKeyTypeBadge = signer.type != SignerType.UNKNOWN,
+                    )
+                    NcOutlineButton(
+                        modifier = Modifier.height(36.dp),
+                        onClick = onAddClicked,
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_add_key))
+                    }
+                }
             }
-        }
-
-        if (showAskForDeleteDialog) {
-            NcConfirmationDialog(
-                message = stringResource(id = R.string.nc_ask_for_delete_group_wallet),
-                onPositiveClick = {
-                    onDeleteGroupClicked()
-                    showAskForDeleteDialog = false
-                },
-                onDismiss = {
-                    showAskForDeleteDialog = false
-                }
-            )
-        }
-
-        if (state.groupWalletUnavailable) {
-            NcInfoDialog(
-                title = stringResource(id = R.string.nc_unable_access_link),
-                message = stringResource(id = R.string.nc_group_wallet_created_by_others),
-                onPositiveClick = {
-                    returnToHome()
-                },
-                onDismiss = {
-                    returnToHome()
-                },
-                positiveButtonText = stringResource(R.string.nc_return_to_home_screen)
-            )
-        }
-        if (showDeleteSignerDialog) {
-            NcConfirmationDialog(
-                title = stringResource(id = R.string.nc_text_warning),
-                message = stringResource(id = R.string.nc_ask_for_delete_signer),
-                onPositiveClick = {
-                    onRemoveClicked(currentSignerIndex)
-                    showDeleteSignerDialog = false
-                },
-                onDismiss = {
-                    showDeleteSignerDialog = false
-                }
-            )
-        }
-        if (showKeyNotSynced) {
-            NcInfoDialog(
-                title = stringResource(R.string.nc_waiting_for_other_devices),
-                message = stringResource(id = R.string.nc_key_not_synced_desc),
-                positiveButtonText = stringResource(R.string.nc_ok),
-                onPositiveClick = {
-                    showKeyNotSynced = false
-                },
-                onDismiss = {
-                    showKeyNotSynced = false
-                }
-            )
-        }
+        )
     }
 }
 
@@ -398,10 +362,14 @@ fun FreeGroupWalletScreen(
 private fun GroupWalletScreenPreview(
     @PreviewParameter(SignersModelProvider::class) signers: List<SignerModel>,
 ) {
-    val addedSigner = signers.first().copy(name = KEY_NOT_SYNCED_NAME)
+    val walletExtended = WalletExtendedProvider().values.first()
+    val signerUis = signers.map { SignerModelRecoverUi(it, 0, false) }
     NunchukTheme {
-        FreeGroupWalletScreen(
-            state = FreeGroupWalletUiState(signers = signers + addedSigner + null)
+        FreeGroupWalletRecoverScreen(
+            state = FreeGroupWalletRecoverUiState(
+                signerUis = signerUis,
+                wallet = walletExtended.wallet
+            ),
         )
     }
 }

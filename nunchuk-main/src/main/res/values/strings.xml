@@ -376,8 +376,11 @@
     <string name="nc_key_with_index">Key %1$s</string>
     <string name="nc_setup_in_progress">Setup in progress</string>
     <string name="nc_cancel_group_wallet_setup">Cancel group wallet</string>
+    <string name="nc_cancel_group_wallet_recovery">Cancel group wallet recovery</string>
     <string name="nc_ask_for_delete_group_wallet">Are you sure you want to cancel the group wallet setup? Canceling will invalidate the session link and remove all associated data.</string>
+    <string name="nc_ask_for_cancel_group_wallet_recovery">Are you sure you want to cancel the group wallet recovery?</string>
     <string name="nc_group_wallet_created_by_others">The wallet link has expired or the wallet has already been created.</string>
+    <string name="nc_failed_add_key_correct_key_from_config">Failed to add key. Please use the correct key from the config.</string>
     <string name="nc_ask_for_delete_signer">Are you sure you want to remove this key?</string>
     <string name="nc_occupied">Occupied</string>
     <string name="nc_key_not_synced_desc">Almost there! Other devices in the group need to come online briefly to securely share their keys with this one. Once ready, tap “Create wallet” again to finish setting up.</string>

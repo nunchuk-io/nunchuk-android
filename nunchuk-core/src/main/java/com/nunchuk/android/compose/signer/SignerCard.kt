@@ -33,6 +33,8 @@ fun SignerCard(
     item: SignerModel,
     modifier: Modifier = Modifier,
     showValueKey: Boolean = false,
+    signerIcon: Int? = null,
+    isShowKeyTypeBadge: Boolean = true,
     content: @Composable () -> Unit = {}
 ) {
     Row(
@@ -40,7 +42,7 @@ fun SignerCard(
         verticalAlignment = Alignment.CenterVertically
     ) {
         NcCircleImage(
-            resId = item.toReadableDrawableResId(),
+            resId = signerIcon ?: item.toReadableDrawableResId(),
             color = MaterialTheme.colorScheme.greyLight,
             iconTintColor = MaterialTheme.colorScheme.textPrimary,
         )
@@ -63,7 +65,7 @@ fun SignerCard(
                         backgroundColor = colorResource(id = R.color.nc_fill_denim),
                     )
                 }
-                if (item.type != SignerType.SERVER) {
+                if (item.type != SignerType.SERVER && isShowKeyTypeBadge) {
                     NcTag(
                         label = item.toReadableSignerType(context = LocalContext.current),
                         backgroundColor = colorResource(

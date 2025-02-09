@@ -80,6 +80,10 @@
         <activity android:name=".groupwallet.join.CommonQRCodeActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity android:name=".groupwallet.recover.FreeGroupWalletRecoverActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
     </application>
 
 </manifest>

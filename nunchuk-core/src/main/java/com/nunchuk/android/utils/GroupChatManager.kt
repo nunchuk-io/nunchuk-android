@@ -43,7 +43,7 @@ class GroupChatManager @Inject constructor(
         }
     }
 
-    suspend fun sendMessage(message: String, walletId: String) {
+    suspend fun sendMessage(message: String, walletId: String, onError: (Throwable) -> Unit) {
         if (selectedSigner == null) return
         sendMessageFreeGroupWalletUseCase(
             SendMessageFreeGroupWalletUseCase.Param(
@@ -54,7 +54,8 @@ class GroupChatManager @Inject constructor(
         ).onSuccess {
             Log.e("group-wallet", "send message success")
         }.onFailure {
-            Log.e("group-wallet", "send message failed")
+            onError(it)
+            Log.e("group-wallet", "send message failed: $it")
         }
     }
 

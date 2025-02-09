@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -30,19 +31,22 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.WalletExtendedProvider
 import com.nunchuk.android.main.R
-import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.WalletExtended
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.wallet.util.toReadableString
 
 @Composable
 internal fun WalletInfo(
-    groupSandbox: GroupSandbox? = null,
+    name: String = "",
+    requireSigns: Int = 0,
+    totalSigns: Int = 0,
+    addressType: AddressType? = null,
+    copyLinkEnabled: Boolean = true,
+    showQRCodeEnabled: Boolean = true,
     onEditClicked: () -> Unit = {},
     onCopyLinkClicked: () -> Unit = {},
     onShowQRCodeClicked: () -> Unit = {},
 ) {
-    val requireSigns = groupSandbox?.m ?: 0
-    val totalSigns = groupSandbox?.n ?: 0
     Box(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(12.dp))
@@ -66,7 +70,7 @@ internal fun WalletInfo(
                         .weight(1.0f)
                 ) {
                     Text(
-                        text = groupSandbox?.name.orEmpty(),
+                        text = name,
                         style = NunchukTheme.typography.titleLarge
                             .copy(color = colorResource(id = R.color.nc_white_color))
                     )
@@ -90,7 +94,7 @@ internal fun WalletInfo(
 
                         Text(
                             modifier = Modifier.padding(start = 8.dp),
-                            text = groupSandbox?.addressType?.toReadableString(LocalContext.current)
+                            text = addressType?.toReadableString(LocalContext.current)
                                 ?: "",
                             style = NunchukTheme.typography.bodySmall.copy(
                                 color = colorResource(
@@ -109,11 +113,13 @@ internal fun WalletInfo(
             )
 
             Row(
-                modifier = Modifier.padding(top = 12.dp)
-                    .clickable { onCopyLinkClicked() },
+                modifier = Modifier
+                    .padding(top = 12.dp)
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.alpha(if (copyLinkEnabled) 1f else 0.4f)
+                        .clickable(enabled = copyLinkEnabled) { onCopyLinkClicked() },
                 ) {
                     NcIcon(
                         modifier = Modifier.size(16.dp),
@@ -130,8 +136,10 @@ internal fun WalletInfo(
                 }
 
                 Row(
-                    modifier = Modifier.padding(start = 20.dp)
-                        .clickable { onShowQRCodeClicked() },
+                    modifier = Modifier
+                        .padding(start = 20.dp)
+                        .alpha(if (showQRCodeEnabled) 1f else 0.4f)
+                        .clickable(enabled = showQRCodeEnabled) { onShowQRCodeClicked() },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     NcIcon(

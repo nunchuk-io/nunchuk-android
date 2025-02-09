@@ -294,7 +294,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                 }
 
                 is WalletIntermediaryEvent.ImportWalletSuccessEvent -> {
-//                    navigator.openFreeGroupWalletRecoverScreen(requireActivity(), event.walletId)
+                    navigator.openFreeGroupWalletRecoverScreen(requireActivity(), event.wallet.id, event.path)
                     requireActivity().finish()
                 }
             }
@@ -328,7 +328,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
     private fun handleLoadFilePath(it: WalletIntermediaryEvent.OnLoadFileSuccess) {
         if (it.path.isNotEmpty()) {
             if (it.isGroupWallet) {
-                viewModel.importWallet(it.path, "Group Wallet", "")
+                viewModel.parseWalletDescriptor(it.uri, it.path)
             } else {
                 navigator.openAddRecoverWalletScreen(
                     requireActivity(), RecoverWalletData(

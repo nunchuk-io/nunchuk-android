@@ -1,4 +1,4 @@
-package com.nunchuk.android.wallet.personal.components.add
+package com.nunchuk.android.core.data.model
 
 import androidx.annotation.Keep
 

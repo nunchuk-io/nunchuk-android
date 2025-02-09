@@ -461,6 +461,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     suspend fun hasSigner(signer: SingleSigner) = hasSignerUseCase(signer)
 
     fun sendMessage(message: String) = viewModelScope.launch {
-        groupChatManager.sendMessage(message, args.walletId)
+        groupChatManager.sendMessage(message, args.walletId) {
+            event(WalletDetailsError(it.message.orUnknownError()))
+        }
     }
 }

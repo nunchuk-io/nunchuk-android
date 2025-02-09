@@ -17,29 +17,19 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase.free.groupwallet
+package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class RecoverGroupWalletUseCase @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk,
+class CheckGroupWalletExistUseCase @Inject constructor(
+    private val nunchukNativeSdk: NunchukNativeSdk,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : UseCase<RecoverGroupWalletUseCase.Params, Unit>(ioDispatcher) {
+) : UseCase<String, Boolean>(ioDispatcher) {
 
-    override suspend fun execute(parameters: Params) {
-        return nativeSdk.recoverFreeGroupWallet(
-            name = parameters.name,
-            filePath = parameters.filePath,
-            description = ""
-        )
+    override suspend fun execute(parameters: String): Boolean {
+        return nunchukNativeSdk.checkGroupWalletExists(parameters)
     }
-
-    data class Params(
-        val name: String,
-        val filePath: String
-    )
 }

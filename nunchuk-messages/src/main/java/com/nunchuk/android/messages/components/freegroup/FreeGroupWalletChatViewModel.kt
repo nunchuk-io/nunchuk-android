@@ -1,20 +1,21 @@
 package com.nunchuk.android.messages.components.freegroup
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
 import com.nunchuk.android.core.domain.GetListMessageFreeGroupWalletUseCase
 import com.nunchuk.android.listener.GroupMessageListener
-import com.nunchuk.android.messages.util.GroupChatManager
 import com.nunchuk.android.model.FreeGroupMessage
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.usecase.SetGroupWalletLastReadMessageUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
+import com.nunchuk.android.utils.GroupChatManager
 import com.nunchuk.android.utils.simpleDateFormat
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -36,6 +37,9 @@ class FreeGroupWalletChatViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(FreeGroupWalletChatUiState())
     val uiState = _uiState.asStateFlow()
+
+    private val _event = MutableSharedFlow<FreeGroupWalletChatEvent>()
+    val event = _event.asSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -107,7 +111,11 @@ class FreeGroupWalletChatViewModel @Inject constructor(
     }
 
     fun sendMessage(message: String) = viewModelScope.launch {
-        groupChatManager.sendMessage(message, walletId)
+        groupChatManager.sendMessage(message, walletId) {
+            viewModelScope.launch {
+                _event.emit(FreeGroupWalletChatEvent.Error(it.message.orEmpty()))
+            }
+        }
     }
 
     private fun addNewMessage(newMessage: FreeGroupMessage) {
@@ -120,6 +128,10 @@ class FreeGroupWalletChatViewModel @Inject constructor(
             )
         }
     }
+}
+
+sealed class FreeGroupWalletChatEvent {
+    data class Error(val message: String) : FreeGroupWalletChatEvent()
 }
 
 fun generateSampleFreeGroupMessages(): List<FreeGroupMessage> {

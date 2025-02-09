@@ -22,6 +22,7 @@ package com.nunchuk.android.nav
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.data.model.WalletConfigViewOnlyDataComposer
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RoomWalletData
@@ -35,7 +36,13 @@ import com.nunchuk.android.type.WalletType
 
 interface PersonalWalletNavigator {
 
-    fun openAddWalletScreen(activityContext: Context, decoyPin: String = "", groupWalletId: String = "", hasGroupSigner: Boolean = false)
+    fun openAddWalletScreen(
+        activityContext: Context,
+        decoyPin: String = "",
+        groupWalletId: String = "",
+        hasGroupSigner: Boolean = false,
+        walletConfigViewOnlyDataComposer: WalletConfigViewOnlyDataComposer? = null
+    )
 
     fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean)
 

@@ -87,15 +87,6 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
             if (walletName != null && filePath != null) {
                 importWallet(walletName, filePath)
             }
-        } else if (recoverWalletData.type == RecoverWalletType.GROUP_WALLET) {
-            val filePath = recoverWalletData.filePath
-            if (walletName != null && filePath != null) {
-                viewModel.recoverGroupWallet(
-                    name = walletName,
-                    filePath = filePath,
-                    description = ""
-                )
-            }
         } else {
             val walletId = recoverWalletData.walletId
             if (walletName != null && walletId != null) {

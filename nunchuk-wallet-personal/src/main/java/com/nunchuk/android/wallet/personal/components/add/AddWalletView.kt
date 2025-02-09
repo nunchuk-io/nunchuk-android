@@ -58,6 +58,11 @@ import com.nunchuk.android.compose.fillDenim2
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.whisper
+import com.nunchuk.android.core.data.model.WalletConfigType
+import com.nunchuk.android.core.data.model.WalletConfigViewOnlyDataComposer
+import com.nunchuk.android.core.data.model.getMN
+import com.nunchuk.android.core.data.model.getWalletConfigTypeBy
+import com.nunchuk.android.core.data.model.toOptionName
 import com.nunchuk.android.model.GlobalGroupWalletConfig
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.wallet.personal.R
@@ -66,7 +71,9 @@ import kotlinx.coroutines.delay
 @Composable
 fun AddWalletView(
     state: AddWalletState,
+    viewOnlyComposer: WalletConfigViewOnlyDataComposer? = null,
     isEditGroupWallet: Boolean,
+    isViewConfigOnly: Boolean = true,
     onSelectAddressType: (AddressType) -> Unit = {},
     onContinue: (String, AddressType, Int, Int) -> Unit = { _, _, _, _ -> }
 ) {
@@ -124,7 +131,7 @@ fun AddWalletView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    enabled = walletName.isNotBlank(),
+                    enabled = walletName.isNotBlank() && isViewConfigOnly.not(),
                     onClick = {
                         onContinue(walletName, state.addressTypeSelected, requiredKeys, keys)
                     }
@@ -149,8 +156,8 @@ fun AddWalletView(
             ) {
                 NcTextField(
                     title = stringResource(id = R.string.nc_text_wallet_name),
-                    value = walletName,
-                    onValueChange = { walletName = it.take(80) },
+                    value = viewOnlyComposer?.walletName ?: walletName,
+                    onValueChange = { if (isViewConfigOnly.not()) walletName = it.take(80) },
                     enableMaxLength = true,
                     maxLength = 80,
                     modifier = Modifier.focusRequester(focusRequester)
@@ -164,7 +171,8 @@ fun AddWalletView(
 
                 options.forEach { type ->
                     TypeOption(
-                        selected = state.addressTypeSelected == type,
+                        isViewOnly = isViewConfigOnly && type != viewOnlyComposer?.addressType,
+                        selected = if (viewOnlyComposer != null) viewOnlyComposer.addressType == type else state.addressTypeSelected == type,
                         name = getAddressType(type),
                         badge = getBadge(type),
                         onClick = {
@@ -195,7 +203,7 @@ fun AddWalletView(
                     }
                 }
 
-                if (isEditGroupWallet && state.groupSandbox != null) {
+                if ((isEditGroupWallet && state.groupSandbox != null) || isViewConfigOnly) {
                     HorizontalDivider(
                         thickness = 1.dp,
                         modifier = Modifier.padding(vertical = 24.dp),
@@ -210,7 +218,8 @@ fun AddWalletView(
 
                     walletConfigOptions.forEach { option ->
                         TypeOption(
-                            selected = walletConfigType == option,
+                            isViewOnly = isViewConfigOnly && option != viewOnlyComposer?.walletConfigType,
+                            selected = if (viewOnlyComposer != null) viewOnlyComposer.walletConfigType == option else walletConfigType == option,
                             name = option.toOptionName(),
                             badge = null,
                             isEndItem = option == WalletConfigType.CUSTOM,
@@ -227,8 +236,9 @@ fun AddWalletView(
                 if (walletConfigType == WalletConfigType.CUSTOM) {
                     KeysAndRequiredKeysScreen(
                         state.freeGroupWalletConfig,
-                        m = state.groupSandbox!!.m,
-                        n = state.groupSandbox.n
+                        m = viewOnlyComposer?.requireKeys ?: state.groupSandbox?.m ?: 0,
+                        n = viewOnlyComposer?.totalKeys ?: state.groupSandbox?.n ?: 0,
+                        viewOnly = isViewConfigOnly,
                     ) { m, n ->
                         keys = n
                         requiredKeys = m
@@ -261,6 +271,7 @@ fun getBadge(type: AddressType): String? {
 
 @Composable
 private fun TypeOption(
+    isViewOnly: Boolean = false,
     selected: Boolean = true,
     name: String,
     badge: String?,
@@ -269,6 +280,7 @@ private fun TypeOption(
 ) {
     Row(
         modifier = Modifier
+            .alpha(if (isViewOnly) 0.4f else 1f)
             .background(
                 color = if (selected) MaterialTheme.colorScheme.fillDenim2 else MaterialTheme.colorScheme.surface,
                 shape = if (isEndItem.not()) RoundedCornerShape(8.dp) else RoundedCornerShape(
@@ -277,7 +289,7 @@ private fun TypeOption(
                 )
             )
             .padding(horizontal = 12.dp)
-            .clickable(onClick = onClick),
+            .clickable(enabled = isViewOnly.not(), onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -304,7 +316,11 @@ private fun TypeOption(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        NcRadioButton(selected = selected, onClick = onClick)
+        NcRadioButton(selected = selected, onClick = {
+            if (!isViewOnly) {
+                onClick()
+            }
+        })
     }
 }
 
@@ -397,10 +413,12 @@ fun KeysAndRequiredKeysScreen(
     freeGroupWalletConfig: GlobalGroupWalletConfig,
     m: Int,
     n: Int,
+    viewOnly: Boolean = false,
     onNumberChange: (Int, Int) -> Unit = { _, _ -> }
 ) {
     Column(
         modifier = Modifier
+            .alpha(if (viewOnly) 0.4f else 1f)
             .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.border,
@@ -421,7 +439,7 @@ fun KeysAndRequiredKeysScreen(
             value = keys,
             onIncrement = { if (keys < freeGroupWalletConfig.maxKey) keys++ },
             onDecrement = { if (keys > 2 && keys > requiredKeys) keys-- },
-            enable = keys < freeGroupWalletConfig.maxKey
+            enable = keys < freeGroupWalletConfig.maxKey && viewOnly.not()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -432,7 +450,7 @@ fun KeysAndRequiredKeysScreen(
             value = requiredKeys,
             onIncrement = { if (requiredKeys < keys) requiredKeys++ },
             onDecrement = { if (requiredKeys > 1) requiredKeys-- },
-            enable = requiredKeys <= keys
+            enable = requiredKeys <= keys && viewOnly.not()
         )
     }
 }

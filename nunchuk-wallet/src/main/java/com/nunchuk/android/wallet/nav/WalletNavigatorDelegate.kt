@@ -22,6 +22,7 @@ package com.nunchuk.android.wallet.nav
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.data.model.WalletConfigViewOnlyDataComposer
 import com.nunchuk.android.core.qr.DynamicQRCodeActivity
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.RecoverWalletData
@@ -56,8 +57,11 @@ import com.nunchuk.android.wallet.shared.components.review.ReviewSharedWalletAct
 
 interface WalletNavigatorDelegate : WalletNavigator {
 
-    override fun openAddWalletScreen(activityContext: Context, decoyPin: String, groupWalletId: String, hasGroupSigner: Boolean) {
-        AddWalletActivity.start(activityContext, decoyPin, groupWalletId, hasGroupSigner)
+    override fun openAddWalletScreen(
+        activityContext: Context, decoyPin: String, groupWalletId: String, hasGroupSigner: Boolean,
+        walletConfigViewOnlyDataComposer: WalletConfigViewOnlyDataComposer?
+    ) {
+        AddWalletActivity.start(activityContext, decoyPin, groupWalletId, hasGroupSigner, walletConfigViewOnlyDataComposer)
     }
 
     override fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean) {

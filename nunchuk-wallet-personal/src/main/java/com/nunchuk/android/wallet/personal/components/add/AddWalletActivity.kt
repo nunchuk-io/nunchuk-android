@@ -31,11 +31,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.data.model.WalletConfigViewOnlyDataComposer
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -58,6 +60,10 @@ class AddWalletActivity : BaseComposeActivity() {
         intent.getBooleanExtra(HAS_GROUP_SIGNER, false)
     }
 
+    private val viewOnlyComposer: WalletConfigViewOnlyDataComposer? by lazy(LazyThreadSafetyMode.NONE) {
+        intent.parcelable(VIEW_ONLY_COMPOSER)
+    }
+
     private var isAlreadyShowChangeAddressTypeDialog = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,6 +73,8 @@ class AddWalletActivity : BaseComposeActivity() {
             val state by viewModel.state.collectAsStateWithLifecycle()
             AddWalletView(
                 state = state,
+                viewOnlyComposer = viewOnlyComposer,
+                isViewConfigOnly = viewOnlyComposer != null,
                 isEditGroupWallet = groupWalletId.isNotEmpty(),
                 onSelectAddressType = {
                     if (groupWalletId.isNotEmpty()) {
@@ -85,7 +93,7 @@ class AddWalletActivity : BaseComposeActivity() {
                     } else {
                         viewModel.updateAddressTypeSelected(it)
                     }
-                }, { walletName, addressType, m, n ->
+                }, onContinue = { walletName, addressType, m, n ->
                     if (groupWalletId.isNotEmpty()) {
                         viewModel.updateGroupSandboxConfig(walletName, m, n)
                     } else {
@@ -153,10 +161,11 @@ class AddWalletActivity : BaseComposeActivity() {
         private const val DECOY_PIN = "decoy_wallet"
         const val GROUP_WALLET_ID = "group_wallet_id"
         private const val HAS_GROUP_SIGNER = "has_group_signer"
+        private const val VIEW_ONLY_COMPOSER = "view_only_composer"
 
         fun start(
             activityContext: Context, decoyPin: String, groupWalletId: String,
-            hasGroupSigner: Boolean
+            hasGroupSigner: Boolean, viewOnlyComposer: WalletConfigViewOnlyDataComposer? = null
         ) {
             activityContext.startActivity(
                 Intent(
@@ -166,6 +175,7 @@ class AddWalletActivity : BaseComposeActivity() {
                     putExtra(DECOY_PIN, decoyPin)
                     putExtra(GROUP_WALLET_ID, groupWalletId)
                     putExtra(HAS_GROUP_SIGNER, hasGroupSigner)
+                    putExtra(VIEW_ONLY_COMPOSER, viewOnlyComposer)
                 })
         }
     }

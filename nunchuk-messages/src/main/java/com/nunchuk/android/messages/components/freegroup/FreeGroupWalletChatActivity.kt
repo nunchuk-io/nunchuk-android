@@ -62,7 +62,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
@@ -74,7 +77,9 @@ import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.messages.R
+import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class FreeGroupWalletChatActivity : BaseComposeActivity() {
@@ -99,6 +104,18 @@ class FreeGroupWalletChatActivity : BaseComposeActivity() {
                 )
             }
         })
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.event.collect { event ->
+                    when (event) {
+                        is FreeGroupWalletChatEvent.Error -> {
+                            NCToastMessage(this@FreeGroupWalletChatActivity).showError(event.message)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     companion object {

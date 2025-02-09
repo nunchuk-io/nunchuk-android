@@ -24,7 +24,12 @@ import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.type.AddressType
 
 data class AddWalletState(
-    val freeGroupWalletConfig: GlobalGroupWalletConfig = GlobalGroupWalletConfig(0, 0, 0, emptySet()),
+    val freeGroupWalletConfig: GlobalGroupWalletConfig = GlobalGroupWalletConfig(
+        0,
+        0,
+        0,
+        emptySet()
+    ),
     val groupSandbox: GroupSandbox? = null,
     val addressTypeSelected: AddressType = AddressType.NATIVE_SEGWIT,
 )
@@ -33,6 +38,7 @@ sealed class AddWalletEvent {
     data class UpdateGroupSandboxConfigSuccess(
         val groupSandbox: GroupSandbox
     ) : AddWalletEvent()
+
     data class Error(
         val message: String
     ) : AddWalletEvent()
