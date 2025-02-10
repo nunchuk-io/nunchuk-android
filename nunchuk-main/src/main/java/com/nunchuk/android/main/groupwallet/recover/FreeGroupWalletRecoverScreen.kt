@@ -226,7 +226,7 @@ fun FreeGroupWalletRecoverScreen(
                     .fillMaxWidth()
                     .padding(16.dp),
                 onClick = { onContinueClicked() },
-                enabled = state.wallet != null && state.signerUis.count { it.isInDevice } == state.wallet.signers.size,
+                enabled = state.signerUis.any { it.isInDevice },
             ) {
                 Text(text = stringResource(id = R.string.nc_recover_wallet))
             }
