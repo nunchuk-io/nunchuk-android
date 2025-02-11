@@ -1,6 +1,5 @@
 package com.nunchuk.android.main.groupwallet
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -99,7 +98,6 @@ class FreeGroupWalletViewModel @Inject constructor(
         viewModelScope.launch {
             pushEventManager.event.filterIsInstance<PushEvent.LocalUserSignerAdded>()
                 .collect {
-                    Log.e("recover-group-wallet", "Pushing event: $it")
                     Timber.d("Pushing event: $it")
                     addSignerToGroup(it.signer)
                 }

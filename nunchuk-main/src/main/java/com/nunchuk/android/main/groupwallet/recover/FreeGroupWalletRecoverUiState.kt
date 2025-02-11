@@ -17,7 +17,7 @@ data class FreeGroupWalletRecoverUiState(
 )
 
 sealed class FreeGroupWalletRecoverEvent {
-    data object RecoverSuccess : FreeGroupWalletRecoverEvent()
+    data class RecoverSuccess(val walletName: String) : FreeGroupWalletRecoverEvent()
     data object None : FreeGroupWalletRecoverEvent()
 }
 

@@ -385,4 +385,5 @@
     <string name="nc_occupied">Occupied</string>
     <string name="nc_key_not_synced_desc">Almost there! Other devices in the group need to come online briefly to securely share their keys with this one. Once ready, tap “Create wallet” again to finish setting up.</string>
     <string name="nc_waiting_for_other_devices">Waiting for other devices</string>
+    <string name="nc_has_been_recovered">%1$s has been successfully recovered</string>
 </resources>

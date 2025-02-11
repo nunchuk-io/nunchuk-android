@@ -33,6 +33,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -63,6 +64,7 @@ import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.component.WalletInfo
@@ -82,6 +84,7 @@ fun NavGraphBuilder.freeGroupWalletRecover(
     ) {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val snackState = remember { SnackbarHostState() }
+        val context = LocalContext.current
 
         LaunchedEffect(state.isFinishScreen) {
             if (state.isFinishScreen) {
@@ -112,7 +115,11 @@ fun NavGraphBuilder.freeGroupWalletRecover(
 
         LaunchedEffect(state.event) {
             when (state.event) {
-                FreeGroupWalletRecoverEvent.RecoverSuccess -> {
+                is FreeGroupWalletRecoverEvent.RecoverSuccess -> {
+                    val walletName = (state.event as FreeGroupWalletRecoverEvent.RecoverSuccess).walletName
+                    NcToastManager.scheduleShowMessage(
+                        message = context.getString(R.string.nc_has_been_recovered, walletName),
+                    )
                     onOpenWalletDetail(state.wallet?.id.orEmpty())
                     finishScreen()
                 }

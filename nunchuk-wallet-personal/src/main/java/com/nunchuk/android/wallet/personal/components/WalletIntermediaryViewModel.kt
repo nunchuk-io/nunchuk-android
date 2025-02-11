@@ -34,7 +34,6 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStepInfo
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.wallet.WalletOption
 import com.nunchuk.android.type.AddressType
@@ -233,21 +232,9 @@ class WalletIntermediaryViewModel @Inject constructor(
                 if (it) {
                     _event.emit(WalletIntermediaryEvent.ImportWalletSuccessEvent(wallet, filePath))
                 } else {
-                    deleteWallet(wallet, filePath)
+                    deleteWalletUseCase.execute(wallet.id)
                     _event.emit(WalletIntermediaryEvent.ShowError("Group wallet not found"))
                 }
-            }
-        }
-    }
-
-    private fun deleteWallet(wallet: Wallet, filePath: String) {
-        viewModelScope.launch {
-            when(deleteWalletUseCase.execute(wallet.id)) {
-                is Result.Success -> {
-                    _event.emit(WalletIntermediaryEvent.ImportWalletSuccessEvent(wallet, filePath))
-                }
-
-                else -> {}
             }
         }
     }

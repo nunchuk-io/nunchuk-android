@@ -5,9 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isTaproot
+import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.signer.SupportedSigner
@@ -23,9 +26,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -39,7 +44,8 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
     private val getSupportedSignersUseCase: GetSupportedSignersUseCase,
     private val recoverGroupWalletUseCase: RecoverGroupWalletUseCase,
     private val deleteWalletUseCase: DeleteWalletUseCase,
-) : ViewModel() {
+    private val pushEventManager: PushEventManager,
+    ) : ViewModel() {
     val walletId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletRecoverActivity.EXTRA_WALLET_ID).orEmpty()
     val filePath: String
@@ -52,6 +58,14 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
 
     init {
         loadInfo()
+
+        viewModelScope.launch {
+            pushEventManager.event.filterIsInstance<PushEvent.LocalUserSignerAdded>()
+                .collect {
+                    Timber.d("Pushing event: $it")
+                    newSignerAdded(it.signer)
+                }
+        }
     }
 
     private fun loadSupportedSigners() = viewModelScope.launch {
@@ -86,47 +100,12 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
         } else {
             newWalletSigners = curWallet.signers.map { signer -> singleSignerMapper(signer) }
         }
-        val getNewAllSigner = async { getAllSignersUseCase(false) }
 
-        val pairSigner = getNewAllSigner.await().getOrNull() ?: return@launch
-        val singleSigner = pairSigner.second.filter { it.type != SignerType.SERVER }
-        singleSigners.apply {
-            clear()
-            addAll(singleSigner)
-        }
-        masterSigners.apply {
-            clear()
-            addAll(pairSigner.first)
-        }
-        val allSigners = pairSigner.first.filter { it.type != SignerType.SERVER }
-            .map { signer ->
-                masterSignerMapper(signer)
-            } + singleSigner.map { signer -> signer.toModel() }
-
+        val allSigners = getNewAllSigner()
         val oldAllSigners = _uiState.value.allSigners
         val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: -1
-
         Timber.tag("recover-group-wallet").e("Old all signers: ${oldAllSigners.size} - New all signers: ${allSigners.size}")
-        if (allSigners.isNotEmpty() && oldAllSigners.isNotEmpty() && index != -1 && oldAllSigners.size != allSigners.size) {
-            Timber.tag("recover-group-wallet").e("All signers size is different")
-            val newSigner = allSigners.find { signer ->
-                oldAllSigners.none { it.fingerPrint == signer.fingerPrint }
-            }
-            newSigner?.let {
-                val selectSigner = _uiState.value.signerUis.find { it.index == index }?.signer
-                Timber.tag("recover-group-wallet").e("New signer found: $it")
-                if (selectSigner?.fingerPrint == newSigner.fingerPrint) {
-                    Timber.tag("recover-group-wallet").e("New signer is selected")
-                    val signerUi = SignerModelRecoverUi(signer = newSigner, index = index, isInDevice = true)
-                    val signers = _uiState.value.signerUis.toMutableList()
-                    signers[index] = signerUi
-                    _uiState.update { it.copy(signerUis = signers) }
-                } else {
-                    _uiState.update { it.copy(showAddKeyErrorDialog = true) }
-                }
-            }
-            setCurrentSignerIndex(-1)
-        } else {
+        if (index == -1) {
             Timber.tag("recover-group-wallet").e("All signers size is the same")
 
             val existingSigners = newWalletSigners.filter { signer ->
@@ -150,6 +129,62 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
             _uiState.update { it.copy(signerUis = signerUis, allSigners = allSigners) }
 
             loadSupportedSigners()
+        } else {
+            if ((allSigners.isEmpty() && oldAllSigners.isEmpty()).not() && oldAllSigners.size != allSigners.size) {
+                Timber.tag("recover-group-wallet").e("All signers size is different")
+                val newSigner = allSigners.find { signer ->
+                    oldAllSigners.none { it.fingerPrint == signer.fingerPrint }
+                }
+                handleAddedSigner(newSigner, index)
+                _uiState.update { it.copy(allSigners = allSigners) }
+            }
+        }
+    }
+
+    private fun newSignerAdded(addedSigner: SingleSigner) = viewModelScope.launch {
+        val oldAllSigners = _uiState.value.allSigners
+        val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: -1
+        val allSigners = getNewAllSigner()
+        if ((allSigners.isEmpty() && oldAllSigners.isEmpty()).not() && index != -1 && oldAllSigners.size == allSigners.size) { // handle case add existing signer
+            Timber.tag("recover-group-wallet").e("All signers size is the same")
+            val newSigner = addedSigner.toModel()
+            handleAddedSigner(newSigner, index)
+        }
+    }
+
+    private fun handleAddedSigner(newSigner: SignerModel?, index: Int) {
+        newSigner?.let {
+            val selectSigner = _uiState.value.signerUis.find { it.index == index }?.signer
+            Timber.tag("recover-group-wallet").e("New signer found: $it")
+            if (selectSigner?.fingerPrint == newSigner.fingerPrint) {
+                Timber.tag("recover-group-wallet").e("New signer is selected")
+                val signerUi = SignerModelRecoverUi(signer = newSigner, index = index, isInDevice = true)
+                val signers = _uiState.value.signerUis.toMutableList()
+                signers[index] = signerUi
+                _uiState.update { state -> state.copy(signerUis = signers) }
+            } else {
+                _uiState.update { state -> state.copy(showAddKeyErrorDialog = true) }
+            }
+        }
+        setCurrentSignerIndex(-1)
+    }
+
+    private suspend fun getNewAllSigner(): List<SignerModel> {
+        return withContext(viewModelScope.coroutineContext) {
+            val pairSigner = getAllSignersUseCase(false).getOrNull() ?: return@withContext emptyList()
+            val singleSigner = pairSigner.second.filter { it.type != SignerType.SERVER }
+            singleSigners.apply {
+                clear()
+                addAll(singleSigner)
+            }
+            masterSigners.apply {
+                clear()
+                addAll(pairSigner.first)
+            }
+            pairSigner.first.filter { it.type != SignerType.SERVER }
+                .map { signer ->
+                    masterSignerMapper(signer)
+                } + singleSigner.map { signer -> signer.toModel() }
         }
     }
 
@@ -163,10 +198,10 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
                 )
             ).onSuccess {
                 Timber.tag("recover-group-wallet").e("Recover group wallet success")
-                _uiState.update {  it.copy(event = FreeGroupWalletRecoverEvent.RecoverSuccess) }
-            }.onFailure {
-                Timber.tag("recover-group-wallet").e("Recover group wallet failed: $it")
-                _uiState.update { it.copy(errorMessage = it.errorMessage) }
+                _uiState.update {  it.copy(event = FreeGroupWalletRecoverEvent.RecoverSuccess(walletName = _uiState.value.wallet?.name.orEmpty())) }
+            }.onFailure { error ->
+                Timber.tag("recover-group-wallet").e("Recover group wallet failed: $error")
+                _uiState.update { it.copy(errorMessage = error.readableMessage()) }
             }
         }
     }
