@@ -352,22 +352,22 @@ fun FreeUserWalletTypeContent(
             modifier = Modifier
                 .padding(start = 16.dp, end = 16.dp, top = 8.dp)
                 .clickable {
-                    onWalletTypeSelected(WalletType.HOT)
+                    onWalletTypeSelected(WalletType.GROUP)
                 },
-            title = stringResource(id = R.string.nc_hot_wallet),
-            desc = stringResource(R.string.nc_hot_wallet_create_wallet_desc),
-            resId = R.drawable.ic_wallet_type_hot_wallet
+            title = stringResource(id = R.string.nc_group_wallet),
+            desc = stringResource(R.string.nc_group_wallet_desc),
+            resId = R.drawable.ic_wallet_type_group_wallet
         )
 
         WalletTypeItem(
             modifier = Modifier
                 .padding(start = 16.dp, end = 16.dp, top = 24.dp)
                 .clickable {
-                    onWalletTypeSelected(WalletType.GROUP)
+                    onWalletTypeSelected(WalletType.HOT)
                 },
-            title = stringResource(id = R.string.nc_group_wallet),
-            desc = stringResource(R.string.nc_group_wallet_desc),
-            resId = R.drawable.ic_wallet_type_group_wallet
+            title = stringResource(id = R.string.nc_hot_wallet),
+            desc = stringResource(R.string.nc_hot_wallet_create_wallet_desc),
+            resId = R.drawable.ic_wallet_type_hot_wallet
         )
 
         WalletTypeItem(
