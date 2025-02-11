@@ -222,7 +222,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                     HistoryPeriod(
                         id = it.toString(),
                         durationInMillis = it.toLong(),
-                        displayName = "$it days",
+                        displayName = if (it > 1) "$it days" else "$it day",
                         enabled = true
                     )
                 }.orEmpty()
