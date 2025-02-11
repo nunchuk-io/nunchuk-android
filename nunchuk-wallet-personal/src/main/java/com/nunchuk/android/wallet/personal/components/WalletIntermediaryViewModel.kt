@@ -234,7 +234,7 @@ class WalletIntermediaryViewModel @Inject constructor(
                     _event.emit(WalletIntermediaryEvent.ImportWalletSuccessEvent(wallet, filePath))
                 } else {
                     deleteWallet(wallet, filePath)
-                    _event.emit(WalletIntermediaryEvent.ShowError("Wallet is not a group wallet"))
+                    _event.emit(WalletIntermediaryEvent.ShowError("Group wallet not found"))
                 }
             }
         }

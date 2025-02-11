@@ -857,4 +857,5 @@
     <string name="nc_keep_group_chat_history">Keep group chat history for:</string>
     <string name="nc_manage_group_chat_history">Manage group chat history</string>
     <string name="nc_chat_setting_updated">Chat setting updated</string>
+    <string name="nc_incorrect_key">Incorrect key</string>
 </resources>

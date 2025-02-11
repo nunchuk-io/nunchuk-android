@@ -269,7 +269,7 @@ fun FreeGroupWalletRecoverScreen(
 
         if (state.showAddKeyErrorDialog) {
             NcInfoDialog(
-                title = stringResource(id = R.string.nc_error),
+                title = stringResource(id = R.string.nc_incorrect_key),
                 message = stringResource(id = R.string.nc_failed_add_key_correct_key_from_config),
                 onPositiveClick = {
                     onGotItClick()
