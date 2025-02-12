@@ -283,14 +283,13 @@ class RoomsViewModel @Inject constructor(
 
     private fun combineRooms() {
         val result = mutableListOf<RoomMessage>()
-        val groupWalletRooms = getState().groupWalletMessages
+        val groupWalletRooms = getState().groupWalletMessages.sortedByDescending { it.timestamp }
         val matrixRooms = getState().matrixRooms
         result.addAll(groupWalletRooms.map { RoomMessage.GroupWalletRoom(it) } + matrixRooms.map {
             RoomMessage.MatrixRoom(
                 it
             )
         })
-        result.sortByDescending { it.time }
         updateState { copy(rooms = result) }
     }
 
