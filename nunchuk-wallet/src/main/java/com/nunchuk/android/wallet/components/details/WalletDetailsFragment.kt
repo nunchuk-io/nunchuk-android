@@ -225,7 +225,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 GroupChatHistoryFragment.show(
                     childFragmentManager,
                     GroupChatHistoryArgs(
-                        historyPeriods = viewModel.state.value?.historyPeriods.orEmpty().sortedBy { it.id },
+                        historyPeriods = viewModel.state.value?.historyPeriods.orEmpty().sortedBy { it.id.toInt() },
                         historyPeriodIdSelected = viewModel.state.value?.selectedHistoryPeriod?.id ?: "7",
                         isFreeGroupWalletFlow = viewModel.isFreeGroupWallet(),
                         walletId = args.walletId,
