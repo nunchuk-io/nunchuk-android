@@ -1,9 +1,11 @@
 package com.nunchuk.android.main.groupwallet.recover
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.ui.platform.ComposeView
 import androidx.navigation.compose.NavHost
@@ -12,12 +14,22 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.data.model.WalletConfigViewOnlyDataComposer
 import com.nunchuk.android.core.data.model.getWalletConfigTypeBy
+import com.nunchuk.android.core.util.ADD_WALLET_RESULT
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class FreeGroupWalletRecoverActivity : BaseComposeActivity() {
 
     private val viewModel: FreeGroupWalletRecoverViewModel by viewModels()
+
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                val updatedWalletName = data.getStringExtra(ADD_WALLET_RESULT) ?: ""
+                viewModel.updateWalletName(updatedWalletName)
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,12 +54,16 @@ class FreeGroupWalletRecoverActivity : BaseComposeActivity() {
                                         navigator.openAddWalletScreen(
                                             activityContext = this@FreeGroupWalletRecoverActivity,
                                             decoyPin = "",
+                                            launcher = launcher,
                                             walletConfigViewOnlyDataComposer = WalletConfigViewOnlyDataComposer(
                                                 walletName = wallet.name,
                                                 addressType = wallet.addressType,
                                                 requireKeys = wallet.totalRequireSigns,
                                                 totalKeys = wallet.signers.size,
-                                                walletConfigType = getWalletConfigTypeBy( wallet.signers.size, wallet.totalRequireSigns)
+                                                walletConfigType = getWalletConfigTypeBy(
+                                                    wallet.signers.size,
+                                                    wallet.totalRequireSigns
+                                                )
                                             )
                                         )
                                     }

@@ -45,3 +45,6 @@ fun Bundle?.getIntValue(
     key: String,
     defaultValue: Int = 0
 ) = this?.getInt(key, defaultValue) ?: defaultValue
+
+
+const val ADD_WALLET_RESULT = "ADD_WALLET_RESULT"

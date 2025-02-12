@@ -230,6 +230,9 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
     }
 
     fun getWallet() = _uiState.value.wallet
+    fun updateWalletName(updatedWalletName: String) {
+        _uiState.update { it.copy(wallet = _uiState.value.wallet?.copy(name = updatedWalletName)) }
+    }
 
     companion object {
         private const val CURRENT_SIGNER_INDEX = "current_signer_index"

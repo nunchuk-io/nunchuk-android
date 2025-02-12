@@ -85,9 +85,14 @@ fun AddWalletView(
     var keys by remember { mutableIntStateOf(0) }
     var requiredKeys by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(state.groupSandbox?.name) {
-        walletName = state.groupSandbox?.name ?: ""
+    LaunchedEffect(state.groupSandbox?.name, viewOnlyComposer?.walletName) {
+        if (viewOnlyComposer != null) {
+            walletName = viewOnlyComposer.walletName
+        } else {
+            walletName = state.groupSandbox?.name ?: ""
+        }
     }
+
     LaunchedEffect(state.groupSandbox?.n ?: 3, state.groupSandbox?.m ?: 2) {
         walletConfigType = getWalletConfigTypeBy(
             n = state.groupSandbox?.n ?: 3,
@@ -131,13 +136,13 @@ fun AddWalletView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    enabled = walletName.isNotBlank() && isViewConfigOnly.not(),
+                    enabled = walletName.isNotBlank(),
                     onClick = {
                         onContinue(walletName, state.addressTypeSelected, requiredKeys, keys)
                     }
                 ) {
                     Text(
-                        text = if (isEditGroupWallet) stringResource(id = R.string.nc_save_changes) else stringResource(
+                        text = if (isEditGroupWallet || viewOnlyComposer != null) stringResource(id = R.string.nc_save_changes) else stringResource(
                             id = R.string.nc_text_continue
                         ),
                         style = NunchukTheme.typography.title.copy(
@@ -156,8 +161,8 @@ fun AddWalletView(
             ) {
                 NcTextField(
                     title = stringResource(id = R.string.nc_text_wallet_name),
-                    value = viewOnlyComposer?.walletName ?: walletName,
-                    onValueChange = { if (isViewConfigOnly.not()) walletName = it.take(80) },
+                    value = walletName,
+                    onValueChange = { walletName = it.take(80) },
                     enableMaxLength = true,
                     maxLength = 80,
                     modifier = Modifier.focusRequester(focusRequester)

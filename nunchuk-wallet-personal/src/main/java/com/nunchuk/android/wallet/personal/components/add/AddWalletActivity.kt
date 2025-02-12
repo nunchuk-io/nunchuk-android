@@ -19,11 +19,13 @@
 
 package com.nunchuk.android.wallet.personal.components.add
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.Lifecycle
@@ -32,6 +34,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.data.model.WalletConfigViewOnlyDataComposer
+import com.nunchuk.android.core.util.ADD_WALLET_RESULT
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
@@ -94,7 +97,13 @@ class AddWalletActivity : BaseComposeActivity() {
                         viewModel.updateAddressTypeSelected(it)
                     }
                 }, onContinue = { walletName, addressType, m, n ->
-                    if (groupWalletId.isNotEmpty()) {
+                    if (viewOnlyComposer != null) {
+                        setResult(
+                            Activity.RESULT_OK,
+                            Intent().apply { putExtra(ADD_WALLET_RESULT, walletName) }
+                        )
+                        finish()
+                    } else if (groupWalletId.isNotEmpty()) {
                         viewModel.updateGroupSandboxConfig(walletName, m, n)
                     } else {
                         openAssignSignerScreen(
@@ -164,19 +173,22 @@ class AddWalletActivity : BaseComposeActivity() {
         private const val VIEW_ONLY_COMPOSER = "view_only_composer"
 
         fun start(
-            activityContext: Context, decoyPin: String, groupWalletId: String,
+            activityContext: Context,
+            launcher: ActivityResultLauncher<Intent>? = null,
+            decoyPin: String, groupWalletId: String,
             hasGroupSigner: Boolean, viewOnlyComposer: WalletConfigViewOnlyDataComposer? = null
         ) {
-            activityContext.startActivity(
-                Intent(
-                    activityContext,
-                    AddWalletActivity::class.java
-                ).apply {
-                    putExtra(DECOY_PIN, decoyPin)
-                    putExtra(GROUP_WALLET_ID, groupWalletId)
-                    putExtra(HAS_GROUP_SIGNER, hasGroupSigner)
-                    putExtra(VIEW_ONLY_COMPOSER, viewOnlyComposer)
-                })
+            val intent = Intent(activityContext, AddWalletActivity::class.java).apply {
+                putExtra(DECOY_PIN, decoyPin)
+                putExtra(GROUP_WALLET_ID, groupWalletId)
+                putExtra(HAS_GROUP_SIGNER, hasGroupSigner)
+                putExtra(VIEW_ONLY_COMPOSER, viewOnlyComposer)
+            }
+            if (launcher != null) {
+                launcher.launch(intent)
+            } else {
+                activityContext.startActivity(intent)
+            }
         }
     }
 

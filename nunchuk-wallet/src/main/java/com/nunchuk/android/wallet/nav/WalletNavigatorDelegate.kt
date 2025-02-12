@@ -58,10 +58,12 @@ import com.nunchuk.android.wallet.shared.components.review.ReviewSharedWalletAct
 interface WalletNavigatorDelegate : WalletNavigator {
 
     override fun openAddWalletScreen(
-        activityContext: Context, decoyPin: String, groupWalletId: String, hasGroupSigner: Boolean,
+        activityContext: Context,
+        launcher: ActivityResultLauncher<Intent>?,
+        decoyPin: String, groupWalletId: String, hasGroupSigner: Boolean,
         walletConfigViewOnlyDataComposer: WalletConfigViewOnlyDataComposer?
     ) {
-        AddWalletActivity.start(activityContext, decoyPin, groupWalletId, hasGroupSigner, walletConfigViewOnlyDataComposer)
+        AddWalletActivity.start(activityContext, launcher = launcher, decoyPin, groupWalletId, hasGroupSigner, walletConfigViewOnlyDataComposer)
     }
 
     override fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean) {

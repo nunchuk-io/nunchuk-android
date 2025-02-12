@@ -38,6 +38,7 @@ interface PersonalWalletNavigator {
 
     fun openAddWalletScreen(
         activityContext: Context,
+        launcher: ActivityResultLauncher<Intent>? = null,
         decoyPin: String = "",
         groupWalletId: String = "",
         hasGroupSigner: Boolean = false,
