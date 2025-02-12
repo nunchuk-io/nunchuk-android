@@ -88,6 +88,7 @@ fun NavGraphBuilder.freeGroupWallet(
     returnToHome: () -> Unit,
     onContinueClicked: (GroupSandbox) -> Unit = {},
     onStartAddKey: (Int) -> Unit = {},
+    onChangeBip32Path: (Int, SignerModel) -> Unit = { _, _ -> }
 ) {
     composable(
         route = freeGroupWalletRoute,
@@ -158,6 +159,7 @@ fun FreeGroupWalletScreen(
     onDeleteGroupClicked: () -> Unit = {},
     returnToHome: () -> Unit = {},
     onStartAddKey: (Int) -> Unit = {},
+    onChangeBip32Path: (Int, SignerModel) -> Unit = { _, _ -> }
 ) {
     var showSignerBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showMoreOption by rememberSaveable { mutableStateOf(false) }
@@ -165,6 +167,7 @@ fun FreeGroupWalletScreen(
     var currentSignerIndex by rememberSaveable { mutableIntStateOf(-1) }
     var showDeleteSignerDialog by rememberSaveable { mutableStateOf(false) }
     var showKeyNotSynced by rememberSaveable { mutableStateOf(false) }
+    var showBip32Path by rememberSaveable { mutableStateOf(false) }
     NcScaffold(
         snackState = snackState,
         modifier = Modifier.navigationBarsPadding(),
@@ -290,17 +293,23 @@ fun FreeGroupWalletScreen(
                     onRemoveClicked = {
                         currentSignerIndex = index
                         showDeleteSignerDialog = true
-                    }
+                    },
+                    showBip32Path = showBip32Path
                 )
             }
         }
 
         if (showMoreOption) {
             NcSelectableBottomSheet(
-                options = listOf(stringResource(R.string.nc_cancel_group_wallet_setup)),
+                options = listOf(
+                    stringResource(R.string.nc_cancel_group_wallet_setup),
+                    if (showBip32Path) stringResource(R.string.nc_hide_bip_32_path) else stringResource(R.string.nc_show_bip_32_path),
+                ),
                 onSelected = {
                     if (it == 0) {
                         showAskForDeleteDialog = true
+                    } else {
+                        showBip32Path = !showBip32Path
                     }
                 },
                 onDismiss = {

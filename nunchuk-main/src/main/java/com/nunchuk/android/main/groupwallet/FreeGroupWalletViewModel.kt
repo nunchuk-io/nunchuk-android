@@ -244,29 +244,30 @@ class FreeGroupWalletViewModel @Inject constructor(
     private suspend fun updateGroupSandbox(groupSandbox: GroupSandbox) {
         Timber.d("Update group sandbox $groupSandbox")
         val signers = groupSandbox.signers.map {
-            it.takeIf { it.masterFingerprint.isNotEmpty() || it.name == KEY_NOT_SYNCED_NAME }?.let { signer ->
-                if (hasSignerUseCase(signer).getOrNull() == true) {
-                    singleSignerMapper(getSignerUseCase(signer).getOrThrow()).copy(isVisible = true)
-                } else {
-                    it.toModel().copy(isVisible = false)
+            it.takeIf { it.masterFingerprint.isNotEmpty() || it.name == KEY_NOT_SYNCED_NAME }
+                ?.let { signer ->
+                    if (hasSignerUseCase(signer).getOrNull() == true) {
+                        singleSignerMapper(getSignerUseCase(signer).getOrThrow()).copy(isVisible = true)
+                    } else {
+                        it.toModel().copy(isVisible = false)
+                    }
                 }
-            }
         }
         _uiState.update { it.copy(group = groupSandbox, signers = signers) }
         updateOccupiedSlots(groupSandbox)
     }
 
     private fun updateOccupiedSlots(groupSandbox: GroupSandbox) {
-        if (groupSandbox.occupiedSlots.isEmpty()) return
         val currentTimeInSeconds = System.currentTimeMillis() / 1000
         val timeout = 30.seconds.inWholeSeconds
-        val occupiedSlots = groupSandbox.occupiedSlots.mapIndexedNotNull { index, occupiedSlot ->
-            if (occupiedSlot != null && occupiedSlot.deviceId != deviceUID && occupiedSlot.time + timeout > currentTimeInSeconds) {
-                index
-            } else {
-                null
-            }
-        }.toSet()
+        val occupiedSlots =
+            groupSandbox.occupiedSlots.mapIndexedNotNull { index, occupiedSlot ->
+                if (occupiedSlot != null && occupiedSlot.deviceId != deviceUID && occupiedSlot.time + timeout > currentTimeInSeconds) {
+                    index
+                } else {
+                    null
+                }
+            }.toSet()
         _uiState.update { it.copy(occupiedSlotsIndex = occupiedSlots) }
     }
 

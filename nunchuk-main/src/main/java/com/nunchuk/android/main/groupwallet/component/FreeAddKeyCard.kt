@@ -2,6 +2,7 @@ package com.nunchuk.android.main.groupwallet.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,8 @@ fun FreeAddKeyCard(
     signer: SignerModel? = null,
     onAddClicked: () -> Unit,
     onRemoveClicked: () -> Unit,
+    showBip32Path: Boolean = false,
+    onChangeBip32Path: (Int, SignerModel) -> Unit = { _, _ -> }
 ) {
     if (signer != null && signer.name == KEY_NOT_SYNCED_NAME) {
         Row(
@@ -93,7 +96,32 @@ fun FreeAddKeyCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (signer.isVisible) {
-                SignerCard(item = signer, modifier = Modifier.weight(1.0f))
+                SignerCard(item = signer, modifier = Modifier.weight(1.0f)) {
+                    if (showBip32Path && signer.isMasterSigner) {
+                        Row(
+                            modifier = Modifier.clickable(onClick = {
+                                onChangeBip32Path(index, signer)
+                            }),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                text = stringResource(
+                                    R.string.nc_bip32_path,
+                                    signer.derivationPath
+                                ),
+                                style = NunchukTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.textSecondary
+                            )
+
+                            NcIcon(
+                                modifier = Modifier.size(12.dp),
+                                painter = painterResource(id = R.drawable.ic_edit_small),
+                                contentDescription = "Edit icon"
+                            )
+                        }
+                    }
+                }
             } else {
                 NcCircleImage(
                     iconSize = 48.dp,
@@ -205,7 +233,8 @@ private fun FreeAddKeyCardPreview(
                 signer = signer,
                 isOccupied = false,
                 onAddClicked = {},
-                onRemoveClicked = {}
+                onRemoveClicked = {},
+                showBip32Path = true
             )
         }
     }

@@ -41,7 +41,7 @@ class SignerModelProvider : CollectionPreviewParameterProvider<SignerModel>(
                 "123",
                 "Tom’s TAPSIGNER",
                 fingerPrint = "79EB35F4",
-                derivationPath = "",
+                derivationPath = "m/44'/0'/0'/0/0",
                 isMasterSigner = false,
                 index = 10
             ),
