@@ -172,6 +172,7 @@ internal class WalletDetailsViewModel @Inject constructor(
             getListMessageFreeGroupWalletUseCase(
                 GetListMessageFreeGroupWalletUseCase.Param(
                     walletId = args.walletId,
+                    page = 0
                 )
             ).onSuccess {
                 updateState {

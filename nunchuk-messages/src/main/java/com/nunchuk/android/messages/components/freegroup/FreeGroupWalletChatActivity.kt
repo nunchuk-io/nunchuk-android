@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -41,10 +42,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -100,6 +103,9 @@ class FreeGroupWalletChatActivity : BaseComposeActivity() {
                     },
                     onWalletInfoClick = {
                         navigator.openWalletDetailsScreen(this@FreeGroupWalletChatActivity, it)
+                    },
+                    loadMoreMessages = {
+                        viewModel.loadMoreMessages()
                     }
                 )
             }
@@ -136,8 +142,10 @@ class FreeGroupWalletChatActivity : BaseComposeActivity() {
 fun FreeGroupWalletChatScreen(
     state: FreeGroupWalletChatUiState = FreeGroupWalletChatUiState(),
     onSendMessage: (String) -> Unit = {},
-    onWalletInfoClick: (String) -> Unit = {}
+    onWalletInfoClick: (String) -> Unit = {},
+    loadMoreMessages: () -> Unit = {}
 ) {
+
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -215,7 +223,12 @@ fun FreeGroupWalletChatScreen(
                 )
 
                 ChatMessages(
-                    messages = state.messageUis
+                    messages = state.messageUis,
+                    onLoadMore = {
+                        if (!state.isLoadingMore) {
+                            loadMoreMessages()
+                        }
+                    }
                 )
             }
         }
@@ -260,12 +273,29 @@ fun ChatHeader(btc: String, multisign: String, onClick: () -> Unit = {}) {
 }
 
 @Composable
-fun ChatMessages(messages: List<MessageUI>) {
+fun ChatMessages(messages: List<MessageUI>,
+                 onLoadMore: () -> Unit = {}) {
+
+    val lazyListState = rememberLazyListState()
+
+    LaunchedEffect(lazyListState) {
+        snapshotFlow { lazyListState.layoutInfo }
+            .collect { layoutInfo ->
+                if (layoutInfo.visibleItemsInfo.isNotEmpty()) {
+                    val firstVisibleItem = layoutInfo.visibleItemsInfo.first()
+                    if (firstVisibleItem.index == 0 && firstVisibleItem.offset == 0) {
+                        onLoadMore()
+                    }
+                }
+            }
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
         reverseLayout = true,
+        state = lazyListState
     ) {
         items(messages) { message ->
             when (message) {

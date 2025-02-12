@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
 import com.nunchuk.android.core.domain.GetListMessageFreeGroupWalletUseCase
+import com.nunchuk.android.core.domain.MAX_PAGE_SIZE
 import com.nunchuk.android.listener.GroupMessageListener
 import com.nunchuk.android.model.FreeGroupMessage
 import com.nunchuk.android.model.Wallet
@@ -95,6 +96,7 @@ class FreeGroupWalletChatViewModel @Inject constructor(
             getListMessageFreeGroupWalletUseCase(
                 GetListMessageFreeGroupWalletUseCase.Param(
                     walletId = walletId,
+                    page = 0
                 )
             ).onSuccess { result ->
                 _uiState.update {
@@ -128,6 +130,33 @@ class FreeGroupWalletChatViewModel @Inject constructor(
             )
         }
     }
+
+    fun loadMoreMessages() {
+        if (_uiState.value.isLoadingMore || _uiState.value.hasNoMore) return
+        viewModelScope.launch {
+            val newPage = _uiState.value.page + 1
+            getListMessageFreeGroupWalletUseCase(
+                GetListMessageFreeGroupWalletUseCase.Param(
+                    walletId = walletId,
+                    page = newPage
+                )
+            ).onSuccess { result ->
+                val newMessages = _uiState.value.messages.toMutableList()
+                newMessages.addAll(result)
+                _uiState.update {
+                    it.copy(
+                        messages = newMessages,
+                        messageUis = newMessages.groupByDate(_uiState.value.uid),
+                        page = newPage,
+                        hasNoMore = result.isEmpty() || result.size < MAX_PAGE_SIZE
+                    )
+                }
+            }.onFailure {
+                // Handle failure
+            }
+        }
+    }
+
 }
 
 sealed class FreeGroupWalletChatEvent {
@@ -167,7 +196,10 @@ data class FreeGroupWalletChatUiState(
     val messages: List<FreeGroupMessage> = emptyList(),
     val messageUis: List<MessageUI> = emptyList(),
     val wallet: Wallet? = null,
-    val uid: String = ""
+    val uid: String = "",
+    val isLoadingMore: Boolean = false,
+    val page: Int = 0,
+    val hasNoMore: Boolean = false
 )
 
 sealed class MessageUI {

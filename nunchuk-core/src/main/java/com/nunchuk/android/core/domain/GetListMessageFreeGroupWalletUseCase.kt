@@ -21,7 +21,6 @@ package com.nunchuk.android.core.domain
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.FreeGroupMessage
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -34,10 +33,12 @@ class GetListMessageFreeGroupWalletUseCase @Inject constructor(
     override suspend fun execute(parameters: Param): List<FreeGroupMessage> {
         return nativeSdk.getGroupWalletMessages(
             walletId = parameters.walletId,
-            pageSize = 100,
-            page = 0
+            pageSize = MAX_PAGE_SIZE,
+            page = parameters.page
         )
     }
 
-    data class Param(val walletId: String, )
+    data class Param(val walletId: String, val page: Int)
 }
+
+const val MAX_PAGE_SIZE = 99
