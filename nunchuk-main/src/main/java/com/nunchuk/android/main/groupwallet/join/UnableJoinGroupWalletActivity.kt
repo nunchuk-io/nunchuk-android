@@ -73,23 +73,24 @@ fun UnableJoinGroupWalletScreen(
     onGotItClicked: () -> Unit = {}
 ) {
     NunchukTheme {
-        Scaffold(topBar = {
-            NcTopAppBar(
-                title = "",
-                isBack = false
-            )
-        }, bottomBar = {
-            NcPrimaryDarkButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                onClick = {
+        Scaffold(modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                NcTopAppBar(
+                    title = "",
+                    isBack = false
+                )
+            }, bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = {
 
-                },
-            ) {
-                Text(text = stringResource(id = R.string.nc_text_got_it))
-            }
-        }) { innerPadding ->
+                    },
+                ) {
+                    Text(text = stringResource(id = R.string.nc_text_got_it))
+                }
+            }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -140,7 +141,7 @@ fun UnableJoinGroupWalletScreen(
                     Text(
                         text = link,
                         style = NunchukTheme.typography.body,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Start
                     )
                 }
             }

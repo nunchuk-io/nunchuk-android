@@ -126,6 +126,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         AppEvenBus.instance.subscribe(appEventListener)
         viewModel.checkAppUpdateRecommend(false)
         syncInfoViewModel.init()
+        walletViewModel.joinGroupWallet()
 
         messages.forEachIndexed { index, message ->
             NCToastMessage(this).showMessage(

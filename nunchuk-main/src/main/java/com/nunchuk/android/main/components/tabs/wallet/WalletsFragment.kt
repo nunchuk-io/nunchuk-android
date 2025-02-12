@@ -176,10 +176,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         setupViews()
 
         observeEvent()
-
-        deeplinkHolder.info?.let {
-            walletsViewModel.joinGroupWallet(it.groupId)
-        }
     }
 
     private fun setupViews() {

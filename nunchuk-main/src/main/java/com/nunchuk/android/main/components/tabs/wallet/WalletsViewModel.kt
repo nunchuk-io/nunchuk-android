@@ -30,6 +30,7 @@ import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
 import com.nunchuk.android.core.domain.JoinFreeGroupWalletByIdUseCase
+import com.nunchuk.android.core.domain.JoinFreeGroupWalletUseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
@@ -40,6 +41,7 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.CardIdManager
+import com.nunchuk.android.core.util.DeeplinkHolder
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_CURRENCY
 import com.nunchuk.android.core.util.orDefault
@@ -163,7 +165,9 @@ internal class WalletsViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val getPendingGroupsSandboxUseCase: GetPendingGroupsSandboxUseCase,
     private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
+    private val joinFreeGroupWalletUseCase: JoinFreeGroupWalletUseCase,
     private val joinFreeGroupWalletByIdUseCase: JoinFreeGroupWalletByIdUseCase,
+    private val deeplinkHolder: DeeplinkHolder,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -387,7 +391,9 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
-    fun joinGroupWallet(groupId: String) = viewModelScope.launch {
+    fun joinGroupWallet() = viewModelScope.launch {
+        delay(2000)
+        val groupId = deeplinkHolder.info?.groupId ?: return@launch
         joinFreeGroupWalletByIdUseCase(groupId)
             .onSuccess {
                 setEvent(WalletsEvent.JoinFreeGroupWalletSuccess(it))
