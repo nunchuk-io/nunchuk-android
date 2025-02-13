@@ -131,7 +131,9 @@ internal fun WalletConfigView(
                             }
                         }
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
@@ -190,9 +192,11 @@ internal fun WalletConfigView(
                                 onClick = onChangeAlias
                             ) {
                                 Text(
-                                    text = if (state.alias.isEmpty()) stringResource(id = R.string.nc_set_alias) else stringResource(
-                                        R.string.nc_change_alias
-                                    ),
+                                    text = if (state.alias.isEmpty()) {
+                                        stringResource(id = R.string.nc_set_alias)
+                                    } else {
+                                        stringResource(R.string.nc_change_alias)
+                                    },
                                 )
                             }
                         }

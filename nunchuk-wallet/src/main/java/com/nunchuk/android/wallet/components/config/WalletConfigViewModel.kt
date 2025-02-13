@@ -165,8 +165,8 @@ internal class WalletConfigViewModel @Inject constructor(
         viewModelScope.launch {
             getAssistedWalletsFlowUseCase(Unit).mapNotNull { wallets ->
                 wallets.getOrElse { emptyList() }.find { it.localId == walletId }
-            }.collect {
-                _state.update { it.copy(alias = it.alias) }
+            }.collect { wallet ->
+                _state.update { it.copy(alias = wallet.alias) }
                 getWalletDetails()
             }
         }
