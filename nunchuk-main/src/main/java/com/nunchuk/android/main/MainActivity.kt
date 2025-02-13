@@ -26,6 +26,7 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
@@ -213,6 +214,9 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main) as NavHostFragment
         navController = navHostFragment.navController
         NunchukBottomNavigationUtil.setupWithNavController(navView, navController)
+
+        messageBadge.setBackgroundColor(ContextCompat.getColor(this, R.color.nc_orange_dark_color));
+        messageBadge.badgeTextColor = ContextCompat.getColor(this, R.color.nc_white_color);
     }
 
     private fun setBottomNavViewPosition(@IdRes id: Int) {
