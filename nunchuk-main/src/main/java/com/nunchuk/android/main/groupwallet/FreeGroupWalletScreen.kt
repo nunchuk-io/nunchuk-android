@@ -139,7 +139,8 @@ fun NavGraphBuilder.freeGroupWallet(
             onAddExistingKey = onAddExistingKey,
             onDeleteGroupClicked = viewModel::deleteGroupSandbox,
             returnToHome = returnToHome,
-            onStartAddKey = onStartAddKey
+            onStartAddKey = onStartAddKey,
+            onChangeBip32Path = onChangeBip32Path
         )
     }
 }
@@ -294,7 +295,8 @@ fun FreeGroupWalletScreen(
                         currentSignerIndex = index
                         showDeleteSignerDialog = true
                     },
-                    showBip32Path = showBip32Path
+                    showBip32Path = showBip32Path,
+                    onChangeBip32Path = onChangeBip32Path
                 )
             }
         }

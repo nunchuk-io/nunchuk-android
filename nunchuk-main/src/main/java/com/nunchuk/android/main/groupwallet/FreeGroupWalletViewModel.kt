@@ -1,10 +1,12 @@
 package com.nunchuk.android.main.groupwallet
 
+import android.nfc.tech.IsoDep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
+import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerByPathUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.push.PushEvent
@@ -24,6 +26,7 @@ import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.free.groupwallet.AddSignerToGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.CreateGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.DeleteGroupSandboxUseCase
@@ -73,7 +76,9 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val getSupportedSignersUseCase: GetSupportedSignersUseCase,
     private val getUnusedSignerFromMasterSignerV2UseCase: GetUnusedSignerFromMasterSignerV2UseCase,
     private val setSlotOccupiedUseCase: SetSlotOccupiedUseCase,
-    private val getGroupDeviceUIDUseCase: GetGroupDeviceUIDUseCase
+    private val getGroupDeviceUIDUseCase: GetGroupDeviceUIDUseCase,
+    private val getSignerFromMasterSignerUseCase: GetSignerFromMasterSignerUseCase,
+    private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase
 ) : ViewModel() {
     val groupId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
@@ -275,6 +280,10 @@ class FreeGroupWalletViewModel @Inject constructor(
         savedStateHandle[CURRENT_SIGNER_INDEX] = index
     }
 
+    fun setCurrentSigner(signer: SignerModel) {
+        savedStateHandle[CURRENT_SIGNER] = signer
+    }
+
     fun addSignerToGroup(signer: SingleSigner) {
         addSignerJob = viewModelScope.launch {
             val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: return@launch
@@ -383,7 +392,58 @@ class FreeGroupWalletViewModel @Inject constructor(
         }
     }
 
+    fun changeBip32Path(masterSignerId: String, newPath: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            getSignerFromMasterSignerUseCase(
+                GetSignerFromMasterSignerUseCase.Params(
+                    masterSignerId, newPath
+                )
+            ).onSuccess {
+                addSignerToGroup(it)
+            }.onFailure { error ->
+                if (error is NCNativeException && error.message.contains("-1009")) {
+                    savedStateHandle[NEW_PATH] = newPath
+                    _uiState.update { it.copy(requestCacheTapSignerXpubEvent = true) }
+                } else {
+                    Timber.e("Failed to change bip32 path $error")
+                    _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+                }
+            }
+            _uiState.update { it.copy(isLoading = false) }
+        }
+    }
+
+    fun resetRequestCacheTapSignerXpub() {
+        _uiState.update { it.copy(requestCacheTapSignerXpubEvent = false) }
+    }
+
+    fun cacheTapSignerXpub(isoDep: IsoDep?, cvc: String) {
+        val signer = savedStateHandle.get<SignerModel>(CURRENT_SIGNER) ?: return
+        val newPath = savedStateHandle.get<String>(NEW_PATH) ?: return
+        Timber.d("Cache tap signer xpub $signer $newPath")
+        isoDep ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            getSignerFromTapsignerMasterSignerByPathUseCase(
+                GetSignerFromTapsignerMasterSignerByPathUseCase.Data(
+                    isoDep = isoDep,
+                    masterSignerId = signer.id,
+                    path = newPath,
+                    cvc = cvc
+                )
+            ).onSuccess {
+                Timber.d("new signer $it")
+                addSignerToGroup(it)
+            }.onFailure { error ->
+                _uiState.update { it.copy(errorMessage = error.message.orUnknownError(), isLoading = false) }
+            }
+        }
+    }
+
     companion object {
         private const val CURRENT_SIGNER_INDEX = "current_signer_index"
+        private const val CURRENT_SIGNER = "current_signer"
+        private const val NEW_PATH = "new_path"
     }
 }

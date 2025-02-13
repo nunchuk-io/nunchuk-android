@@ -14,5 +14,6 @@ data class FreeGroupWalletUiState(
     val groupWalletUnavailable: Boolean = false,
     val errorMessage: String = "",
     val supportedTypes: List<SupportedSigner> = emptyList(),
-    val occupiedSlotsIndex : Set<Int> = emptySet()
+    val occupiedSlotsIndex : Set<Int> = emptySet(),
+    val requestCacheTapSignerXpubEvent: Boolean = false,
 )
