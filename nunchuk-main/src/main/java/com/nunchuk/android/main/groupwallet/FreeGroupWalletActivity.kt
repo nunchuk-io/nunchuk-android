@@ -106,7 +106,8 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                         signer.id,
                                         signer.derivationPath
                                     )
-                                }
+                                },
+                                refresh = viewModel::getGroupSandbox
                             )
 
                             customKeyNavigation(

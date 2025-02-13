@@ -97,7 +97,6 @@ class FreeGroupWalletViewModel @Inject constructor(
         if (groupId.isEmpty()) {
             createGroupSandbox()
         } else {
-            getGroupSandbox()
             getGroupOnline()
         }
         viewModelScope.launch {
@@ -231,7 +230,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         if (groupId.isNotEmpty()) {
             Timber.d("Get group sandbox $groupId")
             viewModelScope.launch {
-                _uiState.update { it.copy(isLoading = true) }
+                _uiState.update { it.copy(isRefreshing = true) }
                 getGroupSandboxUseCase(groupId).onSuccess { groupSandbox ->
                     updateGroupSandbox(groupSandbox)
                 }.onFailure {
@@ -241,7 +240,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                         _uiState.update { state -> state.copy(isFinishScreen = true) }
                     }
                 }
-                _uiState.update { it.copy(isLoading = false) }
+                _uiState.update { it.copy(isRefreshing = false) }
             }
         }
     }

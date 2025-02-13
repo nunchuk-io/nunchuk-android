@@ -2,6 +2,7 @@ package com.nunchuk.android.main.groupwallet
 
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -53,6 +55,9 @@ import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.provider.SignersModelProvider
+import com.nunchuk.android.compose.pullrefresh.PullRefreshIndicator
+import com.nunchuk.android.compose.pullrefresh.pullRefresh
+import com.nunchuk.android.compose.pullrefresh.rememberPullRefreshState
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
@@ -88,7 +93,8 @@ fun NavGraphBuilder.freeGroupWallet(
     returnToHome: () -> Unit,
     onContinueClicked: (GroupSandbox) -> Unit = {},
     onStartAddKey: (Int) -> Unit = {},
-    onChangeBip32Path: (Int, SignerModel) -> Unit = { _, _ -> }
+    onChangeBip32Path: (Int, SignerModel) -> Unit = { _, _ -> },
+    refresh: () -> Unit,
 ) {
     composable(
         route = freeGroupWalletRoute,
@@ -140,7 +146,8 @@ fun NavGraphBuilder.freeGroupWallet(
             onDeleteGroupClicked = viewModel::deleteGroupSandbox,
             returnToHome = returnToHome,
             onStartAddKey = onStartAddKey,
-            onChangeBip32Path = onChangeBip32Path
+            onChangeBip32Path = onChangeBip32Path,
+            refresh = refresh
         )
     }
 }
@@ -160,8 +167,10 @@ fun FreeGroupWalletScreen(
     onDeleteGroupClicked: () -> Unit = {},
     returnToHome: () -> Unit = {},
     onStartAddKey: (Int) -> Unit = {},
-    onChangeBip32Path: (Int, SignerModel) -> Unit = { _, _ -> }
+    onChangeBip32Path: (Int, SignerModel) -> Unit = { _, _ -> },
+    refresh: () -> Unit = {},
 ) {
+    val pullRefreshState = rememberPullRefreshState(state.isRefreshing, refresh)
     var showSignerBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showMoreOption by rememberSaveable { mutableStateOf(false) }
     var showAskForDeleteDialog by rememberSaveable { mutableStateOf(false) }
@@ -249,56 +258,64 @@ fun FreeGroupWalletScreen(
             }
         },
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
+        Box(
+            Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(top = 16.dp)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .pullRefresh(pullRefreshState)
         ) {
-            item {
-                WalletInfo(
-                    name = state.group?.name ?: "",
-                    requireSigns = state.group?.m ?: 0,
-                    totalSigns = state.group?.n ?: 0,
-                    addressType = state.group?.addressType,
-                    onEditClicked = onEditClicked,
-                    onCopyLinkClicked = {
-                        state.group?.let { onCopyLinkClicked(it.url) }
-                    },
-                    onShowQRCodeClicked = {
-                        state.group?.let { onShowQRCodeClicked(it.url) }
-                    }
-                )
-            }
-
-            item {
-                UserOnline(state.numberOfOnlineUsers)
-            }
-
-            itemsIndexed(state.signers) { index, signer ->
-                FreeAddKeyCard(
-                    index = index,
-                    isOccupied = state.occupiedSlotsIndex.contains(index),
-                    signer = signer,
-                    onAddClicked = {
-                        currentSignerIndex = index
-                        onStartAddKey(index)
-                        if (state.allSigners.isNotEmpty()) {
-                            showSignerBottomSheet = true
-                        } else {
-                            onAddNewKey(index)
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 16.dp)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    WalletInfo(
+                        name = state.group?.name ?: "",
+                        requireSigns = state.group?.m ?: 0,
+                        totalSigns = state.group?.n ?: 0,
+                        addressType = state.group?.addressType,
+                        onEditClicked = onEditClicked,
+                        onCopyLinkClicked = {
+                            state.group?.let { onCopyLinkClicked(it.url) }
+                        },
+                        onShowQRCodeClicked = {
+                            state.group?.let { onShowQRCodeClicked(it.url) }
                         }
-                    },
-                    onRemoveClicked = {
-                        currentSignerIndex = index
-                        showDeleteSignerDialog = true
-                    },
-                    showBip32Path = showBip32Path,
-                    onChangeBip32Path = onChangeBip32Path
-                )
+                    )
+                }
+
+                item {
+                    UserOnline(state.numberOfOnlineUsers)
+                }
+
+                itemsIndexed(state.signers) { index, signer ->
+                    FreeAddKeyCard(
+                        index = index,
+                        isOccupied = state.occupiedSlotsIndex.contains(index),
+                        signer = signer,
+                        onAddClicked = {
+                            currentSignerIndex = index
+                            onStartAddKey(index)
+                            if (state.allSigners.isNotEmpty()) {
+                                showSignerBottomSheet = true
+                            } else {
+                                onAddNewKey(index)
+                            }
+                        },
+                        onRemoveClicked = {
+                            currentSignerIndex = index
+                            showDeleteSignerDialog = true
+                        },
+                        showBip32Path = showBip32Path,
+                        onChangeBip32Path = onChangeBip32Path
+                    )
+                }
             }
+
+            PullRefreshIndicator(state.isRefreshing, pullRefreshState, Modifier.align(Alignment.TopCenter))
         }
 
         if (showMoreOption) {
