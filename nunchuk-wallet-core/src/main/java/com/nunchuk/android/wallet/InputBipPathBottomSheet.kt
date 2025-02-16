@@ -80,6 +80,7 @@ class InputBipPathBottomSheet : BaseBottomSheet<DialogInputBottomSheetBinding>()
                     dismiss()
                 } else {
                     binding.edit.setError(getString(R.string.nc_invalid_path))
+                    binding.edit.getEditTextView().background = null
                 }
             }
         }

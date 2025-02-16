@@ -16,10 +16,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
@@ -35,7 +35,6 @@ import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.KEY_NOT_SYNCED_NAME
 import com.nunchuk.android.main.groupwallet.avatarColors
@@ -97,11 +96,14 @@ fun FreeAddKeyCard(
         ) {
             if (signer.isVisible) {
                 SignerCard(item = signer, modifier = Modifier.weight(1.0f)) {
-                    if (showBip32Path && signer.isMasterSigner) {
+                    if (showBip32Path) {
                         Row(
-                            modifier = Modifier.clickable(onClick = {
-                                onChangeBip32Path(index, signer)
-                            }),
+                            modifier = Modifier.clickable(
+                                onClick = {
+                                    onChangeBip32Path(index, signer)
+                                },
+                                enabled = signer.isMasterSigner,
+                            ),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
@@ -110,15 +112,16 @@ fun FreeAddKeyCard(
                                     R.string.nc_bip32_path,
                                     signer.derivationPath
                                 ),
-                                style = NunchukTheme.typography.bodySmall,
+                                style = NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
                                 color = MaterialTheme.colorScheme.textSecondary
                             )
-
-                            NcIcon(
-                                modifier = Modifier.size(12.dp),
-                                painter = painterResource(id = R.drawable.ic_edit_small),
-                                contentDescription = "Edit icon"
-                            )
+                            if (signer.isMasterSigner) {
+                                NcIcon(
+                                    modifier = Modifier.size(12.dp),
+                                    painter = painterResource(id = R.drawable.ic_edit_small),
+                                    contentDescription = "Edit icon"
+                                )
+                            }
                         }
                     }
                 }
@@ -141,14 +144,6 @@ fun FreeAddKeyCard(
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        if (signer.type != SignerType.SERVER) {
-                            NcTag(
-                                label = signer.toReadableSignerType(context = LocalContext.current),
-                                backgroundColor = colorResource(
-                                    id = com.nunchuk.android.core.R.color.nc_bg_mid_gray
-                                ),
-                            )
-                        }
                         if (signer.isShowAcctX()) {
                             NcTag(
                                 label = stringResource(
@@ -168,6 +163,16 @@ fun FreeAddKeyCard(
                             color = MaterialTheme.colorScheme.textSecondary
                         )
                     }
+                    if (showBip32Path) {
+                        Text(
+                            text = stringResource(
+                                R.string.nc_bip32_path,
+                                signer.derivationPath
+                            ),
+                            style = NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
+                            color = MaterialTheme.colorScheme.textSecondary
+                        )
+                    }
                 }
             }
             if (signer.isVisible) {
@@ -175,7 +180,10 @@ fun FreeAddKeyCard(
                     modifier = Modifier.height(36.dp),
                     onClick = onRemoveClicked,
                 ) {
-                    Text(text = stringResource(id = R.string.nc_remove))
+                    Text(
+                        text = stringResource(id = R.string.nc_remove),
+                        style = NunchukTheme.typography.captionTitle
+                    )
                 }
             }
         }

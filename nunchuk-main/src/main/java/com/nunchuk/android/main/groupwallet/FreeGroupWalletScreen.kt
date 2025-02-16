@@ -321,14 +321,14 @@ fun FreeGroupWalletScreen(
         if (showMoreOption) {
             NcSelectableBottomSheet(
                 options = listOf(
-                    stringResource(R.string.nc_cancel_group_wallet_setup),
                     if (showBip32Path) stringResource(R.string.nc_hide_bip_32_path) else stringResource(R.string.nc_show_bip_32_path),
+                    stringResource(R.string.nc_cancel_group_wallet_setup),
                 ),
                 onSelected = {
                     if (it == 0) {
-                        showAskForDeleteDialog = true
-                    } else {
                         showBip32Path = !showBip32Path
+                    } else {
+                        showAskForDeleteDialog = true
                     }
                 },
                 onDismiss = {
