@@ -39,6 +39,7 @@ import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.messages.util.sortByLastMessage
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
+import com.nunchuk.android.usecase.GetGroupWalletMessageUnreadCountUseCase
 import com.nunchuk.android.usecase.membership.DeleteGroupChatUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
@@ -60,6 +61,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -73,6 +75,7 @@ class RoomsViewModel @Inject constructor(
     private val getGroupChatRoomsUseCase: GetGroupChatRoomsUseCase,
     getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
     private val getGroupMessageAccountUseCase: GetGroupMessageAccountUseCase,
+    private val getGroupWalletMessageUnreadCountUseCase: GetGroupWalletMessageUnreadCountUseCase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<RoomsState, RoomsEvent>() {
 
@@ -110,6 +113,7 @@ class RoomsViewModel @Inject constructor(
                         )
                     }
                     combineRooms()
+                    updateGroupMessageUnreadCount(message.walletId)
                 } else {
                     getGroupMessageAccount()
                 }
@@ -122,11 +126,33 @@ class RoomsViewModel @Inject constructor(
         }
     }
 
+    private fun updateGroupMessageUnreadCount(walletId: String) {
+        viewModelScope.launch {
+            getGroupWalletMessageUnreadCountUseCase(GetGroupWalletMessageUnreadCountUseCase.Params(walletId))
+                .onSuccess { unreadCount ->
+                    updateState {
+                        copy(
+                            groupWalletMessages = getState().groupWalletMessages.map {
+                                if (it.walletId == walletId) {
+                                    it.copy(unreadCount = unreadCount)
+                                } else {
+                                    it
+                                }
+                            }
+                        )
+                    }
+                    combineRooms()
+                }
+        }
+    }
+
     fun getGroupMessageAccount() {
         viewModelScope.launch {
+            Timber.tag("group-wallet-chat").e("getGroupMessageAccount")
             delay(500)
             getGroupMessageAccountUseCase(Unit)
                 .onSuccess { messages ->
+                    Timber.tag("group-wallet-chat").e("getGroupMessageAccount: ${messages.size}")
                     updateState {
                         copy(
                             groupWalletMessages = messages,
