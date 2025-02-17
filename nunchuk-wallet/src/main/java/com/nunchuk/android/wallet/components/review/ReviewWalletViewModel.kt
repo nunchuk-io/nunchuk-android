@@ -27,6 +27,8 @@ import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.listener.GroupDeleteListener
+import com.nunchuk.android.listener.GroupSandboxListener
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
@@ -45,6 +47,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import timber.log.Timber
 
 internal class ReviewWalletViewModel @AssistedInject constructor(
     @Assisted private val args: ReviewWalletArgs,
@@ -55,13 +58,37 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     private val hasSignerUseCase: HasSignerUseCase,
     private val finalizeGroupSandboxUseCase: FinalizeGroupSandboxUseCase
 ) : NunchukViewModel<Unit, ReviewWalletEvent>() {
-    private val _signers = MutableStateFlow<List<SignerModel>>(emptyList())
-    val signers = _signers.asStateFlow()
+    private val _uiState = MutableStateFlow(ReviewWalletUiState())
+    val uiState = _uiState.asStateFlow()
 
     override val initialState = Unit
 
     init {
         mapSigners()
+        if (args.groupId.isNotEmpty()) {
+            listenGroupSandbox()
+        }
+    }
+
+    private fun listenGroupSandbox() {
+        viewModelScope.launch {
+            GroupSandboxListener.getGroupFlow().collect { groupSandbox ->
+                Timber.d("GroupSandboxListener $groupSandbox")
+                if (groupSandbox.id == args.groupId) {
+                    if (groupSandbox.finalized) {
+                        _uiState.update { it.copy(groupWalletUnavailable = true) }
+                    }
+                }
+            }
+        }
+        viewModelScope.launch {
+            GroupDeleteListener.groupDeleteFlow.collect { it ->
+                Timber.d("GroupDeleteListener $it")
+                if (it == args.groupId) {
+                    _uiState.update { it.copy(groupWalletUnavailable = true) }
+                }
+            }
+        }
     }
 
     fun handleContinueEvent() {
@@ -107,26 +134,28 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     private fun mapSigners() {
         viewModelScope.launch {
             if (args.groupId.isNotEmpty()) {
-                _signers.update {
-                    args.signers.map { signer ->
-                        if (hasSignerUseCase(signer).getOrNull() == true) {
-                            getSignerUseCase(signer).getOrThrow().toModel().copy(isVisible = true)
-                        } else {
-                            signer.toModel().copy(isVisible = false)
-                        }
+                val signers = args.signers.map { signer ->
+                    if (hasSignerUseCase(signer).getOrNull() == true) {
+                        getSignerUseCase(signer).getOrThrow().toModel().copy(isVisible = true)
+                    } else {
+                        signer.toModel().copy(isVisible = false)
                     }
                 }
+                _uiState.update {
+                    it.copy(signers = signers)
+                }
             } else {
-                _signers.update {
-                    args.signers.map {
-                        it.toModel(isPrimaryKey = it.hasMasterSigner && accountManager.getPrimaryKeyInfo()?.xfp == it.masterFingerprint)
-                    }.map {
-                        if (it.type == SignerType.NFC) {
-                            val status = runBlocking { getTapSignerStatusByIdUseCase(it.id) }
-                            return@map it.copy(cardId = status.getOrNull()?.ident.orEmpty())
-                        }
-                        return@map it
+                val signers = args.signers.map {
+                    it.toModel(isPrimaryKey = it.hasMasterSigner && accountManager.getPrimaryKeyInfo()?.xfp == it.masterFingerprint)
+                }.map {
+                    if (it.type == SignerType.NFC) {
+                        val status = runBlocking { getTapSignerStatusByIdUseCase(it.id) }
+                        return@map it.copy(cardId = status.getOrNull()?.ident.orEmpty())
                     }
+                    return@map it
+                }
+                _uiState.update {
+                    it.copy(signers = signers)
                 }
             }
         }
@@ -136,5 +165,9 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     internal interface Factory {
         fun create(args: ReviewWalletArgs): ReviewWalletViewModel
     }
-
 }
+
+data class ReviewWalletUiState(
+    val signers: List<SignerModel> = emptyList(),
+    val groupWalletUnavailable: Boolean = false,
+)

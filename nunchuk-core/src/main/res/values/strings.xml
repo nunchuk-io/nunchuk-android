@@ -858,4 +858,5 @@
     <string name="nc_manage_group_chat_history">Manage group chat history</string>
     <string name="nc_chat_setting_updated">Chat setting updated</string>
     <string name="nc_incorrect_key">Incorrect key</string>
+    <string name="nc_group_wallet_created_by_others">The wallet link has expired or the wallet has already been created.</string>
 </resources>

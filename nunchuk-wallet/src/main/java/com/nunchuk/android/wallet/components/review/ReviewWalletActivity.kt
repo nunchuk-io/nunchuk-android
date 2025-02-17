@@ -60,6 +60,7 @@ import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
+import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
@@ -100,10 +101,23 @@ class ReviewWalletActivity : BaseComposeActivity() {
         enableEdgeToEdge()
 
         setContent {
-            val signers by viewModel.signers.collectAsStateWithLifecycle()
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            if (uiState.groupWalletUnavailable) {
+                NcInfoDialog(
+                    title = stringResource(id = R.string.nc_unable_access_link),
+                    message = stringResource(id = R.string.nc_group_wallet_created_by_others),
+                    onPositiveClick = {
+                        navigator.returnToMainScreen(this)
+                    },
+                    onDismiss = {
+                        navigator.returnToMainScreen(this)
+                    },
+                    positiveButtonText = stringResource(R.string.nc_return_to_home_screen)
+                )
+            }
             ReviewWalletContent(
                 args = args,
-                signers = signers
+                signers = uiState.signers
             ) {
                 viewModel.handleContinueEvent()
             }

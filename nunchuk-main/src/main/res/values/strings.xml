@@ -379,7 +379,6 @@
     <string name="nc_cancel_group_wallet_recovery">Cancel group wallet recovery</string>
     <string name="nc_ask_for_delete_group_wallet">Are you sure you want to cancel the group wallet setup? Canceling will invalidate the session link and remove all associated data.</string>
     <string name="nc_ask_for_cancel_group_wallet_recovery">Are you sure you want to cancel the group wallet recovery?</string>
-    <string name="nc_group_wallet_created_by_others">The wallet link has expired or the wallet has already been created.</string>
     <string name="nc_failed_add_key_correct_key_from_config">The key you added doesn’t match any of the keys associated with this wallet. Please use the original key to restore access.</string>
     <string name="nc_ask_for_delete_signer">Are you sure you want to remove this key?</string>
     <string name="nc_occupied">Occupied</string>

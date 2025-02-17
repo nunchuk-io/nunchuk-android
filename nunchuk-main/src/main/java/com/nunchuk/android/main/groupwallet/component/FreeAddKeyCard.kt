@@ -108,11 +108,16 @@ fun FreeAddKeyCard(
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
                             Text(
+                                modifier = Modifier.weight(1f, false),
                                 text = stringResource(
                                     R.string.nc_bip32_path,
                                     signer.derivationPath
                                 ),
-                                style = NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
+                                style = if (signer.isMasterSigner) {
+                                    NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline)
+                                } else {
+                                    NunchukTheme.typography.bodySmall
+                                },
                                 color = MaterialTheme.colorScheme.textSecondary
                             )
                             if (signer.isMasterSigner) {
@@ -169,7 +174,7 @@ fun FreeAddKeyCard(
                                 R.string.nc_bip32_path,
                                 signer.derivationPath
                             ),
-                            style = NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
+                            style = NunchukTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.textSecondary
                         )
                     }
