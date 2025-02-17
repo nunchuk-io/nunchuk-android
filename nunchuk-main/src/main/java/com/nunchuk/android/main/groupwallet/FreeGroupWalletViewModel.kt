@@ -53,6 +53,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 const val KEY_NOT_SYNCED_NAME = "ADDED"
@@ -263,7 +264,7 @@ class FreeGroupWalletViewModel @Inject constructor(
 
     private fun updateOccupiedSlots(groupSandbox: GroupSandbox) {
         val currentTimeInSeconds = System.currentTimeMillis() / 1000
-        val timeout = 30.seconds.inWholeSeconds
+        val timeout = 5.minutes.inWholeSeconds
         val occupiedSlots =
             groupSandbox.occupiedSlots.mapIndexedNotNull { index, occupiedSlot ->
                 if (occupiedSlot != null && occupiedSlot.deviceId != deviceUID && occupiedSlot.time + timeout > currentTimeInSeconds) {
