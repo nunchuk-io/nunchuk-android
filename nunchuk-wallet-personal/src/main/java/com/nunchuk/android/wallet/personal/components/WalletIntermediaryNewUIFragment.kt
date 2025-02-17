@@ -41,6 +41,7 @@ import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.CommonInputBottomSheet
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.flowObserver
@@ -61,7 +62,6 @@ import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletActionBottomSheet
 import com.nunchuk.android.wallet.personal.components.recover.RecoverWalletOption
 import com.nunchuk.android.widget.NCInfoDialog
-import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -313,16 +313,20 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
     }
 
     private fun showInputGroupWalletLinkDialog() {
-        NCInputDialog(requireActivity()).showDialog(
-            title = getString(R.string.nc_enter_wallet_link),
-            confirmText = getString(R.string.nc_text_continue),
-            onConfirmed = {
-                if (it.isNotEmpty()) {
-                    viewModel.handleInputWalletLink(it)
-                }
-            },
-            isMaskedInput = false
-        ).show()
+        val dialog = CommonInputBottomSheet.show(
+            CommonInputBottomSheet.Args(
+                title = getString(R.string.nc_enter_wallet_link),
+                desc = "",
+                action = getString(R.string.nc_text_continue),
+                defaultValue = ""
+            ),
+            childFragmentManager
+        )
+        dialog.listener = {
+            if (it.isNotEmpty()) {
+                viewModel.handleInputWalletLink(it)
+            }
+        }
     }
 
     private fun handleLoadFilePath(it: WalletIntermediaryEvent.OnLoadFileSuccess) {
