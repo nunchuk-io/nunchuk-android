@@ -167,13 +167,13 @@
 
     <ImageView
         android:id="@+id/iv_send_btc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_marginTop="@dimen/nc_padding_24"
         android:background="@drawable/nc_circle_white_background"
         android:backgroundTint="#F5F5F5"
         android:foreground="?attr/selectableItemBackgroundBorderless"
-        android:padding="@dimen/nc_padding_12"
+        android:scaleType="centerInside"
         app:layout_constraintEnd_toStartOf="@+id/iv_receive_btc"
         app:layout_constraintHorizontal_chainStyle="spread"
         app:layout_constraintStart_toStartOf="parent"
@@ -182,12 +182,12 @@
 
     <ImageView
         android:id="@+id/iv_receive_btc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:background="@drawable/nc_circle_white_background"
         android:backgroundTint="#F5F5F5"
         android:foreground="?attr/selectableItemBackgroundBorderless"
-        android:padding="@dimen/nc_padding_12"
+        android:scaleType="centerInside"
         app:layout_constraintEnd_toStartOf="@+id/iv_view_coin"
         app:layout_constraintStart_toEndOf="@+id/iv_send_btc"
         app:layout_constraintTop_toTopOf="@+id/iv_send_btc"
@@ -195,12 +195,12 @@
 
     <ImageView
         android:id="@+id/iv_view_coin"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:background="@drawable/nc_circle_white_background"
         android:backgroundTint="#F5F5F5"
         android:foreground="?attr/selectableItemBackgroundBorderless"
-        android:padding="@dimen/nc_padding_12"
+        android:scaleType="centerInside"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/iv_receive_btc"
         app:layout_constraintTop_toTopOf="@+id/iv_send_btc"
@@ -344,6 +344,7 @@
                 </androidx.cardview.widget.CardView>
 
                 <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/emptyTransactionButtons"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/nc_padding_16">

@@ -134,39 +134,36 @@
 
         <Constraint
             android:id="@+id/iv_send_btc"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:layout_marginStart="@dimen/nc_padding_56"
             android:layout_marginEnd="@dimen/nc_padding_12"
             android:padding="@dimen/nc_padding_8"
             motion:layout_constraintBottom_toBottomOf="@+id/btcAmount"
             motion:layout_constraintEnd_toStartOf="@+id/iv_receive_btc"
             motion:layout_constraintStart_toEndOf="@+id/barrier"
-            motion:layout_constraintTop_toTopOf="@+id/configuration_container"/>
+            motion:layout_constraintTop_toTopOf="@+id/configuration_container" />
 
         <Constraint
             android:id="@+id/iv_receive_btc"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/nc_padding_16"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="@dimen/nc_padding_12"
             android:padding="@dimen/nc_padding_8"
             motion:layout_constraintBottom_toBottomOf="@+id/btcAmount"
-            motion:layout_constraintTop_toTopOf="@+id/configuration_container"
             motion:layout_constraintEnd_toStartOf="@+id/iv_view_coin"
             motion:layout_constraintStart_toEndOf="@+id/iv_send_btc"
-            />
+            motion:layout_constraintTop_toTopOf="@+id/configuration_container" />
 
         <Constraint
             android:id="@+id/iv_view_coin"
-            motion:layout_constraintBottom_toBottomOf="@+id/btcAmount"
-            motion:layout_constraintTop_toTopOf="@+id/configuration_container"
-            motion:layout_constraintStart_toEndOf="@+id/iv_receive_btc"
-            motion:layout_constraintEnd_toEndOf="parent"
-            android:layout_width="wrap_content"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="@dimen/nc_padding_12"
             android:padding="@dimen/nc_padding_8"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/nc_padding_16"
-            >
-        </Constraint>
+            motion:layout_constraintBottom_toBottomOf="@+id/btcAmount"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintStart_toEndOf="@+id/iv_receive_btc"
+            motion:layout_constraintTop_toTopOf="@+id/configuration_container"/>
     </ConstraintSet>
 </MotionScene>
