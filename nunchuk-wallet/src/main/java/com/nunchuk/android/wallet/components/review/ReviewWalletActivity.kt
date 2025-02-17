@@ -102,25 +102,17 @@ class ReviewWalletActivity : BaseComposeActivity() {
 
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            if (uiState.groupWalletUnavailable) {
-                NcInfoDialog(
-                    title = stringResource(id = R.string.nc_unable_access_link),
-                    message = stringResource(id = R.string.nc_group_wallet_created_by_others),
-                    onPositiveClick = {
-                        navigator.returnToMainScreen(this)
-                    },
-                    onDismiss = {
-                        navigator.returnToMainScreen(this)
-                    },
-                    positiveButtonText = stringResource(R.string.nc_return_to_home_screen)
-                )
-            }
             ReviewWalletContent(
                 args = args,
-                signers = uiState.signers
-            ) {
-                viewModel.handleContinueEvent()
-            }
+                signers = uiState.signers,
+                uiState = uiState,
+                onContinue = {
+                    viewModel.handleContinueEvent()
+                },
+                openMainScreen = {
+                    navigator.openMainScreen(this)
+                }
+            )
         }
 
         observeEvent()
@@ -179,9 +171,11 @@ class ReviewWalletActivity : BaseComposeActivity() {
 
 @Composable
 fun ReviewWalletContent(
+    uiState: ReviewWalletUiState = ReviewWalletUiState(),
     args: ReviewWalletArgs,
     signers: List<SignerModel>,
-    onContinue: () -> Unit = {}
+    onContinue: () -> Unit = {},
+    openMainScreen: () -> Unit = {},
 ) {
     NunchukTheme {
         NcScaffold(
@@ -299,6 +293,20 @@ fun ReviewWalletContent(
                         UserSignerCard(item = it)
                     }
                 }
+            }
+
+            if (uiState.groupWalletUnavailable) {
+                NcInfoDialog(
+                    title = stringResource(id = R.string.nc_unable_access_link),
+                    message = stringResource(id = R.string.nc_group_wallet_created_by_others),
+                    onPositiveClick = {
+                        openMainScreen()
+                    },
+                    onDismiss = {
+                        openMainScreen()
+                    },
+                    positiveButtonText = stringResource(R.string.nc_return_to_home_screen)
+                )
             }
         }
     }

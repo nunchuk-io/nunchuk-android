@@ -42,6 +42,7 @@ import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.CreateWall
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -61,6 +62,8 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     private val _uiState = MutableStateFlow(ReviewWalletUiState())
     val uiState = _uiState.asStateFlow()
 
+    private var groupUpdateJob: Job? = null
+
     override val initialState = Unit
 
     init {
@@ -71,7 +74,7 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     }
 
     private fun listenGroupSandbox() {
-        viewModelScope.launch {
+        groupUpdateJob = viewModelScope.launch {
             GroupSandboxListener.getGroupFlow().collect { groupSandbox ->
                 Timber.d("GroupSandboxListener $groupSandbox")
                 if (groupSandbox.id == args.groupId) {
@@ -100,6 +103,7 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     }
 
     private fun createFreeGroupWallet() {
+        groupUpdateJob?.cancel()
         viewModelScope.launch {
             finalizeGroupSandboxUseCase(args.groupId).onSuccess {
                 setEvent(ReviewWalletEvent.CreateFreeGroupWalletSuccessEvent(it.walletId))
