@@ -841,7 +841,7 @@
     <string name="nc_unassisted_wallet">Unassisted wallet</string>
     <string name="nc_unassisted_wallet_create_wallet_desc">Set up and manage your Bitcoin wallets independently. Perfect for experienced users.</string>
     <string name="nc_join_group_wallet">Join group wallet</string>
-    <string name="nc_create_wallet_free_user_guide">Improve your security, plan your inheritance, set spending limits, and more. Learn about our assisted services now.</string>
+    <string name="nc_create_wallet_free_user_guide">Improve your security, plan your inheritance, set spending limit, and more. Learn about our assisted services now.</string>
     <string name="nc_custom_wallet">Custom wallet</string>
     <string name="nc_custom_wallet_desc">Choose between single and multi-signature setups. Existing keys required.</string>
     <string name="nc_hot_wallet">Hot wallet</string>

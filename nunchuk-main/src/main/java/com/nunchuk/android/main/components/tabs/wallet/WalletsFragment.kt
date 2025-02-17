@@ -484,7 +484,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.totalBalanceView.isVisible = state.homeDisplaySetting.showTotalBalance
         binding.totalBalanceView.setContent {
             NunchukTheme {
-                TotalBalanceView(state.homeDisplaySetting.useLargeFont, totalInBtc, totalInCurrency)
+                TotalBalanceView(state.homeDisplaySetting.useLargeFont, totalInBtc, totalInCurrency, state.walletSecuritySetting.hideWalletDetail)
             }
         }
     }
