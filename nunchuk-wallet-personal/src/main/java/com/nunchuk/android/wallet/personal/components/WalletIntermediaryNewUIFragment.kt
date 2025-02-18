@@ -368,7 +368,11 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                     )
                 )
 
-                RecoverWalletOption.GroupWallet -> openSelectFileChooser(WalletIntermediaryActivity.REQUEST_CODE_GROUP_WALLET)
+                RecoverWalletOption.GroupWallet -> {
+                    checkRunOutGroupWallet {
+                        openSelectFileChooser(WalletIntermediaryActivity.REQUEST_CODE_GROUP_WALLET)
+                    }
+                }
             }
         }
     }

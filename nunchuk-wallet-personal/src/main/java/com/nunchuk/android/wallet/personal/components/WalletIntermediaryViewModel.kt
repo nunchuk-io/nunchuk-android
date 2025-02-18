@@ -197,18 +197,14 @@ class WalletIntermediaryViewModel @Inject constructor(
         }
     }
 
-    fun importWallet(filePath: String, name: String, description: String, isGroupWallet: Boolean) {
+    private fun importWallet(filePath: String, name: String, description: String) {
         viewModelScope.launch {
             importWalletUseCase.execute(filePath, name, description)
                 .flowOn(Dispatchers.IO)
                 .onException { _event.emit(WalletIntermediaryEvent.ShowError(it.readableMessage())) }
                 .flowOn(Dispatchers.Main)
                 .collect {
-                    if (isGroupWallet) {
-                        checkGroupWallet(wallet = it, filePath = filePath)
-                    } else {
-                        _event.emit(WalletIntermediaryEvent.ImportWalletSuccessEvent(it, filePath))
-                    }
+                    checkGroupWallet(wallet = it, filePath = filePath)
                 }
         }
     }
@@ -218,7 +214,7 @@ class WalletIntermediaryViewModel @Inject constructor(
             getFileFromUri(application.contentResolver, uri, application.cacheDir)?.let {
                 val content = it.readText()
                 parseWalletDescriptorUseCase(content).onSuccess {
-                    importWallet(filePath, it.name.ifBlank { "Group Wallet" }, it.description, true)
+                    importWallet(filePath, it.name.ifBlank { "Group Wallet" }, it.description)
                 }.onFailure {
                     _event.emit(WalletIntermediaryEvent.ShowError(it.message.orUnknownError()))
                 }
