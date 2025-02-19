@@ -65,6 +65,7 @@ fun ReplaceKeysScreen(
     onReplaceInheritanceClicked: (SignerModel) -> Unit = {},
     onCreateNewWalletSuccess: (String) -> Unit = {},
     onVerifyClicked: (SignerModel) -> Unit = {},
+    onRemove : (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackState = remember { SnackbarHostState() }
@@ -91,7 +92,8 @@ fun ReplaceKeysScreen(
         onReplaceInheritanceClicked = onReplaceInheritanceClicked,
         onCreateWalletClicked = viewModel::onCreateWallet,
         onCancelReplaceWallet = viewModel::onCancelReplaceWallet,
-        onVerifyClicked = onVerifyClicked
+        onVerifyClicked = onVerifyClicked,
+        onRemove = onRemove
     )
 }
 
@@ -107,10 +109,13 @@ private fun ReplaceKeysContent(
     onCreateWalletClicked: () -> Unit = {},
     onCancelReplaceWallet: () -> Unit = {},
     onVerifyClicked: (SignerModel) -> Unit = {},
+    onRemove : (String) -> Unit = {}
 ) {
     var showSheetOptions by rememberSaveable { mutableStateOf(false) }
     var showConfirmationDialog by rememberSaveable { mutableStateOf(false) }
+    var showRemoveDialog by rememberSaveable { mutableStateOf(false) }
     var selectedInheritanceSigner by remember { mutableStateOf<SignerModel?>(null) }
+    var removeXfp by rememberSaveable { mutableStateOf("") }
     NunchukTheme {
         if (uiState.isLoading) {
             NcLoadingDialog()
@@ -184,7 +189,12 @@ private fun ReplaceKeysContent(
                             onVerifyClicked = onVerifyClicked,
                             isMissingBackup = uiState.coldCardBackUpFileName[uiState.replaceSigners[item.fingerPrint]?.fingerPrint].isNullOrEmpty() &&
                                     uiState.replaceSigners[item.fingerPrint]?.type != SignerType.NFC,
-                            isReplaced = uiState.replaceSigners.containsKey(item.fingerPrint)
+                            isReplaced = uiState.replaceSigners.containsKey(item.fingerPrint),
+                            onRemoveClicked = {
+                                removeXfp = it.fingerPrint
+                                showRemoveDialog = true
+                            },
+                            isAllowRemove = !uiState.isActiveAssistedWallet
                         )
                     }
                 }
@@ -201,6 +211,20 @@ private fun ReplaceKeysContent(
                 },
                 onDismiss = {
                     showConfirmationDialog = false
+                }
+            )
+        }
+
+        if (showRemoveDialog) {
+            NcConfirmationDialog(
+                title = stringResource(R.string.nc_text_warning),
+                message = stringResource(R.string.nc_delete_key_msg),
+                onPositiveClick = {
+                    onRemove(removeXfp)
+                    showRemoveDialog = false
+                },
+                onDismiss = {
+                    showRemoveDialog = false
                 }
             )
         }
@@ -245,6 +269,8 @@ fun ReplaceKeyCard(
     isMissingBackup: Boolean = false,
     onReplaceClicked: (data: SignerModel) -> Unit = {},
     onVerifyClicked: (data: SignerModel) -> Unit = {},
+    onRemoveClicked: (data: SignerModel) -> Unit = {},
+    isAllowRemove: Boolean = true
 ) {
     val item = replacedSigner ?: originalSigner
     Column {
@@ -309,17 +335,26 @@ fun ReplaceKeyCard(
                             )
                         }
                     } else {
-                        Icon(
-                            painter = painterResource(id = R.drawable.nc_circle_checked),
-                            contentDescription = "Checked icon"
-                        )
-                        Text(
-                            modifier = Modifier.padding(start = 4.dp),
-                            style = NunchukTheme.typography.body,
-                            text = stringResource(
-                                R.string.nc_added
+                        if (isAllowRemove) {
+                            NcOutlineButton(
+                                modifier = Modifier.height(36.dp),
+                                onClick = { onRemoveClicked(originalSigner) },
+                            ) {
+                                Text(text = stringResource(R.string.nc_remove))
+                            }
+                        } else {
+                            Icon(
+                                painter = painterResource(id = R.drawable.nc_circle_checked),
+                                contentDescription = "Checked icon"
                             )
-                        )
+                            Text(
+                                modifier = Modifier.padding(start = 4.dp),
+                                style = NunchukTheme.typography.body,
+                                text = stringResource(
+                                    R.string.nc_added
+                                )
+                            )
+                        }
                     }
                 } else {
                     NcOutlineButton(

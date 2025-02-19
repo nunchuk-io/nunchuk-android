@@ -123,7 +123,8 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                                 replacedXfp = viewModel.getReplaceSignerXfp(signer.id)
                             )
                         }
-                    }
+                    },
+                    onRemove = viewModel::onRemoveKey,
                 )
             }
         }
@@ -268,7 +269,7 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             SignerType.COLDCARD_NFC.ordinal -> {
                 selectedSignerTag = SignerTag.COLDCARD
                 handleShowKeysOrCreate(
-                    viewModel.getColdcard() + viewModel.getAirgap(SignerTag.COLDCARD),
+                    viewModel.getColdcard(),
                     SignerType.COLDCARD_NFC,
                     ::showAddColdcardOptions
                 )

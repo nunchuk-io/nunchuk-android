@@ -486,6 +486,13 @@ class ReplaceKeysViewModel @Inject constructor(
         return _uiState.value.replaceSigners.isNotEmpty() && (coldCardInheritanceKeys.isEmpty() || coldCardInheritanceKeys.all { _uiState.value.verifiedSigners.contains(it.fingerPrint) })
     }
 
+    fun onRemoveKey(xfp: String) {
+        val replaceSigners = _uiState.value.replaceSigners.toMutableMap().apply {
+            remove(xfp)
+        }
+        _uiState.update { state -> state.copy(replaceSigners = replaceSigners) }
+    }
+
     companion object {
         const val REPLACE_XFP = "REPLACE_XFP"
     }
