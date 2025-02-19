@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.compose.NcTopAppBar
@@ -68,8 +69,9 @@ class CommonQRCodeActivity : BaseComposeActivity() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
+                val uiState = viewModel.uiState.collectAsStateWithLifecycle()
                 CommonQRCodeScreen(
-                    qrCodeBitmap = qrCode.convertToQRCode(),
+                    qrCodeBitmap = uiState.value.qrCodeBitmap,
                     onShareClicked = {
                         viewModel.shareQRCode(it)
                     }
@@ -91,6 +93,7 @@ class CommonQRCodeActivity : BaseComposeActivity() {
                 }
             }
         }
+        viewModel.generateQRCode(qrCode)
     }
 
     private fun shareConfigurationFile(filePath: String) {

@@ -65,6 +65,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                     )
                                 },
                                 onShowQRCodeClicked = {
+                                    if (it.isEmpty()) return@freeGroupWallet
                                     CommonQRCodeActivity.start(this@FreeGroupWalletActivity, it)
                                 },
                                 onCopyLinkClicked = {
