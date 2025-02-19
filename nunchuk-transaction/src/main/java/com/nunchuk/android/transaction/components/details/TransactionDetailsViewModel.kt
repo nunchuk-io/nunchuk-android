@@ -103,6 +103,7 @@ import com.nunchuk.android.usecase.GetTransactionFromNetworkUseCase
 import com.nunchuk.android.usecase.GetTransactionUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
+import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphrase
 import com.nunchuk.android.usecase.SignTransactionUseCase
 import com.nunchuk.android.usecase.UpdateTransactionMemo
@@ -180,6 +181,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val application: Application,
     private val importPsbtUseCase: ImportPsbtUseCase,
+    private val saveLocalFileUseCase: SaveLocalFileUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionDetailsState())
     val state = _state.asStateFlow()
@@ -654,11 +656,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun isSharedTransaction() = roomId.isNotEmpty()
 
-    fun exportTransactionToFile() {
+    fun exportTransactionToFile(isSaveFile: Boolean) {
         viewModelScope.launch {
             _event.emit(LoadingEvent)
             when (val result = createShareFileUseCase.execute("${walletId}_${txId}.psbt")) {
-                is Success -> exportTransaction(result.data)
+                is Success -> exportTransaction(result.data, isSaveFile)
                 is Error -> {
                     val message =
                         result.exception.messageOrUnknownError()
@@ -669,16 +671,29 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun exportTransaction(filePath: String) {
+    private fun exportTransaction(filePath: String, isSaveFile: Boolean) {
         viewModelScope.launch {
             when (val result = exportTransactionUseCase.execute(walletId, txId, filePath)) {
-                is Success -> _event.emit(ExportToFileSuccess(filePath))
+                is Success -> {
+                    if (isSaveFile) {
+                        saveLocalFile(filePath)
+                    } else {
+                        _event.emit(ExportToFileSuccess(filePath))
+                    }
+                }
                 is Error -> {
                     val message = result.exception.messageOrUnknownError()
                     _event.emit(TransactionError(message))
                     CrashlyticsReporter.recordException(TransactionException(message))
                 }
             }
+        }
+    }
+
+    private fun saveLocalFile(filePath: String) {
+        viewModelScope.launch {
+            val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params(fileName = "${walletId}_${txId}.psbt", filePath = filePath))
+            _event.emit(TransactionDetailsEvent.SaveLocalFile(result.isSuccess))
         }
     }
 

@@ -83,8 +83,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class HealthCheckReminderFragment : MembershipFragment() {
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val groupDashboardViewModel: GroupDashboardViewModel by activityViewModels()
     private val viewModel: HealthCheckReminderViewModel by viewModels()

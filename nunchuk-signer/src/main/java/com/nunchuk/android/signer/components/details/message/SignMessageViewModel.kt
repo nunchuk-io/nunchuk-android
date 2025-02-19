@@ -30,6 +30,7 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.IsValidDerivationPathUseCase
+import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphrase
 import com.nunchuk.android.usecase.signer.GetHealthCheckPathUseCase
 import com.nunchuk.android.usecase.signer.SignMessageBySoftwareKeyUseCase
@@ -37,7 +38,12 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.FileOutputStream
@@ -54,6 +60,7 @@ class SignMessageViewModel @Inject constructor(
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val sendSignerPassphrase: SendSignerPassphrase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val saveLocalFileUseCase: SaveLocalFileUseCase
 ) : ViewModel() {
     private val args: SignMessageFragmentArgs =
         SignMessageFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -189,6 +196,13 @@ class SignMessageViewModel @Inject constructor(
         }
     }
 
+    fun saveLocalFile() {
+        viewModelScope.launch {
+            val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params(fileName = "signature.txt", fileContent = state.value.signedMessage?.rfc2440.orEmpty()))
+            _event.emit(SignMessageEvent.SaveLocalFile(result.isSuccess))
+        }
+    }
+
     companion object {
         private const val KEY_MESSAGE = "a"
         private const val KEY_PATH = "b"
@@ -203,4 +217,5 @@ sealed class SignMessageEvent {
     data class ShareFile(val path: String) : SignMessageEvent()
     data class Loading(val isLoading: Boolean) : SignMessageEvent()
     data class NfcLoading(val isLoading: Boolean) : SignMessageEvent()
+    data class SaveLocalFile(val isSuccess: Boolean) : SignMessageEvent()
 }

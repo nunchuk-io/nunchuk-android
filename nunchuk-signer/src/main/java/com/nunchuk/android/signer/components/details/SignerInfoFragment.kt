@@ -69,12 +69,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -83,6 +83,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.compose.latoBold
 import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.domain.data.CheckFirmwareVersion
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_GENERATE_HEAL_CHECK_MSG
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_MK4_IMPORT_SIGNATURE
@@ -93,7 +94,6 @@ import com.nunchuk.android.core.nfc.BasePortalActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.nfc.NfcViewModel
-import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.formatMMMddyyyyDate
 import com.nunchuk.android.core.util.hideLoading
@@ -110,7 +110,6 @@ import com.nunchuk.android.model.HealthCheckHistory
 import com.nunchuk.android.model.KeyHealthType
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.VerificationType
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.details.model.SingerOption
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
@@ -124,13 +123,13 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
-import javax.inject.Inject
 
 @AndroidEntryPoint
-class SignerInfoFragment : Fragment(), SingerInfoOptionBottomSheet.OptionClickListener {
+class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(), SingerInfoOptionBottomSheet.OptionClickListener {
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
+    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding {
+        TODO("Not yet implemented")
+    }
 
     private val viewModel: SignerInfoViewModel by viewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
@@ -369,10 +368,7 @@ class SignerInfoFragment : Fragment(), SingerInfoOptionBottomSheet.OptionClickLi
                 icon = R.drawable.ic_check_circle_outline
             )
 
-            is SignerInfoEvent.GetTapSignerBackupKeyEvent -> IntentSharingController.from(
-                requireActivity()
-            )
-                .shareFile(event.backupKeyPath)
+            is SignerInfoEvent.GetTapSignerBackupKeyEvent -> showSaveShareOption()
 
             is SignerInfoEvent.NfcError -> {
                 if (nfcViewModel.handleNfcError(event.e).not()) {
@@ -422,7 +418,18 @@ class SignerInfoFragment : Fragment(), SingerInfoOptionBottomSheet.OptionClickLi
             }
 
             is SignerInfoEvent.Loading -> showOrHideLoading(event.loading)
+            is SignerInfoEvent.SaveLocalFile -> showSaveFileState(event.isSuccess)
         }
+    }
+
+    override fun shareFile() {
+        super.shareFile()
+        controller.shareFile(viewModel.state.value.backupKeyPath)
+    }
+
+    override fun saveFileToLocal() {
+        super.saveFileToLocal()
+        viewModel.saveLocalFile(viewModel.state.value.backupKeyPath)
     }
 
     private fun showHealthCheckError(event: SignerInfoEvent.HealthCheckErrorEvent) {

@@ -65,9 +65,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomSheetOptionListener {
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
     private val viewModel: InheritanceReviewPlanGroupViewModel by viewModels()
     private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
     private val groupId by lazy { inheritanceViewModel.state.value.groupId }

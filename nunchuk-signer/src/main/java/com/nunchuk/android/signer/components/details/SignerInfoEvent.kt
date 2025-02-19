@@ -23,7 +23,6 @@ import com.nunchuk.android.model.HealthCheckHistory
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
-import com.nunchuk.android.model.byzantine.KeyHealthStatus
 
 sealed class SignerInfoEvent {
 
@@ -55,6 +54,7 @@ sealed class SignerInfoEvent {
     data class DeleteExistingSignerSuccess(val keyName: String) : SignerInfoEvent()
     data class Loading(val loading: Boolean) : SignerInfoEvent()
     class GetHealthCheckPayload(val payload: DummyTransactionPayload, val walletId: String, val groupId: String) : SignerInfoEvent()
+    data class SaveLocalFile(val isSuccess: Boolean) : SignerInfoEvent()
 }
 
 data class SignerInfoState(
@@ -65,4 +65,5 @@ data class SignerInfoState(
     val lastHealthCheckTimeMillis: Long = 0,
     val signerName: String = "",
     val assistedWalletIds: List<String> = emptyList(),
+    val backupKeyPath: String = "",
 )

@@ -67,8 +67,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class InheritanceBufferPeriodFragment : MembershipFragment() {
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val viewModel: InheritanceBufferPeriodViewModel by viewModels()
     private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()

@@ -79,9 +79,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class PrimaryOwnerFragment : MembershipFragment() {
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
     private val viewModel: PrimaryOwnerViewModel by viewModels()
     private val args: PrimaryOwnerFragmentArgs by navArgs()
     private val addKeyStepViewModel: AddKeyStepViewModel by activityViewModels()

@@ -31,6 +31,7 @@ import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesDel
 import com.nunchuk.android.core.domain.membership.DeleteAssistedWalletUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
+import com.nunchuk.android.core.domain.wallet.GetWalletBsmsUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -55,6 +56,7 @@ import com.nunchuk.android.usecase.DeleteWalletUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
@@ -117,6 +119,8 @@ internal class WalletConfigViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
+    private val saveLocalFileUseCase: SaveLocalFileUseCase,
+    private val getWalletBsmsUseCase: GetWalletBsmsUseCase,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletConfigState())
@@ -450,6 +454,15 @@ internal class WalletConfigViewModel @Inject constructor(
                 )
 
                 is Result.Error -> showError(event.exception)
+            }
+        }
+    }
+
+    fun saveBSMSToLocal() {
+        viewModelScope.launch {
+            getWalletBsmsUseCase(_state.value.walletExtended.wallet).onSuccess {
+                val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params("${walletId}.bsms", it))
+                _event.emit(WalletConfigEvent.SaveLocalFile(result.isSuccess))
             }
         }
     }

@@ -112,9 +112,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class ByzantineInviteMembersFragment : MembershipFragment() {
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
     private val viewModel: ByzantineInviteMembersViewModel by viewModels()
     private val args: ByzantineInviteMembersFragmentArgs by navArgs()
     private val groupDashboardViewModel: GroupDashboardViewModel by activityViewModels()

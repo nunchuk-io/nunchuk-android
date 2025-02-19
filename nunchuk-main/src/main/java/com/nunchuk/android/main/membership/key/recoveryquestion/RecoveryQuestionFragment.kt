@@ -98,9 +98,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class RecoveryQuestionFragment : MembershipFragment() {
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
     private val viewModel: RecoveryQuestionViewModel by viewModels()
     private val args: RecoveryQuestionFragmentArgs by navArgs()
 

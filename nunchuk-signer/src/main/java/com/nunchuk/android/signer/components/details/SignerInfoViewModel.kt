@@ -63,6 +63,7 @@ import com.nunchuk.android.usecase.DeleteRemoteSignerUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.GetRemoteSignerUseCase
 import com.nunchuk.android.usecase.HealthCheckHistoryUseCase
+import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphrase
 import com.nunchuk.android.usecase.UpdateMasterSignerUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
@@ -109,6 +110,7 @@ internal class SignerInfoViewModel @Inject constructor(
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val assistedWalletManager: AssistedWalletManager,
     private val keyHealthCheckUseCase: KeyHealthCheckUseCase,
+    private val saveLocalFileUseCase: SaveLocalFileUseCase,
     savedStateHandle: SavedStateHandle,
     getAssistedKeysUseCase: GetAssistedKeysUseCase,
 ) : ViewModel() {
@@ -325,10 +327,18 @@ internal class SignerInfoViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
+                _state.update { state -> state.copy(backupKeyPath = result.getOrThrow()) }
                 _event.emit(GetTapSignerBackupKeyEvent(result.getOrThrow()))
             } else {
                 _event.emit(NfcError(result.exceptionOrNull()))
             }
+        }
+    }
+
+    fun saveLocalFile(filePath: String) {
+        viewModelScope.launch {
+            val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params(filePath = filePath))
+            _event.emit(SignerInfoEvent.SaveLocalFile(result.isSuccess))
         }
     }
 

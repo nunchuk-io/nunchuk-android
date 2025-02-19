@@ -39,7 +39,7 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
             goToWalletConfigScreen()
         }
 
-    private val controller: IntentSharingController by lazy { IntentSharingController.from(this, launcher) }
+    private val sharingController: IntentSharingController by lazy { IntentSharingController.from(this, launcher) }
 
     private val args: UploadConfigurationArgs by lazy { UploadConfigurationArgs.deserializeFrom(intent) }
 
@@ -71,7 +71,7 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
 
     private fun shareConfigurationFile(filePath: String?) {
         if (filePath.isNullOrEmpty().not()) {
-            controller.shareFile(filePath.orEmpty())
+            sharingController.shareFile(filePath.orEmpty())
         }
     }
 

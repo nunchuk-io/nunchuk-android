@@ -79,9 +79,6 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
     private val viewModel: CustomKeyAccountFragmentViewModel by viewModels()
     private val args: CustomKeyAccountFragmentArgs by navArgs()
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
     private val coldcardOrAirgapLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {

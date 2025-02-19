@@ -19,15 +19,11 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardEvent
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardViewModel
 import com.nunchuk.android.model.VerificationType
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class HealthCheckFragment : MembershipFragment() {
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val viewModel: GroupDashboardViewModel by activityViewModels()
 

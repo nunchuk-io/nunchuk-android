@@ -8,8 +8,8 @@ import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.wallet.InvoiceInfo
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.usecase.CreateShareFileUseCase
+import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.membership.SaveBitmapToPDFUseCase
-import com.nunchuk.android.utils.BitmapUtil
 import com.nunchuk.android.utils.ExportInvoices
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -26,6 +26,7 @@ import javax.inject.Inject
 class InvoiceViewModel @Inject constructor(
     private val saveBitmapToPDFUseCase: SaveBitmapToPDFUseCase,
     private val createShareFileUseCase: CreateShareFileUseCase,
+    private val saveLocalFileUseCase: SaveLocalFileUseCase,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -35,20 +36,17 @@ class InvoiceViewModel @Inject constructor(
     private val _state = MutableStateFlow(InvoiceState())
     val state = _state.asStateFlow()
 
-    fun saveBitmapToPDF(bitmaps: List<Bitmap>, fileName: String) =
+    fun exportInvoice(invoiceInfo: InvoiceInfo, txId: String, isSaveFile: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
-            val combineBitmap = BitmapUtil.combineBitmapsVertically(bitmaps)
-            when (val event = createShareFileUseCase.execute("Transaction_$fileName.pdf")) {
+            val fileName = "Transaction_$txId.pdf"
+            when (val event = createShareFileUseCase.execute(fileName)) {
                 is Result.Success -> {
-                    saveBitmapToPDFUseCase(
-                        SaveBitmapToPDFUseCase.Param(
-                            listOf(combineBitmap),
-                            event.data
-                        )
-                    )
-                        .onSuccess {
-                            _event.emit(InvoiceEvent.ShareFile(event.data))
-                        }
+                    ExportInvoices(context = context).generatePDF(listOf(invoiceInfo), event.data, Job())
+                    if (isSaveFile) {
+                        saveLocalFile(event.data, fileName)
+                    } else {
+                        _event.emit(InvoiceEvent.ShareFile(event.data))
+                    }
                 }
 
                 is Result.Error -> {
@@ -56,19 +54,12 @@ class InvoiceViewModel @Inject constructor(
                 }
             }
         }
+    }
 
-    fun exportInvoice(invoiceInfo: InvoiceInfo, fileName: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            when (val event = createShareFileUseCase.execute("Transaction_$fileName.pdf")) {
-                is Result.Success -> {
-                    ExportInvoices(context = context).generatePDF(listOf(invoiceInfo), event.data, Job())
-                    _event.emit(InvoiceEvent.ShareFile(event.data))
-                }
-
-                is Result.Error -> {
-                    _event.emit(InvoiceEvent.Error(event.exception.messageOrUnknownError()))
-                }
-            }
+    fun saveLocalFile(filePath: String, fileName: String) {
+        viewModelScope.launch {
+            val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params(fileName = fileName, filePath = filePath))
+            _event.emit(InvoiceEvent.SaveLocalFile(result.isSuccess))
         }
     }
 }
@@ -81,4 +72,5 @@ sealed class InvoiceEvent {
     data class Error(val message: String) : InvoiceEvent()
     data class Loading(val loading: Boolean) : InvoiceEvent()
     data class ShareFile(val filePath: String) : InvoiceEvent()
+    data class SaveLocalFile(val isSuccess: Boolean) : InvoiceEvent()
 }

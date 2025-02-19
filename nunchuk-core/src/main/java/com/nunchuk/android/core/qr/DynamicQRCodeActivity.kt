@@ -24,10 +24,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.nunchuk.android.core.base.BaseShareSaveFileActivity
 import com.nunchuk.android.core.databinding.ActivityDynamicQrBinding
-import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.DELAY_DYNAMIC_QR
 import com.nunchuk.android.core.util.HIGH_DENSITY
 import com.nunchuk.android.core.util.LOW_DENSITY
@@ -35,7 +34,6 @@ import com.nunchuk.android.core.util.MEDIUM_DENSITY
 import com.nunchuk.android.core.util.ULTRA_DENSITY
 import com.nunchuk.android.core.util.densityToLevel
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
@@ -44,23 +42,19 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class DynamicQRCodeActivity : AppCompatActivity() {
+class DynamicQRCodeActivity : BaseShareSaveFileActivity<ActivityDynamicQrBinding>() {
 
     private val viewModel: DynamicQRCodeViewModel by viewModels()
 
     private lateinit var bitmaps: List<Bitmap>
 
-    private lateinit var binding: ActivityDynamicQrBinding
+    override fun initializeBinding(): ActivityDynamicQrBinding {
+        return ActivityDynamicQrBinding.inflate(layoutInflater)
+    }
 
     private var index = 0
 
     private var showQrJob: Job? = null
-
-    private val controller: IntentSharingController by lazy(LazyThreadSafetyMode.NONE) {
-        IntentSharingController.from(
-            this
-        )
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,6 +80,8 @@ class DynamicQRCodeActivity : AppCompatActivity() {
                 is DynamicQRCodeEvent.SavePDFSuccess -> {
                     controller.shareFile(it.path)
                 }
+
+                is DynamicQRCodeEvent.SaveLocalFile -> showSaveFileState(it.isSuccess)
             }
         }
     }
@@ -106,8 +102,16 @@ class DynamicQRCodeActivity : AppCompatActivity() {
         }
 
         binding.btnSavePdf.setOnClickListener {
-            viewModel.saveBitmapToPDF(bitmaps)
+            showSaveShareOption()
         }
+    }
+
+    override fun saveFileToLocal() {
+        viewModel.saveBitmapToPDF(bitmaps, isSaveLocalFile = true)
+    }
+
+    override fun shareFile() {
+        viewModel.saveBitmapToPDF(bitmaps, isSaveLocalFile = false)
     }
 
     private fun showQr() {

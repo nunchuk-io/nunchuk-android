@@ -20,7 +20,6 @@
 package com.nunchuk.android.auth.components.authentication
 
 import android.app.Activity
-import android.content.Intent
 import android.nfc.tech.Ndef
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -33,15 +32,13 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.navArgs
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.databinding.FragmentSignInDummyTransactionDetailsBinding
-import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.push.PushEventManager
-import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.BottomSheetTooltip
@@ -64,17 +61,15 @@ import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.parcelable
-import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
-import org.matrix.android.sdk.api.session.crypto.model.UnknownInfo.deviceId
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class SignInDummyTransactionDetailsFragment :
-    BaseFragment<FragmentSignInDummyTransactionDetailsBinding>(),
+    BaseShareSaveFileFragment<FragmentSignInDummyTransactionDetailsBinding>(),
     BottomSheetOptionListener {
 
     @Inject
@@ -83,11 +78,6 @@ class SignInDummyTransactionDetailsFragment :
     private val viewModel: DummyTransactionDetailsViewModel by viewModels()
     private val signInAuthenticationViewModel: SignInAuthenticationViewModel by activityViewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
-    private val controller: IntentSharingController by lazy {
-        IntentSharingController.from(
-            requireActivity()
-        )
-    }
 
     private val importFileLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -118,9 +108,7 @@ class SignInDummyTransactionDetailsFragment :
             TransactionOption.IMPORT_TRANSACTION.ordinal -> showImportTransactionOptions()
             SheetOptionType.TYPE_EXPORT_QR -> openExportTransactionScreen(false)
             SheetOptionType.TYPE_EXPORT_BBQR -> openExportTransactionScreen(true)
-            SheetOptionType.TYPE_EXPORT_FILE -> viewModel.exportTransactionToFile(
-                signInAuthenticationViewModel.getDataToSign()
-            )
+            SheetOptionType.TYPE_EXPORT_FILE -> showSaveShareOption()
 
             SheetOptionType.TYPE_IMPORT_QR -> openImportTransactionScreen()
             SheetOptionType.TYPE_IMPORT_FILE -> importFileLauncher.launch("*/*")
@@ -141,6 +129,7 @@ class SignInDummyTransactionDetailsFragment :
 
                 is DummyTransactionDetailEvent.LoadingEvent -> showOrHideLoading(it.isLoading)
                 is DummyTransactionDetailEvent.TransactionError -> showError(it.error)
+                is DummyTransactionDetailEvent.SaveLocalFile -> showSaveFileState(it.isSuccess)
             }
         }
         viewLifecycleOwner.lifecycleScope.launch {
@@ -209,6 +198,18 @@ class SignInDummyTransactionDetailsFragment :
             }
             nfcViewModel.clearScanInfo()
         }
+    }
+
+    override fun saveFileToLocal() {
+        super.saveFileToLocal()
+        viewModel.saveFileToLocal(signInAuthenticationViewModel.getDataToSign())
+    }
+
+    override fun shareFile() {
+        super.shareFile()
+        viewModel.exportTransactionToFile(
+            signInAuthenticationViewModel.getDataToSign()
+        )
     }
 
     private fun shareTransactionFile(filePath: String) {

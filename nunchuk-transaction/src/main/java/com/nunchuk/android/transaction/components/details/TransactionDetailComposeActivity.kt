@@ -21,7 +21,6 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_SIGN_T
 import com.nunchuk.android.core.nfc.PortalDeviceEvent
 import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.push.PushEvent
-import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.BottomSheetTooltip
@@ -97,7 +96,6 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
     private var shouldReload: Boolean = true
 
     private val args: TransactionDetailsArgs by lazy { TransactionDetailsArgs.deserializeFrom(intent) }
-    private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
 
     private val scheduleBroadcastLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -293,7 +291,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             EXPORT_TRANSACTION.ordinal -> showExportTransactionOptions()
             SheetOptionType.TYPE_EXPORT_QR -> openExportTransactionScreen(false)
             SheetOptionType.TYPE_EXPORT_BBQR -> openExportTransactionScreen(true)
-            SheetOptionType.TYPE_EXPORT_FILE -> viewModel.exportTransactionToFile()
+            SheetOptionType.TYPE_EXPORT_FILE -> showSaveShareOption()
             SheetOptionType.TYPE_IMPORT_QR -> openImportTransactionScreen()
             SheetOptionType.TYPE_IMPORT_FILE -> importFileLauncher.launch("*/*")
         }
@@ -313,6 +311,16 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             viewModel.handleImportTransactionFromMk4(it.records)
             nfcViewModel.clearScanInfo()
         }
+    }
+
+    override fun shareFile() {
+        super.shareFile()
+        viewModel.exportTransactionToFile(false)
+    }
+
+    override fun saveFileToLocal() {
+        super.saveFileToLocal()
+        viewModel.exportTransactionToFile(true)
     }
 
     private fun handleMenuMore() {
@@ -358,6 +366,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                 hideLoading()
                 NCToastMessage(this).show(getString(R.string.nc_request_signature_sent))
             }
+
+            is TransactionDetailsEvent.SaveLocalFile -> showSaveFileState(event.isSuccess)
         }
     }
 

@@ -60,7 +60,6 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -69,8 +68,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class CreateWalletSuccessFragment : MembershipFragment() {
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     @Inject
     lateinit var pushEventManager: PushEventManager

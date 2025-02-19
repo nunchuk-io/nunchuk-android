@@ -6,6 +6,7 @@ import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.usecase.GetDownloadBackUpKeyReplacementUseCase
 import com.nunchuk.android.usecase.GetDownloadBackUpKeyUseCase
+import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,11 +21,15 @@ class ColdCardVerifyBackUpMyselfViewModel @Inject constructor(
     private val nfcFileManager: NfcFileManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val getDownloadBackUpKeyUseCase: GetDownloadBackUpKeyUseCase,
-    private val getDownloadBackUpKeyReplacementUseCase: GetDownloadBackUpKeyReplacementUseCase
+    private val getDownloadBackUpKeyReplacementUseCase: GetDownloadBackUpKeyReplacementUseCase,
+    private val saveLocalFileUseCase: SaveLocalFileUseCase
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ColdCardVerifyBackUpMyselfEvent>()
     val event = _event.asSharedFlow()
+
+    var downloadBackupFilePath: String = ""
+        private set
 
     fun handleDownloadBackupKey(
         backUpFileName: String, filePath: String, xfp: String, groupId: String,
@@ -66,11 +71,23 @@ class ColdCardVerifyBackUpMyselfViewModel @Inject constructor(
                     true
                 )
             }
-            _event.emit(ColdCardVerifyBackUpMyselfEvent.GetBackUpKeySuccess(newFile.absolutePath))
+            downloadBackupFilePath = newFile.absolutePath
+            _event.emit(ColdCardVerifyBackUpMyselfEvent.GetBackUpKeySuccess(downloadBackupFilePath))
+        }
+    }
+
+    fun saveLocalFile() {
+        viewModelScope.launch {
+            if (downloadBackupFilePath.isEmpty()) {
+                return@launch
+            }
+            val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params(filePath = downloadBackupFilePath))
+            _event.emit(ColdCardVerifyBackUpMyselfEvent.SaveLocalFile(result.isSuccess))
         }
     }
 }
 
 sealed class ColdCardVerifyBackUpMyselfEvent {
     data class GetBackUpKeySuccess(val filePath: String) : ColdCardVerifyBackUpMyselfEvent()
+    data class SaveLocalFile(val isSuccess: Boolean) : ColdCardVerifyBackUpMyselfEvent()
 }

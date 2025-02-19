@@ -38,8 +38,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
     private val isFromAddKey by lazy { (requireActivity() as Mk4Activity).isFromAddKey }
 
     override fun onCreateView(

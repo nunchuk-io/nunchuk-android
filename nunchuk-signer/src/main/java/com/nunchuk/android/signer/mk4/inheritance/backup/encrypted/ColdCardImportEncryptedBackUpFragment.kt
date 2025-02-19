@@ -22,10 +22,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
@@ -35,18 +33,13 @@ import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.inheritance.ColdCardAction
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ColdCardImportEncryptedBackUpFragment : MembershipFragment() {
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val viewModel: ColdCardImportEncryptedBackUpViewModel by viewModels()
 

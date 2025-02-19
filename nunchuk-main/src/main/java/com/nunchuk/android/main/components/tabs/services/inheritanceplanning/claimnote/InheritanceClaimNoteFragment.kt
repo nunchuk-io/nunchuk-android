@@ -70,8 +70,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionListener {
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
     private val viewModel: InheritanceClaimNoteViewModel by viewModels()
     private val args: InheritanceClaimNoteFragmentArgs by navArgs()
 

@@ -29,6 +29,7 @@ import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
+import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.DoneScanQr
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.ExportColdcardSuccess
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.NfcLoading
@@ -44,6 +45,7 @@ class SharedWalletConfigurationViewModel @Inject constructor(
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val exportWalletUseCase: ExportWalletUseCase,
     private val exportWalletToMk4UseCase: ExportWalletToMk4UseCase,
+    private val saveLocalFileUseCase: SaveLocalFileUseCase
 ) : ViewModel() {
 
     lateinit var walletId: String
@@ -68,10 +70,10 @@ class SharedWalletConfigurationViewModel @Inject constructor(
         }
     }
 
-    fun handleColdcardExportToFile() {
+    fun handleColdcardExportToFile(isSaveFile: Boolean) {
         viewModelScope.launch {
-            when (val event = createShareFileUseCase.execute(walletId + "_coldcard_export.txt")) {
-                is Success -> exportWallet(walletId, event.data)
+            when (val event = createShareFileUseCase.execute(getFileName())) {
+                is Success -> exportWallet(walletId, event.data, isSaveFile)
                 is Error -> {
                     _event.emit(ShowError(event.exception.message.orUnknownError()))
                 }
@@ -85,15 +87,28 @@ class SharedWalletConfigurationViewModel @Inject constructor(
         }
     }
 
-    private fun exportWallet(walletId: String, filePath: String) {
+    private fun exportWallet(walletId: String, filePath: String, isSaveFile: Boolean) {
         viewModelScope.launch {
             when (val event = exportWalletUseCase.execute(walletId, filePath, ExportFormat.COLDCARD)) {
                 is Success -> {
-                    _event.emit(ExportColdcardSuccess(filePath))
+                    if (isSaveFile) {
+                        saveLocalFile(filePath)
+                    } else _event.emit(ExportColdcardSuccess(filePath))
                 }
                 is Error -> showError(event.exception)
             }
         }
+    }
+
+    private fun saveLocalFile(filePath: String) {
+        viewModelScope.launch {
+            val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params(fileName = getFileName(), filePath = filePath))
+            _event.emit(UploadConfigurationEvent.SaveLocalFile(result.isSuccess))
+        }
+    }
+
+    private fun getFileName(): String {
+        return walletId + "_coldcard_export.txt"
     }
 
     private fun showError(t: Throwable?) {

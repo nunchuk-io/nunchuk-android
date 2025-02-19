@@ -34,7 +34,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
-import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.manager.ActivityManager
@@ -44,7 +44,6 @@ import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
-import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.BottomSheetTooltip
@@ -88,7 +87,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDetailsBinding>(),
+class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<FragmentDummyTransactionDetailsBinding>(),
     BottomSheetOptionListener {
 
     @Inject
@@ -97,11 +96,6 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
     private val viewModel: DummyTransactionDetailsViewModel by viewModels()
     private val walletAuthenticationViewModel: WalletAuthenticationViewModel by activityViewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
-    private val controller: IntentSharingController by lazy {
-        IntentSharingController.from(
-            requireActivity()
-        )
-    }
 
     private val importFileLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -127,14 +121,13 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
     }
 
     override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
         when (option.type) {
             TransactionOption.EXPORT_TRANSACTION.ordinal -> showExportTransactionOptions()
             TransactionOption.IMPORT_TRANSACTION.ordinal -> showImportTransactionOptions()
             SheetOptionType.TYPE_EXPORT_QR -> openExportTransactionScreen(false)
             SheetOptionType.TYPE_EXPORT_BBQR -> openExportTransactionScreen(true)
-            SheetOptionType.TYPE_EXPORT_FILE -> viewModel.exportTransactionToFile(
-                walletAuthenticationViewModel.getDataToSign()
-            )
+            SheetOptionType.TYPE_EXPORT_FILE -> showSaveShareOption()
 
             SheetOptionType.TYPE_IMPORT_QR -> openImportTransactionScreen()
             SheetOptionType.TYPE_IMPORT_FILE -> importFileLauncher.launch("*/*")
@@ -142,6 +135,20 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
                 true
             )
         }
+    }
+
+    override fun shareFile() {
+        super.shareFile()
+        viewModel.exportTransactionToFile(
+            walletAuthenticationViewModel.getDataToSign()
+        )
+    }
+
+    override fun saveFileToLocal() {
+        super.saveFileToLocal()
+        viewModel.saveLocalFile(
+            walletAuthenticationViewModel.getDataToSign()
+        )
     }
 
     private fun observeEvent() {
@@ -158,6 +165,7 @@ class DummyTransactionDetailsFragment : BaseFragment<FragmentDummyTransactionDet
 
                 is DummyTransactionDetailEvent.LoadingEvent -> showOrHideLoading(it.isLoading)
                 is DummyTransactionDetailEvent.TransactionError -> showError(it.error)
+                is DummyTransactionDetailEvent.SaveLocalFile -> showSaveFileState(it.isSuccess)
             }
         }
         viewLifecycleOwner.lifecycleScope.launch {

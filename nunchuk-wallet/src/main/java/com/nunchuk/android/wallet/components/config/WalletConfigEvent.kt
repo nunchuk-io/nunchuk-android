@@ -23,23 +23,23 @@ import com.nunchuk.android.core.signer.SignerModel
 
 sealed class WalletConfigEvent {
 
-    object UpdateNameSuccessEvent : WalletConfigEvent()
-    object UpdateGapLimitSuccessEvent : WalletConfigEvent()
+    data object UpdateNameSuccessEvent : WalletConfigEvent()
+    data object UpdateGapLimitSuccessEvent : WalletConfigEvent()
 
     data class UpdateNameErrorEvent(val message: String) : WalletConfigEvent()
 
     data class WalletDetailsError(val message: String) : WalletConfigEvent()
 
-    object DeleteWalletSuccess : WalletConfigEvent()
+    data object DeleteWalletSuccess : WalletConfigEvent()
     data class ExportTxCoinControlSuccess(val filePath: String) : WalletConfigEvent()
     data class ExportInvoiceSuccess(val filePath: String) : WalletConfigEvent()
-    object ImportTxCoinControlSuccess : WalletConfigEvent()
+    data object ImportTxCoinControlSuccess : WalletConfigEvent()
 
     data class VerifyPasswordSuccess(val token: String, val signer: SignerModel, val groupId: String?) : WalletConfigEvent()
     class Loading(val isLoading: Boolean) : WalletConfigEvent()
     class Error(val message: String) : WalletConfigEvent()
-    object ForceRefreshWalletSuccess : WalletConfigEvent()
-    object DeleteAssistedWalletSuccess : WalletConfigEvent()
+    data object ForceRefreshWalletSuccess : WalletConfigEvent()
+    data object DeleteAssistedWalletSuccess : WalletConfigEvent()
     data class CalculateRequiredSignaturesSuccess(
         val walletId: String,
         val requiredSignatures: Int,
@@ -48,4 +48,5 @@ sealed class WalletConfigEvent {
 
     data class UploadWalletConfigEvent(val filePath: String) : WalletConfigEvent()
     data object OpenReplaceKey : WalletConfigEvent()
+    data class SaveLocalFile(val isSuccess: Boolean) : WalletConfigEvent()
 }

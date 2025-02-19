@@ -24,4 +24,5 @@ sealed class UploadConfigurationEvent {
     data class ExportColdcardSuccess(val filePath: String? = null) : UploadConfigurationEvent()
     data class ShowError(val message: String) : UploadConfigurationEvent()
     object DoneScanQr : UploadConfigurationEvent()
+    data class SaveLocalFile(val isSuccess: Boolean) : UploadConfigurationEvent()
 }

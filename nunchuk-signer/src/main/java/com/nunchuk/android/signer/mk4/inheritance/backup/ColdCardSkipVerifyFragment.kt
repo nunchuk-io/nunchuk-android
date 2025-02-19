@@ -40,9 +40,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class ColdCardSkipVerifyFragment : MembershipFragment() {
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

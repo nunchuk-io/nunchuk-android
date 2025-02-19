@@ -22,8 +22,7 @@ package com.nunchuk.android.wallet.components.backup
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
-import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.base.BaseShareSaveFileActivity
 import com.nunchuk.android.core.wallet.WalletSecurityArgs
 import com.nunchuk.android.core.wallet.WalletSecurityType
 import com.nunchuk.android.model.Wallet
@@ -36,9 +35,7 @@ import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
-
-    private val controller: IntentSharingController by lazy { IntentSharingController.from(this) }
+class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalletBinding>() {
 
     private var isShared: Boolean = false
 
@@ -67,7 +64,7 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
 
     private fun setupViews() {
         NCToastMessage(this).show(R.string.nc_wallet_has_been_created)
-        binding.btnBackup.setOnClickListener { viewModel.handleBackupDescriptorEvent() }
+        binding.btnBackup.setOnClickListener { showSaveShareOption() }
         binding.btnSkipBackup.setOnClickListener {
             navigateToNextScreen()
         }
@@ -96,10 +93,19 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
         viewModel.event.observe(this, ::handleEvent)
     }
 
+    override fun shareFile() {
+        viewModel.handleBackupDescriptorEvent()
+    }
+
+    override fun saveFileToLocal() {
+        viewModel.saveBSMSToLocal()
+    }
+
     private fun handleEvent(event: BackupWalletEvent) {
         when (event) {
             is Success -> shareFile(event)
             is Failure -> NCToastMessage(this).showWarning(event.message)
+            is BackupWalletEvent.SaveLocalFile -> showSaveFileState(event.isSuccess)
         }
     }
 
@@ -125,5 +131,4 @@ class BackupWalletActivity : BaseActivity<ActivityWalletBackupWalletBinding>() {
             )
         }
     }
-
 }

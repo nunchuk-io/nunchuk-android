@@ -58,9 +58,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class ColdCardVerifyRecoveredKeyFragment : MembershipFragment() {
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
     private val mk4ViewModel: Mk4ViewModel by activityViewModels()
     private val viewModel: ColdCardVerifyRecoveredKeyViewModel by viewModels()
 

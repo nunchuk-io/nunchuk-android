@@ -55,7 +55,6 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.mapper.MasterSignerMapper
-import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.orUnknownError
@@ -128,11 +127,21 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
                             )
 
                         is ShowError -> showError(event.e?.message.orUnknownError())
-                        is GetBackUpKeySuccess -> IntentSharingController.from(requireActivity())
-                            .shareFile(event.filePath)
+                        is GetBackUpKeySuccess -> showSaveShareOption()
+                        is SaveLocalFile -> showSaveFileState(event.isSuccess)
                     }
                 }
         }
+    }
+
+    override fun shareFile() {
+        super.shareFile()
+        controller.shareFile(viewModel.downloadBackupFilePath)
+    }
+
+    override fun saveFileToLocal() {
+        super.saveFileToLocal()
+        viewModel.saveLocalFile()
     }
 }
 

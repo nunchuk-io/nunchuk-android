@@ -42,9 +42,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class GroupChatHistoryIntroFragment : MembershipFragment() {
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
     private val viewModel: GroupChatHistoryIntroViewModel by viewModels()
 
     override fun onCreateView(

@@ -32,18 +32,13 @@ import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlTextPrimary
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4ViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ColdCardPassphraseQuestionFragment : MembershipFragment() {
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val mk4ViewModel: Mk4ViewModel by activityViewModels()
 

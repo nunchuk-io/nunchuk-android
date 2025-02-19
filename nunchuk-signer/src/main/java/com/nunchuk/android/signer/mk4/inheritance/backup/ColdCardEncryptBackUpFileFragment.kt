@@ -48,9 +48,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class ColdCardEncryptBackUpFileFragment : MembershipFragment() {
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
     private val mk4ViewModel: Mk4ViewModel by activityViewModels()
 
     override fun onCreateView(

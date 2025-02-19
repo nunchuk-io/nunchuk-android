@@ -81,9 +81,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class InheritanceShareSecretInfoFragment : MembershipFragment() {
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
     private val args: InheritanceShareSecretInfoFragmentArgs by navArgs()
     private val viewModel: InheritanceShareSecretInfoViewModel by viewModels()
 

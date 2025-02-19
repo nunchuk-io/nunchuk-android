@@ -27,6 +27,7 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.usecase.CreateShareFileUseCase
+import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Failure
 import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,6 +42,7 @@ internal class BackupWalletViewModel @Inject constructor(
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val getWalletBsmsUseCase: GetWalletBsmsUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val saveLocalFileUseCase: SaveLocalFileUseCase
 ) : NunchukViewModel<Unit, BackupWalletEvent>() {
 
     override val initialState = Unit
@@ -71,6 +73,15 @@ internal class BackupWalletViewModel @Inject constructor(
                 event(Success(filePath))
             }.onFailure {
                 event(Failure(it.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun saveBSMSToLocal() {
+        viewModelScope.launch {
+            getWalletBsmsUseCase(wallet).onSuccess {
+                val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params("${wallet.id}.bsms", it))
+                event(BackupWalletEvent.SaveLocalFile(result.isSuccess))
             }
         }
     }

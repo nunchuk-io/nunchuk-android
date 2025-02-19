@@ -34,9 +34,9 @@ import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportBCR2020010WalletUseCase
 import com.nunchuk.android.usecase.ExportKeystoneWalletUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
+import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.membership.SaveBitmapToPDFUseCase
 import com.nunchuk.android.usecase.qr.ExportBBQRWalletUseCase
-import com.nunchuk.android.utils.BitmapUtil
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -62,6 +62,7 @@ class DynamicQRCodeViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val saveBitmapToPDFUseCase: SaveBitmapToPDFUseCase,
+    private val saveLocalFileUseCase: SaveLocalFileUseCase
     ) : ViewModel() {
     val walletId = savedStateHandle.get<String>(DynamicQRCodeArgs.EXTRA_WALLET_ID).orEmpty()
     val type = savedStateHandle.get<Int>(DynamicQRCodeArgs.EXTRA_QR_CODE_TYPE)
@@ -136,14 +137,8 @@ class DynamicQRCodeViewModel @Inject constructor(
         }
     }
 
-    fun saveBitmapToPDF(bitmaps: List<Bitmap>) = viewModelScope.launch(Dispatchers.IO) {
-        val pdfName = when (type) {
-            ExportWalletQRCodeType.BC_UR2_LEGACY -> "${_state.value.name}_BCUR2_Legacy.pdf"
-            ExportWalletQRCodeType.BC_UR2 -> "${_state.value.name}_BCUR2.pdf"
-            ExportWalletQRCodeType.BBQR -> "${_state.value.name}_BBQR.pdf"
-            else -> ""
-        }
-        when (val event = createShareFileUseCase.execute(pdfName)) {
+    fun saveBitmapToPDF(bitmaps: List<Bitmap>, isSaveLocalFile: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+        when (val event = createShareFileUseCase.execute(getFileName())) {
             is Result.Success -> {
                 saveBitmapToPDFUseCase(
                     SaveBitmapToPDFUseCase.Param(
@@ -152,7 +147,11 @@ class DynamicQRCodeViewModel @Inject constructor(
                     )
                 )
                     .onSuccess {
-                        _event.emit(DynamicQRCodeEvent.SavePDFSuccess(event.data))
+                        if (isSaveLocalFile) {
+                            saveLocalFile(event.data)
+                        } else {
+                            _event.emit(DynamicQRCodeEvent.SavePDFSuccess(event.data))
+                        }
                     }
             }
 
@@ -160,6 +159,23 @@ class DynamicQRCodeViewModel @Inject constructor(
                 _event.emit(DynamicQRCodeEvent.Error(event.exception.messageOrUnknownError()))
             }
         }
+    }
+
+    private fun saveLocalFile(path: String) {
+        viewModelScope.launch {
+            val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params(fileName = getFileName(), filePath = path))
+            _event.emit(DynamicQRCodeEvent.SaveLocalFile(result.isSuccess))
+        }
+    }
+
+    private fun getFileName(): String {
+        val pdfName = when (type) {
+            ExportWalletQRCodeType.BC_UR2_LEGACY -> "${_state.value.name}_BCUR2_Legacy.pdf"
+            ExportWalletQRCodeType.BC_UR2 -> "${_state.value.name}_BCUR2.pdf"
+            ExportWalletQRCodeType.BBQR -> "${_state.value.name}_BBQR.pdf"
+            else -> ""
+        }
+        return pdfName
     }
 }
 
@@ -172,4 +188,5 @@ data class DynamicQRCodeState(
 sealed class DynamicQRCodeEvent {
     data class SavePDFSuccess(val path: String) : DynamicQRCodeEvent()
     data class Error(val message: String) : DynamicQRCodeEvent()
+    data class SaveLocalFile(val isSuccess: Boolean) : DynamicQRCodeEvent()
 }

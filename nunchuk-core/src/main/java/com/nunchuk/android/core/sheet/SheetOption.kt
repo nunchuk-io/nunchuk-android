@@ -164,4 +164,6 @@ object SheetOptionType {
 
     const val TYPE_ADD_INHERITANCE_NFC = 93
     const val TYPE_ADD_INHERITANCE_COLDCARD = 94
+    const val TYPE_SAVE_FILE = 95
+    const val TYPE_SHARE_FILE = 96
 }

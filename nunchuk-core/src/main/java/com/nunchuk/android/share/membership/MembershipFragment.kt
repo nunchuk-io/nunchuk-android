@@ -21,11 +21,14 @@ package com.nunchuk.android.share.membership
 
 import android.app.Activity
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.annotation.CallSuper
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -33,25 +36,23 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.isMaster
 import com.nunchuk.android.model.byzantine.isNone
-import com.nunchuk.android.model.isPersonalPlan
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
+abstract class MembershipFragment : BaseShareSaveFileFragment<ViewBinding>(), BottomSheetOptionListener {
     @Inject
     lateinit var membershipStepManager: MembershipStepManager
 
-    @Inject
-    lateinit var nunchukNavigator: NunchukNavigator
-
     private val viewModel: MembershipViewModel by activityViewModels()
+
+    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding {
+        TODO("Not yet implemented")
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +65,7 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) {
             if (it is MembershipEvent.RestartWizardSuccess) {
-                nunchukNavigator.openMembershipActivity(
+                navigator.openMembershipActivity(
                     activityContext = requireActivity(),
                     groupStep = MembershipStage.NONE,
                     isPersonalWallet = membershipStepManager.isPersonalWallet(),
@@ -80,6 +81,7 @@ abstract class MembershipFragment : Fragment(), BottomSheetOptionListener {
 
     @CallSuper
     override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
         if (option.type == SheetOptionType.TYPE_RESTART_WIZARD) {
             NCWarningDialog(requireActivity()).showDialog(
                 title = getString(R.string.nc_confirmation),

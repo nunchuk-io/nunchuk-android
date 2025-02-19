@@ -80,7 +80,7 @@ class SelectGroupFragment : MembershipFragment() {
                         if (viewModel.checkGroupTypeAvailable(option.slug)) {
                             if (args.isPersonal) {
                                 viewModel.setLocalMembershipPlan(option.slug, option.walletType)
-                                nunchukNavigator.openMembershipActivity(
+                                navigator.openMembershipActivity(
                                     activityContext = requireActivity(),
                                     groupStep = MembershipStage.NONE,
                                     isPersonalWallet = true,

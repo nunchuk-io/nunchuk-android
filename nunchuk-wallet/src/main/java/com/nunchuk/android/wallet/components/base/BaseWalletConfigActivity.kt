@@ -52,9 +52,10 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
         }
 
     override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
         when (option.type) {
             SheetOptionType.EXPORT_COLDCARD_VIA_NFC -> handleColdcardExportToNfc()
-            SheetOptionType.EXPORT_COLDCARD_VIA_FILE -> handleColdcardExportToFile()
+            SheetOptionType.EXPORT_COLDCARD_VIA_FILE -> showSaveShareOption()
             SheetOptionType.TYPE_QR_BC_UR2_LEGACY -> openDynamicQRScreen(sharedViewModel.walletId, ExportWalletQRCodeType.BC_UR2_LEGACY)
             SheetOptionType.TYPE_QR_BC_UR2 -> openDynamicQRScreen(sharedViewModel.walletId, ExportWalletQRCodeType.BC_UR2)
             SheetOptionType.TYPE_EXPORT_BBQR -> openDynamicQRScreen(sharedViewModel.walletId, ExportWalletQRCodeType.BBQR)
@@ -79,6 +80,7 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
         when (event) {
             is UploadConfigurationEvent.ShowError -> showError(event)
             is UploadConfigurationEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading, true)
+            is UploadConfigurationEvent.SaveLocalFile -> showSaveFileState(event.isSuccess)
             else -> {}
         }
     }
@@ -134,7 +136,15 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
         startNfcFlow(REQUEST_EXPORT_WALLET_TO_MK4)
     }
 
-    private fun handleColdcardExportToFile() {
-        sharedViewModel.handleColdcardExportToFile()
+    override fun shareFile() {
+        handleColdcardExportToFile(false)
+    }
+
+    override fun saveFileToLocal() {
+        handleColdcardExportToFile(true)
+    }
+
+    private fun handleColdcardExportToFile(isSaveFile: Boolean) {
+        sharedViewModel.handleColdcardExportToFile(isSaveFile)
     }
 }

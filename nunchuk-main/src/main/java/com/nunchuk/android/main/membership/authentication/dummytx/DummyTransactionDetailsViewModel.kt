@@ -30,6 +30,7 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.usecase.CreateShareFileUseCase
+import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbtByteArrayUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -50,6 +51,7 @@ internal class DummyTransactionDetailsViewModel @Inject constructor(
     private val createShareFileUseCase: CreateShareFileUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val application: Application,
+    private val saveLocalFileUseCase: SaveLocalFileUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(DummyTransactionState())
     val state = _state.asStateFlow()
@@ -109,7 +111,12 @@ internal class DummyTransactionDetailsViewModel @Inject constructor(
         }
     }
 
-
+    fun saveLocalFile(dataToSign: String) {
+        viewModelScope.launch {
+            val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params(fileName = "dummy.psbt", fileContent = dataToSign))
+            _event.emit(DummyTransactionDetailEvent.SaveLocalFile(result.isSuccess))
+        }
+    }
 
     fun handleViewMoreEvent() {
         _state.update { it.copy(viewMore = it.viewMore.not()) }
@@ -121,4 +128,5 @@ sealed class DummyTransactionDetailEvent {
     data class ImportTransactionSuccess(val transaction: Transaction?) : DummyTransactionDetailEvent()
     data class ExportToFileSuccess(val filePath: String) : DummyTransactionDetailEvent()
     data class TransactionError(val error: String) : DummyTransactionDetailEvent()
+    data class SaveLocalFile(val isSuccess: Boolean) : DummyTransactionDetailEvent()
 }

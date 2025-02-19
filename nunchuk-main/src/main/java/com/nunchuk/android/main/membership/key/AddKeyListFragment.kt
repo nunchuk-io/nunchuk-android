@@ -117,8 +117,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val viewModel by activityViewModels<AddKeyListViewModel>()
 

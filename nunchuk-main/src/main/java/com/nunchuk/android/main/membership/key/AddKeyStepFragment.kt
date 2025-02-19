@@ -111,7 +111,7 @@ class AddKeyStepFragment : MembershipFragment() {
     private fun handleOpenInheritanceSetup() {
         val walletId = viewModel.activeWalletId()
         if (walletId.isNotEmpty()) {
-            nunchukNavigator.openInheritancePlanningScreen(
+            navigator.openInheritancePlanningScreen(
                 walletId = walletId,
                 activityContext = requireContext(),
                 flowInfo = InheritancePlanFlow.SETUP,

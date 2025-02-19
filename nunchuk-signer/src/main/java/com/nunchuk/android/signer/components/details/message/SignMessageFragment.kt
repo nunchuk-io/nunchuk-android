@@ -24,15 +24,35 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -45,17 +65,30 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.*
+import androidx.viewbinding.ViewBinding
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTextField
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.border
+import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.whisper
+import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
-import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.copyToClipboard
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.SignedMessage
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.type.SignerType
@@ -66,14 +99,13 @@ import kotlinx.coroutines.flow.filter
 
 @OptIn(ExperimentalFoundationApi::class)
 @AndroidEntryPoint
-class SignMessageFragment : Fragment() {
+class SignMessageFragment : BaseShareSaveFileFragment<ViewBinding>() {
     private val args: SignMessageFragmentArgs by navArgs()
     private val viewModel: SignMessageViewModel by viewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
-    private val controller: IntentSharingController by lazy {
-        IntentSharingController.from(
-            requireActivity()
-        )
+
+    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding {
+        TODO("Not yet implemented")
     }
 
     override fun onCreateView(
@@ -97,11 +129,23 @@ class SignMessageFragment : Fragment() {
                     onCopySignature = {
                         showSuccess(getString(R.string.nc_signer_signature_copied_to_clipboard))
                     },
-                    onExportSignature = viewModel::exportSignatureToFile,
+                    onExportSignature = {
+                        showSaveShareOption()
+                    },
                     onResetSignature = viewModel::resetSignature
                 )
             }
         }
+    }
+
+    override fun shareFile() {
+        super.shareFile()
+        viewModel.exportSignatureToFile()
+    }
+
+    override fun saveFileToLocal() {
+        super.saveFileToLocal()
+        viewModel.saveLocalFile()
     }
 
     private fun onSignMessage(message: String, path: String) {
@@ -133,6 +177,7 @@ class SignMessageFragment : Fragment() {
                 is SignMessageEvent.Loading -> showOrHideLoading(event.isLoading)
                 is SignMessageEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
                 is SignMessageEvent.ShareFile -> controller.shareFile(event.path)
+                is SignMessageEvent.SaveLocalFile -> showSaveFileState(event.isSuccess)
             }
         }
 

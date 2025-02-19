@@ -33,43 +33,36 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.strokePrimary
-import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.wallet.InvoiceInfo
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
-class InvoiceFragment : Fragment() {
+class InvoiceFragment : BaseShareSaveFileFragment<ViewBinding>() {
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
+    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding {
+        TODO("Not yet implemented")
+    }
 
     private val viewModel: InvoiceViewModel by viewModels()
 
     private val invoiceInfo: InvoiceInfo by lazy {
         requireNotNull(arguments?.parcelable(InvoiceActivity.EXTRA_INVOICE_INFO))
-    }
-
-    private val controller: IntentSharingController by lazy(LazyThreadSafetyMode.NONE) {
-        IntentSharingController.from(
-            requireActivity()
-        )
     }
 
     override fun onCreateView(
@@ -79,7 +72,7 @@ class InvoiceFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 InvoiceScreen(viewModel, invoiceInfo) {
-                    viewModel.exportInvoice(invoiceInfo, invoiceInfo.transactionId)
+                    showSaveShareOption()
                 }
             }
         }
@@ -101,8 +94,20 @@ class InvoiceFragment : Fragment() {
                 is InvoiceEvent.ShareFile -> {
                     controller.shareFile(event.filePath)
                 }
+
+                is InvoiceEvent.SaveLocalFile -> showSaveFileState(event.isSuccess)
             }
         }
+    }
+
+    override fun shareFile() {
+        super.shareFile()
+        viewModel.exportInvoice(invoiceInfo, invoiceInfo.transactionId, false)
+    }
+
+    override fun saveFileToLocal() {
+        super.saveFileToLocal()
+        viewModel.exportInvoice(invoiceInfo, invoiceInfo.transactionId, true)
     }
 }
 

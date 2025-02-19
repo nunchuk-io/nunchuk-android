@@ -32,7 +32,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.R
-import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.base.BaseShareSaveFileActivity
 import com.nunchuk.android.core.util.isValidCvc
 import com.nunchuk.android.utils.PendingIntentUtils
 import com.nunchuk.android.widget.NCInfoDialog
@@ -40,7 +40,7 @@ import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NUMBER_TYPE
 import kotlinx.coroutines.launch
 
-abstract class BaseNfcActivity<Binding : ViewBinding> : BaseActivity<Binding>(), NfcActionListener {
+abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivity<Binding>(), NfcActionListener {
     protected val nfcViewModel: NfcViewModel by viewModels()
     private var requestCode: Int = 0
 

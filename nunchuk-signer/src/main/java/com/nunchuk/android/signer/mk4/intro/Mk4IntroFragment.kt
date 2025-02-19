@@ -71,7 +71,6 @@ import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.isParseAction
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -86,12 +85,9 @@ import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import java.util.Locale
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val nfcViewModel by activityViewModels<NfcViewModel>()
     private val viewModel by viewModels<Mk4IntroViewModel>()

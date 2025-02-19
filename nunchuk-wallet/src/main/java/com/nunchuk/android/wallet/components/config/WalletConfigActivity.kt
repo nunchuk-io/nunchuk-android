@@ -34,7 +34,6 @@ import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
-import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
@@ -79,12 +78,6 @@ import kotlinx.coroutines.launch
 class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBinding>() {
 
     private val viewModel: WalletConfigViewModel by viewModels()
-
-    private val controller: IntentSharingController by lazy(LazyThreadSafetyMode.NONE) {
-        IntentSharingController.from(
-            this
-        )
-    }
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -192,7 +185,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> showExportColdcardOptions()
             SheetOptionType.TYPE_FORCE_REFRESH_WALLET -> showForceRefreshWalletDialog()
             SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> showSaveWalletConfigurationOption()
-            SheetOptionType.TYPE_EXPORT_BSMS -> handleExportBSMS()
+            SheetOptionType.TYPE_EXPORT_BSMS -> showSaveShareOption()
             SheetOptionType.TYPE_EXPORT_PORTAL -> navigator.openPortalScreen(
                 launcher = exportWalletToPortalLauncher,
                 activity = this,
@@ -407,6 +400,14 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     shareConfigurationFile(event.filePath)
                 }
             }
+
+            is WalletConfigEvent.SaveLocalFile -> {
+                if (event.isSuccess) {
+                    NCToastMessage(this).showMessage(getString(R.string.nc_save_file_success))
+                } else {
+                    NCToastMessage(this).showError(getString(R.string.nc_save_file_failed))
+                }
+            }
         }
     }
 
@@ -457,6 +458,14 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     private fun handleExportBSMS() {
         viewModel.handleExportBSMS()
+    }
+
+    override fun shareFile() {
+        handleExportBSMS()
+    }
+
+    override fun saveFileToLocal() {
+        viewModel.saveBSMSToLocal()
     }
 
     private fun showMoreOptions() {

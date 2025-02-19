@@ -15,10 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
@@ -33,22 +31,15 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.mk4.Mk4Event
 import com.nunchuk.android.signer.mk4.Mk4ViewModel
-import com.nunchuk.android.signer.tapsigner.backup.explain.OnContinueClicked
-import com.nunchuk.android.signer.tapsigner.backup.explain.TapSignerBackUpExplainFragmentDirections
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ColdCardPassphraseBackupReminderFragment : MembershipFragment() {
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val mk4ViewModel: Mk4ViewModel by activityViewModels()
 

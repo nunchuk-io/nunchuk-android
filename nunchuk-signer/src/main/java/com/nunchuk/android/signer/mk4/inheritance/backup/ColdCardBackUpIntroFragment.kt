@@ -38,9 +38,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class ColdCardBackUpIntroFragment : MembershipFragment() {
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

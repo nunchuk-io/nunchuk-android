@@ -75,9 +75,6 @@ import javax.inject.Inject
 class InheritanceKeyIntroFragment : MembershipFragment(), BottomSheetOptionListener {
     private val viewModel: TapSignerInheritanceIntroViewModel by viewModels()
 
-    @Inject
-    lateinit var navigator: NunchukNavigator
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {

@@ -25,9 +25,9 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.signer.mk4.inheritance.backup.myself.ColdCardVerifyBackUpMyselfEvent
 import com.nunchuk.android.usecase.GetDownloadBackUpKeyReplacementUseCase
 import com.nunchuk.android.usecase.GetDownloadBackUpKeyUseCase
+import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import com.nunchuk.android.utils.ChecksumUtil
@@ -49,6 +49,7 @@ class CheckBackUpBySelfViewModel @Inject constructor(
     private val getDownloadBackUpKeyReplacementUseCase: GetDownloadBackUpKeyReplacementUseCase,
     private val nfcFileManager: NfcFileManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val saveLocalFileUseCase: SaveLocalFileUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val args: CheckBackUpBySelfFragmentArgs =
@@ -57,6 +58,9 @@ class CheckBackUpBySelfViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     private var ident: String = ""
+    var downloadBackupFilePath: String = ""
+        private set
+
     init {
         viewModelScope.launch {
             getTapSignerStatusByIdUseCase(args.masterSignerId).onSuccess { status ->
@@ -79,7 +83,8 @@ class CheckBackUpBySelfViewModel @Inject constructor(
         viewModelScope.launch {
             getTapSignerStatusByIdUseCase(args.masterSignerId).onSuccess { status ->
                 val newFile = downloadBackupKey(keyId.isNotEmpty(), groupId, walletId)
-                _event.emit(GetBackUpKeySuccess(newFile.absolutePath))
+                downloadBackupFilePath = newFile.absolutePath
+                _event.emit(GetBackUpKeySuccess(downloadBackupFilePath))
             }
         }
     }
@@ -163,6 +168,16 @@ class CheckBackUpBySelfViewModel @Inject constructor(
         }
         return newFile
     }
+
+    fun saveLocalFile() {
+        viewModelScope.launch {
+            if (downloadBackupFilePath.isEmpty()) {
+                return@launch
+            }
+            val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params(filePath = downloadBackupFilePath))
+            _event.emit(SaveLocalFile(result.isSuccess))
+        }
+    }
 }
 
 sealed class CheckBackUpBySelfEvent
@@ -171,3 +186,4 @@ data object OnVerifiedBackUpClicked : CheckBackUpBySelfEvent()
 data object OnExitSelfCheck : CheckBackUpBySelfEvent()
 data class GetBackUpKeySuccess(val filePath: String) : CheckBackUpBySelfEvent()
 data class ShowError(val e: Throwable?) : CheckBackUpBySelfEvent()
+data class SaveLocalFile(val isSuccess: Boolean) : CheckBackUpBySelfEvent()

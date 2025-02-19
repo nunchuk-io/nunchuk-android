@@ -70,4 +70,5 @@ sealed class TransactionDetailsEvent {
     data object ImportTransactionSuccess : TransactionDetailsEvent()
     data class GetRawTransactionSuccess(val rawTransaction: String) : TransactionDetailsEvent()
     data object RequestSignatureTransactionSuccess : TransactionDetailsEvent()
+    data class SaveLocalFile(val isSuccess: Boolean) : TransactionDetailsEvent()
 }

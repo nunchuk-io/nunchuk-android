@@ -50,21 +50,15 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.compose.textPrimary
-import com.nunchuk.android.core.share.IntentSharingController
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.mk4.Mk4ViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ColdCardVerifyBackupFragment : MembershipFragment() {
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val viewModel: ColdCardVerifyBackUpMyselfViewModel by viewModels()
     private val mk4ViewModel: Mk4ViewModel by activityViewModels()
@@ -99,13 +93,24 @@ class ColdCardVerifyBackupFragment : MembershipFragment() {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect { event ->
                     when (event) {
-                        is ColdCardVerifyBackUpMyselfEvent.GetBackUpKeySuccess -> IntentSharingController.from(
-                            requireActivity()
-                        )
-                            .shareFile(event.filePath)
+                        is ColdCardVerifyBackUpMyselfEvent.GetBackUpKeySuccess -> {
+                            showSaveShareOption()
+                        }
+
+                        is ColdCardVerifyBackUpMyselfEvent.SaveLocalFile -> showSaveFileState(event.isSuccess)
                     }
                 }
         }
+    }
+
+    override fun shareFile() {
+        super.shareFile()
+        controller.shareFile(viewModel.downloadBackupFilePath)
+    }
+
+    override fun saveFileToLocal() {
+        super.saveFileToLocal()
+        viewModel.saveLocalFile()
     }
 }
 

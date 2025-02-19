@@ -61,7 +61,6 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.tapsigner.BaseChangeTapSignerNameFragment
@@ -72,13 +71,9 @@ import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
-
-    @Inject
-    lateinit var navigator: NunchukNavigator
 
     private val args by navArgs<AddTapSignerIntroFragmentArgs>()
     private val viewModel: AddTapSignerIntroViewModel by viewModels()
