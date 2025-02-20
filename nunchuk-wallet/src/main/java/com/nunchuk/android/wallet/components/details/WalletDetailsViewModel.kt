@@ -228,6 +228,8 @@ internal class WalletDetailsViewModel @Inject constructor(
                     )
                 }.orEmpty()
 
+            if (historyPeriods.isEmpty()) return@launch
+
             updateState {
                 copy(
                     historyPeriods = historyPeriods,
