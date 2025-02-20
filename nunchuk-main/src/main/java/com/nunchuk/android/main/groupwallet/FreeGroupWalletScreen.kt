@@ -291,6 +291,7 @@ fun FreeGroupWalletScreen(
                     UserOnline(state.numberOfOnlineUsers)
                 }
 
+                var colorIndex = 0
                 itemsIndexed(state.signers) { index, signer ->
                     FreeAddKeyCard(
                         index = index,
@@ -310,18 +311,25 @@ fun FreeGroupWalletScreen(
                             showDeleteSignerDialog = true
                         },
                         showBip32Path = showBip32Path,
-                        onChangeBip32Path = onChangeBip32Path
+                        onChangeBip32Path = onChangeBip32Path,
+                        avatarColor = if (signer?.isVisible == false) avatarColors[colorIndex++ % avatarColors.size] else avatarColors[0]
                     )
                 }
             }
 
-            PullRefreshIndicator(state.isRefreshing, pullRefreshState, Modifier.align(Alignment.TopCenter))
+            PullRefreshIndicator(
+                state.isRefreshing,
+                pullRefreshState,
+                Modifier.align(Alignment.TopCenter)
+            )
         }
 
         if (showMoreOption) {
             NcSelectableBottomSheet(
                 options = listOf(
-                    if (showBip32Path) stringResource(R.string.nc_hide_bip_32_path) else stringResource(R.string.nc_show_bip_32_path),
+                    if (showBip32Path) stringResource(R.string.nc_hide_bip_32_path) else stringResource(
+                        R.string.nc_show_bip_32_path
+                    ),
                     stringResource(R.string.nc_cancel_group_wallet_setup),
                 ),
                 onSelected = {
@@ -429,7 +437,7 @@ private fun GroupWalletScreenPreview(
     val addedSigner = signers.first().copy(name = KEY_NOT_SYNCED_NAME)
     NunchukTheme {
         FreeGroupWalletScreen(
-            state = FreeGroupWalletUiState(signers = signers + addedSigner + null)
+            state = FreeGroupWalletUiState(signers = signers + addedSigner + null, numberOfOnlineUsers = 2)
         )
     }
 }

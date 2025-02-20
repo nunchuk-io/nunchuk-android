@@ -20,7 +20,8 @@ class SignersModelProvider : CollectionPreviewParameterProvider<List<SignerModel
                 fingerPrint = "79EB35F5",
                 derivationPath = "",
                 isMasterSigner = false,
-                index = 10
+                index = 10,
+                isVisible = false
             ),
             SignerModel(
                 "345",

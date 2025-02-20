@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -49,7 +50,8 @@ fun FreeAddKeyCard(
     onAddClicked: () -> Unit,
     onRemoveClicked: () -> Unit,
     showBip32Path: Boolean = false,
-    onChangeBip32Path: (Int, SignerModel) -> Unit = { _, _ -> }
+    onChangeBip32Path: (Int, SignerModel) -> Unit = { _, _ -> },
+    avatarColor: Color = avatarColors[0]
 ) {
     if (signer != null && signer.name == KEY_NOT_SYNCED_NAME) {
         Row(
@@ -134,7 +136,7 @@ fun FreeAddKeyCard(
                 NcCircleImage(
                     iconSize = 48.dp,
                     resId = R.drawable.ic_user,
-                    color = avatarColors[index % avatarColors.size]
+                    color = avatarColor
                 )
                 Column(
                     modifier = Modifier
