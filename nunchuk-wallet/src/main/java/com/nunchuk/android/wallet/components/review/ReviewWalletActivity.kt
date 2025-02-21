@@ -37,7 +37,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -61,12 +61,14 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.dialog.NcInfoDialog
+import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
@@ -178,6 +180,9 @@ fun ReviewWalletContent(
     openMainScreen: () -> Unit = {},
 ) {
     NunchukTheme {
+        if (uiState.isLoading) {
+            NcLoadingDialog()
+        }
         NcScaffold(
             modifier = Modifier.navigationBarsPadding(),
             bottomBar = {
@@ -286,11 +291,19 @@ fun ReviewWalletContent(
                     }
                 }
 
-                items(signers) {
-                    if (it.isVisible) {
-                        SignerCard(item = it)
+                itemsIndexed(signers) { index, signer ->
+                    if (signer.isVisible) {
+                        SignerCard(
+                            item = signer,
+                            showValueKey = args.addressType.isTaproot() && index < args.totalRequireSigns
+                        )
                     } else {
-                        UserSignerCard(item = it)
+                        SignerCard(
+                            item = signer,
+                            signerIcon = R.drawable.ic_signer_empty_state,
+                            isShowKeyTypeBadge = false,
+                            showValueKey = args.addressType.isTaproot() && index < args.totalRequireSigns
+                        )
                     }
                 }
             }

@@ -29,7 +29,8 @@ data class TaprootWarningArgs(
     val walletName: String,
     val walletType: WalletType,
     val addressType: AddressType,
-    val decoyPin : String = ""
+    val decoyPin : String = "",
+    val groupSandboxId: String = "",
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, TaprootActivity::class.java).apply {
@@ -37,6 +38,7 @@ data class TaprootWarningArgs(
         putExtra(EXTRA_WALLET_TYPE, walletType)
         putExtra(EXTRA_ADDRESS_TYPE, addressType)
         putExtra(EXTRA_DECOY_PIN, decoyPin)
+        putExtra(EXTRA_GROUP_SANDBOX_ID, groupSandboxId)
     }
 
     companion object {
@@ -44,12 +46,14 @@ data class TaprootWarningArgs(
         private const val EXTRA_WALLET_TYPE = "EXTRA_WALLET_TYPE"
         private const val EXTRA_ADDRESS_TYPE = "EXTRA_ADDRESS_TYPE"
         private const val EXTRA_DECOY_PIN = "EXTRA_DECOY_PIN"
+        private const val EXTRA_GROUP_SANDBOX_ID = "EXTRA_GROUP_SANDBOX_ID"
 
         fun deserializeFrom(intent: Intent): TaprootWarningArgs = TaprootWarningArgs(
             intent.extras?.getString(EXTRA_WALLET_NAME, "").orEmpty(),
             intent.getSerializableExtra(EXTRA_WALLET_TYPE) as WalletType,
             intent.getSerializableExtra(EXTRA_ADDRESS_TYPE) as AddressType,
-            intent.extras?.getString(EXTRA_DECOY_PIN, "").orEmpty()
+            intent.extras?.getString(EXTRA_DECOY_PIN, "").orEmpty(),
+            intent.extras?.getString(EXTRA_GROUP_SANDBOX_ID, "").orEmpty()
         )
     }
 }

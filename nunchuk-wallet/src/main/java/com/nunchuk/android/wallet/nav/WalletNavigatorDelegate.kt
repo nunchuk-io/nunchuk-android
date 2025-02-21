@@ -226,8 +226,16 @@ interface WalletNavigatorDelegate : WalletNavigator {
         walletType: WalletType,
         addressType: AddressType,
         decoyPin: String,
+        groupSandboxId: String,
     ) {
-        TaprootActivity.start(activityContext, walletName, walletType, addressType, decoyPin)
+        TaprootActivity.start(
+            activityContext = activityContext,
+            walletName = walletName,
+            walletType = walletType,
+            addressType = addressType,
+            decoyPin = decoyPin,
+            groupSandboxId = groupSandboxId
+        )
     }
 
     override fun openRecoverSharedWalletScreen(activityContext: Context) {

@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
@@ -44,6 +44,7 @@ import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletConfig
@@ -65,6 +66,8 @@ internal fun WalletConfigView(
 ) {
     val wallet = state.walletExtended.wallet
     val isLimitAccess = isLimitAccess(state.group, state.role, state.assistedWallet?.status)
+    val isTaproot = state.walletExtended.wallet.addressType.isTaproot()
+    val totalRequireSigns = state.walletExtended.wallet.totalRequireSigns
     NunchukTheme {
         NcScaffold(
             modifier = modifier.navigationBarsPadding(),
@@ -226,10 +229,11 @@ internal fun WalletConfigView(
                         }
                     }
 
-                    items(state.signers) {
+                    itemsIndexed(state.signers) { index, signer ->
                         WalletSignerCard(
-                            signer = it,
+                            signer = signer,
                             state = state,
+                            isValueKey = isTaproot && index < totalRequireSigns,
                             openWalletConfig = openWalletConfig
                         )
                     }
@@ -243,6 +247,7 @@ internal fun WalletConfigView(
 fun WalletSignerCard(
     signer: SignerModel,
     state: WalletConfigState,
+    isValueKey: Boolean,
     modifier: Modifier = Modifier,
     openWalletConfig: (SignerModel) -> Unit = {}
 ) {
@@ -253,6 +258,7 @@ fun WalletSignerCard(
         SignerCard(
             item = signer,
             modifier = Modifier.weight(1f),
+            showValueKey = isValueKey
         )
         if (signer.type == SignerType.SERVER && !state.isInactiveAssistedWallet && !state.role.toRole.isFacilitatorAdmin) {
             NcOutlineButton(

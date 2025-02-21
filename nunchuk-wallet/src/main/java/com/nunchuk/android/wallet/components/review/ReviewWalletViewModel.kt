@@ -26,6 +26,7 @@ import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.listener.GroupDeleteListener
 import com.nunchuk.android.listener.GroupSandboxListener
@@ -36,6 +37,7 @@ import com.nunchuk.android.type.WalletType.ESCROW
 import com.nunchuk.android.type.WalletType.SINGLE_SIG
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.free.groupwallet.FinalizeGroupSandboxUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
 import com.nunchuk.android.usecase.signer.GetSignerUseCase
 import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.CreateWalletErrorEvent
 import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.CreateWalletSuccessEvent
@@ -57,7 +59,8 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
     private val getSignerUseCase: GetSignerUseCase,
     private val hasSignerUseCase: HasSignerUseCase,
-    private val finalizeGroupSandboxUseCase: FinalizeGroupSandboxUseCase
+    private val finalizeGroupSandboxUseCase: FinalizeGroupSandboxUseCase,
+    private val getGroupSandboxUseCase: GetGroupSandboxUseCase
 ) : NunchukViewModel<Unit, ReviewWalletEvent>() {
     private val _uiState = MutableStateFlow(ReviewWalletUiState())
     val uiState = _uiState.asStateFlow()
@@ -105,11 +108,33 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     private fun createFreeGroupWallet() {
         groupUpdateJob?.cancel()
         viewModelScope.launch {
-            finalizeGroupSandboxUseCase(args.groupId).onSuccess {
+            _uiState.update { it.copy(isLoading = true) }
+            val signerTaprootIndexes = mutableSetOf<Int>()
+            if (args.addressType.isTaproot()) {
+                getGroupSandboxUseCase(args.groupId).onSuccess { group ->
+                    val signerIndexes = mutableMapOf<String, Int>()
+                    group.signers.mapIndexed { index, singleSigner ->
+                        signerIndexes[singleSigner.masterFingerprint] = index
+                    }
+
+                    args.signers.take(args.totalRequireSigns).forEach {
+                        signerIndexes[it.masterFingerprint]?.let { index ->
+                            signerTaprootIndexes.add(index)
+                        }
+                    }
+                }
+            }
+            finalizeGroupSandboxUseCase(
+                FinalizeGroupSandboxUseCase.Params(
+                    groupId = args.groupId,
+                    signerIndexes = signerTaprootIndexes
+                )
+            ).onSuccess {
                 setEvent(ReviewWalletEvent.CreateFreeGroupWalletSuccessEvent(it.walletId))
             }.onFailure {
                 setEvent(CreateWalletErrorEvent(it.message.orUnknownError()))
             }
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
@@ -137,6 +162,7 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
 
     private fun mapSigners() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             if (args.groupId.isNotEmpty()) {
                 val signers = args.signers.map { signer ->
                     if (hasSignerUseCase(signer).getOrNull() == true) {
@@ -162,6 +188,7 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
                     it.copy(signers = signers)
                 }
             }
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
@@ -174,4 +201,5 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
 data class ReviewWalletUiState(
     val signers: List<SignerModel> = emptyList(),
     val groupWalletUnavailable: Boolean = false,
+    val isLoading: Boolean = false
 )

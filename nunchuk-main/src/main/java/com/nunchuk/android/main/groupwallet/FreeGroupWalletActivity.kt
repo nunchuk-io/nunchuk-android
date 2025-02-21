@@ -17,6 +17,7 @@ import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_TOPUP_XPUBS
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.join.CommonQRCodeActivity
 import com.nunchuk.android.nav.args.ReviewWalletArgs
@@ -80,17 +81,27 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                 },
                                 finishScreen = ::finish,
                                 onContinueClicked = { group ->
-                                    navigator.openReviewWalletScreen(
-                                        activityContext = this@FreeGroupWalletActivity,
-                                        args = ReviewWalletArgs(
+                                    if (group.addressType.isTaproot()) {
+                                        navigator.openTaprootScreen(
+                                            activityContext = this@FreeGroupWalletActivity,
                                             walletName = group.name,
                                             walletType = WalletType.MULTI_SIG,
                                             addressType = group.addressType,
-                                            totalRequireSigns = group.m,
-                                            signers = group.signers,
-                                            groupId = group.id
+                                            groupSandboxId = viewModel.groupId,
                                         )
-                                    )
+                                    } else {
+                                        navigator.openReviewWalletScreen(
+                                            activityContext = this@FreeGroupWalletActivity,
+                                            args = ReviewWalletArgs(
+                                                walletName = group.name,
+                                                walletType = WalletType.MULTI_SIG,
+                                                addressType = group.addressType,
+                                                totalRequireSigns = group.m,
+                                                signers = group.signers,
+                                                groupId = group.id
+                                            )
+                                        )
+                                    }
                                 },
                                 returnToHome = {
                                     navigator.returnToMainScreen(this@FreeGroupWalletActivity)

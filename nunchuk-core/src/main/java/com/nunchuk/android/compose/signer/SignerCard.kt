@@ -96,7 +96,7 @@ fun SignerCard(
 
 @Preview(showBackground = true)
 @Composable
-fun AddKeyListScreenHoneyBadgerPreview(
+private fun AddKeyListScreenHoneyBadgerPreview(
     @PreviewParameter(SignerModelProvider::class) signer: SignerModel,
 ) {
     NunchukTheme {

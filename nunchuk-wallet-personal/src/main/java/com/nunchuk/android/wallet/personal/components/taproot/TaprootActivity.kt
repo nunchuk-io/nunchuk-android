@@ -81,6 +81,7 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                 decoyPin = args.decoyPin
             )
         )
+        viewModel.initGroupSandBox(args.groupSandboxId)
         setContent {
             val navController = rememberNavController()
 
@@ -101,7 +102,11 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                     navController.navigateTaprootWarningScreen()
                 }
                 taprootWarningScreen {
-                    navController.navigateTaprootConfigScreen()
+                    if (viewModel.isSelectedKeyAvailable()) {
+                        navController.navigateConfigureValueKeySet()
+                    } else {
+                        navController.navigateTaprootConfigScreen()
+                    }
                 }
                 taprootConfigScreen(
                     viewModel = viewModel,
@@ -242,6 +247,7 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                 decoyPin = args.decoyPin,
                 totalRequireSigns = totalRequireSigns,
                 signers = signers,
+                groupId = args.groupSandboxId
             )
         )
     }
@@ -270,14 +276,16 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
             walletName: String,
             walletType: WalletType,
             addressType: AddressType,
-            decoyPin: String
+            decoyPin: String,
+            groupSandboxId: String,
         ) {
             activityContext.startActivity(
                 TaprootWarningArgs(
-                    walletName,
-                    walletType,
-                    addressType,
-                    decoyPin
+                    walletName = walletName,
+                    walletType = walletType,
+                    addressType = addressType,
+                    decoyPin = decoyPin,
+                    groupSandboxId = groupSandboxId
                 ).buildIntent(activityContext)
             )
         }

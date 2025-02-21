@@ -152,7 +152,8 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         walletName: String,
         walletType: WalletType,
         addressType: AddressType,
-        decoyPin: String
+        decoyPin: String = "",
+        groupSandboxId: String = "",
     )
 
     fun openQuickWalletScreen(launcher: ActivityResultLauncher<Intent>, activityContext: Context)

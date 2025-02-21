@@ -441,6 +441,8 @@ class FreeGroupWalletViewModel @Inject constructor(
         }
     }
 
+    fun getWalletSigners(): List<SignerModel> = _uiState.value.signers.filterNotNull()
+
     companion object {
         private const val CURRENT_SIGNER_INDEX = "current_signer_index"
         private const val CURRENT_SIGNER = "current_signer"

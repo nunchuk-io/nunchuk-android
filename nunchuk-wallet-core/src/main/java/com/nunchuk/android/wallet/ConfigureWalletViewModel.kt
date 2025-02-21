@@ -25,9 +25,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.PrimaryKeySignerInfoHolder
 import com.nunchuk.android.core.domain.CacheDefaultTapsignerMasterSignerXPubUseCase
+import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isTaproot
@@ -41,6 +43,8 @@ import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.SendSignerPassphrase
+import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
+import com.nunchuk.android.usecase.signer.GetSignerUseCase
 import com.nunchuk.android.usecase.signer.GetSupportedSignersUseCase
 import com.nunchuk.android.usecase.wallet.GetWallets2UseCase
 import com.nunchuk.android.utils.onException
@@ -74,6 +78,10 @@ class ConfigureWalletViewModel @Inject constructor(
     private val cacheDefaultTapsignerMasterSignerXPubUseCase: CacheDefaultTapsignerMasterSignerXPubUseCase,
     private val getWallets2UseCase: GetWallets2UseCase,
     private val getSupportedSignersUseCase: GetSupportedSignersUseCase,
+    private val getGroupSandboxUseCase: GetGroupSandboxUseCase,
+    private val getSignerUseCase: GetSignerUseCase,
+    private val hasSignerUseCase: HasSignerUseCase,
+    private val singleSignerMapper: SingleSignerMapper
 ) : ViewModel() {
 
     private lateinit var args: ConfigureWalletArgs
@@ -112,6 +120,28 @@ class ConfigureWalletViewModel @Inject constructor(
             getSupportedSigner()
         }
         getSigners()
+    }
+
+    fun initGroupSandBox(groupSandboxId: String) {
+        if (groupSandboxId.isNotEmpty()) {
+            viewModelScope.launch {
+                getGroupSandboxUseCase(groupSandboxId).onSuccess { group ->
+                    val signers = group.signers.mapIndexed { index, signer ->
+                        if (hasSignerUseCase(signer).getOrNull() == true) {
+                            singleSignerMapper(getSignerUseCase(signer).getOrThrow()).copy(isVisible = true)
+                        } else {
+                            signer.toModel().copy(isVisible = false, name = "Key ${index + 1}")
+                        }
+                    }
+                    _state.update {
+                        it.copy(
+                            totalRequireSigns = group.m,
+                            selectedSigners = signers.toSet(),
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun getSupportedSigner() {
@@ -391,6 +421,8 @@ class ConfigureWalletViewModel @Inject constructor(
             it.copy(keySet = emptySet())
         }
     }
+
+    fun isSelectedKeyAvailable() = getState().selectedSigners.isNotEmpty()
 
     companion object {
         private const val EXTRA_CURRENT_SELECTED_MASTER_SIGNER = "_a"
