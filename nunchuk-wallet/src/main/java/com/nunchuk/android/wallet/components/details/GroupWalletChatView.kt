@@ -54,6 +54,9 @@ fun GroupWalletChatView(
         Column(
             modifier = Modifier
                 .wrapContentHeight()
+                .clickable {
+                    onOpenChat()
+                }
                 .border(
                     1.dp,
                     MaterialTheme.colorScheme.strokePrimary,
@@ -64,6 +67,7 @@ fun GroupWalletChatView(
                     RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
                 )
                 .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp)
+
         ) {
             ChatHeader(
                 numberOfMessages = messages.size,
@@ -93,9 +97,7 @@ fun ChatHeader(
     onOpenChat: () -> Unit = {}
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().clickable {
-            onOpenChat()
-        },
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
