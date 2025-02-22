@@ -149,6 +149,7 @@ internal fun WalletConfigView(
                             NcIcon(
                                 modifier = Modifier.clickable(onClick = onEditWalletName),
                                 painter = painterResource(id = R.drawable.ic_edit),
+                                tint = colorResource(id = R.color.nc_white_color),
                                 contentDescription = "Wallet",
                             )
                         }

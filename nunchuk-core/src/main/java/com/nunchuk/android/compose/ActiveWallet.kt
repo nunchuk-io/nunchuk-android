@@ -184,7 +184,7 @@ fun getWalletColors(
     } else {
         listOf(
             colorResource(id = R.color.nc_primary_light_color),
-            colorResource(id = R.color.nc_primary_color)
+            colorResource(id = R.color.cl_031F2B)
         )
     }
     return colors
