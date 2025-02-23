@@ -83,6 +83,7 @@ import com.nunchuk.android.messages.R
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @AndroidEntryPoint
 class FreeGroupWalletChatActivity : BaseComposeActivity() {
@@ -385,7 +386,7 @@ fun ReceivedMessageBubble(message: MessageUI.ReceiverMessage) {
         horizontalAlignment = Alignment.Start
     ) {
         Text(
-            text = message.data.signer,
+            text = message.data.signer.uppercase(Locale.ROOT),
             style = NunchukTheme.typography.caption.copy(color = MaterialTheme.colorScheme.textSecondary),
             modifier = Modifier.padding(bottom = 2.dp, start = 50.dp)
         )
