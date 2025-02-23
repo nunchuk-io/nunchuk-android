@@ -56,7 +56,6 @@ import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.referral.ReferralArgs
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
 import com.nunchuk.android.core.util.DeeplinkHolder
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
@@ -99,6 +98,7 @@ import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_ACTIVE
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_PENDING
 import com.nunchuk.android.messages.util.getMsgType
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.ConnectionStatusHelper
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.WalletExtended
@@ -269,6 +269,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun observeEvent() {
+        flowObserver(ConnectionStatusHelper.blockChainStatus) { status ->
+            showConnectionBlockchainStatus(status?.status)
+        }
         walletsViewModel.state.observe(viewLifecycleOwner, ::showWalletState)
         walletsViewModel.event.observe(viewLifecycleOwner, ::handleEvent)
         mainActivityViewModel.event.observe(viewLifecycleOwner, ::handleMainActivityEvent)
@@ -449,7 +452,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun showWalletState(state: WalletsState) {
-        showConnectionBlockchainStatus(state)
         showIntro(state)
         showPendingWallet(state)
         showCampaign(state.campaign, state.wallets.isNotEmpty(), state.localReferrerCode)
@@ -499,14 +501,15 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.tvCampaigns.text = campaign?.cta
     }
 
-    private fun showConnectionBlockchainStatus(state: WalletsState) {
-        binding.tvConnectionStatus.isVisible = BLOCKCHAIN_STATUS != null
-        when (BLOCKCHAIN_STATUS) {
+    private fun showConnectionBlockchainStatus(status: ConnectionStatus?) {
+        binding.tvConnectionStatus.isVisible = status != null
+        val chain = walletsViewModel.getChain()
+        when (status) {
             ConnectionStatus.OFFLINE -> {
                 binding.tvConnectionStatus.text = getString(
                     R.string.nc_text_home_wallet_connection,
                     getString(R.string.nc_text_connection_status_offline),
-                    showChainText(state.chain)
+                    showChainText(chain)
                 )
                 TextViewCompat.setCompoundDrawableTintList(
                     binding.tvConnectionStatus,
@@ -523,7 +526,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 binding.tvConnectionStatus.text = getString(
                     R.string.nc_text_home_wallet_connection,
                     getString(R.string.nc_text_connection_status_syncing),
-                    showChainText(state.chain)
+                    showChainText(chain)
                 )
                 TextViewCompat.setCompoundDrawableTintList(
                     binding.tvConnectionStatus,
@@ -540,7 +543,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 binding.tvConnectionStatus.text = getString(
                     R.string.nc_text_home_wallet_connection,
                     getString(R.string.nc_text_connection_status_online),
-                    showChainText(state.chain)
+                    showChainText(chain)
                 )
                 TextViewCompat.setCompoundDrawableTintList(
                     binding.tvConnectionStatus,

@@ -21,18 +21,14 @@ package com.nunchuk.android.share
 
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
 import com.nunchuk.android.core.util.toMatrixContent
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.model.AppSettings
-import com.nunchuk.android.model.ConnectionStatusExecutor
-import com.nunchuk.android.model.ConnectionStatusHelper
 import com.nunchuk.android.model.SendEventExecutor
 import com.nunchuk.android.model.SendEventHelper
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.Chain
-import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.usecase.UseCase
 import com.nunchuk.android.utils.DeviceManager
 import com.nunchuk.android.utils.trySafe
@@ -56,11 +52,11 @@ class InitNunchukUseCase @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val applicationScope: CoroutineScope
 ) : UseCase<InitNunchukUseCase.Param, Boolean>(ioDispatcher) {
-    private var lastParam : Param? = null
-    private var lastSettings : AppSettings? = null
+    private var lastParam: Param? = null
+    private var lastSettings: AppSettings? = null
     private var consumeJob: Job? = null
 
-    override suspend fun execute(parameters: Param) : Boolean {
+    override suspend fun execute(parameters: Param): Boolean {
         val settings = getAppSettingUseCase(Unit).getOrThrow()
         if (parameters == lastParam && lastSettings == settings) return false
         lastSettings = settings
@@ -150,12 +146,6 @@ class InitNunchukUseCase @Inject constructor(
                     }
                 }
                 return ""
-            }
-        }
-
-        ConnectionStatusHelper.executor = object : ConnectionStatusExecutor {
-            override fun execute(connectionStatus: ConnectionStatus, percent: Int) {
-                BLOCKCHAIN_STATUS = connectionStatus
             }
         }
     }

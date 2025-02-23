@@ -807,6 +807,8 @@ internal class WalletsViewModel @Inject constructor(
 
     fun getBanner() = getState().banner
 
+    fun getChain() = getState().chain
+
     private fun checkWalletsRequestKey(wallets: List<AssistedWalletBrief>, onConsumed: () -> Unit) {
         val key = wallets.joinToString { "${it.localId}_${it.groupId}" }
         if (walletsRequestKey == key) return

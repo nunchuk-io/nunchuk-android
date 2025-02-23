@@ -67,8 +67,6 @@ const val CHAIN_CODE_LENGTH = 64
 
 var BTC_CURRENCY_EXCHANGE_RATE = 45000.0
 
-var BLOCKCHAIN_STATUS: ConnectionStatus? = null
-
 const val TWITTER_LINK = "https://twitter.com/nunchuk_io"
 const val CONTACT_EMAIL = "contact@nunchuk.io"
 

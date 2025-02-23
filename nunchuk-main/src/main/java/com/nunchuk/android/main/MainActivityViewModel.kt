@@ -44,7 +44,6 @@ import com.nunchuk.android.core.matrix.RegisterDownloadBackUpFileUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.matrix.UploadFileUseCase
 import com.nunchuk.android.core.util.AppUpdateStateHolder
-import com.nunchuk.android.core.util.BLOCKCHAIN_STATUS
 import com.nunchuk.android.core.util.BTC_CURRENCY_EXCHANGE_RATE
 import com.nunchuk.android.core.util.PAGINATION
 import com.nunchuk.android.core.util.TimelineListenerAdapter
@@ -52,7 +51,6 @@ import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.ConsumeSyncEventCompleted
-import com.nunchuk.android.main.di.MainAppEvent.GetConnectionStatusSuccessEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
 import com.nunchuk.android.main.di.MainAppEvent.UpdateAppRecommendEvent
 import com.nunchuk.android.messages.model.RoomNotFoundException
@@ -60,12 +58,9 @@ import com.nunchuk.android.messages.model.SessionLostException
 import com.nunchuk.android.messages.util.isLocalEvent
 import com.nunchuk.android.messages.util.isNunchukConsumeSyncEvent
 import com.nunchuk.android.messages.util.toNunchukMatrixEvent
-import com.nunchuk.android.model.ConnectionStatusExecutor
-import com.nunchuk.android.model.ConnectionStatusHelper
 import com.nunchuk.android.model.NunchukMatrixEvent
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.notifications.PushNotificationManager
-import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.usecase.BackupDataUseCase
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
 import com.nunchuk.android.usecase.RegisterAutoBackupUseCase
@@ -158,7 +153,6 @@ internal class MainActivityViewModel @Inject constructor(
     init {
         initSyncEventExecutor()
         registerDownloadFileBackupEvent()
-        registerBlockChainConnectionStatusExecutor()
         getDisplayUnitSetting()
         checkMissingSyncFile()
         observeInitialSync()
@@ -258,15 +252,6 @@ internal class MainActivityViewModel @Inject constructor(
                 .flowOn(IO)
                 .onException {}
                 .collect { getRemotePriceConvertBTCUseCase(Unit) }
-        }
-    }
-
-    private fun registerBlockChainConnectionStatusExecutor() {
-        ConnectionStatusHelper.executor = object : ConnectionStatusExecutor {
-            override fun execute(connectionStatus: ConnectionStatus, percent: Int) {
-                BLOCKCHAIN_STATUS = connectionStatus
-                event(GetConnectionStatusSuccessEvent(connectionStatus))
-            }
         }
     }
 
