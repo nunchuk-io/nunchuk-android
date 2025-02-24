@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.groupwallet
 
+import android.app.Application
 import android.nfc.tech.IsoDep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -19,6 +20,7 @@ import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.listener.GroupDeleteListener
 import com.nunchuk.android.listener.GroupOnlineListener
 import com.nunchuk.android.listener.GroupSandboxListener
+import com.nunchuk.android.main.R
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
@@ -79,7 +81,8 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val setSlotOccupiedUseCase: SetSlotOccupiedUseCase,
     private val getGroupDeviceUIDUseCase: GetGroupDeviceUIDUseCase,
     private val getSignerFromMasterSignerUseCase: GetSignerFromMasterSignerUseCase,
-    private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase
+    private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase,
+    private val application: Application
 ) : ViewModel() {
     val groupId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
@@ -288,6 +291,11 @@ class FreeGroupWalletViewModel @Inject constructor(
         addSignerJob = viewModelScope.launch {
             val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: return@launch
             Timber.d("Add signer to group $signer at index $index")
+            val existingSigners = getWalletSigners()
+            if (existingSigners.any { it.fingerPrint == signer.masterFingerprint }) {
+                _uiState.update { it.copy(errorMessage = application.getString(R.string.nc_key_already_in_wallet)) }
+                return@launch
+            }
             _uiState.update { it.copy(isLoading = true) }
             addSignerToGroupUseCase(
                 AddSignerToGroupUseCase.Params(
