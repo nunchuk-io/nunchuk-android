@@ -45,7 +45,7 @@ interface PersonalWalletNavigator {
         walletConfigViewOnlyDataComposer: WalletConfigViewOnlyDataComposer? = null
     )
 
-    fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean)
+    fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean, isHideAddKeyDialog: Boolean = false)
 
     fun openAddRecoverWalletScreen(activityContext: Context, data: RecoverWalletData)
 

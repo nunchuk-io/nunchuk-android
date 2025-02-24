@@ -52,9 +52,12 @@ class WalletIntermediaryActivity : BaseNfcActivity<ActivityWalletIntermediaryBin
         const val REQUEST_CODE_GROUP_WALLET = 1112
 
         const val EXTRA_HAS_SIGNER = "EXTRA_HAS_SIGNER"
-        fun start(activityContext: Context, hasSigner: Boolean) {
+        const val EXTRA_IS_HIDE_ADD_KEY_DIALOG = "EXTRA_IS_HIDE_ADD_KEY_DIALOG"
+
+        fun start(activityContext: Context, hasSigner: Boolean, isHideAddKeyDialog: Boolean) {
             val intent = Intent(activityContext, WalletIntermediaryActivity::class.java).apply {
                 putExtra(EXTRA_HAS_SIGNER, hasSigner)
+                putExtra(EXTRA_IS_HIDE_ADD_KEY_DIALOG, isHideAddKeyDialog)
             }
             activityContext.startActivity(intent)
         }

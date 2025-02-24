@@ -65,7 +65,10 @@ class EmptyStateFreeGuestUser(
             KeyWalletEntryData(
                 title = activityContext.getString(R.string.nc_text_recover_wallet),
                 buttonAction = {
-                    navigator.openWalletIntermediaryScreen(activityContext, false)
+                    navigator.openWalletIntermediaryScreen(activityContext,
+                        hasSigner = false,
+                        isHideAddKeyDialog = false
+                    )
                 },
                 iconResId = R.drawable.ic_import
             )

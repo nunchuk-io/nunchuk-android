@@ -66,8 +66,8 @@ interface WalletNavigatorDelegate : WalletNavigator {
         AddWalletActivity.start(activityContext, launcher = launcher, decoyPin, groupWalletId, hasGroupSigner, walletConfigViewOnlyDataComposer)
     }
 
-    override fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean) {
-        WalletIntermediaryActivity.start(activityContext, hasSigner)
+    override fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean, isHideAddKeyDialog: Boolean) {
+        WalletIntermediaryActivity.start(activityContext, hasSigner, isHideAddKeyDialog)
     }
 
     override fun openAddRecoverWalletScreen(activityContext: Context, data: RecoverWalletData) {

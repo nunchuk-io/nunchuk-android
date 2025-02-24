@@ -95,6 +95,9 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
     private val hasSigner
         get() = requireArguments().getBoolean(WalletIntermediaryActivity.EXTRA_HAS_SIGNER, false)
 
+    private val isHideAddKeyDialog
+        get() = requireArguments().getBoolean(WalletIntermediaryActivity.EXTRA_IS_HIDE_ADD_KEY_DIALOG, false)
+
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -302,6 +305,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
     }
 
     private fun showNoSignerDialog() {
+        if (isHideAddKeyDialog.not()) return
         NCInfoDialog(requireActivity()).init(
             message = getString(R.string.nc_no_signer_dialog_message),
             btnYes = getString(R.string.nc_add_key),
