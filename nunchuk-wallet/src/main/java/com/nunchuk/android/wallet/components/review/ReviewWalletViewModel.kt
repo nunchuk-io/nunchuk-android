@@ -24,6 +24,7 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
+import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isTaproot
@@ -60,7 +61,8 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     private val getSignerUseCase: GetSignerUseCase,
     private val hasSignerUseCase: HasSignerUseCase,
     private val finalizeGroupSandboxUseCase: FinalizeGroupSandboxUseCase,
-    private val getGroupSandboxUseCase: GetGroupSandboxUseCase
+    private val getGroupSandboxUseCase: GetGroupSandboxUseCase,
+    private val singleSignerMapper: SingleSignerMapper,
 ) : NunchukViewModel<Unit, ReviewWalletEvent>() {
     private val _uiState = MutableStateFlow(ReviewWalletUiState())
     val uiState = _uiState.asStateFlow()
@@ -166,7 +168,7 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
             if (args.groupId.isNotEmpty()) {
                 val signers = args.signers.map { signer ->
                     if (hasSignerUseCase(signer).getOrNull() == true) {
-                        getSignerUseCase(signer).getOrThrow().toModel().copy(isVisible = true)
+                        singleSignerMapper(getSignerUseCase(signer).getOrThrow()).copy(isVisible = true)
                     } else {
                         signer.toModel().copy(isVisible = false)
                     }

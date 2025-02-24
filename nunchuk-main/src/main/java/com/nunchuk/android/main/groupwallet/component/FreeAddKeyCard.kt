@@ -167,7 +167,6 @@ fun FreeAddKeyCard(
                         Text(
                             text = signer.getXfpOrCardIdLabel(),
                             style = NunchukTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.textSecondary
                         )
                     }
                     if (showBip32Path) {

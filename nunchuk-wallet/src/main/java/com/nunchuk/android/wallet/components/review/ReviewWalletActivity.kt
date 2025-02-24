@@ -66,6 +66,7 @@ import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isTaproot
@@ -302,7 +303,8 @@ fun ReviewWalletContent(
                                     modifier = Modifier
                                         .padding(top = 4.dp),
                                     text = stringResource(com.nunchuk.android.core.R.string.nc_bip32_path, signer.derivationPath),
-                                    style = NunchukTheme.typography.bodySmall
+                                    style = NunchukTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.textSecondary
                                 )
                             }
                         }
@@ -318,7 +320,8 @@ fun ReviewWalletContent(
                                     modifier = Modifier
                                         .padding(top = 4.dp),
                                     text = stringResource(com.nunchuk.android.core.R.string.nc_bip32_path, signer.derivationPath),
-                                    style = NunchukTheme.typography.bodySmall
+                                    style = NunchukTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.textSecondary
                                 )
                             }
                         }

@@ -90,6 +90,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                             groupSandboxId = viewModel.groupId,
                                         )
                                     } else {
+                                        val signerMap = viewModel.getWalletSigners().associate { it.fingerPrint to it.name }
                                         navigator.openReviewWalletScreen(
                                             activityContext = this@FreeGroupWalletActivity,
                                             args = ReviewWalletArgs(
@@ -97,7 +98,9 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                                 walletType = WalletType.MULTI_SIG,
                                                 addressType = group.addressType,
                                                 totalRequireSigns = group.m,
-                                                signers = group.signers,
+                                                signers = group.signers.map {
+                                                    it.copy(name = signerMap[it.masterFingerprint].orEmpty())
+                                                },
                                                 groupId = group.id
                                             )
                                         )

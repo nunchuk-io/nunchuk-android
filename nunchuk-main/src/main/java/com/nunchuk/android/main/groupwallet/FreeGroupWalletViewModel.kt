@@ -251,13 +251,15 @@ class FreeGroupWalletViewModel @Inject constructor(
 
     private suspend fun updateGroupSandbox(groupSandbox: GroupSandbox) {
         Timber.d("Update group sandbox $groupSandbox")
-        val signers = groupSandbox.signers.map {
-            it.takeIf { it.masterFingerprint.isNotEmpty() || it.name == KEY_NOT_SYNCED_NAME }
+        val signers = groupSandbox.signers.mapIndexed { index, groupSigner ->
+            groupSigner.takeIf { it.masterFingerprint.isNotEmpty() || it.name == KEY_NOT_SYNCED_NAME }
                 ?.let { signer ->
                     if (hasSignerUseCase(signer).getOrNull() == true) {
                         singleSignerMapper(getSignerUseCase(signer).getOrThrow()).copy(isVisible = true)
+                    } else if (groupSigner.name == KEY_NOT_SYNCED_NAME) {
+                        groupSigner.toModel().copy(isVisible = false)
                     } else {
-                        it.toModel().copy(isVisible = false)
+                        groupSigner.toModel().copy(isVisible = false, name = "Key #${index.inc()}")
                     }
                 }
         }
@@ -444,7 +446,12 @@ class FreeGroupWalletViewModel @Inject constructor(
                 Timber.d("new signer $it")
                 addSignerToGroup(it)
             }.onFailure { error ->
-                _uiState.update { it.copy(errorMessage = error.message.orUnknownError(), isLoading = false) }
+                _uiState.update {
+                    it.copy(
+                        errorMessage = error.message.orUnknownError(),
+                        isLoading = false
+                    )
+                }
             }
         }
     }

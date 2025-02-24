@@ -330,6 +330,7 @@ internal class WalletConfigViewModel @Inject constructor(
                 )
             ).onSuccess {
                 if (updateAction == UpdateAction.NAME) {
+                    _state.update { it.copy(walletExtended = it.walletExtended.copy(wallet = newWallet)) }
                     _event.emit(UpdateNameSuccessEvent)
                 } else if (updateAction == UpdateAction.GAP_LIMIT) {
                     _event.emit(WalletConfigEvent.UpdateGapLimitSuccessEvent)
