@@ -48,6 +48,7 @@ import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.usecase.GetGlobalGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.GetGroupWalletConfigUseCase
+import com.nunchuk.android.usecase.GetGroupWalletMessageUnreadCountUseCase
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -109,6 +110,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val getGlobalGroupWalletConfigUseCase: GetGlobalGroupWalletConfigUseCase,
     private val getGroupWalletConfigUseCase: GetGroupWalletConfigUseCase,
     private val setGroupWalletLastReadMessageUseCase: SetGroupWalletLastReadMessageUseCase,
+    private val getGroupWalletMessageUnreadCountUseCase: GetGroupWalletMessageUnreadCountUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -202,7 +204,24 @@ internal class WalletDetailsViewModel @Inject constructor(
                             groupChatMessages = groupChatMessages
                         )
                     }
-                    setLastReadMessage(message.id)
+                    getGroupWalletMessageUnreadCount()
+                }
+            }
+        }
+        getGroupWalletMessageUnreadCount()
+    }
+
+    private fun getGroupWalletMessageUnreadCount() {
+        viewModelScope.launch {
+            getGroupWalletMessageUnreadCountUseCase(
+                GetGroupWalletMessageUnreadCountUseCase.Params(
+                    walletId = args.walletId
+                )
+            ).onSuccess {
+                updateState {
+                    copy(
+                        unreadMessagesCount = it
+                    )
                 }
             }
         }

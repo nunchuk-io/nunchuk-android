@@ -49,4 +49,5 @@ data class WalletDetailsState(
     val isFreeGroupWallet: Boolean = false,
     val historyPeriods: List<HistoryPeriod> = emptyList(),
     val selectedHistoryPeriod: HistoryPeriod? = null,
+    val unreadMessagesCount: Int = 0,
 )

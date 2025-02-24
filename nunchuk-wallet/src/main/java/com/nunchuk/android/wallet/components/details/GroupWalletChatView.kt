@@ -44,6 +44,7 @@ import com.nunchuk.android.wallet.R
 @Composable
 fun GroupWalletChatView(
     messages: List<FreeGroupMessage> = emptyList(),
+    unreadCount: Int = 0,
     onSendMessage: (String) -> Unit = {},
     onOpenChat: () -> Unit = {}
 ) {
@@ -70,7 +71,7 @@ fun GroupWalletChatView(
 
         ) {
             ChatHeader(
-                numberOfMessages = messages.size,
+                unreadCount = unreadCount,
                 isChatExpanded = isChatExpanded,
                 onCollapseExpand = {
                     isChatExpanded = !isChatExpanded
@@ -91,7 +92,7 @@ fun GroupWalletChatView(
 
 @Composable
 fun ChatHeader(
-    numberOfMessages: Int = 0,
+    unreadCount: Int = 0,
     isChatExpanded: Boolean = true,
     onCollapseExpand: () -> Unit = {},
     onOpenChat: () -> Unit = {}
@@ -111,7 +112,7 @@ fun ChatHeader(
                 .padding(horizontal = 8.dp, vertical = 4.dp)
         ) {
             Text(
-                text = numberOfMessages.toString(),
+                text = unreadCount.toString(),
                 style = NunchukTheme.typography.bodySmall
             )
         }

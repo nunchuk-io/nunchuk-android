@@ -399,7 +399,9 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         }
         binding.chatView.isVisible = state.isFreeGroupWallet
         binding.chatView.setContent {
-            GroupWalletChatView(messages = state.groupChatMessages, onSendMessage = {
+            GroupWalletChatView(messages = state.groupChatMessages,
+                unreadCount = state.unreadMessagesCount,
+                onSendMessage = {
                 viewModel.sendMessage(it)
             }, onOpenChat = {
                 navigator.openGroupChatScreen(

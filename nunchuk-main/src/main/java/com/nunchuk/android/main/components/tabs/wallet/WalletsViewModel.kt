@@ -30,7 +30,6 @@ import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
 import com.nunchuk.android.core.domain.JoinFreeGroupWalletByIdUseCase
-import com.nunchuk.android.core.domain.JoinFreeGroupWalletUseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
@@ -165,7 +164,6 @@ internal class WalletsViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val getPendingGroupsSandboxUseCase: GetPendingGroupsSandboxUseCase,
     private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
-    private val joinFreeGroupWalletUseCase: JoinFreeGroupWalletUseCase,
     private val joinFreeGroupWalletByIdUseCase: JoinFreeGroupWalletByIdUseCase,
     private val deeplinkHolder: DeeplinkHolder,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
