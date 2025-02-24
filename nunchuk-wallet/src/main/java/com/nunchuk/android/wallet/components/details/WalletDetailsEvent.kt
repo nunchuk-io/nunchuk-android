@@ -50,4 +50,5 @@ data class WalletDetailsState(
     val historyPeriods: List<HistoryPeriod> = emptyList(),
     val selectedHistoryPeriod: HistoryPeriod? = null,
     val unreadMessagesCount: Int = 0,
+    val uid: String = "",
 )

@@ -128,6 +128,7 @@ class RoomsViewModel @Inject constructor(
 
     private fun updateGroupMessageUnreadCount(walletId: String) {
         viewModelScope.launch {
+            delay(200)
             getGroupWalletMessageUnreadCountUseCase(GetGroupWalletMessageUnreadCountUseCase.Params(walletId))
                 .onSuccess { unreadCount ->
                     updateState {

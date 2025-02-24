@@ -154,6 +154,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         with(viewModel) {
             syncServerTransaction()
             syncData(loadingSilent = true)
+            getGroupWalletMessageUnreadCount()
         }
     }
 

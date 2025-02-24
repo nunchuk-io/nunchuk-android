@@ -1,14 +1,15 @@
 package com.nunchuk.android.utils
 
-import android.util.Log
 import com.nunchuk.android.core.domain.SendMessageFreeGroupWalletUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
+import timber.log.Timber
 import javax.inject.Inject
 
 class GroupChatManager @Inject constructor(
@@ -33,10 +34,10 @@ class GroupChatManager @Inject constructor(
         getWalletDetail2UseCase(walletId).onSuccess { wallet ->
             val signers = wallet.signers
             selectedSigner = signers.find { signer ->
-                allSigner.any { it.id == signer.masterSignerId && it.isVisible }
+                allSigner.any { it.id == signer.masterSignerId && it.isVisible && it.type != SignerType.UNKNOWN}
             }
             if (selectedSigner == null) {
-                selectedSigner = signers.firstOrNull()
+                selectedSigner = signers.firstOrNull { it.type != SignerType.UNKNOWN }
             }
         }.onFailure {
             // Handle failure
@@ -52,10 +53,10 @@ class GroupChatManager @Inject constructor(
                 singleSigner = selectedSigner!!,
             )
         ).onSuccess {
-            Log.e("group-wallet", "send message success")
+            Timber.e("group-wallet", "send message success")
         }.onFailure {
             onError(it)
-            Log.e("group-wallet", "send message failed: $it")
+            Timber.e("group-wallet", "send message failed: $it")
         }
     }
 

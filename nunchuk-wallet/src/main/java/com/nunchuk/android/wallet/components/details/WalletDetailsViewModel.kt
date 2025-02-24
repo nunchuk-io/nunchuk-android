@@ -26,6 +26,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
 import com.nunchuk.android.core.domain.GetListMessageFreeGroupWalletUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -81,6 +82,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.room.model.Membership
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -111,7 +113,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val getGroupWalletConfigUseCase: GetGroupWalletConfigUseCase,
     private val setGroupWalletLastReadMessageUseCase: SetGroupWalletLastReadMessageUseCase,
     private val getGroupWalletMessageUnreadCountUseCase: GetGroupWalletMessageUnreadCountUseCase,
-) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
+    private val getGroupDeviceUIDUseCase: GetGroupDeviceUIDUseCase,
+    ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
@@ -185,6 +188,10 @@ internal class WalletDetailsViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            val uid = getGroupDeviceUIDUseCase(Unit).getOrNull()
+            updateState {
+                copy(uid = uid.orEmpty())
+            }
             getGroupWalletsUseCase(Unit).onSuccess { wallets ->
                 val wallet = wallets.filter { it.id == args.walletId }
                 if (wallet.isNotEmpty()) {
@@ -204,14 +211,19 @@ internal class WalletDetailsViewModel @Inject constructor(
                             groupChatMessages = groupChatMessages
                         )
                     }
-                    getGroupWalletMessageUnreadCount()
+                    if (message.sender == getState().uid) {
+                        Timber.tag("group-wallet-chat").e("message from me")
+                        setLastReadMessage(message.id)
+                    } else {
+                        getGroupWalletMessageUnreadCount()
+                    }
                 }
             }
         }
         getGroupWalletMessageUnreadCount()
     }
 
-    private fun getGroupWalletMessageUnreadCount() {
+    fun getGroupWalletMessageUnreadCount() {
         viewModelScope.launch {
             getGroupWalletMessageUnreadCountUseCase(
                 GetGroupWalletMessageUnreadCountUseCase.Params(
@@ -267,6 +279,9 @@ internal class WalletDetailsViewModel @Inject constructor(
                     lastReadMessageId = messageId
                 )
             )
+            updateState {
+                copy(unreadMessagesCount = 0)
+            }
         }
     }
 
