@@ -21,7 +21,7 @@ fun ConfigSignerItem(
     signer: SignerModel,
     checkable: Boolean = true,
     isChecked: Boolean = false,
-    isShowPath : Boolean = false,
+    isShowPath: Boolean = false,
     onSelectSigner: (SignerModel, Boolean) -> Unit,
     onEditPath: (SignerModel) -> Unit = {},
 ) {
@@ -32,18 +32,37 @@ fun ConfigSignerItem(
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        SignerCard(
-            modifier = Modifier.weight(1f),
-            item = signer,
-        ) {
-            if (isShowPath && signer.derivationPath.isNotEmpty()) {
-                Text(
-                    modifier = Modifier
-                        .padding(top = 4.dp)
-                        .clickable(onClick = { onEditPath(signer) }),
-                    text = stringResource(R.string.nc_bip32_path, signer.derivationPath),
-                    style = NunchukTheme.typography.bodySmall
-                )
+        if (signer.isVisible) {
+            SignerCard(
+                modifier = Modifier.weight(1f),
+                item = signer,
+            ) {
+                if (isShowPath && signer.derivationPath.isNotEmpty()) {
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .clickable(onClick = { onEditPath(signer) }),
+                        text = stringResource(R.string.nc_bip32_path, signer.derivationPath),
+                        style = NunchukTheme.typography.bodySmall
+                    )
+                }
+            }
+        } else {
+            SignerCard(
+                item = signer,
+                modifier = Modifier.weight(1f),
+                signerIcon = R.drawable.ic_signer_empty_state,
+                isShowKeyTypeBadge = false,
+            ) {
+                if (isShowPath && signer.derivationPath.isNotEmpty()) {
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .clickable(onClick = { onEditPath(signer) }),
+                        text = stringResource(R.string.nc_bip32_path, signer.derivationPath),
+                        style = NunchukTheme.typography.bodySmall
+                    )
+                }
             }
         }
 

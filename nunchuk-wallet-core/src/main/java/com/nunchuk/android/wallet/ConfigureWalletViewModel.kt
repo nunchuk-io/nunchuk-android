@@ -137,6 +137,7 @@ class ConfigureWalletViewModel @Inject constructor(
                         it.copy(
                             totalRequireSigns = group.m,
                             selectedSigners = signers.toSet(),
+                            groupSigners = group.signers
                         )
                     }
                 }
@@ -266,7 +267,6 @@ class ConfigureWalletViewModel @Inject constructor(
     }
 
     fun handleContinueEvent() = viewModelScope.launch {
-        val signerMap = getSignerModelMap()
         if (args.addressType.isTaproot() && getState().selectedSigners.size == 1) {
             toggleSelectKeySet(getState().selectedSigners.first())
         }
@@ -276,30 +276,46 @@ class ConfigureWalletViewModel @Inject constructor(
         if (args.addressType.isTaproot() && state.keySet.isEmpty()) {
             _event.emit(ConfigureWalletEvent.OpenConfigKeySet)
         } else if (isValidRequireSigns && hasSigners) {
-            val keySetSigners = if (args.addressType.isTaproot()) {
-                state.keySet.mapNotNull { signerMap[it.id] } + state.remoteSigners.filter {
-                    state.keySet.contains(
-                        it.toModel()
+            val groupSigners = state.groupSigners
+            if (groupSigners.isNotEmpty()) {
+                // for free group wallet
+                val signerMap = state.selectedSigners.associate { it.fingerPrint to it.name }
+                _event.emit(
+                    ConfigureWalletEvent.AssignSignerCompletedEvent(
+                        totalRequireSigns = state.totalRequireSigns,
+                        signers = groupSigners.sortedBy { signer -> if (state.keySet.any { it.fingerPrint == signer.masterFingerprint }) 0 else 1 }
+                            .map { signer ->
+                                signer.copy(name = signerMap[signer.masterFingerprint].orEmpty())
+                            },
                     )
-                }
-            } else emptyList()
-            val selectedSingleSigners =
-                state.selectedSigners.mapNotNull { signerMap[it.id] } + state.remoteSigners.filter {
-                    state.selectedSigners.contains(
-                        it.toModel()
-                    )
-                }
-            val signers = if (args.addressType.isTaproot()) {
-                selectedSingleSigners.sortedBy { signer -> if (keySetSigners.contains(signer)) 0 else 1 }
-            } else {
-                selectedSingleSigners
-            }
-            _event.emit(
-                ConfigureWalletEvent.AssignSignerCompletedEvent(
-                    totalRequireSigns = state.totalRequireSigns,
-                    signers = signers,
                 )
-            )
+            } else {
+                val signerMap = getSignerModelMap()
+                val keySetSigners = if (args.addressType.isTaproot()) {
+                    state.keySet.mapNotNull { signerMap[it.id] } + state.remoteSigners.filter {
+                        state.keySet.contains(
+                            it.toModel()
+                        )
+                    }
+                } else emptyList()
+                val selectedSingleSigners =
+                    state.selectedSigners.mapNotNull { signerMap[it.id] } + state.remoteSigners.filter {
+                        state.selectedSigners.contains(
+                            it.toModel()
+                        )
+                    }
+                val signers = if (args.addressType.isTaproot()) {
+                    selectedSingleSigners.sortedBy { signer -> if (keySetSigners.contains(signer)) 0 else 1 }
+                } else {
+                    selectedSingleSigners
+                }
+                _event.emit(
+                    ConfigureWalletEvent.AssignSignerCompletedEvent(
+                        totalRequireSigns = state.totalRequireSigns,
+                        signers = signers,
+                    )
+                )
+            }
         }
     }
 

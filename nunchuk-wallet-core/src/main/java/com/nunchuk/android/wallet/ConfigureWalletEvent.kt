@@ -49,4 +49,5 @@ data class ConfigureWalletState(
     val isShowPath: Boolean = false,
     val supportedSigners: List<SupportedSigner> = emptyList(),
     val keySet: Set<SignerModel> = emptySet(),
+    val groupSigners: List<SingleSigner> = emptyList(),
 )

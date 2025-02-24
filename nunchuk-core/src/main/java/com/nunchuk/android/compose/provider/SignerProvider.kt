@@ -10,7 +10,7 @@ class SignersModelProvider : CollectionPreviewParameterProvider<List<SignerModel
                 "123",
                 "Tom’s TAPSIGNER",
                 fingerPrint = "79EB35F4",
-                derivationPath = "",
+                derivationPath = "84h/0h/0h/0h/0h",
                 isMasterSigner = false,
                 index = 10
             ),
@@ -18,7 +18,7 @@ class SignersModelProvider : CollectionPreviewParameterProvider<List<SignerModel
                 "234",
                 "Tom’s TAPSIGNER 2",
                 fingerPrint = "79EB35F5",
-                derivationPath = "",
+                derivationPath = "84h/0h/0h/0h/0h",
                 isMasterSigner = false,
                 index = 10,
                 isVisible = false
@@ -27,7 +27,7 @@ class SignersModelProvider : CollectionPreviewParameterProvider<List<SignerModel
                 "345",
                 "Tom’s TAPSIGNER 3",
                 fingerPrint = "79EB35F6",
-                derivationPath = "",
+                derivationPath = "84h/0h/0h/0h/0h",
                 isMasterSigner = false,
                 index = 3,
                 isVisible = false

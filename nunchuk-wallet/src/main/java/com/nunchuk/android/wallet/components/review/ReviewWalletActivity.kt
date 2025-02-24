@@ -205,7 +205,7 @@ fun ReviewWalletContent(
                             .fillMaxWidth(),
                         onClick = onContinue
                     ) {
-                        Text(text = stringResource(id = R.string.nc_text_continue))
+                        Text(text = stringResource(id = R.string.nc_wallet_create_wallet))
                     }
                 }
             },
@@ -296,14 +296,32 @@ fun ReviewWalletContent(
                         SignerCard(
                             item = signer,
                             showValueKey = args.addressType.isTaproot() && index < args.totalRequireSigns
-                        )
+                        ) {
+                            if (signer.derivationPath.isNotEmpty()) {
+                                Text(
+                                    modifier = Modifier
+                                        .padding(top = 4.dp),
+                                    text = stringResource(com.nunchuk.android.core.R.string.nc_bip32_path, signer.derivationPath),
+                                    style = NunchukTheme.typography.bodySmall
+                                )
+                            }
+                        }
                     } else {
                         SignerCard(
                             item = signer,
                             signerIcon = R.drawable.ic_signer_empty_state,
                             isShowKeyTypeBadge = false,
                             showValueKey = args.addressType.isTaproot() && index < args.totalRequireSigns
-                        )
+                        ) {
+                            if (signer.derivationPath.isNotEmpty()) {
+                                Text(
+                                    modifier = Modifier
+                                        .padding(top = 4.dp),
+                                    text = stringResource(com.nunchuk.android.core.R.string.nc_bip32_path, signer.derivationPath),
+                                    style = NunchukTheme.typography.bodySmall
+                                )
+                            }
+                        }
                     }
                 }
             }
