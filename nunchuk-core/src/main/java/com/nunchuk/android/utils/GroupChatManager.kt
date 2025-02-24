@@ -1,5 +1,6 @@
 package com.nunchuk.android.utils
 
+import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.domain.SendMessageFreeGroupWalletUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
@@ -17,6 +18,7 @@ class GroupChatManager @Inject constructor(
     private val masterSignerMapper: MasterSignerMapper,
     private val sendMessageFreeGroupWalletUseCase: SendMessageFreeGroupWalletUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val hasSignerUseCase: HasSignerUseCase,
 ) {
 
     var selectedSigner: SingleSigner? = null
@@ -34,10 +36,15 @@ class GroupChatManager @Inject constructor(
         getWalletDetail2UseCase(walletId).onSuccess { wallet ->
             val signers = wallet.signers
             selectedSigner = signers.find { signer ->
-                allSigner.any { it.id == signer.masterSignerId && it.isVisible && it.type != SignerType.UNKNOWN}
+                allSigner.any { it.fingerPrint == signer.masterFingerprint && it.type != SignerType.UNKNOWN }
             }
             if (selectedSigner == null) {
-                selectedSigner = signers.firstOrNull { it.type != SignerType.UNKNOWN }
+                signers.forEach { signer ->
+                    if (hasSignerUseCase(signer).isSuccess) {
+                        selectedSigner = signer
+                        return@forEach
+                    }
+                }
             }
         }.onFailure {
             // Handle failure
