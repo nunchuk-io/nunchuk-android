@@ -166,7 +166,7 @@ fun ChatBubble(message: String) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_user_2),
+                painter = painterResource(id = R.drawable.ic_user),
                 contentDescription = "User",
                 tint = Color.Black,
                 modifier = Modifier.size(14.dp)

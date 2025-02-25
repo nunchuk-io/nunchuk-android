@@ -134,9 +134,11 @@ fun FreeAddKeyCard(
                 }
             } else {
                 NcCircleImage(
-                    iconSize = 48.dp,
+                    iconSize = 24.dp,
                     resId = R.drawable.ic_user,
-                    color = avatarColor
+                    color = avatarColor,
+                    iconTintColor = Color.White,
+                    size = 48.dp
                 )
                 Column(
                     modifier = Modifier

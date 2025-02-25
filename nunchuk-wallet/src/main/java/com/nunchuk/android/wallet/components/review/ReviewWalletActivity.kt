@@ -52,7 +52,6 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -62,7 +61,6 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
-import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.textPrimary
@@ -343,26 +341,6 @@ fun ReviewWalletContent(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun UserSignerCard(item: SignerModel) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        NcCircleImage(
-            resId = R.drawable.ic_user_2,
-            color = MaterialTheme.colorScheme.greyLight,
-            iconTintColor = MaterialTheme.colorScheme.textPrimary,
-        )
-
-        Text(
-            text = "XFP: ${item.fingerPrint}",
-            style = NunchukTheme.typography.body
-        )
     }
 }
 

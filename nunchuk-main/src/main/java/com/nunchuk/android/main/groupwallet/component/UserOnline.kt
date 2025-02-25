@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.groupwallet.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -22,6 +24,7 @@ import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.primaryT1
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.avatarColors
 
@@ -48,9 +51,16 @@ fun UserOnline(numberOfOnlineUsers: Int) {
         Box {
             repeat(numberOfOnlineUsers.coerceAtMost(2)) { index ->
                 NcCircleImage(
-                    modifier = Modifier.padding(start = (24 * index).dp),
-                    iconSize = 28.dp,
+                    modifier = Modifier
+                        .padding(start = (24 * index).dp)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.strokePrimary,
+                            shape = CircleShape
+                        ),
+                    iconSize = 16.dp,
                     size = 28.dp,
+                    iconTintColor = Color.White,
                     resId = R.drawable.ic_user,
                     color = avatarColors[index % avatarColors.size]
                 )
