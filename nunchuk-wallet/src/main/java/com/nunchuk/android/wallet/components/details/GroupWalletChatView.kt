@@ -34,6 +34,7 @@ import com.nunchuk.android.compose.NcExpandableTextInline
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.border
 import com.nunchuk.android.compose.controlFillPrimary
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.strokePrimary
@@ -56,7 +57,7 @@ fun GroupWalletChatView(
             modifier = Modifier
                 .wrapContentHeight()
                 .clickable {
-                    onOpenChat()
+                    isChatExpanded = !isChatExpanded
                 }
                 .border(
                     1.dp,
@@ -106,15 +107,21 @@ fun ChatHeader(
             style = NunchukTheme.typography.titleSmall,
         )
         Spacer(modifier = Modifier.width(8.dp))
-        Box(
-            modifier = Modifier
-                .border(1.dp, MaterialTheme.colorScheme.lightGray, RoundedCornerShape(20.dp))
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
-            Text(
-                text = unreadCount.toString(),
-                style = NunchukTheme.typography.bodySmall
-            )
+        if ( unreadCount > 0) {
+            Box(
+                modifier = Modifier
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.border,
+                        shape = RoundedCornerShape(20.dp),
+                    )
+                    .padding(horizontal = 8.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = unreadCount.toString(),
+                    style = NunchukTheme.typography.bodySmall
+                )
+            }
         }
         Spacer(modifier = Modifier.weight(1f))
 
@@ -123,6 +130,9 @@ fun ChatHeader(
             contentDescription = "Expand",
             tint = MaterialTheme.colorScheme.controlFillPrimary,
             modifier = Modifier.size(20.dp)
+                .clickable {
+                    onOpenChat()
+                }
         )
 
         NcIcon(

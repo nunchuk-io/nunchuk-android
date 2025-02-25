@@ -124,6 +124,7 @@ internal fun WalletConfigView(
                                     painter = painterResource(id = R.drawable.ic_wallets),
                                     contentDescription = "Wallet",
                                     modifier = Modifier.size(16.dp),
+                                    tint = colorResource(id = R.color.nc_white_color)
                                 )
 
                                 Text(
@@ -193,6 +194,7 @@ internal fun WalletConfigView(
                                 modifier = Modifier
                                     .padding(top = 12.dp)
                                     .height(40.dp),
+                                borderColor = colorResource(id = R.color.nc_white_color),
                                 onClick = onChangeAlias
                             ) {
                                 Text(
@@ -201,6 +203,9 @@ internal fun WalletConfigView(
                                     } else {
                                         stringResource(R.string.nc_change_alias)
                                     },
+                                    color = colorResource(
+                                        id = R.color.nc_white_color
+                                    )
                                 )
                             }
                         }
