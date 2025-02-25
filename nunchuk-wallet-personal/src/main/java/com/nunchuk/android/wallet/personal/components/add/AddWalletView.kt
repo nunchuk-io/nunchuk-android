@@ -54,6 +54,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.border
 import com.nunchuk.android.compose.controlTextPrimary
+import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.fillDenim2
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
@@ -84,6 +85,10 @@ fun AddWalletView(
     }
     var keys by remember { mutableIntStateOf(0) }
     var requiredKeys by remember { mutableIntStateOf(0) }
+
+    if (state.isLoading) {
+        NcLoadingDialog()
+    }
 
     LaunchedEffect(state.groupSandbox?.name, viewOnlyComposer?.walletName) {
         if (viewOnlyComposer != null) {

@@ -3,7 +3,6 @@ package com.nunchuk.android.wallet.personal.components.add
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.usecase.GetGlobalGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
@@ -38,6 +37,7 @@ class AddWalletViewModel @Inject constructor(
     init {
         if (groupId.isNotEmpty()) {
             viewModelScope.launch {
+                _state.update { it.copy(isLoading = true) }
                 getGroupSandboxUseCase(groupId).onSuccess { group ->
                     _state.update {
                         it.copy(
@@ -47,6 +47,7 @@ class AddWalletViewModel @Inject constructor(
                     }
                     getFreeGroupWalletConfig(group.addressType)
                 }
+                _state.update { it.copy(isLoading = false) }
             }
         }
     }
