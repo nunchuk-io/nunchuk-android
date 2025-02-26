@@ -39,7 +39,7 @@ class GroupChatManager @Inject constructor(
                 allSigner.any { it.fingerPrint == signer.masterFingerprint && it.type != SignerType.UNKNOWN }
             }
             if (selectedSigner == null) {
-                signers.forEach { signer ->
+                signers.filter { it.type != SignerType.UNKNOWN  }.forEach { signer ->
                     if (hasSignerUseCase(signer).isSuccess) {
                         selectedSigner = signer
                         return@forEach
@@ -52,12 +52,11 @@ class GroupChatManager @Inject constructor(
     }
 
     suspend fun sendMessage(message: String, walletId: String, onError: (Throwable) -> Unit) {
-        if (selectedSigner == null) return
         sendMessageFreeGroupWalletUseCase(
             SendMessageFreeGroupWalletUseCase.Param(
                 walletId = walletId,
                 message = message,
-                singleSigner = selectedSigner!!,
+                singleSigner = selectedSigner,
             )
         ).onSuccess {
             Timber.e("group-wallet", "send message success")

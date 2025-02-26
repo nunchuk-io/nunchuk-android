@@ -398,6 +398,7 @@ internal class WalletsViewModel @Inject constructor(
             }.onFailure {
                 setEvent(WalletsEvent.JoinFreeGroupWalletFailed)
             }
+        deeplinkHolder.clearInfo()
     }
 
     private fun getCampaign() {

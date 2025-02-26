@@ -41,6 +41,6 @@ class SendMessageFreeGroupWalletUseCase @Inject constructor(
     data class Param(
         val message: String,
         val walletId: String,
-        val singleSigner: SingleSigner
+        val singleSigner: SingleSigner?
     )
 }

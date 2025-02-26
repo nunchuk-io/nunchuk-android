@@ -24,7 +24,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.nunchuk.android.BuildConfig
 import com.nunchuk.android.core.util.DeeplinkHolder
 import com.nunchuk.android.core.util.UnlockPinSourceFlow
 import com.nunchuk.android.core.util.flowObserver
@@ -39,7 +38,6 @@ import io.branch.referral.Branch
 import io.branch.referral.BranchError
 import io.branch.referral.util.LinkProperties
 import io.branch.referral.validators.IntegrationValidator
-import org.json.JSONObject
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -65,15 +63,10 @@ internal class SplashActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         this.intent = intent
-        if (intent.hasExtra("branch_force_new_session") && intent.getBooleanExtra(
-                "branch_force_new_session",
-                false
-            )
-        ) {
-            Branch.sessionBuilder(this).withCallback { branchUniversalObject, linkProperties, error ->
-                handleBranchDeepLink(branchUniversalObject, linkProperties, error)
-            }.reInit()
-        }
+        Timber.tag("BranchSDK_Tester").e("onNewIntent")
+        Branch.sessionBuilder(this).withCallback { branchUniversalObject, linkProperties, error ->
+            handleBranchDeepLink(branchUniversalObject, linkProperties, error)
+        }.reInit()
     }
 
     private fun handleBranchDeepLink(branchUniversalObject: BranchUniversalObject?, linkProperties: LinkProperties?, error: BranchError?) {

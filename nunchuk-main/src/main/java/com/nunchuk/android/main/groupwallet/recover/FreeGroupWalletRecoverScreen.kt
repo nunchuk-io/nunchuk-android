@@ -186,7 +186,7 @@ fun FreeGroupWalletRecoverScreen(
                 title = {
                     Column {
                         Text(
-                            text = stringResource(id = R.string.nc_setup_group_wallet),
+                            text = stringResource(id = R.string.nc_recover_group_wallet),
                             style = NunchukTheme.typography.titleLarge,
                             textAlign = TextAlign.Center,
                             modifier = Modifier
@@ -225,7 +225,6 @@ fun FreeGroupWalletRecoverScreen(
                     .fillMaxWidth()
                     .padding(16.dp),
                 onClick = { onContinueClicked() },
-                enabled = state.signerUis.any { it.isInDevice },
             ) {
                 Text(text = stringResource(id = R.string.nc_recover_wallet))
             }

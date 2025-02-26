@@ -17,4 +17,8 @@ class DeeplinkHolder @Inject constructor(val gson: Gson) {
         }.getOrNull()
         Timber.tag("BranchSDK_Tester").e("setDeeplinkInfo info %s", info)
     }
+
+    fun clearInfo() {
+        info = null
+    }
 }
