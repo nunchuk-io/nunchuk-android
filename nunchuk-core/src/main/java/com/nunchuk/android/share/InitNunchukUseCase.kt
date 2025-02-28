@@ -36,10 +36,12 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.coroutineContext
 
 @Singleton
 class InitNunchukUseCase @Inject constructor(
@@ -62,7 +64,6 @@ class InitNunchukUseCase @Inject constructor(
         lastSettings = settings
         lastParam = parameters
         Timber.d("InitNunchukUseCase: $settings")
-        nativeSdk.stopConsumeGroupEvent()
         consumeJob?.cancel()
         initNunchuk(
             appSettings = settings,
@@ -85,7 +86,7 @@ class InitNunchukUseCase @Inject constructor(
         val maxRetries = 3
         val retryDelay = 500L
 
-        while (true) {
+        while (coroutineContext.isActive) {
             val result = runCatching {
                 enableGroupWalletUseCase(Unit)
                 nativeSdk.registerGlobalListener()
@@ -93,6 +94,7 @@ class InitNunchukUseCase @Inject constructor(
             }
 
             if (result.isSuccess) {
+                Timber.d("initGroupWallet success")
                 break
             } else {
                 if (retryCount < maxRetries) {

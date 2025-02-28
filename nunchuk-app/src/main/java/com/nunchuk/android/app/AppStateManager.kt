@@ -13,7 +13,6 @@ import com.nunchuk.android.core.util.AppEvenBus
 import com.nunchuk.android.core.util.AppEvent
 import com.nunchuk.android.settings.walletsecurity.unlock.UnlockPinActivity
 import com.nunchuk.android.share.StartConsumeGroupWalletEventUseCase
-import com.nunchuk.android.share.StopConsumeGroupWalletEventUseCase
 import com.nunchuk.android.usecase.pin.GetLastCloseAppUseCase
 import com.nunchuk.android.usecase.pin.SetLastCloseAppUseCase
 import kotlinx.coroutines.CoroutineScope
@@ -31,7 +30,6 @@ class AppStateManager @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val setLastCloseAppUseCase: SetLastCloseAppUseCase,
     private val startConsumeGroupWalletEventUseCase: StartConsumeGroupWalletEventUseCase,
-    private val stopConsumeGroupWalletEventUseCase: StopConsumeGroupWalletEventUseCase,
     getWalletPinUseCase: GetWalletPinUseCase,
     getLastCloseAppUseCase: GetLastCloseAppUseCase
 ) : DefaultLifecycleObserver {
@@ -62,7 +60,6 @@ class AppStateManager @Inject constructor(
             }
         }
         applicationScope.launch {
-            stopConsumeGroupWalletEventUseCase(Unit)
             startConsumeGroupWalletEventUseCase(Unit)
         }
     }
@@ -73,7 +70,6 @@ class AppStateManager @Inject constructor(
             val time = SystemClock.elapsedRealtime()
             Timber.d("setLastCloseAppUseCase: $time")
             setLastCloseAppUseCase(time)
-            stopConsumeGroupWalletEventUseCase(Unit)
         }
     }
 }
