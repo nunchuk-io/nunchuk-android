@@ -684,7 +684,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                                 navigator.openReceiveTransactionScreen(requireActivity(), walletId)
                             },
                             onOpenFreeGroupWallet = {
-                                FreeGroupWalletActivity.start(requireActivity(), it.id)
+                                FreeGroupWalletActivity.start(requireActivity(), groupId = it.id)
                             }
                         )
                         Spacer(modifier = Modifier.height(8.dp))

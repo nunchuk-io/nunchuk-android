@@ -101,7 +101,7 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
         flowObserver(scanDynamicQRViewModel.event) {
             when (it) {
                 is ScanDynamicQREvent.JoinGroupWalletSuccess -> {
-                    navigator.openFreeGroupWalletScreen(this, it.groupSandbox.id)
+                    navigator.openFreeGroupWalletScreen(this, groupId = it.groupSandbox.id)
                     finish()
                 }
 

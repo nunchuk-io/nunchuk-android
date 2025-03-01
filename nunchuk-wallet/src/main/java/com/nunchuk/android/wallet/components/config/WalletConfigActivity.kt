@@ -241,7 +241,12 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
 
             SheetOptionType.TYPE_REPLACE_KEY -> {
-                if (viewModel.isAssistedWallet()) {
+                if (viewModel.isGroupSandboxWallet()) {
+                    navigator.openFreeGroupWalletScreen(
+                        activityContext = this,
+                        walletId = args.walletId,
+                    )
+                } else if (viewModel.isAssistedWallet()) {
                     showReEnterPassword(TargetAction.REPLACE_KEYS)
                 } else {
                     navigator.openMembershipActivity(

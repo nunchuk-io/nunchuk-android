@@ -7,6 +7,7 @@ import com.nunchuk.android.model.signer.SupportedSigner
 data class FreeGroupWalletUiState(
     val group: GroupSandbox? = null,
     val signers: List<SignerModel?> = emptyList(),
+    val replaceSigners : List<SignerModel?> = emptyList(),
     val allSigners: List<SignerModel> = emptyList(),
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
@@ -17,4 +18,5 @@ data class FreeGroupWalletUiState(
     val supportedTypes: List<SupportedSigner> = emptyList(),
     val occupiedSlotsIndex : Set<Int> = emptySet(),
     val requestCacheTapSignerXpubEvent: Boolean = false,
+    val isCreatedReplaceGroup: Boolean = false,
 )

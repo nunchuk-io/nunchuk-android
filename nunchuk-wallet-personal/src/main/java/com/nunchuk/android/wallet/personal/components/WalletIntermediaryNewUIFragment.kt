@@ -293,7 +293,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                 }
 
                 is WalletIntermediaryEvent.JoinGroupWalletSuccess -> {
-                    navigator.openFreeGroupWalletScreen(requireActivity(), event.groupId)
+                    navigator.openFreeGroupWalletScreen(requireActivity(), groupId = event.groupId)
                 }
 
                 is WalletIntermediaryEvent.ImportWalletSuccessEvent -> {

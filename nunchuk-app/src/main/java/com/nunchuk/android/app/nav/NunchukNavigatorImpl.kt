@@ -172,8 +172,16 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
         }
     }
 
-    override fun openFreeGroupWalletScreen(activityContext: Context, groupId: String?) {
-        FreeGroupWalletActivity.start(activityContext, groupId)
+    override fun openFreeGroupWalletScreen(
+        activityContext: Context,
+        walletId: String?,
+        groupId: String?
+    ) {
+        FreeGroupWalletActivity.start(
+            context = activityContext,
+            groupId = groupId,
+            walletId = walletId
+        )
     }
 
     override fun openFreeGroupWalletRecoverScreen(

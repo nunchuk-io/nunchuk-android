@@ -131,7 +131,12 @@ interface AppNavigator {
         @PrimaryOwnerFlow.PrimaryOwnerFlowInfo flowInfo: Int
     )
 
-    fun openHotWalletScreen(launcher: ActivityResultLauncher<Intent>?, activityContext: Context, isQuickWallet: Boolean)
+    fun openHotWalletScreen(
+        launcher: ActivityResultLauncher<Intent>?,
+        activityContext: Context,
+        isQuickWallet: Boolean
+    )
+
     fun openOnBoardingScreen(activityContext: Context)
 
     /**
@@ -149,6 +154,15 @@ interface AppNavigator {
     )
 
     fun openReferralScreen(activityContext: Context, args: ReferralArgs)
-    fun openFreeGroupWalletScreen(activityContext: Context, groupId: String? = null)
-    fun openFreeGroupWalletRecoverScreen(activityContext: Context, walletId: String, filePath: String)
+    fun openFreeGroupWalletScreen(
+        activityContext: Context,
+        walletId: String? = null,
+        groupId: String? = null
+    )
+
+    fun openFreeGroupWalletRecoverScreen(
+        activityContext: Context,
+        walletId: String,
+        filePath: String
+    )
 }

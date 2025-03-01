@@ -75,7 +75,7 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
             is RecoverWalletEvent.WalletSetupDoneEvent -> handleWalletSetupDoneEvent()
             RecoverWalletEvent.WalletNameRequiredEvent -> binding.walletName.setError(getString(R.string.nc_text_required))
             is RecoverWalletEvent.ImportGroupWalletSuccessEvent -> {
-                navigator.openFreeGroupWalletScreen(this, event.walletId)
+                navigator.openFreeGroupWalletScreen(this, groupId = event.walletId)
             }
         }
     }

@@ -31,6 +31,7 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.free.groupwallet.AddSignerToGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.CreateGroupSandboxUseCase
+import com.nunchuk.android.usecase.free.groupwallet.CreateReplaceGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.DeleteGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupOnlineUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
@@ -41,6 +42,7 @@ import com.nunchuk.android.usecase.signer.GetSignerUseCase
 import com.nunchuk.android.usecase.signer.GetSupportedSignersUseCase
 import com.nunchuk.android.usecase.signer.GetUnusedSignerFromMasterSignerV2UseCase
 import com.nunchuk.android.usecase.signer.SetSlotOccupiedUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -82,10 +84,14 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val getGroupDeviceUIDUseCase: GetGroupDeviceUIDUseCase,
     private val getSignerFromMasterSignerUseCase: GetSignerFromMasterSignerUseCase,
     private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase,
+    private val createReplaceGroupUseCase: CreateReplaceGroupUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val application: Application
 ) : ViewModel() {
     val groupId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
+    val walletId: String
+        get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_WALLET_ID).orEmpty()
     private val _uiState = MutableStateFlow(FreeGroupWalletUiState())
     val uiState: StateFlow<FreeGroupWalletUiState> = _uiState.asStateFlow()
     private val singleSigners = mutableListOf<SingleSigner>()
@@ -98,10 +104,12 @@ class FreeGroupWalletViewModel @Inject constructor(
         listenGroupSandbox()
         listenGroupOnline()
         listenGroupDelete()
-        if (groupId.isEmpty()) {
-            createGroupSandbox()
-        } else {
-            getGroupOnline()
+        if (walletId.isEmpty()) {
+            if (groupId.isEmpty()) {
+                createGroupSandbox()
+            } else {
+                getGroupOnline()
+            }
         }
         viewModelScope.launch {
             pushEventManager.event.filterIsInstance<PushEvent.LocalUserSignerAdded>()
@@ -251,7 +259,18 @@ class FreeGroupWalletViewModel @Inject constructor(
 
     private suspend fun updateGroupSandbox(groupSandbox: GroupSandbox) {
         Timber.d("Update group sandbox $groupSandbox")
-        val signers = groupSandbox.signers.mapIndexed { index, groupSigner ->
+        getSignerOldWallet(groupSandbox.replaceWalletId)
+        val signers = mapSigners(groupSandbox.signers)
+        if (groupSandbox.replaceWalletId.isNotEmpty()) {
+            _uiState.update { it.copy(group = groupSandbox, replaceSigners = signers) }
+        } else {
+            _uiState.update { it.copy(group = groupSandbox, signers = signers) }
+        }
+        updateOccupiedSlots(groupSandbox)
+    }
+
+    private suspend fun mapSigners(signers: List<SingleSigner>) =
+        signers.mapIndexed { index, groupSigner ->
             groupSigner.takeIf { it.masterFingerprint.isNotEmpty() || it.name == KEY_NOT_SYNCED_NAME }
                 ?.let { signer ->
                     if (hasSignerUseCase(signer).getOrNull() == true) {
@@ -263,9 +282,6 @@ class FreeGroupWalletViewModel @Inject constructor(
                     }
                 }
         }
-        _uiState.update { it.copy(group = groupSandbox, signers = signers) }
-        updateOccupiedSlots(groupSandbox)
-    }
 
     private fun updateOccupiedSlots(groupSandbox: GroupSandbox) {
         val currentTimeInSeconds = System.currentTimeMillis() / 1000
@@ -454,6 +470,33 @@ class FreeGroupWalletViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun createReplaceGroup() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            createReplaceGroupUseCase(walletId).onSuccess {
+                savedStateHandle[FreeGroupWalletActivity.EXTRA_GROUP_ID] = it.id
+                updateGroupSandbox(it)
+                getSignerOldWallet(walletId)
+                _uiState.update { state -> state.copy(isCreatedReplaceGroup = true) }
+            }.onFailure { error ->
+                _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+            }
+            _uiState.update { it.copy(isLoading = false) }
+        }
+    }
+
+    private suspend fun getSignerOldWallet(walletId: String) {
+        if (walletId.isEmpty() || getWalletSigners().isNotEmpty()) return
+        getWalletDetail2UseCase(walletId).onSuccess { wallet ->
+            val signers = mapSigners(wallet.signers)
+            _uiState.update { it.copy(signers = signers) }
+        }
+    }
+
+    fun resetReplaceGroup() {
+        _uiState.update { it.copy(isCreatedReplaceGroup = false) }
     }
 
     fun getWalletSigners(): List<SignerModel> = _uiState.value.signers.filterNotNull()

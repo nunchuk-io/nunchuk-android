@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.filter
 class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListener {
 
     private val viewModel: FreeGroupWalletViewModel by viewModels()
+    private val walletId by lazy { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
     private val recoverViewModel: FreeGroupWalletRecoverViewModel by viewModels()
 
     private val launcher =
@@ -68,10 +69,17 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                         }
                     }
 
+                    LaunchedEffect(state.isCreatedReplaceGroup) {
+                        if (state.isCreatedReplaceGroup) {
+                            navController.navigate(freeGroupWalletRoute)
+                            viewModel.resetReplaceGroup()
+                        }
+                    }
+
                     NunchukTheme {
                         NavHost(
                             navController = navController,
-                            startDestination = freeGroupWalletRoute,
+                            startDestination = if (walletId.isEmpty()) freeGroupWalletRoute else replaceWalletIntroRoute,
                         ) {
                             freeGroupWallet(
                                 viewModel = viewModel,
@@ -112,7 +120,8 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                             groupSandboxId = viewModel.groupId,
                                         )
                                     } else {
-                                        val signerMap = viewModel.getWalletSigners().associate { it.fingerPrint to it.name }
+                                        val signerMap = viewModel.getWalletSigners()
+                                            .associate { it.fingerPrint to it.name }
                                         navigator.openReviewWalletScreen(
                                             activityContext = this@FreeGroupWalletActivity,
                                             args = ReviewWalletArgs(
@@ -150,6 +159,10 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                             customKeyNavigation(
                                 viewModel = viewModel,
                                 onCustomIndexDone = viewModel::addSignerToGroup
+                            )
+
+                            replaceWalletIntroNavigation(
+                                onContinueClicked = viewModel::createReplaceGroup
                             )
 
                             freeGroupWalletRecover(
@@ -235,9 +248,15 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
 
     companion object {
         const val EXTRA_GROUP_ID = "group_id"
-        fun start(context: Context, groupId: String? = null) {
+        const val EXTRA_WALLET_ID = "wallet_id"
+        fun start(
+            context: Context,
+            groupId: String? = null,
+            walletId: String? = null
+        ) {
             context.startActivity(Intent(context, FreeGroupWalletActivity::class.java).apply {
                 putExtra(EXTRA_GROUP_ID, groupId)
+                putExtra(EXTRA_WALLET_ID, walletId)
             })
         }
 

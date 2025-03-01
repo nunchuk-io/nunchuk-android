@@ -596,8 +596,6 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun isShowDeleteWallet() = getState().isShowDeleteAssistedWallet || isAssistedWallet().not()
 
-    fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(walletId)
-
     fun getGroupId() = assistedWalletManager.getGroupId(walletId)
 
     fun walletName() = getState().walletExtended.wallet.name
@@ -610,14 +608,13 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun getWalletName() = getState().walletExtended.wallet.name
 
-    fun isEditableWalletName() =
-        getGroupId().isNullOrEmpty() || getState().role.toRole == AssistedWalletRole.MASTER
-
     fun isHotWalletNeedBackup() = getState().walletExtended.wallet.needBackup
 
     fun isSignerDeleted() = getState().signers.firstOrNull()?.type == SignerType.UNKNOWN
 
     fun getTransactions() = getState().transactions
+
+    fun isGroupSandboxWallet() = getState().isGroupSandboxWallet
 
     @Keep
     enum class UpdateAction {
