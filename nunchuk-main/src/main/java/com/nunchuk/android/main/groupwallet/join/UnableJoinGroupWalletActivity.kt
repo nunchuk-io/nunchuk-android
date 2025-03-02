@@ -25,11 +25,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
@@ -86,7 +87,7 @@ fun UnableJoinGroupWalletScreen(
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = {
-
+                        onGotItClicked()
                     },
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_got_it))
@@ -131,7 +132,7 @@ fun UnableJoinGroupWalletScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = Color(0xFFE9ECEF),
+                            color = colorResource(R.color.nc_bg_mid_gray),
                             shape = RoundedCornerShape(8.dp)
                         )
                         .padding(16.dp)
@@ -141,7 +142,9 @@ fun UnableJoinGroupWalletScreen(
                 ) {
                     Text(
                         text = link,
-                        style = NunchukTheme.typography.body,
+                        style = NunchukTheme.typography.body.copy(
+                            color = Color(0xFF031F2B),
+                        ),
                         textAlign = TextAlign.Start,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -152,8 +155,10 @@ fun UnableJoinGroupWalletScreen(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 fun PreviewUnableJoinGroupWalletScreen() {
-    UnableJoinGroupWalletScreen()
+    UnableJoinGroupWalletScreen(
+        link = "https://nunchuk.io/dw/id/groupwallet2"
+    )
 }
