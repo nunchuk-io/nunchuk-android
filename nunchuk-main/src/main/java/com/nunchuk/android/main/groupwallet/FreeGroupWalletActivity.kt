@@ -1,10 +1,12 @@
 package com.nunchuk.android.main.groupwallet
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -13,13 +15,19 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.data.model.WalletConfigViewOnlyDataComposer
+import com.nunchuk.android.core.data.model.getWalletConfigTypeBy
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_TOPUP_XPUBS
+import com.nunchuk.android.core.util.ADD_WALLET_RESULT
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.join.CommonQRCodeActivity
+import com.nunchuk.android.main.groupwallet.recover.FreeGroupWalletRecoverViewModel
+import com.nunchuk.android.main.groupwallet.recover.freeGroupWalletRecover
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.InputBipPathBottomSheet
@@ -33,6 +41,16 @@ import kotlinx.coroutines.flow.filter
 class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListener {
 
     private val viewModel: FreeGroupWalletViewModel by viewModels()
+    private val recoverViewModel: FreeGroupWalletRecoverViewModel by viewModels()
+
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                val updatedWalletName = data.getStringExtra(ADD_WALLET_RESULT) ?: ""
+                recoverViewModel.updateWalletName(updatedWalletName)
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,7 +95,11 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                     viewModel.addExistingSigner(signer)
                                 },
                                 onAddNewKey = {
-                                    openSignerIntro(it)
+                                    openSignerIntro(
+                                        index = it,
+                                        groupId = viewModel.groupId,
+                                        supportedSigners = viewModel.getSuggestedSigners()
+                                    )
                                 },
                                 finishScreen = ::finish,
                                 onContinueClicked = { group ->
@@ -129,6 +151,43 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                 viewModel = viewModel,
                                 onCustomIndexDone = viewModel::addSignerToGroup
                             )
+
+                            freeGroupWalletRecover(
+                                viewModel = recoverViewModel,
+                                onAddNewKey = {
+                                    openSignerIntro(
+                                        index = -1,
+                                        groupId = recoverViewModel.walletId,
+                                        supportedSigners = recoverViewModel.getSuggestedSigners()
+                                    )
+                                },
+                                finishScreen = ::finish,
+                                onEditClicked = {
+                                    recoverViewModel.getWallet()?.let { wallet ->
+                                        navigator.openAddWalletScreen(
+                                            activityContext = this@FreeGroupWalletActivity,
+                                            decoyPin = "",
+                                            launcher = launcher,
+                                            walletConfigViewOnlyDataComposer = WalletConfigViewOnlyDataComposer(
+                                                walletName = wallet.name,
+                                                addressType = wallet.addressType,
+                                                requireKeys = wallet.totalRequireSigns,
+                                                totalKeys = wallet.signers.size,
+                                                walletConfigType = getWalletConfigTypeBy(
+                                                    wallet.signers.size,
+                                                    wallet.totalRequireSigns
+                                                )
+                                            )
+                                        )
+                                    }
+                                },
+                                onOpenWalletDetail = {
+                                    navigator.openWalletDetailsScreen(
+                                        activityContext = this@FreeGroupWalletActivity,
+                                        walletId = it
+                                    )
+                                }
+                            )
                         }
                     }
                 }
@@ -165,12 +224,12 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
         viewModel.setSlotOccupied(false)
     }
 
-    private fun openSignerIntro(index: Int) {
+    private fun openSignerIntro(index: Int, groupId: String, supportedSigners: List<SupportedSigner>) {
         navigator.openSignerIntroScreen(
             activityContext = this,
-            groupId = viewModel.groupId,
+            groupId = groupId,
             index = index,
-            supportedSigners = viewModel.getSuggestedSigners()
+            supportedSigners = supportedSigners
         )
     }
 
@@ -180,6 +239,21 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
             context.startActivity(Intent(context, FreeGroupWalletActivity::class.java).apply {
                 putExtra(EXTRA_GROUP_ID, groupId)
             })
+        }
+
+        const val EXTRA_WALLET_ID = "wallet_id"
+        const val EXTRA_FILE_PATH = "file_path"
+        fun startRecover(
+            context: Context, walletId: String, filePath: String
+        ) {
+            context.startActivity(
+                Intent(
+                    context,
+                    FreeGroupWalletActivity::class.java
+                ).apply {
+                    putExtra(EXTRA_WALLET_ID, walletId)
+                    putExtra(EXTRA_FILE_PATH, filePath)
+                })
         }
     }
 }

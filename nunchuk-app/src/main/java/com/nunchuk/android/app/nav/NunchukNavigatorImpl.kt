@@ -43,7 +43,6 @@ import com.nunchuk.android.main.components.tabs.services.emergencylockdown.Emerg
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoveryActivity
 import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
-import com.nunchuk.android.main.groupwallet.recover.FreeGroupWalletRecoverActivity
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivity
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
@@ -182,7 +181,7 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
         walletId: String,
         filePath: String
     ) {
-        FreeGroupWalletRecoverActivity.start(activityContext, walletId, filePath)
+        FreeGroupWalletActivity.startRecover(activityContext, walletId, filePath)
     }
 
     override fun openAddDesktopKey(

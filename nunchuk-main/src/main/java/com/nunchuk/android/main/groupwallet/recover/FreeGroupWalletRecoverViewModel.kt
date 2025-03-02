@@ -11,6 +11,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.readableMessage
+import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.signer.SupportedSigner
@@ -47,9 +48,9 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     ) : ViewModel() {
     val walletId: String
-        get() = savedStateHandle.get<String>(FreeGroupWalletRecoverActivity.EXTRA_WALLET_ID).orEmpty()
+        get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_WALLET_ID).orEmpty()
     val filePath: String
-        get() = savedStateHandle.get<String>(FreeGroupWalletRecoverActivity.EXTRA_FILE_PATH).orEmpty()
+        get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_FILE_PATH).orEmpty()
 
     private val _uiState = MutableStateFlow(FreeGroupWalletRecoverUiState())
     val uiState: StateFlow<FreeGroupWalletRecoverUiState> = _uiState.asStateFlow()
