@@ -64,7 +64,7 @@ fun NcPrimaryDarkButton(
             CompositionLocalProvider(
                 LocalTextStyle provides NunchukTheme.typography.title.copy(
                     color = MaterialTheme.colorScheme.controlTextPrimary
-                )
+                ),
             ) {
                 content()
             }

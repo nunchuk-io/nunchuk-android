@@ -35,7 +35,6 @@ import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.UpdateMasterSignerUseCase
-import com.nunchuk.android.usecase.free.groupwallet.AddSignerToGroupUseCase
 import com.nunchuk.android.usecase.signer.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -56,7 +55,6 @@ class AddNfcNameViewModel @Inject constructor(
     private val getSignerFromTapsignerMasterSignerUseCase: GetSignerFromTapsignerMasterSignerUseCase,
     private val pushEventManager: PushEventManager,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
-    private val addSignerToGroupUseCase: AddSignerToGroupUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -79,7 +77,6 @@ class AddNfcNameViewModel @Inject constructor(
         index: Int,
         walletId: String,
         groupId: String,
-        requestedSignerIndex: Int
     ) {
         isoDep ?: return
         viewModelScope.launch {
@@ -106,7 +103,7 @@ class AddNfcNameViewModel @Inject constructor(
                     if (walletId.isNotEmpty()) {
                         loadSingleSigner(index, isoDep, cvc, signer, walletId)
                     } else if (index >= 0 && groupId.isNotEmpty()) {
-                        addKeyToFreeGroup(isoDep, cvc, signer, groupId, index, requestedSignerIndex)
+                        addKeyToFreeGroup(isoDep, cvc, signer, index)
                     }
                     _event.emit(AddNfcNameEvent.Success(signer))
                 }
@@ -128,9 +125,7 @@ class AddNfcNameViewModel @Inject constructor(
         isoDep: IsoDep,
         cvc: String,
         signer: MasterSigner,
-        groupId: String,
         index: Int,
-        requestedSignerIndex: Int
     ) {
         if (index > 0) {
             getSignerFromTapsignerMasterSignerUseCase(
@@ -152,13 +147,7 @@ class AddNfcNameViewModel @Inject constructor(
             )
         ).map {
             if (it != null) {
-                addSignerToGroupUseCase(
-                    AddSignerToGroupUseCase.Params(
-                        groupId = groupId,
-                        signer = it,
-                        index = requestedSignerIndex
-                    )
-                )
+                pushEventManager.push(PushEvent.LocalUserSignerAdded(it))
             }
         }
     }

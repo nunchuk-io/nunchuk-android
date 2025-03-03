@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
 
@@ -41,13 +42,14 @@ import com.nunchuk.android.core.R
 fun NcOutlineButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    height: Dp = 48.dp,
     borderColor: Color = colorResource(id = R.color.nc_fill_primary),
     onClick: () -> Unit,
     content: @Composable RowScope.() -> Unit,
 ) {
     val color = if (enabled) borderColor else MaterialTheme.colorScheme.whisper
     OutlinedButton(
-        modifier = modifier.height(48.dp),
+        modifier = modifier.height(height),
         enabled = enabled,
         onClick = onClick,
         border = BorderStroke(2.dp, color),

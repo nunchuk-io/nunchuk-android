@@ -130,7 +130,6 @@ class SignerIntroActivity : BaseComposeActivity() {
                 setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
                 walletId = walletId,
                 groupId = groupId,
-                requestedSignerIndex = requestedSignerIndex
             )
         )
         finish()
@@ -141,7 +140,6 @@ class SignerIntroActivity : BaseComposeActivity() {
 
     // group sandbox id
     private val groupId by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
-    private val requestedSignerIndex by lazy { intent.getIntExtra(EXTRA_INDEX, -1) }
 
     companion object {
         private const val EXTRA_WALLET_ID = "wallet_id"

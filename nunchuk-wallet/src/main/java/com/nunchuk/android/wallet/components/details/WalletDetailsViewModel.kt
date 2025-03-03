@@ -59,7 +59,10 @@ import com.nunchuk.android.usecase.SetGroupWalletLastReadMessageUseCase
 import com.nunchuk.android.usecase.SetSelectedWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
+import com.nunchuk.android.usecase.free.groupwallet.AcceptReplaceGroupUseCase
+import com.nunchuk.android.usecase.free.groupwallet.DeclineReplaceGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetReplaceGroupsUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.GroupChatManager
@@ -114,7 +117,10 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val setGroupWalletLastReadMessageUseCase: SetGroupWalletLastReadMessageUseCase,
     private val getGroupWalletMessageUnreadCountUseCase: GetGroupWalletMessageUnreadCountUseCase,
     private val getGroupDeviceUIDUseCase: GetGroupDeviceUIDUseCase,
-    ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
+    private val getReplaceGroupsUseCase: GetReplaceGroupsUseCase,
+    private val acceptReplaceGroupUseCase: AcceptReplaceGroupUseCase,
+    private val declineReplaceGroupUseCase: DeclineReplaceGroupUseCase
+) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
@@ -217,6 +223,15 @@ internal class WalletDetailsViewModel @Inject constructor(
                     } else {
                         getGroupWalletMessageUnreadCount()
                     }
+                }
+            }
+        }
+        viewModelScope.launch {
+            getReplaceGroupsUseCase(args.walletId).onSuccess { replaceGroups ->
+                updateState {
+                    copy(
+                        replaceGroups = replaceGroups
+                    )
                 }
             }
         }
@@ -500,6 +515,35 @@ internal class WalletDetailsViewModel @Inject constructor(
     fun sendMessage(message: String) = viewModelScope.launch {
         groupChatManager.sendMessage(message, args.walletId) {
             event(WalletDetailsError(it.message.orUnknownError()))
+        }
+    }
+
+    fun acceptOrDenyReplaceGroup(groupId: String, accept: Boolean) {
+        viewModelScope.launch {
+            if (accept) {
+                acceptReplaceGroupUseCase(
+                    AcceptReplaceGroupUseCase.Params(
+                        walletId = args.walletId,
+                        groupId = groupId
+                    )
+                )
+            } else {
+                declineReplaceGroupUseCase(
+                    DeclineReplaceGroupUseCase.Params(
+                        walletId = args.walletId,
+                        groupId = groupId
+                    )
+                )
+            }.onSuccess {
+                if (accept) {
+                    setEvent(WalletDetailsEvent.OpenSetupGroupWallet(groupId))
+                    updateState { copy(replaceGroups = mutableMapOf(groupId to true)) }
+                } else {
+                    updateState { copy(replaceGroups = emptyMap()) }
+                }
+            }.onFailure {
+                setEvent(WalletDetailsError(it.readableMessage()))
+            }
         }
     }
 }

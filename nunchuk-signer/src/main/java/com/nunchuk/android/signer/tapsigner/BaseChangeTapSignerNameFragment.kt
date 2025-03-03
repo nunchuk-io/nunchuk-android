@@ -58,7 +58,6 @@ abstract class BaseChangeTapSignerNameFragment : MembershipFragment() {
                         val index = (activity as NfcSetupActivity).signerIndex
                         val walletId = (activity as NfcSetupActivity).walletId
                         val groupId = (activity as NfcSetupActivity).groupId
-                        val requestedSignerIndex = (activity as NfcSetupActivity).requestedSignerIndex
                         nameNfcViewModel.addNameForNfcKey(
                             isoDep = IsoDep.get(it.tag),
                             cvc = nfcViewModel.inputCvc.orEmpty(),
@@ -67,7 +66,6 @@ abstract class BaseChangeTapSignerNameFragment : MembershipFragment() {
                             index = index,
                             walletId = walletId,
                             groupId = groupId,
-                            requestedSignerIndex = requestedSignerIndex
                         )
                         nfcViewModel.clearScanInfo()
                     }

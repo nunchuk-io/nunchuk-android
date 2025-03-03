@@ -24,6 +24,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
@@ -98,6 +99,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val masterSigners = mutableListOf<MasterSigner>()
     private var deviceUID: String = ""
     private var addSignerJob: Job? = null
+    private var wallet: Wallet? = null
 
     init {
         loadSigners()
@@ -314,38 +316,49 @@ class FreeGroupWalletViewModel @Inject constructor(
                 _uiState.update { it.copy(errorMessage = application.getString(R.string.nc_key_already_in_wallet)) }
                 return@launch
             }
-            _uiState.update { it.copy(isLoading = true) }
-            addSignerToGroupUseCase(
-                AddSignerToGroupUseCase.Params(
-                    groupId,
-                    signer,
-                    index
-                )
-            ).onSuccess {
-                updateGroupSandbox(it)
-            }.onFailure { error ->
-                Timber.e("Failed to add signer to group $error")
-                _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
-            }
-            _uiState.update { it.copy(isLoading = false) }
+            addSignerToGroup(signer, index)
         }
+    }
+
+    private suspend fun addSignerToGroup(signer: SingleSigner, index: Int) {
+        _uiState.update { it.copy(isLoading = true) }
+        addSignerToGroupUseCase(
+            AddSignerToGroupUseCase.Params(
+                groupId,
+                signer,
+                index
+            )
+        ).onSuccess {
+            updateGroupSandbox(it)
+        }.onFailure { error ->
+            Timber.e("Failed to add signer to group $error")
+            _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+        }
+        _uiState.update { it.copy(isLoading = false) }
     }
 
     fun removeSignerFromGroup(index: Int) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            removeSignerFromGroupUseCase(
-                RemoveSignerFromGroupUseCase.Params(
-                    groupId,
-                    index
-                )
-            ).onSuccess {
-                updateGroupSandbox(it)
-            }.onFailure { error ->
-                Timber.e("Failed to remove signer from group $error")
-                _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+            val isInReplace = wallet != null
+            if (isInReplace) {
+                 wallet?.signers?.getOrNull(index)?.let {
+                     addSignerToGroup(it, index)
+                 }
+            } else {
+                _uiState.update { it.copy(isLoading = true) }
+                removeSignerFromGroupUseCase(
+                    RemoveSignerFromGroupUseCase.Params(
+                        groupId,
+                        index
+                    )
+                ).onSuccess {
+                    updateGroupSandbox(it)
+                }.onFailure { error ->
+                    Timber.e("Failed to remove signer from group $error")
+                    _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+                }
+                _uiState.update { it.copy(isLoading = false) }
             }
-            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
@@ -488,8 +501,10 @@ class FreeGroupWalletViewModel @Inject constructor(
     }
 
     private suspend fun getSignerOldWallet(walletId: String) {
-        if (walletId.isEmpty() || getWalletSigners().isNotEmpty()) return
+        if (walletId.isEmpty()) return
+        if (wallet != null) return
         getWalletDetail2UseCase(walletId).onSuccess { wallet ->
+            this.wallet = wallet
             val signers = mapSigners(wallet.signers)
             _uiState.update { it.copy(signers = signers) }
         }

@@ -134,9 +134,6 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
     val walletId: String
             by lazy(LazyThreadSafetyMode.NONE) { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
 
-    val requestedSignerIndex: Int
-            by lazy(LazyThreadSafetyMode.NONE) { intent.getIntExtra(EXTRA_REQUESTED_SIGNER_INDEX, -1) }
-
     var keyId: String = ""
 
     companion object {
@@ -150,7 +147,6 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
         const val EXTRA_SIGNER_INDEX = "signer_index"
         const val EXTRA_REPLACED_XFP = "replaced_xfp"
         const val EXTRA_WALLET_ID = "wallet_id"
-        const val EXTRA_REQUESTED_SIGNER_INDEX = "requested_signer_index"
 
         /**
          * Setup action
@@ -202,7 +198,6 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             replacedXfp: String = "",
             walletId: String = "",
             keyId: String = "",
-            requestedSignerIndex: Int = -1
         ) = Intent(activity, NfcSetupActivity::class.java).apply {
             putExtra(EXTRA_ACTION, setUpAction)
             putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
@@ -215,7 +210,6 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             putExtra(EXTRA_REPLACED_XFP, replacedXfp)
             putExtra(EXTRA_WALLET_ID, walletId)
             putExtra(EXTRA_KEY_ID, keyId)
-            putExtra(EXTRA_REQUESTED_SIGNER_INDEX, requestedSignerIndex)
         }
     }
 }

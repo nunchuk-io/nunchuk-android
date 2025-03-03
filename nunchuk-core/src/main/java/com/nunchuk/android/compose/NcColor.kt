@@ -106,6 +106,9 @@ val ColorScheme.backgroundLightGray: Color
 val ColorScheme.primaryT1: Color
     get() = if (isDark) Color(0xFF1C1C1E) else Color(0xFF031F2B)
 
+val ColorScheme.fillSlimeT2: Color
+    get() = if (isDark) Color(0xFF003E0E) else Color(0xFFa7f0ba)
+
 val ColorScheme.beeswaxDark: Color
     get() = Color(0xFFa66800)
 

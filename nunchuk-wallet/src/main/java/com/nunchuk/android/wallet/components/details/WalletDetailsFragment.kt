@@ -26,14 +26,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.withResumed
@@ -99,6 +101,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -191,7 +194,8 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             GroupChatHistoryFragment.REQUEST_KEY, this
         ) { _: String?, bundle: Bundle ->
             val historyPeriod =
-                bundle.parcelable<HistoryPeriod>(GroupChatHistoryFragment.EXTRA_HISTORY_PERIOD) ?: return@setFragmentResultListener
+                bundle.parcelable<HistoryPeriod>(GroupChatHistoryFragment.EXTRA_HISTORY_PERIOD)
+                    ?: return@setFragmentResultListener
             viewModel.updateGroupChatHistoryPeriod(historyPeriod)
             showSuccess(message = getString(R.string.nc_chat_setting_updated))
             clearFragmentResult(GroupChatHistoryFragment.REQUEST_KEY)
@@ -215,7 +219,8 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
     private fun configureToolbar(state: WalletDetailsState) {
         val searchMenu = binding.toolbar.menu.findItem(R.id.menu_search)
-        searchMenu.isVisible = state.walletExtended.wallet.name.isNotEmpty() && state.isFreeGroupWallet.not()
+        searchMenu.isVisible =
+            state.walletExtended.wallet.name.isNotEmpty() && state.isFreeGroupWallet.not()
         if (state.groupId.isNullOrEmpty()
                 .not() && state.walletStatus != WalletStatus.REPLACED.name
         ) {
@@ -243,8 +248,10 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 GroupChatHistoryFragment.show(
                     childFragmentManager,
                     GroupChatHistoryArgs(
-                        historyPeriods = viewModel.state.value?.historyPeriods.orEmpty().sortedBy { it.id.toInt() },
-                        historyPeriodIdSelected = viewModel.state.value?.selectedHistoryPeriod?.id ?: "7",
+                        historyPeriods = viewModel.state.value?.historyPeriods.orEmpty()
+                            .sortedBy { it.id.toInt() },
+                        historyPeriodIdSelected = viewModel.state.value?.selectedHistoryPeriod?.id
+                            ?: "7",
                         isFreeGroupWalletFlow = viewModel.isFreeGroupWallet(),
                         walletId = args.walletId,
                         roomId = "",
@@ -252,6 +259,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                     )
                 )
             }
+
             else -> {}
         }
     }
@@ -321,13 +329,16 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             is Loading -> showOrHideLoading(event.loading)
             ImportPSBTSuccess -> onPSBTImported()
             is PaginationTransactions -> startPagination(event.hasTransactions)
+            is WalletDetailsEvent.OpenSetupGroupWallet -> navigator.openFreeGroupWalletScreen(
+                activityContext = requireActivity(),
+                groupId = event.groupId
+            )
         }
     }
 
     private fun startPagination(hasTx: Boolean) {
         hideLoading()
         emptyTxVisibility(!hasTx)
-        binding.transactionTitle.isVisible = hasTx
         binding.transactionList.isVisible = hasTx
         if (hasTx) {
             paginateTransactions()
@@ -410,7 +421,8 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.ivSendBtc.isEnabled = state.walletStatus != WalletStatus.LOCKED.name
         binding.ivSendBtc.alpha = if (binding.ivSendBtc.isEnabled) 1.0f else 0.7f
         binding.ivViewCoin.isEnabled = state.isHasCoin && viewModel.isFacilitatorAdmin().not()
-        binding.ivViewCoin.alpha = if (state.isHasCoin && viewModel.isFacilitatorAdmin().not()) 1.0f else 0.7f
+        binding.ivViewCoin.alpha =
+            if (state.isHasCoin && viewModel.isFacilitatorAdmin().not()) 1.0f else 0.7f
         binding.tvWalletWarning.isVisible = state.walletExtended.wallet.needBackup
         if (state.walletExtended.wallet.needBackup) {
             handleNeedBackupWallet()
@@ -553,6 +565,25 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             }
         })
         setupPaginationAdapter()
+        binding.replaceWalletView.setContent {
+            val replacedGroups by viewModel.state.asFlow().map { it.replaceGroups }
+                .collectAsStateWithLifecycle(emptyMap())
+
+            if (replacedGroups.isNotEmpty()) {
+                ReplacedGroupView(
+                    replacedGroups = replacedGroups,
+                    onAcceptOrDeny = { groupId, isAccept ->
+                        viewModel.acceptOrDenyReplaceGroup(groupId, isAccept)
+                    },
+                    onOpenSetupGroupWallet = { groupId ->
+                        navigator.openFreeGroupWalletScreen(
+                            activityContext = requireActivity(),
+                            groupId = groupId
+                        )
+                    },
+                )
+            }
+        }
     }
 
     private fun animateLayout(isEnd: Boolean) {
@@ -594,7 +625,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                             if (it) {
                                 showConfirmBackupDialog()
                             } else {
-                               showHotKeyDeleted()
+                                showHotKeyDeleted()
                             }
                         }
                 }

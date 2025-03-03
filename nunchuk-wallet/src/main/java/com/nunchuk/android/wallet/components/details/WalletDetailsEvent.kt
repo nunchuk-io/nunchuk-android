@@ -32,6 +32,7 @@ sealed class WalletDetailsEvent {
     data class WalletDetailsError(val message: String) : WalletDetailsEvent()
     data class PaginationTransactions(val hasTransactions: Boolean = true) : WalletDetailsEvent()
     data object ImportPSBTSuccess : WalletDetailsEvent()
+    data class OpenSetupGroupWallet(val groupId: String) : WalletDetailsEvent()
 }
 
 data class WalletDetailsState(
@@ -51,4 +52,5 @@ data class WalletDetailsState(
     val selectedHistoryPeriod: HistoryPeriod? = null,
     val unreadMessagesCount: Int = 0,
     val uid: String = "",
+    val replaceGroups: Map<String, Boolean> = emptyMap(),
 )

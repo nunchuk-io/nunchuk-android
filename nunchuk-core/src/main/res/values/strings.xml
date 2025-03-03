@@ -865,4 +865,7 @@
     <string name="nc_share_file">Share file</string>
     <string name="nc_save_file_success">File saved successfully</string>
     <string name="nc_save_file_failed">File saving failed</string>
+    <string name="nc_key_replacement_in_progress">Key replacement in progress</string>
+    <string name="nc_key_replacement_request">Key replacement request</string>
+    <string name="nc_set_up_a_new_group_wallet">Replace key(s) and set up a new group wallet</string>
 </resources>

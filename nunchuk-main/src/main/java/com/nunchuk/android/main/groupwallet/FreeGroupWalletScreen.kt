@@ -297,6 +297,7 @@ fun FreeGroupWalletScreen(
                         index = index,
                         isOccupied = state.occupiedSlotsIndex.contains(index),
                         signer = signer,
+                        replacedSigner = state.replaceSigners.getOrNull(index).takeIf { it != signer },
                         onAddClicked = {
                             currentSignerIndex = index
                             onStartAddKey(index)
@@ -306,13 +307,23 @@ fun FreeGroupWalletScreen(
                                 onAddNewKey(index)
                             }
                         },
-                        onRemoveClicked = {
+                        onRemoveOrReplaceClicked = { isReplace ->
                             currentSignerIndex = index
-                            showDeleteSignerDialog = true
+                            if (isReplace) {
+                                onStartAddKey(index)
+                                if (state.allSigners.isNotEmpty()) {
+                                    showSignerBottomSheet = true
+                                } else {
+                                    onAddNewKey(index)
+                                }
+                            } else {
+                                showDeleteSignerDialog = true
+                            }
                         },
                         showBip32Path = showBip32Path,
                         onChangeBip32Path = onChangeBip32Path,
-                        avatarColor = if (signer?.isVisible == false) avatarColors[colorIndex++ % avatarColors.size] else avatarColors[0]
+                        avatarColor = if (signer?.isVisible == false) avatarColors[colorIndex++ % avatarColors.size] else avatarColors[0],
+                        isInReplace = !state.group?.replaceWalletId.isNullOrEmpty()
                     )
                 }
             }
@@ -437,7 +448,10 @@ private fun GroupWalletScreenPreview(
     val addedSigner = signers.first().copy(name = KEY_NOT_SYNCED_NAME)
     NunchukTheme {
         FreeGroupWalletScreen(
-            state = FreeGroupWalletUiState(signers = signers + addedSigner + null, numberOfOnlineUsers = 2)
+            state = FreeGroupWalletUiState(
+                signers = signers + addedSigner + null,
+                numberOfOnlineUsers = 2
+            )
         )
     }
 }

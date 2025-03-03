@@ -249,6 +249,13 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
     companion object {
         const val EXTRA_GROUP_ID = "group_id"
         const val EXTRA_WALLET_ID = "wallet_id"
+
+        /**
+         * Start [FreeGroupWalletActivity] with [groupId] and [walletId]
+         * @param context [Context]
+         * @param groupId [String] group id
+         * @param walletId [String] wallet id only pass when replace wallet from Wallet Config Screen
+         */
         fun start(
             context: Context,
             groupId: String? = null,
