@@ -27,6 +27,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.join.CommonQRCodeActivity
 import com.nunchuk.android.main.groupwallet.recover.FreeGroupWalletRecoverViewModel
 import com.nunchuk.android.main.groupwallet.recover.freeGroupWalletRecover
+import com.nunchuk.android.main.groupwallet.recover.freeGroupWalletRecoverRoute
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.WalletType
@@ -42,6 +43,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
 
     private val viewModel: FreeGroupWalletViewModel by viewModels()
     private val walletId by lazy { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
+    private val filePath by lazy { intent.getStringExtra(EXTRA_FILE_PATH).orEmpty() }
     private val recoverViewModel: FreeGroupWalletRecoverViewModel by viewModels()
 
     private val launcher =
@@ -79,7 +81,13 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                     NunchukTheme {
                         NavHost(
                             navController = navController,
-                            startDestination = if (walletId.isEmpty()) freeGroupWalletRoute else replaceWalletIntroRoute,
+                            startDestination = if (filePath.isNotEmpty()) {
+                                freeGroupWalletRecoverRoute
+                            } else if (walletId.isEmpty()) {
+                                freeGroupWalletRoute
+                            } else {
+                                replaceWalletIntroRoute
+                            },
                         ) {
                             freeGroupWallet(
                                 viewModel = viewModel,
@@ -237,7 +245,11 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
         viewModel.setSlotOccupied(false)
     }
 
-    private fun openSignerIntro(index: Int, groupId: String, supportedSigners: List<SupportedSigner>) {
+    private fun openSignerIntro(
+        index: Int,
+        groupId: String,
+        supportedSigners: List<SupportedSigner>
+    ) {
         navigator.openSignerIntroScreen(
             activityContext = this,
             groupId = groupId,
