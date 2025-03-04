@@ -249,6 +249,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
     companion object {
         const val EXTRA_GROUP_ID = "group_id"
         const val EXTRA_WALLET_ID = "wallet_id"
+        const val EXTRA_FILE_PATH = "file_path"
 
         /**
          * Start [FreeGroupWalletActivity] with [groupId] and [walletId]
@@ -267,8 +268,6 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
             })
         }
 
-        const val EXTRA_WALLET_ID = "wallet_id"
-        const val EXTRA_FILE_PATH = "file_path"
         fun startRecover(
             context: Context, walletId: String, filePath: String
         ) {
