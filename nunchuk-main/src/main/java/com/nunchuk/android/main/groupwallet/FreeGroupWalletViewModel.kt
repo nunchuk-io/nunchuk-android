@@ -87,7 +87,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase,
     private val createReplaceGroupUseCase: CreateReplaceGroupUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
-    private val application: Application
+    private val application: Application,
 ) : ViewModel() {
     val groupId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()

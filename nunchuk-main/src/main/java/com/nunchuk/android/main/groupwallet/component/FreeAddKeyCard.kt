@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -43,6 +43,9 @@ import com.nunchuk.android.main.groupwallet.KEY_NOT_SYNCED_NAME
 import com.nunchuk.android.main.groupwallet.avatarColors
 import com.nunchuk.android.type.SignerType
 
+/**
+ * @param replacedSigner if is null, it means the user of key is not joined yet, if different to signer, it means the user is replaced
+ */
 @Composable
 fun FreeAddKeyCard(
     index: Int,
@@ -55,22 +58,33 @@ fun FreeAddKeyCard(
     showBip32Path: Boolean = false,
     onChangeBip32Path: (Int, SignerModel) -> Unit = { _, _ -> },
     avatarColor: Color = avatarColors[0],
-    isInReplace: Boolean = false
+    isInReplace: Boolean = false,
 ) {
+    val isJoined = isInReplace && replacedSigner != null
+    val isReplaced = replacedSigner != null && replacedSigner.fingerPrint != signer?.fingerPrint
     if (signer != null && signer.name == KEY_NOT_SYNCED_NAME) {
         KeyNotSyncView(modifier = modifier, index = index)
     } else if (signer != null) {
-        KeyAddedView(
-            modifier = modifier,
-            isInReplace = isInReplace,
-            signer = signer,
-            replacedSigner = replacedSigner,
-            showBip32Path = showBip32Path,
-            onChangeBip32Path = onChangeBip32Path,
-            index = index,
-            avatarColor = avatarColor,
-            onRemoveOrReplaceClicked = onRemoveOrReplaceClicked
-        )
+        if (!isInReplace || isReplaced || isJoined) {
+            KeyAddedView(
+                modifier = modifier,
+                isInReplace = isInReplace,
+                signer = signer,
+                replacedSigner = replacedSigner.takeIf { isReplaced },
+                showBip32Path = showBip32Path,
+                onChangeBip32Path = onChangeBip32Path,
+                index = index,
+                avatarColor = avatarColor,
+                onRemoveOrReplaceClicked = onRemoveOrReplaceClicked,
+            )
+        } else {
+            KeyNotJoinedView(
+                modifier = modifier,
+                index = index,
+                signer = signer,
+                onAddClicked = onAddClicked
+            )
+        }
     } else {
         KeyNotAddedView(
             modifier = modifier,
@@ -79,6 +93,56 @@ fun FreeAddKeyCard(
             onAddClicked = onAddClicked
         )
     }
+}
+
+@Composable
+fun KeyNotJoinedView(
+    modifier: Modifier,
+    index: Int,
+    signer: SignerModel,
+    onAddClicked: () -> Unit
+) {
+    NcDashLineBox(
+        modifier = modifier,
+        content = {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                NcCircleImage(
+                    modifier = Modifier.alpha(0.4f),
+                    resId = R.drawable.ic_key, iconSize = 24.dp)
+
+                Column(
+                    modifier = Modifier
+                        .weight(1.0f)
+                        .padding(start = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.nc_key_with_index, "#${index + 1}"),
+                        style = NunchukTheme.typography.body
+                    )
+                    Text(
+                        text = signer.getXfpOrCardIdLabel(),
+                        style = NunchukTheme.typography.bodySmall,
+                    )
+                    Text(
+                        text = stringResource(id = R.string.nc_waiting_to_join),
+                        style = NunchukTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.beeswaxDark
+                    )
+                }
+
+                NcOutlineButton(
+                    height = 36.dp,
+                    onClick = onAddClicked,
+                ) {
+                    Text(text = stringResource(id = R.string.nc_replace))
+                }
+            }
+        }
+    )
 }
 
 @Composable
@@ -116,7 +180,7 @@ private fun KeyNotAddedView(
                     }
                 }
                 NcOutlineButton(
-                    modifier = Modifier.height(36.dp),
+                    height = 36.dp,
                     onClick = onAddClicked,
                 ) {
                     Text(text = stringResource(id = R.string.nc_add_key))
@@ -243,10 +307,10 @@ private fun KeyAddedView(
                     }
                 }
             }
-            if (targetSigner.isVisible) {
+            if (targetSigner.isVisible || isInReplace) {
                 val isReplaced = replacedSigner != null
                 NcOutlineButton(
-                    modifier = Modifier.height(36.dp),
+                    height = 36.dp,
                     onClick = { onRemoveOrReplaceClicked(isInReplace && !isReplaced) },
                 ) {
                     Text(
@@ -319,6 +383,28 @@ private fun KeyNotSyncView(modifier: Modifier, index: Int) {
 
 @PreviewLightDark
 @Composable
+private fun WaitingToJoinReplaceFreeAddKeyCardPreview(
+    @PreviewParameter(SignerModelProvider::class) signer: SignerModel,
+) {
+    NunchukTheme {
+        Box(
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+        ) {
+            FreeAddKeyCard(
+                index = 0,
+                signer = signer,
+                isInReplace = true,
+                isOccupied = false,
+                onAddClicked = {},
+                onRemoveOrReplaceClicked = {},
+                showBip32Path = true
+            )
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
 private fun PendingReplaceFreeAddKeyCardPreview(
     @PreviewParameter(SignerModelProvider::class) signer: SignerModel,
 ) {
@@ -330,6 +416,7 @@ private fun PendingReplaceFreeAddKeyCardPreview(
                 index = 0,
                 signer = signer,
                 isInReplace = true,
+                replacedSigner = signer,
                 isOccupied = false,
                 onAddClicked = {},
                 onRemoveOrReplaceClicked = {},

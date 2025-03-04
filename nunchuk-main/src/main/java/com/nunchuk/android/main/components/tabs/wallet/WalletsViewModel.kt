@@ -335,7 +335,6 @@ internal class WalletsViewModel @Inject constructor(
                     }
                 }
         }
-        getGroupsSandbox()
         listenGroupSandbox()
         listenGroupDelete()
     }
@@ -377,7 +376,7 @@ internal class WalletsViewModel @Inject constructor(
 
             val pendingWallets = pendingWalletsDeferred.await()
             val groupSandboxWallets = groupSandboxWalletsDeferred.await().map { it.id }.toSet()
-
+            Timber.d("pendingWallets: $pendingWallets")
             updateState {
                 copy(
                     pendingGroupSandboxes = pendingWallets.filter { !it.finalized },

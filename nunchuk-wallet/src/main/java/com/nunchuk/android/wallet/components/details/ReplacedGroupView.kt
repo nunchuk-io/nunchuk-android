@@ -44,6 +44,7 @@ fun ReplacedGroupView(
                         color = MaterialTheme.colorScheme.fillDenim2,
                         shape = MaterialTheme.shapes.medium
                     )
+                    .clickable { onOpenSetupGroupWallet(groupId) }
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -77,7 +78,6 @@ fun ReplacedGroupView(
                         color = MaterialTheme.colorScheme.fillBeewax,
                         shape = MaterialTheme.shapes.medium
                     )
-                    .clickable { onOpenSetupGroupWallet(groupId) }
                     .padding(horizontal = 16.dp, vertical = 12.dp),
             ) {
                 Text(

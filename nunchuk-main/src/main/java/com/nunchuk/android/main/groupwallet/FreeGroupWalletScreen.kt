@@ -292,12 +292,13 @@ fun FreeGroupWalletScreen(
                 }
 
                 var colorIndex = 0
+                val isInReplace = !state.group?.replaceWalletId.isNullOrEmpty()
                 itemsIndexed(state.signers) { index, signer ->
                     FreeAddKeyCard(
                         index = index,
                         isOccupied = state.occupiedSlotsIndex.contains(index),
                         signer = signer,
-                        replacedSigner = state.replaceSigners.getOrNull(index).takeIf { it != signer },
+                        replacedSigner = state.replaceSigners.getOrNull(index),
                         onAddClicked = {
                             currentSignerIndex = index
                             onStartAddKey(index)
@@ -323,7 +324,7 @@ fun FreeGroupWalletScreen(
                         showBip32Path = showBip32Path,
                         onChangeBip32Path = onChangeBip32Path,
                         avatarColor = if (signer?.isVisible == false) avatarColors[colorIndex++ % avatarColors.size] else avatarColors[0],
-                        isInReplace = !state.group?.replaceWalletId.isNullOrEmpty()
+                        isInReplace = isInReplace,
                     )
                 }
             }
