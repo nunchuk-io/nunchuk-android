@@ -21,7 +21,9 @@ package com.nunchuk.android.wallet.personal.components.recover
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.widget.ImageView
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.google.zxing.client.android.Intents
@@ -80,6 +82,9 @@ class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcod
         when (event) {
             is RecoverWalletQrCodeEvent.ImportQRCodeError -> onImportQRCodeError()
             is RecoverWalletQrCodeEvent.ImportQRCodeSuccess -> onImportQRCodeSuccess(event)
+            is RecoverWalletQrCodeEvent.ParseQRCodeFromPhotoSuccess -> viewModel.updateQRCode(
+                isParseOnly, event.content, ""
+            )
         }
     }
 
@@ -100,6 +105,26 @@ class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcod
             )
         }
         finish()
+    }
+
+    override fun btnSelectPhoto(): ImageView {
+        return binding.barcodeView.findViewById(R.id.btn_select_image)
+    }
+
+    override fun btnTurnFlash(): ImageView {
+        return binding.barcodeView.findViewById(R.id.btn_turn_flash)
+    }
+
+    override fun decodeQRCodeFromUri(uri: Uri) {
+        viewModel.decodeQRCodeFromUri(uri)
+    }
+
+    override fun torchState(isOn: Boolean) {
+        if (isOn) {
+            binding.barcodeView.setTorchOn()
+        } else {
+            binding.barcodeView.setTorchOff()
+        }
     }
 
     private fun onImportQRCodeError() {

@@ -22,7 +22,9 @@ package com.nunchuk.android.transaction.components.imports
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.widget.ImageView
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.google.zxing.client.android.Intents
@@ -61,6 +63,26 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
     override fun onCameraPermissionGranted(fromUser: Boolean) {
         if (fromUser) {
             recreate()
+        }
+    }
+
+    override fun btnSelectPhoto(): ImageView {
+        return binding.barcodeView.findViewById(R.id.btn_select_image)
+    }
+
+    override fun btnTurnFlash(): ImageView {
+        return binding.barcodeView.findViewById(R.id.btn_turn_flash)
+    }
+
+    override fun decodeQRCodeFromUri(uri: Uri) {
+        viewModel.decodeQRCodeFromUri(uri)
+    }
+
+    override fun torchState(isOn: Boolean) {
+        if (isOn) {
+            binding.barcodeView.setTorchOn()
+        } else {
+            binding.barcodeView.setTorchOff()
         }
     }
 

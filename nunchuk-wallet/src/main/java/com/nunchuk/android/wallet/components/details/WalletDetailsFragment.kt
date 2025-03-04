@@ -26,6 +26,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -193,6 +195,21 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             viewModel.updateGroupChatHistoryPeriod(historyPeriod)
             showSuccess(message = getString(R.string.nc_chat_setting_updated))
             clearFragmentResult(GroupChatHistoryFragment.REQUEST_KEY)
+        }
+
+        binding.chatView.setContent {
+            val state by viewModel.state.observeAsState()
+            if (state == null) return@setContent
+            GroupWalletChatView(messages = state!!.groupChatMessages,
+                unreadCount = state!!.unreadMessagesCount,
+                onSendMessage = {
+                    viewModel.sendMessage(it)
+                }, onOpenChat = {
+                    navigator.openGroupChatScreen(
+                        activityContext = requireActivity(),
+                        walletId = args.walletId,
+                    )
+                })
         }
     }
 
@@ -399,18 +416,6 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             handleNeedBackupWallet()
         }
         binding.chatView.isVisible = state.isFreeGroupWallet
-        binding.chatView.setContent {
-            GroupWalletChatView(messages = state.groupChatMessages,
-                unreadCount = state.unreadMessagesCount,
-                onSendMessage = {
-                viewModel.sendMessage(it)
-            }, onOpenChat = {
-                navigator.openGroupChatScreen(
-                    activityContext = requireActivity(),
-                    walletId = args.walletId,
-                )
-            })
-        }
     }
 
     private fun handleWalletBackground(state: WalletDetailsState) {

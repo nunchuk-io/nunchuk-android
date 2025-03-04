@@ -24,4 +24,5 @@ import com.nunchuk.android.model.Wallet
 sealed class RecoverWalletQrCodeEvent {
     data class ImportQRCodeSuccess(val wallet: Wallet) : RecoverWalletQrCodeEvent()
     data class ImportQRCodeError(val message: String) : RecoverWalletQrCodeEvent()
+    data class ParseQRCodeFromPhotoSuccess(val content: String) : RecoverWalletQrCodeEvent()
 }

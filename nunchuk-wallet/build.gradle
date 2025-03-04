@@ -23,6 +23,7 @@ dependencies {
     implementation project(':nunchuk-wallet-core')
     implementation project(':nunchuk-wallet-personal')
     implementation project(':nunchuk-wallet-shared')
+    implementation 'androidx.compose.runtime:runtime-livedata:1.7.8'
 
     debugImplementation nunchukDeps.nativeSdk
     releaseImplementation nunchukDeps.prebuildNativeSdk

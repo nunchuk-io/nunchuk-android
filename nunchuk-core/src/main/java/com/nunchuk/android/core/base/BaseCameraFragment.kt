@@ -24,8 +24,11 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Bundle
 import android.provider.Settings
+import android.widget.ImageView
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.viewbinding.ViewBinding
@@ -95,4 +98,48 @@ abstract class BaseCameraFragment<out Binding : ViewBinding> : BaseFragment<Bind
     }
 
     abstract fun onCameraPermissionGranted(fromUser: Boolean)
+
+    private fun handleSelectPhoto() {
+        selectPhotoLauncher.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+        )
+    }
+
+    private val selectPhotoLauncher =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
+            if (uri != null) {
+                decodeQRCodeFromUri(uri)
+            }
+        }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        btnSelectPhoto()?.setOnClickListener {
+            handleSelectPhoto()
+        }
+        btnTurnFlash()?.setOnClickListener {
+            toggleFlash()
+        }
+    }
+
+    open fun btnSelectPhoto(): ImageView? = null
+
+    open fun btnTurnFlash(): ImageView? = null
+
+    open fun decodeQRCodeFromUri(uri: Uri) {}
+
+    private var isFlashOn = false
+
+    private fun toggleFlash() {
+        isFlashOn = !isFlashOn
+        if (isFlashOn) {
+            torchState(true)
+            btnTurnFlash()?.setImageResource(R.drawable.nc_ic_flash_off)
+        } else {
+            torchState(false)
+            btnTurnFlash()?.setImageResource(R.drawable.nc_ic_flash_on)
+        }
+    }
+
+    open fun torchState(isOn: Boolean) {}
 }

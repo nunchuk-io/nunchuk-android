@@ -19,10 +19,12 @@
 
 package com.nunchuk.android.settings.signin
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.auth.domain.ConfirmQrSignInUseCase
 import com.nunchuk.android.auth.domain.TryQrSignInUseCase
+import com.nunchuk.android.core.domain.ParseQRCodeFromPhotoUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.setting.QrSignInData
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,6 +37,7 @@ import javax.inject.Inject
 class SignInQrViewModel @Inject constructor(
     private val tryQrSignInUseCase: TryQrSignInUseCase,
     private val confirmQrSignInUseCase: ConfirmQrSignInUseCase,
+    private val parseQRCodeFromPhotoUseCase: ParseQRCodeFromPhotoUseCase
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SignInQrEvent>()
     val event = _event.asSharedFlow()
@@ -53,6 +56,16 @@ class SignInQrViewModel @Inject constructor(
             } else {
                 acceptQr = true
                 _event.emit(SignInQrEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun decodeQRCodeFromUri(uri: Uri) {
+        viewModelScope.launch {
+            parseQRCodeFromPhotoUseCase(uri).onSuccess {
+                trySignIn(it)
+            }.onFailure {
+                _event.emit(SignInQrEvent.ShowError(it.message.orUnknownError()))
             }
         }
     }

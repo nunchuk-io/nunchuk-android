@@ -19,10 +19,12 @@
 
 package com.nunchuk.android.settings.signin
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.fragment.app.viewModels
 import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseCameraFragment
@@ -89,6 +91,26 @@ internal class SignInQrFragment : BaseCameraFragment<FragmentSignInQrBinding>() 
 
     override fun onCameraPermissionGranted(fromUser: Boolean) {
         // Do nothing
+    }
+
+    override fun btnSelectPhoto(): ImageView {
+        return binding.barcodeView.findViewById(R.id.btn_select_image)
+    }
+
+    override fun btnTurnFlash(): ImageView {
+        return binding.barcodeView.findViewById(R.id.btn_turn_flash)
+    }
+
+    override fun decodeQRCodeFromUri(uri: Uri) {
+        viewModel.decodeQRCodeFromUri(uri)
+    }
+
+    override fun torchState(isOn: Boolean) {
+        if (isOn) {
+            binding.barcodeView.setTorchOn()
+        } else {
+            binding.barcodeView.setTorchOff()
+        }
     }
 
     override fun onResume() {

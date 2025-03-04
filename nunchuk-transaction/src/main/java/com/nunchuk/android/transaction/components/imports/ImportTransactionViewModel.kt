@@ -19,8 +19,10 @@
 
 package com.nunchuk.android.transaction.components.imports
 
+import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.domain.ParseQRCodeFromPhotoUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
@@ -47,6 +49,7 @@ internal class ImportTransactionViewModel @Inject constructor(
     private val parseKeystoneDummyTransaction: ParseKeystoneDummyTransaction,
     private val parseKeystoneDummyTransactionSignIn: ParseKeystoneDummyTransactionSignIn,
     private val analyzeQrUseCase: AnalyzeQrUseCase,
+    private val parseQRCodeFromPhotoUseCase: ParseQRCodeFromPhotoUseCase
 ) : NunchukViewModel<Unit, ImportTransactionEvent>() {
     private val _state = MutableStateFlow(ImportTransactionState())
     val uiState = _state.asStateFlow()
@@ -69,6 +72,16 @@ internal class ImportTransactionViewModel @Inject constructor(
             parseDummyTransaction()
         } else {
             parseNormalTransaction()
+        }
+    }
+
+    fun decodeQRCodeFromUri(uri: Uri) {
+        viewModelScope.launch {
+            parseQRCodeFromPhotoUseCase(uri).onSuccess {
+                importTransactionViaQR(it)
+            }.onFailure {
+                setEvent(ImportTransactionEvent.ImportTransactionError(it.message.orUnknownError()))
+            }
         }
     }
 

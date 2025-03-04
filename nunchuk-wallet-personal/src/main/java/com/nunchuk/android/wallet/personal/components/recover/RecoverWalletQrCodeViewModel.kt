@@ -19,8 +19,10 @@
 
 package com.nunchuk.android.wallet.personal.components.recover
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.ParseQRCodeFromPhotoUseCase
 import com.nunchuk.android.core.domain.wallet.ParseKeystoneWalletUseCase
 import com.nunchuk.android.usecase.ImportKeystoneWalletUseCase
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
@@ -45,6 +47,7 @@ internal class RecoverWalletQrCodeViewModel @Inject constructor(
     private val importKeystoneWalletUseCase: ImportKeystoneWalletUseCase,
     private val parseKeystoneWalletUseCase: ParseKeystoneWalletUseCase,
     private val analyzeQrUseCase: AnalyzeQrUseCase,
+    private val parseQRCodeFromPhotoUseCase: ParseQRCodeFromPhotoUseCase
 ) : ViewModel() {
 
     private var isProcessing = false
@@ -93,6 +96,16 @@ internal class RecoverWalletQrCodeViewModel @Inject constructor(
                     delay(150L)
                     _state.update { it.copy(progress = value.times(100.0)) }
                 }
+            }
+        }
+    }
+
+    fun decodeQRCodeFromUri(uri: Uri) {
+        viewModelScope.launch {
+            parseQRCodeFromPhotoUseCase(uri).onSuccess {
+                _event.emit(RecoverWalletQrCodeEvent.ParseQRCodeFromPhotoSuccess(it))
+            }.onFailure {
+                _event.emit(RecoverWalletQrCodeEvent.ImportQRCodeError(it.message.orEmpty()))
             }
         }
     }
