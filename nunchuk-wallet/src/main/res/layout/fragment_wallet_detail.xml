@@ -22,7 +22,6 @@
         style="@style/NCToolbar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/nc_padding_24"
         app:contentInsetStartWithNavigation="@dimen/nc_padding_16"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
