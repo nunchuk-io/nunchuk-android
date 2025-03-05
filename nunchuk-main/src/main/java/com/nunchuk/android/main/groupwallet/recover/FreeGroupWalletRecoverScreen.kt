@@ -1,6 +1,9 @@
 package com.nunchuk.android.main.groupwallet.recover
 
+import android.app.Activity
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,10 +46,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.nunchuk.android.compose.NcDashLineBox
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
@@ -65,27 +71,59 @@ import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.core.data.model.WalletConfigViewOnlyDataComposer
+import com.nunchuk.android.core.data.model.getWalletConfigTypeBy
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.ADD_WALLET_RESULT
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
 import com.nunchuk.android.main.groupwallet.component.WalletInfo
+import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.type.SignerType
 
-const val freeGroupWalletRecoverRoute = "free_group_wallet_recover"
+const val freeGroupWalletRecoverRoute = "free_group_wallet_recover/{wallet_id}/{file_path}"
 
 fun NavGraphBuilder.freeGroupWalletRecover(
-    viewModel: FreeGroupWalletRecoverViewModel,
-    onAddNewKey: (Int) -> Unit = {},
+    navigator: NunchukNavigator,
+    walletId: String,
+    filePath: String,
+    onAddNewKey: (String, List<SupportedSigner>) -> Unit = { _, _ -> },
     finishScreen: () -> Unit,
     onOpenWalletDetail: (String) -> Unit = {},
-    onEditClicked: () -> Unit = {},
 ) {
     composable(
         route = freeGroupWalletRecoverRoute,
+        arguments = listOf(
+            navArgument(
+                name = FreeGroupWalletActivity.EXTRA_WALLET_ID
+            ) {
+                type = NavType.StringType
+                defaultValue = walletId
+            },
+            navArgument(
+                name = FreeGroupWalletActivity.EXTRA_FILE_PATH
+            ) {
+                type = NavType.StringType
+                defaultValue = filePath
+            }
+        )
     ) {
+        val viewModel = hiltViewModel<FreeGroupWalletRecoverViewModel>()
+
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val snackState = remember { SnackbarHostState() }
         val context = LocalContext.current
+
+        val launcher =
+            rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                val data = it.data
+                if (it.resultCode == Activity.RESULT_OK && data != null) {
+                    val updatedWalletName = data.getStringExtra(ADD_WALLET_RESULT) ?: ""
+                    viewModel.updateWalletName(updatedWalletName)
+                }
+            }
 
         LaunchedEffect(state.isFinishScreen) {
             if (state.isFinishScreen) {
@@ -117,13 +155,15 @@ fun NavGraphBuilder.freeGroupWalletRecover(
         LaunchedEffect(state.event) {
             when (state.event) {
                 is FreeGroupWalletRecoverEvent.RecoverSuccess -> {
-                    val walletName = (state.event as FreeGroupWalletRecoverEvent.RecoverSuccess).walletName
+                    val walletName =
+                        (state.event as FreeGroupWalletRecoverEvent.RecoverSuccess).walletName
                     NcToastManager.scheduleShowMessage(
                         message = context.getString(R.string.nc_has_been_recovered, walletName),
                     )
                     onOpenWalletDetail(state.wallet?.id.orEmpty())
                     finishScreen()
                 }
+
                 else -> {
                 }
             }
@@ -135,7 +175,7 @@ fun NavGraphBuilder.freeGroupWalletRecover(
             state = state,
             onAddNewKey = {
                 viewModel.setCurrentSignerIndex(it)
-                onAddNewKey(it)
+                onAddNewKey(viewModel.walletId, viewModel.getSuggestedSigners())
             },
             onContinueClicked = {
                 viewModel.recoverGroupWallet()
@@ -143,7 +183,25 @@ fun NavGraphBuilder.freeGroupWalletRecover(
             onGotItClick = {
                 viewModel.showAddKeyErrorDialogHandled()
             },
-            onEditClicked = onEditClicked,
+            onEditClicked = {
+                viewModel.getWallet()?.let { wallet ->
+                    navigator.openAddWalletScreen(
+                        activityContext = context,
+                        decoyPin = "",
+                        launcher = launcher,
+                        walletConfigViewOnlyDataComposer = WalletConfigViewOnlyDataComposer(
+                            walletName = wallet.name,
+                            addressType = wallet.addressType,
+                            requireKeys = wallet.totalRequireSigns,
+                            totalKeys = wallet.signers.size,
+                            walletConfigType = getWalletConfigTypeBy(
+                                wallet.signers.size,
+                                wallet.totalRequireSigns
+                            )
+                        )
+                    )
+                }
+            },
             onCancelClicked = {
                 finishScreen()
             }
@@ -338,7 +396,12 @@ fun FreeAddKeyRecoverCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     SignerCard(
-                        item = signer.copy(name = stringResource(R.string.nc_key_with_index, "#${index + 1}"),),
+                        item = signer.copy(
+                            name = stringResource(
+                                R.string.nc_key_with_index,
+                                "#${index + 1}"
+                            ),
+                        ),
                         modifier = Modifier.weight(1.0f),
                         signerIcon = R.drawable.ic_signer_empty_state,
                         isShowKeyTypeBadge = signer.type != SignerType.UNKNOWN,
