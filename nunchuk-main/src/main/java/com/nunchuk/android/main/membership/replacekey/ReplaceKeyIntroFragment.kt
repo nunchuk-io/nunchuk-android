@@ -30,7 +30,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,6 +51,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.main.R
@@ -104,13 +105,15 @@ class ReplaceKeyIntroFragment : Fragment() {
 @Composable
 fun ReplaceKeyIntroScreen(
     isLoading: Boolean = false,
+    snackState: SnackbarHostState = remember { SnackbarHostState() },
     onContinueClicked: () -> Unit = {}
 ) = NunchukTheme {
     if (isLoading) {
         NcLoadingDialog()
     }
-    Scaffold(
+    NcScaffold(
         modifier = Modifier.navigationBarsPadding(),
+        snackState = snackState,
         topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.nc_bg_roll_over_illustrations,

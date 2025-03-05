@@ -36,6 +36,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.listener.GroupMessageListener
+import com.nunchuk.android.listener.GroupReplaceListener
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.HistoryPeriod
@@ -226,6 +227,12 @@ internal class WalletDetailsViewModel @Inject constructor(
                 }
             }
         }
+        getReplaceGroupSandbox()
+        getGroupWalletMessageUnreadCount()
+        listenGroupWalletReplace()
+    }
+
+    private fun getReplaceGroupSandbox() {
         viewModelScope.launch {
             getReplaceGroupsUseCase(args.walletId).onSuccess { replaceGroups ->
                 updateState {
@@ -235,7 +242,16 @@ internal class WalletDetailsViewModel @Inject constructor(
                 }
             }
         }
-        getGroupWalletMessageUnreadCount()
+    }
+
+    private fun listenGroupWalletReplace() {
+        viewModelScope.launch {
+            GroupReplaceListener.groupReplaceFlow.collect { replaceGroup ->
+                if (replaceGroup.walletId == args.walletId) {
+                    getReplaceGroupSandbox()
+                }
+            }
+        }
     }
 
     fun getGroupWalletMessageUnreadCount() {

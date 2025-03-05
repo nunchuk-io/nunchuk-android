@@ -91,8 +91,8 @@ class FreeGroupWalletViewModel @Inject constructor(
 ) : ViewModel() {
     val groupId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
-    val walletId: String
-        get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_WALLET_ID).orEmpty()
+    private val replaceWalletId: String
+        get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_REPLACE_WALLET_ID).orEmpty()
     private val _uiState = MutableStateFlow(FreeGroupWalletUiState())
     val uiState: StateFlow<FreeGroupWalletUiState> = _uiState.asStateFlow()
     private val singleSigners = mutableListOf<SingleSigner>()
@@ -106,7 +106,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         listenGroupSandbox()
         listenGroupOnline()
         listenGroupDelete()
-        if (walletId.isEmpty()) {
+        if (replaceWalletId.isEmpty()) {
             if (groupId.isEmpty()) {
                 createGroupSandbox()
             } else {
@@ -488,10 +488,10 @@ class FreeGroupWalletViewModel @Inject constructor(
     fun createReplaceGroup() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            createReplaceGroupUseCase(walletId).onSuccess {
+            createReplaceGroupUseCase(replaceWalletId).onSuccess {
                 savedStateHandle[FreeGroupWalletActivity.EXTRA_GROUP_ID] = it.id
                 updateGroupSandbox(it)
-                getSignerOldWallet(walletId)
+                getSignerOldWallet(replaceWalletId)
                 _uiState.update { state -> state.copy(isCreatedReplaceGroup = true) }
             }.onFailure { error ->
                 _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }

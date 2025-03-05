@@ -48,8 +48,6 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSelectableBottomSheet
-import com.nunchuk.android.compose.NcSnackbarVisuals
-import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcInfoDialog
@@ -84,6 +82,7 @@ val avatarColors = listOf(
 
 fun NavGraphBuilder.freeGroupWallet(
     viewModel: FreeGroupWalletViewModel,
+    snackState: SnackbarHostState,
     onEditClicked: (String, Boolean) -> Unit = { _, _ -> },
     onCopyLinkClicked: (String) -> Unit = {},
     onShowQRCodeClicked: (String) -> Unit = {},
@@ -100,7 +99,6 @@ fun NavGraphBuilder.freeGroupWallet(
         route = freeGroupWalletRoute,
     ) {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
-        val snackState = remember { SnackbarHostState() }
 
         LaunchedEffect(state.isFinishScreen) {
             if (state.isFinishScreen) {
@@ -115,18 +113,6 @@ fun NavGraphBuilder.freeGroupWallet(
         LifecycleResumeEffect(Unit) {
             viewModel.getGroupSandbox()
             onPauseOrDispose { }
-        }
-
-        LaunchedEffect(state.errorMessage) {
-            if (state.errorMessage.isNotEmpty()) {
-                snackState.showSnackbar(
-                    NcSnackbarVisuals(
-                        message = state.errorMessage,
-                        type = NcToastType.ERROR
-                    )
-                )
-                viewModel.markMessageHandled()
-            }
         }
 
         FreeGroupWalletScreen(

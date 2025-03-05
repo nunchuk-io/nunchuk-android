@@ -8,12 +8,17 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.compose.NcSnackbarVisuals
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.data.model.WalletConfigViewOnlyDataComposer
 import com.nunchuk.android.core.data.model.getWalletConfigTypeBy
@@ -42,7 +47,7 @@ import kotlinx.coroutines.flow.filter
 class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListener {
 
     private val viewModel: FreeGroupWalletViewModel by viewModels()
-    private val walletId by lazy { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
+    private val replaceWalletId by lazy { intent.getStringExtra(EXTRA_REPLACE_WALLET_ID).orEmpty() }
     private val filePath by lazy { intent.getStringExtra(EXTRA_FILE_PATH).orEmpty() }
     private val recoverViewModel: FreeGroupWalletRecoverViewModel by viewModels()
 
@@ -62,6 +67,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
             ComposeView(this).apply {
                 setContent {
                     val navController = rememberNavController()
+                    val snackState = remember { SnackbarHostState() }
                     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
                     LaunchedEffect(state.requestCacheTapSignerXpubEvent) {
@@ -73,8 +79,25 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
 
                     LaunchedEffect(state.isCreatedReplaceGroup) {
                         if (state.isCreatedReplaceGroup) {
-                            navController.navigate(freeGroupWalletRoute)
+                            navController.navigate(
+                                route = freeGroupWalletRoute,
+                                navOptions = NavOptions.Builder()
+                                    .setPopUpTo(replaceWalletIntroRoute, true)
+                                    .build()
+                            )
                             viewModel.resetReplaceGroup()
+                        }
+                    }
+
+                    LaunchedEffect(state.errorMessage) {
+                        if (state.errorMessage.isNotEmpty()) {
+                            snackState.showSnackbar(
+                                NcSnackbarVisuals(
+                                    message = state.errorMessage,
+                                    type = NcToastType.ERROR
+                                )
+                            )
+                            viewModel.markMessageHandled()
                         }
                     }
 
@@ -83,7 +106,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                             navController = navController,
                             startDestination = if (filePath.isNotEmpty()) {
                                 freeGroupWalletRecoverRoute
-                            } else if (walletId.isEmpty()) {
+                            } else if (replaceWalletId.isEmpty()) {
                                 freeGroupWalletRoute
                             } else {
                                 replaceWalletIntroRoute
@@ -91,6 +114,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                         ) {
                             freeGroupWallet(
                                 viewModel = viewModel,
+                                snackState = snackState,
                                 onEditClicked = { groupId, hasGroupSigner ->
                                     navigator.openAddWalletScreen(
                                         activityContext = this@FreeGroupWalletActivity,
@@ -170,7 +194,9 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                             )
 
                             replaceWalletIntroNavigation(
-                                onContinueClicked = viewModel::createReplaceGroup
+                                viewModel = viewModel,
+                                onContinueClicked = viewModel::createReplaceGroup,
+                                snackState = snackState
                             )
 
                             freeGroupWalletRecover(
@@ -261,6 +287,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
     companion object {
         const val EXTRA_GROUP_ID = "group_id"
         const val EXTRA_WALLET_ID = "wallet_id"
+        const val EXTRA_REPLACE_WALLET_ID = "replace_wallet_id"
         const val EXTRA_FILE_PATH = "file_path"
 
         /**
@@ -276,7 +303,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
         ) {
             context.startActivity(Intent(context, FreeGroupWalletActivity::class.java).apply {
                 putExtra(EXTRA_GROUP_ID, groupId)
-                putExtra(EXTRA_WALLET_ID, walletId)
+                putExtra(EXTRA_REPLACE_WALLET_ID, walletId)
             })
         }
 
