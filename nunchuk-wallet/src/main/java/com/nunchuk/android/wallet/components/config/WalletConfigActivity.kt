@@ -483,7 +483,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 SheetOption(
                     SheetOptionType.TYPE_SAVE_WALLET_CONFIG,
                     R.drawable.ic_backup,
-                    R.string.nc_wallet_save_wallet_configuration
+                    R.string.nc_export_wallet_configuration
                 ),
                 SheetOption(
                     SheetOptionType.TYPE_EXPORT_TX_COIN_CONTROL,
