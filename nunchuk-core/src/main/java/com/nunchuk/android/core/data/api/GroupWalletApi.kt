@@ -1,6 +1,5 @@
 package com.nunchuk.android.core.data.api
 
-import com.nunchuk.android.core.data.model.ConfigSecurityQuestionPayload
 import com.nunchuk.android.core.data.model.CreateServerKeyResponse
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
 import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
@@ -647,5 +646,13 @@ internal interface GroupWalletApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("group_id") groupId: String,
         @Path("xfp") keyId: String, @Body payload: KeyVerifiedRequest
+    ): Data<Unit>
+
+    @DELETE("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/{xfp}/remove")
+    suspend fun removeKeyReplacement(
+        @Header("Verify-token") verifyToken: String,
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Path("xfp") xfp: String,
     ): Data<Unit>
 }

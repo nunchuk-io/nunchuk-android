@@ -41,6 +41,7 @@ import com.nunchuk.android.usecase.replace.InitReplaceKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import com.nunchuk.android.usecase.replace.ResetReplaceKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
+import com.nunchuk.android.usecase.signer.RemoveKeyReplacementUseCase
 import com.nunchuk.android.usecase.wallet.GetServerWalletUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -80,7 +81,8 @@ class ReplaceKeysViewModel @Inject constructor(
     assistedWalletManager: AssistedWalletManager,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
     private val updateWalletUseCase: UpdateWalletUseCase,
-    private val ncDataStore: NcDataStore
+    private val ncDataStore: NcDataStore,
+    private val removeKeyReplacementUseCase: RemoveKeyReplacementUseCase,
 ) : ViewModel() {
     private val args = ReplaceKeysFragmentArgs.fromSavedStateHandle(savedStateHandle)
     val isActiveAssistedWallet: Boolean by lazy {
@@ -466,6 +468,7 @@ class ReplaceKeysViewModel @Inject constructor(
     fun isMultiSig() = _uiState.value.isMultiSig
     fun getPortalSigners() =
         _uiState.value.signers.filter { it.type == SignerType.PORTAL_NFC && isSignerExist(it.fingerPrint).not() }
+
     fun markNewPortalShown() {
         viewModelScope.launch {
             ncDataStore.setShowPortal(false)
@@ -483,14 +486,39 @@ class ReplaceKeysViewModel @Inject constructor(
         val coldCardInheritanceKeys = _uiState.value.replaceSigners.values.filter {
             it.tags.contains(SignerTag.INHERITANCE) && it.type != SignerType.NFC
         }
-        return _uiState.value.replaceSigners.isNotEmpty() && (coldCardInheritanceKeys.isEmpty() || coldCardInheritanceKeys.all { _uiState.value.verifiedSigners.contains(it.fingerPrint) })
+        return _uiState.value.replaceSigners.isNotEmpty() && (coldCardInheritanceKeys.isEmpty() || coldCardInheritanceKeys.all {
+            _uiState.value.verifiedSigners.contains(
+                it.fingerPrint
+            )
+        })
     }
 
     fun onRemoveKey(xfp: String) {
-        val replaceSigners = _uiState.value.replaceSigners.toMutableMap().apply {
-            remove(xfp)
+        if (!isActiveAssistedWallet) {
+            val replaceSigners = _uiState.value.replaceSigners.toMutableMap().apply {
+                remove(xfp)
+            }
+            _uiState.update { state -> state.copy(replaceSigners = replaceSigners) }
+        } else {
+            viewModelScope.launch {
+                _uiState.update { it.copy(isLoading = true) }
+                removeKeyReplacementUseCase(
+                    RemoveKeyReplacementUseCase.Params(
+                        groupId = args.groupId,
+                        walletId = args.walletId,
+                        xfp = xfp
+                    )
+                ).onSuccess {
+                    val replaceSigners = _uiState.value.replaceSigners.toMutableMap().apply {
+                        remove(xfp)
+                    }
+                    _uiState.update { state -> state.copy(replaceSigners = replaceSigners) }
+                }.onFailure {
+                    _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
+                }
+                _uiState.update { it.copy(isLoading = false) }
+            }
         }
-        _uiState.update { state -> state.copy(replaceSigners = replaceSigners) }
     }
 
     companion object {

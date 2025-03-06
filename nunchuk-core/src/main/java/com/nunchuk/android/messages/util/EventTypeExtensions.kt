@@ -79,7 +79,7 @@ const val HEALTH_CHECK_SKIPPED = "io.nunchuk.custom.health_check_skipped"
 const val KEY_REPLACED = "io.nunchuk.custom.wallet_key_replacement_completed"
 const val KEY_RESET = "io.nunchuk.custom.wallet_key_replacement_reset"
 const val WALLET_REPLACED = "io.nunchuk.custom.wallet_replaced"
-
+const val WALLET_KEY_REPLACEMENT_REMOVE = "io.nunchuk.custom.wallet_key_replacement_removed"
 
 fun TimelineEvent.isDisplayable(isSupportRoom: Boolean, maxLifetime: Long?): Boolean {
     if (maxLifetime != null && (System.currentTimeMillis() - time()) > maxLifetime) return false
@@ -225,7 +225,7 @@ fun TimelineEvent.isHealthCheckReminderEvent() =
     getMsgType() == HEALTH_CHECK_REMINDER || getMsgType() == HEALTH_CHECK_REMINDER_UPDATED || getMsgType() == HEALTH_CHECK_SKIPPED
 
 fun TimelineEvent.isReplaceKeyChangeEvent() =
-    getMsgType() == KEY_REPLACED || getMsgType() == KEY_RESET
+    getMsgType() == KEY_REPLACED || getMsgType() == KEY_RESET || getMsgType() == WALLET_KEY_REPLACEMENT_REMOVE
 
 fun TimelineEvent.isWalletReplacedEvent() =
     getMsgType() == WALLET_REPLACED

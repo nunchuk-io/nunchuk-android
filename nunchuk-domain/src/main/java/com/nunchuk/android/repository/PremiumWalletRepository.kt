@@ -487,7 +487,14 @@ interface PremiumWalletRepository {
     suspend fun addOrUpdateSavedAddress(address: String, label: String, isPremiumUser: Boolean)
     suspend fun deleteSavedAddress(address: String, isPremiumUser: Boolean)
     suspend fun getHealthReminders(groupId: String?, walletId: String): List<HealthReminder>
-    suspend fun addOrUpdateHealthReminder(groupId: String?, walletId: String, xfps: List<String>, frequency: String, startDateMillis: Long)
+    suspend fun addOrUpdateHealthReminder(
+        groupId: String?,
+        walletId: String,
+        xfps: List<String>,
+        frequency: String,
+        startDateMillis: Long
+    )
+
     suspend fun deleteHealthReminder(groupId: String?, walletId: String, xfps: List<String>)
     suspend fun skipHealthReminder(groupId: String?, walletId: String, xfp: String)
     suspend fun replaceKeyStatus(
@@ -501,6 +508,8 @@ interface PremiumWalletRepository {
     ): Wallet
 
     suspend fun initPersonalWallet(
-       walletConfig: WalletConfig
+        walletConfig: WalletConfig
     )
+
+    suspend fun removeKeyReplacement(groupId: String?, walletId: String, xfp: String)
 }

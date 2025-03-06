@@ -2780,6 +2780,28 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun removeKeyReplacement(groupId: String?, walletId: String, xfp: String) {
+        val verifyToken = ncDataStore.passwordToken.first()
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.removeKeyReplacement(
+                verifyToken = verifyToken,
+                groupId = groupId,
+                walletId = walletId,
+                xfp = xfp
+            )
+        } else {
+            userWalletApiManager.walletApi.removeKeyReplacement(
+                verifyToken = verifyToken,
+                walletId = walletId,
+                xfp = xfp
+            )
+        }
+
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
     private fun getHeaders(
         authorizations: List<String>,
         verifyToken: String,
