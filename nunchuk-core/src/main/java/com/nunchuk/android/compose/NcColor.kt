@@ -56,7 +56,7 @@ val ColorScheme.ming: Color
     get() = Color(0xFF2F766D)
 
 val ColorScheme.fillBeewax: Color
-    get() = if (isDark) Color(0xFFa66800) else Color(0xFFFDEBD2)
+    get() = if (isDark) Color(0xFF5A3800) else Color(0xFFFDEBD2)
 
 val ColorScheme.quickSilver: Color
     get() = Color(0xFFA6A6A6)

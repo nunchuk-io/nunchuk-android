@@ -42,12 +42,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
+import androidx.navigation.NavType
+import androidx.navigation.compose.composable
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.navigation.navArgument
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -83,20 +88,24 @@ class CreateWalletSuccessFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                CreateWalletSuccessScreen(viewModel) {
-                    val groupId = (activity as MembershipActivity).groupId
-                    val is2Of4MultisigWallet = viewModel.state.value.is2Of4MultisigWallet
-                    if (groupId.isEmpty() && is2Of4MultisigWallet) {
-                        findNavController().navigate(
-                            CreateWalletSuccessFragmentDirections.actionCreateWalletSuccessFragmentToAddKeyStepFragment(),
-                            NavOptions.Builder()
-                                .setPopUpTo(findNavController().graph.startDestinationId, true)
-                                .build()
-                        )
-                    } else {
-                        navigator.returnToMainScreen(requireActivity())
-                    }
-                }
+                CreateWalletSuccessScreen(
+                    viewModel = viewModel,
+                    onBackPress = {
+                        val groupId = (activity as MembershipActivity).groupId
+                        val is2Of4MultisigWallet = viewModel.state.value.is2Of4MultisigWallet
+                        if (groupId.isEmpty() && is2Of4MultisigWallet) {
+                            findNavController().navigate(
+                                CreateWalletSuccessFragmentDirections.actionCreateWalletSuccessFragmentToAddKeyStepFragment(),
+                                NavOptions.Builder()
+                                    .setPopUpTo(findNavController().graph.startDestinationId, true)
+                                    .build()
+                            )
+                        } else {
+                            navigator.returnToMainScreen(requireActivity())
+                        }
+                    },
+                    onContinueClicked = viewModel::onContinueClicked
+                )
             }
         }
     }
@@ -159,16 +168,42 @@ class CreateWalletSuccessFragment : MembershipFragment() {
     }
 }
 
+const val createWalletSuccessScreenRoute =
+    "createWalletSuccessScreen/{wallet_id}/{replaced_wallet_id}"
+
+fun NavGraphBuilder.createWalletSuccessScreen(
+    onContinueClicked: () -> Unit,
+    onBackPress: () -> Unit,
+) {
+    composable(
+        route = createWalletSuccessScreenRoute,
+        arguments = listOf(
+            navArgument("wallet_id") { type = NavType.StringType },
+            navArgument("replaced_wallet_id") { type = NavType.StringType }
+        )
+    ) {
+        CreateWalletSuccessScreen(
+            onContinueClicked = onContinueClicked,
+            onBackPress = onBackPress
+        )
+    }
+}
+
+fun NavController.navigateCreateWalletSuccessScreen(walletId: String, replacedWalletId: String) {
+    navigate("createWalletSuccessScreen/$walletId/$replacedWalletId")
+}
+
 @Composable
 private fun CreateWalletSuccessScreen(
-    viewModel: CreateWalletSuccessViewModel = viewModel(),
-    onBackPress: () -> Unit = {}
+    viewModel: CreateWalletSuccessViewModel = hiltViewModel(),
+    onBackPress: () -> Unit = {},
+    onContinueClicked: () -> Unit = {},
 ) {
     val uiState: CreateWalletSuccessUiState by viewModel.state.collectAsStateWithLifecycle()
     BackHandler(onBack = onBackPress)
     CreateWalletSuccessScreenContent(
         uiState = uiState,
-        onContinueClicked = viewModel::onContinueClicked,
+        onContinueClicked = onContinueClicked,
     )
 }
 

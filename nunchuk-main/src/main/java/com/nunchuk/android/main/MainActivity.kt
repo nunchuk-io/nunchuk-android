@@ -23,7 +23,6 @@ import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
@@ -139,7 +138,6 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Log.e("BranchSDK_Tester", "onNewIntent")
         walletViewModel.joinGroupWallet()
     }
 

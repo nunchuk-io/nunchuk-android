@@ -21,6 +21,7 @@ import com.nunchuk.android.listener.GroupDeleteListener
 import com.nunchuk.android.listener.GroupOnlineListener
 import com.nunchuk.android.listener.GroupSandboxListener
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity.Companion.EXTRA_REPLACE_WALLET_ID
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
@@ -34,6 +35,7 @@ import com.nunchuk.android.usecase.free.groupwallet.AddSignerToGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.CreateGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.CreateReplaceGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.DeleteGroupSandboxUseCase
+import com.nunchuk.android.usecase.free.groupwallet.FinalizeGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupOnlineUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
@@ -87,12 +89,14 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase,
     private val createReplaceGroupUseCase: CreateReplaceGroupUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val finalizeGroupSandboxUseCase: FinalizeGroupSandboxUseCase,
     private val application: Application,
 ) : ViewModel() {
     val groupId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_GROUP_ID).orEmpty()
     private val replaceWalletId: String
-        get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_REPLACE_WALLET_ID).orEmpty()
+        get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_REPLACE_WALLET_ID)
+            .orEmpty()
     private val _uiState = MutableStateFlow(FreeGroupWalletUiState())
     val uiState: StateFlow<FreeGroupWalletUiState> = _uiState.asStateFlow()
     private val singleSigners = mutableListOf<SingleSigner>()
@@ -100,6 +104,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     private var deviceUID: String = ""
     private var addSignerJob: Job? = null
     private var wallet: Wallet? = null
+    private var groupUpdateJob: Job? = null
 
     init {
         loadSigners()
@@ -159,7 +164,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     }
 
     private fun listenGroupSandbox() {
-        viewModelScope.launch {
+        groupUpdateJob = viewModelScope.launch {
             GroupSandboxListener.getGroupFlow().collect { groupSandbox ->
                 Timber.d("GroupSandboxListener $groupSandbox")
                 if (groupSandbox.id == groupId) {
@@ -246,6 +251,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             viewModelScope.launch {
                 _uiState.update { it.copy(isRefreshing = true) }
                 getGroupSandboxUseCase(groupId).onSuccess { groupSandbox ->
+                    savedStateHandle[EXTRA_REPLACE_WALLET_ID] = groupSandbox.replaceWalletId
                     updateGroupSandbox(groupSandbox)
                 }.onFailure {
                     Timber.e("Failed to get group sandbox $it")
@@ -263,7 +269,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         Timber.d("Update group sandbox $groupSandbox")
         getSignerOldWallet(groupSandbox.replaceWalletId)
         val signers = mapSigners(groupSandbox.signers)
-        if (groupSandbox.replaceWalletId.isNotEmpty()) {
+        if (replaceWalletId.isNotEmpty()) {
             _uiState.update { it.copy(group = groupSandbox, replaceSigners = signers) }
         } else {
             _uiState.update { it.copy(group = groupSandbox, signers = signers) }
@@ -341,9 +347,9 @@ class FreeGroupWalletViewModel @Inject constructor(
         viewModelScope.launch {
             val isInReplace = wallet != null
             if (isInReplace) {
-                 wallet?.signers?.getOrNull(index)?.let {
-                     addSignerToGroup(it, index)
-                 }
+                wallet?.signers?.getOrNull(index)?.let {
+                    addSignerToGroup(it, index)
+                }
             } else {
                 _uiState.update { it.copy(isLoading = true) }
                 removeSignerFromGroupUseCase(
@@ -512,6 +518,30 @@ class FreeGroupWalletViewModel @Inject constructor(
 
     fun resetReplaceGroup() {
         _uiState.update { it.copy(isCreatedReplaceGroup = false) }
+    }
+
+    fun finalizeGroup(group: GroupSandbox) {
+        viewModelScope.launch {
+            groupUpdateJob?.cancel()
+            finalizeGroupSandboxUseCase(
+                FinalizeGroupSandboxUseCase.Params(
+                    groupId = group.id,
+                    signerIndexes = if (group.addressType.isTaproot()) (0 until group.m).toSet() else emptySet()
+                )
+            ).onSuccess { group ->
+                _uiState.update { it.copy(finalizeGroup = group, group = group) }
+            }.onFailure { error ->
+                // listen group sandbox again
+                listenGroupSandbox()
+                _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
+            }
+        }
+    }
+
+    fun getWallet() = wallet
+
+    fun markFinalizeGroupHandled() {
+        _uiState.update { it.copy(finalizeGroup = null) }
     }
 
     fun getWalletSigners(): List<SignerModel> = _uiState.value.signers.filterNotNull()

@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -20,22 +21,33 @@ import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_TOPUP_XPUBS
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.util.RollOverWalletFlow
+import com.nunchuk.android.core.util.RollOverWalletSource
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isTaproot
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.join.CommonQRCodeActivity
 import com.nunchuk.android.main.groupwallet.recover.freeGroupWalletRecover
 import com.nunchuk.android.main.groupwallet.recover.freeGroupWalletRecoverRoute
+import com.nunchuk.android.main.membership.wallet.createWalletSuccessScreen
+import com.nunchuk.android.main.membership.wallet.navigateCreateWalletSuccessScreen
+import com.nunchuk.android.model.GroupSandbox
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.InputBipPathBottomSheet
 import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @AndroidEntryPoint
 class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListener {
@@ -53,6 +65,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                     val navController = rememberNavController()
                     val snackState = remember { SnackbarHostState() }
                     val state by viewModel.uiState.collectAsStateWithLifecycle()
+                    Timber.d("FreeGroupWalletActivity state: $state")
 
                     LaunchedEffect(state.requestCacheTapSignerXpubEvent) {
                         if (state.requestCacheTapSignerXpubEvent) {
@@ -82,6 +95,18 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                 )
                             )
                             viewModel.markMessageHandled()
+                        }
+                    }
+
+                    LaunchedEffect(state.finalizeGroup) {
+                        val finalizeGroup = state.finalizeGroup
+                        if (finalizeGroup != null) {
+                            // TODO check balance
+                            navController.navigateCreateWalletSuccessScreen(
+                                replacedWalletId = finalizeGroup.replaceWalletId,
+                                walletId = finalizeGroup.walletId
+                            )
+                            viewModel.markFinalizeGroupHandled()
                         }
                     }
 
@@ -127,7 +152,9 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                 },
                                 finishScreen = ::finish,
                                 onContinueClicked = { group ->
-                                    if (group.addressType.isTaproot()) {
+                                    if (group.replaceWalletId.isNotEmpty()) {
+                                        viewModel.finalizeGroup(group)
+                                    } else if (group.addressType.isTaproot()) {
                                         navigator.openTaprootScreen(
                                             activityContext = this@FreeGroupWalletActivity,
                                             walletName = group.name,
@@ -202,6 +229,15 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                     )
                                 }
                             )
+
+                            createWalletSuccessScreen(
+                                onBackPress = ::returnToMainScreen,
+                                onContinueClicked = {
+                                    val group = state.group
+                                    val wallet = viewModel.getWallet()
+                                    checkWalletBalance(group, wallet)
+                                }
+                            )
                         }
                     }
                 }
@@ -215,6 +251,43 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
             )
             nfcViewModel.clearScanInfo()
         }
+    }
+
+    private fun checkWalletBalance(group: GroupSandbox?, wallet: Wallet?) {
+        if (group != null && wallet != null) {
+            if (wallet.balance.pureBTC() == 0.0) {
+                returnToMainScreen()
+            } else {
+                NCInfoDialog(this@FreeGroupWalletActivity)
+                    .showDialog(
+                        title = getString(R.string.nc_confirmation),
+                        message = getString(R.string.nc_transfer_fund_desc),
+                        btnYes = getString(R.string.nc_yes_do_it_now),
+                        btnInfo = getString(R.string.nc_i_ll_do_it_later),
+                        onYesClick = {
+                            navigator.openRollOverWalletScreen(
+                                activityContext = this@FreeGroupWalletActivity,
+                                oldWalletId = group.replaceWalletId,
+                                newWalletId = group.walletId,
+                                startScreen = RollOverWalletFlow.REFUND,
+                                source = RollOverWalletSource.REPLACE_KEY
+                            )
+                        },
+                        onInfoClick = {
+                            returnToMainScreen()
+                            navigator.openWalletDetailsScreen(
+                                activityContext = this@FreeGroupWalletActivity,
+                                walletId = group.walletId
+                            )
+                        }
+                    )
+            }
+        }
+    }
+
+    private fun returnToMainScreen() = lifecycleScope.launch {
+        navigator.returnToMainScreen(this@FreeGroupWalletActivity)
+        pushEventManager.push(PushEvent.CloseWalletDetail)
     }
 
     private fun handleCacheXpub() {

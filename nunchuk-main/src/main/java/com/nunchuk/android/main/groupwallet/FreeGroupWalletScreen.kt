@@ -240,7 +240,11 @@ fun FreeGroupWalletScreen(
                 },
                 enabled = state.group != null && state.signers.count { it != null } == state.group.n && state.group.n > 0,
             ) {
-                Text(text = stringResource(id = R.string.nc_wallet_create_wallet))
+                if (state.group != null && state.group.replaceWalletId.isNotEmpty()) {
+                    Text(text = stringResource(id = R.string.nc_continue_to_create_a_new_wallet))
+                } else {
+                    Text(text = stringResource(id = R.string.nc_wallet_create_wallet))
+                }
             }
         },
     ) { innerPadding ->
