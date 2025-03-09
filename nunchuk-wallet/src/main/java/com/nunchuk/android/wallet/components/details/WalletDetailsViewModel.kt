@@ -62,6 +62,7 @@ import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.free.groupwallet.AcceptReplaceGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.DeclineReplaceGroupUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetDeprecatedGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetReplaceGroupsUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
@@ -120,7 +121,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val getGroupDeviceUIDUseCase: GetGroupDeviceUIDUseCase,
     private val getReplaceGroupsUseCase: GetReplaceGroupsUseCase,
     private val acceptReplaceGroupUseCase: AcceptReplaceGroupUseCase,
-    private val declineReplaceGroupUseCase: DeclineReplaceGroupUseCase
+    private val declineReplaceGroupUseCase: DeclineReplaceGroupUseCase,
+    private val getDeprecatedGroupWalletsUseCase: GetDeprecatedGroupWalletsUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -200,11 +202,11 @@ internal class WalletDetailsViewModel @Inject constructor(
                 copy(uid = uid.orEmpty())
             }
             getGroupWalletsUseCase(Unit).onSuccess { wallets ->
-                val wallet = wallets.filter { it.id == args.walletId }
-                if (wallet.isNotEmpty()) {
+                val isFreeGroupWallet = wallets.any { it.id == args.walletId }
+                if (isFreeGroupWallet) {
                     groupChatManager.init(args.walletId)
                 }
-                updateState { copy(isFreeGroupWallet = wallet.isNotEmpty()) }
+                updateState { copy(isFreeGroupWallet = isFreeGroupWallet) }
             }
         }
         viewModelScope.launch {
@@ -227,9 +229,21 @@ internal class WalletDetailsViewModel @Inject constructor(
                 }
             }
         }
-        getReplaceGroupSandbox()
+        checkDeprecatedGroupWallet()
         getGroupWalletMessageUnreadCount()
         listenGroupWalletReplace()
+    }
+
+    private fun checkDeprecatedGroupWallet() {
+        viewModelScope.launch {
+            getDeprecatedGroupWalletsUseCase(Unit).onSuccess { deprecatedWallets ->
+                val isDeprecated = deprecatedWallets.any { it == args.walletId }
+                if (!isDeprecated) {
+                    getReplaceGroupSandbox()
+                }
+                updateState { copy(isDeprecatedGroupWallet = isDeprecated) }
+            }
+        }
     }
 
     private fun getReplaceGroupSandbox() {
@@ -514,7 +528,7 @@ internal class WalletDetailsViewModel @Inject constructor(
         get() = getState().groupId
 
     val isLockedAssistedWallet: Boolean
-        get() = getState().walletStatus == WalletStatus.LOCKED.name
+        get() = getState().walletStatus == WalletStatus.LOCKED.name && !getState().isFreeGroupWallet
 
     fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(args.walletId)
 

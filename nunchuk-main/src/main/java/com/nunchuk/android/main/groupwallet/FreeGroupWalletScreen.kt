@@ -164,6 +164,13 @@ fun FreeGroupWalletScreen(
     var showDeleteSignerDialog by rememberSaveable { mutableStateOf(false) }
     var showKeyNotSynced by rememberSaveable { mutableStateOf(false) }
     var showBip32Path by rememberSaveable { mutableStateOf(false) }
+    val isInReplace = !state.group?.replaceWalletId.isNullOrEmpty()
+    val isButtonEnabled = if (state.group != null) {
+        val signers = if (isInReplace) state.replaceSigners else state.signers
+        signers.count { it != null } == state.group.n && state.group.n > 0
+    } else {
+        false
+    }
     NcScaffold(
         snackState = snackState,
         modifier = Modifier.navigationBarsPadding(),
@@ -232,13 +239,14 @@ fun FreeGroupWalletScreen(
                     .fillMaxWidth()
                     .padding(16.dp),
                 onClick = {
-                    if (state.signers.any { it?.name == KEY_NOT_SYNCED_NAME }) {
+                    val signers = if (isInReplace) state.replaceSigners else state.signers
+                    if (signers.any { it?.name == KEY_NOT_SYNCED_NAME }) {
                         showKeyNotSynced = true
                     } else {
                         onContinueClicked(state.group!!)
                     }
                 },
-                enabled = state.group != null && state.signers.count { it != null } == state.group.n && state.group.n > 0,
+                enabled = isButtonEnabled,
             ) {
                 if (state.group != null && state.group.replaceWalletId.isNotEmpty()) {
                     Text(text = stringResource(id = R.string.nc_continue_to_create_a_new_wallet))
@@ -282,7 +290,6 @@ fun FreeGroupWalletScreen(
                 }
 
                 var colorIndex = 0
-                val isInReplace = !state.group?.replaceWalletId.isNullOrEmpty()
                 itemsIndexed(state.signers) { index, signer ->
                     FreeAddKeyCard(
                         index = index,

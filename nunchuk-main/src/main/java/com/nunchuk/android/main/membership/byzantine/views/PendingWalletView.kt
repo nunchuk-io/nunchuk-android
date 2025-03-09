@@ -100,8 +100,9 @@ fun PendingWalletView(
     onSendClick: () -> Unit = {},
     onReceiveClick: () -> Unit = {},
     onOpenFreeGroupWallet: (GroupSandbox) -> Unit = {},
+    isDeprecatedGroupWallet: Boolean = false,
 ) {
-    val isLimitAccess = isLimitAccess(group, role, walletStatus)
+    val isLimitAccess = isDeprecatedGroupWallet || isLimitAccess(group, role, walletStatus)
     Column(
         modifier = Modifier
             .clip(shape = RoundedCornerShape(8.dp))
@@ -195,7 +196,7 @@ fun PendingWalletView(
                     onDeny = onDeny
                 )
             }
-        } else if (isAssistedWallet || walletStatus == WalletStatus.LOCKED.name) {
+        } else if (isAssistedWallet || (walletStatus == WalletStatus.LOCKED.name && !isSandboxWallet)) {
             Row(
                 modifier = Modifier
                     .clickable(

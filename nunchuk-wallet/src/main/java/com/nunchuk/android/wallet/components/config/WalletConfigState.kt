@@ -39,4 +39,5 @@ data class WalletConfigState(
     val assistedWallet: AssistedWalletBrief? = null,
     val group: ByzantineGroup? = null,
     val isGroupSandboxWallet: Boolean = false,
+    val isDeprecatedGroupWallet: Boolean = false
 )

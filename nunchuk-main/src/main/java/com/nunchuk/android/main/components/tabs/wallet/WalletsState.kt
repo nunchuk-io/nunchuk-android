@@ -61,7 +61,8 @@ internal data class WalletsState(
     val homeDisplaySetting: HomeDisplaySetting = HomeDisplaySetting(),
     val isLeaveRoom: Boolean = false,
     val pendingGroupSandboxes: List<GroupSandbox> = mutableListOf(),
-    val groupSandboxWalletIds : Set<String> = emptySet()
+    val groupSandboxWalletIds : Set<String> = emptySet(),
+    val deprecatedGroupWalletIds : Set<String> = emptySet(),
 )
 
 internal sealed class WalletsEvent {

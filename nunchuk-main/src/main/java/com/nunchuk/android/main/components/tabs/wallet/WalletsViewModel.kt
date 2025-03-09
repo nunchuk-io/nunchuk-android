@@ -89,6 +89,7 @@ import com.nunchuk.android.usecase.byzantine.SyncGroupWalletsUseCase
 import com.nunchuk.android.usecase.campaign.GetCurrentCampaignUseCase
 import com.nunchuk.android.usecase.campaign.GetLocalCurrentCampaignUseCase
 import com.nunchuk.android.usecase.campaign.GetLocalReferrerCodeUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetDeprecatedGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetPendingGroupsSandboxUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
@@ -166,6 +167,7 @@ internal class WalletsViewModel @Inject constructor(
     private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
     private val joinFreeGroupWalletByIdUseCase: JoinFreeGroupWalletByIdUseCase,
     private val deeplinkHolder: DeeplinkHolder,
+    private val getDeprecatedGroupWalletsUseCase: GetDeprecatedGroupWalletsUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -181,7 +183,7 @@ internal class WalletsViewModel @Inject constructor(
     private var isRetrievingData = AtomicBoolean(false)
     private var isRetrievingAlert = AtomicBoolean(false)
     private var isRetrievingKeyHealthStatus = AtomicBoolean(false)
-    private var loadGroupWalletJob : Job? = null
+    private var loadGroupWalletJob: Job? = null
 
     private var walletsRequestKey = ""
 
@@ -354,7 +356,8 @@ internal class WalletsViewModel @Inject constructor(
     private fun listenGroupDelete() {
         viewModelScope.launch {
             GroupDeleteListener.groupDeleteFlow.collect { groupId ->
-                val pendingGroupSandboxes = getState().pendingGroupSandboxes.filter { it.id != groupId }
+                val pendingGroupSandboxes =
+                    getState().pendingGroupSandboxes.filter { it.id != groupId }
                 updateState { copy(pendingGroupSandboxes = pendingGroupSandboxes) }
                 mapGroupWalletUi()
             }
@@ -374,13 +377,19 @@ internal class WalletsViewModel @Inject constructor(
                 getGroupWalletsUseCase(Unit).getOrNull().orEmpty()
             }
 
+            val deprecatedGroupWalletsDeferred = async {
+                getDeprecatedGroupWalletsUseCase(Unit).getOrNull().orEmpty()
+            }
+
             val pendingWallets = pendingWalletsDeferred.await()
             val groupSandboxWallets = groupSandboxWalletsDeferred.await().map { it.id }.toSet()
-            Timber.d("pendingWallets: $pendingWallets")
+            val deprecatedGroupWalletIds = deprecatedGroupWalletsDeferred.await().toSet()
+            Timber.d("deprecatedGroupWalletIds: $deprecatedGroupWalletIds")
             updateState {
                 copy(
                     pendingGroupSandboxes = pendingWallets.filter { !it.finalized },
-                    groupSandboxWalletIds = groupSandboxWallets
+                    groupSandboxWalletIds = groupSandboxWallets,
+                    deprecatedGroupWalletIds = deprecatedGroupWalletIds
                 )
             }
 

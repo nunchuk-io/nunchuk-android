@@ -53,4 +53,5 @@ data class WalletDetailsState(
     val unreadMessagesCount: Int = 0,
     val uid: String = "",
     val replaceGroups: Map<String, Boolean> = emptyMap(),
+    val isDeprecatedGroupWallet: Boolean = false,
 )

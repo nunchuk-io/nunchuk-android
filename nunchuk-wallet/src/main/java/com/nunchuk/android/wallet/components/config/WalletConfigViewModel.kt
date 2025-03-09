@@ -59,6 +59,7 @@ import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetDeprecatedGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
 import com.nunchuk.android.usecase.membership.ExportCoinControlBIP329UseCase
 import com.nunchuk.android.usecase.membership.ExportTxCoinControlUseCase
@@ -121,6 +122,7 @@ internal class WalletConfigViewModel @Inject constructor(
     private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
     private val getWalletBsmsUseCase: GetWalletBsmsUseCase,
+    private val getDeprecatedGroupWalletsUseCase: GetDeprecatedGroupWalletsUseCase,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletConfigState())
@@ -161,6 +163,11 @@ internal class WalletConfigViewModel @Inject constructor(
                 _state.update {
                     it.copy(isGroupSandboxWallet = wallets.any { wallet -> wallet.id == walletId })
                 }
+            }
+        }
+        viewModelScope.launch {
+            getDeprecatedGroupWalletsUseCase(Unit).onSuccess { deprecatedWallets ->
+                _state.update { it.copy(isDeprecatedGroupWallet = deprecatedWallets.any { it == walletId }) }
             }
         }
     }
@@ -461,7 +468,8 @@ internal class WalletConfigViewModel @Inject constructor(
     fun saveBSMSToLocal() {
         viewModelScope.launch {
             getWalletBsmsUseCase(_state.value.walletExtended.wallet).onSuccess {
-                val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params("${walletId}.bsms", it))
+                val result =
+                    saveLocalFileUseCase(SaveLocalFileUseCase.Params("${walletId}.bsms", it))
                 _event.emit(WalletConfigEvent.SaveLocalFile(result.isSuccess))
             }
         }

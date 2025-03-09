@@ -462,7 +462,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                     R.color.nc_beeswax_tint
                 )
             )
-        } else if (state.walletStatus == WalletStatus.REPLACED.name || state.walletStatus == WalletStatus.LOCKED.name) {
+        } else if (state.walletStatus == WalletStatus.REPLACED.name || state.walletStatus == WalletStatus.LOCKED.name || state.isDeprecatedGroupWallet) {
             val color = ContextCompat.getColor(requireContext(), R.color.nc_grey_dark_color)
             binding.statusBarBackground.setBackgroundColor(color)
             requireActivity().window.statusBarColor = color

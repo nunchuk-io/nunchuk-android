@@ -65,7 +65,7 @@ internal fun WalletConfigView(
     openWalletConfig: (SignerModel) -> Unit = {},
 ) {
     val wallet = state.walletExtended.wallet
-    val isLimitAccess = isLimitAccess(state.group, state.role, state.assistedWallet?.status)
+    val isLimitAccess = state.isDeprecatedGroupWallet || isLimitAccess(state.group, state.role, state.assistedWallet?.status)
     val isTaproot = state.walletExtended.wallet.addressType.isTaproot()
     val totalRequireSigns = state.walletExtended.wallet.totalRequireSigns
     NunchukTheme {

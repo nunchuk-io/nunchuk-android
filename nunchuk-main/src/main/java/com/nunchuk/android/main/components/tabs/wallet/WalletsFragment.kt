@@ -618,6 +618,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         val useLargeFont = state.homeDisplaySetting.useLargeFont
         val hideWalletDetail = state.walletSecuritySetting.hideWalletDetail
         val assistedWallets = state.assistedWallets.associateBy { it.localId }
+        val deprecatedGroupWalletIds = state.deprecatedGroupWalletIds
         binding.walletEmpty.isVisible = groupWalletUis.isEmpty()
         binding.pendingWallet.setContent {
             NunchukTheme {
@@ -685,7 +686,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                             },
                             onOpenFreeGroupWallet = {
                                 FreeGroupWalletActivity.start(requireActivity(), groupId = it.id)
-                            }
+                            },
+                            isDeprecatedGroupWallet = deprecatedGroupWalletIds.contains(it.wallet?.wallet?.id)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
