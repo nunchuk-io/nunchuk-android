@@ -28,7 +28,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -204,10 +203,9 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         }
 
         binding.chatView.setContent {
-            val state by viewModel.state.observeAsState()
-            if (state == null) return@setContent
-            GroupWalletChatView(messages = state!!.groupChatMessages,
-                unreadCount = state!!.unreadMessagesCount,
+            val state by viewModel.state.asFlow().collectAsStateWithLifecycle(WalletDetailsState())
+            GroupWalletChatView(messages = state.groupChatMessages,
+                unreadCount = state.unreadMessagesCount,
                 onSendMessage = {
                     viewModel.sendMessage(it)
                 }, onOpenChat = {
