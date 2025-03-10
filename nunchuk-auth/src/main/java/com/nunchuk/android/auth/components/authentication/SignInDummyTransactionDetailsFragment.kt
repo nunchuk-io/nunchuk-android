@@ -103,6 +103,7 @@ class SignInDummyTransactionDetailsFragment :
     }
 
     override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
         when (option.type) {
             TransactionOption.EXPORT_TRANSACTION.ordinal -> showExportTransactionOptions()
             TransactionOption.IMPORT_TRANSACTION.ordinal -> showImportTransactionOptions()
