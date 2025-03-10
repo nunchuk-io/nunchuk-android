@@ -183,7 +183,7 @@ private fun KeyNotAddedView(
                     height = 36.dp,
                     onClick = onAddClicked,
                 ) {
-                    Text(text = stringResource(id = R.string.nc_add_key))
+                    Text(text = stringResource(id = R.string.nc_add))
                 }
             }
         }
