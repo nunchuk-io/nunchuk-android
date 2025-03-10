@@ -12,6 +12,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.widget.NCToastMessage
 
 abstract class BaseShareSaveFileFragment<Binding : ViewBinding> : BaseFragment<Binding>(),
@@ -67,6 +68,7 @@ abstract class BaseShareSaveFileFragment<Binding : ViewBinding> : BaseFragment<B
     }
 
     protected fun showSaveFileState(isSuccess: Boolean) {
+        hideLoading()
         if (isSuccess) {
             NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_save_file_success))
         } else {

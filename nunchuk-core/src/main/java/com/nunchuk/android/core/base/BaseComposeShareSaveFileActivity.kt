@@ -66,6 +66,7 @@ abstract class BaseComposeShareSaveFileActivity: BaseComposeActivity(),
     }
 
     protected fun showSaveFileState(isSuccess: Boolean) {
+        hideLoading()
         if (isSuccess) {
             NCToastMessage(this).showMessage(getString(R.string.nc_save_file_success))
         } else {
