@@ -101,7 +101,6 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                     LaunchedEffect(state.finalizeGroup) {
                         val finalizeGroup = state.finalizeGroup
                         if (finalizeGroup != null) {
-                            // TODO check balance
                             navController.navigateCreateWalletSuccessScreen(
                                 replacedWalletId = finalizeGroup.replaceWalletId,
                                 walletId = finalizeGroup.walletId

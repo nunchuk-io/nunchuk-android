@@ -21,7 +21,6 @@ import com.nunchuk.android.listener.GroupDeleteListener
 import com.nunchuk.android.listener.GroupOnlineListener
 import com.nunchuk.android.listener.GroupSandboxListener
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity.Companion.EXTRA_REPLACE_WALLET_ID
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
@@ -251,7 +250,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             viewModelScope.launch {
                 _uiState.update { it.copy(isRefreshing = true) }
                 getGroupSandboxUseCase(groupId).onSuccess { groupSandbox ->
-                    savedStateHandle[EXTRA_REPLACE_WALLET_ID] = groupSandbox.replaceWalletId
+                    savedStateHandle[FreeGroupWalletActivity.EXTRA_REPLACE_WALLET_ID] = groupSandbox.replaceWalletId
                     updateGroupSandbox(groupSandbox)
                 }.onFailure {
                     Timber.e("Failed to get group sandbox $it")

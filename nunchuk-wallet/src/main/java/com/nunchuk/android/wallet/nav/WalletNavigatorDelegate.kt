@@ -63,7 +63,14 @@ interface WalletNavigatorDelegate : WalletNavigator {
         decoyPin: String, groupWalletId: String, hasGroupSigner: Boolean,
         walletConfigViewOnlyDataComposer: WalletConfigViewOnlyDataComposer?
     ) {
-        AddWalletActivity.start(activityContext, launcher = launcher, decoyPin, groupWalletId, hasGroupSigner, walletConfigViewOnlyDataComposer)
+        AddWalletActivity.start(
+            activityContext = activityContext,
+            launcher = launcher,
+            decoyPin = decoyPin,
+            groupWalletId = groupWalletId,
+            hasGroupSigner = hasGroupSigner,
+            viewOnlyComposer = walletConfigViewOnlyDataComposer
+        )
     }
 
     override fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean, isHideAddKeyDialog: Boolean) {

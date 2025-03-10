@@ -290,7 +290,7 @@ private fun TypeOption(
 ) {
     Row(
         modifier = Modifier
-            .alpha(if (isViewOnly) 0.4f else 1f)
+            .alpha(if (isViewOnly && !selected) 0.4f else 1f)
             .background(
                 color = if (selected) MaterialTheme.colorScheme.fillDenim2 else MaterialTheme.colorScheme.surface,
                 shape = if (isEndItem.not()) RoundedCornerShape(8.dp) else RoundedCornerShape(

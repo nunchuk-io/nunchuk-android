@@ -77,7 +77,7 @@ class AddWalletActivity : BaseComposeActivity() {
             AddWalletView(
                 state = state,
                 viewOnlyComposer = viewOnlyComposer,
-                isViewConfigOnly = viewOnlyComposer != null,
+                isViewConfigOnly = viewOnlyComposer != null || !state.groupSandbox?.replaceWalletId.isNullOrEmpty(),
                 isEditGroupWallet = groupWalletId.isNotEmpty(),
                 onSelectAddressType = {
                     if (groupWalletId.isNotEmpty()) {
