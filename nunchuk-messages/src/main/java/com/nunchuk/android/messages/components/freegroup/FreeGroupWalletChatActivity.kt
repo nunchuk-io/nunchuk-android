@@ -135,6 +135,13 @@ class FreeGroupWalletChatActivity : BaseComposeActivity() {
                     putExtra(EXTRA_WALLET_ID, walletId)
                 })
         }
+
+        fun buildIntent(context: Context, walletId: String): Intent {
+            return Intent(context, FreeGroupWalletChatActivity::class.java)
+                .apply {
+                    putExtra(EXTRA_WALLET_ID, walletId)
+                }
+        }
     }
 }
 

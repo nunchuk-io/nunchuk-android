@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.core.domain
 
+import com.google.firebase.messaging.FirebaseMessaging
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.account.PrimaryKeySignerInfoHolder
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -26,7 +27,11 @@ import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
+import com.nunchuk.android.usecase.free.groupwallet.NotificationDeviceUnregisterUseCase
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class ClearInfoSessionUseCase @Inject constructor(
@@ -36,6 +41,8 @@ class ClearInfoSessionUseCase @Inject constructor(
     private val primaryKeySignerInfoHolder: PrimaryKeySignerInfoHolder,
     private val ncDataStore: NcDataStore,
     private val premiumWalletRepository: PremiumWalletRepository,
+    private val notificationDeviceUnregisterUseCase: NotificationDeviceUnregisterUseCase,
+    private val applicationScope: CoroutineScope
 ) : UseCase<Unit, Unit>(dispatcher) {
 
     override suspend fun execute(parameters: Unit) {
@@ -44,5 +51,9 @@ class ClearInfoSessionUseCase @Inject constructor(
         ncDataStore.clear()
         primaryKeySignerInfoHolder.clear()
         premiumWalletRepository.clearLocalData()
+        applicationScope.launch {
+            val token = FirebaseMessaging.getInstance().token.await()
+            notificationDeviceUnregisterUseCase(NotificationDeviceUnregisterUseCase.Param(token))
+        }
     }
 }

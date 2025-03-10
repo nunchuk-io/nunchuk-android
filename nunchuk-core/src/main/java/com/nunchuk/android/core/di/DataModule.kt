@@ -19,8 +19,32 @@
 
 package com.nunchuk.android.core.di
 
-import com.nunchuk.android.core.repository.*
-import com.nunchuk.android.repository.*
+import com.nunchuk.android.core.repository.BannerRepositoryImpl
+import com.nunchuk.android.core.repository.BtcRepository
+import com.nunchuk.android.core.repository.BtcRepositoryImpl
+import com.nunchuk.android.core.repository.CampaignsRepositoryImpl
+import com.nunchuk.android.core.repository.DummyTransactionRepositoryImpl
+import com.nunchuk.android.core.repository.GroupWalletRepositoryImpl
+import com.nunchuk.android.core.repository.HandledEventRepositoryImpl
+import com.nunchuk.android.core.repository.KeyRepositoryImpl
+import com.nunchuk.android.core.repository.NotificationRepositoryImpl
+import com.nunchuk.android.core.repository.PremiumWalletRepositoryImpl
+import com.nunchuk.android.core.repository.RecurringPaymentRepositoryImpl
+import com.nunchuk.android.core.repository.SettingRepositoryImpl
+import com.nunchuk.android.core.repository.SharedWalletRepositoryImpl
+import com.nunchuk.android.core.repository.TransactionRepositoryImpl
+import com.nunchuk.android.repository.BannerRepository
+import com.nunchuk.android.repository.CampaignsRepository
+import com.nunchuk.android.repository.DummyTransactionRepository
+import com.nunchuk.android.repository.GroupWalletRepository
+import com.nunchuk.android.repository.HandledEventRepository
+import com.nunchuk.android.repository.KeyRepository
+import com.nunchuk.android.repository.NotificationRepository
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.repository.RecurringPaymentRepository
+import com.nunchuk.android.repository.SettingRepository
+import com.nunchuk.android.repository.SharedWalletRepository
+import com.nunchuk.android.repository.TransactionRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -53,6 +77,10 @@ internal interface DataModule {
     @Binds
     @Singleton
     fun bindBannerRepository(repository: BannerRepositoryImpl): BannerRepository
+
+    @Binds
+    @Singleton
+    fun bindNotificationRepository(repository: NotificationRepositoryImpl): NotificationRepository
 
     @Binds
     @Singleton

@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.network
 
 import com.nunchuk.android.core.network.ApiConstant.HEADER_ACCEPT
+import com.nunchuk.android.core.network.ApiConstant.HEADER_APP_ID
 import com.nunchuk.android.core.network.ApiConstant.HEADER_APP_VERSION
 import com.nunchuk.android.core.network.ApiConstant.HEADER_CONTENT_TYPE
 import com.nunchuk.android.core.network.ApiConstant.HEADER_CONTENT_TYPE_VALUE
@@ -44,6 +45,7 @@ class HeaderInterceptor @Inject constructor(
             .validHeader(HEADER_OS_VERSION, headerProvider.getOsVersion())
             .validHeader(HEADER_OS_NAME, headerProvider.getOSName())
             .validHeader(HEADER_DEVICE_CLASS, headerProvider.getDeviceClass())
+            .validHeader(HEADER_APP_ID, headerProvider.getApplicationId())
             .validHeader(HEADER_CONTENT_TYPE, HEADER_CONTENT_TYPE_VALUE)
             .validHeader(HEADER_ACCEPT, "application/json;charset=UTF-8")
             .validHeader(HEADER_TOKEN_TYPE, "Bearer " + headerProvider.getAccessToken())

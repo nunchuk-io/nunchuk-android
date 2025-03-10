@@ -20,7 +20,6 @@
 package com.nunchuk.android.app.network
 
 import android.os.Build.VERSION
-import android.os.Build.VERSION_CODES
 import com.nunchuk.android.BuildConfig
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.network.HeaderProvider
@@ -47,5 +46,6 @@ class HeaderProviderImpl @Inject constructor(
     override fun getAppVersion() = BuildConfig.VERSION_NAME
 
     override fun getAccessToken() = accountManager.getAccount().token
+    override fun getApplicationId(): String = BuildConfig.APPLICATION_ID
 
 }

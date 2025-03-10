@@ -55,5 +55,18 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
                 }
             )
         }
+
+        fun buildIntent(activityContext: Context, walletId: String): Intent {
+            return Intent(
+                activityContext,
+                WalletDetailsActivity::class.java
+            ).apply {
+                putExtras(
+                    WalletDetailsFragmentArgs(
+                        walletId = walletId
+                    ).toBundle()
+                )
+            }
+        }
     }
 }

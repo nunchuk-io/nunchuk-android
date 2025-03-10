@@ -26,9 +26,11 @@ import com.nunchuk.android.main.MainActivity
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.messages.components.detail.RoomDetailActivity
 import com.nunchuk.android.messages.components.detail.RoomDetailFragmentArgs
+import com.nunchuk.android.messages.components.freegroup.FreeGroupWalletChatActivity
 import com.nunchuk.android.notifications.PushNotificationIntentProvider
 import com.nunchuk.android.transaction.components.details.TransactionDetailsArgs
 import com.nunchuk.android.wallet.components.alias.AliasActivity
+import com.nunchuk.android.wallet.components.details.WalletDetailsActivity
 import javax.inject.Inject
 
 class PushNotificationIntentProviderImpl @Inject constructor(
@@ -66,5 +68,13 @@ class PushNotificationIntentProviderImpl @Inject constructor(
 
     override fun getAliasIntent(walletId: String): Intent {
         return AliasActivity.createIntent(context, walletId)
+    }
+
+    override fun getWalletDetailIntent(walletId: String): Intent {
+        return WalletDetailsActivity.buildIntent(context, walletId)
+    }
+
+    override fun getFreeGroupWalletChatIntent(walletId: String): Intent {
+        return FreeGroupWalletChatActivity.buildIntent(context, walletId)
     }
 }

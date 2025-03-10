@@ -25,11 +25,13 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.TaskStackBuilder
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.firebase.messaging.FirebaseMessaging
@@ -68,31 +70,41 @@ class PushNotificationHelper @Inject constructor(
 }
 
 @SuppressLint("InlinedApi")
-fun Context.showNotification(data: PushNotificationData) {
+fun Context.showNotification(data: PushNotificationData, mainIntent: Intent? = null) {
     val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-    builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-    builder.setSmallIcon(R.drawable.ic_logo_notification)
-    builder.setContentTitle(data.title)
-    builder.setContentText(data.message)
-    builder.setAutoCancel(true)
+        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        .setSmallIcon(R.drawable.ic_logo_notification)
+        .setContentTitle(data.title)
+        .setContentText(data.message)
+        .setAutoCancel(true)
 
+    // Configure the intent stack: MainActivity -> Target Activity
+    val targetIntent = data.intent
+
+    // Build the task stack to ensure MainActivity is the root
+    val taskBuilder = TaskStackBuilder.create(this)
+    mainIntent?.let {
+        taskBuilder.addNextIntentWithParentStack(mainIntent)
+    }
+    taskBuilder.addNextIntent(targetIntent)
+    val requestCode = (System.currentTimeMillis() % 10000).toInt()
+
+    val resultPendingIntent = taskBuilder.getPendingIntent(
+        requestCode,
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+    )
+    builder.setContentIntent(resultPendingIntent)
     val notificationManager = NotificationManagerCompat.from(applicationContext)
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         builder.priority = NotificationManager.IMPORTANCE_HIGH
-        notificationManager.createNotificationChannel(
-            NotificationChannel(
-                CHANNEL_ID,
-                CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH
-            )
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            CHANNEL_NAME,
+            NotificationManager.IMPORTANCE_HIGH
         )
-        builder.setChannelId(CHANNEL_ID)
+        notificationManager.createNotificationChannel(channel)
     }
-
-    val requestCode = (System.currentTimeMillis() % 10000).toInt()
-    val resultPendingIntent =
-        PendingIntent.getActivity(this, requestCode, data.intent, PendingIntent.FLAG_IMMUTABLE)
-    builder.setContentIntent(resultPendingIntent)
 
     if (ActivityCompat.checkSelfPermission(
             this,

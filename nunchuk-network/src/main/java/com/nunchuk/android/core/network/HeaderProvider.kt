@@ -37,5 +37,6 @@ interface HeaderProvider {
     fun getOSName() = HEADER_OS_NAME_VALUE
 
     fun getDeviceClass() = HEADER_DEVICE_CLASS_VALUE
+    fun getApplicationId(): String
 
 }

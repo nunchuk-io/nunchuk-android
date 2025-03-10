@@ -64,6 +64,7 @@ import com.nunchuk.android.notifications.PushNotificationManager
 import com.nunchuk.android.usecase.BackupDataUseCase
 import com.nunchuk.android.usecase.EnableAutoBackupUseCase
 import com.nunchuk.android.usecase.RegisterAutoBackupUseCase
+import com.nunchuk.android.usecase.free.groupwallet.NotificationDeviceRegisterUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -114,6 +115,7 @@ internal class MainActivityViewModel @Inject constructor(
     private val getLocalBtcPriceFlowUseCase: GetLocalBtcPriceFlowUseCase,
     private val sessionHolder: SessionHolder,
     private val accountManager: AccountManager,
+    private val notificationDeviceRegisterUseCase: NotificationDeviceRegisterUseCase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<Unit, MainAppEvent>() {
 
@@ -557,8 +559,12 @@ internal class MainActivityViewModel @Inject constructor(
     }
 
     fun onTokenRetrieved(token: String) {
+        viewModelScope.launch {
+            notificationDeviceRegisterUseCase(NotificationDeviceRegisterUseCase.Param(token))
+        }
         notificationManager.enqueueRegisterPusherWithFcmKey(token)
     }
+
 
     fun getSetupData(): Pair<String, String> {
         val account = accountManager.getAccount()

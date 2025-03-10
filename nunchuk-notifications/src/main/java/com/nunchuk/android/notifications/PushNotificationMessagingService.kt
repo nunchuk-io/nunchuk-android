@@ -54,6 +54,7 @@ import com.nunchuk.android.messages.util.isWalletInheritancePlanningRequestDenie
 import com.nunchuk.android.messages.util.lastMessageContent
 import com.nunchuk.android.messages.util.lastMessageSender
 import com.nunchuk.android.usecase.SaveHandledEventUseCase
+import com.nunchuk.android.usecase.free.groupwallet.NotificationDeviceRegisterUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.trySafe
@@ -96,6 +97,12 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
     @Inject
     lateinit var handlePushMessageUseCase: HandlePushMessageUseCase
 
+    @Inject
+    lateinit var notificationDeviceRegisterUseCase: NotificationDeviceRegisterUseCase
+
+    @Inject
+    lateinit var groupWalletPushNotificationManager: GroupWalletPushNotificationManager
+
     private val mUIHandler by lazy {
         Handler(Looper.getMainLooper())
     }
@@ -105,26 +112,33 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
             return
         }
 
-        val event = getEvent(remoteMessage.data)?.also { event ->
-            applicationScope.launch {
-                runCatching {
-                    handlePushMessageUseCase(event)
-                }
-            }
-        }
+        val data = remoteMessage.data
 
-        mUIHandler.post {
-            parseMessageData(event)?.let(::showNotification)
-            if (ProcessLifecycleOwner.get().isAtLeastStarted().not() && event != null) {
-                applicationScope.launch {
-                    saveHandledEventUseCase.invoke(event.eventId)
-                }
-            }
-        }
+        applicationScope.launch {
+            val handledByGroupWallet = groupWalletPushNotificationManager.parseNotification(data)?.let { notification ->
+                showNotification(notification, intentProvider.getMainIntent())
+                true
+            } ?: false
 
-        mUIHandler.post {
-            if (!ProcessLifecycleOwner.get().isAtLeastStarted()) {
-                onMessageReceivedInternal(remoteMessage.data)
+            if (!handledByGroupWallet) {
+                val event = getEvent(data)?.also { event ->
+                    runCatching {
+                        handlePushMessageUseCase(event)
+                    }
+                }
+
+                mUIHandler.post {
+                    parseMessageData(event)?.let(::showNotification)
+                    if (ProcessLifecycleOwner.get().isAtLeastStarted().not() && event != null) {
+                        applicationScope.launch {
+                            saveHandledEventUseCase.invoke(event.eventId)
+                        }
+                    }
+                }
+
+                if (!ProcessLifecycleOwner.get().isAtLeastStarted()) {
+                    onMessageReceivedInternal(remoteMessage.data)
+                }
             }
         }
     }
@@ -132,6 +146,13 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
     override fun onNewToken(refreshedToken: String) {
         try {
             notificationManager.enqueueRegisterPusherWithFcmKey(refreshedToken)
+            applicationScope.launch {
+                notificationDeviceRegisterUseCase(
+                    NotificationDeviceRegisterUseCase.Param(
+                        refreshedToken
+                    )
+                )
+            }
         } catch (t: Throwable) {
             t.printStackTrace()
         }
@@ -339,7 +360,13 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
             )
         }
 
-        else -> defaultNotificationData(localId, getWalletId(), getGroupId(), getTransactionId(), getLastMessageContentSafe().orEmpty())
+        else -> defaultNotificationData(
+            localId,
+            getWalletId(),
+            getGroupId(),
+            getTransactionId(),
+            getLastMessageContentSafe().orEmpty()
+        )
     }
 
     private fun getActiveSession() = if (sessionHolder.hasActiveSession()) {
@@ -351,7 +378,13 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
     private fun getLastSession(): Session? =
         trySafe(matrix.authenticationService()::getLastAuthenticatedSession)
 
-    private fun defaultNotificationData(localId: Long, walletId: String?, groupId: String?, transactionId: String?, message: String) =
+    private fun defaultNotificationData(
+        localId: Long,
+        walletId: String?,
+        groupId: String?,
+        transactionId: String?,
+        message: String
+    ) =
         if (!ProcessLifecycleOwner.get().isAtLeastStarted()) {
             PushNotificationData(
                 id = localId,

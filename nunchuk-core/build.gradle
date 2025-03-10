@@ -44,6 +44,7 @@ dependencies {
     implementation("net.java.dev.jna:jna:5.14.0@aar")
     implementation "androidx.biometric:biometric:1.1.0"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
+    implementation 'com.google.firebase:firebase-messaging-ktx:23.2.0'
 
     testImplementation otherTestDeps.junit
 }
