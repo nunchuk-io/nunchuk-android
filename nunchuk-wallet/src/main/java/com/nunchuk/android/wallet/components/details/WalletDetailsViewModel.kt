@@ -32,6 +32,7 @@ import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -40,6 +41,8 @@ import com.nunchuk.android.listener.GroupReplaceListener
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.HistoryPeriod
+import com.nunchuk.android.model.Result
+import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
@@ -47,6 +50,9 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.wallet.WalletStatus
+import com.nunchuk.android.type.ExportFormat
+import com.nunchuk.android.usecase.CreateShareFileUseCase
+import com.nunchuk.android.usecase.ExportWalletUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.usecase.GetGlobalGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.GetGroupWalletConfigUseCase
@@ -56,8 +62,10 @@ import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
 import com.nunchuk.android.usecase.NewAddressUseCase
+import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SetGroupWalletLastReadMessageUseCase
 import com.nunchuk.android.usecase.SetSelectedWalletUseCase
+import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.free.groupwallet.AcceptReplaceGroupUseCase
@@ -66,13 +74,16 @@ import com.nunchuk.android.usecase.free.groupwallet.GetDeprecatedGroupWalletsUse
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetReplaceGroupsUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.GroupChatManager
 import com.nunchuk.android.utils.onException
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.ImportPSBTSuccess
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.Loading
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.PaginationTransactions
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.SaveLocalFile
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.SendMoneyEvent
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.ShareBSMS
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.UpdateUnusedAddress
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.WalletDetailsError
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -123,6 +134,11 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val acceptReplaceGroupUseCase: AcceptReplaceGroupUseCase,
     private val declineReplaceGroupUseCase: DeclineReplaceGroupUseCase,
     private val getDeprecatedGroupWalletsUseCase: GetDeprecatedGroupWalletsUseCase,
+    private val createShareFileUseCase: CreateShareFileUseCase,
+    private val exportWalletUseCase: ExportWalletUseCase,
+    private val saveLocalFileUseCase: SaveLocalFileUseCase,
+    private val updateWalletUseCase: UpdateWalletUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -439,7 +455,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     }
 
     fun paginateTransactions() =
-        Pager(config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
+        Pager(
+            config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
             pagingSourceFactory = {
                 TransactionPagingSource(
                     transactions = transactions.toList(),
@@ -528,7 +545,7 @@ internal class WalletDetailsViewModel @Inject constructor(
         get() = getState().groupId
 
     val isLockedAssistedWallet: Boolean
-        get() = getState().walletStatus == WalletStatus.LOCKED.name && !getState().isFreeGroupWallet
+        get() = getState().walletStatus == WalletStatus.LOCKED.name && getState().isFreeGroupWallet == false
 
     fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(args.walletId)
 
@@ -573,6 +590,66 @@ internal class WalletDetailsViewModel @Inject constructor(
                 }
             }.onFailure {
                 setEvent(WalletDetailsError(it.readableMessage()))
+            }
+        }
+    }
+
+    fun handleExportBSMS(isShareFile: Boolean) {
+        viewModelScope.launch {
+            val walletId = getWallet().id
+            when (val event = createShareFileUseCase.execute("${walletId}.bsms")) {
+                is Success -> exportWalletToFile(walletId, event.data, isShareFile)
+                is Result.Error -> setEvent(WalletDetailsError(event.exception.messageOrUnknownError()))
+            }
+        }
+    }
+
+    private fun exportWalletToFile(walletId: String, filePath: String, isShareFile: Boolean) {
+        viewModelScope.launch {
+            when (val event = exportWalletUseCase.execute(walletId, filePath, ExportFormat.BSMS)) {
+                is Success -> {
+                    if (isShareFile) {
+                        setEvent(ShareBSMS(filePath))
+                        markGroupWalletAsBackedUp()
+                    } else {
+                        saveBSMSToLocal(filePath)
+                    }
+                }
+
+                is Result.Error -> setEvent(WalletDetailsError(event.exception.messageOrUnknownError()))
+            }
+        }
+    }
+
+    fun saveBSMSToLocal(filePath: String) {
+        viewModelScope.launch {
+            val result = saveLocalFileUseCase(
+                SaveLocalFileUseCase.Params(
+                    fileName = "${getWallet().id}.bsms",
+                    filePath = filePath
+                )
+            )
+            setEvent(SaveLocalFile(result.isSuccess))
+            if (result.isSuccess) {
+                markGroupWalletAsBackedUp()
+            }
+        }
+    }
+
+    fun markGroupWalletAsBackedUp() {
+        viewModelScope.launch {
+            updateWalletUseCase(
+                UpdateWalletUseCase.Params(
+                    getWallet().copy(needBackup = false)
+                )
+            ).onSuccess {
+                updateState {
+                    copy(
+                        walletExtended = getState().walletExtended.copy(
+                            wallet = getWallet().copy(needBackup = false)
+                        )
+                    )
+                }
             }
         }
     }

@@ -581,7 +581,7 @@ internal class WalletsViewModel @Inject constructor(
                     keyStatus = getState().keyHealthStatus[wallet.wallet.id].orEmpty()
                         .associateBy { it.xfp },
                     signers = signers,
-                    isSandboxWallet = groupSandboxWalletIds.contains(wallet.wallet.id)
+                    isSandboxWallet = if (groupSandboxWalletIds.isEmpty()) null else groupSandboxWalletIds.contains(wallet.wallet.id)
                 )
                 if (group != null) {
                     val role = byzantineGroupUtils.getCurrentUserRole(group)

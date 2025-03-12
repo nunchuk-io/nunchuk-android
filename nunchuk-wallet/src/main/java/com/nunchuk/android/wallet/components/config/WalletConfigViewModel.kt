@@ -599,8 +599,7 @@ internal class WalletConfigViewModel @Inject constructor(
     fun isServerWallet() = assistedWalletManager.getBriefWallet(walletId) != null
 
     fun isReplacedOrLocked() = assistedWalletManager.getBriefWallet(walletId)
-        ?.let { it.status == WalletStatus.LOCKED.name || it.status == WalletStatus.REPLACED.name }
-        ?: false
+        ?.let { it.status == WalletStatus.LOCKED.name || it.status == WalletStatus.REPLACED.name } == true
 
     fun isShowDeleteWallet() = getState().isShowDeleteAssistedWallet || isAssistedWallet().not()
 
@@ -616,7 +615,7 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun getWalletName() = getState().walletExtended.wallet.name
 
-    fun isHotWalletNeedBackup() = getState().walletExtended.wallet.needBackup
+    fun isHotWalletNeedBackup() = getState().walletExtended.wallet.needBackup && getState().isGroupSandboxWallet.not()
 
     fun isSignerDeleted() = getState().signers.firstOrNull()?.type == SignerType.UNKNOWN
 

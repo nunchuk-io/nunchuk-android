@@ -33,6 +33,8 @@ sealed class WalletDetailsEvent {
     data class PaginationTransactions(val hasTransactions: Boolean = true) : WalletDetailsEvent()
     data object ImportPSBTSuccess : WalletDetailsEvent()
     data class OpenSetupGroupWallet(val groupId: String) : WalletDetailsEvent()
+    data class SaveLocalFile(val isSuccess: Boolean) : WalletDetailsEvent()
+    data class ShareBSMS(val filePath: String) : WalletDetailsEvent()
 }
 
 data class WalletDetailsState(
@@ -47,7 +49,7 @@ data class WalletDetailsState(
     val groupId: String? = null,
     val role: AssistedWalletRole = AssistedWalletRole.NONE,
     val groupChatMessages: List<FreeGroupMessage> = emptyList(),
-    val isFreeGroupWallet: Boolean = false,
+    val isFreeGroupWallet: Boolean? = null, // null for loading state
     val historyPeriods: List<HistoryPeriod> = emptyList(),
     val selectedHistoryPeriod: HistoryPeriod? = null,
     val unreadMessagesCount: Int = 0,

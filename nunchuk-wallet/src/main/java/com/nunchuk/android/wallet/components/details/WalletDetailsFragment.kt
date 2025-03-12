@@ -46,7 +46,7 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.groupchathistory.GroupChatHistoryArgs
 import com.nunchuk.android.core.groupchathistory.GroupChatHistoryFragment
@@ -54,7 +54,6 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.qr.convertToQRCode
-import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -88,6 +87,7 @@ import com.nunchuk.android.wallet.components.config.WalletConfigActivity
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.ImportPSBTSuccess
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.Loading
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.PaginationTransactions
+import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.SaveLocalFile
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.SendMoneyEvent
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.UpdateUnusedAddress
 import com.nunchuk.android.wallet.components.details.WalletDetailsEvent.WalletDetailsError
@@ -107,7 +107,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
+class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBinding>(),
     BottomSheetOptionListener {
 
     @Inject
@@ -141,12 +141,6 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     private fun closeScreen() {
         if (requireActivity() is WalletDetailsActivity) requireActivity().finish()
         else findNavController().popBackStack()
-    }
-
-    private val controller: IntentSharingController by lazy {
-        IntentSharingController.from(
-            requireActivity()
-        )
     }
 
     override fun onDestroy() {
@@ -204,7 +198,8 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
 
         binding.chatView.setContent {
             val state by viewModel.state.asFlow().collectAsStateWithLifecycle(WalletDetailsState())
-            GroupWalletChatView(messages = state.groupChatMessages,
+            GroupWalletChatView(
+                messages = state.groupChatMessages,
                 unreadCount = state.unreadMessagesCount,
                 onSendMessage = {
                     viewModel.sendMessage(it)
@@ -220,7 +215,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     private fun configureToolbar(state: WalletDetailsState) {
         val searchMenu = binding.toolbar.menu.findItem(R.id.menu_search)
         searchMenu.isVisible =
-            state.walletExtended.wallet.name.isNotEmpty() && state.isFreeGroupWallet.not()
+            state.walletExtended.wallet.name.isNotEmpty() && state.isFreeGroupWallet == false
         if (state.groupId.isNullOrEmpty()
                 .not() && state.walletStatus != WalletStatus.REPLACED.name
         ) {
@@ -235,10 +230,11 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.toolbar.menu.findItem(R.id.menu_more).isVisible =
             state.walletStatus != WalletStatus.LOCKED.name && viewModel.isFacilitatorAdmin()
                 .not() && viewModel.isEmptyTransaction().not()
-                    || state.isFreeGroupWallet
+                    || state.isFreeGroupWallet == true
     }
 
     override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
         when (option.type) {
             SheetOptionType.TYPE_IMPORT_TX -> showImportTransactionOption()
             SheetOptionType.TYPE_IMPORT_PSBT -> handleImportPSBT()
@@ -252,7 +248,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                             .sortedBy { it.id.toInt() },
                         historyPeriodIdSelected = viewModel.state.value?.selectedHistoryPeriod?.id
                             ?: "7",
-                        isFreeGroupWalletFlow = viewModel.isFreeGroupWallet(),
+                        isFreeGroupWalletFlow = viewModel.isFreeGroupWallet() == true,
                         walletId = args.walletId,
                         roomId = "",
                         groupId = ""
@@ -333,7 +329,25 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 activityContext = requireActivity(),
                 groupId = event.groupId
             )
+
+            is SaveLocalFile -> {
+                if (event.isSuccess) {
+                    NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_save_file_success))
+                } else {
+                    NCToastMessage(requireActivity()).showError(getString(R.string.nc_save_file_failed))
+                }
+            }
+
+            is WalletDetailsEvent.ShareBSMS -> controller.shareFile(event.filePath)
         }
+    }
+
+    override fun shareFile() {
+        viewModel.handleExportBSMS(true)
+    }
+
+    override fun saveFileToLocal() {
+        viewModel.handleExportBSMS(false)
     }
 
     private fun startPagination(hasTx: Boolean) {
@@ -425,11 +439,11 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
             if (state.isHasCoin && viewModel.isFacilitatorAdmin().not()) 1.0f else 0.7f
         binding.tvWalletWarning.isVisible = state.walletExtended.wallet.needBackup
         if (state.walletExtended.wallet.needBackup) {
-            handleNeedBackupWallet()
+            handleNeedBackupWallet(state.isFreeGroupWallet == true)
         }
-        binding.chatView.isVisible = state.isFreeGroupWallet
+        binding.chatView.isVisible = state.isFreeGroupWallet == true
 
-        if (state.isFreeGroupWallet) {
+        if (state.isFreeGroupWallet == true) {
             val layoutParams = binding.addressQR.layoutParams
             layoutParams.width = dpToPx(120)
             layoutParams.height = dpToPx(120)
@@ -445,7 +459,17 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
     }
 
     private fun handleWalletBackground(state: WalletDetailsState) {
-        if (state.walletExtended.wallet.needBackup) {
+        if (state.isFreeGroupWallet == true) {
+            binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_free_group_wallet_background)
+            requireActivity().window.statusBarColor =
+                ContextCompat.getColor(requireContext(), R.color.cl_2B74A9)
+            binding.cashAmount.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.nc_white_color
+                )
+            )
+        } else if (state.walletExtended.wallet.needBackup && state.isFreeGroupWallet != null) {
             binding.statusBarBackground.setBackgroundColor(
                 ContextCompat.getColor(
                     requireContext(),
@@ -476,16 +500,6 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 ContextCompat.getColor(
                     requireContext(),
                     R.color.nc_denim_tint_color
-                )
-            )
-        } else if (state.isFreeGroupWallet) {
-            binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_free_group_wallet_background)
-            requireActivity().window.statusBarColor =
-                ContextCompat.getColor(requireContext(), R.color.cl_2B74A9)
-            binding.cashAmount.setTextColor(
-                ContextCompat.getColor(
-                    requireContext(),
-                    R.color.nc_white_color
                 )
             )
         } else {
@@ -630,19 +644,23 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
         binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_rounded_whisper_background)
     }
 
-    private fun handleNeedBackupWallet() {
+    private fun handleNeedBackupWallet(isFreeGroupWallet: Boolean) {
         binding.tvWalletWarning.makeTextLink(
-            getString(R.string.nc_write_down_the_seed_pharse_warning),
+            if (isFreeGroupWallet) getString(R.string.nc_save_bsms_file_warning) else getString(R.string.nc_write_down_the_seed_pharse_warning),
             ClickAbleText(content = getString(R.string.nc_do_it_now), onClick = {
-                lifecycleScope.launch {
-                    viewModel.hasSigner(viewModel.getWallet().signers.first())
-                        .onSuccess {
-                            if (it) {
-                                showConfirmBackupDialog()
-                            } else {
-                                showHotKeyDeleted()
+                if (isFreeGroupWallet) {
+                    showSaveShareOption()
+                } else {
+                    lifecycleScope.launch {
+                        viewModel.hasSigner(viewModel.getWallet().signers.first())
+                            .onSuccess {
+                                if (it) {
+                                    showConfirmBackupDialog()
+                                } else {
+                                    showHotKeyDeleted()
+                                }
                             }
-                        }
+                    }
                 }
             })
         )
@@ -683,7 +701,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 R.string.nc_import_transaction
             )
         )
-        if (viewModel.isAssistedWallet || viewModel.isFreeGroupWallet()) {
+        if (viewModel.isAssistedWallet || viewModel.isFreeGroupWallet() == true) {
             options.add(
                 SheetOption(
                     SheetOptionType.TYPE_SEARCH_TX,
@@ -692,7 +710,7 @@ class WalletDetailsFragment : BaseFragment<FragmentWalletDetailBinding>(),
                 )
             )
         }
-        if (viewModel.isFreeGroupWallet()) {
+        if (viewModel.isFreeGroupWallet() == true) {
             options.add(
                 SheetOption(
                     SheetOptionType.TYPE_GROUP_CHAT_HISTORY,

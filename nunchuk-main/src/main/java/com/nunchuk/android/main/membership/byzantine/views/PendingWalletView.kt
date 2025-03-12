@@ -79,7 +79,7 @@ import com.skydoves.landscapist.glide.GlideImage
 fun PendingWalletView(
     group: ByzantineGroup? = null,
     sandbox: GroupSandbox? = null,
-    isSandboxWallet: Boolean = false,
+    isSandboxWallet: Boolean? = null,
     walletsExtended: WalletExtended? = null,
     hideWalletDetail: Boolean = false,
     isAssistedWallet: Boolean = false,
@@ -156,7 +156,7 @@ fun PendingWalletView(
                         role = role,
                         useLargeFont = useLargeFont,
                         walletStatus = walletStatus.orEmpty(),
-                        isSandboxWallet = isSandboxWallet
+                        isSandboxWallet = isSandboxWallet == true
                     )
                     if (showShortcuts) {
                         val allowShowShortcuts =
@@ -196,7 +196,7 @@ fun PendingWalletView(
                     onDeny = onDeny
                 )
             }
-        } else if (isAssistedWallet || (walletStatus == WalletStatus.LOCKED.name && !isSandboxWallet)) {
+        } else if (isAssistedWallet || (walletStatus == WalletStatus.LOCKED.name && isSandboxWallet == false)) {
             Row(
                 modifier = Modifier
                     .clickable(
