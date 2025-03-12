@@ -56,7 +56,7 @@ class NCToastMessage(private val activity: Activity) : DefaultLifecycleObserver 
     fun showMessage(
         message: String,
         background: Int = R.drawable.nc_toast_background,
-        textColor: Int = R.color.nc_black_color,
+        contentColor: Int = R.color.nc_grey_g7,
         icon: Int = R.drawable.ic_info,
         gravity: Int = BOTTOM or FILL_HORIZONTAL,
         duration: Int = Toast.LENGTH_LONG,
@@ -69,13 +69,14 @@ class NCToastMessage(private val activity: Activity) : DefaultLifecycleObserver 
         )
         val textView: TextView = root.findViewById(R.id.text)
         textView.text = message
-        textView.setTextColor(ContextCompat.getColor(activity, textColor))
+        textView.setTextColor(ContextCompat.getColor(activity, contentColor))
 
         val containerView = root.findViewById<ViewGroup>(R.id.container)
         containerView.background = ResourcesCompat.getDrawable(activity.resources, background, null)
 
         val iconView = root.findViewById<ImageView>(R.id.icon)
         iconView.setImageResource(icon)
+        iconView.setColorFilter(ContextCompat.getColor(activity, contentColor))
 
         val paddingVal = activity.resources.getDimension(offset).toInt()
         root.setPadding(paddingVal, paddingVal, paddingVal, paddingVal)
@@ -98,14 +99,14 @@ class NCToastMessage(private val activity: Activity) : DefaultLifecycleObserver 
     fun showError(message: String) = showMessage(
         message = message,
         background = R.drawable.nc_toast_error_background,
-        textColor = R.color.nc_white_color,
+        contentColor = R.color.nc_white_color,
         icon = R.drawable.ic_info_white
     )
 
     fun showInfo(message: String) = showMessage(
         message = message,
         background = R.drawable.nc_toast_info_background,
-        textColor = R.color.nc_fill_primary,
+        contentColor = R.color.nc_fill_primary,
         icon = R.drawable.ic_info
     )
 

@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,6 +49,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
+import com.nunchuk.android.compose.fillSlimeT2
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.core.signer.SignerModel
@@ -275,7 +277,7 @@ fun ReplaceKeyCard(
         Box(
             modifier = modifier.background(
                 color = if (isReplaced && !isNeedVerify)
-                    colorResource(id = R.color.nc_fill_slime)
+                    MaterialTheme.colorScheme.fillSlimeT2
                 else
                     colorResource(id = R.color.nc_fill_beewax),
                 shape = RoundedCornerShape(8.dp)
