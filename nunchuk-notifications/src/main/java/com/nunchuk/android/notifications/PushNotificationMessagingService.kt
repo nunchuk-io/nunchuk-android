@@ -115,10 +115,11 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         val data = remoteMessage.data
 
         applicationScope.launch {
-            val handledByGroupWallet = groupWalletPushNotificationManager.parseNotification(data)?.let { notification ->
-                showNotification(notification, intentProvider.getMainIntent())
-                true
-            } ?: false
+            val handledByGroupWallet =
+                groupWalletPushNotificationManager.parseNotification(data)?.let { notification ->
+                    showNotification(notification, if (ProcessLifecycleOwner.get().isAtLeastStarted()) null else intentProvider.getMainIntent())
+                    true
+                } == true
 
             if (!handledByGroupWallet) {
                 val event = getEvent(data)?.also { event ->

@@ -78,22 +78,25 @@ fun Context.showNotification(data: PushNotificationData, mainIntent: Intent? = n
         .setContentText(data.message)
         .setAutoCancel(true)
 
-    // Configure the intent stack: MainActivity -> Target Activity
-    val targetIntent = data.intent
 
-    // Build the task stack to ensure MainActivity is the root
-    val taskBuilder = TaskStackBuilder.create(this)
-    mainIntent?.let {
-        taskBuilder.addNextIntentWithParentStack(mainIntent)
-    }
-    taskBuilder.addNextIntent(targetIntent)
     val requestCode = (System.currentTimeMillis() % 10000).toInt()
+    val resultPendingIntent = if (mainIntent != null) {
+        // Configure the intent stack: MainActivity -> Target Activity
+        val targetIntent = data.intent
 
-    val resultPendingIntent = taskBuilder.getPendingIntent(
-        requestCode,
-        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-    )
+        // Build the task stack to ensure MainActivity is the root
+        val taskBuilder = TaskStackBuilder.create(this)
+        taskBuilder.addNextIntentWithParentStack(mainIntent)
+        taskBuilder.addNextIntent(targetIntent)
+        taskBuilder.getPendingIntent(
+            requestCode,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+    } else {
+        PendingIntent.getActivity(this, requestCode, data.intent, PendingIntent.FLAG_IMMUTABLE)
+    }
     builder.setContentIntent(resultPendingIntent)
+
     val notificationManager = NotificationManagerCompat.from(applicationContext)
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

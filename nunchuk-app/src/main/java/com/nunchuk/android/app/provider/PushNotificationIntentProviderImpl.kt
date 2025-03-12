@@ -72,9 +72,11 @@ class PushNotificationIntentProviderImpl @Inject constructor(
 
     override fun getWalletDetailIntent(walletId: String): Intent {
         return WalletDetailsActivity.buildIntent(context, walletId)
+            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
     }
 
     override fun getFreeGroupWalletChatIntent(walletId: String): Intent {
         return FreeGroupWalletChatActivity.buildIntent(context, walletId)
+            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
     }
 }
