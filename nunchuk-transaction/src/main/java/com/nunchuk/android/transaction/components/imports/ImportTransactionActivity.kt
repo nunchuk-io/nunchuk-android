@@ -24,11 +24,10 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.widget.ImageView
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
-import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseCameraActivity
+import com.nunchuk.android.core.base.ScannerViewComposer
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -60,30 +59,8 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
         observeEvent()
     }
 
-    override fun onCameraPermissionGranted(fromUser: Boolean) {
-        if (fromUser) {
-            recreate()
-        }
-    }
-
-    override fun btnSelectPhoto(): ImageView {
-        return binding.barcodeView.findViewById(R.id.btn_select_image)
-    }
-
-    override fun btnTurnFlash(): ImageView {
-        return binding.barcodeView.findViewById(R.id.btn_turn_flash)
-    }
-
     override fun decodeQRCodeFromUri(uri: Uri) {
         viewModel.decodeQRCodeFromUri(uri)
-    }
-
-    override fun torchState(isOn: Boolean) {
-        if (isOn) {
-            binding.barcodeView.setTorchOn()
-        } else {
-            binding.barcodeView.setTorchOff()
-        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -97,12 +74,6 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
     }
 
     private fun setupViews() {
-        val barcodeViewIntent = intent
-        barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
-        binding.barcodeView.initializeFromIntent(barcodeViewIntent)
-        binding.barcodeView.decodeContinuous {
-            viewModel.importTransactionViaQR(it.text)
-        }
         binding.toolbar.setNavigationOnClickListener { finish() }
     }
 
@@ -140,12 +111,34 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
 
     override fun onResume() {
         super.onResume()
-        binding.barcodeView.resume()
+        scanner?.resumeScanning()
     }
 
     override fun onPause() {
         super.onPause()
-        binding.barcodeView.pause()
+        scanner?.stopScanning()
+    }
+
+    override fun onCameraPermissionGranted(fromUser: Boolean) {
+        if (fromUser) {
+            recreate()
+        } else {
+            scanner?.startScanning(intent)
+        }
+    }
+
+    override fun scannerViewComposer(): ScannerViewComposer? {
+        return ScannerViewComposer(
+            btnTurnFlash = binding.scannerActionView.btnTurnFlash,
+            btnSelectPhoto = binding.scannerActionView.btnSelectImage,
+            btnScannerGoogle = binding.scannerActionView.btnGoogleScanner,
+            previewView = binding.previewView,
+            barcodeView = binding.barcodeView
+        )
+    }
+
+    override fun onScannerResult(result: String) {
+        viewModel.importTransactionViaQR(result)
     }
 
     companion object {

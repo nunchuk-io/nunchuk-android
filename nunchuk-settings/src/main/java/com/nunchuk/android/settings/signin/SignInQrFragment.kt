@@ -24,10 +24,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.fragment.app.viewModels
-import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseCameraFragment
+import com.nunchuk.android.core.base.ScannerViewComposer
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -80,46 +79,38 @@ internal class SignInQrFragment : BaseCameraFragment<FragmentSignInQrBinding>() 
     }
 
     private fun setupViews() {
-        val barcodeViewIntent = requireActivity().intent
-        barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
-        binding.barcodeView.initializeFromIntent(barcodeViewIntent)
-        binding.barcodeView.decodeContinuous {
-            viewModel.trySignIn(it.text)
-        }
         binding.toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
-    }
-
-    override fun onCameraPermissionGranted(fromUser: Boolean) {
-        // Do nothing
-    }
-
-    override fun btnSelectPhoto(): ImageView {
-        return binding.barcodeView.findViewById(R.id.btn_select_image)
-    }
-
-    override fun btnTurnFlash(): ImageView {
-        return binding.barcodeView.findViewById(R.id.btn_turn_flash)
-    }
-
-    override fun decodeQRCodeFromUri(uri: Uri) {
-        viewModel.decodeQRCodeFromUri(uri)
-    }
-
-    override fun torchState(isOn: Boolean) {
-        if (isOn) {
-            binding.barcodeView.setTorchOn()
-        } else {
-            binding.barcodeView.setTorchOff()
-        }
     }
 
     override fun onResume() {
         super.onResume()
-        binding.barcodeView.resume()
+        scanner?.resumeScanning()
     }
 
     override fun onPause() {
         super.onPause()
-        binding.barcodeView.pause()
+        scanner?.stopScanning()
+    }
+
+    override fun onCameraPermissionGranted(fromUser: Boolean) {
+        scanner?.startScanning(requireActivity().intent)
+    }
+
+    override fun scannerViewComposer(): ScannerViewComposer? {
+        return ScannerViewComposer(
+            btnTurnFlash = binding.scannerActionView.btnTurnFlash,
+            btnSelectPhoto = binding.scannerActionView.btnSelectImage,
+            btnScannerGoogle = binding.scannerActionView.btnGoogleScanner,
+            previewView = binding.previewView,
+            barcodeView = binding.barcodeView
+        )
+    }
+
+    override fun onScannerResult(result: String) {
+        viewModel.trySignIn(result)
+    }
+
+    override fun decodeQRCodeFromUri(uri: Uri) {
+        viewModel.decodeQRCodeFromUri(uri)
     }
 }

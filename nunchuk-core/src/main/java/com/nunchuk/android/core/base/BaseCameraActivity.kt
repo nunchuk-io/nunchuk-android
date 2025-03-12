@@ -30,9 +30,15 @@ import android.widget.ImageView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.viewbinding.ViewBinding
+import com.journeyapps.barcodescanner.DecoratedBarcodeView
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.scanner.BarcodeCameraScanController
+import com.nunchuk.android.core.scanner.CameraScanController
+import com.nunchuk.android.core.scanner.GoogleCameraScanController
 import com.nunchuk.android.widget.NCWarningDialog
 
 abstract class BaseCameraActivity<Binding : ViewBinding> : BaseActivity<Binding>() {
@@ -49,13 +55,14 @@ abstract class BaseCameraActivity<Binding : ViewBinding> : BaseActivity<Binding>
             }
         }
 
-    private val settingLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (isPermissionGranted(Manifest.permission.CAMERA)) {
-            onCameraPermissionGranted(true)
-        } else {
-            showAlertPermissionDeniedPermanently()
+    private val settingLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (isPermissionGranted(Manifest.permission.CAMERA)) {
+                onCameraPermissionGranted(true)
+            } else {
+                showAlertPermissionDeniedPermanently()
+            }
         }
-    }
 
     private fun showAlertPermissionNotGranted() {
         NCWarningDialog(this).showDialog(
@@ -86,6 +93,8 @@ abstract class BaseCameraActivity<Binding : ViewBinding> : BaseActivity<Binding>
         }
     }
 
+    protected var scanner: CameraScanController? = null
+
     private fun Activity.isPermissionGranted(permission: String) =
         ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 
@@ -112,19 +121,47 @@ abstract class BaseCameraActivity<Binding : ViewBinding> : BaseActivity<Binding>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        btnSelectPhoto()?.setOnClickListener {
+        scannerViewComposer()?.let {
+            scanner = getCameraScanController(false)
+            setScannerListener()
+        }
+        scannerViewComposer()?.btnSelectPhoto?.setOnClickListener {
             handleSelectPhoto()
         }
-        btnTurnFlash()?.setOnClickListener {
+        scannerViewComposer()?.btnTurnFlash?.setOnClickListener {
             toggleFlash()
+        }
+        scannerViewComposer()?.btnScannerGoogle?.setOnClickListener {
+            if (scanner != null && scanner is GoogleCameraScanController) {
+                return@setOnClickListener
+            }
+            scanner = getCameraScanController(true)
+            scannerViewComposer()?.barcodeView?.isVisible = false
+            scannerViewComposer()?.previewView?.isVisible = true
+            scanner?.startScanning(intent)
+            setScannerListener()
         }
     }
 
+    fun setScannerListener() {
+        scanner?.setOnBarcodeResultListener {
+            onScannerResult(it)
+        }
+    }
+
+    private fun getCameraScanController(isGoogleCamera: Boolean): CameraScanController {
+        return if (isGoogleCamera) {
+            GoogleCameraScanController(this, scannerViewComposer()?.previewView!!)
+        } else {
+            BarcodeCameraScanController(scannerViewComposer()?.barcodeView!!)
+        }
+    }
+
+    open fun onScannerResult(result: String) {}
+
     abstract fun onCameraPermissionGranted(fromUser: Boolean)
 
-    open fun btnSelectPhoto(): ImageView? = null
-
-    open fun btnTurnFlash(): ImageView? = null
+    open fun scannerViewComposer(): ScannerViewComposer? = null
 
     open fun decodeQRCodeFromUri(uri: Uri) {}
 
@@ -133,13 +170,18 @@ abstract class BaseCameraActivity<Binding : ViewBinding> : BaseActivity<Binding>
     private fun toggleFlash() {
         isFlashOn = !isFlashOn
         if (isFlashOn) {
-            torchState(true)
-            btnTurnFlash()?.setImageResource(R.drawable.nc_ic_flash_off)
+            scannerViewComposer()?.btnTurnFlash?.setImageResource(R.drawable.nc_ic_flash_off)
         } else {
-            torchState(false)
-            btnTurnFlash()?.setImageResource(R.drawable.nc_ic_flash_on)
+            scannerViewComposer()?.btnTurnFlash?.setImageResource(R.drawable.nc_ic_flash_on)
         }
+        scanner?.torchState(isFlashOn)
     }
-
-    open fun torchState(isOn: Boolean) {}
 }
+
+data class ScannerViewComposer(
+    val btnSelectPhoto: ImageView,
+    val btnTurnFlash: ImageView,
+    val btnScannerGoogle: ImageView,
+    val previewView: PreviewView,
+    val barcodeView: DecoratedBarcodeView
+)

@@ -29,6 +29,7 @@ dependencies {
     debugImplementation nunchukDeps.nativeSdk
     releaseImplementation nunchukDeps.prebuildNativeSdk
     implementation zxingDeps.values()
+    implementation googleScannerDeps.values()
 
     testImplementation otherTestDeps.junit
 }

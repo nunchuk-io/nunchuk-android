@@ -34,6 +34,7 @@ dependencies {
     implementation lifecycleDeps.values()
     implementation zxingDeps.values()
     implementation googleDeps.gson
+    implementation googleScannerDeps.values()
 
     testImplementation otherTestDeps.junit
 }

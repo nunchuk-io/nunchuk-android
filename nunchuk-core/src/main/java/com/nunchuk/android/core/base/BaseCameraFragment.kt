@@ -26,13 +26,16 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.widget.ImageView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.scanner.BarcodeCameraScanController
+import com.nunchuk.android.core.scanner.CameraScanController
+import com.nunchuk.android.core.scanner.GoogleCameraScanController
 import com.nunchuk.android.widget.NCWarningDialog
 
 abstract class BaseCameraFragment<out Binding : ViewBinding> : BaseFragment<Binding>() {
@@ -112,34 +115,61 @@ abstract class BaseCameraFragment<out Binding : ViewBinding> : BaseFragment<Bind
             }
         }
 
+    protected var scanner: CameraScanController? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        btnSelectPhoto()?.setOnClickListener {
+        scannerViewComposer()?.let {
+            scanner = getCameraScanController(false)
+            setScannerListener()
+        }
+        scannerViewComposer()?.btnSelectPhoto?.setOnClickListener {
             handleSelectPhoto()
         }
-        btnTurnFlash()?.setOnClickListener {
+        scannerViewComposer()?.btnTurnFlash?.setOnClickListener {
             toggleFlash()
+        }
+        scannerViewComposer()?.btnScannerGoogle?.setOnClickListener {
+            if (scanner != null && scanner is GoogleCameraScanController) {
+                return@setOnClickListener
+            }
+            scanner = getCameraScanController(true)
+            scannerViewComposer()?.barcodeView?.isVisible = false
+            scannerViewComposer()?.previewView?.isVisible = true
+            scanner?.startScanning(requireActivity().intent)
+            setScannerListener()
         }
     }
 
-    open fun btnSelectPhoto(): ImageView? = null
+    fun setScannerListener() {
+        scanner?.setOnBarcodeResultListener {
+            onScannerResult(it)
+        }
+    }
 
-    open fun btnTurnFlash(): ImageView? = null
+    private fun getCameraScanController(isGoogleCamera: Boolean): CameraScanController {
+        return if (isGoogleCamera) {
+            GoogleCameraScanController(requireActivity(), scannerViewComposer()?.previewView!!)
+        } else {
+            BarcodeCameraScanController(scannerViewComposer()?.barcodeView!!)
+        }
+    }
+
+    open fun onScannerResult(result: String) {}
 
     open fun decodeQRCodeFromUri(uri: Uri) {}
+
+    open fun scannerViewComposer(): ScannerViewComposer? = null
 
     private var isFlashOn = false
 
     private fun toggleFlash() {
         isFlashOn = !isFlashOn
         if (isFlashOn) {
-            torchState(true)
-            btnTurnFlash()?.setImageResource(R.drawable.nc_ic_flash_off)
+            scannerViewComposer()?.btnTurnFlash?.setImageResource(R.drawable.nc_ic_flash_off)
         } else {
-            torchState(false)
-            btnTurnFlash()?.setImageResource(R.drawable.nc_ic_flash_on)
+            scannerViewComposer()?.btnTurnFlash?.setImageResource(R.drawable.nc_ic_flash_on)
         }
+        scanner?.torchState(isFlashOn)
     }
-
-    open fun torchState(isOn: Boolean) {}
 }

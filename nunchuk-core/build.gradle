@@ -38,6 +38,7 @@ dependencies {
     implementation pluginsDeps.kotlinAndroidRuntime
 
     implementation zxingDeps.values()
+    implementation googleScannerDeps.values()
 
     implementation "com.squareup.moshi:moshi:1.14.0"
     implementation "com.github.Nunchuk1:LibPortal:v2@aar"
@@ -45,6 +46,7 @@ dependencies {
     implementation "androidx.biometric:biometric:1.1.0"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
     implementation 'com.google.firebase:firebase-messaging-ktx:23.2.0'
+
 
     testImplementation otherTestDeps.junit
 }

@@ -28,6 +28,7 @@ dependencies {
     implementation lifecycleDeps.values()
 
     implementation zxingDeps.values()
+    implementation googleScannerDeps.values()
 
     testImplementation otherTestDeps.junit
 }

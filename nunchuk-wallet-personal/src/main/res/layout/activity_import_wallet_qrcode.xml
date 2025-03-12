@@ -46,7 +46,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/nc_padding_16"
         android:textColor="@color/nc_white_color"
-        app:layout_constraintBottom_toBottomOf="@+id/barcodeView"
+        app:layout_constraintBottom_toTopOf="@+id/scannerActionView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         tools:text="45%" />
@@ -60,5 +60,31 @@
         app:layout_constraintTop_toTopOf="@+id/barcodeView"
         app:trackColor="@color/nc_bg_mid_gray"
         tools:progress="50" />
+
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_alignParentTop="true"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+    <com.nunchuk.android.core.scanner.CenteredSquareView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_alignParentTop="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+    <include
+        android:id="@+id/scannerActionView"
+        layout="@layout/scanner_action_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="40dp"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

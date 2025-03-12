@@ -27,6 +27,8 @@ ext {
 
     hiltVersion = "2.48"
 
+    camerax_version = "1.4.1"
+
     // Nunchuk dep versions
     nativeSdkVersion = '1.1.88'
     prebuildNativeSdkVersion = '1.1.88@aar'
@@ -200,5 +202,16 @@ ext {
             'composelifecycle'       : "androidx.lifecycle:lifecycle-runtime-compose:2.6.2",
             "composeConstraintLayout": "androidx.constraintlayout:constraintlayout-compose:1.0.1",
             "navigationCompose"      : "androidx.navigation:navigation-compose:2.8.5",
+    ]
+
+    googleScannerDeps = [
+            barcodeScanner: "com.google.mlkit:barcode-scanning:17.3.0",
+            cameraX        : "androidx.camera:camera-camera2:${camerax_version}",
+            cameraLifecycle: "androidx.camera:camera-lifecycle:${camerax_version}",
+            cameraCore     : "androidx.camera:camera-core:${camerax_version}",
+            cameraVideo    : "androidx.camera:camera-video:${camerax_version}",
+            cameraView     : "androidx.camera:camera-view:${camerax_version}",
+            cameraMlkit    : "androidx.camera:camera-mlkit-vision:${camerax_version}",
+            cameraExtensions: "androidx.camera:camera-extensions:${camerax_version}",
     ]
 }

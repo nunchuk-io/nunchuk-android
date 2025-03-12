@@ -11,42 +11,6 @@
         app:zxing_framing_rect_height="250dp"
         app:zxing_framing_rect_width="250dp" />
 
-    <View
-        android:id="@+id/view_top_left"
-        android:layout_width="250dp"
-        android:layout_height="250dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <View
-        android:id="@+id/view_top_right"
-        android:layout_width="250dp"
-        android:layout_height="250dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <View
-        android:id="@+id/view_bottom_left"
-        android:layout_width="250dp"
-        android:layout_height="250dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <View
-        android:id="@+id/view_bottom_right"
-        android:layout_width="250dp"
-        android:layout_height="250dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
     <com.journeyapps.barcodescanner.ViewfinderView
         android:id="@+id/zxing_viewfinder_view"
         android:layout_width="match_parent"
@@ -61,63 +25,10 @@
         android:layout_width="350dp"
         android:layout_height="350dp"
         android:layout_gravity="center"
-        app:layout_constraintTop_toTopOf="parent"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:visibility="gone" />
-
-    <ImageView
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:src="@drawable/nc_camera_top_left"
-        app:layout_constraintTop_toTopOf="@id/view_top_left"
-        app:layout_constraintStart_toStartOf="@id/view_top_left"/>
-
-    <ImageView
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:src="@drawable/nc_camera_bottom_left"
-        app:layout_constraintBottom_toBottomOf="@id/view_bottom_left"
-        app:layout_constraintStart_toStartOf="@id/view_bottom_left"/>
-
-    <ImageView
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:src="@drawable/nc_camera_top_right"
-        app:layout_constraintTop_toTopOf="@id/view_top_right"
-        app:layout_constraintEnd_toEndOf="@id/view_top_right"/>
-
-    <ImageView
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:src="@drawable/nc_camera_bottom_right"
-        app:layout_constraintBottom_toBottomOf="@id/view_top_left"
-        app:layout_constraintEnd_toEndOf="@id/view_top_left"/>
-
-
-    <ImageView
-        android:id="@+id/btn_select_image"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="56dp"
-        android:src="@drawable/nc_ic_select_image"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btn_turn_flash"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <ImageView
-        android:id="@+id/btn_turn_flash"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginBottom="56dp"
-        android:src="@drawable/nc_ic_flash_on"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/btn_select_image" />
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

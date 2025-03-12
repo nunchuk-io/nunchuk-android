@@ -24,11 +24,10 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.widget.ImageView
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
-import com.google.zxing.client.android.Intents
 import com.nunchuk.android.core.base.BaseCameraActivity
+import com.nunchuk.android.core.base.ScannerViewComposer
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivityScanDynamicQrBinding
@@ -49,28 +48,8 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
         )
     }
 
-    override fun btnSelectPhoto(): ImageView {
-        return binding.barcodeView.findViewById(R.id.btn_select_image)
-    }
-
-    override fun btnTurnFlash(): ImageView {
-        return binding.barcodeView.findViewById(R.id.btn_turn_flash)
-    }
-
     override fun decodeQRCodeFromUri(uri: Uri) {
         scanDynamicQRViewModel.decodeQRCodeFromUri(uri)
-    }
-
-    override fun torchState(isOn: Boolean) {
-        if (isOn) {
-            binding.barcodeView.setTorchOn()
-        } else {
-            binding.barcodeView.setTorchOff()
-        }
-    }
-
-    override fun onCameraPermissionGranted(fromUser: Boolean) {
-
     }
 
     override fun initializeBinding() = ActivityScanDynamicQrBinding.inflate(layoutInflater)
@@ -94,6 +73,7 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
             }
         }
         flowObserver(viewModel.uiState) {
+            binding.progressBar.isVisible = it.progress > 0.0
             binding.progressBar.progress = it.progress.roundToInt()
             binding.tvPercentage.isVisible = it.progress > 0.0
             binding.tvPercentage.text = "${it.progress.roundToInt()}%"
@@ -121,17 +101,6 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
     }
 
     private fun setupViews() {
-        val barcodeViewIntent = intent
-        barcodeViewIntent.putExtra(Intents.Scan.MODE, Intents.Scan.QR_CODE_MODE)
-        binding.barcodeView.initializeFromIntent(barcodeViewIntent)
-        binding.barcodeView.decodeContinuous { result ->
-            if (isJoinGroupWalletFlow) {
-                scanDynamicQRViewModel.handleJoinGroupWallet(result.text)
-            } else {
-                viewModel.handAddPassportSigners(result.text)
-            }
-        }
-
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
@@ -139,17 +108,42 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
 
     override fun onResume() {
         super.onResume()
-        binding.barcodeView.resume()
+        scanner?.resumeScanning()
     }
 
     override fun onPause() {
         super.onPause()
-        binding.barcodeView.pause()
+        scanner?.stopScanning()
+    }
+
+    override fun onCameraPermissionGranted(fromUser: Boolean) {
+        scanner?.startScanning(intent)
+    }
+
+    override fun scannerViewComposer(): ScannerViewComposer? {
+        return ScannerViewComposer(
+            btnTurnFlash = binding.scannerActionView.btnTurnFlash,
+            btnSelectPhoto = binding.scannerActionView.btnSelectImage,
+            btnScannerGoogle = binding.scannerActionView.btnGoogleScanner,
+            previewView = binding.previewView,
+            barcodeView = binding.barcodeView
+        )
+    }
+
+    override fun onScannerResult(result: String) {
+        if (isJoinGroupWalletFlow) {
+            scanDynamicQRViewModel.handleJoinGroupWallet(result)
+        } else {
+            viewModel.handAddPassportSigners(result)
+        }
     }
 
     companion object {
         private const val IS_JOIN_GROUP_WALLET_FLOW = "is_join_group_wallet_flow"
-        fun buildIntent(activityContext: Context, isJoinGroupWalletFlow: Boolean = false): Intent {
+        fun buildIntent(
+            activityContext: Context,
+            isJoinGroupWalletFlow: Boolean = false,
+        ): Intent {
             val intent = Intent(activityContext, ScanDynamicQRActivity::class.java).apply {
                 putExtra(IS_JOIN_GROUP_WALLET_FLOW, isJoinGroupWalletFlow)
             }
