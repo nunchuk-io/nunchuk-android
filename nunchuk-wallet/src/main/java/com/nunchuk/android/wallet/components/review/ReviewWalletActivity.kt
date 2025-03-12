@@ -52,7 +52,6 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
@@ -191,14 +190,6 @@ fun ReviewWalletContent(
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    if (args.groupId.isNotEmpty()) {
-                        NcHintMessage {
-                            Text(
-                                text = stringResource(R.string.nc_create_free_group_wallet_hint),
-                                style = NunchukTheme.typography.titleSmall
-                            )
-                        }
-                    }
                     NcPrimaryDarkButton(
                         modifier = Modifier
                             .fillMaxWidth(),

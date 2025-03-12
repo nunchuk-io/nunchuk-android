@@ -120,7 +120,6 @@
     <string name="nc_update_collection">Update collection settings</string>
     <string name="nc_delete_hot_wallet_need_backup">This wallet must be backed up before it can be deleted. Please back it up first.</string>
     <string name="nc_hot_key_deleted">The key in this wallet has been deleted. The wallet cannot be backed up.</string>
-    <string name="nc_create_free_group_wallet_hint">After creating a group wallet, only members with added keys can access it. Wallet link will expire.</string>
     <string name="nc_deny">Deny</string>
     <string name="nc_accept">Accept</string>
 </resources>
