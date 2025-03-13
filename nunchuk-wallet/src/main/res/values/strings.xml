@@ -123,4 +123,5 @@
     <string name="nc_hot_key_deleted">The key in this wallet has been deleted. The wallet cannot be backed up.</string>
     <string name="nc_deny">Deny</string>
     <string name="nc_accept">Accept</string>
+    <string name="nc_the_group_wallet_has_been_created">The group wallet has been created</string>
 </resources>

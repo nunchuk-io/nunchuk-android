@@ -88,7 +88,7 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
                 Timber.d("GroupSandboxListener $groupSandbox")
                 if (groupSandbox.id == args.groupId) {
                     if (groupSandbox.finalized) {
-                        _uiState.update { it.copy(groupWalletUnavailable = true) }
+                        _uiState.update { it.copy(finalizedWalletId = groupSandbox.walletId) }
                     }
                 }
             }
@@ -144,7 +144,7 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
         }
     }
 
-    fun markGroupWalletAsNeedBackUp(walletId: String) {
+    private fun markGroupWalletAsNeedBackUp(walletId: String) {
         viewModelScope.launch {
             getWalletDetail2UseCase(walletId)
                 .onSuccess { wallet ->
@@ -221,5 +221,6 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
 data class ReviewWalletUiState(
     val signers: List<SignerModel> = emptyList(),
     val groupWalletUnavailable: Boolean = false,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val finalizedWalletId: String = ""
 )

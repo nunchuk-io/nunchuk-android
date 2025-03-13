@@ -42,6 +42,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,6 +66,7 @@ import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.nav.args.ReviewWalletArgs
@@ -102,6 +104,18 @@ class ReviewWalletActivity : BaseComposeActivity() {
 
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+            LaunchedEffect(uiState.finalizedWalletId) {
+                if (uiState.finalizedWalletId.isNotEmpty()) {
+                    navigator.openMainScreen(this@ReviewWalletActivity)
+                    NcToastManager.scheduleShowMessage(getString(R.string.nc_the_group_wallet_has_been_created))
+                    navigator.openWalletDetailsScreen(
+                        this@ReviewWalletActivity,
+                        uiState.finalizedWalletId
+                    )
+                }
+            }
+
             ReviewWalletContent(
                 args = args,
                 signers = uiState.signers,
@@ -291,7 +305,10 @@ fun ReviewWalletContent(
                                 Text(
                                     modifier = Modifier
                                         .padding(top = 4.dp),
-                                    text = stringResource(com.nunchuk.android.core.R.string.nc_bip32_path, signer.derivationPath),
+                                    text = stringResource(
+                                        com.nunchuk.android.core.R.string.nc_bip32_path,
+                                        signer.derivationPath
+                                    ),
                                     style = NunchukTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.textSecondary
                                 )
@@ -308,7 +325,10 @@ fun ReviewWalletContent(
                                 Text(
                                     modifier = Modifier
                                         .padding(top = 4.dp),
-                                    text = stringResource(com.nunchuk.android.core.R.string.nc_bip32_path, signer.derivationPath),
+                                    text = stringResource(
+                                        com.nunchuk.android.core.R.string.nc_bip32_path,
+                                        signer.derivationPath
+                                    ),
                                     style = NunchukTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.textSecondary
                                 )

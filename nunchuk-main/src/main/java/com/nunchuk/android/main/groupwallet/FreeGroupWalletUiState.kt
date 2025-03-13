@@ -19,5 +19,6 @@ data class FreeGroupWalletUiState(
     val occupiedSlotsIndex : Set<Int> = emptySet(),
     val requestCacheTapSignerXpubEvent: Boolean = false,
     val isCreatedReplaceGroup: Boolean = false,
-    val finalizeGroup: GroupSandbox? = null
+    val finalizeGroup: GroupSandbox? = null,
+    val finalizedWalletId: String? = null,
 )

@@ -93,6 +93,7 @@ fun NavGraphBuilder.freeGroupWallet(
     onContinueClicked: (GroupSandbox) -> Unit = {},
     onStartAddKey: (Int) -> Unit = {},
     onChangeBip32Path: (Int, SignerModel) -> Unit = { _, _ -> },
+    openWalletDetail: (String) -> Unit,
     refresh: () -> Unit,
 ) {
     composable(
@@ -103,6 +104,12 @@ fun NavGraphBuilder.freeGroupWallet(
         LaunchedEffect(state.isFinishScreen) {
             if (state.isFinishScreen) {
                 finishScreen()
+            }
+        }
+
+        LaunchedEffect(state.finalizedWalletId) {
+            if (!state.finalizedWalletId.isNullOrEmpty()) {
+                openWalletDetail(state.finalizedWalletId.orEmpty())
             }
         }
 

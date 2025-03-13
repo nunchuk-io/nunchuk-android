@@ -168,7 +168,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 Timber.d("GroupSandboxListener $groupSandbox")
                 if (groupSandbox.id == groupId) {
                     if (groupSandbox.finalized) {
-                        _uiState.update { it.copy(groupWalletUnavailable = true) }
+                        _uiState.update { it.copy(finalizedWalletId = groupSandbox.walletId) }
                     } else {
                         updateGroupSandbox(groupSandbox)
                     }

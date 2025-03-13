@@ -19,6 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_TOPUP_XPUBS
 import com.nunchuk.android.core.push.PushEvent
@@ -193,6 +194,14 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                         supportFragmentManager,
                                         signer.id,
                                         signer.derivationPath
+                                    )
+                                },
+                                openWalletDetail = {
+                                    navigator.returnToMainScreen(this@FreeGroupWalletActivity)
+                                    NcToastManager.scheduleShowMessage(getString(R.string.nc_the_group_wallet_has_been_created))
+                                    navigator.openWalletDetailsScreen(
+                                        activityContext = this@FreeGroupWalletActivity,
+                                        walletId = it
                                     )
                                 },
                                 refresh = viewModel::getGroupSandbox
