@@ -156,7 +156,8 @@ fun PendingWalletView(
                         role = role,
                         useLargeFont = useLargeFont,
                         walletStatus = walletStatus.orEmpty(),
-                        isSandboxWallet = isSandboxWallet == true
+                        isSandboxWallet = isSandboxWallet == true,
+                        isDeprecatedGroupWallet = isDeprecatedGroupWallet
                     )
                     if (showShortcuts) {
                         val allowShowShortcuts =

@@ -42,13 +42,15 @@ fun ActiveWallet(
     useLargeFont: Boolean = false,
     walletStatus: String = "",
     isSandboxWallet: Boolean = false,
+    isDeprecatedGroupWallet: Boolean = false,
 ) {
     val wallet = walletsExtended.wallet
     val balance = "(${wallet.getCurrencyAmount()})"
+    val name = if (isDeprecatedGroupWallet) "[DEPRECATED] ${wallet.name}" else wallet.name
     Row(modifier = Modifier.height(IntrinsicSize.Min)) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = wallet.name, style = NunchukTheme.typography.title, color = Color.White
+                text = name, style = NunchukTheme.typography.title, color = Color.White
             )
             Text(
                 modifier = Modifier.padding(top = 2.dp),

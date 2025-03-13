@@ -417,7 +417,8 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         binding.fab.isGone = state.role == AssistedWalletRole.FACILITATOR_ADMIN
         val wallet = state.walletExtended.wallet
         adapter.setHideWalletDetail(state.hideWalletDetailLocal)
-        binding.toolbarTitle.text = wallet.name
+        binding.toolbarTitle.text =
+            if (state.isDeprecatedGroupWallet) "[DEPRECATED] ${wallet.name}" else wallet.name
         configureToolbar(state)
         binding.configuration.bindWalletConfiguration(
             wallet,
@@ -469,6 +470,12 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                     R.color.nc_white_color
                 )
             )
+        } else if (state.walletStatus == WalletStatus.REPLACED.name || state.walletStatus == WalletStatus.LOCKED.name || state.isDeprecatedGroupWallet) {
+            val color = ContextCompat.getColor(requireContext(), R.color.nc_grey_dark_color)
+            binding.statusBarBackground.setBackgroundColor(color)
+            requireActivity().window.statusBarColor = color
+            binding.shareIcon.text = getString(R.string.nc_deactivated)
+            binding.shareIcon.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
         } else if (state.walletExtended.wallet.needBackup && state.isFreeGroupWallet != null) {
             binding.statusBarBackground.setBackgroundColor(
                 ContextCompat.getColor(
@@ -484,12 +491,6 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                     R.color.nc_beeswax_tint
                 )
             )
-        } else if (state.walletStatus == WalletStatus.REPLACED.name || state.walletStatus == WalletStatus.LOCKED.name || state.isDeprecatedGroupWallet) {
-            val color = ContextCompat.getColor(requireContext(), R.color.nc_grey_dark_color)
-            binding.statusBarBackground.setBackgroundColor(color)
-            requireActivity().window.statusBarColor = color
-            binding.shareIcon.text = getString(R.string.nc_deactivated)
-            binding.shareIcon.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
         } else if (state.isAssistedWallet) {
             binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
             requireActivity().window.statusBarColor =
