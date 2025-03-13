@@ -215,7 +215,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
     private fun configureToolbar(state: WalletDetailsState) {
         val searchMenu = binding.toolbar.menu.findItem(R.id.menu_search)
         searchMenu.isVisible =
-            state.walletExtended.wallet.name.isNotEmpty() && state.isFreeGroupWallet == false
+            state.walletExtended.wallet.name.isNotEmpty() && state.isFreeGroupWallet.not()
         if (state.groupId.isNullOrEmpty()
                 .not() && state.walletStatus != WalletStatus.REPLACED.name
         ) {
@@ -230,7 +230,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         binding.toolbar.menu.findItem(R.id.menu_more).isVisible =
             state.walletStatus != WalletStatus.LOCKED.name && viewModel.isFacilitatorAdmin()
                 .not() && viewModel.isEmptyTransaction().not()
-                    || state.isFreeGroupWallet == true
+                    || state.isFreeGroupWallet
     }
 
     override fun onOptionClicked(option: SheetOption) {
@@ -248,7 +248,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                             .sortedBy { it.id.toInt() },
                         historyPeriodIdSelected = viewModel.state.value?.selectedHistoryPeriod?.id
                             ?: "7",
-                        isFreeGroupWalletFlow = viewModel.isFreeGroupWallet() == true,
+                        isFreeGroupWalletFlow = viewModel.isFreeGroupWallet(),
                         walletId = args.walletId,
                         roomId = "",
                         groupId = ""
@@ -438,13 +438,13 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         binding.ivViewCoin.isEnabled = state.isHasCoin && viewModel.isFacilitatorAdmin().not()
         binding.ivViewCoin.alpha =
             if (state.isHasCoin && viewModel.isFacilitatorAdmin().not()) 1.0f else 0.7f
-        binding.tvWalletWarning.isVisible = state.walletExtended.wallet.needBackup
-        if (state.walletExtended.wallet.needBackup) {
-            handleNeedBackupWallet(state.isFreeGroupWallet == true)
+        binding.tvWalletWarning.isVisible = state.walletExtended.wallet.needBackup || state.isNeedBackUpGroupWallet
+        if (binding.tvWalletWarning.isVisible) {
+            handleNeedBackupWallet(state.isFreeGroupWallet)
         }
-        binding.chatView.isVisible = state.isFreeGroupWallet == true
+        binding.chatView.isVisible = state.isFreeGroupWallet
 
-        if (state.isFreeGroupWallet == true) {
+        if (state.isFreeGroupWallet) {
             val layoutParams = binding.addressQR.layoutParams
             layoutParams.width = dpToPx(120)
             layoutParams.height = dpToPx(120)
@@ -460,7 +460,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
     }
 
     private fun handleWalletBackground(state: WalletDetailsState) {
-        if (state.isFreeGroupWallet == true) {
+        if (state.isFreeGroupWallet) {
             binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_free_group_wallet_background)
             requireActivity().window.statusBarColor =
                 ContextCompat.getColor(requireContext(), R.color.cl_2B74A9)
@@ -476,7 +476,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
             requireActivity().window.statusBarColor = color
             binding.shareIcon.text = getString(R.string.nc_deactivated)
             binding.shareIcon.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
-        } else if (state.walletExtended.wallet.needBackup && state.isFreeGroupWallet != null) {
+        } else if (state.walletExtended.wallet.needBackup) {
             binding.statusBarBackground.setBackgroundColor(
                 ContextCompat.getColor(
                     requireContext(),

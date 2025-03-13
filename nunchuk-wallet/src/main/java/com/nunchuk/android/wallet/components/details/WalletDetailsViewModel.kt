@@ -65,16 +65,16 @@ import com.nunchuk.android.usecase.NewAddressUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SetGroupWalletLastReadMessageUseCase
 import com.nunchuk.android.usecase.SetSelectedWalletUseCase
-import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.free.groupwallet.AcceptReplaceGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.DeclineReplaceGroupUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetBackUpBannerWalletIdsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetDeprecatedGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetReplaceGroupsUseCase
+import com.nunchuk.android.usecase.free.groupwallet.SetBackUpBannerWalletIdsUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
-import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.GroupChatManager
 import com.nunchuk.android.utils.onException
@@ -137,8 +137,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val exportWalletUseCase: ExportWalletUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
-    private val updateWalletUseCase: UpdateWalletUseCase,
-    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val getBackUpBannerWalletIdsUseCase: GetBackUpBannerWalletIdsUseCase,
+    private val setBackUpBannerWalletIdsUseCase: SetBackUpBannerWalletIdsUseCase
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -244,6 +244,17 @@ internal class WalletDetailsViewModel @Inject constructor(
                     }
                 }
             }
+        }
+        viewModelScope.launch {
+            getBackUpBannerWalletIdsUseCase(Unit)
+                .collect {
+                    updateState {
+                        copy(
+                            isNeedBackUpGroupWallet = it.getOrNull()?.contains(args.walletId) == false
+                        )
+                    }
+                }
+
         }
         checkDeprecatedGroupWallet()
         getGroupWalletMessageUnreadCount()
@@ -638,19 +649,8 @@ internal class WalletDetailsViewModel @Inject constructor(
 
     fun markGroupWalletAsBackedUp() {
         viewModelScope.launch {
-            updateWalletUseCase(
-                UpdateWalletUseCase.Params(
-                    getWallet().copy(needBackup = false)
-                )
-            ).onSuccess {
-                updateState {
-                    copy(
-                        walletExtended = getState().walletExtended.copy(
-                            wallet = getWallet().copy(needBackup = false)
-                        )
-                    )
-                }
-            }
+            updateState { copy(isNeedBackUpGroupWallet = false) }
+            setBackUpBannerWalletIdsUseCase(getWallet().id)
         }
     }
 }

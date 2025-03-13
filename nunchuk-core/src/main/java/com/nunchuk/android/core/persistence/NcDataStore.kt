@@ -78,6 +78,7 @@ class NcDataStore @Inject constructor(
     private val isDarkModeKey = booleanPreferencesKey("is_dark_mode")
     private val homeDisplaySettingKey = stringPreferencesKey("home_display_setting")
     private val biometricConfigKey = stringPreferencesKey("biometric_config")
+    private val groupWalletBackupBannerKeysPreferenceKey = stringSetPreferencesKey("group_wallet_backup_banner_key")
 
     /**
      * Current membership plan key
@@ -295,6 +296,17 @@ class NcDataStore @Inject constructor(
     val groupAssistedKeys: Flow<Set<String>>
         get() = context.dataStore.data.map {
             it[groupAssistedKeysPreferenceKey] ?: emptySet()
+        }
+
+    suspend fun setGroupWalletBackUpBannerKey(keys: Set<String>) {
+        context.dataStore.edit {
+            it[groupWalletBackupBannerKeysPreferenceKey] = keys
+        }
+    }
+
+    val groupWalletBackUpBannerKeys: Flow<Set<String>>
+        get() = context.dataStore.data.map {
+            it[groupWalletBackupBannerKeysPreferenceKey] ?: emptySet()
         }
 
     suspend fun setFeeJsonString(feeJson: String) {

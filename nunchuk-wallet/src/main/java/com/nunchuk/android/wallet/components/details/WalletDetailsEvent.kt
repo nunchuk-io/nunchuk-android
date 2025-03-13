@@ -49,11 +49,12 @@ data class WalletDetailsState(
     val groupId: String? = null,
     val role: AssistedWalletRole = AssistedWalletRole.NONE,
     val groupChatMessages: List<FreeGroupMessage> = emptyList(),
-    val isFreeGroupWallet: Boolean? = null, // null for loading state
+    val isFreeGroupWallet: Boolean = false,
     val historyPeriods: List<HistoryPeriod> = emptyList(),
     val selectedHistoryPeriod: HistoryPeriod? = null,
     val unreadMessagesCount: Int = 0,
     val uid: String = "",
     val replaceGroups: Map<String, Boolean> = emptyMap(),
     val isDeprecatedGroupWallet: Boolean = false,
+    val isNeedBackUpGroupWallet: Boolean = false,
 )

@@ -15,4 +15,6 @@ interface GroupWalletRepository {
     suspend fun getWalletAliases(groupId: String, walletId: String): List<UserAlias>
     suspend fun setWalletAlias(groupId: String, walletId: String, alias: String)
     suspend fun deleteWalletAlias(groupId: String, walletId: String)
+    fun getBackUpBannerWalletIds(): Flow<Set<String>>
+    suspend fun setBackUpBannerWalletIds(ids: Set<String>)
 }

@@ -61,6 +61,7 @@ import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetDeprecatedGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
+import com.nunchuk.android.usecase.free.groupwallet.SetBackUpBannerWalletIdsUseCase
 import com.nunchuk.android.usecase.membership.ExportCoinControlBIP329UseCase
 import com.nunchuk.android.usecase.membership.ExportTxCoinControlUseCase
 import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
@@ -123,6 +124,7 @@ internal class WalletConfigViewModel @Inject constructor(
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
     private val getWalletBsmsUseCase: GetWalletBsmsUseCase,
     private val getDeprecatedGroupWalletsUseCase: GetDeprecatedGroupWalletsUseCase,
+    private val setBackUpBannerWalletIdsUseCase: SetBackUpBannerWalletIdsUseCase,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletConfigState())
@@ -392,6 +394,7 @@ internal class WalletConfigViewModel @Inject constructor(
             leaveRoom {
                 when (val event = deleteWalletUseCase.execute(walletId)) {
                     is Result.Success -> {
+                        setBackUpBannerWalletIdsUseCase(walletId)
                         if (isAssistedWallet()) {
                             _event.emit(WalletConfigEvent.DeleteAssistedWalletSuccess)
                         } else {
@@ -615,7 +618,7 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun getWalletName() = getState().walletExtended.wallet.name
 
-    fun isHotWalletNeedBackup() = getState().walletExtended.wallet.needBackup && getState().isGroupSandboxWallet.not()
+    fun isHotWalletNeedBackup() = getState().walletExtended.wallet.needBackup
 
     fun isSignerDeleted() = getState().signers.firstOrNull()?.type == SignerType.UNKNOWN
 

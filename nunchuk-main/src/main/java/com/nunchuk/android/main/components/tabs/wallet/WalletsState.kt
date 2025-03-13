@@ -102,5 +102,5 @@ internal data class GroupWalletUi(
     val keyStatus: Map<String, KeyHealthStatus> = emptyMap(),
     val signers: List<SignerModel> = emptyList(),
     val isPendingPersonalWallet: Boolean = false,
-    val isSandboxWallet: Boolean? = null, // null for loading state
+    val isSandboxWallet: Boolean = false,
 )

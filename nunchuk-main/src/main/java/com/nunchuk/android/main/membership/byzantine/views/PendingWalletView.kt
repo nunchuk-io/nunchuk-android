@@ -79,7 +79,7 @@ import com.skydoves.landscapist.glide.GlideImage
 fun PendingWalletView(
     group: ByzantineGroup? = null,
     sandbox: GroupSandbox? = null,
-    isSandboxWallet: Boolean? = null,
+    isSandboxWallet: Boolean = false,
     walletsExtended: WalletExtended? = null,
     hideWalletDetail: Boolean = false,
     isAssistedWallet: Boolean = false,

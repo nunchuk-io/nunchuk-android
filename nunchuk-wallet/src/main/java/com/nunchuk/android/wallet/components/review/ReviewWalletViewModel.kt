@@ -37,11 +37,9 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.type.WalletType.ESCROW
 import com.nunchuk.android.type.WalletType.SINGLE_SIG
 import com.nunchuk.android.usecase.CreateWalletUseCase
-import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.usecase.free.groupwallet.FinalizeGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
 import com.nunchuk.android.usecase.signer.GetSignerUseCase
-import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.CreateWalletErrorEvent
 import com.nunchuk.android.wallet.components.review.ReviewWalletEvent.CreateWalletSuccessEvent
 import dagger.assisted.Assisted
@@ -65,8 +63,6 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
     private val finalizeGroupSandboxUseCase: FinalizeGroupSandboxUseCase,
     private val getGroupSandboxUseCase: GetGroupSandboxUseCase,
     private val singleSignerMapper: SingleSignerMapper,
-    private val updateWalletUseCase: UpdateWalletUseCase,
-    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
 ) : NunchukViewModel<Unit, ReviewWalletEvent>() {
     private val _uiState = MutableStateFlow(ReviewWalletUiState())
     val uiState = _uiState.asStateFlow()
@@ -135,26 +131,12 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
                     groupId = args.groupId,
                     signerIndexes = signerTaprootIndexes
                 )
-            ).onSuccess {
-                markGroupWalletAsNeedBackUp(it.walletId)
+            ).onSuccess { groupSandbox ->
+                setEvent(ReviewWalletEvent.CreateFreeGroupWalletSuccessEvent(groupSandbox.walletId))
             }.onFailure {
                 setEvent(CreateWalletErrorEvent(it.message.orUnknownError()))
             }
             _uiState.update { it.copy(isLoading = false) }
-        }
-    }
-
-    private fun markGroupWalletAsNeedBackUp(walletId: String) {
-        viewModelScope.launch {
-            getWalletDetail2UseCase(walletId)
-                .onSuccess { wallet ->
-                    updateWalletUseCase(
-                        UpdateWalletUseCase.Params(
-                            wallet.copy(needBackup = true)
-                        )
-                    )
-                }
-            setEvent(ReviewWalletEvent.CreateFreeGroupWalletSuccessEvent(walletId))
         }
     }
 

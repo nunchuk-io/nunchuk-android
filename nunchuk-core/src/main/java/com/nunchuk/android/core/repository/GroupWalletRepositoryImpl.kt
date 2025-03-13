@@ -49,7 +49,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
     private val membershipRepository: MembershipRepository,
     private val membershipStepDao: MembershipStepDao,
     private val keyHealthStatusDao: KeyHealthStatusDao,
-    ncDataStore: NcDataStore,
+    private val ncDataStore: NcDataStore,
     private val nunchukNativeSdk: NunchukNativeSdk,
     private val byzantineSyncer: ByzantineSyncer,
     applicationScope: CoroutineScope,
@@ -417,6 +417,14 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         assistedWalletDao.getByGroupId(groupId)?.let {
             assistedWalletDao.update(it.copy(alias = ""))
         }
+    }
+
+    override fun getBackUpBannerWalletIds(): Flow<Set<String>> {
+        return ncDataStore.groupWalletBackUpBannerKeys
+    }
+
+    override suspend fun setBackUpBannerWalletIds(ids: Set<String>) {
+        ncDataStore.setGroupWalletBackUpBannerKey(ids)
     }
 
     private suspend fun getNonce(): String {
