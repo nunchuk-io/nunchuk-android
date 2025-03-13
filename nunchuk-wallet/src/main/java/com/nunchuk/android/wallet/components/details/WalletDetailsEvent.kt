@@ -57,4 +57,5 @@ data class WalletDetailsState(
     val replaceGroups: Map<String, Boolean> = emptyMap(),
     val isDeprecatedGroupWallet: Boolean = false,
     val isNeedBackUpGroupWallet: Boolean = false,
+    val chatBarState: ChatBarState = ChatBarState.EXPANDED,
 )

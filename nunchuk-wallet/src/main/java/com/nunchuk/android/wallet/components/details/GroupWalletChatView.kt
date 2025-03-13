@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.nunchuk.android.compose.NcExpandableTextInline
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcTextField
@@ -43,7 +44,9 @@ import com.nunchuk.android.model.FreeGroupMessage
 import com.nunchuk.android.wallet.R
 
 @Composable
-fun GroupWalletChatView(
+internal fun GroupWalletChatView(
+    viewModel: WalletDetailsViewModel = hiltViewModel(),
+    chatBarState: ChatBarState = ChatBarState.EXPANDED,
     messages: List<FreeGroupMessage> = emptyList(),
     unreadCount: Int = 0,
     onSendMessage: (String) -> Unit = {},
@@ -73,14 +76,20 @@ fun GroupWalletChatView(
         ) {
             ChatHeader(
                 unreadCount = unreadCount,
-                isChatExpanded = isChatExpanded,
+                isChatExpanded = chatBarState == ChatBarState.EXPANDED,
                 onCollapseExpand = {
-                    isChatExpanded = !isChatExpanded
+                    viewModel.setChatBarState(
+                        if (chatBarState == ChatBarState.EXPANDED) {
+                            ChatBarState.USER_COLLAPSED
+                        } else {
+                            ChatBarState.EXPANDED
+                        }
+                    )
                 },
                 onOpenChat = onOpenChat
             )
 
-            if (isChatExpanded) {
+            if (chatBarState == ChatBarState.EXPANDED) {
                 ChatMessages(messages = messages.take(2))
 
                 ChatInput(onSendMessage = { message ->

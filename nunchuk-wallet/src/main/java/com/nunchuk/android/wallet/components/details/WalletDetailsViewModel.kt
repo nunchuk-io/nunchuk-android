@@ -653,4 +653,12 @@ internal class WalletDetailsViewModel @Inject constructor(
             setBackUpBannerWalletIdsUseCase(getWallet().id)
         }
     }
+
+    fun getChatBarState() = getState().chatBarState
+
+    fun setChatBarState(state: ChatBarState) {
+        updateState {
+            copy(chatBarState = state)
+        }
+    }
 }

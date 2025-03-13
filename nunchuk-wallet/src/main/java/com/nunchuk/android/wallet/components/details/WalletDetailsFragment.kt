@@ -199,6 +199,8 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         binding.chatView.setContent {
             val state by viewModel.state.asFlow().collectAsStateWithLifecycle(WalletDetailsState())
             GroupWalletChatView(
+                viewModel = viewModel,
+                chatBarState = state.chatBarState,
                 messages = state.groupChatMessages,
                 unreadCount = state.unreadMessagesCount,
                 onSendMessage = {
@@ -595,6 +597,20 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                     }
                 } else {
                     animateLayout(true)
+                }
+            }
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                val currentState = viewModel.getChatBarState()
+                when {
+                    dy > 0 && currentState == ChatBarState.EXPANDED -> {
+                        // Scrolling down: collapse if expanded
+                        viewModel.setChatBarState(ChatBarState.AUTO_COLLAPSED)
+                    }
+                    dy < 0 && currentState == ChatBarState.AUTO_COLLAPSED -> {
+                        // Scrolling up: expand only if auto-collapsed
+                        viewModel.setChatBarState(ChatBarState.EXPANDED)
+                    }
                 }
             }
         })
