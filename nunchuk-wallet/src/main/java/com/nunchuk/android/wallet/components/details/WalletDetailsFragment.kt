@@ -442,7 +442,11 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         if (binding.tvWalletWarning.isVisible) {
             handleNeedBackupWallet(state.isFreeGroupWallet)
         }
-        binding.chatView.isVisible = state.isFreeGroupWallet
+        if (state.hideWalletDetailLocal) {
+            binding.chatView.isVisible = false
+        } else {
+            binding.chatView.isVisible = state.isFreeGroupWallet
+        }
 
         if (state.isFreeGroupWallet) {
             val layoutParams = binding.addressQR.layoutParams
