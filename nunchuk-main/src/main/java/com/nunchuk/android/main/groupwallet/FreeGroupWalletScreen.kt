@@ -339,11 +339,11 @@ fun FreeGroupWalletScreen(
                     if (showBip32Path) stringResource(R.string.nc_hide_bip_32_path) else stringResource(
                         R.string.nc_show_bip_32_path
                     ),
-                   if (isInReplace) {
-                       stringResource(R.string.nc_cancel_key_replacement)
-                   } else {
-                       stringResource(R.string.nc_cancel_group_wallet_setup)
-                   },
+                    if (isInReplace) {
+                        stringResource(R.string.nc_cancel_key_replacement)
+                    } else {
+                        stringResource(R.string.nc_cancel_group_wallet_setup)
+                    },
                 ),
                 onSelected = {
                     if (it == 0) {
@@ -389,7 +389,9 @@ fun FreeGroupWalletScreen(
 
         if (showAskForDeleteDialog) {
             NcConfirmationDialog(
-                message = stringResource(id = R.string.nc_ask_for_delete_group_wallet),
+                message =
+                    if (isInReplace) stringResource(R.string.nc_confirm_cancel_replacement_desc)
+                    else stringResource(id = R.string.nc_ask_for_delete_group_wallet),
                 onPositiveClick = {
                     onDeleteGroupClicked()
                     showAskForDeleteDialog = false
