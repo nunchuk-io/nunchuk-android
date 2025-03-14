@@ -39,6 +39,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.NestedScrollView
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.nunchuk.android.compose.NunchukTheme
@@ -125,7 +126,9 @@ import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
 import java.util.Locale
 import javax.inject.Inject
 
@@ -269,9 +272,9 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun observeEvent() {
-        flowObserver(ConnectionStatusHelper.blockChainStatus) { status ->
-            showConnectionBlockchainStatus(status?.status)
-        }
+        ConnectionStatusHelper.blockChainStatus.combine(walletsViewModel.chain) { status, chain ->
+            showConnectionBlockchainStatus(status?.status, chain)
+        }.launchIn(viewLifecycleOwner.lifecycleScope)
         walletsViewModel.state.observe(viewLifecycleOwner, ::showWalletState)
         walletsViewModel.event.observe(viewLifecycleOwner, ::handleEvent)
         mainActivityViewModel.event.observe(viewLifecycleOwner, ::handleMainActivityEvent)
@@ -501,9 +504,8 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.tvCampaigns.text = campaign?.cta
     }
 
-    private fun showConnectionBlockchainStatus(status: ConnectionStatus?) {
+    private fun showConnectionBlockchainStatus(status: ConnectionStatus?, chain: Chain) {
         binding.tvConnectionStatus.isVisible = status != null
-        val chain = walletsViewModel.getChain()
         when (status) {
             ConnectionStatus.OFFLINE -> {
                 binding.tvConnectionStatus.text = getString(

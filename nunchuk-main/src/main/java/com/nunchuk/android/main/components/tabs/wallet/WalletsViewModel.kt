@@ -299,7 +299,6 @@ internal class WalletsViewModel @Inject constructor(
                 mapGroupWalletUi()
             }
         }
-        getAppSettings()
         viewModelScope.launch {
             getWalletSecuritySettingUseCase(Unit)
                 .collect {
@@ -345,7 +344,8 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             GroupSandboxListener.getGroupFlow().collect { groupSandbox ->
                 if (groupSandbox.finalized) {
-                    val pendingGroupSandboxes = getState().pendingGroupSandboxes.filter { it.id != groupSandbox.id }
+                    val pendingGroupSandboxes =
+                        getState().pendingGroupSandboxes.filter { it.id != groupSandbox.id }
                     updateState { copy(pendingGroupSandboxes = pendingGroupSandboxes) }
                     retrieveData()
                 }
@@ -509,15 +509,8 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
-    private fun getAppSettings() {
-        viewModelScope.launch {
-            getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }.collect {
-                updateState {
-                    copy(chain = it)
-                }
-            }
-        }
-    }
+    val chain = getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }
+        .stateIn(viewModelScope, SharingStarted.Lazily, Chain.MAIN)
 
     fun retrieveData() {
         if (isRetrievingData.get()) return
@@ -581,7 +574,9 @@ internal class WalletsViewModel @Inject constructor(
                     keyStatus = getState().keyHealthStatus[wallet.wallet.id].orEmpty()
                         .associateBy { it.xfp },
                     signers = signers,
-                    isSandboxWallet = groupSandboxWalletIds.contains(wallet.wallet.id)
+                    isSandboxWallet = groupSandboxWalletIds.contains(
+                        wallet.wallet.id
+                    )
                 )
                 if (group != null) {
                     val role = byzantineGroupUtils.getCurrentUserRole(group)
@@ -813,8 +808,6 @@ internal class WalletsViewModel @Inject constructor(
     fun getLocalReferrerCode() = getState().localReferrerCode
 
     fun getBanner() = getState().banner
-
-    fun getChain() = getState().chain
 
     private fun checkWalletsRequestKey(wallets: List<AssistedWalletBrief>, onConsumed: () -> Unit) {
         val key = wallets.joinToString { "${it.localId}_${it.groupId}" }

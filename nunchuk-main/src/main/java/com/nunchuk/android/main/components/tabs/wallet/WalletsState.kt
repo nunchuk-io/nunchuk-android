@@ -37,13 +37,11 @@ import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
-import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 
 internal data class WalletsState(
     val wallets: List<WalletExtended> = emptyList(),
     val connectionStatus: ConnectionStatus? = null,
-    val chain: Chain = Chain.MAIN,
     val plans: List<MembershipPlan>? = null,
     val remainingTime: Int = 0,
     val assistedWallets: List<AssistedWalletBrief> = emptyList(),
