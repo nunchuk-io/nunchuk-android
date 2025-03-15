@@ -28,6 +28,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
+import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -138,6 +139,8 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
             }
         }
 
+    private var previousProgress: Float = 0f // To track scroll direction
+
     private fun closeScreen() {
         if (requireActivity() is WalletDetailsActivity) requireActivity().finish()
         else findNavController().popBackStack()
@@ -212,6 +215,59 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                     )
                 })
         }
+        handleChatViewCollapseExpand()
+    }
+
+    private fun handleChatViewCollapseExpand() {
+        val motionLayout = binding.container
+        motionLayout.setTransitionListener(object : MotionLayout.TransitionListener {
+            override fun onTransitionStarted(
+                motionLayout: MotionLayout?,
+                startId: Int,
+                endId: Int
+            ) {
+            }
+
+            override fun onTransitionChange(
+                motionLayout: MotionLayout?,
+                startId: Int,
+                endId: Int,
+                progress: Float
+            ) {
+                when {
+                    // Scrolling down: progress increases
+                    progress > previousProgress -> {
+                        if (viewModel.getChatBarState() == ChatBarState.EXPANDED) {
+                            lifecycleScope.launch {
+                                delay(150)
+                                viewModel.setChatBarState(ChatBarState.AUTO_COLLAPSED)
+                            }
+                        }
+                    }
+                    // Scrolling up: progress decreases
+                    progress < previousProgress -> {
+                        if (viewModel.getChatBarState() == ChatBarState.AUTO_COLLAPSED) {
+                            lifecycleScope.launch {
+                                delay(150)
+                                viewModel.setChatBarState(ChatBarState.EXPANDED)
+                            }
+                        }
+                    }
+                }
+                previousProgress = progress
+            }
+
+            override fun onTransitionCompleted(motionLayout: MotionLayout?, currentId: Int) {
+            }
+
+            override fun onTransitionTrigger(
+                motionLayout: MotionLayout?,
+                triggerId: Int,
+                positive: Boolean,
+                progress: Float
+            ) {
+            }
+        })
     }
 
     private fun configureToolbar(state: WalletDetailsState) {
@@ -440,7 +496,8 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         binding.ivViewCoin.isEnabled = state.isHasCoin && viewModel.isFacilitatorAdmin().not()
         binding.ivViewCoin.alpha =
             if (state.isHasCoin && viewModel.isFacilitatorAdmin().not()) 1.0f else 0.7f
-        binding.tvWalletWarning.isVisible = state.walletExtended.wallet.needBackup || state.isNeedBackUpGroupWallet
+        binding.tvWalletWarning.isVisible =
+            state.walletExtended.wallet.needBackup || (state.isNeedBackUpGroupWallet && state.isFreeGroupWallet && state.isDeprecatedGroupWallet.not())
         if (binding.tvWalletWarning.isVisible) {
             handleNeedBackupWallet(state.isFreeGroupWallet)
         }
@@ -449,7 +506,6 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         } else {
             binding.chatView.isVisible = state.isFreeGroupWallet
         }
-
         if (state.isFreeGroupWallet) {
             val layoutParams = binding.addressQR.layoutParams
             layoutParams.width = dpToPx(120)
@@ -607,6 +663,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                         // Scrolling down: collapse if expanded
                         viewModel.setChatBarState(ChatBarState.AUTO_COLLAPSED)
                     }
+
                     dy < 0 && currentState == ChatBarState.AUTO_COLLAPSED -> {
                         // Scrolling up: expand only if auto-collapsed
                         viewModel.setChatBarState(ChatBarState.EXPANDED)
@@ -669,26 +726,32 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         binding.tvWalletWarning.makeTextLink(
             if (isFreeGroupWallet) getString(R.string.nc_save_bsms_file_warning) else getString(R.string.nc_write_down_the_seed_pharse_warning),
             ClickAbleText(content = getString(R.string.nc_do_it_now), onClick = {
-                if (isFreeGroupWallet) {
-                    showSaveShareOption()
-                } else {
-                    lifecycleScope.launch {
-                        viewModel.hasSigner(viewModel.getWallet().signers.first())
-                            .onSuccess {
-                                if (it) {
-                                    showConfirmBackupDialog()
-                                } else {
-                                    showHotKeyDeleted()
-                                }
-                            }
-                    }
-                }
             })
         )
         binding.tvWalletWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
             R.drawable.ic_warning_outline, 0, 0, 0
         )
         binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_rounded_beeswax_background)
+        binding.tvWalletWarning.setOnClickListener {
+            onWarningClick()
+        }
+    }
+
+    private fun onWarningClick() {
+        if (viewModel.isFreeGroupWallet()) {
+            showSaveShareOption()
+        } else {
+            lifecycleScope.launch {
+                viewModel.hasSigner(viewModel.getWallet().signers.first())
+                    .onSuccess {
+                        if (it) {
+                            showConfirmBackupDialog()
+                        } else {
+                            showHotKeyDeleted()
+                        }
+                    }
+            }
+        }
     }
 
     private fun showHotKeyDeleted() {
