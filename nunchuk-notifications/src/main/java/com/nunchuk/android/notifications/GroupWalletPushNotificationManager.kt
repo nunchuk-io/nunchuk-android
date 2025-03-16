@@ -2,6 +2,7 @@ package com.nunchuk.android.notifications
 
 import com.nunchuk.android.usecase.free.groupwallet.DecryptGroupTxIdUseCase
 import com.nunchuk.android.usecase.free.groupwallet.DecryptGroupWalletIdUseCase
+import timber.log.Timber
 import javax.inject.Inject
 
 class GroupWalletPushNotificationManager @Inject constructor(
@@ -50,7 +51,8 @@ class GroupWalletPushNotificationManager @Inject constructor(
             TYPE.GROUP_WALLET_TRANSACTION_UPDATED -> {
                 val txIdData = data["transaction_id"] ?: return null
                 if (txIdData.isEmpty()) return null
-                val txId = decryptGroupTxIdUseCase(DecryptGroupTxIdUseCase.Param(walletIdData, txIdData)).getOrNull() ?: return null
+                Timber.tag("notification-service-fcm").e("txIdData: $txIdData")
+                val txId = decryptGroupTxIdUseCase(DecryptGroupTxIdUseCase.Param(walletId, txIdData)).getOrNull() ?: return null
                 PushNotificationData(
                     title = data["title"] ?: "",
                     message = data["message"] ?: "",

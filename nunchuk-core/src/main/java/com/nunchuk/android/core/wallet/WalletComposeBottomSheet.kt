@@ -342,6 +342,7 @@ private fun AssistedWalletContent(
                     walletsExtended = ui.wallet,
                     isAssistedWallet = ui.isAssistedWallet,
                     walletStatus = ui.walletStatus,
+                    isFreeGroupWallet = ui.isGroupWallet,
                     role = ui.role.name,
                     group = ui.group,
                     onWalletClick = {
@@ -382,6 +383,7 @@ fun AssistedWallet(
     role: String,
     group: ByzantineGroup?,
     walletStatus: String,
+    isFreeGroupWallet: Boolean,
     onWalletClick: () -> Unit = {}
 ) {
     val isLimitAccess = isLimitAccess(group, role, walletStatus)
@@ -391,7 +393,7 @@ fun AssistedWallet(
         isAssistedWallet = isAssistedWallet,
         hasGroup = group != null,
         isLimitAccess = isLimitAccess,
-        isFreeGroupWallet = false
+        isFreeGroupWallet = isFreeGroupWallet
     )
     Column(
         modifier = Modifier

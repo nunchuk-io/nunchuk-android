@@ -33,6 +33,7 @@ import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
+import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListRemoteUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
@@ -56,6 +57,7 @@ class WalletsBottomSheetViewModel @Inject constructor(
     private val getSavedAddressListLocalUseCase: GetSavedAddressListLocalUseCase,
     private val getSavedAddressListRemoteUseCase: GetSavedAddressListRemoteUseCase,
     private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
+    private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(WalletsBottomSheetState())
@@ -71,6 +73,13 @@ class WalletsBottomSheetViewModel @Inject constructor(
     ) {
         this.exclusiveAddresses = exclusiveAddresses
         _state.update { it.copy(config = configArgs ?: WalletComposeBottomSheet.ConfigArgs()) }
+        viewModelScope.launch {
+            getGroupWalletsUseCase(Unit)
+                .onSuccess { wallets ->
+                    _state.update { it.copy(groupWallets = wallets.map { it.id }.toHashSet()) }
+                    composeWalletUiModels()
+                }
+        }
         viewModelScope.launch {
             getGroupsUseCase(Unit)
                 .collect { result ->
@@ -161,7 +170,8 @@ class WalletsBottomSheetViewModel @Inject constructor(
                     isAssistedWallet = assistedWallet?.status == WalletStatus.ACTIVE.name,
                     group = group,
                     role = role ?: AssistedWalletRole.NONE,
-                    walletStatus = walletStatus
+                    walletStatus = walletStatus,
+                    isGroupWallet = state.value.groupWallets.contains(wallet.wallet.id)
                 )
             )
         }
@@ -175,7 +185,8 @@ data class WalletUiModel(
     val isAssistedWallet: Boolean,
     val group: ByzantineGroup?,
     val role: AssistedWalletRole,
-    val walletStatus: String
+    val walletStatus: String,
+    val isGroupWallet: Boolean = false
 )
 
 data class WalletsBottomSheetState(
@@ -187,4 +198,5 @@ data class WalletsBottomSheetState(
     val config: WalletComposeBottomSheet.ConfigArgs = WalletComposeBottomSheet.ConfigArgs(),
     val walletUiModels: List<WalletUiModel> = emptyList(),
     val isPremiumUser: Boolean = false,
+    val groupWallets: HashSet<String> = hashSetOf()
 )

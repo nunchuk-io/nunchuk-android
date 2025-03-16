@@ -113,6 +113,7 @@ class PushNotificationMessagingService : FirebaseMessagingService() {
         }
 
         val data = remoteMessage.data
+        Timber.tag("notification-service-fcm").e("onMessageReceived: $data")
 
         applicationScope.launch {
             val handledByGroupWallet =
