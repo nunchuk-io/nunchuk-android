@@ -171,7 +171,7 @@ fun FreeGroupWalletScreen(
     var showDeleteSignerDialog by rememberSaveable { mutableStateOf(false) }
     var showKeyNotSynced by rememberSaveable { mutableStateOf(false) }
     var showBip32Path by rememberSaveable { mutableStateOf(false) }
-    val isInReplace = !state.group?.replaceWalletId.isNullOrEmpty()
+    val isInReplace = state.isInReplaceMode
     val isButtonEnabled = if (state.group != null) {
         val signers = if (isInReplace) state.replaceSigners else state.signers
         signers.count { it != null } == state.group.n && state.group.n > 0

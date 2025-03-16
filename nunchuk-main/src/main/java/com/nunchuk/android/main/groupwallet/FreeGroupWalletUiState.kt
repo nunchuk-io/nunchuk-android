@@ -21,4 +21,5 @@ data class FreeGroupWalletUiState(
     val isCreatedReplaceGroup: Boolean = false,
     val finalizeGroup: GroupSandbox? = null,
     val finalizedWalletId: String? = null,
+    val isInReplaceMode: Boolean = false,
 )

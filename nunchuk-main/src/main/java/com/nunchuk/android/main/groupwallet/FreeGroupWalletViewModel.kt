@@ -269,9 +269,9 @@ class FreeGroupWalletViewModel @Inject constructor(
         getSignerOldWallet(groupSandbox.replaceWalletId)
         val signers = mapSigners(groupSandbox.signers)
         if (replaceWalletId.isNotEmpty()) {
-            _uiState.update { it.copy(group = groupSandbox, replaceSigners = signers) }
+            _uiState.update { it.copy(group = groupSandbox, replaceSigners = signers, isInReplaceMode = true) }
         } else {
-            _uiState.update { it.copy(group = groupSandbox, signers = signers) }
+            _uiState.update { it.copy(group = groupSandbox, signers = signers, isInReplaceMode = false) }
         }
         updateOccupiedSlots(groupSandbox)
     }
