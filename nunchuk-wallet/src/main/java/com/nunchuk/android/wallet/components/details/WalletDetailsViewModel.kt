@@ -256,12 +256,11 @@ internal class WalletDetailsViewModel @Inject constructor(
                 }
 
         }
-        checkDeprecatedGroupWallet()
         getGroupWalletMessageUnreadCount()
         listenGroupWalletReplace()
     }
 
-    private fun checkDeprecatedGroupWallet() {
+    fun checkDeprecatedGroupWallet() {
         viewModelScope.launch {
             getDeprecatedGroupWalletsUseCase(Unit).onSuccess { deprecatedWallets ->
                 val isDeprecated = deprecatedWallets.any { it == args.walletId }

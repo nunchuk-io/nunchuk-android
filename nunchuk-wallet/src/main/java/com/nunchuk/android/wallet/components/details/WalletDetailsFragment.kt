@@ -155,6 +155,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
     override fun onResume() {
         super.onResume()
         with(viewModel) {
+            checkDeprecatedGroupWallet()
             syncServerTransaction()
             syncData(loadingSilent = true)
             getGroupWalletMessageUnreadCount()
