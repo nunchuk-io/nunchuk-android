@@ -156,7 +156,7 @@ fun PendingWalletView(
                         role = role,
                         useLargeFont = useLargeFont,
                         walletStatus = walletStatus.orEmpty(),
-                        isSandboxWallet = isSandboxWallet == true,
+                        isSandboxWallet = isSandboxWallet,
                         isDeprecatedGroupWallet = isDeprecatedGroupWallet
                     )
                     if (showShortcuts) {
@@ -197,7 +197,7 @@ fun PendingWalletView(
                     onDeny = onDeny
                 )
             }
-        } else if (isAssistedWallet || (walletStatus == WalletStatus.LOCKED.name && isSandboxWallet == false)) {
+        } else if (isAssistedWallet || (walletStatus == WalletStatus.LOCKED.name && !isSandboxWallet)) {
             Row(
                 modifier = Modifier
                     .clickable(

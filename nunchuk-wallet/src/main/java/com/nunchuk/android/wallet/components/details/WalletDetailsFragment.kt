@@ -489,7 +489,8 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
             Utils.maskValue(wallet.getCurrencyAmount(), state.hideWalletDetailLocal)
 
         binding.shareIcon.isVisible =
-            state.walletExtended.isShared || state.isAssistedWallet || state.walletStatus == WalletStatus.REPLACED.name
+            state.walletExtended.isShared || state.isAssistedWallet
+                    || state.walletStatus == WalletStatus.REPLACED.name || state.isDeprecatedGroupWallet
         handleWalletBackground(state)
         updateFabIcon(state.hideWalletDetailLocal)
         binding.ivSendBtc.isEnabled = state.walletStatus != WalletStatus.LOCKED.name
@@ -523,7 +524,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
     }
 
     private fun handleWalletBackground(state: WalletDetailsState) {
-        if (state.isFreeGroupWallet) {
+        if (state.isFreeGroupWallet && !state.isDeprecatedGroupWallet) {
             binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_free_group_wallet_background)
             requireActivity().window.statusBarColor =
                 ContextCompat.getColor(requireContext(), R.color.cl_2B74A9)

@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -81,46 +83,48 @@ fun ActiveWallet(
                 || walletStatus == WalletStatus.REPLACED.name
                 || walletStatus == WalletStatus.LOCKED.name
                 || isSandboxWallet
+                || isDeprecatedGroupWallet
             ) {
                 Badge(containerColor = Color.White) {
+                    Spacer(modifier = Modifier.width(8.dp))
                     if (isSandboxWallet) {
                         Icon(
-                            modifier = Modifier.padding(start = 8.dp),
+                            modifier = Modifier.padding(end = 4.dp),
                             painter = painterResource(id = R.drawable.ic_circle_three),
                             contentDescription = "Wallet"
                         )
-                    } else if (walletStatus != WalletStatus.REPLACED.name) {
+                    } else if (walletStatus != WalletStatus.REPLACED.name && !isDeprecatedGroupWallet) {
                         Icon(
-                            modifier = Modifier.padding(start = 8.dp),
+                            modifier = Modifier.padding(end = 4.dp),
                             painter = painterResource(id = R.drawable.ic_wallet_small),
                             contentDescription = "Wallet"
                         )
                     }
-                    val walletTypeName = if (walletStatus == WalletStatus.REPLACED.name) {
-                        stringResource(R.string.nc_deactivated)
-                    } else if (isAssistedWallet || walletStatus == WalletStatus.LOCKED.name) {
-                        Utils.maskValue(
-                            stringResource(R.string.nc_assisted), hideWalletDetail
-                        )
-                    } else if (isSandboxWallet) {
-                        Utils.maskValue(
-                            stringResource(R.string.nc_shared), hideWalletDetail
-                        )
-                    } else {
-                        Utils.maskValue(
-                            stringResource(R.string.nc_text_shared), hideWalletDetail
-                        )
-                    }
+                    val walletTypeName =
+                        if (walletStatus == WalletStatus.REPLACED.name || isDeprecatedGroupWallet) {
+                            stringResource(R.string.nc_deactivated)
+                        } else if (isAssistedWallet || walletStatus == WalletStatus.LOCKED.name) {
+                            Utils.maskValue(
+                                stringResource(R.string.nc_assisted), hideWalletDetail
+                            )
+                        } else if (isSandboxWallet) {
+                            Utils.maskValue(
+                                stringResource(R.string.nc_shared), hideWalletDetail
+                            )
+                        } else {
+                            Utils.maskValue(
+                                stringResource(R.string.nc_text_shared), hideWalletDetail
+                            )
+                        }
                     Text(
-                        modifier = Modifier.padding(
-                            start = 4.dp, end = 8.dp, top = 2.dp, bottom = 2.dp
-                        ),
+                        modifier = Modifier.padding(top = 2.dp, bottom = 2.dp),
                         text = walletTypeName,
                         style = NunchukTheme.typography.titleSmall.copy(
                             fontSize = 10.sp,
                             color = colorResource(R.color.nc_grey_g7)
                         )
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
                 }
             }
 
@@ -183,7 +187,7 @@ fun getWalletColors(
             colorResource(id = R.color.nc_beeswax_dark),
             colorResource(id = R.color.nc_beeswax_dark)
         )
-    }  else {
+    } else {
         listOf(
             colorResource(id = R.color.nc_primary_light_color),
             colorResource(id = R.color.cl_031F2B)

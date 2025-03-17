@@ -142,7 +142,7 @@ internal fun WalletConfigView(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = wallet.name,
+                                text = if (state.isDeprecatedGroupWallet) "[DEPRECATED] ${wallet.name}" else wallet.name,
                                 style = NunchukTheme.typography.titleLarge
                                     .copy(color = colorResource(id = R.color.nc_white_color))
                             )
