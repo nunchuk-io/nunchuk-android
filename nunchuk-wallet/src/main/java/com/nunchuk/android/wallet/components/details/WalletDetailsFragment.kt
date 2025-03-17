@@ -200,6 +200,10 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
             clearFragmentResult(GroupChatHistoryFragment.REQUEST_KEY)
         }
 
+        setUpGroupWalletChatView()
+    }
+
+    private fun setUpGroupWalletChatView() {
         binding.chatView.setContent {
             val state by viewModel.state.asFlow().collectAsStateWithLifecycle(WalletDetailsState())
             GroupWalletChatView(
@@ -217,58 +221,6 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                 })
         }
         handleChatViewCollapseExpand()
-    }
-
-    private fun handleChatViewCollapseExpand() {
-        val motionLayout = binding.container
-        motionLayout.setTransitionListener(object : MotionLayout.TransitionListener {
-            override fun onTransitionStarted(
-                motionLayout: MotionLayout?,
-                startId: Int,
-                endId: Int
-            ) {
-            }
-
-            override fun onTransitionChange(
-                motionLayout: MotionLayout?,
-                startId: Int,
-                endId: Int,
-                progress: Float
-            ) {
-                when {
-                    // Scrolling down: progress increases
-                    progress > previousProgress -> {
-                        if (viewModel.getChatBarState() == ChatBarState.EXPANDED) {
-                            lifecycleScope.launch {
-                                delay(150)
-                                viewModel.setChatBarState(ChatBarState.AUTO_COLLAPSED)
-                            }
-                        }
-                    }
-                    // Scrolling up: progress decreases
-                    progress < previousProgress -> {
-                        if (viewModel.getChatBarState() == ChatBarState.AUTO_COLLAPSED) {
-                            lifecycleScope.launch {
-                                delay(150)
-                                viewModel.setChatBarState(ChatBarState.EXPANDED)
-                            }
-                        }
-                    }
-                }
-                previousProgress = progress
-            }
-
-            override fun onTransitionCompleted(motionLayout: MotionLayout?, currentId: Int) {
-            }
-
-            override fun onTransitionTrigger(
-                motionLayout: MotionLayout?,
-                triggerId: Int,
-                positive: Boolean,
-                progress: Float
-            ) {
-            }
-        })
     }
 
     private fun configureToolbar(state: WalletDetailsState) {
@@ -693,6 +645,58 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                 )
             }
         }
+    }
+
+    private fun handleChatViewCollapseExpand() {
+        val motionLayout = binding.container
+        motionLayout.setTransitionListener(object : MotionLayout.TransitionListener {
+            override fun onTransitionStarted(
+                motionLayout: MotionLayout?,
+                startId: Int,
+                endId: Int
+            ) {
+            }
+
+            override fun onTransitionChange(
+                motionLayout: MotionLayout?,
+                startId: Int,
+                endId: Int,
+                progress: Float
+            ) {
+                when {
+                    // Scrolling down: progress increases
+                    progress > previousProgress -> {
+                        if (viewModel.getChatBarState() == ChatBarState.EXPANDED) {
+                            lifecycleScope.launch {
+                                delay(150)
+                                viewModel.setChatBarState(ChatBarState.AUTO_COLLAPSED)
+                            }
+                        }
+                    }
+                    // Scrolling up: progress decreases
+                    progress < previousProgress -> {
+                        if (viewModel.getChatBarState() == ChatBarState.AUTO_COLLAPSED) {
+                            lifecycleScope.launch {
+                                delay(150)
+                                viewModel.setChatBarState(ChatBarState.EXPANDED)
+                            }
+                        }
+                    }
+                }
+                previousProgress = progress
+            }
+
+            override fun onTransitionCompleted(motionLayout: MotionLayout?, currentId: Int) {
+            }
+
+            override fun onTransitionTrigger(
+                motionLayout: MotionLayout?,
+                triggerId: Int,
+                positive: Boolean,
+                progress: Float
+            ) {
+            }
+        })
     }
 
     private fun animateLayout(isEnd: Boolean) {

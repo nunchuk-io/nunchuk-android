@@ -47,7 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_8"
-        android:background="@drawable/nc_rounded_whisper_background"
+        android:background="@drawable/nc_wallet_warning_background"
         android:drawablePadding="@dimen/nc_padding_8"
         android:padding="@dimen/nc_padding_12"
         android:text="@string/nc_assisted_wallet_downgrade_hint"
@@ -461,6 +461,7 @@
         android:layout_height="wrap_content"
         android:clickable="true"
         android:focusable="true"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
