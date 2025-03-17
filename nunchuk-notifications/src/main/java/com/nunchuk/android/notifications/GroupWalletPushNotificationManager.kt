@@ -52,12 +52,19 @@ class GroupWalletPushNotificationManager @Inject constructor(
                 val txIdData = data["transaction_id"] ?: return null
                 if (txIdData.isEmpty()) return null
                 Timber.tag("notification-service-fcm").e("txIdData: $txIdData")
-                val txId = decryptGroupTxIdUseCase(DecryptGroupTxIdUseCase.Param(walletId, txIdData)).getOrNull() ?: return null
+                var txId = ""
+                runCatching {
+                    txId = decryptGroupTxIdUseCase(DecryptGroupTxIdUseCase.Param(walletId, txIdData)).getOrNull().orEmpty()
+                }.onSuccess {
+                    Timber.tag("notification-service-fcm").e("txId: $txId")
+                }.onFailure {
+                    Timber.tag("notification-service-fcm").e(it)
+                }
                 PushNotificationData(
                     title = data["title"] ?: "",
                     message = data["message"] ?: "",
                     id = System.currentTimeMillis(),
-                    intent = intentProvider.getTransactionDetailIntent(walletId = walletId, txId)
+                    intent = if (txId.isNotEmpty()) intentProvider.getTransactionDetailIntent(walletId = walletId, txId) else intentProvider.getWalletDetailIntent(walletId)
                 )
             }
 
