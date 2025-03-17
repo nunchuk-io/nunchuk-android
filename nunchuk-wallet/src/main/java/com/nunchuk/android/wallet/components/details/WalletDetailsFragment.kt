@@ -103,7 +103,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -627,12 +626,12 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         })
         setupPaginationAdapter()
         binding.replaceWalletView.setContent {
-            val replacedGroups by viewModel.state.asFlow().map { it.replaceGroups }
-                .collectAsStateWithLifecycle(emptyMap())
+            val state by viewModel.state.asFlow()
+                .collectAsStateWithLifecycle(WalletDetailsState())
 
-            if (replacedGroups.isNotEmpty()) {
+            if (state.replaceGroups.isNotEmpty() && !state.isDeprecatedGroupWallet) {
                 ReplacedGroupView(
-                    replacedGroups = replacedGroups,
+                    replacedGroups = state.replaceGroups,
                     onAcceptOrDeny = { groupId, isAccept ->
                         viewModel.acceptOrDenyReplaceGroup(groupId, isAccept)
                     },
