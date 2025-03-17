@@ -737,10 +737,13 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         binding.tvWalletWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
             R.drawable.ic_warning_outline, 0, 0, 0
         )
-        binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_rounded_beeswax_background)
+        binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_wallet_warning_background)
+        binding.tvWalletWarning.setTextColor(ContextCompat.getColor(requireContext(), R.color.cl_031F2B))
+        binding.tvWalletWarning.setCompoundDrawableTintList(ContextCompat.getColorStateList(requireContext(), R.color.cl_031F2B))
         binding.tvWalletWarning.setOnClickListener {
             onWarningClick()
         }
+
     }
 
     private fun onWarningClick() {
