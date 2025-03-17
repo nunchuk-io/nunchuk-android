@@ -250,7 +250,8 @@ internal class WalletDetailsViewModel @Inject constructor(
                 .collect {
                     updateState {
                         copy(
-                            isNeedBackUpGroupWallet = it.getOrNull()?.contains(args.walletId) == false
+                            isNeedBackUpGroupWallet = it.getOrNull()
+                                ?.contains(args.walletId) == false
                         )
                     }
                 }
@@ -264,9 +265,7 @@ internal class WalletDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             getDeprecatedGroupWalletsUseCase(Unit).onSuccess { deprecatedWallets ->
                 val isDeprecated = deprecatedWallets.any { it == args.walletId }
-                if (!isDeprecated) {
-                    getReplaceGroupSandbox()
-                }
+                getReplaceGroupSandbox()
                 updateState { copy(isDeprecatedGroupWallet = isDeprecated) }
             }
         }

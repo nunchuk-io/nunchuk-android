@@ -87,7 +87,7 @@ fun ActiveWallet(
             ) {
                 Badge(containerColor = Color.White) {
                     Spacer(modifier = Modifier.width(8.dp))
-                    if (isSandboxWallet) {
+                    if (isSandboxWallet && !isDeprecatedGroupWallet) {
                         Icon(
                             modifier = Modifier.padding(end = 4.dp),
                             painter = painterResource(id = R.drawable.ic_circle_three),
