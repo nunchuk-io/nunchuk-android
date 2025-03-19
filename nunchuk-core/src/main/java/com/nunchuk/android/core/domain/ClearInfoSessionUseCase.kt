@@ -52,8 +52,9 @@ class ClearInfoSessionUseCase @Inject constructor(
         primaryKeySignerInfoHolder.clear()
         premiumWalletRepository.clearLocalData()
         applicationScope.launch {
-            val token = FirebaseMessaging.getInstance().token.await()
-            notificationDeviceUnregisterUseCase(NotificationDeviceUnregisterUseCase.Param(token))
+            runCatching { FirebaseMessaging.getInstance().token.await() }.onSuccess { token ->
+                notificationDeviceUnregisterUseCase(NotificationDeviceUnregisterUseCase.Param(token))
+            }
         }
     }
 }
