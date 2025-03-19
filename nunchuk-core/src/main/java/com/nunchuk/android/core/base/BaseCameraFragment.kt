@@ -26,6 +26,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -52,13 +53,14 @@ abstract class BaseCameraFragment<out Binding : ViewBinding> : BaseFragment<Bind
             }
         }
 
-    private val settingLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (requireActivity().isPermissionGranted(Manifest.permission.CAMERA)) {
-            onCameraPermissionGranted(true)
-        } else {
-            showAlertPermissionDeniedPermanently()
+    private val settingLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (requireActivity().isPermissionGranted(Manifest.permission.CAMERA)) {
+                onCameraPermissionGranted(true)
+            } else {
+                showAlertPermissionDeniedPermanently()
+            }
         }
-    }
 
     private fun showAlertPermissionNotGranted() {
         NCWarningDialog(requireActivity()).showDialog(
@@ -117,8 +119,8 @@ abstract class BaseCameraFragment<out Binding : ViewBinding> : BaseFragment<Bind
 
     protected var scanner: CameraScanController? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         scannerViewComposer()?.let {
             scanner = getCameraScanController(false)
             setScannerListener()
