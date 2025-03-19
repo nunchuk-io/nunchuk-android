@@ -31,7 +31,6 @@ import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesDel
 import com.nunchuk.android.core.domain.membership.DeleteAssistedWalletUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
-import com.nunchuk.android.core.domain.wallet.GetWalletBsmsUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -53,6 +52,7 @@ import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.DeleteWalletUseCase
+import com.nunchuk.android.usecase.ExportTransactionsHistoryUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -77,6 +77,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -122,9 +123,9 @@ internal class WalletConfigViewModel @Inject constructor(
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
-    private val getWalletBsmsUseCase: GetWalletBsmsUseCase,
     private val getDeprecatedGroupWalletsUseCase: GetDeprecatedGroupWalletsUseCase,
     private val setBackUpBannerWalletIdsUseCase: SetBackUpBannerWalletIdsUseCase,
+    private val exportTransactionsHistoryUseCase: ExportTransactionsHistoryUseCase,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletConfigState())
@@ -147,6 +148,8 @@ internal class WalletConfigViewModel @Inject constructor(
     private val exportInvoices = ExportInvoices(context)
 
     private val accountInfo by lazy { accountManager.getAccount() }
+
+    private var filePathInteracting = ""
 
     private fun getState() = _state.value
 
@@ -457,24 +460,26 @@ internal class WalletConfigViewModel @Inject constructor(
     private fun exportWalletToFile(walletId: String, filePath: String, format: ExportFormat) {
         viewModelScope.launch {
             when (val event = exportWalletUseCase.execute(walletId, filePath, format)) {
-                is Result.Success -> _event.emit(
-                    WalletConfigEvent.UploadWalletConfigEvent(
-                        filePath
+                is Result.Success -> {
+                    filePathInteracting = filePath
+                    _event.emit(
+                        WalletConfigEvent.UploadWalletConfigEvent(
+                            filePath
+                        )
                     )
-                )
+                }
 
                 is Result.Error -> showError(event.exception)
             }
         }
     }
 
-    fun saveBSMSToLocal() {
+    fun saveToLocal() {
+        if (filePathInteracting.isEmpty()) return
         viewModelScope.launch {
-            getWalletBsmsUseCase(_state.value.walletExtended.wallet).onSuccess {
-                val result =
-                    saveLocalFileUseCase(SaveLocalFileUseCase.Params("${walletId}.bsms", it))
-                _event.emit(WalletConfigEvent.SaveLocalFile(result.isSuccess))
-            }
+            val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params(filePath = filePathInteracting))
+            filePathInteracting = ""
+            _event.emit(WalletConfigEvent.SaveLocalFile(result.isSuccess))
         }
     }
 
@@ -582,6 +587,7 @@ internal class WalletConfigViewModel @Inject constructor(
             when (val event = createShareFileUseCase.execute("$fileName.pdf")) {
                 is Result.Success -> {
                     exportInvoices.generatePDF(invoiceInfos, event.data, exportInvoicesJob!!)
+                    filePathInteracting = event.data
                     withContext(Dispatchers.Main) {
                         _event.emit(WalletConfigEvent.ExportInvoiceSuccess(event.data))
                     }
@@ -589,6 +595,50 @@ internal class WalletConfigViewModel @Inject constructor(
 
                 is Result.Error -> {
                     _event.emit(WalletConfigEvent.WalletDetailsError(event.exception.message.orUnknownError()))
+                }
+            }
+        }
+    }
+
+    fun exportInvoiceAsCSV(fileName: String) {
+        exportInvoicesJob?.cancel()
+        exportInvoicesJob = viewModelScope.launch {
+            _progressFlow.emit(0 to 100)
+
+            val exportDeferred = async(Dispatchers.IO) {
+                when (val event = createShareFileUseCase.execute("$fileName.csv")) {
+                    is Result.Success -> {
+                        exportTransactionsHistoryUseCase(
+                            ExportTransactionsHistoryUseCase.Param(
+                                walletId = walletId,
+                                filePath = event.data,
+                                format = ExportFormat.CSV
+                            )
+                        )
+                        filePathInteracting = event.data
+                        Result.Success(event.data)
+                    }
+                    is Result.Error -> event
+                }
+            }
+
+            launch {
+                var progress = 0
+                while (exportDeferred.isActive && progress < 99) {
+                    _progressFlow.emit(progress to 100)
+                    delay(100)
+                    progress += 5
+                }
+            }
+            val result = exportDeferred.await()
+            _progressFlow.emit(100 to 100)
+
+            when (result) {
+                is Result.Success -> {
+                    _event.emit(WalletConfigEvent.ExportInvoiceSuccess(result.data))
+                }
+                is Result.Error -> {
+                    _event.emit(WalletConfigEvent.WalletDetailsError(result.exception.message.orUnknownError()))
                 }
             }
         }
@@ -625,6 +675,8 @@ internal class WalletConfigViewModel @Inject constructor(
     fun getTransactions() = getState().transactions
 
     fun isGroupSandboxWallet() = getState().isGroupSandboxWallet
+
+    fun getFilePathInteracting() = filePathInteracting
 
     @Keep
     enum class UpdateAction {

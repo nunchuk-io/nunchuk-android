@@ -170,7 +170,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     return@collect
                 }
                 when (current) {
-                    total -> ncProgressDialog.dialog?.dismiss()
+                    total -> ncProgressDialog.dismiss()
                     else -> ncProgressDialog.updateProgress(current, total)
                 }
             }
@@ -185,7 +185,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> showExportColdcardOptions()
             SheetOptionType.TYPE_FORCE_REFRESH_WALLET -> showForceRefreshWalletDialog()
             SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> showSaveWalletConfigurationOption()
-            SheetOptionType.TYPE_EXPORT_BSMS -> showSaveShareOption()
+            SheetOptionType.TYPE_EXPORT_BSMS -> viewModel.handleExportBSMS()
             SheetOptionType.TYPE_EXPORT_PORTAL -> navigator.openPortalScreen(
                 launcher = exportWalletToPortalLauncher,
                 activity = this,
@@ -259,10 +259,30 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
 
             SheetOptionType.TYPE_EXPORT_TX_INVOICES -> {
+                showExportTransactionInvoiceOption()
                 isCancelExportInvoice = false
                 runCatching {
-                    ncProgressDialog.dialog?.dismiss()
+                    ncProgressDialog.dismiss()
                 }
+            }
+
+            SheetOptionType.TYPE_EXPORT_TX_AS_CSV -> {
+                ncProgressDialog.dismiss()
+                ncProgressDialog.showDialog(
+                    currentStep = 1,
+                    totalSteps = viewModel.getTransactions().size,
+                    onCancelClick = {
+                        isCancelExportInvoice = true
+                    }
+                )
+                viewModel.exportInvoiceAsCSV(
+                    "${viewModel.getWalletName()}_transaction_history_${
+                        System.currentTimeMillis().formatddMMMyyyyDate.upperCase()
+                    }"
+                )
+            }
+
+            SheetOptionType.TYPE_EXPORT_TX_AS_PDF -> {
                 ncProgressDialog.showDialog(
                     currentStep = 1,
                     totalSteps = viewModel.getTransactions().size,
@@ -402,7 +422,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     return
                 }
                 if (event.filePath.isEmpty().not()) {
-                    shareConfigurationFile(event.filePath)
+                    showSaveShareOption()
                 }
             }
 
@@ -461,16 +481,12 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         ActivityManager.popUntilRoot()
     }
 
-    private fun handleExportBSMS() {
-        viewModel.handleExportBSMS()
-    }
-
     override fun shareFile() {
-        handleExportBSMS()
+        shareConfigurationFile(viewModel.getFilePathInteracting())
     }
 
     override fun saveFileToLocal() {
-        viewModel.saveBSMSToLocal()
+        viewModel.saveToLocal()
     }
 
     private fun showMoreOptions() {
@@ -626,6 +642,21 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         ).show(supportFragmentManager, "BottomSheetOption")
     }
 
+    private fun showExportTransactionInvoiceOption() {
+        BottomSheetOption.newInstance(
+            options = listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_TX_AS_PDF,
+                    stringId = R.string.nc_export_tx_as_pdf
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_TX_AS_CSV,
+                    stringId = R.string.nc_export_tx_as_csv
+                )
+            )
+        ).show(supportFragmentManager, "BottomSheetOption")
+    }
+
     private fun showEditWalletSuccess() {
         binding.root.post {
             NCToastMessage(this).show(R.string.nc_text_change_wallet_success)
@@ -670,6 +701,11 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 }?.absolutePath?.let(viewModel::importCoinControlBIP329)
             }
         }
+    }
+
+    override fun onDestroy() {
+        ncProgressDialog.dismiss()
+        super.onDestroy()
     }
 
     companion object {

@@ -19,7 +19,30 @@
 
 package com.nunchuk.android.domain.di
 
-import com.nunchuk.android.usecase.*
+import com.nunchuk.android.usecase.BroadcastTransactionUseCase
+import com.nunchuk.android.usecase.BroadcastTransactionUseCaseImpl
+import com.nunchuk.android.usecase.DraftTransactionUseCase
+import com.nunchuk.android.usecase.DraftTransactionUseCaseImpl
+import com.nunchuk.android.usecase.ExportKeystoneTransactionUseCase
+import com.nunchuk.android.usecase.ExportKeystoneTransactionUseCaseImpl
+import com.nunchuk.android.usecase.ExportTransactionUseCase
+import com.nunchuk.android.usecase.ExportTransactionUseCaseImpl
+import com.nunchuk.android.usecase.GetAddressBalanceUseCase
+import com.nunchuk.android.usecase.GetAddressBalanceUseCaseImpl
+import com.nunchuk.android.usecase.GetAddressesUseCase
+import com.nunchuk.android.usecase.GetAddressesUseCaseImpl
+import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
+import com.nunchuk.android.usecase.GetTransactionHistoryUseCaseImpl
+import com.nunchuk.android.usecase.GetTransactionUseCase
+import com.nunchuk.android.usecase.GetTransactionUseCaseImpl
+import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
+import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCaseImpl
+import com.nunchuk.android.usecase.NewAddressUseCase
+import com.nunchuk.android.usecase.NewAddressUseCaseImpl
+import com.nunchuk.android.usecase.SendSignerPassphrase
+import com.nunchuk.android.usecase.SendSignerPassphraseImpl
+import com.nunchuk.android.usecase.ValueFromAmountUseCase
+import com.nunchuk.android.usecase.ValueFromAmountUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -43,9 +66,6 @@ internal interface TransactionDomainModule {
 
     @Binds
     fun bindGetTransactionUseCase(useCase: GetTransactionUseCaseImpl): GetTransactionUseCase
-
-    @Binds
-    fun bindExportTransactionHistoryUseCase(useCase: ExportTransactionHistoryUseCaseImpl): ExportTransactionHistoryUseCase
 
     @Binds
     fun bindGetAddressBalanceUseCase(useCase: GetAddressBalanceUseCaseImpl): GetAddressBalanceUseCase

@@ -19,27 +19,24 @@
 
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.ExportFormat
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface ExportTransactionHistoryUseCase {
-    suspend fun execute(
-        walletId: String,
-        filePath: String,
-        format: ExportFormat = ExportFormat.CSV
-    ): Result<Unit>
-}
-
-internal class ExportTransactionHistoryUseCaseImpl @Inject constructor(
+class ExportTransactionsHistoryUseCase @Inject constructor(
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
     private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), ExportTransactionHistoryUseCase {
-    override suspend fun execute(
-        walletId: String,
-        filePath: String,
-        format: ExportFormat
-    ) = exe {
-        nativeSdk.exportTransactionHistory(walletId = walletId, filePath = filePath, format = format)
+) : UseCase<ExportTransactionsHistoryUseCase.Param, Unit>(ioDispatcher) {
+
+    override suspend fun execute(parameters: Param) {
+        return nativeSdk.exportTransactionHistory(
+            walletId = parameters.walletId,
+            filePath = parameters.filePath,
+            format = parameters.format
+        )
     }
+
+    class Param(val walletId: String, val filePath: String, val format: ExportFormat)
 }

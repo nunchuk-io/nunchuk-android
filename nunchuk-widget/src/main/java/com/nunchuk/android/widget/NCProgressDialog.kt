@@ -31,9 +31,12 @@ import javax.inject.Inject
 class NCProgressDialog @Inject constructor(
     private val activity: Activity
 ) {
-    val binding = NcProgressDialogBinding.inflate(LayoutInflater.from(activity))
-
-    var dialog: Dialog? = null
+    private val binding = NcProgressDialogBinding.inflate(LayoutInflater.from(activity))
+    private val dialog: Dialog = Dialog(activity).apply {
+        window?.setBackgroundDrawableResource(android.R.color.transparent)
+        requestWindowFeature(Window.FEATURE_NO_TITLE)
+        setContentView(binding.root)
+    }
 
     fun showDialog(
         title: String = activity.getString(R.string.nc_text_processing),
@@ -43,33 +46,32 @@ class NCProgressDialog @Inject constructor(
         onCancelClick: () -> Unit = {},
         cancelable: Boolean = false
     ) {
+        dialog.setCancelable(cancelable)
+        dialog.setCanceledOnTouchOutside(cancelable)
 
-        dialog = Dialog(activity).apply {
-            window?.setBackgroundDrawableResource(android.R.color.transparent)
-            requestWindowFeature(Window.FEATURE_NO_TITLE)
-            setCancelable(cancelable)
-            setCanceledOnTouchOutside(cancelable)
-            setContentView(binding.root)
+        binding.title.text = title
+        binding.btnCancel.text = btnCancel
+        binding.tvStep.text = "$currentStep/$totalSteps"
+        binding.progressBar.max = totalSteps
+        binding.progressBar.progress = currentStep
+        binding.tvPercentage.text = "${(currentStep * 100) / totalSteps}%"
 
-            binding.title.text = title
-            binding.btnCancel.text = btnCancel
-            binding.tvStep.text = "$currentStep/$totalSteps"
-            binding.progressBar.max = totalSteps
-            binding.progressBar.progress = currentStep
-            binding.tvPercentage.text = "${(currentStep * 100) / totalSteps}%"
-
-            binding.btnCancel.setOnDebounceClickListener {
-                onCancelClick()
-                dismiss()
-            }
-            show()
-            window?.setLayout(MATCH_PARENT, MATCH_PARENT)
+        binding.btnCancel.setOnDebounceClickListener {
+            onCancelClick()
+            dialog.dismiss()
         }
+
+        dialog.show()
+        dialog.window?.setLayout(MATCH_PARENT, MATCH_PARENT)
     }
 
     fun updateProgress(currentStep: Int, totalSteps: Int) {
         binding.tvStep.text = "$currentStep/$totalSteps"
         binding.progressBar.progress = currentStep
         binding.tvPercentage.text = "${(currentStep * 100) / totalSteps}%"
+    }
+
+    fun dismiss() {
+        dialog.dismiss()
     }
 }

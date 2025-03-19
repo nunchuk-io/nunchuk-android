@@ -166,4 +166,6 @@ object SheetOptionType {
     const val TYPE_ADD_INHERITANCE_COLDCARD = 94
     const val TYPE_SAVE_FILE = 95
     const val TYPE_SHARE_FILE = 96
+    const val TYPE_EXPORT_TX_AS_PDF = 97
+    const val TYPE_EXPORT_TX_AS_CSV = 98
 }
