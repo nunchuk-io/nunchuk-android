@@ -22,7 +22,6 @@ package com.nunchuk.android.wallet.components.details
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -459,19 +458,6 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         } else {
             binding.chatView.isVisible = state.isFreeGroupWallet
         }
-        if (state.isFreeGroupWallet) {
-            val layoutParams = binding.addressQR.layoutParams
-            layoutParams.width = dpToPx(120)
-            layoutParams.height = dpToPx(120)
-            binding.addressQR.layoutParams = layoutParams
-
-            binding.emptyTransactionTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-            binding.addressText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-        }
-    }
-
-    private fun dpToPx(dp: Int): Int {
-        return (dp * resources.displayMetrics.density).toInt()
     }
 
     private fun handleWalletBackground(state: WalletDetailsState) {
