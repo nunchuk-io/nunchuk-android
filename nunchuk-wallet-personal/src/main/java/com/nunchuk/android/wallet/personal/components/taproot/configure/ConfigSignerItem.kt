@@ -66,11 +66,10 @@ fun ConfigSignerItem(
             }
         }
 
-        if (checkable) {
-            NcCheckBox(
-                checked = isChecked,
-                onCheckedChange = { onSelectSigner(signer, it) },
-            )
-        }
+        NcCheckBox(
+            enabled = checkable,
+            checked = isChecked,
+            onCheckedChange = { onSelectSigner(signer, it) },
+        )
     }
 }
