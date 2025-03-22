@@ -61,6 +61,7 @@ internal data class WalletsState(
     val pendingGroupSandboxes: List<GroupSandbox> = mutableListOf(),
     val groupSandboxWalletIds : Set<String> = emptySet(),
     val deprecatedGroupWalletIds : Set<String> = emptySet(),
+    val isWalletLoading: Boolean = false
 )
 
 internal sealed class WalletsEvent {

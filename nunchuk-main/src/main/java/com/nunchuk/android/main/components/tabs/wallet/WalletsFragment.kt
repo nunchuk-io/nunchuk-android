@@ -31,6 +31,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -39,6 +40,8 @@ import androidx.core.view.isVisible
 import androidx.core.widget.NestedScrollView
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
@@ -239,6 +242,13 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         binding.content.setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
             totalBalanceScrollHandler.handleScrollChange(scrollY, oldScrollY)
         })
+        binding.loading.setContent {
+            val state by walletsViewModel.state.asFlow().collectAsStateWithLifecycle(WalletsState())
+
+            if (state.isWalletLoading) {
+                LoadingIndicator()
+            }
+        }
     }
 
     private fun openAddWalletScreen() {
@@ -459,13 +469,14 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         showPendingWallet(state)
         showCampaign(state.campaign, state.wallets.isNotEmpty(), state.localReferrerCode)
         showTotalBalance(state)
-        binding.contentContainer.isVisible = isShowEmptyState(state).not()
-        binding.emptyStateView.isVisible = isShowEmptyState(state)
-        if (isShowEmptyState(state)) showEmptyState(state)
+        val showEmptyState = isShowEmptyState(state)
+        binding.contentContainer.isVisible = showEmptyState.not()
+        binding.emptyStateView.isVisible = showEmptyState
+        if (showEmptyState) showEmptyState(state)
     }
 
     private fun isShowEmptyState(state: WalletsState): Boolean {
-        return state.wallets.isEmpty() && state.groupWalletUis.isEmpty()
+        return state.wallets.isEmpty() && state.groupWalletUis.isEmpty() && !state.isWalletLoading
     }
 
     private fun showEmptyState(state: WalletsState) {
@@ -621,7 +632,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
         val hideWalletDetail = state.walletSecuritySetting.hideWalletDetail
         val assistedWallets = state.assistedWallets.associateBy { it.localId }
         val deprecatedGroupWalletIds = state.deprecatedGroupWalletIds
-        binding.walletEmpty.isVisible = groupWalletUis.isEmpty()
+        binding.walletEmpty.isVisible = !state.isWalletLoading && groupWalletUis.isEmpty()
         binding.pendingWallet.setContent {
             NunchukTheme {
                 Column {
@@ -777,7 +788,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     override fun onResume() {
         super.onResume()
         with(walletsViewModel) {
-            getGroupsSandbox()
             retrieveData()
             updateBadge()
             getKeyHealthStatus()

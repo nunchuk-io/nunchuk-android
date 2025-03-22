@@ -75,12 +75,12 @@ import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.GetAllWalletsUseCase
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetHomeDisplaySettingUseCase
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
-import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.MigrateHomeDisplaySettingUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.byzantine.GetListGroupWalletKeyHealthStatusUseCase
@@ -116,20 +116,17 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.room.model.Membership
-import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 @HiltViewModel
 internal class WalletsViewModel @Inject constructor(
-    private val getWalletsUseCase: GetWalletsUseCase,
+    private val getAllWalletsUseCase: GetAllWalletsUseCase,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val getNfcCardStatusUseCase: GetNfcCardStatusUseCase,
     private val membershipStepManager: MembershipStepManager,
@@ -182,14 +179,14 @@ internal class WalletsViewModel @Inject constructor(
         .map { it.getOrElse { false } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    private var isRetrievingData = AtomicBoolean(false)
     private var isRetrievingAlert = AtomicBoolean(false)
     private var isRetrievingKeyHealthStatus = AtomicBoolean(false)
-    private var loadGroupWalletJob: Job? = null
 
     private var walletsRequestKey = ""
 
     override val initialState = WalletsState()
+
+    private var loadWalletJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -366,39 +363,6 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
-    private var mapDataJob: Job? = null
-
-    fun getGroupsSandbox() {
-        loadGroupWalletJob?.cancel()
-        loadGroupWalletJob = viewModelScope.launch {
-            val pendingWalletsDeferred = async {
-                getPendingGroupsSandboxUseCase(Unit).getOrNull().orEmpty()
-            }
-
-            val groupSandboxWalletsDeferred = async {
-                getGroupWalletsUseCase(Unit).getOrNull().orEmpty()
-            }
-
-            val deprecatedGroupWalletsDeferred = async {
-                getDeprecatedGroupWalletsUseCase(Unit).getOrNull().orEmpty()
-            }
-
-            val pendingWallets = pendingWalletsDeferred.await()
-            val groupSandboxWallets = groupSandboxWalletsDeferred.await().map { it.id }.toSet()
-            val deprecatedGroupWalletIds = deprecatedGroupWalletsDeferred.await().toSet()
-            Timber.d("deprecatedGroupWalletIds: $deprecatedGroupWalletIds")
-            updateState {
-                copy(
-                    pendingGroupSandboxes = pendingWallets.filter { !it.finalized },
-                    groupSandboxWalletIds = groupSandboxWallets,
-                    deprecatedGroupWalletIds = deprecatedGroupWalletIds
-                )
-            }
-
-            mapGroupWalletUi()
-        }
-    }
-
     fun joinGroupWallet() = viewModelScope.launch {
         delay(2000)
         val groupId = deeplinkHolder.info?.groupId ?: return@launch
@@ -520,117 +484,122 @@ internal class WalletsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Lazily, Chain.MAIN)
 
     fun retrieveData() {
-        if (isRetrievingData.get()) return
-        isRetrievingData.set(true)
-        viewModelScope.launch {
-            getWalletsUseCase.execute()
-                .flowOn(IO)
-                .onException {
-                    Timber.e(it)
-                }.flowOn(Main)
-                .onStart {
-                    if (getState().wallets.isEmpty()) {
-                        event(Loading(true))
-                    }
-                }.onCompletion {
-                    event(Loading(false))
-                    isRetrievingData.set(false)
-                }.collect {
-                    updateState { copy(wallets = it) }
-                    mapGroupWalletUi()
-                    getCampaign()
-                }
+        loadWalletJob?.cancel()
+        loadWalletJob = viewModelScope.launch {
+            if (getState().groupWalletUis.isEmpty()) {
+                updateState { copy(isWalletLoading = true) }
+            }
+            val walletsDeferred = async { getAllWalletsUseCase(Unit) }
+            val pendingWalletsDeferred = async { getPendingGroupsSandboxUseCase(Unit) }
+            val groupSandboxWalletsDeferred = async { getGroupWalletsUseCase(Unit) }
+            val deprecatedGroupWalletsDeferred = async { getDeprecatedGroupWalletsUseCase(Unit) }
+
+            val wallets = walletsDeferred.await().getOrElse { emptyList() }
+            val pendingWallets = pendingWalletsDeferred.await().getOrElse { emptyList() }
+            val groupSandboxWallets =
+                groupSandboxWalletsDeferred.await().getOrElse { emptyList() }.map { it.id }.toSet()
+            val deprecatedGroupWalletIds =
+                deprecatedGroupWalletsDeferred.await().getOrElse { emptyList() }.toSet()
+            updateState {
+                copy(
+                    pendingGroupSandboxes = pendingWallets.filter { !it.finalized },
+                    groupSandboxWalletIds = groupSandboxWallets,
+                    deprecatedGroupWalletIds = deprecatedGroupWalletIds,
+                    wallets = wallets,
+                    isWalletLoading = false
+                )
+            }
+
+            mapGroupWalletUi()
+            getCampaign()
         }
     }
 
-    private fun mapGroupWalletUi() {
-        mapDataJob?.cancel()
-        mapDataJob = viewModelScope.launch(ioDispatcher) {
-            val results = arrayListOf<GroupWalletUi>()
-            val wallets = getState().wallets
-            val groups = getState().allGroups
-            val assistedWallets = getState().assistedWallets
-            val alerts = getState().alerts
-            val pendingGroupSandboxes = getState().pendingGroupSandboxes
-            val groupSandboxWalletIds = getState().groupSandboxWalletIds
-            val pendingGroup = groups.filter { it.isPendingWallet() }
-            val isShowPendingPersonalWallet = getState().personalSteps.isNullOrEmpty().not()
-            if (isShowPendingPersonalWallet) {
-                results.add(GroupWalletUi(isPendingPersonalWallet = true))
-            }
-            results.addAll(pendingGroupSandboxes.map { GroupWalletUi(sandbox = it) })
-            wallets.forEach { wallet ->
-                ensureActive()
-                val assistedWallet = assistedWallets.find { it.localId == wallet.wallet.id }
-                val groupId = assistedWallet?.groupId
-                val group = groups.firstOrNull { it.id == groupId }
-                val signers = wallet.wallet.signers
-                    .map { signer -> signer.toModel() }
-                    .map { signer ->
-                        if (signer.type == SignerType.NFC) signer.copy(
-                            cardId = cardIdManager.getCardId(
-                                signer.id
-                            )
-                        ) else signer
-                    }.toList()
-                var groupWalletUi = GroupWalletUi(
-                    wallet = wallet,
-                    badgeCount = if (alerts[groupId] == null) alerts[wallet.wallet.id].orDefault(0) else alerts[groupId].orDefault(
-                        0
-                    ),
-                    keyStatus = getState().keyHealthStatus[wallet.wallet.id].orEmpty()
-                        .associateBy { it.xfp },
-                    signers = signers,
-                    isSandboxWallet = groupSandboxWalletIds.contains(
-                        wallet.wallet.id
-                    )
+    private suspend fun mapGroupWalletUi() = withContext(ioDispatcher) {
+        val results = arrayListOf<GroupWalletUi>()
+        val wallets = getState().wallets
+        val groups = getState().allGroups
+        val assistedWallets = getState().assistedWallets
+        val alerts = getState().alerts
+        val pendingGroupSandboxes = getState().pendingGroupSandboxes
+        val groupSandboxWalletIds = getState().groupSandboxWalletIds
+        val pendingGroup = groups.filter { it.isPendingWallet() }
+        val isShowPendingPersonalWallet = getState().personalSteps.isNullOrEmpty().not()
+        if (isShowPendingPersonalWallet) {
+            results.add(GroupWalletUi(isPendingPersonalWallet = true))
+        }
+        results.addAll(pendingGroupSandboxes.map { GroupWalletUi(sandbox = it) })
+        wallets.forEach { wallet ->
+            ensureActive()
+            val assistedWallet = assistedWallets.find { it.localId == wallet.wallet.id }
+            val groupId = assistedWallet?.groupId
+            val group = groups.firstOrNull { it.id == groupId }
+            val signers = wallet.wallet.signers
+                .map { signer -> signer.toModel() }
+                .map { signer ->
+                    if (signer.type == SignerType.NFC) signer.copy(
+                        cardId = cardIdManager.getCardId(
+                            signer.id
+                        )
+                    ) else signer
+                }.toList()
+            var groupWalletUi = GroupWalletUi(
+                wallet = wallet,
+                badgeCount = if (alerts[groupId] == null) alerts[wallet.wallet.id].orDefault(0) else alerts[groupId].orDefault(
+                    0
+                ),
+                keyStatus = getState().keyHealthStatus[wallet.wallet.id].orEmpty()
+                    .associateBy { it.xfp },
+                signers = signers,
+                isSandboxWallet = groupSandboxWalletIds.contains(
+                    wallet.wallet.id
                 )
-                if (group != null) {
-                    val role = byzantineGroupUtils.getCurrentUserRole(group)
-                    var inviterName = ""
-                    if ((role == AssistedWalletRole.MASTER.name).not()) {
-                        inviterName = byzantineGroupUtils.getInviterName(group)
-                    }
-                    groupWalletUi = groupWalletUi.copy(
-                        wallet = if (inviterName.isNotEmpty()) null else wallet,
-                        group = group,
-                        role = role,
-                        primaryOwnerMember = byzantineGroupUtils.getPrimaryOwnerMember(
-                            group,
-                            assistedWallet?.primaryMembershipId
-                        ),
-                        inviterName = inviterName
-                    )
-                }
-                results.add(groupWalletUi)
-            }
-            pendingGroup.forEach { group ->
-                ensureActive()
-                var groupWalletUi = GroupWalletUi(group = group)
+            )
+            if (group != null) {
                 val role = byzantineGroupUtils.getCurrentUserRole(group)
                 var inviterName = ""
                 if ((role == AssistedWalletRole.MASTER.name).not()) {
                     inviterName = byzantineGroupUtils.getInviterName(group)
                 }
                 groupWalletUi = groupWalletUi.copy(
+                    wallet = if (inviterName.isNotEmpty()) null else wallet,
                     group = group,
                     role = role,
-                    inviterName = inviterName,
-                    badgeCount = alerts[group.id] ?: 0
+                    primaryOwnerMember = byzantineGroupUtils.getPrimaryOwnerMember(
+                        group,
+                        assistedWallet?.primaryMembershipId
+                    ),
+                    inviterName = inviterName
                 )
-                results.add(groupWalletUi)
             }
-
-            val (groupsWithNullWallet, groupsWithNonNullWallet) = results.partition { it.wallet == null }
-            val sortedGroupsWithNullWallet =
-                groupsWithNullWallet.sortedByDescending { it.group?.createdTimeMillis }
-            val sortedGroupsWithNonNullWallet =
-                groupsWithNonNullWallet.sortedByDescending { it.wallet?.wallet?.createDate }
-            val mergedSortedGroups = sortedGroupsWithNullWallet + sortedGroupsWithNonNullWallet
-
-            withContext(Main) {
-                updateState { copy(groupWalletUis = mergedSortedGroups) }
+            results.add(groupWalletUi)
+        }
+        pendingGroup.forEach { group ->
+            ensureActive()
+            var groupWalletUi = GroupWalletUi(group = group)
+            val role = byzantineGroupUtils.getCurrentUserRole(group)
+            var inviterName = ""
+            if ((role == AssistedWalletRole.MASTER.name).not()) {
+                inviterName = byzantineGroupUtils.getInviterName(group)
             }
+            groupWalletUi = groupWalletUi.copy(
+                group = group,
+                role = role,
+                inviterName = inviterName,
+                badgeCount = alerts[group.id] ?: 0
+            )
+            results.add(groupWalletUi)
+        }
+
+        val (groupsWithNullWallet, groupsWithNonNullWallet) = results.partition { it.wallet == null }
+        val sortedGroupsWithNullWallet =
+            groupsWithNullWallet.sortedByDescending { it.group?.createdTimeMillis }
+        val sortedGroupsWithNonNullWallet =
+            groupsWithNonNullWallet.sortedByDescending { it.wallet?.wallet?.createDate }
+        val mergedSortedGroups = sortedGroupsWithNullWallet + sortedGroupsWithNonNullWallet
+
+        withContext(Main) {
+            updateState { copy(groupWalletUis = mergedSortedGroups) }
         }
     }
 
