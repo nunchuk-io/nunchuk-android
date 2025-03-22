@@ -24,13 +24,18 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.enterxpub.EnterXPUBActivity
 import com.nunchuk.android.auth.components.signin.SignInEvent.EmailInvalidEvent
@@ -72,6 +77,8 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
     private val biometricPromptManager by lazy {
         BiometricPromptManager(activity = this)
     }
+
+
     private val viewModel: SignInViewModel by viewModels()
 
     override fun initializeBinding() = ActivitySigninBinding.inflate(layoutInflater).also {
@@ -87,6 +94,29 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
         if (savedInstanceState == null && intent.getBooleanExtra(EXTRA_IS_DELETED, false)) {
             NCToastMessage(this).showMessage(getString(R.string.nc_account_deleted_message))
+        }
+    }
+
+    private fun signInGoogle() {
+        val credentialManager = CredentialManager.create(this)
+        val signInWithGoogleOption: GetSignInWithGoogleOption =
+            GetSignInWithGoogleOption.Builder("94416698635-p087rk1soiegdj8h0q60kmvv9tbq8q34.apps.googleusercontent.com")
+                .build()
+
+        val request: GetCredentialRequest = GetCredentialRequest.Builder()
+            .addCredentialOption(signInWithGoogleOption)
+            .build()
+
+        lifecycleScope.launch {
+            try {
+                val result = credentialManager.getCredential(
+                    request = request,
+                    context = this@SignInActivity,
+                )
+            } catch (e: GetCredentialException) {
+                Toast.makeText(this@SignInActivity, "Error: ${e.message}", Toast.LENGTH_SHORT)
+                    .show()
+            }
         }
     }
 
@@ -257,6 +287,9 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
             getString(R.string.nc_hyperlink_text_policy),
             PRIVACY_URL
         )
+        binding.signInGoogle.setOnClickListener {
+            signInGoogle()
+        }
         if (viewModel.type == SignInType.GUEST) {
             binding.toolbar.setNavigationIcon(R.drawable.ic_close)
         }
