@@ -121,7 +121,7 @@ fun NcTextField(
                         Text(
                             modifier = Modifier.padding(bottom = 4.dp, start = 4.dp),
                             text = titleHint,
-                            style = NunchukTheme.typography.bodySmall.copy(color = colorResource(id = R.color.nc_grey_dark_color))
+                            style = NunchukTheme.typography.bodySmall.copy(color = colorResource(id = R.color.nc_text_secondary))
                         )
                     }
                 } else {
@@ -138,7 +138,8 @@ fun NcTextField(
                 Text(
                     modifier = Modifier.padding(bottom = 4.dp),
                     text = "${value.length}/$maxLength",
-                    style = NunchukTheme.typography.bodySmall
+                    style = NunchukTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.textSecondary
                 )
             }
         }

@@ -167,8 +167,8 @@
     <string name="nc_portal_pin_desc">The password code is a security feature that prevents unauthorized access to your key. Please back it up and keep it safe. You’ll need it for signing transactions.</string>
     <string name="nc_set_up_a_password">Set up a password</string>
     <string name="nc_i_don_t_need_a_password">I don’t need a password</string>
-    <string name="nc_select_wallet_address_type"><![CDATA[Select wallet & address type]]></string>
-    <string name="nc_select_the_type_of_wallet_you_want_to_use_portal_in">Select the type of wallet you want to use Portal in:</string>
+    <string name="nc_select_wallet_address_type">Select wallet &amp; address type</string>
+    <string name="nc_select_the_type_of_wallet_you_want_to_use_portal_in">Select the type of wallet and address you want to use Portal in:</string>
     <string name="nc_single_sig">Single-sig</string>
     <string name="nc_default_native_segwit">Default: Native Segwit</string>
     <string name="nc_bech32m_address">Bech32m address</string>

@@ -43,6 +43,7 @@ fun NcRadioOption(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.background,
+            disabledContainerColor = MaterialTheme.colorScheme.background,
         ),
     ) {
         Row(

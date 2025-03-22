@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,6 +32,7 @@ import com.nunchuk.android.compose.NcRadioOption
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.type.AddressType
 
@@ -91,6 +93,12 @@ fun SelectWalletTypeScreen(
                 style = NunchukTheme.typography.body,
             )
 
+            Text(
+                modifier = Modifier.padding(top = 24.dp),
+                text = stringResource(R.string.nc_select_wallet_type),
+                style = NunchukTheme.typography.titleLarge,
+            )
+
             NcRadioOption(
                 modifier = Modifier.fillMaxWidth(),
                 isSelected = isSingleSig,
@@ -129,6 +137,7 @@ fun SelectWalletTypeScreen(
                         Text(
                             text = stringResource(R.string.nc_default_native_segwit),
                             style = NunchukTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.textSecondary
                         )
                     }
                 }
