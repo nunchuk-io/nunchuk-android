@@ -266,6 +266,13 @@ class ConfigureWalletViewModel @Inject constructor(
         _state.update { it.copy(totalRequireSigns = newVal) }
     }
 
+    fun setEnableKeySet(isEnable: Boolean) {
+        _state.update {
+            it.copy(isKeySetEnable = isEnable)
+        }
+        handleContinueEvent()
+    }
+
     fun handleContinueEvent() = viewModelScope.launch {
         if (args.addressType.isTaproot() && getState().selectedSigners.size == 1) {
             toggleSelectKeySet(getState().selectedSigners.first())
@@ -273,7 +280,7 @@ class ConfigureWalletViewModel @Inject constructor(
         val state = getState()
         val hasSigners = state.selectedSigners.isNotEmpty()
         val isValidRequireSigns = state.totalRequireSigns > 0
-        if (args.addressType.isTaproot() && state.keySet.isEmpty()) {
+        if (args.addressType.isTaproot() && state.keySet.isEmpty() && state.isKeySetEnable) {
             _event.emit(ConfigureWalletEvent.OpenConfigKeySet)
         } else if (isValidRequireSigns && hasSigners) {
             val groupSigners = state.groupSigners
@@ -304,7 +311,7 @@ class ConfigureWalletViewModel @Inject constructor(
                             it.toModel()
                         )
                     }
-                val signers = if (args.addressType.isTaproot()) {
+                val signers = if (args.addressType.isTaproot() && keySetSigners.isNotEmpty()) {
                     selectedSingleSigners.sortedBy { signer -> if (keySetSigners.contains(signer)) 0 else 1 }
                 } else {
                     selectedSingleSigners
@@ -439,6 +446,12 @@ class ConfigureWalletViewModel @Inject constructor(
     }
 
     fun isSelectedKeyAvailable() = getState().selectedSigners.isNotEmpty()
+
+    fun showEnableKeySet() = viewModelScope.launch {
+        _event.emit(ConfigureWalletEvent.ShowEnableKeySet)
+    }
+
+    fun isValueKeySetEnable(): Boolean = getState().isKeySetEnable
 
     companion object {
         private const val EXTRA_CURRENT_SELECTED_MASTER_SIGNER = "_a"

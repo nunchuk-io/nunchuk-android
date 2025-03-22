@@ -21,6 +21,7 @@ package com.nunchuk.android.nav.args
 
 import android.content.Intent
 import android.os.Bundle
+import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
@@ -36,6 +37,7 @@ data class ReviewWalletArgs(
     val signers: List<SingleSigner>,
     val decoyPin: String = "",
     val groupId: String = "",
+    val isValueKeySetEnable: Boolean = false
 ) {
 
     fun buildBundle() = Bundle().apply {
@@ -46,6 +48,7 @@ data class ReviewWalletArgs(
         putParcelableArrayList(EXTRA_SIGNERS, ArrayList(signers))
         putString(EXTRA_DECOY_PIN, decoyPin)
         putString(EXTRA_GROUP_ID, groupId)
+        putBoolean(EXTRA_VALUE_KEY_SET_ENABLE, isValueKeySetEnable)
     }
 
     companion object {
@@ -56,6 +59,7 @@ data class ReviewWalletArgs(
         private const val EXTRA_SIGNERS = "EXTRA_SIGNERS"
         private const val EXTRA_DECOY_PIN = "EXTRA_DECOY_PIN"
         private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
+        private const val EXTRA_VALUE_KEY_SET_ENABLE = "EXTRA_VALUE_KEY_SET_ENABLE"
 
         fun deserializeFrom(intent: Intent): ReviewWalletArgs = ReviewWalletArgs(
             intent.extras.getStringValue(EXTRA_WALLET_NAME),
@@ -64,7 +68,8 @@ data class ReviewWalletArgs(
             intent.getIntExtra(EXTRA_TOTAL_REQUIRED_SIGNS, 0),
             intent.parcelableArrayList<SingleSigner>(EXTRA_SIGNERS).orEmpty(),
             intent.extras.getStringValue(EXTRA_DECOY_PIN),
-            intent.extras.getStringValue(EXTRA_GROUP_ID)
+            intent.extras.getStringValue(EXTRA_GROUP_ID),
+            intent.extras.getBooleanValue(EXTRA_VALUE_KEY_SET_ENABLE, false)
         )
     }
 

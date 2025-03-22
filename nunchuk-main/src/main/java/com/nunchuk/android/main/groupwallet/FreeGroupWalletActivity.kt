@@ -175,7 +175,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                                 signers = group.signers.map {
                                                     it.copy(name = signerMap[it.masterFingerprint].orEmpty())
                                                 },
-                                                groupId = group.id
+                                                groupId = group.id,
                                             )
                                         )
                                     }

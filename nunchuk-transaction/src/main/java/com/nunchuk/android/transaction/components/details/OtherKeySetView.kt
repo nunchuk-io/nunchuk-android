@@ -31,20 +31,23 @@ import com.nunchuk.android.transaction.R
 
 @Composable
 fun OtherKeySetView(
+    isValueKeySetDisable: Boolean,
     modifier: Modifier = Modifier,
-    toggleExpand: () -> Unit,
     count: Int = 1,
-    isExpanded: Boolean = false
+    isExpanded: Boolean = false,
+    toggleExpand: () -> Unit,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
     ) {
-        HorizontalDivider(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.strokePrimary,
-            thickness = 1.dp
-        )
+        if (!isValueKeySetDisable) {
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.strokePrimary,
+                thickness = 1.dp
+            )
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -59,7 +62,11 @@ fun OtherKeySetView(
 
             Text(
                 modifier = Modifier.padding(start = 8.dp),
-                text = "Other keysets",
+                text = if (isValueKeySetDisable) {
+                    stringResource(R.string.nc_keysets)
+                } else {
+                    stringResource(R.string.nc_other_keysets)
+                },
                 style = NunchukTheme.typography.titleSmall
             )
 
@@ -83,25 +90,27 @@ fun OtherKeySetView(
                 )
             )
 
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                modifier = Modifier
-                    .clickable(onClick = toggleExpand)
-                    .padding(start = 8.dp),
-                text = if (isExpanded) stringResource(R.string.nc_hide) else stringResource(R.string.nc_view_all),
-                style = NunchukTheme.typography.titleSmall.copy(
-                    textDecoration = TextDecoration.Underline
+            if (!isValueKeySetDisable) {
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    modifier = Modifier
+                        .clickable(onClick = toggleExpand)
+                        .padding(start = 8.dp),
+                    text = if (isExpanded) stringResource(R.string.nc_hide) else stringResource(R.string.nc_view_all),
+                    style = NunchukTheme.typography.titleSmall.copy(
+                        textDecoration = TextDecoration.Underline
+                    )
                 )
-            )
 
-            NcIcon(
-                painter = painterResource(id = if (isExpanded) R.drawable.ic_caret_up else R.drawable.ic_caret_down),
-                contentDescription = "Expand",
-                modifier = Modifier
-                    .clickable(onClick = toggleExpand)
-                    .padding(start = 4.dp)
-                    .size(20.dp)
-            )
+                NcIcon(
+                    painter = painterResource(id = if (isExpanded) R.drawable.ic_caret_up else R.drawable.ic_caret_down),
+                    contentDescription = "Expand",
+                    modifier = Modifier
+                        .clickable(onClick = toggleExpand)
+                        .padding(start = 4.dp)
+                        .size(20.dp)
+                )
+            }
         }
     }
 }
@@ -110,6 +119,14 @@ fun OtherKeySetView(
 @Composable
 private fun OtherKeySetViewPreview() {
     NunchukTheme {
-        OtherKeySetView(toggleExpand = {})
+        OtherKeySetView(toggleExpand = {}, isValueKeySetDisable = false)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun KeySetViewPreview() {
+    NunchukTheme {
+        OtherKeySetView(toggleExpand = {}, isValueKeySetDisable = true)
     }
 }

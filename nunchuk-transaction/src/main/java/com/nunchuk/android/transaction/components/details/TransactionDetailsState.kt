@@ -37,5 +37,6 @@ data class TransactionDetailsState(
     val members: List<ByzantineMember> = emptyList(),
     val userRole: AssistedWalletRole = AssistedWalletRole.NONE,
     val txInputCoins: List<UnspentOutput> = emptyList(),
-    val addressType: AddressType = AddressType.NATIVE_SEGWIT
+    val addressType: AddressType = AddressType.NATIVE_SEGWIT,
+    val isValueKeySetDisable: Boolean = false
 )

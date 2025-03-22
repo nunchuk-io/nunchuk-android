@@ -44,7 +44,8 @@ class CreateWalletUseCase @Inject constructor(
             addressType = parameters.addressType,
             isEscrow = parameters.isEscrow,
             description = parameters.description,
-            decoyPin = parameters.decoyPin
+            decoyPin = parameters.decoyPin,
+            disableValueKeyset = parameters.addressType == AddressType.TAPROOT && parameters.disableValueKeyset
         )
     }
 
@@ -55,6 +56,7 @@ class CreateWalletUseCase @Inject constructor(
         val addressType: AddressType,
         val isEscrow: Boolean,
         val description: String = "",
-        val decoyPin: String = ""
+        val decoyPin: String = "",
+        val disableValueKeyset: Boolean = false
     )
 }

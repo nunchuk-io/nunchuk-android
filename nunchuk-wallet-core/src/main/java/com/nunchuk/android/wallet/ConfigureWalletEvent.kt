@@ -38,6 +38,7 @@ sealed class ConfigureWalletEvent {
     data class RequestCacheTapSignerXpub(val signer: SignerModel) : ConfigureWalletEvent()
     data class CacheTapSignerXpubError(val error: Throwable?) : ConfigureWalletEvent()
     data class NfcLoading(val isLoading: Boolean) : ConfigureWalletEvent()
+    data object ShowEnableKeySet : ConfigureWalletEvent()
 }
 
 data class ConfigureWalletState(
@@ -50,4 +51,5 @@ data class ConfigureWalletState(
     val supportedSigners: List<SupportedSigner> = emptyList(),
     val keySet: Set<SignerModel> = emptySet(),
     val groupSigners: List<SingleSigner> = emptyList(),
+    val isKeySetEnable: Boolean = false
 )

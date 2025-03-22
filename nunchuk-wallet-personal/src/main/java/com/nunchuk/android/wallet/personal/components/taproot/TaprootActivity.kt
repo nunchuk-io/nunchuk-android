@@ -89,6 +89,8 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                 viewModel.event.collect {
                     if (it is ConfigureWalletEvent.OpenConfigKeySet) {
                         navController.navigateConfigureValueKeySet()
+                    } else if (it is ConfigureWalletEvent.ShowEnableKeySet) {
+                        navController.navigateEnableValueKey()
                     }
                 }
             }
@@ -103,7 +105,7 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                 }
                 taprootWarningScreen {
                     if (viewModel.isSelectedKeyAvailable()) {
-                        navController.navigateConfigureValueKeySet()
+                        navController.navigateEnableValueKey()
                     } else {
                         navController.navigateTaprootConfigScreen()
                     }
@@ -148,6 +150,9 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                 configureValueKeySetScreen(viewModel) {
                     viewModel.handleContinueEvent()
                 }
+                enableValueKeyScreen(
+                    onContinue = viewModel::setEnableKeySet
+                )
             }
         }
 
@@ -189,14 +194,14 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                 if (event.isShow) {
                     showRiskSignerDialog()
                 } else {
-                    viewModel.handleContinueEvent()
+                    viewModel.showEnableKeySet()
                 }
             }
 
             is ConfigureWalletEvent.RequestCacheTapSignerXpub -> handleCacheXpub(event.signer)
             is ConfigureWalletEvent.CacheTapSignerXpubError -> handleCacheXpubError(event)
             is ConfigureWalletEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
-            ConfigureWalletEvent.OpenConfigKeySet -> Unit
+            ConfigureWalletEvent.OpenConfigKeySet, ConfigureWalletEvent.ShowEnableKeySet -> Unit
         }
     }
 
@@ -247,7 +252,8 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                 decoyPin = args.decoyPin,
                 totalRequireSigns = totalRequireSigns,
                 signers = signers,
-                groupId = args.groupSandboxId
+                groupId = args.groupSandboxId,
+                isValueKeySetEnable = viewModel.isValueKeySetEnable()
             )
         )
     }
@@ -266,7 +272,7 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
             btnNeutral = getString(R.string.nc_text_cancel),
             btnNo = "",
             onYesClick = {
-                viewModel.handleContinueEvent()
+                viewModel.showEnableKeySet()
             })
     }
 

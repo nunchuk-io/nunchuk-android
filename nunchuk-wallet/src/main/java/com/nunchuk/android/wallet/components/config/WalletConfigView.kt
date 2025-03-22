@@ -52,6 +52,7 @@ import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletTemplate
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.util.toReadableString
 
@@ -65,8 +66,14 @@ internal fun WalletConfigView(
     openWalletConfig: (SignerModel) -> Unit = {},
 ) {
     val wallet = state.walletExtended.wallet
-    val isLimitAccess = state.isDeprecatedGroupWallet || isLimitAccess(state.group, state.role, state.assistedWallet?.status)
+    val isLimitAccess = state.isDeprecatedGroupWallet || isLimitAccess(
+        state.group,
+        state.role,
+        state.assistedWallet?.status
+    )
     val isTaproot = state.walletExtended.wallet.addressType.isTaproot()
+    val isValueKeySetDisabled =
+        state.walletExtended.wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH
     val totalRequireSigns = state.walletExtended.wallet.totalRequireSigns
     NunchukTheme {
         NcScaffold(
@@ -239,7 +246,7 @@ internal fun WalletConfigView(
                         WalletSignerCard(
                             signer = signer,
                             state = state,
-                            isValueKey = isTaproot && index < totalRequireSigns,
+                            isValueKey = isTaproot && !isValueKeySetDisabled && index < totalRequireSigns,
                             openWalletConfig = openWalletConfig
                         )
                     }

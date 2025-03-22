@@ -94,6 +94,7 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.type.WalletTemplate
 import com.nunchuk.android.usecase.BroadcastTransactionUseCase
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.DeleteTransactionUseCase
@@ -204,7 +205,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private var reloadTransactionJob: Job? = null
     private var getTransactionJob: Job? = null
-    
+
     private fun getState() = state.value
 
     init {
@@ -398,7 +399,12 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             getWalletUseCase.execute(walletId).collect { wallet ->
                 val account = accountManager.getAccount()
-                _state.update { it.copy(addressType = wallet.wallet.addressType) }
+                _state.update {
+                    it.copy(
+                        addressType = wallet.wallet.addressType,
+                        isValueKeySetDisable = wallet.wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH
+                    )
+                }
                 val signers = wallet.wallet.signers.map { signer ->
                     if (signer.type == SignerType.NFC) {
                         signer.toModel()
@@ -545,7 +551,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             _event.emit(LoadingEvent)
             broadcastTransactionUseCase.execute(walletId, txId).flowOn(IO)
-                .onException { _event.emit(TransactionDetailsError(it.message.orEmpty())) }.collect {
+                .onException { _event.emit(TransactionDetailsError(it.message.orEmpty())) }
+                .collect {
                     updateTransaction(it)
 
                     val info = if (it.status != TransactionStatus.NETWORK_REJECTED) {
@@ -681,6 +688,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                         _event.emit(ExportToFileSuccess(filePath))
                     }
                 }
+
                 is Error -> {
                     val message = result.exception.messageOrUnknownError()
                     _event.emit(TransactionError(message))
@@ -692,7 +700,12 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun saveLocalFile(filePath: String) {
         viewModelScope.launch {
-            val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params(fileName = "${walletId}_${txId}.psbt", filePath = filePath))
+            val result = saveLocalFileUseCase(
+                SaveLocalFileUseCase.Params(
+                    fileName = "${walletId}_${txId}.psbt",
+                    filePath = filePath
+                )
+            )
             _event.emit(TransactionDetailsEvent.SaveLocalFile(result.isSuccess))
         }
     }
@@ -853,7 +866,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
         if (result.isSuccess) {
             _event.emit(GetRawTransactionSuccess(result.getOrThrow()))
         } else {
-            _event.emit(TransactionError(result.exceptionOrNull()?.readableMessage().orUnknownError()))
+            _event.emit(
+                TransactionError(
+                    result.exceptionOrNull()?.readableMessage().orUnknownError()
+                )
+            )
         }
     }
 

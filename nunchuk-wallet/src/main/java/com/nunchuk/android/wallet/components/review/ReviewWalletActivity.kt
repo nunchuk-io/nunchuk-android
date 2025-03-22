@@ -161,6 +161,7 @@ class ReviewWalletActivity : BaseComposeActivity() {
 
     private fun onCreateWalletSuccess(event: CreateWalletSuccessEvent) {
         showOrHideLoading(false)
+        navigator.returnToMainScreen(this)
         navigator.openBackupWalletScreen(
             activityContext = this,
             wallet = event.wallet,
@@ -299,7 +300,7 @@ fun ReviewWalletContent(
                     if (signer.isVisible) {
                         SignerCard(
                             item = signer,
-                            showValueKey = args.addressType.isTaproot() && index < args.totalRequireSigns
+                            showValueKey = args.addressType.isTaproot() && index < args.totalRequireSigns && args.isValueKeySetEnable
                         ) {
                             if (signer.derivationPath.isNotEmpty()) {
                                 Text(
@@ -319,7 +320,7 @@ fun ReviewWalletContent(
                             item = signer,
                             signerIcon = R.drawable.ic_signer_empty_state,
                             isShowKeyTypeBadge = false,
-                            showValueKey = args.addressType.isTaproot() && index < args.totalRequireSigns
+                            showValueKey = args.addressType.isTaproot() && index < args.totalRequireSigns && args.isValueKeySetEnable
                         ) {
                             if (signer.derivationPath.isNotEmpty()) {
                                 Text(

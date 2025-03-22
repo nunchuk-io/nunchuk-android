@@ -153,6 +153,7 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
                     addressType = args.addressType,
                     isEscrow = normalizeWalletType == ESCROW,
                     decoyPin = args.decoyPin,
+                    disableValueKeyset = !args.isValueKeySetEnable
                 )
             ).onSuccess {
                 setEvent(CreateWalletSuccessEvent(it))

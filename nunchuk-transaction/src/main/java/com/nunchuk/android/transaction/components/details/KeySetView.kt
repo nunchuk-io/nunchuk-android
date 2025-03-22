@@ -44,16 +44,18 @@ fun KeySetView(
     requiredSignatures: Int,
     showDivider: Boolean = false,
     onSignClick: (SignerModel) -> Unit = {},
+    isValueKeySetDisable: Boolean = false,
 ) {
     val round = if (keySet.status == TransactionStatus.PENDING_NONCE) 1 else 2
     val pendingSignatures = requiredSignatures - keySet.signerStatus.count { it.value }
+    val isValueKeySet = keySetIndex == 0 && !isValueKeySetDisable
     Column(
         modifier = modifier
             .padding(horizontal = 16.dp)
             .padding(top = 16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (keySetIndex == 0) {
+            if (isValueKeySet) {
                 NcIcon(
                     painter = painterResource(R.drawable.ic_nc_star_dark),
                     contentDescription = "Value Key Set",
@@ -134,7 +136,7 @@ fun KeySetView(
             }
         }
 
-        if (keySetIndex == 0) {
+        if (isValueKeySet) {
             Text(
                 text = stringResource(R.string.nc_better_privacy_and_lower_fees),
                 style = NunchukTheme.typography.bodySmall,
@@ -149,11 +151,11 @@ fun KeySetView(
                 TransactionSignerView(
                     modifier = Modifier.padding(top = 16.dp),
                     signer = signer,
-                    showValueKey = keySetIndex == 0,
+                    showValueKey = isValueKeySet,
                     isSigned = keySet.signerStatus[signer.fingerPrint] == true || keySet.status.signDone(),
                     canSign = !keySet.status.signDone(),
                     onSignClick = onSignClick,
-                    isCommit = round == 1
+                    isCommit = round == 1,
                 )
             }
 

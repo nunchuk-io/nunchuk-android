@@ -100,7 +100,7 @@ fun TransactionDetailView(
 ) {
     var showDetail by rememberSaveable { mutableStateOf(false) }
     var showInputCoin by rememberSaveable { mutableStateOf(false) }
-    var isExpanded by rememberSaveable { mutableStateOf(false) }
+    var isExpanded by rememberSaveable(state.isValueKeySetDisable) { mutableStateOf(state.isValueKeySetDisable) }
     val transaction = state.transaction
     val outputs = if (transaction.isReceive)
         transaction.receiveOutputs else
@@ -112,6 +112,12 @@ fun TransactionDetailView(
     }
     val hasChange: Boolean = transaction.hasChangeIndex()
     val changeCoin = state.coins.find { it.vout == transaction.changeIndex }
+    val keySet = if (state.isValueKeySetDisable) {
+        transaction.keySetStatus
+    } else {
+        transaction.keySetStatus.drop(1)
+    }
+    val offset = if (state.isValueKeySetDisable) 0 else 1
     NunchukTheme {
         NcScaffold(
             modifier = Modifier.systemBarsPadding(),
@@ -344,37 +350,54 @@ fun TransactionDetailView(
                 }
 
                 if (transaction.keySetStatus.isNotEmpty()) {
-                    item {
-                        KeySetView(
-                            signers = signerMap,
-                            keySetIndex = 0,
-                            requiredSignatures = transaction.m,
-                            keySet = transaction.keySetStatus.first(),
-                            onSignClick = onSignClick
-                        )
+                    if (!state.isValueKeySetDisable) {
+                        item {
+                            KeySetView(
+                                signers = signerMap,
+                                keySetIndex = 0,
+                                requiredSignatures = transaction.m,
+                                keySet = transaction.keySetStatus.first(),
+                                onSignClick = onSignClick
+                            )
+                        }
                     }
 
-                    item {
-                        OtherKeySetView(
-                            modifier = Modifier.padding(top = 16.dp),
-                            toggleExpand = {
-                                isExpanded = !isExpanded
-                            },
-                            count = transaction.keySetStatus.size - 1,
-                            isExpanded = isExpanded
-                        )
+                    if (state.isValueKeySetDisable) {
+                        item {
+                            OtherKeySetView(
+                                toggleExpand = {
+                                    isExpanded = !isExpanded
+                                },
+                                count = transaction.keySetStatus.size - 1,
+                                isExpanded = isExpanded,
+                                isValueKeySetDisable = true
+                            )
+                        }
+                    } else {
+                        item {
+                            OtherKeySetView(
+                                modifier = Modifier.padding(top = 16.dp),
+                                toggleExpand = {
+                                    isExpanded = !isExpanded
+                                },
+                                count = transaction.keySetStatus.size - 1,
+                                isExpanded = isExpanded,
+                                isValueKeySetDisable = false
+                            )
+                        }
                     }
 
                     if (isExpanded) {
-                        transaction.keySetStatus.drop(1).forEachIndexed { index, keySetStatus ->
+                        keySet.forEachIndexed { index, keySetStatus ->
                             item {
                                 KeySetView(
                                     signers = signerMap,
-                                    keySetIndex = index + 1,
+                                    keySetIndex = index + offset,
                                     requiredSignatures = transaction.m,
                                     keySet = keySetStatus,
                                     onSignClick = onSignClick,
-                                    showDivider = index < transaction.keySetStatus.size - 2
+                                    showDivider = index < keySet.size.dec(),
+                                    isValueKeySetDisable = state.isValueKeySetDisable
                                 )
                             }
                         }
@@ -393,7 +416,7 @@ fun TransactionDetailView(
                                 .padding(top = 16.dp)
                                 .padding(horizontal = 16.dp),
                             signer = signer,
-                            showValueKey = index < transaction.m && state.addressType.isTaproot(),
+                            showValueKey = index < transaction.m && state.addressType.isTaproot() && !state.isValueKeySetDisable,
                             isSigned = transaction.signers.isNotEmpty() && transaction.signers[signer.fingerPrint] ?: false,
                             canSign = !transaction.status.signDone(),
                             onSignClick = onSignClick,

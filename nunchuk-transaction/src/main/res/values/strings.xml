@@ -102,4 +102,6 @@
     <string name="nc_round_1_completed">Round 1 completed</string>
     <string name="nc_committed">Committed</string>
     <string name="nc_commit">Commit</string>
+    <string name="nc_other_keysets">Other keysets</string>
+    <string name="nc_keysets">Keysets</string>
 </resources>
