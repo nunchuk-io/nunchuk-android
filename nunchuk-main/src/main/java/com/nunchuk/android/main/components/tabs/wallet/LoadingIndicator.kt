@@ -26,7 +26,7 @@ fun LoadingIndicator() {
     NunchukTheme {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             LottieAnimation(
-                modifier = Modifier.height(48.dp),
+                modifier = Modifier.height(54.dp),
                 composition = composition,
                 progress = { progress },
             )
