@@ -164,7 +164,7 @@
     <string name="nc_set_up_new_password">Set up device password</string>
     <string name="nc_new_password">New password</string>
     <string name="nc_confirm_new_password">Confirm new password</string>
-    <string name="nc_portal_pin_desc">The password code is a security feature that prevents unauthorized access to your key. Please back it up and keep it safe. You’ll need it for signing transactions.</string>
+    <string name="nc_portal_pin_desc">The device password is a security feature that prevents unauthorized access to your key. Please back it up and keep it safe. You’ll need it for signing transactions.</string>
     <string name="nc_set_up_a_password">Set up a password</string>
     <string name="nc_i_don_t_need_a_password">I don’t need a password</string>
     <string name="nc_select_wallet_address_type">Select wallet &amp; address type</string>

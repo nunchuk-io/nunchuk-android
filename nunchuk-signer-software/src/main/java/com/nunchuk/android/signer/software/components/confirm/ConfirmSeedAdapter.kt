@@ -105,12 +105,11 @@ internal class ConfirmSeedViewHolder(
 
     private fun bindState(textView: TextView, selected: Boolean) {
         if (selected) {
-            textView.setTextColor(ContextCompat.getColor(context, R.color.nc_white_color))
+            textView.setTextColor(ContextCompat.getColor(context, R.color.nc_control_text_primary))
             textView.background = ContextCompat.getDrawable(context, R.drawable.nc_rounded_dark_thin_background)
         } else {
-            textView.setTextColor(ContextCompat.getColor(context, R.color.nc_black_color))
+            textView.setTextColor(ContextCompat.getColor(context, R.color.nc_text_primary))
             textView.background = ContextCompat.getDrawable(context, R.drawable.nc_rounded_light_thin_background)
         }
     }
-
 }

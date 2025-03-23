@@ -63,4 +63,7 @@
     <color name="cl_084B7B">#084B7B</color>
     <color name="cl_2B74A9">#2B74A9</color>
     <color name="cl_031F2B">#031F2B</color>
+    <color name="nc_grey_g2">#EAEAEA</color>
+    <color name="nc_control_fill_tertiary">#eaeaea</color>
+    <color name="nc_control_text_tertiary">#595959</color>
 </resources>

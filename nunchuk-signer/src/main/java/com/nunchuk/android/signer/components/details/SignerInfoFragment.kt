@@ -661,13 +661,13 @@ private fun SignerInfoContent(
                             modifier = Modifier
                                 .padding(start = 8.dp)
                                 .background(
-                                    color = colorResource(id = R.color.nc_bg_mid_gray),
+                                    color = colorResource(id = R.color.nc_grey_g2),
                                     shape = RoundedCornerShape(20.dp)
                                 )
-                                .padding(horizontal = 8.dp),
+                                .padding(horizontal = 10.dp, vertical = 4.dp),
                             text = signerType,
                             style = TextStyle(
-                                color = MaterialTheme.colorScheme.textPrimary,
+                                color = colorResource(R.color.nc_grey_g7),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.W500,
                                 fontFamily = latoBold

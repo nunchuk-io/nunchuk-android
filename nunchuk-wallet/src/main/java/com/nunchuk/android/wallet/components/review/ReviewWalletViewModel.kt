@@ -112,7 +112,7 @@ internal class ReviewWalletViewModel @AssistedInject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val signerTaprootIndexes = mutableSetOf<Int>()
-            if (args.addressType.isTaproot()) {
+            if (args.addressType.isTaproot() && args.isValueKeySetEnable) {
                 getGroupSandboxUseCase(args.groupId).onSuccess { group ->
                     val signerIndexes = mutableMapOf<String, Int>()
                     group.signers.mapIndexed { index, singleSigner ->

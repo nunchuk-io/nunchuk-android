@@ -5,6 +5,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_marginEnd="@dimen/nc_padding_8"
+    app:cardBackgroundColor="@color/nc_control_fill_tertiary"
     app:cardCornerRadius="@dimen/nc_padding_8"
     app:cardUseCompatPadding="true">
 
@@ -15,6 +16,7 @@
         android:layout_height="wrap_content"
         android:foreground="?android:attr/selectableItemBackground"
         android:gravity="center"
+        android:textColor="@color/nc_control_text_tertiary"
         android:paddingHorizontal="@dimen/nc_padding_12"
         android:paddingVertical="@dimen/nc_padding_8"
         app:layout_constraintStart_toStartOf="parent"
