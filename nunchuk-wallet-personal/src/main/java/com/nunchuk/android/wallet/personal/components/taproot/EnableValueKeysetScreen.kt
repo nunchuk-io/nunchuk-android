@@ -79,11 +79,11 @@ fun EnableValueKeysetScreen(
                         .padding(paddingValues)
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Spacer(modifier = Modifier.height(16.dp))
 
                     NcCircleImage(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
                         resId = R.drawable.ic_mulitsig_dark,
                         size = 96.dp,
                         iconSize = 60.dp
@@ -97,6 +97,7 @@ fun EnableValueKeysetScreen(
                     )
 
                     NcHighlightText(
+                        modifier = Modifier.padding(top = 12.dp),
                         text = stringResource(R.string.nc_value_key_set_description),
                         style = NunchukTheme.typography.body,
                     )

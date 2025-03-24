@@ -49,7 +49,7 @@
     <string name="nc_free_group_wallet_run_out_guest_mode">You’ve reached the limit of 1 group wallet as a Guest user. Sign up for an account to increase the limit.</string>
     <string name="nc_free_group_wallet_run_out_signed_mode">You’ve reached the maximum of 3 group wallets on this device.</string>
     <string name="nc_save_changes">Save changes</string>
-    <string name="nc_value_key_set_description">A Taproot feature called key path spending allows a specific subset of keys (the Value Keyset) to sign transactions in a way that maximizes privacy and fee savings. Alternatively, you can disable the Value Keyset to use script path spending only.</string>
+    <string name="nc_value_key_set_description">A Taproot feature called key path spending allows a specific subset of keys ([B]the Value Keyset[/B]) to sign transactions in a way that maximizes privacy and fee savings. Alternatively, you can disable the Value Keyset to use script path spending only.</string>
     <string name="nc_value_keyset">Value Keyset</string>
     <string name="nc_value_keyset_hit">Some worry quantum computers could crack the Value Keyset’s cryptography, but experts see that threat as remote. If you’d rather be cautious, disable the Value Keyset.</string>
     <string name="nc_enable_value_keyset">Enable Value Keyset</string>
