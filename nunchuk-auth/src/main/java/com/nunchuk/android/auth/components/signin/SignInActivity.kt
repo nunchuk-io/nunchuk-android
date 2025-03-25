@@ -29,13 +29,17 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
+import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.enterxpub.EnterXPUBActivity
 import com.nunchuk.android.auth.components.signin.SignInEvent.EmailInvalidEvent
@@ -63,10 +67,13 @@ import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
+import java.util.UUID
 
 @AndroidEntryPoint
 class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
+    private val credentialManager = CredentialManager.create(this)
     private val signInLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
@@ -98,24 +105,48 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
     }
 
     private fun signInGoogle() {
-        val credentialManager = CredentialManager.create(this)
-        val signInWithGoogleOption: GetSignInWithGoogleOption =
-            GetSignInWithGoogleOption.Builder("94416698635-p087rk1soiegdj8h0q60kmvv9tbq8q34.apps.googleusercontent.com")
-                .build()
+        val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false)
+            .setServerClientId("712097058578-e7nv8fncujddo54d8as7brhrrn3s0ur4.apps.googleusercontent.com")
+            .setNonce(UUID.randomUUID().toString())
+            .build()
 
         val request: GetCredentialRequest = GetCredentialRequest.Builder()
-            .addCredentialOption(signInWithGoogleOption)
+            .addCredentialOption(googleIdOption)
             .build()
 
         lifecycleScope.launch {
             try {
+                credentialManager.clearCredentialState(ClearCredentialStateRequest())
                 val result = credentialManager.getCredential(
                     request = request,
                     context = this@SignInActivity,
                 )
+                handleSignIn(result)
             } catch (e: GetCredentialException) {
+                Timber.e(e)
                 Toast.makeText(this@SignInActivity, "Error: ${e.message}", Toast.LENGTH_SHORT)
                     .show()
+            }
+        }
+    }
+
+    private fun handleSignIn(result: GetCredentialResponse) {
+        val credential = result.credential
+        if (credential is CustomCredential) {
+            if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                runCatching {
+                    val googleIdTokenCredential = GoogleIdTokenCredential
+                        .createFrom(credential.data)
+                    val token = googleIdTokenCredential.idToken
+                    Toast.makeText(this@SignInActivity, token, Toast.LENGTH_SHORT)
+                        .show()
+                    Timber.d("Google ID Token: $token")
+                }.onFailure {
+                    Timber.e(it)
+                    Toast.makeText(this@SignInActivity, "Error: ${it.message}", Toast.LENGTH_SHORT)
+                        .show()
+                }
             }
         }
     }

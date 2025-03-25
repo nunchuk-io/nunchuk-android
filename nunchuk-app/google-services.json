@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "712097058578",
     "project_id": "nunchuk-a0a7e",
-    "storage_bucket": "nunchuk-a0a7e.appspot.com"
+    "storage_bucket": "nunchuk-a0a7e.firebasestorage.app"
   },
   "client": [
     {
@@ -14,7 +14,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "712097058578-o0ct3fs06sju72q95can7im5nveo2o41.apps.googleusercontent.com",
+          "client_id": "712097058578-jbj6l606a3bsrqp8e58g90b2n1ocv6ur.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nunchuk.android.dev",
+            "certificate_hash": "8628ca0734c7c7a951ef60f0824a3d6d5920388a"
+          }
+        },
+        {
+          "client_id": "712097058578-e7nv8fncujddo54d8as7brhrrn3s0ur4.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -27,15 +35,8 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "712097058578-o0ct3fs06sju72q95can7im5nveo2o41.apps.googleusercontent.com",
+              "client_id": "712097058578-e7nv8fncujddo54d8as7brhrrn3s0ur4.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "712097058578-lgsds92lqpgm0d6hcq87pubu7dg3tokc.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "io.nunchuk.ios"
-              }
             }
           ]
         }
@@ -50,7 +51,23 @@
       },
       "oauth_client": [
         {
-          "client_id": "712097058578-o0ct3fs06sju72q95can7im5nveo2o41.apps.googleusercontent.com",
+          "client_id": "712097058578-5tjkoigbcmljg2g1m2pulcflcunamrjj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.nunchuk.android",
+            "certificate_hash": "9e9d32f51329551479626e2c3179c3ac837fc887"
+          }
+        },
+        {
+          "client_id": "712097058578-i1ntu4b0pjnefhdegi418mq6m38sa8ue.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.nunchuk.android",
+            "certificate_hash": "188ef7510b31419c0b9e723fd11198d23f37e97a"
+          }
+        },
+        {
+          "client_id": "712097058578-e7nv8fncujddo54d8as7brhrrn3s0ur4.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -63,15 +80,8 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "712097058578-o0ct3fs06sju72q95can7im5nveo2o41.apps.googleusercontent.com",
+              "client_id": "712097058578-e7nv8fncujddo54d8as7brhrrn3s0ur4.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "712097058578-lgsds92lqpgm0d6hcq87pubu7dg3tokc.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "io.nunchuk.ios"
-              }
             }
           ]
         }
