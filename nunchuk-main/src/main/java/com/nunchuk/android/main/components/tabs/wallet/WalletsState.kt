@@ -76,7 +76,7 @@ internal sealed class WalletsEvent {
     data object DenyWalletInvitationSuccess : WalletsEvent()
     data object None : WalletsEvent()
     data object JoinFreeGroupWalletFailed : WalletsEvent()
-    data class JoinFreeGroupWalletSuccess(val groupSandbox: GroupSandbox) : WalletsEvent()
+    data class JoinFreeGroupWalletSuccess(val groupId: String) : WalletsEvent()
     data class AcceptWalletInvitationSuccess(
         val walletId: String?,
         val groupId: String,

@@ -24,6 +24,7 @@ import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.BaseNfcUseCase
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
@@ -43,6 +44,7 @@ import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.core.util.DeeplinkHolder
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.USD_CURRENCY
+import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.listener.GroupDeleteListener
@@ -402,9 +404,14 @@ internal class WalletsViewModel @Inject constructor(
         val groupId = deeplinkHolder.info?.groupId ?: return@launch
         joinFreeGroupWalletByIdUseCase(groupId)
             .onSuccess {
-                setEvent(WalletsEvent.JoinFreeGroupWalletSuccess(it))
+                setEvent(WalletsEvent.JoinFreeGroupWalletSuccess(it.id))
             }.onFailure {
-                setEvent(WalletsEvent.JoinFreeGroupWalletFailed)
+                val errorCode = it.nativeErrorCode()
+                if (errorCode == NativeErrorCode.GROUP_WALLET_JOINED) {
+                    setEvent(WalletsEvent.JoinFreeGroupWalletSuccess(groupId))
+                } else {
+                    setEvent(WalletsEvent.JoinFreeGroupWalletFailed)
+                }
             }
         deeplinkHolder.clearInfo()
     }

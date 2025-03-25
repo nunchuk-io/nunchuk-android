@@ -397,7 +397,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             is WalletsEvent.JoinFreeGroupWalletSuccess -> {
                 navigator.openFreeGroupWalletScreen(
                     activityContext = requireActivity(),
-                    groupId = event.groupSandbox.id,
+                    groupId = event.groupId,
                 )
             }
         }
