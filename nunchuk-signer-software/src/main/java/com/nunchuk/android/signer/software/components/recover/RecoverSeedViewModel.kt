@@ -56,15 +56,14 @@ internal class RecoverSeedViewModel @Inject constructor(
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
 ) : NunchukViewModel<RecoverSeedState, RecoverSeedEvent>() {
 
-    private var bip39Words = ArrayList<String>()
+    private val bip39Words = mutableListOf<String>()
     override val initialState = RecoverSeedState()
 
     init {
         viewModelScope.launch {
             val result = getBip39WordListUseCase.execute()
             if (result is Success) {
-                bip39Words = ArrayList(result.data)
-                updateState { copy(suggestions = bip39Words) }
+                bip39Words.addAll(result.data)
             }
         }
     }
@@ -89,8 +88,11 @@ internal class RecoverSeedViewModel @Inject constructor(
             val word = withoutSpace.lastWord()
             if (word.isNotEmpty()) {
                 filter(word)
+            } else {
+                updateState { copy(suggestions = emptyList()) }
             }
-            val canGoNext = withoutSpace.countWords() in MIN_ACCEPTED_NUM_WORDS..MAX_ACCEPTED_NUM_WORDS
+            val canGoNext =
+                withoutSpace.countWords() in MIN_ACCEPTED_NUM_WORDS..MAX_ACCEPTED_NUM_WORDS
             event(CanGoNextStepEvent(canGoNext))
         }
     }
@@ -115,7 +117,8 @@ internal class RecoverSeedViewModel @Inject constructor(
         updateState { copy(suggestions = bip39Words) }
         val updatedMnemonic = getState().mnemonic.replaceLastWord(word)
         updateState { copy(mnemonic = updatedMnemonic) }
-        val canGoNext = updatedMnemonic.countWords() in MIN_ACCEPTED_NUM_WORDS..MAX_ACCEPTED_NUM_WORDS
+        val canGoNext =
+            updatedMnemonic.countWords() in MIN_ACCEPTED_NUM_WORDS..MAX_ACCEPTED_NUM_WORDS
         event(CanGoNextStepEvent(canGoNext))
         event(UpdateMnemonicEvent(updatedMnemonic))
     }
