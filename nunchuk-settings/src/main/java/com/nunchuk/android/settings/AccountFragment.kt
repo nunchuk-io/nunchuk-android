@@ -331,6 +331,9 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
                 )
             )
         }
+        binding.feeSettings.setOnClickListener {
+            navigator.openFeeSettingsScreen(requireActivity())
+        }
     }
 
     private fun openDeveloperScreen() {

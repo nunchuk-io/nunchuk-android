@@ -58,6 +58,8 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.NfcLoading
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.None
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
+import com.nunchuk.android.model.DEFAULT_FEE
+import com.nunchuk.android.model.FreeRateOption
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
@@ -76,6 +78,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetAllWalletsUseCase
+import com.nunchuk.android.usecase.GetDefaultFeeUseCase
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetHomeDisplaySettingUseCase
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
@@ -167,6 +170,7 @@ internal class WalletsViewModel @Inject constructor(
     private val joinFreeGroupWalletByIdUseCase: JoinFreeGroupWalletByIdUseCase,
     private val deeplinkHolder: DeeplinkHolder,
     private val getDeprecatedGroupWalletsUseCase: GetDeprecatedGroupWalletsUseCase,
+    private val getDefaultFeeUseCase: GetDefaultFeeUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<WalletsState, WalletsEvent>() {
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
@@ -216,6 +220,11 @@ internal class WalletsViewModel @Inject constructor(
             getLocalCurrencyUseCase(Unit).distinctUntilChanged().collect {
                 LOCAL_CURRENCY = it.getOrDefault(USD_CURRENCY)
                 getRemotePriceConvertBTCUseCase(Unit)
+            }
+        }
+        viewModelScope.launch {
+            getDefaultFeeUseCase(Unit).collect {
+                DEFAULT_FEE = it.getOrDefault(FreeRateOption.ECONOMIC.ordinal)
             }
         }
         viewModelScope.launch {

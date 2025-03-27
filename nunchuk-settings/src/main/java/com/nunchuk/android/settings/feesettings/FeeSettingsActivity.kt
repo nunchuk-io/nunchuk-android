@@ -1,0 +1,186 @@
+package com.nunchuk.android.settings.feesettings
+
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import androidx.activity.viewModels
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcRadioButton
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.R
+import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.model.FreeRateOption
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
+class FeeSettingsActivity : BaseComposeActivity() {
+
+    private val viewModel: FeeSettingsViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        setContentView(
+            ComposeView(this).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                setContent {
+                    val state by viewModel.state.collectAsStateWithLifecycle()
+
+                    FeeSettingsContent(defaultSelectedOption = state.defaultFee) {
+                        viewModel.setDefaultFee(it)
+                        showToast(message = getString(R.string.nc_fee_settings_updated))
+                    }
+                }
+            }
+        )
+    }
+
+    companion object {
+        fun start(context: Context) {
+            context.startActivity(Intent(context, FeeSettingsActivity::class.java))
+        }
+    }
+}
+
+@Composable
+fun FeeSettingsContent(
+    defaultSelectedOption: Int = FreeRateOption.ECONOMIC.ordinal,
+    onContinueClick: (option: Int) -> Unit = { }
+) {
+    var selectedOption by remember(defaultSelectedOption) { mutableIntStateOf(defaultSelectedOption) }
+
+    NunchukTheme {
+        Scaffold(
+            modifier = Modifier
+                .navigationBarsPadding()
+                .statusBarsPadding(),
+            topBar = {
+                NcTopAppBar(
+                    title = stringResource(R.string.nc_fee_settings),
+                    textStyle = NunchukTheme.typography.titleLarge
+                )
+            },
+            bottomBar = {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .padding(top = 16.dp)
+                            .fillMaxWidth(),
+                        enabled = selectedOption != defaultSelectedOption,
+                        onClick = {
+                            onContinueClick(selectedOption)
+                        }
+                    ) {
+                        Text(text = stringResource(R.string.nc_save_fee_settings))
+                    }
+                }
+            },
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp)
+                    .navigationBarsPadding()
+                    .fillMaxHeight()
+            ) {
+                Text(
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    text = stringResource(R.string.nc_select_default_fee_rate),
+                    style = NunchukTheme.typography.titleSmall
+                )
+                OptionItem(
+                    title = stringResource(R.string.nc_economy),
+                    description = stringResource(R.string.nc_economy_desc),
+                    selected = selectedOption == FreeRateOption.ECONOMIC.ordinal
+                ) {
+                    selectedOption = FreeRateOption.ECONOMIC.ordinal
+                }
+                OptionItem(
+                    title = stringResource(R.string.nc_standard_option),
+                    description = stringResource(R.string.nc_standard_desc),
+                    selected = selectedOption == FreeRateOption.STANDARD.ordinal
+                ) {
+                    selectedOption = FreeRateOption.STANDARD.ordinal
+                }
+                OptionItem(
+                    title = stringResource(R.string.nc_priority),
+                    description = stringResource(R.string.nc_priority_desc),
+                    selected = selectedOption == FreeRateOption.PRIORITY.ordinal
+                ) {
+                    selectedOption = FreeRateOption.PRIORITY.ordinal
+                }
+            }
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun OptionItem(
+    title: String, description: String, selected: Boolean, onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .clickable(
+                onClick = onClick
+            )
+            .padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = Modifier.weight(1f, true),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Row {
+                Text(
+                    text = title,
+                    style = NunchukTheme.typography.body
+                )
+            }
+
+            Text(
+                text = description,
+                style = NunchukTheme.typography.bodySmall
+            )
+        }
+        NcRadioButton(modifier = Modifier.size(24.dp), selected = selected , onClick = onClick)
+    }
+}
+
+@Preview
+@Composable
+fun FeeSettingsContentPreview() {
+    FeeSettingsContent()
+}

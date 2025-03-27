@@ -45,6 +45,7 @@ interface SettingRepository {
     val campaign: Flow<Campaign?>
     val lastCloseApp: Flow<Long>
     val displayTotalBalance: Flow<Boolean>
+    val defaultFee: Flow<Int>
     suspend fun setSyncEnable(isEnable: Boolean)
     suspend fun setQrDensity(density: Int)
     suspend fun markSyncRoomSuccess()
@@ -63,4 +64,5 @@ interface SettingRepository {
     fun getCustomPinConfig(decoyPin: String): Flow<Boolean>
     suspend fun setDarkMode(isDarkMode: Boolean?)
     fun getDarkMode(): Flow<Boolean?>
+    suspend fun setDefaultFree(fee: Int)
 }

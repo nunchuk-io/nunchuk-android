@@ -151,6 +151,8 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override val displayTotalBalance: Flow<Boolean>
         get() = ncDataStore.displayTotalBalanceFlow
+    override val defaultFee: Flow<Int>
+        get() = ncDataStore.defaultFee
 
     override fun getCustomPinConfig(decoyPin: String): Flow<Boolean> = ncDataStore.getCustomPinConfig(decoyPin)
 
@@ -163,4 +165,7 @@ internal class SettingRepositoryImpl @Inject constructor(
     }
 
     override fun getDarkMode(): Flow<Boolean?> = ncDataStore.isDarkMode
+    override suspend fun setDefaultFree(fee: Int) {
+        ncDataStore.setDefaultFee(fee)
+    }
 }

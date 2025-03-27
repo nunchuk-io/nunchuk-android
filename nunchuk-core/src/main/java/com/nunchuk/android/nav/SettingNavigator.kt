@@ -40,4 +40,5 @@ interface SettingNavigator {
     fun openLocalCurrencyScreen(activityContext: Context)
     fun openUnlockPinScreen(activityContext: Context, sourceFlowInfo: Int = UnlockPinSourceFlow.NONE)
     fun openBiometricScreen(activityContext: Context)
+    fun openFeeSettingsScreen(activityContext: Context)
 }

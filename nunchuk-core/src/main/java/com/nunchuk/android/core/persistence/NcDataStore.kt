@@ -33,6 +33,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.util.USD_CURRENCY
+import com.nunchuk.android.model.FeeRate
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.setting.BiometricConfig
@@ -79,6 +80,7 @@ class NcDataStore @Inject constructor(
     private val homeDisplaySettingKey = stringPreferencesKey("home_display_setting")
     private val biometricConfigKey = stringPreferencesKey("biometric_config")
     private val groupWalletBackupBannerKeysPreferenceKey = stringSetPreferencesKey("group_wallet_backup_banner_key")
+    private val defaultFeeKey = intPreferencesKey("default_fee")
 
     /**
      * Current membership plan key
@@ -117,7 +119,7 @@ class NcDataStore @Inject constructor(
 
     val syncRoomSuccess: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[syncRoomSuccessKey] ?: false
+            it[syncRoomSuccessKey] == true
         }
 
     val groupId: Flow<String>
@@ -136,22 +138,22 @@ class NcDataStore @Inject constructor(
 
     val syncEnableFlow: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[syncEnableKey] ?: false
+            it[syncEnableKey] == true
         }
 
     val isShowNfcUniversal: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[isShowNfcUniversalKey] ?: true
+            it[isShowNfcUniversalKey] != false
         }
 
     val isShowHealthCheckReminderIntro: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[getShowHealthCheckReminderIntroKey()] ?: true
+            it[getShowHealthCheckReminderIntroKey()] != false
         }
 
     val turnOnNotificationFlow: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[turnOnNotificationKey] ?: true
+            it[turnOnNotificationKey] != false
         }
 
     val localMembershipPlan: Flow<MembershipPlan>
@@ -167,7 +169,7 @@ class NcDataStore @Inject constructor(
 
     val isHideUpsellBanner: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[hideUpsellBannerKey] ?: false
+            it[hideUpsellBannerKey] == true
         }
 
     val qrDensity: Flow<Int>
@@ -341,22 +343,27 @@ class NcDataStore @Inject constructor(
 
     val isSetupSecurityQuestion: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[securityQuestionKey] ?: false
+            it[securityQuestionKey] == true
         }
 
     val useLargeFontHomeBalancesFlow: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[useLargeFontHomeBalances] ?: false
+            it[useLargeFontHomeBalances] == true
         }
 
     val displayTotalBalanceFlow: Flow<Boolean>
         get() = context.dataStore.data.map {
-            it[displayTotalBalance] ?: false
+            it[displayTotalBalance] == true
         }
 
     val currentStep: Flow<MembershipStep?>
         get() = context.dataStore.data.map {
             it[currentStepKey]?.let { index -> MembershipStep.entries[index] }
+        }
+
+    val defaultFee: Flow<Int>
+        get() = context.dataStore.data.map {
+            it[defaultFeeKey] ?: FeeRate.ECONOMY.ordinal
         }
 
     suspend fun setCurrentStep(step: MembershipStep) {
@@ -395,7 +402,7 @@ class NcDataStore @Inject constructor(
 
     suspend fun shouldShowNewPortal() : Boolean {
         return context.dataStore.data.map {
-            it[showNewPortalKey] ?: true
+            it[showNewPortalKey] != false
         }.first()
     }
 
@@ -442,7 +449,7 @@ class NcDataStore @Inject constructor(
 
     fun getCustomPinConfig(decoyPin: String): Flow<Boolean> {
         return context.dataStore.data.map {
-            it[booleanPreferencesKey("decoy_pin_${decoyPin}")] ?: true
+            it[booleanPreferencesKey("decoy_pin_${decoyPin}")] != false
         }
     }
 
@@ -460,6 +467,12 @@ class NcDataStore @Inject constructor(
             context.dataStore.edit {
                 it.remove(isDarkModeKey)
             }
+        }
+    }
+
+    suspend fun setDefaultFee(fee: Int) {
+        context.dataStore.edit {
+            it[defaultFeeKey] = fee
         }
     }
 

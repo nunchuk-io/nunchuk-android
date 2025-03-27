@@ -30,7 +30,6 @@ import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.network.UNKNOWN_ERROR
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.type.ConnectionStatus
 import com.nunchuk.android.utils.CrashlyticsReporter
 import java.io.File
 import java.io.InputStream

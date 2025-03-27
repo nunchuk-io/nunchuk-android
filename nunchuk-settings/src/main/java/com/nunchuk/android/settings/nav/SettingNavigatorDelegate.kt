@@ -27,6 +27,7 @@ import com.nunchuk.android.settings.about.AboutActivity
 import com.nunchuk.android.settings.developer.DeveloperSettingActivity
 import com.nunchuk.android.settings.devices.UserDevicesActivity
 import com.nunchuk.android.settings.displaysettings.DisplaySettingsActivity
+import com.nunchuk.android.settings.feesettings.FeeSettingsActivity
 import com.nunchuk.android.settings.localcurrency.LocalCurrencyActivity
 import com.nunchuk.android.settings.network.NetworkSettingActivity
 import com.nunchuk.android.settings.notification.TurnNotificationActivity
@@ -100,5 +101,9 @@ interface SettingNavigatorDelegate : SettingNavigator {
             activityContext,
             messages = messages
         )
+    }
+
+    override fun openFeeSettingsScreen(activityContext: Context) {
+        FeeSettingsActivity.start(activityContext)
     }
 }

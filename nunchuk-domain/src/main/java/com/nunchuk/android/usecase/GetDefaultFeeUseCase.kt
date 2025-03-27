@@ -17,28 +17,18 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.model
+package com.nunchuk.android.usecase
 
-data class EstimateFeeRates(
-    val priorityRate: Int = 10000,
-    val standardRate: Int = 10000,
-    val economicRate: Int = 10000,
-    val minimumFee: Int = 10000,
-)
+import com.nunchuk.android.FlowUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SettingRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-var DEFAULT_FEE = FreeRateOption.ECONOMIC.ordinal
+class GetDefaultFeeUseCase @Inject constructor(
+    private val settingRepository: SettingRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : FlowUseCase<Unit, Int>(ioDispatcher) {
 
-val EstimateFeeRates.defaultRate: Int
-    get() = when(DEFAULT_FEE) {
-        0 -> priorityRate
-        1 -> standardRate
-        2 -> economicRate
-        else -> minimumFee
-    }
-
-enum class FreeRateOption {
-    PRIORITY,
-    STANDARD,
-    ECONOMIC,
-    MINIMUM
+    override fun execute(parameters: Unit) = settingRepository.defaultFee
 }

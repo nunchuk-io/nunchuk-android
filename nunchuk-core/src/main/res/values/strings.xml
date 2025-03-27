@@ -629,6 +629,15 @@
     <string name="nc_tags_selected">%1$d tags selected</string>
     <string name="nc_send_amount_too_large">The send amount must be less than or equal to the total amount you selected</string>
     <string name="nc_fee_settings">Fee settings</string>
+    <string name="nc_save_fee_settings">Save fee settings</string>
+    <string name="nc_economy">Economy</string>
+    <string name="nc_standard_option">Standard</string>
+    <string name="nc_priority">Priority</string>
+    <string name="nc_fee_settings_updated">Fee settings updated</string>
+    <string name="nc_priority_desc">Fastest processing, higher fee</string>
+    <string name="nc_standard_desc">Balanced fee and speed</string>
+    <string name="nc_economy_desc">Lowest fee, longest wait time</string>
+    <string name="nc_select_default_fee_rate">Select the default fee rate for your transactions</string>
     <string name="nc_coin_selection">Coin selection</string>
     <string name="nc_customize">Customize</string>
     <string name="nc_customize_transaction">Customize transaction</string>
