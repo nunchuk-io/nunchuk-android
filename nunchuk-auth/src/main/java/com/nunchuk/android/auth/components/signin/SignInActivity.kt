@@ -33,7 +33,6 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
-import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -115,18 +114,18 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
             .build()
 
         lifecycleScope.launch {
-            try {
-                showLoading()
+            showLoading()
+            runCatching {
                 credentialManager.clearCredentialState(ClearCredentialStateRequest())
                 val result = credentialManager.getCredential(
                     request = request,
                     context = this@SignInActivity,
                 )
-                hideLoading()
                 handleSignIn(result)
-            } catch (e: GetCredentialException) {
-                Timber.e(e)
+            }.onFailure {
+
             }
+            hideLoading()
         }
     }
 
@@ -140,6 +139,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                     val token = googleIdTokenCredential.idToken
                     viewModel.googleSignIn(token)
                 }.onFailure {
+                    NCToastMessage(this@SignInActivity).showError(it.message.orEmpty())
                     Timber.e(it)
                 }
             }
@@ -239,6 +239,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         binding.name.isVisible = stage == SignInType.NAME
 
         binding.guestMode.isVisible = stage == SignInType.EMAIL
+        binding.containerOr.isVisible = stage == SignInType.EMAIL
         binding.tvTermAndPolicy.isVisible = stage == SignInType.EMAIL
 
         if (stage == SignInType.PASSWORD) {

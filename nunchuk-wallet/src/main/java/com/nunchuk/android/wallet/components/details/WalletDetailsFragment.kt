@@ -144,12 +144,6 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         else findNavController().popBackStack()
     }
 
-    override fun onDestroy() {
-        requireActivity().window.statusBarColor =
-            ContextCompat.getColor(requireContext(), R.color.nc_primary_color)
-        super.onDestroy()
-    }
-
     override fun onResume() {
         super.onResume()
         with(viewModel) {
@@ -463,8 +457,6 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
     private fun handleWalletBackground(state: WalletDetailsState) {
         if (state.isFreeGroupWallet && !state.isDeprecatedGroupWallet) {
             binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_free_group_wallet_background)
-            requireActivity().window.statusBarColor =
-                ContextCompat.getColor(requireContext(), R.color.cl_2B74A9)
             binding.cashAmount.setTextColor(
                 ContextCompat.getColor(
                     requireContext(),
@@ -474,7 +466,6 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         } else if (state.walletStatus == WalletStatus.REPLACED.name || state.walletStatus == WalletStatus.LOCKED.name || state.isDeprecatedGroupWallet) {
             val color = ContextCompat.getColor(requireContext(), R.color.nc_grey_dark_color)
             binding.statusBarBackground.setBackgroundColor(color)
-            requireActivity().window.statusBarColor = color
             binding.shareIcon.text = getString(R.string.nc_deactivated)
             binding.shareIcon.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
         } else if (state.walletExtended.wallet.needBackup) {
@@ -484,8 +475,6 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                     R.color.nc_beeswax_dark
                 )
             )
-            requireActivity().window.statusBarColor =
-                ContextCompat.getColor(requireContext(), R.color.nc_beeswax_dark)
             binding.cashAmount.setTextColor(
                 ContextCompat.getColor(
                     requireContext(),
@@ -494,8 +483,6 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
             )
         } else if (state.isAssistedWallet) {
             binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_membership_gradient_background)
-            requireActivity().window.statusBarColor =
-                ContextCompat.getColor(requireContext(), R.color.nc_wallet_premium_bg)
             binding.shareIcon.text =
                 Utils.maskValue(getString(R.string.nc_assisted), state.hideWalletDetailLocal)
             binding.cashAmount.setTextColor(
@@ -506,8 +493,6 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
             )
         } else {
             binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_gradient_background)
-            requireActivity().window.statusBarColor =
-                ContextCompat.getColor(requireContext(), R.color.nc_primary_color)
             binding.cashAmount.setTextColor(
                 ContextCompat.getColor(
                     requireContext(),
