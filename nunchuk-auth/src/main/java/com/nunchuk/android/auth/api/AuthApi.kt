@@ -19,12 +19,12 @@
 
 package com.nunchuk.android.auth.api
 
-import com.nunchuk.android.auth.domain.model.EmailAvailability
 import com.nunchuk.android.auth.api.biometric.BiometricChallengeRequest
 import com.nunchuk.android.auth.api.biometric.BiometricChallengeResponse
 import com.nunchuk.android.auth.api.biometric.BiometricRegisterPublicKey
 import com.nunchuk.android.auth.api.biometric.BiometricSignInRequest
 import com.nunchuk.android.auth.api.biometric.BiometricVerifyChallengeRequest
+import com.nunchuk.android.auth.domain.model.EmailAvailability
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -41,6 +41,11 @@ interface AuthApi {
     @POST("passport/sign-in")
     suspend fun signIn(
         @Body signInPayload: SignInPayload
+    ): Data<UserTokenResponse>
+
+    @POST("passport/google/signin")
+    suspend fun googleSignIn(
+        @Body signInPayload: GoogleSignInPayload
     ): Data<UserTokenResponse>
 
     @POST("passport/sign-in/verify-new-device")

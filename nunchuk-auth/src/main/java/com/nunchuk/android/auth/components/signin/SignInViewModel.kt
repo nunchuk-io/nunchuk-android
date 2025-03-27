@@ -32,13 +32,13 @@ import com.nunchuk.android.auth.components.signin.SignInEvent.SignInErrorEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.SignInSuccessEvent
 import com.nunchuk.android.auth.domain.BiometricLoginUseCase
 import com.nunchuk.android.auth.domain.CheckEmailAvailabilityUseCase
+import com.nunchuk.android.auth.domain.GoogleSignInUseCase
 import com.nunchuk.android.auth.domain.RegisterUseCase
 import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.account.SignInType
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
-import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.network.NunchukApiException
@@ -89,7 +89,8 @@ internal class SignInViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     getBiometricConfigUseCase: GetBiometricConfigUseCase,
     private val biometricLoginUseCase: BiometricLoginUseCase,
-    private val updateBiometricConfigUseCase: UpdateBiometricConfigUseCase
+    private val updateBiometricConfigUseCase: UpdateBiometricConfigUseCase,
+    private val googleSignInUseCase: GoogleSignInUseCase
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SignInEvent>()
     val event = _event.asSharedFlow()
@@ -99,9 +100,6 @@ internal class SignInViewModel @Inject constructor(
     private val _state =
         MutableStateFlow(SignInUiState(type = type))
     val state = _state.asStateFlow()
-
-    private var token: String? = null
-    private var encryptedDeviceId: String? = null
 
     val biometricConfig = getBiometricConfigUseCase(Unit)
         .map { it.getOrDefault(BiometricConfig.DEFAULT) }
@@ -226,8 +224,6 @@ internal class SignInViewModel @Inject constructor(
                     .onStart { _event.emit(ProcessingEvent()) }
                     .flowOn(IO)
                     .map {
-                        token = it.token
-                        encryptedDeviceId = it.deviceId
                         fileLog(message = "start initNunchuk")
                         initNunchuk()
                         fileLog(message = "end initNunchuk")
@@ -308,13 +304,11 @@ internal class SignInViewModel @Inject constructor(
         viewModelScope.launch {
             _event.emit(ProcessingEvent())
              biometricLoginUseCase(Unit)
-                .onSuccess { it ->
+                .onSuccess {
                     if (it == null) {
                         return@launch
                     }
                     withContext(IO) {
-                        token = it.token
-                        encryptedDeviceId = it.deviceId
                         fileLog(message = "start initNunchuk")
                         initNunchuk()
                         fileLog(message = "end initNunchuk")
@@ -325,6 +319,22 @@ internal class SignInViewModel @Inject constructor(
                 .onFailure {
                     _event.emit(SignInErrorEvent(message = it.message.orUnknownError()))
                 }
+        }
+    }
+
+    fun googleSignIn(token: String) {
+        viewModelScope.launch {
+            _event.emit(ProcessingEvent(true))
+            googleSignInUseCase(token)
+                .onSuccess {
+                    initNunchuk()
+                    signInModeHolder.setCurrentMode(SignInMode.EMAIL)
+                    _event.emit(SignInSuccessEvent())
+                }
+                .onFailure {
+                    _event.emit(SignInErrorEvent(message = it.message.orUnknownError()))
+                }
+            _event.emit(ProcessingEvent(false))
         }
     }
 

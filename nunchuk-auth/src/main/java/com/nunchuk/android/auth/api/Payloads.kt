@@ -95,3 +95,8 @@ data class ResendPasswordRequest(
     @SerializedName("email")
     val email: String
 )
+
+data class GoogleSignInPayload(
+    @SerializedName("id_token")
+    val idToken: String
+) : Serializable

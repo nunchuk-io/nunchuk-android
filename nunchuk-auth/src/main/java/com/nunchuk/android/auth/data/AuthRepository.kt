@@ -23,6 +23,7 @@ import com.nunchuk.android.auth.api.AuthApi
 import com.nunchuk.android.auth.api.ChangePasswordPayload
 import com.nunchuk.android.auth.api.ConfirmQrLoginRequest
 import com.nunchuk.android.auth.api.ForgotPasswordPayload
+import com.nunchuk.android.auth.api.GoogleSignInPayload
 import com.nunchuk.android.auth.api.RecoverPasswordPayload
 import com.nunchuk.android.auth.api.RegisterPayload
 import com.nunchuk.android.auth.api.ResendPasswordRequest
@@ -81,6 +82,7 @@ interface AuthRepository {
     suspend fun biometricRegisterPublicKey(publicKey: String, registerVerificationToken: String)
     suspend fun biometricChallenge(userId: String): Pair<String, String>
     suspend fun biometricVerifyChallenge(challengeId: String, signature: String): UserTokenResponse
+    suspend fun googleSignIn(idToken: String): UserTokenResponse
 }
 
 internal class AuthRepositoryImpl @Inject constructor(
@@ -213,6 +215,14 @@ internal class AuthRepositoryImpl @Inject constructor(
                 signature = signature
             )
         )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        return response.data
+    }
+
+    override suspend fun googleSignIn(idToken: String): UserTokenResponse {
+        val response = authApi.googleSignIn(GoogleSignInPayload(idToken))
         if (response.isSuccess.not()) {
             throw response.error
         }

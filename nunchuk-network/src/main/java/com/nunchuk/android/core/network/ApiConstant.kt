@@ -21,7 +21,8 @@ package com.nunchuk.android.core.network
 
 internal object ApiConstant {
     private const val API_VERSION = "v1.1"
-    internal const val BASE_URL = "https://api.nunchuk.io/$API_VERSION/"
+    // TODO Hai update to production url
+    internal const val BASE_URL = "https://apistg.nunchuk.io/$API_VERSION/"
     internal const val BASE_TEST_NET_URL = "https://api-testnet.nunchuk.io/$API_VERSION/"
     internal const val BASE_URL_MATRIX = "https://matrix.nunchuk.io/"
 

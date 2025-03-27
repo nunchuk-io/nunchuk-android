@@ -24,7 +24,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -117,16 +116,16 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
         lifecycleScope.launch {
             try {
+                showLoading()
                 credentialManager.clearCredentialState(ClearCredentialStateRequest())
                 val result = credentialManager.getCredential(
                     request = request,
                     context = this@SignInActivity,
                 )
+                hideLoading()
                 handleSignIn(result)
             } catch (e: GetCredentialException) {
                 Timber.e(e)
-                Toast.makeText(this@SignInActivity, "Error: ${e.message}", Toast.LENGTH_SHORT)
-                    .show()
             }
         }
     }
@@ -139,13 +138,9 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                     val googleIdTokenCredential = GoogleIdTokenCredential
                         .createFrom(credential.data)
                     val token = googleIdTokenCredential.idToken
-                    Toast.makeText(this@SignInActivity, token, Toast.LENGTH_SHORT)
-                        .show()
-                    Timber.d("Google ID Token: $token")
+                    viewModel.googleSignIn(token)
                 }.onFailure {
                     Timber.e(it)
-                    Toast.makeText(this@SignInActivity, "Error: ${it.message}", Toast.LENGTH_SHORT)
-                        .show()
                 }
             }
         }
