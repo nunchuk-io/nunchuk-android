@@ -29,20 +29,18 @@ internal fun WalletEmptyStateView(
     signers: List<SignerModel>?,
     state: WalletsState
 ) {
-    if (state.plans == null || state.personalSteps == null || signers == null) {
-        return
-    }
-    val hasSigner = signers.isNotEmpty()
+    val hasSigner = signers.orEmpty().isNotEmpty()
     val personalSteps = state.personalSteps
-    val plans = state.plans
+    val plans = state.plans.orEmpty()
     val walletType = when {
+        personalSteps == null -> null
         personalSteps.any { it.plan == MembershipPlan.IRON_HAND } -> GroupWalletType.TWO_OF_THREE_PLATFORM_KEY
         personalSteps.any { it.plan == MembershipPlan.HONEY_BADGER } -> GroupWalletType.TWO_OF_FOUR_MULTISIG
         else -> null
     }
     NunchukTheme {
         val conditionInfo = when {
-            state.plans.size.orDefault(0) == 1 && state.plans.any {
+            plans.size.orDefault(0) == 1 && plans.any {
                 it in setOf(
                     MembershipPlan.IRON_HAND,
                     MembershipPlan.HONEY_BADGER,
@@ -64,12 +62,12 @@ internal fun WalletEmptyStateView(
                 )
             }
 
-            state.plans.size.orDefault(0) == 1 && state.plans
+            plans.size.orDefault(0) == 1 && plans
                 .any { it.isByzantineOrFinney() } -> {
                 ConditionInfo.GroupMasterUser(hasSigner)
             }
 
-            state.plans.size.orDefault(0) > 1 -> {
+            plans.size.orDefault(0) > 1 -> {
                 ConditionInfo.MultipleSubscriptionsUser(hasSigner)
             }
 

@@ -94,6 +94,7 @@ abstract class BaseCameraActivity<Binding : ViewBinding> : BaseActivity<Binding>
     }
 
     protected var scanner: CameraScanController? = null
+    private var scannerViewComposer: ScannerViewComposer? = null
 
     private fun Activity.isPermissionGranted(permission: String) =
         ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
@@ -121,23 +122,24 @@ abstract class BaseCameraActivity<Binding : ViewBinding> : BaseActivity<Binding>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        scannerViewComposer()?.let {
+        scannerViewComposer = scannerViewComposer()
+        scannerViewComposer?.let {
             scanner = getCameraScanController(false)
             setScannerListener()
         }
-        scannerViewComposer()?.btnSelectPhoto?.setOnClickListener {
+        scannerViewComposer?.btnSelectPhoto?.setOnClickListener {
             handleSelectPhoto()
         }
-        scannerViewComposer()?.btnTurnFlash?.setOnClickListener {
+        scannerViewComposer?.btnTurnFlash?.setOnClickListener {
             toggleFlash()
         }
-        scannerViewComposer()?.btnScannerGoogle?.setOnClickListener {
+        scannerViewComposer?.btnScannerGoogle?.setOnClickListener {
             if (scanner != null && scanner is GoogleCameraScanController) {
                 return@setOnClickListener
             }
             scanner = getCameraScanController(true)
-            scannerViewComposer()?.barcodeView?.isVisible = false
-            scannerViewComposer()?.previewView?.isVisible = true
+            scannerViewComposer?.barcodeView?.isVisible = false
+            scannerViewComposer?.previewView?.isVisible = true
             scanner?.startScanning(intent)
             setScannerListener()
         }
@@ -151,9 +153,9 @@ abstract class BaseCameraActivity<Binding : ViewBinding> : BaseActivity<Binding>
 
     private fun getCameraScanController(isGoogleCamera: Boolean): CameraScanController {
         return if (isGoogleCamera) {
-            GoogleCameraScanController(this, scannerViewComposer()?.previewView!!)
+            GoogleCameraScanController(this, scannerViewComposer?.previewView!!)
         } else {
-            BarcodeCameraScanController(scannerViewComposer()?.barcodeView!!)
+            BarcodeCameraScanController(scannerViewComposer?.barcodeView!!)
         }
     }
 
@@ -170,9 +172,9 @@ abstract class BaseCameraActivity<Binding : ViewBinding> : BaseActivity<Binding>
     private fun toggleFlash() {
         isFlashOn = !isFlashOn
         if (isFlashOn) {
-            scannerViewComposer()?.btnTurnFlash?.setImageResource(R.drawable.nc_ic_flash_off)
+            scannerViewComposer?.btnTurnFlash?.setImageResource(R.drawable.nc_ic_flash_off)
         } else {
-            scannerViewComposer()?.btnTurnFlash?.setImageResource(R.drawable.nc_ic_flash_on)
+            scannerViewComposer?.btnTurnFlash?.setImageResource(R.drawable.nc_ic_flash_on)
         }
         scanner?.torchState(isFlashOn)
     }
