@@ -68,4 +68,6 @@
     <string name="nc_please_enter_the_master_private_key_xprv">Please enter the master private key (XPRV).</string>
     <string name="nc_xprv">XPRV</string>
     <string name="nc_recover_key_via_seed">Recover key via seed</string>
+    <string name="nc_added_hot_key_success">You has been added you have successfully backed up this key</string>
+    <string name="nc_key_has_been_added">%1$s has been added</string>
 </resources>

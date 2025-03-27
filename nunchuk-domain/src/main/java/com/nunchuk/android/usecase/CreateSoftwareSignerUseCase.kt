@@ -31,13 +31,19 @@ class CreateSoftwareSignerUseCase @Inject constructor(
 ) : UseCase<CreateSoftwareSignerUseCase.Param, MasterSigner>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param): MasterSigner {
-        return nativeSdk.createSoftwareSigner(
+        val masterSigner = nativeSdk.createSoftwareSigner(
             name = parameters.name,
             mnemonic = parameters.mnemonic,
             passphrase = parameters.passphrase,
             isPrimary = parameters.isPrimaryKey,
             replace = parameters.replace
         )
+        if (parameters.isBackupNow.not()) {
+            nativeSdk.updateMasterSigner(
+                masterSigner.copy(isNeedBackup = true)
+            )
+        }
+        return masterSigner
     }
 
     data class Param(
@@ -46,5 +52,6 @@ class CreateSoftwareSignerUseCase @Inject constructor(
         val passphrase: String,
         val isPrimaryKey: Boolean,
         val replace: Boolean = false,
+        val isBackupNow: Boolean,
     )
 }

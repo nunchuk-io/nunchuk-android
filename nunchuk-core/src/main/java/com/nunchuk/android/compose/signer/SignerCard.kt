@@ -34,6 +34,7 @@ fun SignerCard(
     showValueKey: Boolean = false,
     signerIcon: Int? = null,
     isShowKeyTypeBadge: Boolean = true,
+    xfpContent: @Composable (() -> Unit)? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(
@@ -82,10 +83,14 @@ fun SignerCard(
                 }
             }
             if (item.type != SignerType.SERVER) {
-                Text(
-                    text = item.getXfpOrCardIdLabel(),
-                    style = NunchukTheme.typography.bodySmall,
-                )
+                if (xfpContent != null) {
+                    xfpContent()
+                } else {
+                    Text(
+                        text = item.getXfpOrCardIdLabel(),
+                        style = NunchukTheme.typography.bodySmall,
+                    )
+                }
             }
             content()
         }

@@ -114,6 +114,7 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
                         isQuickWallet = false,
                         skipPassphrase = true,
                         xprv = args.xprv.orEmpty(),
+                        isBackupNow = true
                     )
                 } else if (args.primaryKeyFlow.isSignInFlow()) {
                     viewModel.getTurnOnNotification()
@@ -198,7 +199,7 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
             address: String?,
             walletId: String?,
             groupId: String?,
-            xprv: String?
+            xprv: String?,
         ) {
             activityContext.startActivity(
                 AddSoftwareSignerNameArgs(
@@ -209,7 +210,7 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
                     address = address,
                     walletId = walletId,
                     xprv = xprv,
-                    groupId = groupId
+                    groupId = groupId,
                 ).buildIntent(
                     activityContext
                 )

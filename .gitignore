@@ -6,3 +6,4 @@
 local.properties
 keystore.properties
 nunchuk-keystore.jks
+.kotlin

@@ -27,6 +27,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.GenerateMnemonicCodeErrorEvent
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.OpenSelectPhraseEvent
 import com.nunchuk.android.usecase.GenerateMnemonicUseCase
+import com.nunchuk.android.usecase.GetHotKeyMnemonicUseCase
 import com.nunchuk.android.usecase.wallet.GetHotWalletMnemonicUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -44,6 +45,7 @@ internal class CreateNewSeedViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val getHotWalletMnemonicUseCase: GetHotWalletMnemonicUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val getHotKeyMnemonicUseCase: GetHotKeyMnemonicUseCase
 ) : ViewModel() {
     private val _event = MutableSharedFlow<CreateNewSeedEvent>()
     private val _state = MutableStateFlow(CreateNewSeedState())
@@ -52,7 +54,19 @@ internal class CreateNewSeedViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun init() {
-        if (args.walletId.isNotEmpty() && args.replacedXfp.isEmpty() && !args.primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
+        if (args.backupHotKeySignerId.isNotEmpty()) {
+            viewModelScope.launch {
+                getHotKeyMnemonicUseCase(args.backupHotKeySignerId)
+                    .onSuccess { mnemonic ->
+                        _state.update { state ->
+                            state.copy(
+                                seeds = mnemonic.toPhrases(),
+                                mnemonic = mnemonic
+                            )
+                        }
+                    }
+            }
+        } else if (args.walletId.isNotEmpty() && args.replacedXfp.isEmpty() && !args.primaryKeyFlow.isReplaceKeyInFreeWalletFlow()) {
             viewModelScope.launch {
                 getHotWalletMnemonicUseCase(args.walletId)
                     .onSuccess { mnemonic ->

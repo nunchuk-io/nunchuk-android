@@ -31,6 +31,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.KeyFlow.isAddPortalFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.manager.AssistedWalletManager
@@ -89,24 +90,38 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
     }
 
     private fun confirmBeforeOpenNewScreen() {
-        NCInfoDialog(requireActivity()).showDialog(
-            message = SpannableStringBuilder().bold {
-                append(getString(R.string.nc_seed_phase_confirmation_desc_one))
-            }.append(getString(R.string.nc_seed_phase_confirmation_desc_two)),
-            btnInfo = getString(R.string.nc_i_ve_backed_it_up),
-            btnYes = getString(R.string.nc_review_seed_phrase),
-            onYesClick = {
-                if (args.isQuickWallet) {
-                    findNavController().popBackStack()
-                } else {
-                    requireActivity().finish()
-                }
-            },
-            onInfoClick = {
-                openSetPassphrase()
-            },
-            showTextButton = true
-        )
+        if (args.backupHotKeySignerId.isEmpty()) {
+            NCInfoDialog(requireActivity()).showDialog(
+                message = SpannableStringBuilder().bold {
+                    append(getString(R.string.nc_seed_phase_confirmation_desc_one))
+                }.append(getString(R.string.nc_seed_phase_confirmation_desc_two)),
+                btnInfo = getString(R.string.nc_i_ve_backed_it_up),
+                btnYes = getString(R.string.nc_review_seed_phrase),
+                onYesClick = {
+                    if (args.isQuickWallet) {
+                        findNavController().popBackStack()
+                    } else {
+                        requireActivity().finish()
+                    }
+                },
+                onInfoClick = {
+                    openSetPassphrase()
+                },
+                showTextButton = true
+            )
+        } else {
+            viewModel.markHotKeyBackedUp()
+            NcToastManager.scheduleShowMessage(getString(R.string.nc_added_hot_key_success))
+            navigator.returnToMainScreen(requireActivity())
+            navigator.openSignerInfoScreen(
+                activityContext = requireActivity(),
+                isMasterSigner = true,
+                id = args.backupHotKeySignerId,
+                masterFingerprint = args.masterSignerId,
+                name = "",
+                type = SignerType.SOFTWARE
+            )
+        }
     }
 
     private fun openSetPassphrase() {

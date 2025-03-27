@@ -28,12 +28,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.KeyFlow.isSignInFlow
+import com.nunchuk.android.signer.software.components.intro.createSoftwareKeyIntro
+import com.nunchuk.android.signer.software.components.intro.createSoftwareKeyIntroRoute
 import com.nunchuk.android.signer.software.components.intro.recoverByXprv
 import com.nunchuk.android.signer.software.components.intro.recoverByXprvRoute
 import com.nunchuk.android.signer.software.components.intro.softwareSignerIntro
-import com.nunchuk.android.signer.software.components.intro.softwareSignerIntroRoute
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateSoftwareSignerCompletedEvent
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -63,6 +65,9 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
         setPassphraseViewModel.event.observe(this) { event ->
             if (handleCreateSoftwareSignerEvent(event)) return@observe
             if (event is CreateSoftwareSignerCompletedEvent) {
+                if (event.masterSigner?.isNeedBackup == true) {
+                    NcToastManager.scheduleShowMessage(String.format(getString(R.string.nc_key_has_been_added), event.masterSigner.name))
+                }
                 onCreateSignerCompleted(
                     navigator = navigator,
                     masterSigner = event.masterSigner,
@@ -82,8 +87,16 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                 val navigationController = rememberNavController()
                 NavHost(
                     navController = navigationController,
-                    startDestination = softwareSignerIntroRoute
+                    startDestination = createSoftwareKeyIntroRoute
                 ) {
+                    createSoftwareKeyIntro(
+                        isSupportXprv = !keyFlow.isSignInFlow(),
+                        onContinueClicked = { isBackUpNow ->
+                            openCreateNewSeedScreen(isBackUpNow)
+                        },
+                        onRecoverSeedClicked = { openRecoverSeedScreen() },
+                        onRecoverXprvClicked = { navigationController.navigate(recoverByXprvRoute) }
+                    )
                     softwareSignerIntro(
                         isSupportXprv = !keyFlow.isSignInFlow(),
                         onCreateNewSeedClicked = ::openCreateNewSeedScreen,
@@ -120,6 +133,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                     isQuickWallet = false,
                     skipPassphrase = true,
                     xprv = xprv,
+                    isBackupNow = true
                 )
             }
 
@@ -130,21 +144,38 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                     passphrase = passphrase,
                     walletId = walletId,
                     xprv = xprv,
-                    groupId = groupId
+                    groupId = groupId,
                 )
             }
         }
     }
 
-    private fun openCreateNewSeedScreen() {
-        navigator.openCreateNewSeedScreen(
-            activityContext = this,
-            passphrase = passphrase,
-            keyFlow = keyFlow,
-            walletId = walletId,
-            groupId = groupId,
-            replacedXfp = replacedXfp,
-        )
+    private fun openCreateNewSeedScreen(isBackupNow: Boolean = true) {
+        if (isBackupNow) {
+            navigator.openCreateNewSeedScreen(
+                activityContext = this,
+                passphrase = passphrase,
+                keyFlow = keyFlow,
+                walletId = walletId,
+                groupId = groupId,
+                replacedXfp = replacedXfp,
+            )
+        } else {
+            setPassphraseViewModel.createSoftwareSigner(
+                isReplaceKey = true,
+                signerName = "",
+                mnemonic = "",
+                passphrase = "",
+                primaryKeyFlow = keyFlow,
+                groupId = groupId.orEmpty(),
+                replacedXfp = replacedXfp.orEmpty(),
+                walletId = walletId,
+                isQuickWallet = false,
+                skipPassphrase = true,
+                xprv = "",
+                isBackupNow = false
+            )
+        }
     }
 
     private fun openRecoverSeedScreen() {

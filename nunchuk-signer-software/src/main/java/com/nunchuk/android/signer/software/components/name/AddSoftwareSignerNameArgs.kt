@@ -32,7 +32,7 @@ data class AddSoftwareSignerNameArgs(
     val address: String?,
     val walletId: String?,
     val groupId: String?,
-    val xprv: String?
+    val xprv: String?,
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) =
@@ -66,7 +66,7 @@ data class AddSoftwareSignerNameArgs(
             address = intent.extras?.getString(EXTRA_PRIMARY_KEY_ADDRESS, "").orEmpty(),
             walletId = intent.extras?.getString(EXTRA_WALLET_ID, "").orEmpty(),
             xprv = intent.extras?.getString(EXTRA_XPRV, "").orEmpty(),
-            groupId = intent.extras?.getString(EXTRA_GROUP_ID, "").orEmpty()
+            groupId = intent.extras?.getString(EXTRA_GROUP_ID, "").orEmpty(),
         )
     }
 }

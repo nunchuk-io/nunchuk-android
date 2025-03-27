@@ -10,6 +10,11 @@
             android:theme="@style/NunchukNoActionBar.Light" />
 
         <activity
+            android:name=".CreateSoftwareKeyIntroActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity
             android:name=".components.create.CreateNewSeedActivity"
             android:label="@string/nc_ssigner_new_seed_title"
             android:screenOrientation="portrait"

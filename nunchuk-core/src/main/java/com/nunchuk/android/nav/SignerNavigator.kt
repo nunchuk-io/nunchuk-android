@@ -102,6 +102,7 @@ interface SignerNavigator {
         groupId: String? = null,
         replacedXfp: String? = null,
         numberOfWords: Int = 24,
+        backupHotKeySignerId: String = "",
     )
 
     fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean = false)
@@ -132,6 +133,7 @@ interface SignerNavigator {
         walletId: String = "",
         groupId: String? = null,
         replacedXfp: String? = null,
+        backupHotKeySignerId: String = "",
     )
 
     /**

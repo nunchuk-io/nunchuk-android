@@ -31,6 +31,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameEvent.SignerNameInputCompletedEvent
 import com.nunchuk.android.signer.software.components.name.AddSoftwareSignerNameEvent.SignerNameRequiredEvent
+import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -42,7 +43,8 @@ internal class AddSoftwareSignerNameViewModel @AssistedInject constructor(
     private val signInModeHolder: SignInModeHolder,
     private val initNunchukUseCase: InitNunchukUseCase,
     private val getTurnOnNotificationStoreUseCase: GetTurnOnNotificationStoreUseCase,
-    private val updateTurnOnNotificationStoreUseCase: UpdateTurnOnNotificationStoreUseCase
+    private val updateTurnOnNotificationStoreUseCase: UpdateTurnOnNotificationStoreUseCase,
+    private val createSoftwareSignerUseCase: CreateSoftwareSignerUseCase,
 ) : NunchukViewModel<AddSoftwareSignerNameState, AddSoftwareSignerNameEvent>() {
 
     override val initialState = AddSoftwareSignerNameState(args = args)

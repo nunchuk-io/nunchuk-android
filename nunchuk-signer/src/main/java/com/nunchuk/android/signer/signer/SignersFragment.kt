@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -179,7 +180,20 @@ fun SignersContent(
                             modifier = Modifier
                                 .padding(12.dp)
                                 .clickable { onSignerClick(signer) },
-                            item = signer
+                            item = signer,
+                            xfpContent = {
+                                if (signer.isNeedBackup) {
+                                    Text(
+                                        text = "${signer.getXfpOrCardIdLabel()} • ${stringResource(R.string.nc_pending_backup)}",
+                                        style = NunchukTheme.typography.bodySmall.copy(color = colorResource(R.color.nc_beeswax_dark)),
+                                    )
+                                } else {
+                                    Text(
+                                        text = signer.getXfpOrCardIdLabel(),
+                                        style = NunchukTheme.typography.bodySmall,
+                                    )
+                                }
+                            }
                         )
                     }
                 }

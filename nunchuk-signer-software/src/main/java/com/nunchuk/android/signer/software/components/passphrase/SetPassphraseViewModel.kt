@@ -53,12 +53,14 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
+import com.nunchuk.android.usecase.GenerateMnemonicUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import com.nunchuk.android.usecase.signer.CreateSoftwareSignerByXprvUseCase
+import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.onException
@@ -87,7 +89,9 @@ internal class SetPassphraseViewModel @Inject constructor(
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val pushEventManager: PushEventManager,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
-    private val assistedWalletManager: AssistedWalletManager
+    private val assistedWalletManager: AssistedWalletManager,
+    private val generateMnemonicUseCase: GenerateMnemonicUseCase,
+    private val getAllSignersUseCase: GetAllSignersUseCase,
 ) : NunchukViewModel<SetPassphraseState, SetPassphraseEvent>() {
     private val args: SetPassphraseFragmentArgs by lazy {
         SetPassphraseFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -170,6 +174,7 @@ internal class SetPassphraseViewModel @Inject constructor(
             walletId = args.walletId,
             isQuickWallet = args.isQuickWallet,
             skipPassphrase = getState().skipPassphrase,
+            isBackupNow = true
         )
     }
 
@@ -184,10 +189,26 @@ internal class SetPassphraseViewModel @Inject constructor(
         walletId: String,
         isQuickWallet: Boolean,
         skipPassphrase: Boolean,
-        xprv: String = ""
+        xprv: String = "",
+        isBackupNow: Boolean
     ) {
         viewModelScope.launch {
             setEvent(LoadingEvent(true))
+            var mnemonicHotKey = ""
+            var hotKeyName = ""
+            if (isBackupNow.not()) {
+                generateMnemonicUseCase(24).onSuccess {
+                    mnemonicHotKey = it
+                }
+                val masterSigners = getAllSignersUseCase(true).getOrNull()?.let { (masterSigners, _) ->
+                    masterSigners.filter { it.isNeedBackup }
+                } ?: emptyList()
+                hotKeyName = if (masterSigners.isNotEmpty()) {
+                    "My key #${masterSigners.size + 1}"
+                } else {
+                    "My key"
+                }
+            }
             if (xprv.isNotEmpty()) {
                 createSoftwareSignerByXprvUseCase(
                     CreateSoftwareSignerByXprvUseCase.Param(
@@ -200,11 +221,12 @@ internal class SetPassphraseViewModel @Inject constructor(
             } else {
                 createSoftwareSignerUseCase(
                     CreateSoftwareSignerUseCase.Param(
-                        name = signerName,
-                        mnemonic = mnemonic,
+                        name = hotKeyName,
+                        mnemonic = if (isBackupNow.not()) mnemonicHotKey else mnemonic,
                         passphrase = passphrase,
                         isPrimaryKey = primaryKeyFlow.isPrimaryKeyFlow(),
-                        replace = isReplaceKey
+                        replace = isReplaceKey,
+                        isBackupNow = isBackupNow
                     )
                 )
             }.onSuccess { signer ->

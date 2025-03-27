@@ -63,9 +63,13 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -75,7 +79,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.viewbinding.ViewBinding
+import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcCircleImage
+import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
@@ -125,7 +131,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 
 @AndroidEntryPoint
-class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(), SingerInfoOptionBottomSheet.OptionClickListener {
+class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
+    SingerInfoOptionBottomSheet.OptionClickListener {
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding {
         TODO("Not yet implemented")
@@ -145,8 +152,7 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(), SingerInfoO
             setContent {
                 val uiState by viewModel.state.collectAsStateWithLifecycle()
                 val isPrimaryKey =
-                    uiState.masterSigner?.let { viewModel.isPrimaryKey(it.device.masterFingerprint) }
-                        ?: false
+                    uiState.masterSigner?.let { viewModel.isPrimaryKey(it.device.masterFingerprint) } == true
                 SignerInfoContent(
                     uiState = uiState, isPrimaryKey = isPrimaryKey,
                     justAdded = args.justAdded,
@@ -168,6 +174,13 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(), SingerInfoO
                             walletId = it.walletLocalId,
                             txId = it.transactionId,
                             roomId = ""
+                        )
+                    },
+                    onBackupKeyClicked = {
+                        navigator.openCreateNewSeedScreen(
+                            activityContext = requireActivity(),
+                            walletId = "",
+                            backupHotKeySignerId = args.id
                         )
                     }
                 )
@@ -543,6 +556,7 @@ private fun SignerInfoContent(
     onDoneClicked: () -> Unit = {},
     onEditClicked: () -> Unit = {},
     onHealthCheckClicked: () -> Unit = {},
+    onBackupKeyClicked: () -> Unit = {},
     onHistoryItemClick: (HealthCheckHistory) -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -591,13 +605,41 @@ private fun SignerInfoContent(
                             }
                         }
                     )
+
+                    if (uiState.masterSigner?.isNeedBackup == true) {
+                        NcHintMessage(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp)
+                                .clickable {
+                                    onBackupKeyClicked()
+                                },
+                            type = HighlightMessageType.WARNING,
+                            content = {
+                                val annotatedText = buildAnnotatedString {
+                                    append(stringResource(R.string.nc_please_back_up_your_key))
+                                    append(" ")
+                                    pushStringAnnotation(tag = "DO_IT_NOW", annotation = "do_it_now")
+                                    withStyle(
+                                        style = SpanStyle(
+                                            textDecoration = TextDecoration.Underline
+                                        )
+                                    ) {
+                                        append(stringResource(R.string.nc_do_it_now))
+                                    }
+                                    pop()
+                                }
+                                Text(
+                                    text = annotatedText,
+                                    style = NunchukTheme.typography.titleSmall
+                                )
+                            }
+                        )
+                    }
+
                     val resId = if (uiState.masterSigner != null) {
                         uiState.masterSigner.toReadableDrawableResId(isPrimaryKey = isPrimaryKey)
-                    } else if (uiState.remoteSigner != null) {
-                        uiState.remoteSigner.toReadableDrawableResId()
-                    } else {
-                        null
-                    }
+                    } else uiState.remoteSigner?.toReadableDrawableResId()
                     resId?.let {
                         NcCircleImage(
                             modifier = Modifier.padding(top = 12.dp),
@@ -777,7 +819,11 @@ private fun SignerInfoContent(
                                 )
                                 Text(
                                     text = label,
-                                    style = NunchukTheme.typography.bodySmall.copy(color = colorResource(R.color.nc_grey_g7))
+                                    style = NunchukTheme.typography.bodySmall.copy(
+                                        color = colorResource(
+                                            R.color.nc_grey_g7
+                                        )
+                                    )
                                 )
                             }
 

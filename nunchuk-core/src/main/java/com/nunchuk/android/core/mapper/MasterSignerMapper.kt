@@ -52,7 +52,8 @@ class MasterSignerMapper @Inject constructor(
             tags = from.tags,
             isVisible = from.isVisible,
             isMasterSigner = true,
-            index = nunchukNativeSdk.getIndexFromPath(derivationPath.ifEmpty { from.device.path })
+            index = nunchukNativeSdk.getIndexFromPath(derivationPath.ifEmpty { from.device.path }),
+            isNeedBackup = from.isNeedBackup
         )
     }
 }

@@ -29,16 +29,20 @@
         <argument
             android:name="group_id"
             android:defaultValue="@null"
-            app:nullable="true"
-            app:argType="string" />
+            app:argType="string"
+            app:nullable="true" />
         <argument
             android:name="replaced_xfp"
-            app:argType="string"
-            android:defaultValue=""/>
+            android:defaultValue=""
+            app:argType="string" />
         <argument
             android:name="number_of_words"
-            app:argType="integer"
-            android:defaultValue="24"/>
+            android:defaultValue="24"
+            app:argType="integer" />
+        <argument
+            android:name="backup_hot_key_signer_id"
+            android:defaultValue=""
+            app:argType="string" />
         <action
             android:id="@+id/action_createNewSeedFragment_to_confirmSeedFragment"
             app:destination="@id/confirmSeedFragment"
@@ -78,12 +82,16 @@
         <argument
             android:name="group_id"
             android:defaultValue="@null"
-            app:nullable="true"
-            app:argType="string" />
+            app:argType="string"
+            app:nullable="true" />
         <argument
             android:name="replaced_xfp"
-            app:argType="string"
-            android:defaultValue=""/>
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="backup_hot_key_signer_id"
+            android:defaultValue=""
+            app:argType="string" />
         <action
             android:id="@+id/action_confirmSeedFragment_to_setPassphraseFragment"
             app:destination="@id/setPassphraseFragment"
@@ -118,12 +126,12 @@
         <argument
             android:name="group_id"
             android:defaultValue="@null"
-            app:nullable="true"
-            app:argType="string" />
+            app:argType="string"
+            app:nullable="true" />
         <argument
             android:name="replaced_xfp"
-            app:argType="string"
-            android:defaultValue=""/>
+            android:defaultValue=""
+            app:argType="string" />
         <argument
             android:name="wallet_id"
             android:defaultValue=""

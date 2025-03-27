@@ -46,6 +46,7 @@ data class SignerModel(
     val isVisible: Boolean = true,
     val isMasterSigner: Boolean,
     val index: Int = 0,
+    val isNeedBackup: Boolean = false // hot key
 ) : Parcelable {
     val isEditablePath: Boolean
         get() = type == SignerType.HARDWARE || type == SignerType.SOFTWARE

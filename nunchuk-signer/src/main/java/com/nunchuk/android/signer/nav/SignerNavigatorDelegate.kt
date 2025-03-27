@@ -176,6 +176,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         groupId: String?,
         replacedXfp: String?,
         numberOfWords: Int,
+        backupHotKeySignerId: String
     ) {
         CreateNewSeedActivity.start(
             activityContext = activityContext,
@@ -185,6 +186,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
             groupId = groupId,
             replacedXfp = replacedXfp,
             numberOfWords = numberOfWords,
+            backupHotKeySignerId = backupHotKeySignerId
         )
     }
 
@@ -218,6 +220,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         walletId: String,
         groupId: String?,
         replacedXfp: String?,
+        backupHotKeySignerId: String
     ) {
         launcher.launch(
             ConfirmSeedActivity.buildIntent(
@@ -229,6 +232,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
                 walletId = walletId,
                 groupId = groupId,
                 replacedXfp = replacedXfp,
+                backupHotKeySignerId = backupHotKeySignerId
             )
         )
     }
@@ -253,7 +257,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
             address = address,
             walletId = walletId,
             xprv = xprv,
-            groupId = groupId
+            groupId = groupId,
         )
     }
 

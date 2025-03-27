@@ -22,10 +22,13 @@ package com.nunchuk.android.signer.software.components.confirm
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.ConfirmSeedCompletedEvent
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.SelectedIncorrectWordEvent
 import com.nunchuk.android.signer.software.components.create.PHRASE_SEPARATOR
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.MarkHotKeyBackedUpUseCase
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.wallet.MarkHotWalletBackedUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,6 +46,8 @@ internal class ConfirmSeedViewModel @Inject constructor(
     private val markHotWalletBackedUpUseCase: MarkHotWalletBackedUpUseCase,
     private val coroutineScope: CoroutineScope,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
+    private val markHotKeyBackedUpUseCase: MarkHotKeyBackedUpUseCase,
+    private val pushEventManager: PushEventManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _event = MutableSharedFlow<ConfirmSeedEvent>()
@@ -75,6 +80,9 @@ internal class ConfirmSeedViewModel @Inject constructor(
         viewModelScope.launch {
             val isAllSelectedCorrect = _state.value.groups.all { it.isCorrectSelected() }
             if (isAllSelectedCorrect) {
+                if (args.backupHotKeySignerId.isNotEmpty()) {
+                    pushEventManager.push(PushEvent.SignedChanged(args.backupHotKeySignerId))
+                }
                 _event.emit(ConfirmSeedCompletedEvent)
             } else {
                 _event.emit(SelectedIncorrectWordEvent)
@@ -96,6 +104,12 @@ internal class ConfirmSeedViewModel @Inject constructor(
     fun markHotWalletBackedUp(walletId: String) {
         coroutineScope.launch {
             markHotWalletBackedUpUseCase(walletId)
+        }
+    }
+
+    fun markHotKeyBackedUp() {
+        coroutineScope.launch {
+            markHotKeyBackedUpUseCase(args.backupHotKeySignerId)
         }
     }
 

@@ -58,6 +58,7 @@ class SignersViewModel @Inject constructor(
             getAllSignersUseCase(true).onSuccess { (masterSigners, singleSigners) ->
                 _uiState.update {
                     it.copy(
+                        hotKeyCount = masterSigners.count { it.isNeedBackup },
                         signers = mapSigners(
                             singleSigners,
                             masterSigners

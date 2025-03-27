@@ -28,7 +28,9 @@ import androidx.activity.viewModels
 import androidx.annotation.IdRes
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.badge.BadgeDrawable
@@ -52,6 +54,7 @@ import com.nunchuk.android.messages.components.list.RoomsState
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.messages.components.list.shouldShow
 import com.nunchuk.android.notifications.PushNotificationHelper
+import com.nunchuk.android.signer.signer.SignersViewModel
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -82,6 +85,8 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
 
     private val syncInfoViewModel: SyncInfoViewModel by viewModels()
 
+    private val signersViewModel: SignersViewModel by viewModels()
+
     private val messages
         get() = intent.getStringArrayListExtra(EXTRAS_MESSAGE_LIST).orEmpty()
 
@@ -90,6 +95,9 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
 
     private val messageBadge: BadgeDrawable
         get() = binding.navView.getOrCreateBadge(R.id.navigation_messages)
+
+    private val keysBadge: BadgeDrawable
+        get() = binding.navView.getOrCreateBadge(R.id.navigation_key)
 
     private val matrixEventListener: MatrixEventListener = {
         if (it is MatrixEvent.SignedInEvent) {
@@ -169,6 +177,11 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         viewModel.event.observe(this, ::handleEvent)
         syncRoomViewModel.event.observe(this, ::handleEvent)
         roomViewModel.state.observe(this, ::handleRoomState)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                signersViewModel.uiState.collect { handleKeyBadge(it.hotKeyCount) }
+            }
+        }
     }
 
     private fun handleRoomState(state: RoomsState) {
@@ -177,6 +190,14 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         val groupWalletCount = state.rooms.filterIsInstance<RoomMessage.GroupWalletRoom>().sumOf { it.data.unreadCount }
         val count = roomCount + groupWalletCount
         messageBadge.apply {
+            isVisible = count > 0
+            number = count
+            maxCharacterCount = 3
+        }
+    }
+
+    private fun handleKeyBadge(count: Int) {
+        keysBadge.apply {
             isVisible = count > 0
             number = count
             maxCharacterCount = 3
@@ -220,8 +241,11 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         navController = navHostFragment.navController
         NunchukBottomNavigationUtil.setupWithNavController(navView, navController)
 
-        messageBadge.setBackgroundColor(ContextCompat.getColor(this, R.color.nc_orange_dark_color));
-        messageBadge.badgeTextColor = ContextCompat.getColor(this, R.color.nc_white_color);
+        messageBadge.setBackgroundColor(ContextCompat.getColor(this, R.color.nc_orange_dark_color))
+        messageBadge.badgeTextColor = ContextCompat.getColor(this, R.color.nc_white_color)
+
+        keysBadge.setBackgroundColor(ContextCompat.getColor(this, R.color.nc_orange_dark_color))
+        keysBadge.badgeTextColor = ContextCompat.getColor(this, R.color.nc_white_color)
     }
 
     private fun setBottomNavViewPosition(@IdRes id: Int) {
