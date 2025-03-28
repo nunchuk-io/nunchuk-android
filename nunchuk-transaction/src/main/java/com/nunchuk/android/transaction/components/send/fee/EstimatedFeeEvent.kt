@@ -50,5 +50,6 @@ data class EstimatedFeeState(
     val inputs: List<TxInput> = emptyList(),
     val manualFeeRate: Int = estimateFeeRates.defaultRate,
     val cpfpFee: Amount = Amount.ZER0,
+    val scriptPathFee: Amount = Amount.ZER0,
     val rollOverWalletPairAmount: PairAmount = PairAmount(Amount.ZER0, Amount.ZER0),
 )

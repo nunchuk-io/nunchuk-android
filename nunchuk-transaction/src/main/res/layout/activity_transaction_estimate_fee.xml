@@ -266,6 +266,18 @@
                             tools:text="210" />
 
                         <com.nunchuk.android.widget.NCFontTextView
+                            android:id="@+id/tv_taproot_effective_fee"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/nc_padding_4"
+                            tools:text="About 190.3 sat/vB when not using the Value Keyset"
+                            android:textColor="@color/nc_text_secondary"
+                            android:textSize="@dimen/nc_text_size_14"
+                            style="@style/NCText.Body.Small"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/feeRateInput" />
+
+                        <com.nunchuk.android.widget.NCFontTextView
                             android:id="@+id/tv_effective_fee"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -275,7 +287,7 @@
                             android:textSize="@dimen/nc_text_size_14"
                             style="@style/NCText.Body.Small"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/feeRateInput" />
+                            app:layout_constraintTop_toBottomOf="@+id/tv_taproot_effective_fee" />
 
                         <com.nunchuk.android.widget.NCFontTextView
                             android:id="@+id/feeUnit"

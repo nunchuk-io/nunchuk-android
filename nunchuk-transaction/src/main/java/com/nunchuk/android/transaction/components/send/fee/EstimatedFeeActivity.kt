@@ -36,6 +36,7 @@ import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
 import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getHtmlText
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.toAmount
@@ -70,16 +71,18 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
     private val viewModel: EstimatedFeeViewModel by viewModels()
 
-    private val coinSelectLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        val data = it.data
-        if (it.resultCode == Activity.RESULT_OK && data != null) {
-            val selectedCoins = data.parcelableArrayList<UnspentOutput>(GlobalResultKey.EXTRA_COINS).orEmpty()
-            if (selectedCoins.isNotEmpty()) {
-                NCToastMessage(this).show(getString(R.string.nc_coin_selection_updated))
-                viewModel.updateNewInputs(selectedCoins)
+    private val coinSelectLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data
+            if (it.resultCode == Activity.RESULT_OK && data != null) {
+                val selectedCoins =
+                    data.parcelableArrayList<UnspentOutput>(GlobalResultKey.EXTRA_COINS).orEmpty()
+                if (selectedCoins.isNotEmpty()) {
+                    NCToastMessage(this).show(getString(R.string.nc_coin_selection_updated))
+                    viewModel.updateNewInputs(selectedCoins)
+                }
             }
         }
-    }
 
     override fun initializeBinding() = ActivityTransactionEstimateFeeBinding.inflate(layoutInflater)
 
@@ -102,7 +105,9 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     private fun setupViews() {
         binding.tvCustomize.isVisible = !args.isConsolidateFlow
         binding.tvCustomize.setUnderline()
-        binding.toolbarTitle.text = args.sweepType.toTitle(this, args.title.ifEmpty { getString(R.string.nc_customize_transaction) })
+        binding.toolbarTitle.text = args.sweepType.toTitle(
+            this,
+            args.title.ifEmpty { getString(R.string.nc_customize_transaction) })
         val subtractFeeFromAmount = args.subtractFeeFromAmount
         viewModel.handleSubtractFeeSwitch(subtractFeeFromAmount, !subtractFeeFromAmount)
 
@@ -181,9 +186,18 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         binding.subtractFeeCheckBox.isChecked = state.subtractFeeFromAmount
         binding.subtractFeeCheckBox.isEnabled = state.enableSubtractFeeFromAmount
 
+        binding.tvTaprootEffectiveFee.isVisible = state.scriptPathFee.value > 0
+        binding.tvTaprootEffectiveFee.text = getHtmlText(
+            R.string.nc_transaction_taproot_effective_fee_rate,
+            (state.scriptPathFee.value.toDouble() / 1000.0).formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
+        )
+
         binding.tvEffectiveFee.isVisible = state.cpfpFee.value > 0
         binding.manualFeeDesc.isVisible = binding.tvEffectiveFee.isVisible
-        binding.tvEffectiveFee.text = getString(R.string.nc_transaction_effective_fee_rate, (state.cpfpFee.value.toDouble() / 1000.0).formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS))
+        binding.tvEffectiveFee.text = getHtmlText(
+            R.string.nc_transaction_effective_fee_rate,
+            (state.cpfpFee.value.toDouble() / 1000.0).formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
+        )
 
         if (state.subtractFeeFromAmount) {
             if (args.rollOverWalletParam != null) {
@@ -192,7 +206,11 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                 bindSubtotal(viewModel.getOutputAmount())
             }
         } else {
-            bindSubtotal((viewModel.getOutputAmount() + state.estimatedFee.pureBTC()).coerceAtMost(args.availableAmount))
+            bindSubtotal(
+                (viewModel.getOutputAmount() + state.estimatedFee.pureBTC()).coerceAtMost(
+                    args.availableAmount
+                )
+            )
         }
 
         binding.manualFeeDetails.isVisible = state.manualFeeDetails
@@ -201,7 +219,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             binding.composeCoinSelection.isVisible = false
             binding.coinSelectionTitle.isVisible = false
         } else {
-            val inputs = state.allCoins.filter { coin -> state.inputs.any { input -> input.first == coin.txid && input.second == coin.vout } }
+            val inputs =
+                state.allCoins.filter { coin -> state.inputs.any { input -> input.first == coin.txid && input.second == coin.vout } }
             binding.coinSelectionTitle.isVisible = inputs.isNotEmpty()
             binding.composeCoinSelection.isVisible = inputs.isNotEmpty()
             if (inputs.isNotEmpty()) {
@@ -255,6 +274,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                     onYesClick = viewModel::handleContinueEvent
                 )
             }
+
             is EstimatedFeeEvent.GetFeeRateSuccess -> {}
             EstimatedFeeEvent.DraftTransactionSuccess -> {}
         }
@@ -298,7 +318,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
             inputs: List<UnspentOutput> = emptyList(),
             isConsolidateFlow: Boolean = false,
-            title : String = "",
+            title: String = "",
             rollOverWalletParam: RollOverWalletParam? = null,
             confirmTxActionButtonText: String = ""
         ) {
