@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcOptionItem
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -57,7 +60,7 @@ fun CreateSoftwareKeyIntroScreen(
     onRecoverXprvClicked: () -> Unit = {},
 ) {
     var showRecoverSheet by rememberSaveable { mutableStateOf(false) }
-    var selectedOption by remember { mutableIntStateOf(CreateOption.None.ordinal) }
+    var selectedOption by remember { mutableIntStateOf(CreateOption.CreateAndBackup.ordinal) }
 
     NunchukTheme {
         NcScaffold(
@@ -76,7 +79,6 @@ fun CreateSoftwareKeyIntroScreen(
                     NcPrimaryDarkButton(
                         modifier = Modifier
                             .fillMaxWidth(),
-                        enabled = selectedOption != CreateOption.None.ordinal,
                         onClick = {
                             if (selectedOption == CreateOption.RecoverSeed.ordinal) {
                                 if (isSupportXprv) {
@@ -101,25 +103,27 @@ fun CreateSoftwareKeyIntroScreen(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp)
+                    .navigationBarsPadding()
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
 
                 Text(
-                    text = "Create software key",
+                    text = stringResource(R.string.nc_create_software_key),
                     style = NunchukTheme.typography.heading,
                     modifier = Modifier.padding(top = 12.dp)
                 )
 
-                Text(
-                    text = "A software key will be generated locally on this device. To ensure security, keep this device safe to prevent unauthorized access. Deleting the app will also delete the software key.",
+                NcHighlightText(
+                    text = stringResource(R.string.nc_create_software_key_desc),
                     style = NunchukTheme.typography.body,
                 )
 
                 NcOptionItem(
                     modifier = Modifier.padding(top = 8.dp),
                     isSelected = selectedOption == CreateOption.CreateAndBackup.ordinal,
-                    label = "Create and back up key now",
+                    label = stringResource(R.string.nc_create_back_up_key_now),
                     onClick = {
                         selectedOption = CreateOption.CreateAndBackup.ordinal
                     }
@@ -127,7 +131,7 @@ fun CreateSoftwareKeyIntroScreen(
 
                 NcOptionItem(
                     isSelected = selectedOption == CreateOption.CreateAndBackupLater.ordinal,
-                    label = "Create key now, back up later",
+                    label = stringResource(R.string.nc_create_now_back_up_key_later),
                     onClick = {
                         selectedOption = CreateOption.CreateAndBackupLater.ordinal
                     }
@@ -135,7 +139,7 @@ fun CreateSoftwareKeyIntroScreen(
 
                 NcOptionItem(
                     isSelected = selectedOption == CreateOption.RecoverSeed.ordinal,
-                    label = "Recover existing seed",
+                    label = stringResource(R.string.nc_ssigner_recover_seed),
                     onClick = {
                         selectedOption = CreateOption.RecoverSeed.ordinal
                     }
@@ -166,7 +170,6 @@ fun CreateSoftwareKeyIntroScreen(
 }
 
 enum class CreateOption {
-    None,
     CreateAndBackup,
     CreateAndBackupLater,
     RecoverSeed,

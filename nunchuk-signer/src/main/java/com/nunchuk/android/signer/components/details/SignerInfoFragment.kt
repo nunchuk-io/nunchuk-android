@@ -631,7 +631,7 @@ private fun SignerInfoContent(
                                 }
                                 Text(
                                     text = annotatedText,
-                                    style = NunchukTheme.typography.titleSmall
+                                    style = NunchukTheme.typography.titleSmall.copy(color = colorResource(R.color.nc_primary_dark_color))
                                 )
                             }
                         )

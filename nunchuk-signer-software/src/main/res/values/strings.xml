@@ -70,4 +70,8 @@
     <string name="nc_recover_key_via_seed">Recover key via seed</string>
     <string name="nc_added_hot_key_success">You has been added you have successfully backed up this key</string>
     <string name="nc_key_has_been_added">%1$s has been added</string>
+    <string name="nc_create_software_key">Create software key</string>
+    <string name="nc_create_software_key_desc">A software key will be generated locally on this device. To ensure security, keep this device safe to prevent unauthorized access. [B]Deleting the app will also delete the software key.[/B]</string>
+    <string name="nc_create_back_up_key_now">Create and back up key now</string>
+    <string name="nc_create_now_back_up_key_later">Create key now, back up later</string>
 </resources>
