@@ -56,6 +56,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcNumberInputField
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
@@ -63,10 +64,13 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.CurrencyFormatter
+import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.fee.toFeeRate
@@ -102,6 +106,7 @@ class ReplaceFeeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.setPreviousFeeRate(args.transaction.feeRate.value.toInt())
+        viewModel.initDraftTransaction(args.transaction, args.walletId)
         flowObserver(viewModel.event) {
             when (it) {
                 is ReplaceFeeEvent.ShowError -> showError(it.e?.message.orUnknownError())
@@ -272,6 +277,32 @@ private fun ReplaceFeeContent(
                         )
                     }
 
+                    if (uiState.scriptPathFee.value > 0) {
+                        NcHighlightText(
+                            modifier = Modifier.padding(top = 4.dp),
+                            text = stringResource(
+                                R.string.nc_transaction_taproot_effective_fee_rate,
+                                uiState.scriptPathFee.value.toDouble().div(1000.0)
+                                    .formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
+                            ).replace("<b>", "[B]")
+                                .replace("</b>", "[/B]"),
+                            style = NunchukTheme.typography.bodySmall
+                        )
+                    }
+
+                    if (uiState.cpfpFee.value > 0) {
+                        NcHighlightText(
+                            modifier = Modifier.padding(top = 4.dp),
+                            text = stringResource(
+                                R.string.nc_transaction_effective_fee_rate,
+                                uiState.scriptPathFee.value.toDouble().div(1000.0)
+                                    .formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
+                            ).replace("<b>", "[B]")
+                                .replace("</b>", "[/B]"),
+                            style = NunchukTheme.typography.bodySmall
+                        )
+                    }
+
                     Text(
                         text = stringResource(id = R.string.nc_transaction_processing_speed),
                         style = NunchukTheme.typography.titleSmall,
@@ -327,7 +358,9 @@ private fun ReplaceFeeScreenPreview() {
                 standardRate = 50,
                 economicRate = 10
             ),
-            previousFeeRate = 20
+            previousFeeRate = 20,
+            scriptPathFee = Amount(1000),
+            cpfpFee = Amount(2000)
         )
     )
 }

@@ -39,7 +39,6 @@ import javax.inject.Inject
 internal class ReplaceFeeViewModel @Inject constructor(
     private val estimateFeeUseCase: EstimateFeeUseCase,
     private val draftTransactionUseCase: DraftTransactionUseCase,
-
 ) : ViewModel() {
     private val _state = MutableStateFlow(ReplaceFeeState())
     val state = _state.asStateFlow()
@@ -62,6 +61,33 @@ internal class ReplaceFeeViewModel @Inject constructor(
         }
     }
 
+    fun initDraftTransaction(oldTx: Transaction, walletId: String) {
+        viewModelScope.launch {
+            when (val result = draftTransactionUseCase.execute(
+                walletId = walletId,
+                inputs = oldTx.inputs,
+                outputs = oldTx.userOutputs.associate { it.first to it.second },
+                subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
+                feeRate = oldTx.fee,
+                replaceTxId = oldTx.txId
+            )) {
+                is Result.Success -> {
+                    val transaction = result.data
+                    _state.update {
+                        it.copy(
+                            cpfpFee = transaction.cpfpFee,
+                            scriptPathFee = transaction.scriptPathFee
+                        )
+                    }
+                }
+
+                is Result.Error -> {
+                    _event.emit(ReplaceFeeEvent.ShowError(result.exception))
+                }
+            }
+        }
+    }
+
     fun draftTransaction(oldTx: Transaction, walletId: String, newFee: Int) {
         viewModelScope.launch {
             _event.emit(ReplaceFeeEvent.Loading(true))
@@ -76,6 +102,7 @@ internal class ReplaceFeeViewModel @Inject constructor(
                 is Result.Success -> {
                     _event.emit(ReplaceFeeEvent.DraftTransactionSuccess(result.data, newFee))
                 }
+
                 is Result.Error -> {
                     _event.emit(ReplaceFeeEvent.ShowError(result.exception))
                 }
