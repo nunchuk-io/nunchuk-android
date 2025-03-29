@@ -36,6 +36,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
@@ -62,9 +63,7 @@ fun NcPrimaryDarkButton(
         interactionSource = interactionSource,
         content = {
             CompositionLocalProvider(
-                LocalTextStyle provides NunchukTheme.typography.title.copy(
-                    color = MaterialTheme.colorScheme.controlTextPrimary
-                ),
+                LocalTextStyle provides NunchukTheme.typography.title.copy(color = Color.Unspecified),
             ) {
                 content()
             }
@@ -74,7 +73,8 @@ fun NcPrimaryDarkButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = color,
             contentColor = colorResource(R.color.nc_control_text_primary),
-            disabledContainerColor = colorResource(id = R.color.nc_bg_mid_gray)
+            disabledContainerColor = colorResource(id = R.color.nc_bg_mid_gray),
+            disabledContentColor = colorResource(R.color.nc_grey_dark_color)
         )
     )
 }
