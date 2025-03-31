@@ -30,7 +30,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
-        android:layout_marginTop="@dimen/nc_padding_24"
+        android:layout_marginTop="@dimen/nc_padding_8"
         android:paddingVertical="@dimen/nc_padding_8"
         android:text="@string/nc_ssigner_text_set_passphrase_note"
         app:layout_constraintStart_toStartOf="parent"

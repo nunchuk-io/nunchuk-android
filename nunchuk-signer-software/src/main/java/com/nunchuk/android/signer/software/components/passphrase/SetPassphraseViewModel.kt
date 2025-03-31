@@ -53,14 +53,12 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
 import com.nunchuk.android.usecase.CreateWalletUseCase
 import com.nunchuk.android.usecase.DraftWalletUseCase
-import com.nunchuk.android.usecase.GenerateMnemonicUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import com.nunchuk.android.usecase.signer.CreateSoftwareSignerByXprvUseCase
-import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.onException
@@ -90,8 +88,6 @@ internal class SetPassphraseViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val assistedWalletManager: AssistedWalletManager,
-    private val generateMnemonicUseCase: GenerateMnemonicUseCase,
-    private val getAllSignersUseCase: GetAllSignersUseCase,
 ) : NunchukViewModel<SetPassphraseState, SetPassphraseEvent>() {
     private val args: SetPassphraseFragmentArgs by lazy {
         SetPassphraseFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -174,7 +170,6 @@ internal class SetPassphraseViewModel @Inject constructor(
             walletId = args.walletId,
             isQuickWallet = args.isQuickWallet,
             skipPassphrase = getState().skipPassphrase,
-            isBackupNow = true
         )
     }
 
@@ -190,25 +185,10 @@ internal class SetPassphraseViewModel @Inject constructor(
         isQuickWallet: Boolean,
         skipPassphrase: Boolean,
         xprv: String = "",
-        isBackupNow: Boolean
+        isHotKey: Boolean = false
     ) {
         viewModelScope.launch {
             setEvent(LoadingEvent(true))
-            var mnemonicHotKey = ""
-            var hotKeyName = ""
-            if (isBackupNow.not()) {
-                generateMnemonicUseCase(24).onSuccess {
-                    mnemonicHotKey = it
-                }
-                val masterSigners = getAllSignersUseCase(true).getOrNull()?.let { (masterSigners, _) ->
-                    masterSigners.filter { it.isNeedBackup }
-                } ?: emptyList()
-                hotKeyName = if (masterSigners.isNotEmpty()) {
-                    "My key #${masterSigners.size + 1}"
-                } else {
-                    "My key"
-                }
-            }
             if (xprv.isNotEmpty()) {
                 createSoftwareSignerByXprvUseCase(
                     CreateSoftwareSignerByXprvUseCase.Param(
@@ -221,12 +201,12 @@ internal class SetPassphraseViewModel @Inject constructor(
             } else {
                 createSoftwareSignerUseCase(
                     CreateSoftwareSignerUseCase.Param(
-                        name = hotKeyName.ifEmpty { signerName },
-                        mnemonic = if (isBackupNow.not()) mnemonicHotKey else mnemonic,
+                        name = signerName,
+                        mnemonic = mnemonic,
                         passphrase = passphrase,
                         isPrimaryKey = primaryKeyFlow.isPrimaryKeyFlow(),
                         replace = isReplaceKey,
-                        isBackupNow = isBackupNow
+                        isBackupNow = isHotKey.not()
                     )
                 )
             }.onSuccess { signer ->
@@ -246,14 +226,16 @@ internal class SetPassphraseViewModel @Inject constructor(
                     setEvent(
                         CreateSoftwareSignerCompletedEvent(
                             masterSigner = signer,
-                            skipPassphrase = skipPassphrase
+                            skipPassphrase = skipPassphrase,
+                            isHotKey = isHotKey,
                         )
                     )
                 } else {
                     setEvent(
                         CreateSoftwareSignerCompletedEvent(
                             masterSigner = signer,
-                            skipPassphrase = skipPassphrase
+                            skipPassphrase = skipPassphrase,
+                            isHotKey = isHotKey,
                         )
                     )
                 }

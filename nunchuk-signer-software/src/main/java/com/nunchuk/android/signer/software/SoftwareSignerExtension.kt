@@ -23,6 +23,7 @@ fun Activity.onCreateSignerCompleted(
     keyFlow: Int,
     replacedXfp: String,
     groupId: String,
+    isHotKey: Boolean = false
 ) {
     hideLoading()
     if (keyFlow.isSignUpFlow()) {
@@ -49,16 +50,18 @@ fun Activity.onCreateSignerCompleted(
         ActivityManager.popUntil(SoftwareSignerIntroActivity::class.java, true)
     } else {
         navigator.returnToMainScreen(this)
-        navigator.openSignerInfoScreen(
-            activityContext = this,
-            isMasterSigner = true,
-            id = masterSigner!!.id,
-            masterFingerprint = masterSigner.device.masterFingerprint,
-            name = masterSigner.name,
-            type = masterSigner.type,
-            justAdded = true,
-            setPassphrase = !skipPassphrase
-        )
+        if (isHotKey.not() && masterSigner != null) {
+            navigator.openSignerInfoScreen(
+                activityContext = this,
+                isMasterSigner = true,
+                id = masterSigner.id,
+                masterFingerprint = masterSigner.device.masterFingerprint,
+                name = masterSigner.name,
+                type = masterSigner.type,
+                justAdded = true,
+                setPassphrase = !skipPassphrase
+            )
+        }
     }
 }
 

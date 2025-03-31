@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -183,10 +184,33 @@ fun SignersContent(
                             item = signer,
                             xfpContent = {
                                 if (signer.isNeedBackup) {
-                                    Text(
-                                        text = "${signer.getXfpOrCardIdLabel()} • ${stringResource(R.string.nc_pending_backup)}",
-                                        style = NunchukTheme.typography.bodySmall.copy(color = colorResource(R.color.nc_beeswax_dark)),
-                                    )
+                                    Row {
+                                        Text(
+                                            text = signer.getXfpOrCardIdLabel(),
+                                            style = NunchukTheme.typography.bodySmall.copy(
+                                                color = colorResource(
+                                                    R.color.nc_beeswax_dark
+                                                )
+                                            ),
+                                        )
+                                        Text(
+                                            text = "•",
+                                            modifier = Modifier.alpha(0.33f).padding(horizontal = 8.dp),
+                                            style = NunchukTheme.typography.bodySmall.copy(
+                                                color = colorResource(
+                                                    R.color.nc_beeswax_dark
+                                                )
+                                            ),
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.nc_pending_backup),
+                                            style = NunchukTheme.typography.bodySmall.copy(
+                                                color = colorResource(
+                                                    R.color.nc_beeswax_dark
+                                                )
+                                            ),
+                                        )
+                                    }
                                 } else {
                                     Text(
                                         text = signer.getXfpOrCardIdLabel(),

@@ -30,7 +30,8 @@ sealed class SetPassphraseEvent {
     data object ConfirmPassPhraseNotMatchedEvent : SetPassphraseEvent()
     data class CreateSoftwareSignerCompletedEvent(
         val masterSigner: MasterSigner? = null,
-        val skipPassphrase: Boolean
+        val skipPassphrase: Boolean,
+        val isHotKey: Boolean = false,
     ) : SetPassphraseEvent()
 
     data class CreateSoftwareSignerErrorEvent(val message: String) : SetPassphraseEvent()

@@ -567,6 +567,7 @@ private fun SignerInfoContent(
     }
     val color = uiState.lastHealthCheckTimeMillis.healthCheckTimeColor()
     val isMyKey = uiState.masterSigner?.isVisible ?: uiState.remoteSigner?.isVisible ?: false
+    val isHotKey = uiState.masterSigner?.isNeedBackup == true
 
     NunchukTheme {
         Scaffold(
@@ -606,7 +607,7 @@ private fun SignerInfoContent(
                         }
                     )
 
-                    if (uiState.masterSigner?.isNeedBackup == true) {
+                    if (isHotKey) {
                         NcHintMessage(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -722,7 +723,7 @@ private fun SignerInfoContent(
             },
             bottomBar = {
                 Column(modifier = Modifier.padding()) {
-                    if (justAdded) {
+                    if (justAdded && isHotKey.not()) {
                         NcPrimaryDarkButton(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -744,7 +745,7 @@ private fun SignerInfoContent(
                                 ),
                             onClick = onHealthCheckClicked
                         ) {
-                            Text(text = stringResource(id = R.string.nc_txt_run_health_check))
+                            Text(text = if (isHotKey) stringResource(id = R.string.nc_txt_health_check) else stringResource(id = R.string.nc_txt_run_health_check))
                         }
                     }
                 }

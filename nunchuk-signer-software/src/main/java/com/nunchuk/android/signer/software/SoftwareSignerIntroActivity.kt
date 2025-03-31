@@ -25,6 +25,9 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NunchukTheme
@@ -40,6 +43,7 @@ import com.nunchuk.android.signer.software.components.intro.softwareSignerIntro
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateSoftwareSignerCompletedEvent
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SoftwareSignerIntroActivity : BaseComposeActivity() {
@@ -66,8 +70,13 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
         setPassphraseViewModel.event.observe(this) { event ->
             if (handleCreateSoftwareSignerEvent(event)) return@observe
             if (event is CreateSoftwareSignerCompletedEvent) {
-                if (event.masterSigner?.isNeedBackup == true) {
-                    NcToastManager.scheduleShowMessage(String.format(getString(R.string.nc_key_has_been_added), event.masterSigner.name))
+                if (event.isHotKey) {
+                    NcToastManager.scheduleShowMessage(
+                        String.format(
+                            getString(R.string.nc_key_has_been_added),
+                            event.masterSigner?.name
+                        )
+                    )
                 }
                 onCreateSignerCompleted(
                     navigator = navigator,
@@ -79,7 +88,21 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                     passphrase = passphrase,
                     mnemonic = "",
                     signerName = event.masterSigner?.name.orEmpty(),
+                    isHotKey = event.isHotKey
                 )
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.hotKeyInfo.collect { hotKeyInfo ->
+                    val (mnemonicHotKey, hotKeyName) = hotKeyInfo
+                    if (mnemonicHotKey.isEmpty() || hotKeyName.isEmpty()) {
+                        return@collect
+                    }
+                    createHotKey(mnemonic = mnemonicHotKey, signerName = hotKeyName)
+                    viewModel.clearHotKeyInfo()
+                }
             }
         }
 
@@ -94,7 +117,13 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                     createSoftwareKeyIntro(
                         isSupportXprv = !keyFlow.isSignInFlow(),
                         onContinueClicked = { isBackUpNow ->
-                            openCreateNewSeedScreen(isBackUpNow)
+                            if (isBackUpNow) {
+                                openCreateNewSeedScreen()
+                            } else {
+                                viewModel.getHotKeyInfo(
+                                    isAssistedWallet = setPassphraseViewModel.isGroupAssistedWallet(groupId)
+                                )
+                            }
                         },
                         onRecoverSeedClicked = { openRecoverSeedScreen() },
                         onRecoverXprvClicked = { navigationController.navigate(recoverByXprvRoute) }
@@ -113,6 +142,26 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                 }
             }
         }
+    }
+
+    private fun createHotKey(
+        mnemonic: String,
+        signerName: String,
+    ) {
+        setPassphraseViewModel.createSoftwareSigner(
+            isReplaceKey = true,
+            signerName = signerName,
+            mnemonic = mnemonic,
+            passphrase = "",
+            primaryKeyFlow = keyFlow,
+            groupId = groupId.orEmpty(),
+            replacedXfp = replacedXfp.orEmpty(),
+            walletId = walletId,
+            isQuickWallet = false,
+            skipPassphrase = true,
+            xprv = "",
+            isHotKey = true,
+        )
     }
 
     private fun onRecoverFromXprv(xprv: String) {
@@ -135,7 +184,6 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                     isQuickWallet = false,
                     skipPassphrase = true,
                     xprv = xprv,
-                    isBackupNow = true
                 )
             }
 
@@ -152,32 +200,15 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
         }
     }
 
-    private fun openCreateNewSeedScreen(isBackupNow: Boolean = true) {
-        if (isBackupNow) {
-            navigator.openCreateNewSeedScreen(
-                activityContext = this,
-                passphrase = passphrase,
-                keyFlow = keyFlow,
-                walletId = walletId,
-                groupId = groupId,
-                replacedXfp = replacedXfp,
-            )
-        } else {
-            setPassphraseViewModel.createSoftwareSigner(
-                isReplaceKey = true,
-                signerName = "",
-                mnemonic = "",
-                passphrase = "",
-                primaryKeyFlow = keyFlow,
-                groupId = groupId.orEmpty(),
-                replacedXfp = replacedXfp.orEmpty(),
-                walletId = walletId,
-                isQuickWallet = false,
-                skipPassphrase = true,
-                xprv = "",
-                isBackupNow = false
-            )
-        }
+    private fun openCreateNewSeedScreen() {
+        navigator.openCreateNewSeedScreen(
+            activityContext = this,
+            passphrase = passphrase,
+            keyFlow = keyFlow,
+            walletId = walletId,
+            groupId = groupId,
+            replacedXfp = replacedXfp,
+        )
     }
 
     private fun openRecoverSeedScreen() {
