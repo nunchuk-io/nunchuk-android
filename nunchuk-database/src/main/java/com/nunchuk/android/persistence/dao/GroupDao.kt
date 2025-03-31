@@ -17,8 +17,8 @@ interface GroupDao : BaseDao<GroupEntity> {
     @Query("SELECT * FROM $TABLE_GROUP ORDER BY group_id")
     fun getGroupsFlow(): Flow<List<GroupEntity>>
 
-    @Query(GET_GROUPS_STATEMENT)
-    fun getGroups(chatId: String, chain: Chain): List<GroupEntity>
+    @Query("SELECT * FROM $TABLE_GROUP ORDER BY group_id")
+    fun getGroups(): List<GroupEntity>
 
     @Query("DELETE FROM $TABLE_GROUP WHERE group_id IN (:groupIds) AND chatId = :chatId")
     suspend fun deleteGroups(groupIds: List<String>, chatId: String): Int

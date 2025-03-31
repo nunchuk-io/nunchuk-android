@@ -2307,13 +2307,29 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun syncDeletedWallet(): Boolean {
-        val response = userWalletApiManager.groupWalletApi.getWallets(0, 30)
-        val wallets = response.data.wallets
-        val results = wallets.map {
-            runCatching {
-                nunchukNativeSdk.deleteWallet(it.localId.orEmpty())
-            }
+        val results = mutableListOf<Result<Boolean>>()
+        runCatching {
+            val deletedWalletResponse = userWalletApiManager.groupWalletApi.getDeletedGroupWallets()
+            results.addAll(deletedWalletResponse.data.walletLocalIds.map { localId ->
+                runCatching {
+                    nunchukNativeSdk.deleteWallet(localId)
+                }
+            })
         }
+
+        var page = 0
+        val pageSize = 30
+
+        do {
+            val response = userWalletApiManager.groupWalletApi.getWallets(page * pageSize, pageSize)
+            val wallets = response.data.wallets
+            results.addAll(wallets.map {
+                runCatching {
+                    nunchukNativeSdk.deleteWallet(it.localId.orEmpty())
+                }
+            })
+            page++
+        } while (wallets.size == pageSize)
         return results.any { it.isSuccess }
     }
 

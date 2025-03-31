@@ -105,8 +105,7 @@ internal class ByzantineSyncer @Inject constructor(
         runCatching {
             val finalGroups =
                 groups.ifEmpty { userWalletApiManager.groupWalletApi.getGroups().data.groups.orEmpty() }
-            val groupLocals =
-                groupDao.getGroups(accountManager.getAccount().chatId, chain.value)
+            val groupLocals = groupDao.getGroups()
             val allGroupIds = groupLocals.map { it.groupId }.toHashSet()
             val addGroupIds = HashSet<String>()
             val chatId = accountManager.getAccount().chatId

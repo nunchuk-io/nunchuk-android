@@ -9,6 +9,7 @@ import com.nunchuk.android.core.data.model.UpdateWalletPayload
 import com.nunchuk.android.core.data.model.byzantine.CreateDraftWalletRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateGroupRequest
 import com.nunchuk.android.core.data.model.byzantine.CreateOrUpdateGroupChatRequest
+import com.nunchuk.android.core.data.model.byzantine.DeletedGroupWalletsResponse
 import com.nunchuk.android.core.data.model.byzantine.DraftWalletResponse
 import com.nunchuk.android.core.data.model.byzantine.DummyTransactionResponse
 import com.nunchuk.android.core.data.model.byzantine.EditGroupMemberRequest
@@ -655,4 +656,7 @@ internal interface GroupWalletApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("xfp") xfp: String,
     ): Data<Unit>
+
+    @GET("/v1.1/group-wallets/wallets/deleted")
+    suspend fun getDeletedGroupWallets(): Data<DeletedGroupWalletsResponse>
 }
