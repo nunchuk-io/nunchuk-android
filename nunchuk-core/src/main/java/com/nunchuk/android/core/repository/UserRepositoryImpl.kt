@@ -1,5 +1,8 @@
 package com.nunchuk.android.core.repository
 
+import android.content.Context
+import androidx.credentials.ClearCredentialStateRequest
+import androidx.credentials.CredentialManager
 import com.nunchuk.android.core.network.ApiInterceptedException
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.profile.CompromiseDevicesPayload
@@ -10,6 +13,7 @@ import com.nunchuk.android.core.profile.UserProfileApi
 import com.nunchuk.android.core.profile.UserProfileResponse
 import com.nunchuk.android.core.profile.UserRepository
 import com.nunchuk.android.utils.CrashlyticsReporter
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -17,6 +21,7 @@ import javax.inject.Inject
 internal class UserRepositoryImpl @Inject constructor(
     private val userProfileApi: UserProfileApi,
     private val ncDataStore: NcDataStore,
+    @ApplicationContext private val context: Context,
 ) : UserRepository {
 
     override suspend fun getUserProfile(): UserProfileResponse {
@@ -50,6 +55,7 @@ internal class UserRepositoryImpl @Inject constructor(
 
     override suspend fun sendSignOut() {
         userProfileApi.signOut()
+        CredentialManager.create(context).clearCredentialState(ClearCredentialStateRequest())
     }
 
     override fun getUserDevices() = flow {

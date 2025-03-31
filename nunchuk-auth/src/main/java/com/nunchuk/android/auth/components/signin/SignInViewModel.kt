@@ -332,7 +332,17 @@ internal class SignInViewModel @Inject constructor(
                     _event.emit(SignInSuccessEvent())
                 }
                 .onFailure {
-                    _event.emit(SignInErrorEvent(message = it.message.orUnknownError()))
+                    if (it is NunchukApiException) {
+                        _event.emit(
+                            SignInErrorEvent(
+                                code = it.code,
+                                message = it.message,
+                                errorDetail = it.errorDetail
+                            )
+                        )
+                    } else {
+                        _event.emit(SignInErrorEvent(message = it.message.orUnknownError()))
+                    }
                 }
             _event.emit(ProcessingEvent(false))
         }

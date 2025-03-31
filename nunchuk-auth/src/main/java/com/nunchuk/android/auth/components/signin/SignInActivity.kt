@@ -36,7 +36,7 @@ import androidx.credentials.GetCredentialResponse
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.nunchuk.android.auth.R
 import com.nunchuk.android.auth.components.enterxpub.EnterXPUBActivity
@@ -103,9 +103,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
     }
 
     private fun signInGoogle() {
-        val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(false)
-            .setServerClientId("712097058578-e7nv8fncujddo54d8as7brhrrn3s0ur4.apps.googleusercontent.com")
+        val googleIdOption = GetSignInWithGoogleOption.Builder("712097058578-e7nv8fncujddo54d8as7brhrrn3s0ur4.apps.googleusercontent.com")
             .setNonce(UUID.randomUUID().toString())
             .build()
 
@@ -123,7 +121,8 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                 )
                 handleSignIn(result)
             }.onFailure {
-
+                Timber.e(it)
+                NCToastMessage(this@SignInActivity).showError(it.message.orEmpty())
             }
             hideLoading()
         }
