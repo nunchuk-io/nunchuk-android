@@ -24,6 +24,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.signer.KeyFlow.isReplaceKeyInFreeWalletFlow
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.GenerateMnemonicCodeErrorEvent
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.OpenSelectPhraseEvent
 import com.nunchuk.android.usecase.GenerateMnemonicUseCase
@@ -45,7 +46,8 @@ internal class CreateNewSeedViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val getHotWalletMnemonicUseCase: GetHotWalletMnemonicUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
-    private val getHotKeyMnemonicUseCase: GetHotKeyMnemonicUseCase
+    private val getHotKeyMnemonicUseCase: GetHotKeyMnemonicUseCase,
+    private val assistedWalletManager: AssistedWalletManager,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<CreateNewSeedEvent>()
     private val _state = MutableStateFlow(CreateNewSeedState())
@@ -90,7 +92,7 @@ internal class CreateNewSeedViewModel @Inject constructor(
             }
         } else {
             viewModelScope.launch {
-                val isKeyInAssistedWallet = !args.groupId.isNullOrEmpty() && args.replacedXfp.isNotEmpty()
+                val isKeyInAssistedWallet = assistedWalletManager.isGroupAssistedWallet(args.groupId)
                 val count = if (isKeyInAssistedWallet) 12 else args.numberOfWords
                 generateMnemonicUseCase(count).onSuccess {
                     _state.update { state ->
