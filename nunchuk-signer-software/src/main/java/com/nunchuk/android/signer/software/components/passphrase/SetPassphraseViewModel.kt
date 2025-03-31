@@ -221,7 +221,7 @@ internal class SetPassphraseViewModel @Inject constructor(
             } else {
                 createSoftwareSignerUseCase(
                     CreateSoftwareSignerUseCase.Param(
-                        name = hotKeyName,
+                        name = hotKeyName.ifEmpty { signerName },
                         mnemonic = if (isBackupNow.not()) mnemonicHotKey else mnemonic,
                         passphrase = passphrase,
                         isPrimaryKey = primaryKeyFlow.isPrimaryKeyFlow(),

@@ -14,8 +14,8 @@ interface GroupDao : BaseDao<GroupEntity> {
         const val GET_GROUPS_STATEMENT = "SELECT * FROM $TABLE_GROUP WHERE chatId = :chatId AND chain = :chain ORDER BY group_id"
     }
 
-    @Query(GET_GROUPS_STATEMENT)
-    fun getGroupsFlow(chatId: String, chain: Chain): Flow<List<GroupEntity>>
+    @Query("SELECT * FROM $TABLE_GROUP ORDER BY group_id")
+    fun getGroupsFlow(): Flow<List<GroupEntity>>
 
     @Query(GET_GROUPS_STATEMENT)
     fun getGroups(chatId: String, chain: Chain): List<GroupEntity>
@@ -28,4 +28,7 @@ interface GroupDao : BaseDao<GroupEntity> {
 
     @Query("SELECT * FROM $TABLE_GROUP WHERE group_id =:id AND chatId = :chatId AND chain = :chain")
     fun getGroupById(id: String, chatId: String, chain: Chain): GroupEntity?
+
+    @Query("DELETE FROM $TABLE_GROUP")
+    suspend fun deleteAll()
 }

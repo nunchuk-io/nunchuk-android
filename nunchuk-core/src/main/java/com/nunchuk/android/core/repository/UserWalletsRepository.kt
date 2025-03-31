@@ -301,7 +301,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val policy =
             response.data.key?.policies ?: throw NullPointerException("Can not find key policy")
         val spendingLimit = policy.spendingLimit?.let {
-            SpendingPolicy(limit = it.limit,
+            SpendingPolicy(
+                limit = it.limit,
                 currencyUnit = it.currency,
                 timeUnit = runCatching { SpendingTimeUnit.valueOf(it.interval) }.getOrElse { SpendingTimeUnit.DAILY })
         }
@@ -646,7 +647,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun calculateRequiredSignaturesSecurityQuestions(
         walletId: String, questions: List<QuestionsAndAnswer>,
     ): CalculateRequiredSignatures {
-        val request = CalculateRequiredSignaturesSecurityQuestionPayload(walletId = walletId,
+        val request = CalculateRequiredSignaturesSecurityQuestionPayload(
+            walletId = walletId,
             questionsAndAnswerRequests = questions.map {
                 QuestionsAndAnswerRequest(
                     questionId = it.questionId, answer = it.answer
@@ -1600,6 +1602,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun clearLocalData() {
         assistedWalletDao.deleteAll()
+        groupDao.deleteAll()
     }
 
     override suspend fun getCoinControlData(groupId: String?, walletId: String): String {
@@ -1892,12 +1895,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         members: List<AssistedMember>,
     ): ByzantineGroup {
         val response = userWalletApiManager.groupWalletApi.createGroup(
-            CreateGroupRequest(walletConfig = WalletConfigRequest(
-                allowInheritance,
-                m,
-                n,
-                requiredServerKey
-            ),
+            CreateGroupRequest(
+                walletConfig = WalletConfigRequest(
+                    allowInheritance,
+                    m,
+                    n,
+                    requiredServerKey
+                ),
                 setupPreference = setupPreference,
                 members = members.map { it.toMemberRequest() })
         )
@@ -1922,14 +1926,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         } ?: emptyList()
     }
 
-    override fun getGroups(): Flow<List<ByzantineGroup>> =
-        groupDao.getGroupsFlow(chatId = accountManager.getAccount().chatId, chain = chain.value)
-            .map { group ->
-                val groups = group.map { serverGroup ->
-                    serverGroup.toByzantineGroup()
-                }
-                groups
+    override fun getGroups(): Flow<List<ByzantineGroup>> = groupDao.getGroupsFlow()
+        .map { group ->
+            val groups = group.map { serverGroup ->
+                serverGroup.toByzantineGroup()
             }
+            groups
+        }
 
     override suspend fun getGroupsRemote(): List<ByzantineGroup> {
         return syncer.syncGroups() ?: emptyList()

@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -82,6 +83,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
             }
         }
 
+        enableEdgeToEdge()
         setContent {
             NunchukTheme {
                 val navigationController = rememberNavController()
