@@ -97,6 +97,13 @@ class ReplaceFeeFragment : Fragment() {
                             walletId = args.walletId,
                             newFee = newFeeRate
                         )
+                    },
+                    onFeeChange = { newFeeRate ->
+                        viewModel.onFeeChange(
+                            oldTx = args.transaction,
+                            walletId = args.walletId,
+                            newFee = newFeeRate
+                        )
                     }
                 )
             }
@@ -106,7 +113,6 @@ class ReplaceFeeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.setPreviousFeeRate(args.transaction.feeRate.value.toInt())
-        viewModel.initDraftTransaction(args.transaction, args.walletId)
         flowObserver(viewModel.event) {
             when (it) {
                 is ReplaceFeeEvent.ShowError -> showError(it.e?.message.orUnknownError())
@@ -140,11 +146,13 @@ class ReplaceFeeFragment : Fragment() {
 private fun ReplaceFeeScreen(
     viewModel: ReplaceFeeViewModel = viewModel(),
     onContinueClick: (Int) -> Unit = {},
+    onFeeChange: (Int) -> Unit = {},
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     ReplaceFeeContent(
         uiState = uiState,
         onContinueClick = onContinueClick,
+        onFeeChange = onFeeChange,
     )
 }
 
@@ -152,6 +160,7 @@ private fun ReplaceFeeScreen(
 private fun ReplaceFeeContent(
     uiState: ReplaceFeeState = ReplaceFeeState(),
     onContinueClick: (Int) -> Unit = {},
+    onFeeChange: (Int) -> Unit = {},
 ) {
     var newFeeRate by rememberSaveable {
         mutableStateOf("")
@@ -266,6 +275,10 @@ private fun ReplaceFeeContent(
                                 showWarning = false
                                 val format = CurrencyFormatter.format(it, 3)
                                 newFeeRate = format
+                                val newFee = newFeeRate.toDouble().times(1000).roundToInt()
+                                if (newFee > uiState.previousFeeRate) {
+                                    onFeeChange(newFee)
+                                }
                             },
                             error = stringResource(R.string.nc_new_fee_rate_invalid).takeIf { showWarning },
                         )

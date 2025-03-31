@@ -61,14 +61,14 @@ internal class ReplaceFeeViewModel @Inject constructor(
         }
     }
 
-    fun initDraftTransaction(oldTx: Transaction, walletId: String) {
+    fun onFeeChange(oldTx: Transaction, walletId: String, newFee: Int) {
         viewModelScope.launch {
             when (val result = draftTransactionUseCase.execute(
                 walletId = walletId,
                 inputs = oldTx.inputs,
                 outputs = oldTx.userOutputs.associate { it.first to it.second },
                 subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
-                feeRate = oldTx.fee,
+                feeRate = newFee.toManualFeeRate(),
                 replaceTxId = oldTx.txId
             )) {
                 is Result.Success -> {
@@ -81,9 +81,7 @@ internal class ReplaceFeeViewModel @Inject constructor(
                     }
                 }
 
-                is Result.Error -> {
-                    _event.emit(ReplaceFeeEvent.ShowError(result.exception))
-                }
+                is Result.Error -> Unit
             }
         }
     }
