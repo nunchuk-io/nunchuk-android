@@ -21,6 +21,7 @@ package com.nunchuk.android.transaction.components.send.fee
 
 import android.app.Activity
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
@@ -56,7 +57,6 @@ import com.nunchuk.android.utils.safeManualFee
 import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
-import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.FlowPreview
@@ -89,7 +89,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setLightStatusBar()
+        enableEdgeToEdge()
 
         viewModel.init(args)
         setupViews()
