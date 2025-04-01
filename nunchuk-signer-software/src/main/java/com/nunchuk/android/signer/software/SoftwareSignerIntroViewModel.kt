@@ -6,7 +6,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GenerateMnemonicUseCase
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
-import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
+import com.nunchuk.android.usecase.signer.GetMasterSigners2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,12 +19,12 @@ class SoftwareSignerIntroViewModel @Inject constructor(
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val generateMnemonicUseCase: GenerateMnemonicUseCase,
-    private val getAllSignersUseCase: GetAllSignersUseCase,
+    private val getMasterSigners2UseCase: GetMasterSigners2UseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SoftwareSignerIntroState())
     val state = _state.asStateFlow()
 
-    private val _hotKeyInfo = MutableStateFlow(Pair<String, String>("", ""))
+    private val _hotKeyInfo = MutableStateFlow(Pair("", ""))
     val hotKeyInfo = _hotKeyInfo.asStateFlow()
 
     fun getReplaceSignerName(walletId: String) {
@@ -44,15 +44,10 @@ class SoftwareSignerIntroViewModel @Inject constructor(
 
     fun getHotKeyInfo(isAssistedWallet: Boolean) {
         viewModelScope.launch {
-            var mnemonicHotKey = ""
-            var hotKeyName = ""
-            generateMnemonicUseCase(24).onSuccess {
-                mnemonicHotKey = it
-            }
-            val masterSigners = getAllSignersUseCase(true).getOrNull()?.let { (masterSigners, _) ->
-                masterSigners.filter { it.isNeedBackup }
-            } ?: emptyList()
-            hotKeyName = if (masterSigners.isNotEmpty()) {
+            val mnemonicHotKey = generateMnemonicUseCase(24).getOrDefault("")
+            val masterSigners =
+                getMasterSigners2UseCase(Unit).getOrDefault(emptyList()).filter { it.isNeedBackup }
+            val hotKeyName = if (masterSigners.isNotEmpty()) {
                 "My key #${masterSigners.size + 1}"
             } else {
                 "My key"

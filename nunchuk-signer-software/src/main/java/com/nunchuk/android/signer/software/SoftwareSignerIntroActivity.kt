@@ -25,9 +25,6 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NunchukTheme
@@ -35,6 +32,7 @@ import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.KeyFlow.isSignInFlow
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.signer.software.components.intro.createSoftwareKeyIntro
 import com.nunchuk.android.signer.software.components.intro.createSoftwareKeyIntroRoute
 import com.nunchuk.android.signer.software.components.intro.recoverByXprv
@@ -43,7 +41,6 @@ import com.nunchuk.android.signer.software.components.intro.softwareSignerIntro
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateSoftwareSignerCompletedEvent
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SoftwareSignerIntroActivity : BaseComposeActivity() {
@@ -93,17 +90,13 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
             }
         }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                viewModel.hotKeyInfo.collect { hotKeyInfo ->
-                    val (mnemonicHotKey, hotKeyName) = hotKeyInfo
-                    if (mnemonicHotKey.isEmpty() || hotKeyName.isEmpty()) {
-                        return@collect
-                    }
-                    createHotKey(mnemonic = mnemonicHotKey, signerName = hotKeyName)
-                    viewModel.clearHotKeyInfo()
-                }
+        flowObserver(viewModel.hotKeyInfo) {
+            val (mnemonicHotKey, hotKeyName) = it
+            if (mnemonicHotKey.isEmpty() || hotKeyName.isEmpty()) {
+                return@flowObserver
             }
+            createHotKey(mnemonic = mnemonicHotKey, signerName = hotKeyName)
+            viewModel.clearHotKeyInfo()
         }
 
         enableEdgeToEdge()
