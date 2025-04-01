@@ -44,7 +44,7 @@ class SoftwareSignerIntroViewModel @Inject constructor(
 
     fun getHotKeyInfo(isAssistedWallet: Boolean) {
         viewModelScope.launch {
-            val mnemonicHotKey = generateMnemonicUseCase(24).getOrDefault("")
+            val mnemonicHotKey = generateMnemonicUseCase(if (isAssistedWallet) 12 else 24).getOrDefault("")
             val masterSigners =
                 getMasterSigners2UseCase(Unit).getOrDefault(emptyList()).filter { it.isNeedBackup }
             val hotKeyName = if (masterSigners.isNotEmpty()) {
