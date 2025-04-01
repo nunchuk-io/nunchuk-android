@@ -96,6 +96,9 @@ class FreeGroupWalletViewModel @Inject constructor(
     private val replaceWalletId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_REPLACE_WALLET_ID)
             .orEmpty()
+    private val filePath: String
+        get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_FILE_PATH).orEmpty()
+
     private val _uiState = MutableStateFlow(FreeGroupWalletUiState())
     val uiState: StateFlow<FreeGroupWalletUiState> = _uiState.asStateFlow()
     private val singleSigners = mutableListOf<SingleSigner>()
@@ -110,7 +113,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         listenGroupSandbox()
         listenGroupOnline()
         listenGroupDelete()
-        if (replaceWalletId.isEmpty()) {
+        if (replaceWalletId.isEmpty() && filePath.isEmpty()) {
             if (groupId.isEmpty()) {
                 createGroupSandbox()
             } else {

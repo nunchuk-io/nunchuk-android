@@ -396,7 +396,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
 
             WalletConfigEvent.DeleteAssistedWalletSuccess -> walletDeleted()
-            is WalletConfigEvent.UploadWalletConfigEvent -> shareConfigurationFile(event.filePath)
+            is WalletConfigEvent.UploadWalletConfigEvent -> showSaveShareOption()
             is WalletConfigEvent.ExportTxCoinControlSuccess -> shareConfigurationFile(event.filePath)
             WalletConfigEvent.ImportTxCoinControlSuccess -> NCToastMessage(this).showMessage(
                 message = getString(

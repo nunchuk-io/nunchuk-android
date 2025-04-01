@@ -202,6 +202,7 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
                 _uiState.update {  it.copy(event = FreeGroupWalletRecoverEvent.RecoverSuccess(walletName = _uiState.value.wallet?.name.orEmpty())) }
             }.onFailure { error ->
                 Timber.tag("recover-group-wallet").e("Recover group wallet failed: $error")
+                deleteWallet()
                 _uiState.update { it.copy(errorMessage = error.readableMessage()) }
             }
         }
