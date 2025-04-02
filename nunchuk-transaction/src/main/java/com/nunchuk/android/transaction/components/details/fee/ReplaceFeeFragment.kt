@@ -275,9 +275,11 @@ private fun ReplaceFeeContent(
                                 showWarning = false
                                 val format = CurrencyFormatter.format(it, 3)
                                 newFeeRate = format
-                                val newFee = newFeeRate.toDouble().times(1000).roundToInt()
-                                if (newFee > uiState.previousFeeRate) {
-                                    onFeeChange(newFee)
+                                if (newFeeRate.isNotEmpty()) {
+                                    val newFee = newFeeRate.toDouble().times(1000).roundToInt()
+                                    if (newFee > uiState.previousFeeRate) {
+                                        onFeeChange(newFee)
+                                    }
                                 }
                             },
                             error = stringResource(R.string.nc_new_fee_rate_invalid).takeIf { showWarning },
