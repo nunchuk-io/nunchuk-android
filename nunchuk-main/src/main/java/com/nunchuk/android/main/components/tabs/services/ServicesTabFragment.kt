@@ -177,7 +177,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
     }
 
     private fun handleGoOurWebsite() {
-        requireActivity().openExternalLink("https://nunchuk.io")
+        requireActivity().openExternalLink("https://nunchuk.io/individuals")
     }
 
     private fun showTellMeMoreDialog() {
@@ -244,9 +244,6 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             } else {
                 navigator.openSignInScreen(requireActivity(), isNeedNewTask = false)
             }
-        }
-        binding.btnTellMore.setOnDebounceClickListener {
-            showTellMeMoreDialog()
         }
         binding.btnVisitWebsite.setOnDebounceClickListener {
             handleGoOurWebsite()

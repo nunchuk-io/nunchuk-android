@@ -857,7 +857,7 @@
     <string name="nc_custom_wallet">Custom wallet</string>
     <string name="nc_custom_wallet_desc">Choose between single and multi-signature setups. Existing keys required.</string>
     <string name="nc_hot_wallet">Hot wallet</string>
-    <string name="nc_hot_wallet_create_wallet_desc">Quickly create a wallet for immediate use—no existing keys required. Backup later.</string>
+    <string name="nc_hot_wallet_create_wallet_desc">Quickly create a wallet for immediate use—no existing keys required. Back up later.</string>
     <string name="nc_group_wallet_desc">Collaboratively manage Bitcoin with multiple people or devices.</string>
     <string name="nc_decoy_wallet">Decoy wallet</string>
     <string name="nc_decoy_wallet_desc">Generate a concealed wallet, accessible via a specific PIN.</string>

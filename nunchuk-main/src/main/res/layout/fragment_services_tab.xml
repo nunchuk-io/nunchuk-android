@@ -83,14 +83,6 @@
             tools:visibility="visible">
 
             <com.nunchuk.android.widget.NCFontButton
-                android:id="@+id/btn_tell_more"
-                style="@style/NCPrimaryButton.Dark"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/nc_padding_16"
-                android:text="@string/nc_tell_me_more" />
-
-            <com.nunchuk.android.widget.NCFontButton
                 android:id="@+id/btn_visit_website"
                 style="@style/NCPrimaryButton.Light"
                 android:layout_width="match_parent"
