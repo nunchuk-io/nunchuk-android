@@ -103,7 +103,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
     }
 
     private fun signInGoogle() {
-        val googleIdOption = GetSignInWithGoogleOption.Builder("712097058578-e7nv8fncujddo54d8as7brhrrn3s0ur4.apps.googleusercontent.com")
+        val googleIdOption = GetSignInWithGoogleOption.Builder(SERVER_ID)
             .setNonce(UUID.randomUUID().toString())
             .build()
 
@@ -135,6 +135,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                 runCatching {
                     val googleIdTokenCredential = GoogleIdTokenCredential
                         .createFrom(credential.data)
+
                     val token = googleIdTokenCredential.idToken
                     viewModel.googleSignIn(token)
                 }.onFailure {
@@ -153,7 +154,13 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                 is EmailValidEvent -> binding.email.hideError()
                 is PasswordRequiredEvent -> binding.password.setError(getString(R.string.nc_text_required))
                 is PasswordValidEvent -> binding.password.hideError()
-                is SignInErrorEvent -> onSignInError(it.code, it.message.orEmpty(), it.errorDetail)
+                is SignInErrorEvent -> onSignInError(
+                    it.code,
+                    it.message.orEmpty(),
+                    it.errorDetail,
+                    it.email
+                )
+
                 is SignInSuccessEvent -> {
                     if (it.ignoreCheckBiometric) {
                         openMainScreen()
@@ -250,14 +257,19 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         supportActionBar?.setDisplayHomeAsUpEnabled(stage != SignInType.EMAIL)
     }
 
-    private fun onSignInError(code: Int?, message: String, errorDetail: ErrorDetail?) {
+    private fun onSignInError(
+        code: Int?,
+        message: String,
+        errorDetail: ErrorDetail?,
+        email: String
+    ) {
         hideLoading()
         when (code) {
             NEW_DEVICE -> {
                 navigator.openVerifyNewDeviceScreen(
                     launcher = signInLauncher,
                     activityContext = this,
-                    email = binding.email.getTextTrimmed(),
+                    email = binding.email.getTextTrimmed().ifEmpty { email },
                     deviceId = errorDetail?.deviceID.orEmpty(),
                     loginHalfToken = errorDetail?.halfToken.orEmpty(),
                     staySignedIn = binding.staySignIn.isChecked
@@ -378,6 +390,9 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         private const val PRIVACY_URL = "https://www.nunchuk.io/privacy.html"
         private const val TERM_URL = "https://www.nunchuk.io/terms.html"
         private const val EXTRA_IS_DELETED = "EXTRA_IS_DELETED"
+        const val SERVER_ID =
+            "712097058578-e7nv8fncujddo54d8as7brhrrn3s0ur4.apps.googleusercontent.com"
+
         fun start(
             activityContext: Context,
             isNeedNewTask: Boolean,
