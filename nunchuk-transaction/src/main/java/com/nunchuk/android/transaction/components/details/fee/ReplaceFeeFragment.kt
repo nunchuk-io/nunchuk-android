@@ -62,6 +62,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.CurrencyFormatter
 import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
@@ -260,7 +261,8 @@ private fun ReplaceFeeContent(
 
                     Text(
                         text = stringResource(R.string.nc_new_fee_rate_desc),
-                        style = NunchukTheme.typography.bodySmall
+                        style = NunchukTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.textSecondary
                     )
 
                     Row(
@@ -301,7 +303,7 @@ private fun ReplaceFeeContent(
                                     .formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
                             ).replace("<b>", "[B]")
                                 .replace("</b>", "[/B]"),
-                            style = NunchukTheme.typography.bodySmall
+                            style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.textSecondary),
                         )
                     }
 
@@ -314,7 +316,7 @@ private fun ReplaceFeeContent(
                                     .formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
                             ).replace("<b>", "[B]")
                                 .replace("</b>", "[/B]"),
-                            style = NunchukTheme.typography.bodySmall
+                            style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.textSecondary)
                         )
                     }
 
@@ -352,7 +354,8 @@ private fun FeeRateView(modifier: Modifier, title: String, value: Int) {
     Column(modifier = modifier) {
         Text(
             text = title,
-            style = NunchukTheme.typography.bodySmall
+            style = NunchukTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.textSecondary
         )
 
         Text(
