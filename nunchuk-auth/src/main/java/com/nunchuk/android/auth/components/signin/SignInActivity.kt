@@ -158,7 +158,6 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                     it.code,
                     it.message.orEmpty(),
                     it.errorDetail,
-                    it.email
                 )
 
                 is SignInSuccessEvent -> {
@@ -261,7 +260,6 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         code: Int?,
         message: String,
         errorDetail: ErrorDetail?,
-        email: String
     ) {
         hideLoading()
         when (code) {
@@ -269,7 +267,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                 navigator.openVerifyNewDeviceScreen(
                     launcher = signInLauncher,
                     activityContext = this,
-                    email = binding.email.getTextTrimmed().ifEmpty { email },
+                    email = binding.email.getTextTrimmed().ifEmpty { errorDetail?.email.orEmpty() },
                     deviceId = errorDetail?.deviceID.orEmpty(),
                     loginHalfToken = errorDetail?.halfToken.orEmpty(),
                     staySignedIn = binding.staySignIn.isChecked

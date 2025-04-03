@@ -80,7 +80,9 @@ data class ErrorDetail(
     @SerializedName("halfToken")
     val halfToken: String? = null,
     @SerializedName("deviceID")
-    val deviceID: String? = null
+    val deviceID: String? = null,
+    @SerializedName("email")
+    val email: String? = null,
 )
 
 class NunchukApiException(val code: Int = 0, override val message: String = UNKNOWN_ERROR, val errorDetail: ErrorDetail? = null) : Exception(message)

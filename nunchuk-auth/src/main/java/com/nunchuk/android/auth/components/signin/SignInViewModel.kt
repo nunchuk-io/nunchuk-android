@@ -22,10 +22,6 @@ package com.nunchuk.android.auth.components.signin
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
-import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.gson.GsonFactory
-import com.nunchuk.android.auth.components.signin.SignInActivity.Companion.SERVER_ID
 import com.nunchuk.android.auth.components.signin.SignInEvent.EmailInvalidEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.EmailRequiredEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.EmailValidEvent
@@ -45,7 +41,6 @@ import com.nunchuk.android.core.account.SignInType
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
-import com.nunchuk.android.core.network.ApiErrorCode.NEW_DEVICE
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
 import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
@@ -78,8 +73,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
-import java.util.Collections
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -341,47 +334,21 @@ internal class SignInViewModel @Inject constructor(
                     signInModeHolder.setCurrentMode(SignInMode.EMAIL)
                     _event.emit(SignInSuccessEvent())
                 }
-                .onFailure {
-                    if (it is NunchukApiException) {
-                        handleGoogleSignInError(token, it)
+                .onFailure { exception ->
+                    if (exception is NunchukApiException) {
+                        _event.emit(
+                            SignInErrorEvent(
+                                code = exception.code,
+                                message = exception.message,
+                                errorDetail = exception.errorDetail,
+                            )
+                        )
                     } else {
-                        _event.emit(SignInErrorEvent(message = it.message.orUnknownError()))
+                        _event.emit(SignInErrorEvent(message = exception.message.orUnknownError()))
                     }
                 }
             _event.emit(ProcessingEvent(false))
         }
-    }
-
-    private suspend fun handleGoogleSignInError(
-        token: String,
-        exception: NunchukApiException
-    ) {
-        val email = if (exception.code == NEW_DEVICE) {
-            withContext(ioDispatcher) {
-                runCatching {
-                    val verifier =
-                        GoogleIdTokenVerifier.Builder(
-                            NetHttpTransport(),
-                            GsonFactory.getDefaultInstance()
-                        )
-                            .setAudience(Collections.singletonList(SERVER_ID))
-                            .build()
-
-                    verifier.verify(token)?.payload?.email.orEmpty()
-                }.getOrDefault("")
-            }
-        } else {
-            ""
-        }
-        Timber.d("Email: $email")
-        _event.emit(
-            SignInErrorEvent(
-                code = exception.code,
-                message = exception.message,
-                errorDetail = exception.errorDetail,
-                email = email
-            )
-        )
     }
 
     fun checkClearBiometric() {
