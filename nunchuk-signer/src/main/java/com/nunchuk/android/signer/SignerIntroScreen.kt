@@ -32,17 +32,20 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
 @Composable
 fun SignerIntroScreen(
+    keyFlow: Int = KeyFlow.NONE,
     supportedSigners: List<SupportedSigner> = emptyList(),
     onClick: (KeyType) -> Unit = {}
 ) {
-    val isGenericAirgapEnable = supportedSigners.isEmpty()
-            || supportedSigners.any { it.type == SignerType.AIRGAP && it.tag == null }
+    val isDisableAll = keyFlow != KeyFlow.NONE
+    val isGenericAirgapEnable = (supportedSigners.isEmpty()
+            || supportedSigners.any { it.type == SignerType.AIRGAP && it.tag == null }) && isDisableAll.not()
     NunchukTheme {
         Scaffold(topBar = {
             NcTopAppBar(
@@ -79,14 +82,14 @@ fun SignerIntroScreen(
                         iconRes = R.drawable.ic_nfc_card,
                         title = stringResource(id = R.string.nc_tapsigner),
                         onClick = { onClick(KeyType.TAPSIGNER) },
-                        isDisabled = supportedSigners.isNotEmpty() && !supportedSigners.any { it.type == SignerType.NFC }
+                        isDisabled = supportedSigners.isNotEmpty() && !supportedSigners.any { it.type == SignerType.NFC } || isDisableAll
                     )
                     SignerItem(
                         modifier = Modifier.weight(1f),
                         iconRes = R.drawable.ic_coldcard_small,
                         title = stringResource(id = R.string.nc_coldcard),
                         onClick = { onClick(KeyType.COLDCARD) },
-                        isDisabled = supportedSigners.isNotEmpty() && !supportedSigners.any { it.type == SignerType.COLDCARD_NFC }
+                        isDisabled = supportedSigners.isNotEmpty() && !supportedSigners.any { it.type == SignerType.COLDCARD_NFC } || isDisableAll
                     )
                 }
 
@@ -102,7 +105,7 @@ fun SignerIntroScreen(
                         title = stringResource(id = R.string.nc_jade),
                         onClick = { onClick(KeyType.JADE) },
                         isDisabled = supportedSigners.isNotEmpty()
-                                && !supportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.JADE || it.tag == null) }
+                                && !supportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.JADE || it.tag == null) } || isDisableAll
                     )
                     SignerItem(
                         modifier = Modifier.weight(1f),
@@ -110,7 +113,7 @@ fun SignerIntroScreen(
                         title = stringResource(id = R.string.nc_portal),
                         onClick = { onClick(KeyType.PORTAL) },
                         isDisabled = supportedSigners.isNotEmpty()
-                                && !supportedSigners.any { it.type == SignerType.PORTAL_NFC }
+                                && !supportedSigners.any { it.type == SignerType.PORTAL_NFC } || isDisableAll
                     )
                 }
 
@@ -126,7 +129,7 @@ fun SignerIntroScreen(
                         title = stringResource(id = R.string.nc_seedsigner),
                         onClick = { onClick(KeyType.SEEDSIGNER) },
                         isDisabled = supportedSigners.isNotEmpty()
-                                && !supportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.SEEDSIGNER || it.tag == null) }
+                                && !supportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.SEEDSIGNER || it.tag == null) } || isDisableAll
                     )
                     SignerItem(
                         modifier = Modifier.weight(1f),
@@ -134,7 +137,7 @@ fun SignerIntroScreen(
                         title = stringResource(id = R.string.nc_keystone),
                         onClick = { onClick(KeyType.KEYSTONE) },
                         isDisabled = supportedSigners.isNotEmpty()
-                                && !supportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.KEYSTONE || it.tag == null) }
+                                && !supportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.KEYSTONE || it.tag == null) } || isDisableAll
                     )
                 }
 
@@ -150,7 +153,7 @@ fun SignerIntroScreen(
                         title = stringResource(id = R.string.nc_foundation),
                         onClick = { onClick(KeyType.FOUNDATION) },
                         isDisabled = supportedSigners.isNotEmpty()
-                                && !supportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.PASSPORT || it.tag == null) }
+                                && !supportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.PASSPORT || it.tag == null) } || isDisableAll
                     )
                     SignerItem(
                         modifier = Modifier.weight(1f),

@@ -40,6 +40,7 @@ class SignerIntroActivity : BaseComposeActivity() {
     private val supportedSigners: List<SupportedSigner> by lazy {
         intent.parcelableArrayList<SupportedSigner>(EXTRA_SUPPORTED_SIGNERS).orEmpty()
     }
+    private val keyFlow by lazy { intent.getIntExtra(EXTRA_KEY_FLOW, KeyFlow.NONE) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +50,7 @@ class SignerIntroActivity : BaseComposeActivity() {
 
             setContent {
                 SignerIntroScreen(
+                    keyFlow = keyFlow,
                     supportedSigners = supportedSigners,
                     onClick = { keyType: KeyType ->
                         when (keyType) {
@@ -113,7 +115,7 @@ class SignerIntroActivity : BaseComposeActivity() {
 
     private fun openAddSoftwareSignerScreen() {
         val primaryKeyFlow =
-            if (walletId.isNotEmpty()) KeyFlow.REPLACE_KEY_IN_FREE_WALLET else KeyFlow.NONE
+            if (walletId.isNotEmpty()) KeyFlow.REPLACE_KEY_IN_FREE_WALLET else keyFlow
         navigator.openAddSoftwareSignerScreen(
             activityContext = this,
             keyFlow = primaryKeyFlow,
@@ -146,19 +148,22 @@ class SignerIntroActivity : BaseComposeActivity() {
         private const val EXTRA_GROUP_ID = "group_id"
         private const val EXTRA_INDEX = "index"
         private const val EXTRA_SUPPORTED_SIGNERS = "supported_signers"
+        private const val EXTRA_KEY_FLOW = "key_flow"
 
         fun start(
             activityContext: Context,
             walletId: String? = null,
             groupId: String? = null,
             index: Int = -1,
-            supportedSigners: List<SupportedSigner>? = null
+            supportedSigners: List<SupportedSigner>? = null,
+            @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
         ) {
             activityContext.startActivity(
                 Intent(activityContext, SignerIntroActivity::class.java).apply {
                     putExtra(EXTRA_WALLET_ID, walletId)
                     putExtra(EXTRA_GROUP_ID, groupId)
                     putExtra(EXTRA_INDEX, index)
+                    putExtra(EXTRA_KEY_FLOW, keyFlow)
                     supportedSigners?.let {
                         putParcelableArrayListExtra(EXTRA_SUPPORTED_SIGNERS, ArrayList(it))
                     }

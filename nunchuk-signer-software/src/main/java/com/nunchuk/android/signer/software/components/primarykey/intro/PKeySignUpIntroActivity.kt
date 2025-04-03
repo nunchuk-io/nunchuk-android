@@ -51,10 +51,11 @@ class PKeySignUpIntroActivity : BaseActivity<ActivityPkeySignUpIntroBinding>() {
     private fun setupViews() {
         binding.btnGotIt.setOnDebounceClickListener {
             if (isNetworkConnectedUseCase()) {
-                navigator.openAddPrimaryKeyScreen(
+                navigator.openSignerIntroScreen(
                     this,
                     keyFlow = KeyFlow.SIGN_UP
                 )
+                finish()
             } else {
                 NCInfoDialog(this).init(
                     title = getString(R.string.nc_device_offline),
