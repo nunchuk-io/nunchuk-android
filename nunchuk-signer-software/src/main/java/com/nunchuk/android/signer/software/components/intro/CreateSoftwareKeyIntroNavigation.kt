@@ -31,12 +31,15 @@ import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlTextPrimary
+import com.nunchuk.android.core.signer.KeyFlow
+import com.nunchuk.android.core.signer.KeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.signer.software.R
 
 const val createSoftwareKeyIntroRoute = "create_software_key_intro"
 
 fun NavGraphBuilder.createSoftwareKeyIntro(
     isSupportXprv: Boolean,
+    keyFlow: Int = KeyFlow.NONE,
     onContinueClicked: (Boolean) -> Unit = {},
     onRecoverSeedClicked: () -> Unit = {},
     onRecoverXprvClicked: () -> Unit = {},
@@ -47,6 +50,7 @@ fun NavGraphBuilder.createSoftwareKeyIntro(
             onContinueClicked = onContinueClicked,
             onRecoverSeedClicked = onRecoverSeedClicked,
             onRecoverXprvClicked = onRecoverXprvClicked,
+            keyFlow = keyFlow,
         )
     }
 }
@@ -55,6 +59,7 @@ fun NavGraphBuilder.createSoftwareKeyIntro(
 @Composable
 fun CreateSoftwareKeyIntroScreen(
     isSupportXprv: Boolean = false,
+    keyFlow: Int = KeyFlow.NONE,
     onContinueClicked: (Boolean) -> Unit = {},
     onRecoverSeedClicked: () -> Unit = {},
     onRecoverXprvClicked: () -> Unit = {},
@@ -129,13 +134,15 @@ fun CreateSoftwareKeyIntroScreen(
                     }
                 )
 
-                NcOptionItem(
-                    isSelected = selectedOption == CreateOption.CreateAndBackupLater.ordinal,
-                    label = stringResource(R.string.nc_create_now_back_up_key_later),
-                    onClick = {
-                        selectedOption = CreateOption.CreateAndBackupLater.ordinal
-                    }
-                )
+                if (keyFlow.isPrimaryKeyFlow().not()) {
+                    NcOptionItem(
+                        isSelected = selectedOption == CreateOption.CreateAndBackupLater.ordinal,
+                        label = stringResource(R.string.nc_create_now_back_up_key_later),
+                        onClick = {
+                            selectedOption = CreateOption.CreateAndBackupLater.ordinal
+                        }
+                    )
+                }
 
                 NcOptionItem(
                     isSelected = selectedOption == CreateOption.RecoverSeed.ordinal,
