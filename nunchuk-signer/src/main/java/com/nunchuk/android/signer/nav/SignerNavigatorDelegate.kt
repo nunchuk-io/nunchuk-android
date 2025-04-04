@@ -58,16 +58,14 @@ interface SignerNavigatorDelegate : SignerNavigator {
         walletId: String,
         groupId: String?,
         index: Int,
-        supportedSigners: List<SupportedSigner>?,
-        keyFlow: Int,
+        supportedSigners: List<SupportedSigner>?
     ) {
         SignerIntroActivity.start(
             activityContext = activityContext,
             walletId = walletId,
             groupId = groupId,
             index = index,
-            supportedSigners = supportedSigners,
-            keyFlow = keyFlow,
+            supportedSigners = supportedSigners
         )
     }
 

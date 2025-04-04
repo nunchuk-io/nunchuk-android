@@ -109,7 +109,6 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                 ) {
                     createSoftwareKeyIntro(
                         isSupportXprv = !keyFlow.isSignInFlow(),
-                        keyFlow = keyFlow,
                         onContinueClicked = { isBackUpNow ->
                             if (isBackUpNow) {
                                 openCreateNewSeedScreen()
