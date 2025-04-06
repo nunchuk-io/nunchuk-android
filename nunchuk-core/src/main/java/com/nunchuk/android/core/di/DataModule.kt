@@ -31,7 +31,6 @@ import com.nunchuk.android.core.repository.NotificationRepositoryImpl
 import com.nunchuk.android.core.repository.PremiumWalletRepositoryImpl
 import com.nunchuk.android.core.repository.RecurringPaymentRepositoryImpl
 import com.nunchuk.android.core.repository.SettingRepositoryImpl
-import com.nunchuk.android.core.repository.SharedWalletRepositoryImpl
 import com.nunchuk.android.core.repository.TransactionRepositoryImpl
 import com.nunchuk.android.repository.BannerRepository
 import com.nunchuk.android.repository.CampaignsRepository
@@ -43,7 +42,6 @@ import com.nunchuk.android.repository.NotificationRepository
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.repository.RecurringPaymentRepository
 import com.nunchuk.android.repository.SettingRepository
-import com.nunchuk.android.repository.SharedWalletRepository
 import com.nunchuk.android.repository.TransactionRepository
 import dagger.Binds
 import dagger.Module
@@ -101,9 +99,4 @@ internal interface DataModule {
     @Binds
     @Singleton
     fun bindCampaignsRepository(repository: CampaignsRepositoryImpl): CampaignsRepository
-
-
-    @Binds
-    @Singleton
-    fun bindSharedWalletRepository(repository: SharedWalletRepositoryImpl): SharedWalletRepository
 }

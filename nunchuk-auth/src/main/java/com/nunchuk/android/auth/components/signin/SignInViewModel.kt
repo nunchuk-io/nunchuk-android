@@ -93,7 +93,6 @@ internal class SignInViewModel @Inject constructor(
     private val biometricLoginUseCase: BiometricLoginUseCase,
     private val updateBiometricConfigUseCase: UpdateBiometricConfigUseCase,
     private val googleSignInUseCase: GoogleSignInUseCase,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SignInEvent>()
     val event = _event.asSharedFlow()

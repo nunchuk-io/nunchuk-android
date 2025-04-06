@@ -17,21 +17,24 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 
 @Composable
-fun LoadingIndicator() {
+fun LoadingIndicator(
+    modifier: Modifier = Modifier,
+) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading))
     val progress by animateLottieCompositionAsState(
         composition = composition,
         iterations = LottieConstants.IterateForever
     )
-    NunchukTheme {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            LottieAnimation(
-                modifier = Modifier.height(54.dp),
-                composition = composition,
-                progress = { progress },
-            )
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        LottieAnimation(
+            modifier = Modifier.height(54.dp),
+            composition = composition,
+            progress = { progress },
+        )
 
-            Text(text = "Loading", style = NunchukTheme.typography.bodySmall)
-        }
+        Text(text = "Loading", style = NunchukTheme.typography.bodySmall)
     }
 }

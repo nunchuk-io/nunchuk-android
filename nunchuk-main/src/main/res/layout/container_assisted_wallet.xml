@@ -1,0 +1,65 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/intro_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/nc_rounded_denim_background"
+    android:padding="@dimen/nc_padding_16"
+    android:visibility="gone"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    tools:visibility="visible">
+
+    <ImageView
+        android:id="@+id/iv_intro"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:src="@drawable/bg_empty_state_personal_plan"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_intro_title"
+        style="@style/NCText.Title.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_12"
+        android:text="@string/nc_let_s_get_you_started"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/iv_intro"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_intro_desc"
+        style="@style/NCText.Body.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_12"
+        android:layout_marginTop="@dimen/nc_padding_4"
+        android:text="@string/nc_assisted_wallet_intro_desc"
+        app:layout_constraintBottom_toTopOf="@+id/tv_intro_action"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/iv_intro"
+        app:layout_constraintTop_toBottomOf="@+id/tv_intro_title"
+        app:layout_constraintVertical_chainStyle="spread_inside" />
+
+    <TextView
+        android:id="@+id/tv_intro_action"
+        style="@style/NCText.Title.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/nc_padding_12"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:drawablePadding="@dimen/nc_padding_6"
+        android:gravity="center_vertical"
+        android:text="@string/nc_start_wizard"
+        app:drawableEndCompat="@drawable/ic_arrow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toEndOf="@+id/iv_intro"
+        app:layout_constraintTop_toBottomOf="@+id/tv_intro_desc"
+        app:layout_constraintWidth_max="wrap" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

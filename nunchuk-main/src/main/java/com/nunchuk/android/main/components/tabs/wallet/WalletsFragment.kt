@@ -21,34 +21,21 @@ package com.nunchuk.android.main.components.tabs.wallet
 
 import android.app.Activity
 import android.app.Dialog
-import android.content.res.ColorStateList
 import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import androidx.core.view.isGone
-import androidx.core.view.isVisible
-import androidx.core.widget.NestedScrollView
-import androidx.core.widget.TextViewCompat
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.asFlow
+import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.bumptech.glide.Glide
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.contact.components.contacts.ContactsViewModel
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.constants.RoomAction
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -63,9 +50,6 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.DeeplinkHolder
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.formatMMMddyyyyDate
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
@@ -85,58 +69,42 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.None
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.WalletEmptySignerEvent
-import com.nunchuk.android.main.components.tabs.wallet.emptystate.WalletEmptyStateView
-import com.nunchuk.android.main.components.tabs.wallet.totalbalance.TotalBalanceScrollHandler
-import com.nunchuk.android.main.components.tabs.wallet.totalbalance.TotalBalanceView
-import com.nunchuk.android.main.databinding.FragmentWalletsBinding
+import com.nunchuk.android.main.components.tabs.wallet.component.WalletsScreen
 import com.nunchuk.android.main.di.MainAppEvent
 import com.nunchuk.android.main.di.MainAppEvent.SyncCompleted
-import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
 import com.nunchuk.android.main.groupwallet.join.UnableJoinGroupWalletActivity
 import com.nunchuk.android.main.intro.UniversalNfcIntroActivity
-import com.nunchuk.android.main.membership.byzantine.views.PendingWalletView
 import com.nunchuk.android.main.nonsubscriber.NonSubscriberActivity
 import com.nunchuk.android.messages.components.list.RoomMessage
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_ACTIVE
 import com.nunchuk.android.messages.util.SUBSCRIPTION_SUBSCRIPTION_PENDING
 import com.nunchuk.android.messages.util.getMsgType
-import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.ConnectionStatusHelper
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.GroupWalletType
-import com.nunchuk.android.model.byzantine.isKeyHolderLimited
-import com.nunchuk.android.model.byzantine.toRole
-import com.nunchuk.android.model.campaigns.Campaign
-import com.nunchuk.android.model.campaigns.CampaignStatus
-import com.nunchuk.android.model.campaigns.CampaignType
-import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.isByzantineOrFinney
-import com.nunchuk.android.model.wallet.WalletStatus
+import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.signer.satscard.SatsCardActivity
 import com.nunchuk.android.signer.signer.SignersViewModel
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.signer.util.handleTapSignerStatus
-import com.nunchuk.android.type.Chain
-import com.nunchuk.android.type.ConnectionStatus
-import com.nunchuk.android.utils.consumeEdgeToEdge
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.NCWarningVerticalDialog
-import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
-internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
+internal class WalletsFragment : Fragment() {
+    @Inject
+    lateinit var navigator: NunchukNavigator
 
     @Inject
     lateinit var accountManager: AccountManager
@@ -168,136 +136,110 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private var existingKeyDialog: Dialog? = null
 
-    private val totalBalanceScrollHandler: TotalBalanceScrollHandler by lazy {
-        TotalBalanceScrollHandler(binding.totalBalanceFrame)
-    }
-
-    override fun initializeBinding(
+    override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-    ) = FragmentWalletsBinding.inflate(inflater, container, false)
+        savedInstanceState: Bundle?
+    ): View = content {
+        val state by walletsViewModel.state.collectAsStateWithLifecycle()
+        val hasSigner by signersViewModel.uiState.map { it.signers.orEmpty().isNotEmpty() }.collectAsStateWithLifecycle(false)
+        NunchukTheme {
+            WalletsScreen(
+                activity = requireActivity(),
+                hasSigner = hasSigner,
+                navigator = navigator,
+                state = state,
+                onNfcClick = {
+                    if (walletsViewModel.isShownNfcUniversal.value) {
+                        UniversalNfcIntroActivity.navigate(launcher, requireActivity())
+                    } else {
+                        (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_AUTO_CARD_STATUS)
+                    }
+                },
+                onCampaignClick = {
+                    walletsViewModel.getCurrentCampaign()?.let {
+                        navigator.openReferralScreen(
+                            activityContext = requireActivity(),
+                            args = ReferralArgs(
+                                campaign = it,
+                                localReferrerCode = walletsViewModel.getLocalReferrerCode()
+                            )
+                        )
+                    }
+                },
+                onIntroContainerClick = { stage ->
+                    if (stage == MembershipStage.SETUP_INHERITANCE) {
+                        navigator.openInheritancePlanningScreen(
+                            walletId = walletsViewModel.getAssistedWalletId().orEmpty(),
+                            activityContext = requireContext(),
+                            flowInfo = InheritancePlanFlow.SETUP,
+                        )
+                    } else {
+                        val personalSteps = walletsViewModel.getPersonalSteps()
+                        val plans = walletsViewModel.getPlans().orEmpty()
+                        val walletType = when {
+                            personalSteps.any { it.plan == MembershipPlan.IRON_HAND } -> GroupWalletType.TWO_OF_THREE_PLATFORM_KEY
+                            personalSteps.any { it.plan == MembershipPlan.HONEY_BADGER } -> GroupWalletType.TWO_OF_FOUR_MULTISIG
+                            else -> null
+                        }
+                        val isPersonalWallet =
+                            walletType != null || plans.none { it.isByzantineOrFinney() }
+                        navigator.openMembershipActivity(
+                            activityContext = requireActivity(),
+                            groupStep = stage,
+                            walletId = walletsViewModel.getAssistedWalletId(),
+                            isPersonalWallet = isPersonalWallet,
+                            walletType = walletType
+                        )
+                    }
+                },
+                onBannerClick = { banner ->
+                    if (banner.type == Banner.Type.TYPE_REFERRAL_01) {
+                        requireActivity().openExternalLink(banner.content.action.target)
+                    } else {
+                        NonSubscriberActivity.start(requireActivity(), banner.id)
+                    }
+                },
+                onAccept = { groupWalletUi ->
+                    groupWalletUi.group?.id?.let { groupId ->
+                        walletsViewModel.acceptInviteMember(groupId, groupWalletUi.role)
+                    }
+                },
+                denyInviteMember = { groupId ->
+                    walletsViewModel.denyInviteMember(groupId)
+                },
+                showWalletReplacedDialog = ::showWalletReplacedDialog,
+                getWalletDetail = walletsViewModel::getWalletDetail,
+                openWalletDetailsScreen = ::openWalletDetailsScreen,
+                onMove = walletsViewModel::onMove
+            )
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupViews()
 
         observeEvent()
-    }
-
-    private fun setupViews() {
-        binding.toolbar.consumeEdgeToEdge()
-        binding.ivAddWallet.setOnClickListener { walletsViewModel.handleAddWallet() }
-        binding.ivNfc.setOnClickListener {
-            if (walletsViewModel.isShownNfcUniversal.value) {
-                UniversalNfcIntroActivity.navigate(launcher, requireActivity())
-            } else {
-                (requireActivity() as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_AUTO_CARD_STATUS)
-            }
-        }
-        binding.introContainer.setOnDebounceClickListener {
-            val stage = walletsViewModel.getGroupStage()
-            if (stage == MembershipStage.SETUP_INHERITANCE) {
-                navigator.openInheritancePlanningScreen(
-                    walletId = walletsViewModel.getAssistedWalletId().orEmpty(),
-                    activityContext = requireContext(),
-                    flowInfo = InheritancePlanFlow.SETUP,
-                )
-            } else {
-                val personalSteps = walletsViewModel.getPersonalSteps()
-                val plans = walletsViewModel.getPlans().orEmpty()
-                val walletType = when {
-                    personalSteps.any { it.plan == MembershipPlan.IRON_HAND } -> GroupWalletType.TWO_OF_THREE_PLATFORM_KEY
-                    personalSteps.any { it.plan == MembershipPlan.HONEY_BADGER } -> GroupWalletType.TWO_OF_FOUR_MULTISIG
-                    else -> null
-                }
-                val isPersonalWallet = walletType != null || plans.none { it.isByzantineOrFinney() }
-                navigator.openMembershipActivity(
-                    activityContext = requireActivity(),
-                    groupStep = stage,
-                    walletId = walletsViewModel.getAssistedWalletId(),
-                    isPersonalWallet = isPersonalWallet,
-                    walletType = walletType,
-                )
-            }
-        }
-        binding.containerNonSubscriber.setOnDebounceClickListener {
-            val banner = walletsViewModel.getBanner() ?: return@setOnDebounceClickListener
-            if (banner.type == Banner.Type.TYPE_REFERRAL_01) {
-                requireActivity().openExternalLink(banner.content.action.target)
-            } else {
-                NonSubscriberActivity.start(requireActivity(), it.tag as String)
-            }
-        }
-        binding.llCampaigns.setOnDebounceClickListener {
-            walletsViewModel.getCurrentCampaign()?.let {
-                navigator.openReferralScreen(
-                    activityContext = requireActivity(),
-                    args = ReferralArgs(
-                        campaign = it,
-                        localReferrerCode = walletsViewModel.getLocalReferrerCode()
-                    )
-                )
-            }
-        }
-        binding.content.setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
-            totalBalanceScrollHandler.handleScrollChange(scrollY, oldScrollY)
-        })
-        binding.loading.setContent {
-            val state by walletsViewModel.state.asFlow().collectAsStateWithLifecycle(WalletsState())
-
-            if (state.isWalletLoading) {
-                LoadingIndicator()
-            }
-        }
     }
 
     private fun openAddWalletScreen() {
         navigator.openWalletIntermediaryScreen(requireActivity())
     }
 
-    private fun showAssistedWalletStart(
-        remainingTime: Int,
-        walletName: String?,
-    ) {
-        val stage = walletsViewModel.getGroupStage()
-        if (binding.introContainer.isVisible.not()) return
-        if (stage == MembershipStage.NONE) {
-            binding.tvIntroTitle.text = getString(R.string.nc_let_s_get_you_started)
-            binding.tvIntroDesc.text =
-                getString(R.string.nc_assisted_wallet_intro_desc)
-            binding.tvIntroAction.text = getString(R.string.nc_start_wizard)
-        } else if (stage == MembershipStage.SETUP_INHERITANCE) {
-            binding.tvIntroTitle.text =
-                getString(R.string.nc_setup_inheritance_for, walletName.orEmpty())
-            binding.tvIntroDesc.text =
-                getString(R.string.nc_estimate_remain_time, 21)
-            binding.tvIntroAction.text = getString(R.string.nc_do_it_now)
-        } else if (stage != MembershipStage.DONE) {
-            binding.tvIntroTitle.text = getString(R.string.nc_you_almost_done)
-            binding.tvIntroDesc.text =
-                getString(R.string.nc_estimate_remain_time, remainingTime)
-            binding.tvIntroAction.text =
-                getString(R.string.nc_continue_setting_your_wallet)
-        }
-    }
-
     private fun observeEvent() {
-        ConnectionStatusHelper.blockChainStatus.combine(walletsViewModel.chain) { status, chain ->
-            showConnectionBlockchainStatus(status?.status, chain)
-        }.launchIn(viewLifecycleOwner.lifecycleScope)
-        walletsViewModel.state.observe(viewLifecycleOwner, ::showWalletState)
-        walletsViewModel.event.observe(viewLifecycleOwner, ::handleEvent)
+        flowObserver(walletsViewModel.event, ::handleEvent)
         mainActivityViewModel.event.observe(viewLifecycleOwner, ::handleMainActivityEvent)
         roomViewModel.state.observe(viewLifecycleOwner) {
             if (walletsViewModel.isPremiumUser().not()) {
-                it.rooms.filterIsInstance<RoomMessage.MatrixRoom>().map { it.data }.forEach { room ->
-                    room.latestPreviewableEvent?.takeIf { event ->
-                        event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_PENDING
-                                || event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_ACTIVE
-                    }?.let {
-                        walletsViewModel.reloadMembership()
+                it.rooms.filterIsInstance<RoomMessage.MatrixRoom>().map { it.data }
+                    .forEach { room ->
+                        room.latestPreviewableEvent?.takeIf { event ->
+                            event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_PENDING
+                                    || event.getMsgType() == SUBSCRIPTION_SUBSCRIPTION_ACTIVE
+                        }?.let {
+                            walletsViewModel.reloadMembership()
+                        }
                     }
-                }
             }
         }
         if (walletsViewModel.isPremiumUser().not()) {
@@ -401,7 +343,10 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
             )
 
             WalletsEvent.JoinFreeGroupWalletFailed -> {
-                UnableJoinGroupWalletActivity.start(requireActivity(), link = deeplinkHolder.info?.referringLink.orEmpty())
+                UnableJoinGroupWalletActivity.start(
+                    requireActivity(),
+                    link = deeplinkHolder.info?.referringLink.orEmpty()
+                )
             }
 
             is WalletsEvent.JoinFreeGroupWalletSuccess -> {
@@ -411,7 +356,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                 )
             }
         }
-        walletsViewModel.clearEvent()
     }
 
     private fun openSatsCardActiveSlotScreen(event: GoToSatsCardScreen) {
@@ -462,251 +406,6 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
 
     private fun openWalletIntroScreen() {
         activity?.let(navigator::openWalletEmptySignerScreen)
-    }
-
-    private fun showWalletState(state: WalletsState) {
-        showIntro(state)
-        showPendingWallet(state)
-        showCampaign(state.campaign, state.wallets.isNotEmpty(), state.localReferrerCode)
-        showTotalBalance(state)
-        val showEmptyState = isShowEmptyState(state)
-        binding.contentContainer.isVisible = showEmptyState.not()
-        binding.emptyStateView.isVisible = showEmptyState
-        if (showEmptyState) showEmptyState(state)
-    }
-
-    private fun isShowEmptyState(state: WalletsState): Boolean {
-        return state.wallets.isEmpty() && state.groupWalletUis.isEmpty() && !state.isWalletLoading
-    }
-
-    private fun showEmptyState(state: WalletsState) {
-        binding.emptyStateView.setContent {
-            WalletEmptyStateView(
-                activityContext = requireActivity(),
-                navigator = navigator,
-                groupStage = walletsViewModel.getGroupStage(),
-                assistedWalletId = walletsViewModel.getAssistedWalletId().orEmpty(),
-                signers = signersViewModel.getSigners(),
-                state = state
-            )
-        }
-    }
-
-    private fun showTotalBalance(state: WalletsState) {
-        binding.totalBalanceFrame.isVisible = state.wallets.isNotEmpty()
-        val totalBalance = state.wallets.sumOf { it.wallet.balance.value }
-        val totalInCurrency = Amount(value = totalBalance).getCurrencyAmount()
-        val totalInBtc = Amount(value = totalBalance).getBTCAmount()
-        binding.totalBalanceView.isVisible = state.homeDisplaySetting.showTotalBalance
-        binding.totalBalanceView.setContent {
-            NunchukTheme {
-                TotalBalanceView(state.homeDisplaySetting.useLargeFont, totalInBtc, totalInCurrency, state.walletSecuritySetting.hideWalletDetail)
-            }
-        }
-    }
-
-    private fun showCampaign(
-        campaign: Campaign?,
-        isHasWallet: Boolean = false,
-        localReferrerCode: ReferrerCode?
-    ) {
-        binding.llCampaigns.isVisible =
-            campaign?.isValid() == true && campaign.isDismissed.not() && (campaign.type == CampaignType.DOWNLOAD || isHasWallet) && localReferrerCode?.status != CampaignStatus.COMPLETED
-        binding.tvCampaigns.text = campaign?.cta
-    }
-
-    private fun showConnectionBlockchainStatus(status: ConnectionStatus?, chain: Chain) {
-        binding.tvConnectionStatus.isVisible = status != null
-        when (status) {
-            ConnectionStatus.OFFLINE -> {
-                binding.tvConnectionStatus.text = getString(
-                    R.string.nc_text_home_wallet_connection,
-                    getString(R.string.nc_text_connection_status_offline),
-                    showChainText(chain)
-                )
-                TextViewCompat.setCompoundDrawableTintList(
-                    binding.tvConnectionStatus,
-                    ColorStateList.valueOf(
-                        ContextCompat.getColor(
-                            requireContext(),
-                            R.color.nc_color_connection_offline
-                        )
-                    )
-                )
-            }
-
-            ConnectionStatus.SYNCING -> {
-                binding.tvConnectionStatus.text = getString(
-                    R.string.nc_text_home_wallet_connection,
-                    getString(R.string.nc_text_connection_status_syncing),
-                    showChainText(chain)
-                )
-                TextViewCompat.setCompoundDrawableTintList(
-                    binding.tvConnectionStatus,
-                    ColorStateList.valueOf(
-                        ContextCompat.getColor(
-                            requireContext(),
-                            R.color.nc_color_connection_syncing
-                        )
-                    )
-                )
-            }
-
-            ConnectionStatus.ONLINE -> {
-                binding.tvConnectionStatus.text = getString(
-                    R.string.nc_text_home_wallet_connection,
-                    getString(R.string.nc_text_connection_status_online),
-                    showChainText(chain)
-                )
-                TextViewCompat.setCompoundDrawableTintList(
-                    binding.tvConnectionStatus,
-                    ColorStateList.valueOf(
-                        ContextCompat.getColor(
-                            requireContext(),
-                            R.color.nc_color_connection_online
-                        )
-                    )
-                )
-            }
-
-            else -> {}
-        }
-    }
-
-    private fun showChainText(chain: Chain): String {
-        return when (chain) {
-            Chain.TESTNET -> getString(R.string.nc_text_home_wallet_chain_testnet)
-            Chain.SIGNET -> getString(R.string.nc_text_home_wallet_chain_signet)
-            else -> ""
-        }
-    }
-
-    private fun showIntro(state: WalletsState) {
-        binding.introContainer.isGone = walletsViewModel.getGroupStage() == MembershipStage.DONE
-                || state.allGroups.isNotEmpty() || isShowEmptyState(state)
-        if (state.plans != null && state.plans.isEmpty() && state.banner != null) {
-            if (state.banner.type == Banner.Type.TYPE_01 && state.isHideUpsellBanner.not() && state.allGroups.isEmpty()) {
-                binding.containerNonSubscriber.isVisible = true
-            } else if (state.banner.type == Banner.Type.TYPE_REFERRAL_01) {
-                binding.containerNonSubscriber.isVisible = true
-                binding.tvNonSubscriberExpired.isVisible = true
-            } else {
-                binding.containerNonSubscriber.isVisible = false
-            }
-        } else {
-            binding.containerNonSubscriber.isVisible = false
-        }
-
-        if (state.plans != null) {
-            val walletName = state.assistedWallets.firstOrNull()
-                ?.let { wallet -> state.wallets.find { wallet.localId == it.wallet.id }?.wallet?.name.orEmpty() }
-            when {
-                state.plans.isNotEmpty() -> showAssistedWalletStart(
-                    state.remainingTime,
-                    walletName
-                )
-
-                else -> showNonSubscriberIntro(state.banner)
-            }
-        }
-    }
-
-    private fun showNonSubscriberIntro(banner: Banner?) {
-        if (banner != null) {
-            binding.containerNonSubscriber.tag = banner.id
-            Glide.with(binding.ivNonSubscriber)
-                .load(banner.content.imageUrl)
-                .override(binding.ivNonSubscriber.width)
-                .into(binding.ivNonSubscriber)
-            binding.tvNonSubscriber.text = banner.content.title
-            binding.tvNonSubscriberExpired.text = String.format(
-                getString(R.string.nc_banner_expired_time),
-                banner.payload.expiryAtMillis.formatMMMddyyyyDate
-            )
-        }
-    }
-
-    private fun showPendingWallet(state: WalletsState) {
-        val groupWalletUis = state.groupWalletUis
-        val useLargeFont = state.homeDisplaySetting.useLargeFont
-        val hideWalletDetail = state.walletSecuritySetting.hideWalletDetail
-        val assistedWallets = state.assistedWallets.associateBy { it.localId }
-        val deprecatedGroupWalletIds = state.deprecatedGroupWalletIds
-        binding.walletEmpty.isVisible = !state.isWalletLoading && groupWalletUis.isEmpty()
-        binding.pendingWallet.setContent {
-            NunchukTheme {
-                Column {
-                    groupWalletUis.forEach {
-                        val briefWallet = assistedWallets[it.wallet?.wallet?.id.orEmpty()]
-                        PendingWalletView(
-                            group = it.group,
-                            sandbox = it.sandbox,
-                            isSandboxWallet = it.isSandboxWallet,
-                            walletsExtended = it.wallet,
-                            inviterName = it.inviterName,
-                            isAssistedWallet = briefWallet?.status == WalletStatus.ACTIVE.name || it.isPendingPersonalWallet,
-                            hideWalletDetail = hideWalletDetail,
-                            badgeCount = it.badgeCount,
-                            primaryOwnerMember = it.primaryOwnerMember,
-                            role = it.role,
-                            status = it.keyStatus,
-                            signers = it.signers,
-                            useLargeFont = useLargeFont,
-                            walletStatus = briefWallet?.status,
-                            showShortcuts = state.homeDisplaySetting.showWalletShortcuts,
-                            onAccept = {
-                                it.group?.id?.let { groupId ->
-                                    walletsViewModel.acceptInviteMember(groupId, it.role)
-                                }
-                            },
-                            onDeny = {
-                                showDenyWalletDialog {
-                                    it.group?.id?.let {
-                                        walletsViewModel.denyInviteMember(it)
-                                    }
-                                }
-                            },
-                            onGroupClick = {
-                                if (it.group?.id != null && it.role.toRole.isKeyHolderLimited && it.badgeCount == 0) return@PendingWalletView
-                                navigator.openGroupDashboardScreen(
-                                    groupId = it.group?.id,
-                                    walletId = it.wallet?.wallet?.id,
-                                    activityContext = requireActivity()
-                                )
-                            },
-                            onWalletClick = {
-                                if (it.role == AssistedWalletRole.KEYHOLDER_LIMITED.name || it.group?.isLocked == true) return@PendingWalletView
-                                val walletId = it.wallet?.wallet?.id ?: return@PendingWalletView
-                                if (briefWallet?.status == WalletStatus.REPLACED.name && briefWallet.replaceByWalletId.isNotEmpty()
-                                    && groupWalletUis.any { ui -> ui.wallet?.wallet?.id == briefWallet.replaceByWalletId }
-                                ) {
-                                    showWalletReplacedDialog(
-                                        oldWalletId = walletId,
-                                        replaceByWalletId = briefWallet.replaceByWalletId
-                                    )
-                                } else {
-                                    openWalletDetailsScreen(walletId)
-                                }
-                            },
-                            onSendClick = {
-                                it.wallet?.let { wallet ->
-                                    walletsViewModel.getWalletDetail(wallet.wallet.id)
-                                }
-                            },
-                            onReceiveClick = {
-                                val walletId = it.wallet?.wallet?.id ?: return@PendingWalletView
-                                navigator.openReceiveTransactionScreen(requireActivity(), walletId)
-                            },
-                            onOpenFreeGroupWallet = {
-                                FreeGroupWalletActivity.start(requireActivity(), groupId = it.id)
-                            },
-                            isDeprecatedGroupWallet = deprecatedGroupWalletIds.contains(it.wallet?.wallet?.id)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                }
-            }
-        }
     }
 
     private fun openInputAmountScreen(walletExtended: WalletExtended, isLeaveRoom: Boolean) {

@@ -20,9 +20,8 @@
 package com.nunchuk.android.main.components.tabs.wallet
 
 import android.nfc.tech.IsoDep
-import androidx.lifecycle.asFlow
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.BaseNfcUseCase
@@ -55,9 +54,9 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GoToSatsCard
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.Loading
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.NeedSetupSatsCard
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.NfcLoading
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.None
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.SatsCardUsedUp
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEvent
+import com.nunchuk.android.model.ConnectionStatusHelper
 import com.nunchuk.android.model.DEFAULT_FEE
 import com.nunchuk.android.model.FreeRateOption
 import com.nunchuk.android.model.KeyPolicy
@@ -73,6 +72,7 @@ import com.nunchuk.android.model.isAllowSetupInheritance
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.model.wallet.WalletOrder
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.Chain
@@ -103,6 +103,8 @@ import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.GetUserSubscriptionUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.user.IsHideUpsellBannerUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletOrderListUseCase
+import com.nunchuk.android.usecase.wallet.InsertWalletOrderListUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -114,12 +116,17 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
@@ -171,8 +178,16 @@ internal class WalletsViewModel @Inject constructor(
     private val deeplinkHolder: DeeplinkHolder,
     private val getDeprecatedGroupWalletsUseCase: GetDeprecatedGroupWalletsUseCase,
     private val getDefaultFeeUseCase: GetDefaultFeeUseCase,
+    private val getWalletOrderListUseCase: GetWalletOrderListUseCase,
+    private val insertWalletOrderListUseCase: InsertWalletOrderListUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : NunchukViewModel<WalletsState, WalletsEvent>() {
+) : ViewModel() {
+    private val _state = MutableStateFlow(WalletsState())
+    val state = _state.asStateFlow()
+
+    private val _event = MutableSharedFlow<WalletsEvent>()
+    val event = _event.asSharedFlow()
+
     private val keyPolicyMap = hashMapOf<String, KeyPolicy>()
 
     val isShownNfcUniversal = isShowNfcUniversalUseCase(Unit)
@@ -188,32 +203,38 @@ internal class WalletsViewModel @Inject constructor(
 
     private var walletsRequestKey = ""
 
-    override val initialState = WalletsState()
+    private fun getState() = state.value
 
     private var loadWalletJob: Job? = null
+    private var insertWalletOrderJob: Job? = null
+
+    private val _walletOrderMap = getWalletOrderListUseCase(Unit)
+        .map { it.getOrDefault(emptyList()) }
+        .map { it.associateBy { order -> order.walletId } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
     init {
         viewModelScope.launch {
             getAssistedWalletsFlowUseCase(Unit).map { it.getOrElse { emptyList() } }
                 .distinctUntilChanged()
-                .collect {
-                    updateState { copy(assistedWallets = it) }
+                .collect { assistedWallets ->
+                    _state.update { it.copy(assistedWallets = assistedWallets) }
                     mapGroupWalletUi()
-                    checkWalletsRequestKey(it) {
-                        checkInheritance(it)
+                    checkWalletsRequestKey(assistedWallets) {
+                        checkInheritance(assistedWallets)
                         getKeyHealthStatus()
                     }
                 }
         }
         checkMemberMembership()
         viewModelScope.launch {
-            membershipStepManager.remainingTime.collect {
-                updateState { copy(remainingTime = it) }
+            membershipStepManager.remainingTime.collect { remainingTime ->
+                _state.update { it.copy(remainingTime = remainingTime) }
             }
         }
         viewModelScope.launch {
-            isHideUpsellBanner.collect {
-                updateState { copy(isHideUpsellBanner = it) }
+            isHideUpsellBanner.collect { isHideUpsellBanner ->
+                _state.update { it.copy(isHideUpsellBanner = isHideUpsellBanner) }
             }
         }
         viewModelScope.launch {
@@ -230,8 +251,8 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             getPersonalMembershipStepUseCase(Unit).map {
                 it.getOrElse { emptyList() }
-            }.distinctUntilChanged().collect {
-                updateState { copy(personalSteps = it) }
+            }.distinctUntilChanged().collect { personalSteps ->
+                _state.update { it.copy(personalSteps = personalSteps) }
                 mapGroupWalletUi()
             }
         }
@@ -301,7 +322,7 @@ internal class WalletsViewModel @Inject constructor(
         viewModelScope.launch {
             getGroupsUseCase(Unit).distinctUntilChanged().collect {
                 val groups = it.getOrDefault(emptyList())
-                updateState { copy(allGroups = groups) }
+                _state.update { it.copy(allGroups = groups) }
                 updateBadge()
                 getKeyHealthStatus()
                 mapGroupWalletUi()
@@ -309,10 +330,11 @@ internal class WalletsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             getWalletSecuritySettingUseCase(Unit)
-                .collect {
-                    updateState {
-                        copy(
-                            walletSecuritySetting = it.getOrNull() ?: WalletSecuritySetting.DEFAULT
+                .map { it.getOrNull() }
+                .collect { setting ->
+                    _state.update {
+                        it.copy(
+                            walletSecuritySetting = setting ?: WalletSecuritySetting.DEFAULT
                         )
                     }
                 }
@@ -324,7 +346,7 @@ internal class WalletsViewModel @Inject constructor(
         }
         getReferrerCode()
         viewModelScope.launch {
-            state.asFlow().map { it.plans.orEmpty().containsPersonalPlan() }
+            state.map { it.plans.orEmpty().containsPersonalPlan() }
                 .filter { true }
                 .distinctUntilChanged()
                 .collect {
@@ -336,16 +358,31 @@ internal class WalletsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             getHomeDisplaySettingUseCase(Unit)
-                .collect {
-                    updateState {
-                        copy(
-                            homeDisplaySetting = it.getOrNull() ?: HomeDisplaySetting()
+                .map { it.getOrDefault(HomeDisplaySetting()) }
+                .collect { setting ->
+                    _state.update {
+                        it.copy(
+                            homeDisplaySetting = setting
                         )
                     }
                 }
         }
         listenGroupSandbox()
         listenGroupDelete()
+        viewModelScope.launch {
+            getChainSettingFlowUseCase(Unit)
+                .map { it.getOrElse { Chain.MAIN } }
+                .distinctUntilChanged()
+                .collect { chain ->
+                    _state.update { it.copy(chain = chain) }
+                }
+        }
+        viewModelScope.launch {
+            ConnectionStatusHelper.blockChainStatus
+                .collect { syncStatus ->
+                    _state.update { it.copy(connectionStatus = syncStatus?.status) }
+                }
+        }
     }
 
     private fun listenGroupSandbox() {
@@ -354,7 +391,7 @@ internal class WalletsViewModel @Inject constructor(
                 if (groupSandbox.finalized) {
                     val pendingGroupSandboxes =
                         getState().pendingGroupSandboxes.filter { it.id != groupSandbox.id }
-                    updateState { copy(pendingGroupSandboxes = pendingGroupSandboxes) }
+                    _state.update { it.copy(pendingGroupSandboxes = pendingGroupSandboxes) }
                     retrieveData()
                 }
             }
@@ -366,7 +403,7 @@ internal class WalletsViewModel @Inject constructor(
             GroupDeleteListener.groupDeleteFlow.collect { groupId ->
                 val pendingGroupSandboxes =
                     getState().pendingGroupSandboxes.filter { it.id != groupId }
-                updateState { copy(pendingGroupSandboxes = pendingGroupSandboxes) }
+                _state.update { it.copy(pendingGroupSandboxes = pendingGroupSandboxes) }
                 mapGroupWalletUi()
             }
         }
@@ -377,13 +414,13 @@ internal class WalletsViewModel @Inject constructor(
         val groupId = deeplinkHolder.info?.groupId ?: return@launch
         joinFreeGroupWalletByIdUseCase(groupId)
             .onSuccess {
-                setEvent(WalletsEvent.JoinFreeGroupWalletSuccess(it.id))
+                _event.emit(WalletsEvent.JoinFreeGroupWalletSuccess(it.id))
             }.onFailure {
                 val errorCode = it.nativeErrorCode()
                 if (errorCode == NativeErrorCode.GROUP_WALLET_JOINED) {
-                    setEvent(WalletsEvent.JoinFreeGroupWalletSuccess(groupId))
+                    _event.emit(WalletsEvent.JoinFreeGroupWalletSuccess(groupId))
                 } else {
-                    setEvent(WalletsEvent.JoinFreeGroupWalletFailed)
+                    _event.emit(WalletsEvent.JoinFreeGroupWalletFailed)
                 }
             }
         deeplinkHolder.clearInfo()
@@ -391,18 +428,19 @@ internal class WalletsViewModel @Inject constructor(
 
     private fun getCampaign() {
         viewModelScope.launch {
-            getLocalCurrentCampaignUseCase(Unit).collect {
-                updateState { copy(campaign = it.getOrNull()) }
+            getLocalCurrentCampaignUseCase(Unit).map { it.getOrNull() }.collect { campaign ->
+                _state.update { it.copy(campaign = campaign) }
             }
         }
     }
 
     private fun getReferrerCode() {
         viewModelScope.launch {
-            getLocalReferrerCodeUseCase(Unit).distinctUntilChanged().collect {
-                updateState { copy(localReferrerCode = it.getOrNull()) }
-                getCurrentCampaignUseCase(GetCurrentCampaignUseCase.Param(accountManager.getAccount().email.ifEmpty { it.getOrNull()?.email }))
-            }
+            getLocalReferrerCodeUseCase(Unit).map { it.getOrNull() }.distinctUntilChanged()
+                .collect { localReferrerCode ->
+                    _state.update { it.copy(localReferrerCode = localReferrerCode) }
+                    getCurrentCampaignUseCase(GetCurrentCampaignUseCase.Param(accountManager.getAccount().email.ifEmpty { localReferrerCode?.email }))
+                }
         }
     }
 
@@ -456,19 +494,19 @@ internal class WalletsViewModel @Inject constructor(
                 if (getServerWalletResult.isFailure) return@launch
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())
-                updateState { copy(plans = subscription.plans) }
+                _state.update { it.copy(plans = subscription.plans) }
                 if (getServerWalletResult.isSuccess && getServerWalletResult.getOrThrow().isNeedReload) {
                     retrieveData()
                 } else {
                     mapGroupWalletUi()
                 }
             } else {
-                updateState { copy(plans = emptyList()) }
+                _state.update { it.copy(plans = emptyList()) }
             }
             if (result.getOrNull()?.plans.isNullOrEmpty()) {
                 val bannerResult = getBannerUseCase(Unit)
-                updateState {
-                    copy(banner = bannerResult.getOrNull())
+                _state.update {
+                    it.copy(banner = bannerResult.getOrNull())
                 }
             }
         }
@@ -484,19 +522,16 @@ internal class WalletsViewModel @Inject constructor(
                 )
             )
                 .onFailure {
-                    setEvent(ShowErrorEvent(it))
+                    _event.emit(ShowErrorEvent(it))
                 }
         }
     }
-
-    val chain = getChainSettingFlowUseCase(Unit).map { it.getOrElse { Chain.MAIN } }
-        .stateIn(viewModelScope, SharingStarted.Lazily, Chain.MAIN)
 
     fun retrieveData() {
         loadWalletJob?.cancel()
         loadWalletJob = viewModelScope.launch {
             if (getState().groupWalletUis.isEmpty()) {
-                updateState { copy(isWalletLoading = true) }
+                _state.update { it.copy(isWalletLoading = true) }
             }
             val walletsDeferred = async { getAllWalletsUseCase(Unit) }
             val pendingWalletsDeferred = async { getPendingGroupsSandboxUseCase(Unit) }
@@ -509,8 +544,8 @@ internal class WalletsViewModel @Inject constructor(
                 groupSandboxWalletsDeferred.await().getOrElse { emptyList() }.map { it.id }.toSet()
             val deprecatedGroupWalletIds =
                 deprecatedGroupWalletsDeferred.await().getOrElse { emptyList() }.toSet()
-            updateState {
-                copy(
+            _state.update {
+                it.copy(
                     pendingGroupSandboxes = pendingWallets.filter { !it.finalized },
                     groupSandboxWalletIds = groupSandboxWallets,
                     deprecatedGroupWalletIds = deprecatedGroupWalletIds,
@@ -532,13 +567,17 @@ internal class WalletsViewModel @Inject constructor(
         val alerts = getState().alerts
         val pendingGroupSandboxes = getState().pendingGroupSandboxes
         val groupSandboxWalletIds = getState().groupSandboxWalletIds
+        val walletOrderMap = _walletOrderMap.value
         val pendingGroup = groups.filter { it.isPendingWallet() }
         val isShowPendingPersonalWallet = getState().personalSteps.isNullOrEmpty().not()
         if (isShowPendingPersonalWallet) {
             results.add(GroupWalletUi(isPendingPersonalWallet = true))
         }
         results.addAll(pendingGroupSandboxes.map { GroupWalletUi(sandbox = it) })
-        wallets.forEach { wallet ->
+        wallets.sortedWith(
+            compareBy<WalletExtended>({ walletOrderMap[it.wallet.id]?.order ?: Int.MAX_VALUE })
+                .thenByDescending({ it.wallet.createDate })
+        ).forEach { wallet ->
             ensureActive()
             val assistedWallet = assistedWallets.find { it.localId == wallet.wallet.id }
             val groupId = assistedWallet?.groupId
@@ -603,12 +642,10 @@ internal class WalletsViewModel @Inject constructor(
         val (groupsWithNullWallet, groupsWithNonNullWallet) = results.partition { it.wallet == null }
         val sortedGroupsWithNullWallet =
             groupsWithNullWallet.sortedByDescending { it.group?.createdTimeMillis }
-        val sortedGroupsWithNonNullWallet =
-            groupsWithNonNullWallet.sortedByDescending { it.wallet?.wallet?.createDate }
-        val mergedSortedGroups = sortedGroupsWithNullWallet + sortedGroupsWithNonNullWallet
+        val mergedSortedGroups = sortedGroupsWithNullWallet + groupsWithNonNullWallet
 
         withContext(Main) {
-            updateState { copy(groupWalletUis = mergedSortedGroups) }
+            _state.update { it.copy(groupWalletUis = mergedSortedGroups) }
         }
     }
 
@@ -629,7 +666,7 @@ internal class WalletsViewModel @Inject constructor(
             isRetrievingAlert.set(false)
             if (result.isSuccess) {
                 val alerts = result.getOrDefault(hashMapOf())
-                updateState { copy(alerts = alerts) }
+                _state.update { it.copy(alerts = alerts) }
                 mapGroupWalletUi()
             }
         }
@@ -643,16 +680,16 @@ internal class WalletsViewModel @Inject constructor(
                 GetListGroupWalletKeyHealthStatusUseCase.Params(
                     getState().assistedWallets.map { it.groupId to it.localId }
                 )
-            ).onSuccess {
+            ).onSuccess { keyHealthStatus ->
                 isRetrievingKeyHealthStatus.set(false)
-                updateState { copy(keyHealthStatus = it) }
+                _state.update { it.copy(keyHealthStatus = keyHealthStatus) }
                 mapGroupWalletUi()
             }
         }
     }
 
-    fun handleAddWallet() {
-        event(AddWalletEvent)
+    fun handleAddWallet() = viewModelScope.launch {
+        _event.emit(AddWalletEvent)
     }
 
     fun hasWallet() = getState().wallets.isNotEmpty()
@@ -660,24 +697,24 @@ internal class WalletsViewModel @Inject constructor(
     fun getSatsCardStatus(isoDep: IsoDep?) {
         isoDep ?: return
         viewModelScope.launch {
-            setEvent(NfcLoading(true))
+            _event.emit(NfcLoading(true))
             val result = getNfcCardStatusUseCase(BaseNfcUseCase.Data(isoDep))
-            setEvent(NfcLoading(false))
+            _event.emit(NfcLoading(false))
             if (result.isSuccess) {
                 val status = result.getOrThrow()
                 if (status is TapSignerStatus) {
-                    setEvent(GetTapSignerStatusSuccess(status))
+                    _event.emit(GetTapSignerStatusSuccess(status))
                 } else if (status is SatsCardStatus) {
                     if (status.isUsedUp) {
-                        setEvent(SatsCardUsedUp(status.numberOfSlot))
+                        _event.emit(SatsCardUsedUp(status.numberOfSlot))
                     } else if (status.isNeedSetup) {
-                        setEvent(NeedSetupSatsCard(status))
+                        _event.emit(NeedSetupSatsCard(status))
                     } else {
-                        setEvent(GoToSatsCardScreen(status))
+                        _event.emit(GoToSatsCardScreen(status))
                     }
                 }
             } else {
-                setEvent(ShowErrorEvent(result.exceptionOrNull()))
+                _event.emit(ShowErrorEvent(result.exceptionOrNull()))
             }
         }
     }
@@ -718,15 +755,13 @@ internal class WalletsViewModel @Inject constructor(
 
     fun getPlans() = getState().plans
 
-    fun clearEvent() = event(None)
-
     fun acceptInviteMember(groupId: String, role: String) = viewModelScope.launch {
-        setEvent(Loading(true))
+        _event.emit(Loading(true))
         groupMemberAcceptRequestUseCase(groupId)
             .onSuccess {
                 val walletId = getState().assistedWallets.find { it.groupId == groupId }?.localId
                 val wallet = getState().wallets.find { it.wallet.id == walletId }
-                setEvent(
+                _event.emit(
                     WalletsEvent.AcceptWalletInvitationSuccess(
                         walletId,
                         groupId,
@@ -736,9 +771,9 @@ internal class WalletsViewModel @Inject constructor(
                 )
                 syncGroup()
             }.onFailure {
-                event(ShowErrorEvent(it))
+                _event.emit(ShowErrorEvent(it))
             }
-        setEvent(Loading(false))
+        _event.emit(Loading(false))
     }
 
     fun getWalletDetail(walletId: String) = viewModelScope.launch {
@@ -751,13 +786,13 @@ internal class WalletsViewModel @Inject constructor(
             }
     }
 
-    fun checkUserInRoom(walletExtended: WalletExtended) {
+    private fun checkUserInRoom(walletExtended: WalletExtended) {
         val roomWallet = walletExtended.roomWallet
-        if (roomWallet == null) {
-            setEvent(WalletsEvent.CheckLeaveRoom(false, walletExtended))
-            return
-        }
         viewModelScope.launch {
+            if (roomWallet == null) {
+                _event.emit(WalletsEvent.CheckLeaveRoom(false, walletExtended))
+                return@launch
+            }
             val result = withContext(ioDispatcher) {
                 sessionHolder.getSafeActiveSession()?.let {
                     val account = accountManager.getAccount()
@@ -765,7 +800,7 @@ internal class WalletsViewModel @Inject constructor(
                         ?.getRoomMember(account.chatId)
                 }
             }
-            setEvent(
+            _event.emit(
                 WalletsEvent.CheckLeaveRoom(
                     result?.membership == Membership.LEAVE,
                     walletExtended
@@ -778,9 +813,9 @@ internal class WalletsViewModel @Inject constructor(
         val result = groupMemberDenyRequestUseCase(groupId)
         if (result.isSuccess) {
             retrieveData()
-            event(WalletsEvent.DenyWalletInvitationSuccess)
+            _event.emit(WalletsEvent.DenyWalletInvitationSuccess)
         } else {
-            event(ShowErrorEvent(result.exceptionOrNull()))
+            _event.emit(ShowErrorEvent(result.exceptionOrNull()))
         }
     }
 
@@ -792,7 +827,27 @@ internal class WalletsViewModel @Inject constructor(
 
     fun getLocalReferrerCode() = getState().localReferrerCode
 
-    fun getBanner() = getState().banner
+    fun onMove(fromWalletId: String, toWalletId: String) {
+        val updatedList = getState().groupWalletUis.toMutableList()
+        val fromIndex = updatedList.indexOfFirst { it.wallet?.wallet?.id == fromWalletId }
+        val toIndex = updatedList.indexOfFirst { it.wallet?.wallet?.id == toWalletId }
+
+        if (fromIndex != -1 && toIndex != -1) {
+            val temp = updatedList[fromIndex]
+            updatedList[fromIndex] = updatedList[toIndex]
+            updatedList[toIndex] = temp
+            _state.update { it.copy(groupWalletUis = updatedList) }
+
+            val sortedWallets = updatedList.mapNotNull { it.wallet?.wallet?.id }
+            insertWalletOrderJob?.cancel()
+            insertWalletOrderJob = viewModelScope.launch {
+                val orders = sortedWallets.mapIndexed { index, walletId ->
+                    WalletOrder(walletId = walletId, order = index)
+                }
+                insertWalletOrderListUseCase(InsertWalletOrderListUseCase.Params(orders))
+            }
+        }
+    }
 
     private fun checkWalletsRequestKey(wallets: List<AssistedWalletBrief>, onConsumed: () -> Unit) {
         val key = wallets.joinToString { "${it.localId}_${it.groupId}" }

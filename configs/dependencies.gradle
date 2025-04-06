@@ -201,6 +201,7 @@ ext {
             'composelifecycle'       : "androidx.lifecycle:lifecycle-runtime-compose:2.6.2",
             "composeConstraintLayout": "androidx.constraintlayout:constraintlayout-compose:1.0.1",
             "navigationCompose"      : "androidx.navigation:navigation-compose:2.8.5",
+            "viewbindingCompose"     : "androidx.compose.ui:ui-viewbinding"
     ]
 
     googleScannerDeps = [

@@ -77,6 +77,7 @@ import com.skydoves.landscapist.glide.GlideImage
 
 @Composable
 fun PendingWalletView(
+    modifier: Modifier = Modifier,
     group: ByzantineGroup? = null,
     sandbox: GroupSandbox? = null,
     isSandboxWallet: Boolean = false,
@@ -104,7 +105,7 @@ fun PendingWalletView(
 ) {
     val isLimitAccess = isDeprecatedGroupWallet || isLimitAccess(group, role, walletStatus)
     Column(
-        modifier = Modifier
+        modifier = modifier
             .clip(shape = RoundedCornerShape(8.dp))
             .background(colorResource(id = R.color.nc_grey_light))
             .clickable(onClick = onWalletClick, enabled = walletsExtended != null)

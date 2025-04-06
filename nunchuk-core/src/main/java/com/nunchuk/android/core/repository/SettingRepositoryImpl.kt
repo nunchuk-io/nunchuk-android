@@ -29,18 +29,30 @@ import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.model.wallet.WalletOrder
+import com.nunchuk.android.persistence.dao.WalletOrderDao
+import com.nunchuk.android.persistence.entity.toDomain
+import com.nunchuk.android.persistence.entity.toEntity
 import com.nunchuk.android.repository.SettingRepository
 import com.nunchuk.android.type.Chain
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 internal class SettingRepositoryImpl @Inject constructor(
     private val ncDataStore: NcDataStore,
     private val ncEncryptedPreferences: NcEncryptedPreferences,
     private val gson: Gson,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val walletOrderDao: WalletOrderDao,
+    applicationScope: CoroutineScope
 ) : SettingRepository {
+    private val _chain = ncDataStore.chain
+        .stateIn(applicationScope, started = SharingStarted.Eagerly, initialValue = Chain.MAIN)
+
     override val syncEnable: Flow<Boolean>
         get() = ncDataStore.syncEnableFlow
 
@@ -48,7 +60,7 @@ internal class SettingRepositoryImpl @Inject constructor(
         get() = ncDataStore.isShowNfcUniversal
 
     override val chain: Flow<Chain>
-        get() = ncDataStore.chain
+        get() = _chain
 
     override val syncRoomSuccess: Flow<Boolean>
         get() = ncDataStore.syncRoomSuccess
@@ -154,7 +166,8 @@ internal class SettingRepositoryImpl @Inject constructor(
     override val defaultFee: Flow<Int>
         get() = ncDataStore.defaultFee
 
-    override fun getCustomPinConfig(decoyPin: String): Flow<Boolean> = ncDataStore.getCustomPinConfig(decoyPin)
+    override fun getCustomPinConfig(decoyPin: String): Flow<Boolean> =
+        ncDataStore.getCustomPinConfig(decoyPin)
 
     override suspend fun setCustomPinConfig(decoyPin: String, isEnable: Boolean) {
         ncDataStore.setCustomPinConfig(decoyPin, isEnable)
@@ -167,5 +180,17 @@ internal class SettingRepositoryImpl @Inject constructor(
     override fun getDarkMode(): Flow<Boolean?> = ncDataStore.isDarkMode
     override suspend fun setDefaultFree(fee: Int) {
         ncDataStore.setDefaultFee(fee)
+    }
+
+    override fun getAllWalletOrders(): Flow<List<WalletOrder>> {
+        val chatId = accountManager.getAccount().chatId
+        return walletOrderDao.getAll(chatId, _chain.value).map { it.map { entity -> entity.toDomain() } }
+    }
+
+    override suspend fun insertWalletOrders(orders: List<WalletOrder>) {
+        val chatId = accountManager.getAccount().chatId
+        val chain = _chain.value
+        val entities = orders.map { it.toEntity(chatId, chain) }
+        walletOrderDao.replaceWalletOrders(chatId, chain, entities)
     }
 }

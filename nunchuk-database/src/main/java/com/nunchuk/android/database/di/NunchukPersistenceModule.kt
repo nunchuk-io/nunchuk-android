@@ -37,6 +37,7 @@ import com.nunchuk.android.persistence.dao.RequestAddKeyDao
 import com.nunchuk.android.persistence.dao.SavedAddressDao
 import com.nunchuk.android.persistence.dao.SyncEventDao
 import com.nunchuk.android.persistence.dao.SyncFileDao
+import com.nunchuk.android.persistence.dao.WalletOrderDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -117,4 +118,9 @@ internal object NunchukPersistenceModule {
     @Singleton
     @Provides
     fun provideSavedAddressDao(database: NunchukDatabase): SavedAddressDao = database.savedAddressDao()
+
+    @Singleton
+    @Provides
+    fun provideWalletOrderDao(database: NunchukDatabase): WalletOrderDao =
+        database.walletOrderDao()
 }

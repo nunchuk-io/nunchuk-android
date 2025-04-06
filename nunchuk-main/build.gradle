@@ -58,4 +58,5 @@ dependencies {
     testImplementation otherTestDeps.junit
 
     implementation "com.airbnb.android:lottie-compose:6.1.0"
+    implementation "sh.calvin.reorderable:reorderable:2.4.3"
 }

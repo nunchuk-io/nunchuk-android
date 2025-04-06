@@ -37,6 +37,7 @@ import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.ConnectionStatus
 
 internal data class WalletsState(
@@ -59,9 +60,11 @@ internal data class WalletsState(
     val homeDisplaySetting: HomeDisplaySetting = HomeDisplaySetting(),
     val isLeaveRoom: Boolean = false,
     val pendingGroupSandboxes: List<GroupSandbox> = mutableListOf(),
-    val groupSandboxWalletIds : Set<String> = emptySet(),
-    val deprecatedGroupWalletIds : Set<String> = emptySet(),
-    val isWalletLoading: Boolean = false
+    val groupSandboxWalletIds: Set<String> = emptySet(),
+    val deprecatedGroupWalletIds: Set<String> = emptySet(),
+    val isWalletLoading: Boolean = true,
+    val chain: Chain = Chain.MAIN,
+    val hasSigner: Boolean = false,
 )
 
 internal sealed class WalletsEvent {
@@ -102,4 +105,7 @@ internal data class GroupWalletUi(
     val signers: List<SignerModel> = emptyList(),
     val isPendingPersonalWallet: Boolean = false,
     val isSandboxWallet: Boolean = false,
-)
+) {
+    val id: String
+        get() = wallet?.wallet?.id ?: group?.id ?: sandbox?.id ?: ""
+}

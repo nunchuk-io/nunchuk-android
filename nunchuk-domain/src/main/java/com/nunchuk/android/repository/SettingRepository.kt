@@ -25,6 +25,7 @@ import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.model.wallet.WalletOrder
 import com.nunchuk.android.type.Chain
 import kotlinx.coroutines.flow.Flow
 
@@ -65,4 +66,6 @@ interface SettingRepository {
     suspend fun setDarkMode(isDarkMode: Boolean?)
     fun getDarkMode(): Flow<Boolean?>
     suspend fun setDefaultFree(fee: Int)
+    fun getAllWalletOrders(): Flow<List<WalletOrder>>
+    suspend fun insertWalletOrders(orders: List<WalletOrder>)
 }

@@ -1,0 +1,63 @@
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container_non_subscriber"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/nc_fill_beewax"
+    android:paddingHorizontal="@dimen/nc_padding_16"
+    android:paddingVertical="@dimen/nc_padding_12"
+    android:visibility="gone"
+    app:layout_constraintTop_toBottomOf="@+id/toolbar"
+    tools:visibility="visible">
+
+    <ImageView
+        android:id="@+id/iv_non_subscriber"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center_vertical"
+        android:src="@drawable/ic_banner_one"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_non_subscriber"
+        style="@style/NCText.Title.Small"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginHorizontal="@dimen/nc_padding_12"
+        android:layout_weight="1"
+        app:layout_constraintEnd_toStartOf="@+id/iv_non_subscriber_action"
+        app:layout_constraintStart_toEndOf="@+id/iv_non_subscriber"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Improve your security, plan your inheritance, set up scheduled payments, and do much more." />
+
+    <TextView
+        android:id="@+id/tv_non_subscriber_expired"
+        style="@style/NCText.Body.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/nc_bg_referral_banner_expire"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="1dp"
+        android:textSize="10sp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="@+id/tv_non_subscriber"
+        app:layout_constraintTop_toBottomOf="@+id/tv_non_subscriber"
+        tools:text="Expires July 30th, 2024"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/iv_non_subscriber_action"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:src="@drawable/ic_arrow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>
