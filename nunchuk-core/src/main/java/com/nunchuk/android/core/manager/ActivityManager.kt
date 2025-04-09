@@ -58,6 +58,10 @@ object ActivityManager : Application.ActivityLifecycleCallbacks {
         }
     }
 
+    fun <T : Activity> hasActivity(clazz: Class<T>): Boolean {
+        return activityStack.any { it.javaClass == clazz }
+    }
+
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         activityStack.push(activity)
     }

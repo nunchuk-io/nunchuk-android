@@ -22,18 +22,17 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.usecase.GetWalletsUseCase
-import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class InheritanceClaimNoteViewModel @Inject constructor(
-    private val getWalletsUseCase: GetWalletsUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -55,15 +54,6 @@ class InheritanceClaimNoteViewModel @Inject constructor(
                 _state.value.inheritanceAdditional?.balance ?: 0.0
             )
         )
-    }
-
-    fun checkWallet() = viewModelScope.launch {
-        getWalletsUseCase.execute().flowOn(Dispatchers.IO)
-            .onException { _event.emit(InheritanceClaimNoteEvent.Error(it.message.orUnknownError())) }
-            .flowOn(Dispatchers.Main)
-            .collect {
-                _event.emit(InheritanceClaimNoteEvent.CheckHasWallet(it.isNotEmpty()))
-            }
     }
 
     fun getBalance() = _state.value.inheritanceAdditional?.balance ?: 0.0

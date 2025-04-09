@@ -25,16 +25,46 @@ import android.util.TypedValue
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
+import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
+import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.qr.startQRCodeScan
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.util.BTC_SATOSHI_EXCHANGE_RATE
+import com.nunchuk.android.core.util.LOCAL_CURRENCY
+import com.nunchuk.android.core.util.SelectWalletType
+import com.nunchuk.android.core.util.USD_CURRENCY
+import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.formatCurrencyDecimal
+import com.nunchuk.android.core.util.formatDecimal
+import com.nunchuk.android.core.util.formatDecimalWithoutZero
+import com.nunchuk.android.core.util.fromBTCToCurrency
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getTextBtcUnit
+import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.util.setUnderline
+import com.nunchuk.android.core.util.toAmount
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.*
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.AcceptAmountEvent
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.InsufficientFundsEvent
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.InsufficientFundsLockedCoinEvent
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.Loading
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.ParseBtcUriSuccess
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.ShowError
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
 import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
 import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCInfoDialog
@@ -47,7 +77,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlin.math.abs
 
 @AndroidEntryPoint
-class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>() {
+class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(), BottomSheetOptionListener {
 
     private val args: InputAmountArgs by lazy { InputAmountArgs.deserializeFrom(intent) }
 
@@ -76,6 +106,8 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
     }
 
     private fun setupViews() {
+        if (isClaimInheritanceFlow()) binding.toolbarTitle.text =
+            getString(R.string.nc_withdraw_a_custom_amount)
         binding.btnSendAll.setUnderline()
         binding.btnSwitch.setUnderline()
         binding.toolbar.setNavigationOnClickListener {
@@ -101,7 +133,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             if ((args.inputs.isNotEmpty() && args.inputs.any { it.isLocked }) || (args.inputs.isEmpty() && viewModel.isHasLockedCoin())) {
                 showUnlockCoinBeforeSend()
             } else {
-                showAmount(if(viewModel.getUseBTC()) args.availableAmount else args.availableAmount.fromBTCToCurrency())
+                showAmount(if (viewModel.getUseBTC()) args.availableAmount else args.availableAmount.fromBTCToCurrency())
             }
         }
         binding.btnSwitch.setOnClickListener { viewModel.switchCurrency() }
@@ -149,6 +181,31 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         }
     }
 
+    override fun onOptionClicked(option: SheetOption) {
+        if (option.type == SheetOptionType.TYPE_SWEEP_TO_WALLET) {
+            viewModel.checkWallet()
+        } else if (option.type == SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS) {
+            openSweepRecipeScreen()
+        }
+    }
+
+    private fun openSweepRecipeScreen() {
+        val amount = viewModel.getAmountBtc()
+        val sweepType = SweepType.SWEEP_TO_EXTERNAL_ADDRESS
+        val totalBalance = amount * BTC_SATOSHI_EXCHANGE_RATE
+        val totalInBtc = Amount(value = totalBalance.toLong()).pureBTC()
+        navigator.openAddReceiptScreen(
+            activityContext = this,
+            walletId = "",
+            outputAmount = totalInBtc,
+            availableAmount = totalInBtc,
+            subtractFeeFromAmount = true,
+            slots = emptyList(),
+            sweepType = sweepType,
+            claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(customAmount = amount)
+        )
+    }
+
     private fun showUnlockCoinBeforeSend() {
         NCInfoDialog(this)
             .showDialog(message = getString(R.string.nc_send_all_locked_coin_msg))
@@ -194,7 +251,14 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
     private fun handleEvent(event: InputAmountEvent) {
         when (event) {
             is SwapCurrencyEvent -> showAmount(event.amount)
-            is AcceptAmountEvent -> openAddReceiptScreen(event.amount)
+            is AcceptAmountEvent -> {
+                if (isClaimInheritanceFlow()) {
+                    showSweepOptions()
+                } else {
+                    openAddReceiptScreen(event.amount)
+                }
+            }
+
             InsufficientFundsEvent -> {
                 if (args.inputs.isNotEmpty()) {
                     NCToastMessage(this).showError(getString(R.string.nc_send_amount_too_large))
@@ -214,7 +278,38 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             is ShowError -> NCToastMessage(this).showError(event.message)
             is Loading -> showOrHideLoading(event.isLoading)
             InsufficientFundsLockedCoinEvent -> showUnlockCoinBeforeSend()
+            is InputAmountEvent.CheckHasWallet -> {
+                if (event.isHasWallet) {
+                    navigator.openSelectWalletScreen(
+                        activityContext = this,
+                        slots = emptyList(),
+                        type = SelectWalletType.TYPE_INHERITANCE_WALLET,
+                        claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(customAmount = viewModel.getAmountBtc())
+                    )
+                } else {
+                    navigator.openWalletIntermediaryScreen(this, quickWalletParam = QuickWalletParam(claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(customAmount = viewModel.getAmountBtc())))
+                }
+            }
         }
+    }
+
+    private fun showSweepOptions() {
+        (supportFragmentManager.findFragmentByTag("BottomSheetOption") as? DialogFragment)?.dismiss()
+        val dialog = BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    SheetOptionType.TYPE_SWEEP_TO_WALLET,
+                    R.drawable.ic_wallet_info,
+                    R.string.nc_withdraw_nunchuk_wallet
+                ),
+                SheetOption(
+                    SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS,
+                    R.drawable.ic_sending_bitcoin,
+                    R.string.nc_withdraw_to_an_address
+                ),
+            )
+        )
+        dialog.show(supportFragmentManager, "BottomSheetOption")
     }
 
     private fun showAmount(amount: Double) {
@@ -231,6 +326,10 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         )
     }
 
+    private fun isClaimInheritanceFlow(): Boolean {
+        return args.claimInheritanceTxParam != null
+    }
+
     companion object {
 
         fun start(
@@ -238,14 +337,16 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             roomId: String = "",
             walletId: String,
             availableAmount: Double,
-            inputs: List<UnspentOutput> = emptyList()
+            inputs: List<UnspentOutput> = emptyList(),
+            claimInheritanceTxParam: ClaimInheritanceTxParam? = null
         ) {
             activityContext.startActivity(
                 InputAmountArgs(
                     roomId = roomId,
                     walletId = walletId,
                     availableAmount = availableAmount,
-                    inputs = inputs
+                    inputs = inputs,
+                    claimInheritanceTxParam = claimInheritanceTxParam
                 ).buildIntent(activityContext)
             )
         }

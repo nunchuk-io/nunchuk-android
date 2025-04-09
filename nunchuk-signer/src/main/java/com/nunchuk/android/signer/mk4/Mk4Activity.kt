@@ -26,10 +26,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,6 +56,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
     val backUpFileName by lazy { intent.getStringExtra(EXTRA_BACK_UP_FILE_NAME).orEmpty() }
     val isFromAddKey by lazy { intent.getBooleanExtra(EXTRA_IS_FROM_ADD_KEY, false) }
     val isMembershipFlow by lazy { intent.getBooleanExtra(EXTRA_IS_MEMBERSHIP_FLOW, false) }
+    val quickWalletParam by lazy { intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM) }
 
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater).also {
@@ -126,6 +129,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
         private const val EXTRA_KEY_NAME = "key_name"
         private const val EXTRA_BACK_UP_FILE_NAME = "back_up_file_name"
         private const val EXTRA_IS_FROM_ADD_KEY = "is_from_add_key"
+        private const val EXTRA_QUICK_WALLET_PARAM = "quick_wallet_param"
 
         /**
          * @param signerType, backUpFilePath, keyId, keyName are used for the backup flow
@@ -145,7 +149,8 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             keyId: String? = null,
             keyName: String? = null,
             backUpFileName: String? = null,
-            isFromAddKey: Boolean = false
+            isFromAddKey: Boolean = false,
+            quickWalletParam: QuickWalletParam? = null
         ) {
             activity.startActivity(
                 buildIntent(
@@ -163,7 +168,8 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
                     keyId = keyId,
                     keyName = keyName,
                     backUpFileName = backUpFileName,
-                    isFromAddKey = isFromAddKey
+                    isFromAddKey = isFromAddKey,
+                    quickWalletParam = quickWalletParam
                 )
             )
         }
@@ -183,7 +189,8 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             keyId: String? = null,
             keyName: String? = null,
             backUpFileName: String? = null,
-            isFromAddKey: Boolean = false
+            isFromAddKey: Boolean = false,
+            quickWalletParam: QuickWalletParam? = null
         ): Intent {
             return Intent(activity, Mk4Activity::class.java).apply {
                 putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
@@ -200,6 +207,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
                 putExtra(EXTRA_KEY_NAME, keyName)
                 putExtra(EXTRA_BACK_UP_FILE_NAME, backUpFileName)
                 putExtra(EXTRA_IS_FROM_ADD_KEY, isFromAddKey)
+                putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
             }
         }
     }

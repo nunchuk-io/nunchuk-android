@@ -22,6 +22,7 @@ package com.nunchuk.android.signer.nav
 import android.app.Activity
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.nav.NfcNavigator
 import com.nunchuk.android.share.ColdcardAction
@@ -46,7 +47,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
         keyName: String?,
         xfp: String?,
         backUpFileName: String?,
-        isFromAddKey: Boolean
+        isFromAddKey: Boolean,
+        quickWalletParam: QuickWalletParam?
     ) {
         Mk4Activity.navigate(
             activity = activity,
@@ -63,7 +65,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
             keyName = keyName,
             xfp = xfp,
             backUpFileName = backUpFileName,
-            isFromAddKey = isFromAddKey
+            isFromAddKey = isFromAddKey,
+            quickWalletParam = quickWalletParam,
         )
     }
 

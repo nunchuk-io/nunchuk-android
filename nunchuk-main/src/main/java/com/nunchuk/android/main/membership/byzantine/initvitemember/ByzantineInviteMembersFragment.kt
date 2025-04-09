@@ -88,6 +88,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardViewModel
 import com.nunchuk.android.main.membership.byzantine.selectrole.ByzantineSelectRoleFragment
@@ -97,7 +98,6 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.toGroupWalletType
 import com.nunchuk.android.model.byzantine.toTitle
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.serializable
@@ -107,7 +107,6 @@ import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ByzantineInviteMembersFragment : MembershipFragment() {
@@ -198,7 +197,8 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                         groupStep = MembershipStage.NONE,
                         groupId = event.groupId,
                         isPersonalWallet = false,
-                        walletType = args.groupType.toGroupWalletType()
+                        walletType = args.groupType.toGroupWalletType(),
+                        quickWalletParam = (requireActivity() as? MembershipActivity)?.quickWalletParam
                     )
                     requireActivity().finish()
                 }

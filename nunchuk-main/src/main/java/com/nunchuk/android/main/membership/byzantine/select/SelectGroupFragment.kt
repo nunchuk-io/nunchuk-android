@@ -53,6 +53,7 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.wallet.WalletOption
@@ -84,7 +85,8 @@ class SelectGroupFragment : MembershipFragment() {
                                     activityContext = requireActivity(),
                                     groupStep = MembershipStage.NONE,
                                     isPersonalWallet = true,
-                                    walletType = option.walletType
+                                    walletType = option.walletType,
+                                    quickWalletParam = (requireActivity() as? MembershipActivity)?.quickWalletParam
                                 )
                                 requireActivity().finish()
                             } else {

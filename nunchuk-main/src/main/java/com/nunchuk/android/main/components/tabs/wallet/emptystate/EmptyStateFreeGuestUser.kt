@@ -19,7 +19,7 @@ class EmptyStateFreeGuestUser(
                 instructions = emptyList(),
                 buttonText = activityContext.getString(R.string.nc_text_create_new_wallet),
                 buttonAction = {
-                    navigator.openWalletIntermediaryScreen(activityContext, true)
+                    navigator.openWalletIntermediaryScreen(activityContext)
                 },
                 imageResId = if (isDark) R.drawable.bg_empty_state_free_account_dark else R.drawable.bg_empty_state_free_account,
                 backgroundColor = ContextCompat.getColor(activityContext, R.color.nc_fill_denim)
@@ -58,7 +58,7 @@ class EmptyStateFreeGuestUser(
             KeyWalletEntryData(
                 title = activityContext.getString(R.string.nc_create_hot_wallet),
                 buttonAction = {
-                    navigator.openHotWalletScreen(null, activityContext, false)
+                    navigator.openHotWalletScreen(null, activityContext)
                 },
                 iconResId = R.drawable.ic_hot_wallet_empty_state
             ),
@@ -66,7 +66,6 @@ class EmptyStateFreeGuestUser(
                 title = activityContext.getString(R.string.nc_text_recover_wallet),
                 buttonAction = {
                     navigator.openWalletIntermediaryScreen(activityContext,
-                        hasSigner = false,
                         isHideAddKeyDialog = false
                     )
                 },

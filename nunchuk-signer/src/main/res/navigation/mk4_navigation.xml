@@ -62,6 +62,13 @@
             android:name="is_add_inheritance_key"
             android:defaultValue="false"
             app:argType="boolean" />
+
+        <argument
+            android:name="quick_wallet_param"
+            android:defaultValue="@null"
+            app:nullable="true"
+            app:argType="com.nunchuk.android.core.data.model.QuickWalletParam" />
+
     </fragment>
     <fragment
         android:id="@+id/coldcardRecoverFragment"

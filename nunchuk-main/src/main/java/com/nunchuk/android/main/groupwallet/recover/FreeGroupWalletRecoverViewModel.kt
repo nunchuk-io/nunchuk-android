@@ -105,9 +105,9 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
         val allSigners = getNewAllSigner()
         val oldAllSigners = _uiState.value.allSigners
         val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: -1
-        Timber.tag("recover-group-wallet").e("Old all signers: ${oldAllSigners.size} - New all signers: ${allSigners.size}")
+        Timber.tag(TAG).e("Old all signers: ${oldAllSigners.size} - New all signers: ${allSigners.size}")
         if (index == -1) {
-            Timber.tag("recover-group-wallet").e("All signers size is the same")
+            Timber.tag(TAG).e("All signers size is the same")
 
             val existingSigners = newWalletSigners.filter { signer ->
                 allSigners.any { it.fingerPrint == signer.fingerPrint }
@@ -132,7 +132,7 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
             loadSupportedSigners()
         } else {
             if ((allSigners.isEmpty() && oldAllSigners.isEmpty()).not() && oldAllSigners.size != allSigners.size) {
-                Timber.tag("recover-group-wallet").e("All signers size is different")
+                Timber.tag(TAG).e("All signers size is different")
                 val newSigner = allSigners.find { signer ->
                     oldAllSigners.none { it.fingerPrint == signer.fingerPrint }
                 }
@@ -147,7 +147,7 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
         val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: -1
         val allSigners = getNewAllSigner()
         if ((allSigners.isEmpty() && oldAllSigners.isEmpty()).not() && index != -1 && oldAllSigners.size == allSigners.size) { // handle case add existing signer
-            Timber.tag("recover-group-wallet").e("All signers size is the same")
+            Timber.tag(TAG).e("All signers size is the same")
             val newSigner = addedSigner.toModel()
             handleAddedSigner(newSigner, index)
         }
@@ -156,9 +156,9 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
     private fun handleAddedSigner(newSigner: SignerModel?, index: Int) {
         newSigner?.let {
             val selectSigner = _uiState.value.signerUis.find { it.index == index }?.signer
-            Timber.tag("recover-group-wallet").e("New signer found: $it")
+            Timber.tag(TAG).e("New signer found: $it")
             if (selectSigner?.fingerPrint == newSigner.fingerPrint) {
-                Timber.tag("recover-group-wallet").e("New signer is selected")
+                Timber.tag(TAG).e("New signer is selected")
                 val signerUi = SignerModelRecoverUi(signer = newSigner, index = index, isInDevice = true)
                 val signers = _uiState.value.signerUis.toMutableList()
                 signers[index] = signerUi
@@ -190,7 +190,7 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
     }
 
     fun recoverGroupWallet() {
-        Timber.tag("recover-group-wallet").e( "Recover group wallet")
+        Timber.tag(TAG).e( "Recover group wallet")
         viewModelScope.launch {
             recoverGroupWalletUseCase(
                 RecoverGroupWalletUseCase.Params(
@@ -198,10 +198,10 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
                     filePath = filePath
                 )
             ).onSuccess {
-                Timber.tag("recover-group-wallet").e("Recover group wallet success")
+                Timber.tag(TAG).e("Recover group wallet success")
                 _uiState.update {  it.copy(event = FreeGroupWalletRecoverEvent.RecoverSuccess(walletName = _uiState.value.wallet?.name.orEmpty())) }
             }.onFailure { error ->
-                Timber.tag("recover-group-wallet").e("Recover group wallet failed: $error")
+                Timber.tag(TAG).e("Recover group wallet failed: $error")
                 deleteWallet()
                 _uiState.update { it.copy(errorMessage = error.readableMessage()) }
             }
@@ -221,7 +221,7 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
     }
 
     fun setCurrentSignerIndex(index: Int) {
-        Timber.tag("recover-group-wallet").e( "Set current signer index $index")
+        Timber.tag(TAG).e( "Set current signer index $index")
         savedStateHandle[CURRENT_SIGNER_INDEX] = index
     }
 
@@ -237,6 +237,7 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
     }
 
     companion object {
+        private const val TAG = "recover-group-wallet"
         private const val CURRENT_SIGNER_INDEX = "current_signer_index"
     }
 }

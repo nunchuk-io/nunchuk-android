@@ -252,6 +252,8 @@ data class InheritanceClaimCreateTransactionRequest(
         val address: String? = null,
         @SerializedName("fee_rate")
         val feeRate: String? = null,
+        @SerializedName("amount")
+        val amount: Double? = null,
     )
 }
 

@@ -22,6 +22,7 @@ package com.nunchuk.android.wallet.nav
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.data.model.WalletConfigViewOnlyDataComposer
 import com.nunchuk.android.core.qr.DynamicQRCodeActivity
 import com.nunchuk.android.model.KeyPolicy
@@ -61,7 +62,8 @@ interface WalletNavigatorDelegate : WalletNavigator {
         activityContext: Context,
         launcher: ActivityResultLauncher<Intent>?,
         decoyPin: String, groupWalletId: String, hasGroupSigner: Boolean,
-        walletConfigViewOnlyDataComposer: WalletConfigViewOnlyDataComposer?
+        walletConfigViewOnlyDataComposer: WalletConfigViewOnlyDataComposer?,
+        quickWalletParam: QuickWalletParam?
     ) {
         AddWalletActivity.start(
             activityContext = activityContext,
@@ -69,23 +71,41 @@ interface WalletNavigatorDelegate : WalletNavigator {
             decoyPin = decoyPin,
             groupWalletId = groupWalletId,
             hasGroupSigner = hasGroupSigner,
-            viewOnlyComposer = walletConfigViewOnlyDataComposer
+            viewOnlyComposer = walletConfigViewOnlyDataComposer,
+            quickWalletParam = quickWalletParam
         )
     }
 
-    override fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean, isHideAddKeyDialog: Boolean) {
-        WalletIntermediaryActivity.start(activityContext, hasSigner, isHideAddKeyDialog)
+    override fun openWalletIntermediaryScreen(
+        activityContext: Context,
+        isHideAddKeyDialog: Boolean,
+        quickWalletParam: QuickWalletParam?
+    ) {
+        WalletIntermediaryActivity.start(
+            activityContext,
+            isHideAddKeyDialog,
+            quickWalletParam
+        )
     }
 
-    override fun openAddRecoverWalletScreen(activityContext: Context, data: RecoverWalletData) {
-        AddRecoverWalletActivity.start(activityContext, data)
+    override fun openAddRecoverWalletScreen(
+        activityContext: Context,
+        data: RecoverWalletData,
+        quickWalletParam: QuickWalletParam?
+    ) {
+        AddRecoverWalletActivity.start(activityContext, data, quickWalletParam)
     }
 
     override fun openRecoverWalletQRCodeScreen(
         activityContext: Context,
         isCollaborativeWallet: Boolean,
+        quickWalletParam: QuickWalletParam?,
     ) {
-        RecoverWalletQrCodeActivity.start(activityContext, isCollaborativeWallet)
+        RecoverWalletQrCodeActivity.start(
+            activityContext,
+            isCollaborativeWallet,
+            quickWalletParam = quickWalletParam
+        )
     }
 
     override fun openParseWalletQRCodeScreen(
@@ -234,6 +254,7 @@ interface WalletNavigatorDelegate : WalletNavigator {
         addressType: AddressType,
         decoyPin: String,
         groupSandboxId: String,
+        quickWalletParam: QuickWalletParam?,
     ) {
         TaprootActivity.start(
             activityContext = activityContext,
@@ -241,7 +262,8 @@ interface WalletNavigatorDelegate : WalletNavigator {
             walletType = walletType,
             addressType = addressType,
             decoyPin = decoyPin,
-            groupSandboxId = groupSandboxId
+            groupSandboxId = groupSandboxId,
+            quickWalletParam = quickWalletParam
         )
     }
 

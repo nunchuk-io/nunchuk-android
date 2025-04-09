@@ -280,7 +280,8 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
             requireActivity(), RecoverWalletData(
                 type = RecoverWalletType.COLDCARD,
                 walletId = walletId
-            )
+            ),
+            quickWalletParam = (requireActivity() as Mk4Activity).quickWalletParam
         )
         requireActivity().finish()
     }

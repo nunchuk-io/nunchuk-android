@@ -170,6 +170,7 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
                 decoyPin = args.decoyPin,
                 totalRequireSigns = totalRequireSigns,
                 signers = signers,
+                quickWalletParam = args.quickWalletParam,
             )
         )
     }

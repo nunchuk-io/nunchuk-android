@@ -53,7 +53,8 @@ interface TransactionNavigator {
         roomId: String = "",
         walletId: String,
         availableAmount: Double,
-        inputs: List<UnspentOutput> = emptyList()
+        inputs: List<UnspentOutput> = emptyList(),
+        claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
     )
 
     fun openAddReceiptScreen(

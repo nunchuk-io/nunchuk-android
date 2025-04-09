@@ -35,6 +35,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.base.BaseCameraFragment
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.portal.PortalDeviceArgs
@@ -75,13 +76,11 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
     lateinit var signInModeHolder: SignInModeHolder
 
     private val viewModel: WalletIntermediaryViewModel by viewModels()
-    private val isQuickWallet: Boolean by lazy {
-        requireActivity().intent.getBooleanExtra(
-            "is_quick_wallet",
-            false
+    private val quickWalletParam: QuickWalletParam? by lazy {
+        requireActivity().intent.parcelable<QuickWalletParam>(
+            WalletIntermediaryActivity.EXTRA_QUICK_WALLET_PARAM
         )
     }
-
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
@@ -92,11 +91,11 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
             }
         }
 
-    private val hasSigner
-        get() = requireArguments().getBoolean(WalletIntermediaryActivity.EXTRA_HAS_SIGNER, false)
-
     private val isHideAddKeyDialog
-        get() = requireArguments().getBoolean(WalletIntermediaryActivity.EXTRA_IS_HIDE_ADD_KEY_DIALOG, false)
+        get() = requireArguments().getBoolean(
+            WalletIntermediaryActivity.EXTRA_IS_HIDE_ADD_KEY_DIALOG,
+            false
+        )
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -123,7 +122,11 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                     },
                     onScanQRClicked = {
                         checkRunOutGroupWallet {
-                            navigator.openScanQrCodeScreen(requireActivity(), true)
+                            navigator.openScanQrCodeScreen(
+                                requireActivity(),
+                                true,
+                                quickWalletParam = quickWalletParam
+                            )
                         }
                     },
                     onJoinGroupWalletClicked = {
@@ -138,7 +141,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.init(isQuickWallet)
+        viewModel.init(quickWalletParam != null)
         observer()
 
         childFragmentManager.setFragmentResultListener(
@@ -166,9 +169,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
             }
 
             WalletType.CUSTOM -> {
-                if (isQuickWallet) {
-                    navigator.openCreateNewSeedScreen(this, true)
-                } else if (hasSigner) {
+                if (viewModel.hasSigner) {
                     openCreateNewWalletScreen()
                 } else {
                     openWalletEmptySignerScreen()
@@ -176,12 +177,19 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
             }
 
             WalletType.HOT -> {
-                navigator.openHotWalletScreen(launcher, requireActivity(), isQuickWallet)
+                navigator.openHotWalletScreen(
+                    launcher,
+                    requireActivity(),
+                    quickWalletParam = quickWalletParam
+                )
             }
 
             WalletType.GROUP -> {
                 checkRunOutGroupWallet {
-                    navigator.openFreeGroupWalletScreen(requireActivity())
+                    navigator.openFreeGroupWalletScreen(
+                        requireActivity(),
+                        quickWalletParam = quickWalletParam
+                    )
                 }
             }
 
@@ -216,11 +224,17 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
             SheetOptionType.IMPORT_MULTI_SIG_COLD_CARD -> navigator.openSetupMk4(
-                requireActivity(), false, ColdcardAction.RECOVER_MULTI_SIG_WALLET
+                requireActivity(),
+                false,
+                ColdcardAction.RECOVER_MULTI_SIG_WALLET,
+                quickWalletParam = quickWalletParam
             )
 
             SheetOptionType.IMPORT_SINGLE_SIG_COLD_CARD -> navigator.openSetupMk4(
-                requireActivity(), false, ColdcardAction.RECOVER_SINGLE_SIG_WALLET
+                requireActivity(),
+                false,
+                ColdcardAction.RECOVER_SINGLE_SIG_WALLET,
+                quickWalletParam = quickWalletParam
             )
 
             SheetOptionType.TYPE_GROUP_WALLET -> {
@@ -293,11 +307,20 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                 }
 
                 is WalletIntermediaryEvent.JoinGroupWalletSuccess -> {
-                    navigator.openFreeGroupWalletScreen(requireActivity(), groupId = event.groupId)
+                    navigator.openFreeGroupWalletScreen(
+                        requireActivity(),
+                        groupId = event.groupId,
+                        quickWalletParam = quickWalletParam
+                    )
                 }
 
                 is WalletIntermediaryEvent.ImportWalletSuccessEvent -> {
-                    navigator.openFreeGroupWalletRecoverScreen(requireActivity(), event.wallet.id, event.path)
+                    navigator.openFreeGroupWalletRecoverScreen(
+                        requireActivity(),
+                        event.wallet.id,
+                        event.path,
+                        quickWalletParam = quickWalletParam
+                    )
                     requireActivity().finish()
                 }
             }
@@ -342,7 +365,8 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                     requireActivity(), RecoverWalletData(
                         type = RecoverWalletType.FILE,
                         filePath = it.path
-                    )
+                    ),
+                    quickWalletParam = quickWalletParam
                 )
                 requireActivity().finish()
             }
@@ -350,7 +374,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
     }
 
     private fun openCreateNewWalletScreen() {
-        navigator.openAddWalletScreen(requireContext())
+        navigator.openAddWalletScreen(requireContext(), quickWalletParam = quickWalletParam)
     }
 
     private fun openRecoverWalletScreen() {
@@ -362,13 +386,15 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                 RecoverWalletOption.ColdCard -> showOptionImportFromColdCard()
                 RecoverWalletOption.HotWallet -> navigator.openRecoverSeedScreen(
                     activityContext = requireActivity(),
-                    isRecoverHotWallet = true
+                    isRecoverHotWallet = true,
+                    quickWalletParam = quickWalletParam
                 )
 
                 RecoverWalletOption.PortalWallet -> navigator.openPortalScreen(
                     activity = requireActivity(),
                     args = PortalDeviceArgs(
-                        type = PortalDeviceFlow.RECOVER
+                        type = PortalDeviceFlow.RECOVER,
+                        quickWalletParam = quickWalletParam
                     )
                 )
 
@@ -382,7 +408,11 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
     }
 
     private fun openScanQRCodeScreen() {
-        navigator.openRecoverWalletQRCodeScreen(requireContext(), false)
+        navigator.openRecoverWalletQRCodeScreen(
+            requireContext(),
+            false,
+            quickWalletParam = quickWalletParam
+        )
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
@@ -415,7 +445,8 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
         navigator.openMembershipActivity(
             activityContext = requireActivity(),
             groupStep = MembershipStage.NONE,
-            isPersonalWallet = false
+            isPersonalWallet = false,
+            quickWalletParam = quickWalletParam
         )
     }
 
@@ -440,7 +471,8 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
             activityContext = requireActivity(),
             groupStep = viewModel.getGroupStage(),
             isPersonalWallet = true,
-            walletType = walletType
+            walletType = walletType,
+            quickWalletParam = quickWalletParam
         )
     }
 

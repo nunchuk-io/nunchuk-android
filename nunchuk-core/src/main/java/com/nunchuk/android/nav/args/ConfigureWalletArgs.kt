@@ -21,15 +21,18 @@ package com.nunchuk.android.nav.args
 
 import android.content.Intent
 import android.os.Bundle
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 
 data class ConfigureWalletArgs(
     val walletName: String,
     val walletType: WalletType,
     val addressType: AddressType,
-    val decoyPin: String = ""
+    val decoyPin: String = "",
+    val quickWalletParam: QuickWalletParam?
 ) {
 
     fun buildBundle() = Bundle().apply {
@@ -37,6 +40,7 @@ data class ConfigureWalletArgs(
         putSerializable(EXTRA_WALLET_TYPE, walletType)
         putSerializable(EXTRA_ADDRESS_TYPE, addressType)
         putString(EXTRA_DECOY_PIN, decoyPin)
+        putParcelable(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
     }
 
     companion object {
@@ -44,12 +48,14 @@ data class ConfigureWalletArgs(
         private const val EXTRA_WALLET_TYPE = "EXTRA_WALLET_TYPE"
         private const val EXTRA_ADDRESS_TYPE = "EXTRA_ADDRESS_TYPE"
         private const val EXTRA_DECOY_PIN = "EXTRA_DECOY_PIN"
+        private const val EXTRA_QUICK_WALLET_PARAM = "EXTRA_QUICK_WALLET_PARAM"
 
         fun deserializeFrom(intent: Intent): ConfigureWalletArgs = ConfigureWalletArgs(
             intent.extras?.getString(EXTRA_WALLET_NAME, "").orEmpty(),
             intent.serializable<WalletType>(EXTRA_WALLET_TYPE)!!,
             intent.serializable<AddressType>(EXTRA_ADDRESS_TYPE)!!,
-            intent.extras?.getString(EXTRA_DECOY_PIN, "").orEmpty()
+            intent.extras?.getString(EXTRA_DECOY_PIN, "").orEmpty(),
+            intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM)
         )
     }
 }

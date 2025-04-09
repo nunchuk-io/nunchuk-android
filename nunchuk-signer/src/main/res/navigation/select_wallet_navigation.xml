@@ -17,11 +17,6 @@
             app:argType="integer" />
 
         <argument
-            android:name="wallet_balance"
-            android:defaultValue="0"
-            app:argType="float" />
-
-        <argument
             android:name="claim_param"
             android:defaultValue="@null"
             app:nullable="true"

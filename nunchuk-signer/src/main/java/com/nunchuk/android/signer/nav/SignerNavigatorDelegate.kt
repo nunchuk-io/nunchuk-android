@@ -22,16 +22,20 @@ package com.nunchuk.android.signer.nav
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.PrimaryKey
+import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.SignerNavigator
 import com.nunchuk.android.signer.SignerIntroActivity
 import com.nunchuk.android.signer.components.add.AddAirgapSignerActivity
 import com.nunchuk.android.signer.components.add.ScanDynamicQRActivity
 import com.nunchuk.android.signer.components.details.SignerInfoActivity
+import com.nunchuk.android.signer.satscard.wallets.SelectWalletActivity
 import com.nunchuk.android.signer.software.SoftwareSignerIntroActivity
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedActivity
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedActivity
@@ -200,6 +204,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         walletId: String,
         groupId: String?,
         replacedXfp: String?,
+        quickWalletParam: QuickWalletParam?
     ) {
         RecoverSeedActivity.start(
             activityContext = activityContext,
@@ -208,7 +213,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
             isRecoverHotWallet = isRecoverHotWallet,
             groupId = groupId,
             replacedXfp = replacedXfp,
-            walletId = walletId
+            walletId = walletId,
+            quickWalletParam = quickWalletParam
         )
     }
 
@@ -342,9 +348,23 @@ interface SignerNavigatorDelegate : SignerNavigator {
         PKeyReplaceKeyIntroActivity.start(activityContext)
     }
 
-    override fun openScanQrCodeScreen(activityContext: Context, isGroupWalletFlow: Boolean) {
-        ScanDynamicQRActivity.buildIntent(activityContext, isGroupWalletFlow).let {
+    override fun openScanQrCodeScreen(activityContext: Context, isGroupWalletFlow: Boolean, quickWalletParam: QuickWalletParam?) {
+        ScanDynamicQRActivity.buildIntent(activityContext, isGroupWalletFlow, quickWalletParam = quickWalletParam).let {
             activityContext.startActivity(it)
         }
+    }
+
+    override fun openSelectWalletScreen(
+        activityContext: Context,
+        slots: List<SatsCardSlot>,
+        type: Int,
+        claimInheritanceTxParam: ClaimInheritanceTxParam?
+    ) {
+        SelectWalletActivity.navigate(
+            activity = activityContext,
+            slots = slots,
+            type = type,
+            claimInheritanceTxParam = claimInheritanceTxParam
+        )
     }
 }

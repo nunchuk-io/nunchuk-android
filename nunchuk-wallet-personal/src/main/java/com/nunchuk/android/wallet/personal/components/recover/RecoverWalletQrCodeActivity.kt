@@ -27,10 +27,12 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.core.base.ScannerViewComposer
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.databinding.ActivityImportWalletQrcodeBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -91,7 +93,8 @@ class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcod
                 this, RecoverWalletData(
                     type = RecoverWalletType.QR_CODE,
                     walletId = event.wallet.id
-                )
+                ),
+                quickWalletParam = intent.parcelable(EXTRA_QUICK_WALLET_PARAM)
             )
         }
         finish()
@@ -144,12 +147,18 @@ class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcod
     companion object {
         private const val EXTRA_COLLABORATIVE_WALLET = "_a"
         private const val EXTRA_PARSE_ONLY = "_b"
-        fun start(activityContext: Context, isCollaborativeWallet: Boolean) {
+        private const val EXTRA_QUICK_WALLET_PARAM = "_c"
+        fun start(
+            activityContext: Context,
+            isCollaborativeWallet: Boolean,
+            quickWalletParam: QuickWalletParam?
+        ) {
             activityContext.startActivity(
                 buildIntent(
                     activityContext,
                     isCollaborativeWallet,
-                    false
+                    false,
+                    quickWalletParam = quickWalletParam
                 )
             )
         }
@@ -158,10 +167,12 @@ class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcod
             activityContext: Context,
             isCollaborativeWallet: Boolean,
             isParseOnly: Boolean,
+            quickWalletParam: QuickWalletParam? = null
         ): Intent {
             return Intent(activityContext, RecoverWalletQrCodeActivity::class.java).apply {
                 putExtra(EXTRA_COLLABORATIVE_WALLET, isCollaborativeWallet)
                 putExtra(EXTRA_PARSE_ONLY, isParseOnly)
+                putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
             }
         }
     }

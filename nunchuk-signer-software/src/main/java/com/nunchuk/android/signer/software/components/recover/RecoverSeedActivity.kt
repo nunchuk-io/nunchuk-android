@@ -26,11 +26,13 @@ import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.KeyFlow.isAddPortalFlow
 import com.nunchuk.android.core.signer.KeyFlow.isSignInFlow
 import com.nunchuk.android.core.util.bindEnableState
+import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -42,6 +44,7 @@ import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.U
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedEvent.ValidMnemonicEvent
 import com.nunchuk.android.signer.software.databinding.ActivityRecoverSeedBinding
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.util.addTextChangedCallback
 import com.nunchuk.android.widget.util.heightExtended
@@ -77,6 +80,10 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
 
     private val walletId: String by lazy {
         intent.getStringExtra(EXTRA_WALLET_ID).orEmpty()
+    }
+
+    private val quickWalletParam: QuickWalletParam? by lazy {
+        intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM)
     }
 
     override fun initializeBinding() = ActivityRecoverSeedBinding.inflate(layoutInflater)
@@ -160,8 +167,16 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             is UpdateMnemonicEvent -> updateMnemonic(event.mnemonic)
             is CanGoNextStepEvent -> binding.btnContinue.bindEnableState(event.canGoNext)
             is RecoverSeedEvent.RecoverHotWalletSuccess -> {
-                navigator.returnToMainScreen(this)
-                navigator.openWalletDetailsScreen(activityContext = this, walletId = event.walletId)
+                navigateToSelectWallet(
+                    navigator = navigator,
+                    quickWalletParam = quickWalletParam
+                ) {
+                    navigator.returnToMainScreen(this)
+                    navigator.openWalletDetailsScreen(
+                        activityContext = this,
+                        walletId = event.walletId
+                    )
+                }
                 NcToastManager.scheduleShowMessage(getString(R.string.nc_my_hot_wallet_has_been_recovered))
             }
 
@@ -214,6 +229,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
         private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
         private const val EXTRA_REPLACED_XFP = "EXTRA_REPLACED_XFP"
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
+        private const val EXTRA_QUICK_WALLET_PARAM = "EXTRA_QUICK_WALLET_PARAM"
 
         fun start(
             activityContext: Context,
@@ -223,6 +239,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             groupId: String? = null,
             replacedXfp: String? = null,
             walletId: String = "",
+            quickWalletParam: QuickWalletParam? = null,
         ) {
             activityContext.startActivity(
                 buildIntent(
@@ -233,6 +250,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                     groupId,
                     replacedXfp,
                     walletId,
+                    quickWalletParam
                 )
             )
         }
@@ -245,6 +263,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             groupId: String? = null,
             replacedXfp: String? = null,
             walletId: String = "",
+            quickWalletParam: QuickWalletParam? = null,
         ) = Intent(
             activityContext,
             RecoverSeedActivity::class.java
@@ -264,6 +283,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
             putExtra(EXTRA_GROUP_ID, groupId)
             putExtra(EXTRA_REPLACED_XFP, replacedXfp)
             putExtra(EXTRA_WALLET_ID, walletId)
+            putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
         }
     }
 }

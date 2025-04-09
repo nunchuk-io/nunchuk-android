@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.commit
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.wallet.personal.databinding.ActivityWalletIntermediaryBinding
@@ -47,17 +48,22 @@ class WalletIntermediaryActivity : BaseNfcActivity<ActivityWalletIntermediaryBin
             }
         }
     }
+
     companion object {
         const val REQUEST_CODE = 1111
         const val REQUEST_CODE_GROUP_WALLET = 1112
 
-        const val EXTRA_HAS_SIGNER = "EXTRA_HAS_SIGNER"
         const val EXTRA_IS_HIDE_ADD_KEY_DIALOG = "EXTRA_IS_HIDE_ADD_KEY_DIALOG"
+        const val EXTRA_QUICK_WALLET_PARAM = "EXTRA_QUICK_WALLET_PARAM"
 
-        fun start(activityContext: Context, hasSigner: Boolean, isHideAddKeyDialog: Boolean) {
+        fun start(
+            activityContext: Context,
+            isHideAddKeyDialog: Boolean,
+            quickWalletParam: QuickWalletParam?
+        ) {
             val intent = Intent(activityContext, WalletIntermediaryActivity::class.java).apply {
-                putExtra(EXTRA_HAS_SIGNER, hasSigner)
                 putExtra(EXTRA_IS_HIDE_ADD_KEY_DIALOG, isHideAddKeyDialog)
+                putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
             }
             activityContext.startActivity(intent)
         }

@@ -69,6 +69,7 @@ import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isTaproot
+import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
@@ -107,12 +108,17 @@ class ReviewWalletActivity : BaseComposeActivity() {
 
             LaunchedEffect(uiState.finalizedWalletId) {
                 if (uiState.finalizedWalletId.isNotEmpty()) {
-                    navigator.openMainScreen(this@ReviewWalletActivity)
-                    NcToastManager.scheduleShowMessage(getString(R.string.nc_the_group_wallet_has_been_created))
-                    navigator.openWalletDetailsScreen(
-                        this@ReviewWalletActivity,
-                        uiState.finalizedWalletId
-                    )
+                    navigateToSelectWallet(
+                        navigator = navigator,
+                        quickWalletParam = args.quickWalletParam
+                    ) {
+                        navigator.openMainScreen(this@ReviewWalletActivity)
+                        NcToastManager.scheduleShowMessage(getString(R.string.nc_the_group_wallet_has_been_created))
+                        navigator.openWalletDetailsScreen(
+                            this@ReviewWalletActivity,
+                            uiState.finalizedWalletId
+                        )
+                    }
                 }
             }
 
@@ -146,8 +152,13 @@ class ReviewWalletActivity : BaseComposeActivity() {
     }
 
     private fun onCreateFreeGroupWallet(event: ReviewWalletEvent.CreateFreeGroupWalletSuccessEvent) {
-        navigator.openMainScreen(this)
-        navigator.openWalletDetailsScreen(this, event.walletId)
+        navigateToSelectWallet(
+            navigator = navigator,
+            quickWalletParam = args.quickWalletParam
+        ) {
+            navigator.openMainScreen(this)
+            navigator.openWalletDetailsScreen(this, event.walletId)
+        }
     }
 
     private fun onCreateWalletError(event: CreateWalletErrorEvent) {
@@ -161,12 +172,17 @@ class ReviewWalletActivity : BaseComposeActivity() {
 
     private fun onCreateWalletSuccess(event: CreateWalletSuccessEvent) {
         showOrHideLoading(false)
-        navigator.returnToMainScreen(this)
-        navigator.openBackupWalletScreen(
-            activityContext = this,
-            wallet = event.wallet,
-            isDecoyWallet = args.decoyPin.isNotEmpty()
-        )
+        navigateToSelectWallet(
+            navigator = navigator,
+            quickWalletParam = args.quickWalletParam
+        ) {
+            navigator.returnToMainScreen(this)
+            navigator.openBackupWalletScreen(
+                activityContext = this,
+                wallet = event.wallet,
+                isDecoyWallet = args.decoyPin.isNotEmpty()
+            )
+        }
     }
 
     companion object {

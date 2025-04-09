@@ -30,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_TOPUP_XPUBS
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -78,7 +79,8 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                 walletName = args.walletName,
                 walletType = args.walletType,
                 addressType = AddressType.TAPROOT,
-                decoyPin = args.decoyPin
+                decoyPin = args.decoyPin,
+                quickWalletParam = args.quickWalletParam,
             )
         )
         viewModel.initGroupSandBox(args.groupSandboxId)
@@ -253,7 +255,8 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                 totalRequireSigns = totalRequireSigns,
                 signers = signers,
                 groupId = args.groupSandboxId,
-                isValueKeySetEnable = viewModel.isValueKeySetEnable()
+                isValueKeySetEnable = viewModel.isValueKeySetEnable(),
+                quickWalletParam = args.quickWalletParam,
             )
         )
     }
@@ -284,6 +287,7 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
             addressType: AddressType,
             decoyPin: String,
             groupSandboxId: String,
+            quickWalletParam: QuickWalletParam?,
         ) {
             activityContext.startActivity(
                 TaprootWarningArgs(
@@ -291,7 +295,8 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                     walletType = walletType,
                     addressType = addressType,
                     decoyPin = decoyPin,
-                    groupSandboxId = groupSandboxId
+                    groupSandboxId = groupSandboxId,
+                    quickWalletParam = quickWalletParam,
                 ).buildIntent(activityContext)
             )
         }

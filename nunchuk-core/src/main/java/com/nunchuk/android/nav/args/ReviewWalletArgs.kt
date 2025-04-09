@@ -21,11 +21,13 @@ package com.nunchuk.android.nav.args
 
 import android.content.Intent
 import android.os.Bundle
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.utils.serializable
 
@@ -37,7 +39,8 @@ data class ReviewWalletArgs(
     val signers: List<SingleSigner>,
     val decoyPin: String = "",
     val groupId: String = "",
-    val isValueKeySetEnable: Boolean = false
+    val isValueKeySetEnable: Boolean = false,
+    val quickWalletParam: QuickWalletParam? = null,
 ) {
 
     fun buildBundle() = Bundle().apply {
@@ -49,6 +52,7 @@ data class ReviewWalletArgs(
         putString(EXTRA_DECOY_PIN, decoyPin)
         putString(EXTRA_GROUP_ID, groupId)
         putBoolean(EXTRA_VALUE_KEY_SET_ENABLE, isValueKeySetEnable)
+        putParcelable(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
     }
 
     companion object {
@@ -60,6 +64,7 @@ data class ReviewWalletArgs(
         private const val EXTRA_DECOY_PIN = "EXTRA_DECOY_PIN"
         private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
         private const val EXTRA_VALUE_KEY_SET_ENABLE = "EXTRA_VALUE_KEY_SET_ENABLE"
+        private const val EXTRA_QUICK_WALLET_PARAM = "EXTRA_QUICK_WALLET_PARAM"
 
         fun deserializeFrom(intent: Intent): ReviewWalletArgs = ReviewWalletArgs(
             intent.extras.getStringValue(EXTRA_WALLET_NAME),
@@ -69,7 +74,8 @@ data class ReviewWalletArgs(
             intent.parcelableArrayList<SingleSigner>(EXTRA_SIGNERS).orEmpty(),
             intent.extras.getStringValue(EXTRA_DECOY_PIN),
             intent.extras.getStringValue(EXTRA_GROUP_ID),
-            intent.extras.getBooleanValue(EXTRA_VALUE_KEY_SET_ENABLE, false)
+            intent.extras.getBooleanValue(EXTRA_VALUE_KEY_SET_ENABLE, false),
+            intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM),
         )
     }
 

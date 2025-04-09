@@ -69,7 +69,8 @@ abstract class MembershipFragment : BaseShareSaveFileFragment<ViewBinding>(), Bo
                     activityContext = requireActivity(),
                     groupStep = MembershipStage.NONE,
                     isPersonalWallet = membershipStepManager.isPersonalWallet(),
-                    isClearTop = true
+                    isClearTop = true,
+                    quickWalletParam = null
                 )
                 requireActivity().setResult(Activity.RESULT_OK)
                 requireActivity().finish()

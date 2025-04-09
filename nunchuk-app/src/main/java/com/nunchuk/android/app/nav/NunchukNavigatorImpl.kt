@@ -24,15 +24,13 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
-import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.QuickWalletNavigationDirections
 import com.nunchuk.android.app.onboard.OnboardActivity
 import com.nunchuk.android.app.referral.ReferralActivity
 import com.nunchuk.android.app.splash.SplashActivity
 import com.nunchuk.android.app.wallet.QuickWalletActivity
 import com.nunchuk.android.auth.nav.AuthNavigatorDelegate
 import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.referral.ReferralArgs
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
@@ -109,15 +107,10 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
     }
 
     override fun openQuickWalletScreen(
-        launcher: ActivityResultLauncher<Intent>,
         activityContext: Context,
+        quickWalletParam: QuickWalletParam?
     ) {
-        QuickWalletActivity.start(launcher, activityContext)
-    }
-
-    override fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean) {
-        fragment.findNavController()
-            .navigate(QuickWalletNavigationDirections.showCreateNewSeedFragment(isQuickWallet))
+        QuickWalletActivity.navigate(activityContext, quickWalletParam)
     }
 
     override fun openCoinList(
@@ -175,7 +168,8 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
     override fun openFreeGroupWalletScreen(
         activityContext: Context,
         walletId: String?,
-        groupId: String?
+        groupId: String?,
+        quickWalletParam: QuickWalletParam?
     ) {
         FreeGroupWalletActivity.start(
             context = activityContext,
@@ -187,9 +181,15 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
     override fun openFreeGroupWalletRecoverScreen(
         activityContext: Context,
         walletId: String,
-        filePath: String
+        filePath: String,
+        quickWalletParam: QuickWalletParam?
     ) {
-        FreeGroupWalletActivity.startRecover(activityContext, walletId, filePath)
+        FreeGroupWalletActivity.startRecover(
+            activityContext,
+            walletId,
+            filePath,
+            quickWalletParam = quickWalletParam
+        )
     }
 
     override fun openAddDesktopKey(
@@ -217,12 +217,14 @@ interface AppNavigatorDelegate : AppNavigator {
 
     override fun openMembershipActivity(
         activityContext: Activity,
+        launcher: ActivityResultLauncher<Intent>?,
         groupStep: MembershipStage,
         walletId: String?,
         groupId: String?,
         isPersonalWallet: Boolean,
         walletType: GroupWalletType?,
-        isClearTop: Boolean
+        isClearTop: Boolean,
+        quickWalletParam: QuickWalletParam?
     ) {
         val intent = MembershipActivity.buildIntent(
             activity = activityContext,
@@ -231,32 +233,17 @@ interface AppNavigatorDelegate : AppNavigator {
             groupId = groupId,
             isPersonalWallet = isPersonalWallet,
             walletType = walletType,
+            quickWalletParam = quickWalletParam
         ).apply {
             if (isClearTop) {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
         }
-        activityContext.startActivity(intent)
-    }
-
-    override fun openMembershipActivity(
-        launcher: ActivityResultLauncher<Intent>,
-        activityContext: Activity,
-        groupStep: MembershipStage,
-        walletId: String?,
-        groupId: String?,
-        isPersonalWallet: Boolean,
-        walletType: GroupWalletType?,
-    ) {
-        val intent = MembershipActivity.buildIntent(
-            activity = activityContext,
-            groupStep = groupStep,
-            walletId = walletId,
-            groupId = groupId,
-            isPersonalWallet = isPersonalWallet,
-            walletType = walletType
-        )
-        launcher.launch(intent)
+        if (launcher != null) {
+            launcher.launch(intent)
+        } else {
+            activityContext.startActivity(intent)
+        }
     }
 
     override fun openConfigServerKeyActivity(
@@ -397,9 +384,13 @@ interface AppNavigatorDelegate : AppNavigator {
     override fun openHotWalletScreen(
         launcher: ActivityResultLauncher<Intent>?,
         activityContext: Context,
-        isQuickWallet: Boolean
+        quickWalletParam: QuickWalletParam?
     ) {
-        OnboardActivity.openHotWalletIntroScreen(launcher, activityContext, isQuickWallet)
+        OnboardActivity.openHotWalletIntroScreen(
+            launcher,
+            activityContext,
+            quickWalletParam = quickWalletParam
+        )
     }
 
     override fun openOnBoardingScreen(activityContext: Context) {

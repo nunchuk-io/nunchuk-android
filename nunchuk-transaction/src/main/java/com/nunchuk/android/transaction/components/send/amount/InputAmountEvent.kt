@@ -29,6 +29,7 @@ sealed class InputAmountEvent {
     data class ShowError(val message: String) : InputAmountEvent()
     object InsufficientFundsEvent : InputAmountEvent()
     object InsufficientFundsLockedCoinEvent : InputAmountEvent()
+    data class CheckHasWallet(val isHasWallet: Boolean) : InputAmountEvent()
 }
 
 data class InputAmountState(

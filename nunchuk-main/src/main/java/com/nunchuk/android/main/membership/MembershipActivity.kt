@@ -25,6 +25,7 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.navigation.fragment.NavHostFragment
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipStage
@@ -33,6 +34,7 @@ import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipFragment.Companion.EXTRA_GROUP_ID
 import com.nunchuk.android.share.membership.MembershipFragment.Companion.EXTRA_IS_PERSONAL_WALLET
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
@@ -46,6 +48,8 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     lateinit var membershipStepManager: MembershipStepManager
 
     private val viewModel: MembershipViewModel by viewModels()
+
+    val quickWalletParam by lazy { intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,7 +94,9 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             by lazy(LazyThreadSafetyMode.NONE) { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
 
     val walletId: String
-            by lazy(LazyThreadSafetyMode.NONE) { intent.getStringExtra(EXTRA_KEY_WALLET_ID).orEmpty() }
+            by lazy(LazyThreadSafetyMode.NONE) {
+                intent.getStringExtra(EXTRA_KEY_WALLET_ID).orEmpty()
+            }
 
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater)
@@ -99,6 +105,8 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     companion object {
         const val EXTRA_GROUP_STEP = "group_step"
         const val EXTRA_KEY_WALLET_ID = "wallet_id"
+        const val EXTRA_QUICK_WALLET_PARAM = "quick_wallet_param"
+
 
         fun buildIntent(
             activity: Activity,
@@ -107,12 +115,14 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             isPersonalWallet: Boolean,
             walletId: String? = null,
             groupId: String? = null,
+            quickWalletParam: QuickWalletParam?
         ) = Intent(activity, MembershipActivity::class.java).apply {
             putExtra(EXTRA_GROUP_STEP, groupStep)
             putExtra(EXTRA_KEY_WALLET_ID, walletId)
             putExtra(EXTRA_GROUP_ID, groupId)
             putExtra(EXTRA_IS_PERSONAL_WALLET, isPersonalWallet)
             putExtra(MembershipFragment.EXTRA_WALLET_TYPE, walletType)
+            putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
         }
 
         fun openRegisterWalletIntent(

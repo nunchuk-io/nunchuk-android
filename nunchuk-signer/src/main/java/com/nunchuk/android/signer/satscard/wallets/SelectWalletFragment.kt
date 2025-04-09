@@ -36,6 +36,8 @@ import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.BTC_SATOSHI_EXCHANGE_RATE
+import com.nunchuk.android.core.util.SelectWalletType.TYPE_INHERITANCE_WALLET
+import com.nunchuk.android.core.util.SelectWalletType.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
@@ -179,7 +181,7 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
     private fun navigateToEstimateFee(address: String) {
         val totalBalance =
             if (isInheritanceWalletFlow()) {
-                args.walletBalance * BTC_SATOSHI_EXCHANGE_RATE
+                args.claimParam!!.customAmount * BTC_SATOSHI_EXCHANGE_RATE
             } else {
                 args.slots.sumOf { it.balance.value }
             }
@@ -206,11 +208,5 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
 
     private fun handleState(state: SelectWalletState) {
         adapter.submitList(state.selectWallets)
-    }
-
-    companion object {
-        const val TYPE_UNSEAL_SWEEP_ACTIVE_SLOT = 1
-        const val TYPE_SWEEP_UNSEAL_SLOT = 2
-        const val TYPE_INHERITANCE_WALLET = 3
     }
 }

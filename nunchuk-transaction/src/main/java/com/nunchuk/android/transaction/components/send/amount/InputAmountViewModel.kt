@@ -31,9 +31,13 @@ import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toNumericValue
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
 import com.nunchuk.android.transaction.components.utils.privateNote
+import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
+import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -41,6 +45,7 @@ import javax.inject.Inject
 internal class InputAmountViewModel @Inject constructor(
     private val parseBtcUriUseCase: ParseBtcUriUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
+    private val getWalletsUseCase: GetWalletsUseCase,
 ) : NunchukViewModel<InputAmountState, InputAmountEvent>() {
 
     private var availableAmount: Double = 0.0
@@ -145,6 +150,15 @@ internal class InputAmountViewModel @Inject constructor(
         } else {
             setEvent(InputAmountEvent.AcceptAmountEvent(amount))
         }
+    }
+
+    fun checkWallet() = viewModelScope.launch {
+        getWalletsUseCase.execute().flowOn(Dispatchers.IO)
+            .onException { setEvent(InputAmountEvent.ShowError(it.message.orUnknownError())) }
+            .flowOn(Dispatchers.Main)
+            .collect {
+                setEvent(InputAmountEvent.CheckHasWallet(it.isNotEmpty()))
+            }
     }
 
     fun getAddress(): String = getState().address

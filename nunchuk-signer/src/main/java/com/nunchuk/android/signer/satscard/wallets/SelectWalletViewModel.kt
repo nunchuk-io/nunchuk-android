@@ -139,7 +139,8 @@ class SelectWalletViewModel @Inject constructor(
                 masterSignerIds = claimInheritanceTxParam?.masterSignerIds.orEmpty(),
                 magic = claimInheritanceTxParam?.magicalPhrase.orEmpty(),
                 derivationPaths = claimInheritanceTxParam?.derivationPaths.orEmpty(),
-                isDraft = false
+                isDraft = false,
+                amount = claimInheritanceTxParam?.customAmount ?: 0.0,
             )
         )
         _event.emit(SelectWalletEvent.Loading(false))

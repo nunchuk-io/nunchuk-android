@@ -77,7 +77,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         roomId: String,
         walletId: String,
         availableAmount: Double,
-        inputs: List<UnspentOutput>
+        inputs: List<UnspentOutput>,
+        claimInheritanceTxParam: ClaimInheritanceTxParam?
     ) {
         InputAmountActivity.start(
             activityContext = activityContext,
@@ -85,6 +86,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             walletId = walletId,
             availableAmount = availableAmount,
             inputs = inputs,
+            claimInheritanceTxParam = claimInheritanceTxParam
         )
     }
 

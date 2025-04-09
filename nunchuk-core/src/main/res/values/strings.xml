@@ -89,6 +89,8 @@
     <string name="nc_unconfirmed">Unconfirmed</string>
     <string name="nc_sweep_balance">Sweep balance</string>
     <string name="nc_withdraw_to_nunchuk_wallet">Withdraw to Nunchuk wallet</string>
+    <string name="nc_withdraw_a_custom_amount">Withdraw a custom amount</string>
+    <string name="nc_withdraw_full_balance_now">Withdraw full balance now</string>
     <string name="nc_which_wallet_do_you_want_to_deposit_into">Which wallet do you want to deposit into?</string>
     <string name="nc_which_wallet_do_you_want_to_withdraw_bitcoin">Which wallet do you want to withdraw bitcoin to?</string>
     <string name="nc_wallet_not_configured">Not configured</string>
@@ -99,6 +101,7 @@
     <string name="nc_sweeping_is_progress">Sweeping is in progress</string>
     <string name="nc_make_sure_internet">Please make sure that you are connected to the Internet</string>
     <string name="nc_you_dont_have_a_wallet_yet">You don’t have a wallet yet</string>
+    <string name="nc_you_dont_have_a_wallet_yet_desc">We can create a hot wallet for your withdrawals, set up quickly with no keys needed, and you can back it up later.\n\nAlternatively, you can create your own wallet.</string>
     <string name="nc_create_single_sig_for_sweep">We will create a single-sig wallet for you to sweep into.</string>
     <string name="nc_create_my_own_wallet">I’ll create my own wallet</string>
     <string name="nc_satscard_sweeped">Your SATSCARD has been swept</string>
@@ -490,6 +493,8 @@
     <string name="nc_cancel_inheritance_plan">Cancel inheritance plan</string>
     <string name="nc_congratulation_unlocked_your_inheritance">Congratulations! You have unlocked your inheritance</string>
     <string name="nc_you_have_a_message_below">You have a message below</string>
+    <string name="nc_withdraw_bitcoin">Withdraw bitcoin</string>
+    <string name="nc_withdraw_bitcoin_desc">You now have the option to withdraw a small amount first and withdraw the remaining balance later, or withdraw the entire balance at once.</string>
     <string name="nc_your_inheritance">Your inheritance</string>
     <string name="nc_withdraw_inheritance">Withdraw balance</string>
     <string name="nc_expired_inheritance_subscription">It looks like the original subscription has expired for more than 3 years. To claim the inheritance, please reactivate the plan first by visiting nunchuk.io/claim.</string>
@@ -848,6 +853,7 @@
     <string name="nc_wallet_create_wallet">Create wallet</string>
     <string name="nc_recover_wallet">Recover wallet</string>
     <string name="nc_select_wallet_type">Select wallet type:</string>
+    <string name="nc_choose_type_wallet_you_want_to_create">Please choose the type of wallet you want to create:</string>
     <string name="nc_assisted_wallet">Assisted wallet</string>
     <string name="nc_assisted_wallet_create_wallet_desc">Let our Setup Wizard guide you step-by-step to effortlessly create an assisted wallet.</string>
     <string name="nc_unassisted_wallet">Unassisted wallet</string>

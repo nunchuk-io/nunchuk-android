@@ -22,11 +22,13 @@ package com.nunchuk.android.nav
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
-import androidx.fragment.app.Fragment
+import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.PrimaryKey
+import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -106,8 +108,6 @@ interface SignerNavigator {
         backupHotKeySignerId: String = "",
     )
 
-    fun openCreateNewSeedScreen(fragment: Fragment, isQuickWallet: Boolean = false)
-
     /**
      * @param passphrase only need for replacing primary key
      */
@@ -119,6 +119,7 @@ interface SignerNavigator {
         walletId: String = "",
         groupId: String? = null,
         replacedXfp: String? = null,
+        quickWalletParam: QuickWalletParam? = null
     )
 
     /**
@@ -208,5 +209,16 @@ interface SignerNavigator {
         @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
     )
 
-    fun openScanQrCodeScreen(activityContext: Context, isGroupWalletFlow: Boolean = false)
+    fun openScanQrCodeScreen(
+        activityContext: Context,
+        isGroupWalletFlow: Boolean = false,
+        quickWalletParam: QuickWalletParam? = null
+    )
+
+    fun openSelectWalletScreen(
+        activityContext: Context,
+        slots: List<SatsCardSlot>,
+        type: Int,
+        claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
+    )
 }

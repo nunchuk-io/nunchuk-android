@@ -22,9 +22,11 @@ package com.nunchuk.android.transaction.components.send.amount
 import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
+import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.util.getDoubleValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
 
 data class InputAmountArgs(
@@ -32,6 +34,7 @@ data class InputAmountArgs(
     val walletId: String,
     val availableAmount: Double,
     val inputs: List<UnspentOutput> = emptyList(),
+    val claimInheritanceTxParam: ClaimInheritanceTxParam?
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(
@@ -42,6 +45,7 @@ data class InputAmountArgs(
         putExtra(EXTRA_WALLET_ID, walletId)
         putExtra(EXTRA_AVAILABLE_AMOUNT, availableAmount)
         putParcelableArrayListExtra(EXTRA_INPUT, ArrayList(inputs))
+        putExtra(EXTRA_CLAIM_INHERITANCE_TX_PARAM, claimInheritanceTxParam)
     }
 
     companion object {
@@ -49,12 +53,14 @@ data class InputAmountArgs(
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
         private const val EXTRA_AVAILABLE_AMOUNT = "EXTRA_AVAILABLE_AMOUNT"
         private const val EXTRA_INPUT = "EXTRA_INPUT"
+        private const val EXTRA_CLAIM_INHERITANCE_TX_PARAM = "EXTRA_CLAIM_INHERITANCE_TX_PARAM"
 
         fun deserializeFrom(intent: Intent) = InputAmountArgs(
             intent.extras.getStringValue(EXTRA_ROOM_ID),
             intent.extras.getStringValue(EXTRA_WALLET_ID),
             intent.extras.getDoubleValue(EXTRA_AVAILABLE_AMOUNT),
             intent.extras?.parcelableArrayList<UnspentOutput>(EXTRA_INPUT).orEmpty(),
+            intent.extras?.parcelable<ClaimInheritanceTxParam>(EXTRA_CLAIM_INHERITANCE_TX_PARAM)
         )
     }
 }

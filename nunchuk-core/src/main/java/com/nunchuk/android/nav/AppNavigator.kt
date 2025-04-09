@@ -23,6 +23,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.referral.ReferralArgs
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
@@ -40,22 +41,14 @@ interface AppNavigator {
 
     fun openMembershipActivity(
         activityContext: Activity,
+        launcher: ActivityResultLauncher<Intent>? = null,
         groupStep: MembershipStage,
         walletId: String? = null,
         groupId: String? = null,
         isPersonalWallet: Boolean = false,
         walletType: GroupWalletType? = null,
-        isClearTop: Boolean = false
-    )
-
-    fun openMembershipActivity(
-        launcher: ActivityResultLauncher<Intent>,
-        activityContext: Activity,
-        groupStep: MembershipStage,
-        walletId: String? = null,
-        groupId: String? = null,
-        isPersonalWallet: Boolean = false,
-        walletType: GroupWalletType? = null
+        isClearTop: Boolean = false,
+        quickWalletParam: QuickWalletParam? = null
     )
 
     fun openConfigServerKeyActivity(
@@ -134,7 +127,7 @@ interface AppNavigator {
     fun openHotWalletScreen(
         launcher: ActivityResultLauncher<Intent>?,
         activityContext: Context,
-        isQuickWallet: Boolean
+        quickWalletParam: QuickWalletParam? = null,
     )
 
     fun openOnBoardingScreen(activityContext: Context)
@@ -157,12 +150,14 @@ interface AppNavigator {
     fun openFreeGroupWalletScreen(
         activityContext: Context,
         walletId: String? = null,
-        groupId: String? = null
+        groupId: String? = null,
+        quickWalletParam: QuickWalletParam? = null
     )
 
     fun openFreeGroupWalletRecoverScreen(
         activityContext: Context,
         walletId: String,
-        filePath: String
+        filePath: String,
+        quickWalletParam: QuickWalletParam?
     )
 }

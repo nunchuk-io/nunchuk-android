@@ -377,7 +377,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     groupStep = walletsViewModel.getGroupStage(),
                     walletId = walletsViewModel.getAssistedWalletId(),
                     isPersonalWallet = isPersonalWallet,
-                    walletType = walletType
+                    walletType = walletType,
                 )
             }
         )

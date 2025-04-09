@@ -1,6 +1,5 @@
 package com.nunchuk.android.app.onboard
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -24,8 +23,11 @@ import com.nunchuk.android.app.onboard.unassisted.navigateToUnassistedIntro
 import com.nunchuk.android.app.onboard.unassisted.unassistedIntro
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.util.AppEvenBus
 import com.nunchuk.android.core.util.AppEvent
+import com.nunchuk.android.core.util.navigateToSelectWallet
+import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -35,7 +37,7 @@ class OnboardActivity : BaseComposeActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val startDestination = intent.getStringExtra(EXTRA_START_DESTINATION) ?: onboardIntroRoute
-        val isQuickWallet = intent.getBooleanExtra(EXTRA_IS_QUICK_WALLET, false)
+        val quickWalletParam = intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM)
         setContentView(
             ComposeView(this).apply {
                 setContent {
@@ -65,10 +67,10 @@ class OnboardActivity : BaseComposeActivity() {
                             )
                             hotWalletIntro(
                                 returnToScreen = {
-                                    if (isQuickWallet) {
-                                        setResult(Activity.RESULT_OK)
-                                        finish()
-                                    } else {
+                                    this@OnboardActivity.navigateToSelectWallet(
+                                        navigator = navigator,
+                                        quickWalletParam = quickWalletParam
+                                    ) {
                                         navigator.returnToMainScreen(this@OnboardActivity)
                                     }
                                 },
@@ -95,7 +97,10 @@ class OnboardActivity : BaseComposeActivity() {
                                     finish()
                                 },
                                 onSignIn = {
-                                    navigator.openSignInScreen(this@OnboardActivity, isNeedNewTask = false)
+                                    navigator.openSignInScreen(
+                                        this@OnboardActivity,
+                                        isNeedNewTask = false
+                                    )
                                 },
                                 navigateToOnboardAdvisorInput = {
                                     navController.navigateToOnboardAdvisorInput()
@@ -126,18 +131,21 @@ class OnboardActivity : BaseComposeActivity() {
 
     companion object {
         private const val EXTRA_START_DESTINATION = "start_destination"
-        private const val EXTRA_IS_QUICK_WALLET = "is_quick_wallet"
+        private const val EXTRA_QUICK_WALLET_PARAM = "quick_wallet_param"
 
-        fun openHotWalletIntroScreen(launcher: ActivityResultLauncher<Intent>?, context: Context, isQuickWallet: Boolean) {
+        fun openHotWalletIntroScreen(
+            launcher: ActivityResultLauncher<Intent>?, context: Context,
+            quickWalletParam: QuickWalletParam?,
+        ) {
             if (launcher != null) {
                 launcher.launch(Intent(context, OnboardActivity::class.java).apply {
                     putExtra(EXTRA_START_DESTINATION, hotWalletIntroRoute)
-                    putExtra(EXTRA_IS_QUICK_WALLET, isQuickWallet)
+                    putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
                 })
             } else {
                 context.startActivity(Intent(context, OnboardActivity::class.java).apply {
                     putExtra(EXTRA_START_DESTINATION, hotWalletIntroRoute)
-                    putExtra(EXTRA_IS_QUICK_WALLET, isQuickWallet)
+                    putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
                 })
             }
         }

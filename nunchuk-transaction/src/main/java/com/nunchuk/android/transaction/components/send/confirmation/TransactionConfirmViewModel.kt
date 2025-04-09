@@ -214,7 +214,8 @@ class TransactionConfirmViewModel @Inject constructor(
                     magic = claimInheritanceTxParam?.magicalPhrase.orEmpty(),
                     feeRate = manualFeeRate.toManualFeeRate(),
                     derivationPaths = claimInheritanceTxParam?.derivationPaths.orEmpty(),
-                    isDraft = true
+                    isDraft = true,
+                    amount = claimInheritanceTxParam?.customAmount ?: 0.0
                 )
             )
             if (result.isSuccess) {
@@ -319,7 +320,8 @@ class TransactionConfirmViewModel @Inject constructor(
                 masterSignerIds = claimInheritanceTxParam?.masterSignerIds.orEmpty(),
                 magic = claimInheritanceTxParam?.magicalPhrase.orEmpty(),
                 derivationPaths = claimInheritanceTxParam?.derivationPaths.orEmpty(),
-                isDraft = false
+                isDraft = false,
+                amount = claimInheritanceTxParam?.customAmount ?: 0.0,
             )
         )
         if (result.isSuccess) {

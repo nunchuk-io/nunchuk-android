@@ -19,6 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_NFC_TOPUP_XPUBS
@@ -28,6 +29,7 @@ import com.nunchuk.android.core.util.RollOverWalletSource
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isTaproot
+import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.join.CommonQRCodeActivity
@@ -40,6 +42,7 @@ import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.InputBipPathBottomSheet
 import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
 import com.nunchuk.android.widget.NCInfoDialog
@@ -56,6 +59,11 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
     private val viewModel: FreeGroupWalletViewModel by viewModels()
     private val replaceWalletId by lazy { intent.getStringExtra(EXTRA_REPLACE_WALLET_ID).orEmpty() }
     private val filePath by lazy { intent.getStringExtra(EXTRA_FILE_PATH).orEmpty() }
+    private val quickWalletParam by lazy {
+        intent.parcelable<QuickWalletParam>(
+            EXTRA_QUICK_WALLET_PARAM
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -129,7 +137,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                         activityContext = this@FreeGroupWalletActivity,
                                         decoyPin = "",
                                         groupWalletId = groupId,
-                                        hasGroupSigner = hasGroupSigner
+                                        hasGroupSigner = hasGroupSigner,
                                     )
                                 },
                                 onShowQRCodeClicked = {
@@ -161,6 +169,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                             walletType = WalletType.MULTI_SIG,
                                             addressType = group.addressType,
                                             groupSandboxId = viewModel.groupId,
+                                            quickWalletParam = quickWalletParam
                                         )
                                     } else {
                                         val signerMap = viewModel.getWalletSigners()
@@ -176,6 +185,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                                     it.copy(name = signerMap[it.masterFingerprint].orEmpty())
                                                 },
                                                 groupId = group.id,
+                                                quickWalletParam = quickWalletParam
                                             )
                                         )
                                     }
@@ -231,19 +241,36 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                 },
                                 finishScreen = ::finish,
                                 onOpenWalletDetail = {
-                                    navigator.openWalletDetailsScreen(
-                                        activityContext = this@FreeGroupWalletActivity,
-                                        walletId = it
-                                    )
+                                    navigateToSelectWallet(
+                                        navigator = navigator,
+                                        quickWalletParam = quickWalletParam
+                                    ) {
+                                        navigator.openWalletDetailsScreen(
+                                            activityContext = this@FreeGroupWalletActivity,
+                                            walletId = it
+                                        )
+                                    }
                                 }
                             )
 
                             createWalletSuccessScreen(
-                                onBackPress = ::returnToMainScreen,
+                                onBackPress = {
+                                    navigateToSelectWallet(
+                                        navigator = navigator,
+                                        quickWalletParam = quickWalletParam
+                                    ) {
+                                        returnToMainScreen()
+                                    }
+                                },
                                 onContinueClicked = {
-                                    val group = state.group
-                                    val wallet = viewModel.getWallet()
-                                    checkWalletBalance(group, wallet)
+                                    navigateToSelectWallet(
+                                        navigator = navigator,
+                                        quickWalletParam = quickWalletParam
+                                    ) {
+                                        val group = state.group
+                                        val wallet = viewModel.getWallet()
+                                        checkWalletBalance(group, wallet)
+                                    }
                                 }
                             )
                         }
@@ -337,6 +364,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
         const val EXTRA_WALLET_ID = "wallet_id"
         const val EXTRA_REPLACE_WALLET_ID = "replace_wallet_id"
         const val EXTRA_FILE_PATH = "file_path"
+        const val EXTRA_QUICK_WALLET_PARAM = "quick_wallet_param"
 
         /**
          * Start [FreeGroupWalletActivity] with [groupId] and [walletId]
@@ -347,16 +375,19 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
         fun start(
             context: Context,
             groupId: String? = null,
-            walletId: String? = null
+            walletId: String? = null,
+            quickWalletParam: QuickWalletParam? = null
         ) {
             context.startActivity(Intent(context, FreeGroupWalletActivity::class.java).apply {
                 putExtra(EXTRA_GROUP_ID, groupId)
                 putExtra(EXTRA_REPLACE_WALLET_ID, walletId)
+                putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
             })
         }
 
         fun startRecover(
-            context: Context, walletId: String, filePath: String
+            context: Context, walletId: String, filePath: String,
+            quickWalletParam: QuickWalletParam? = null
         ) {
             context.startActivity(
                 Intent(
@@ -365,6 +396,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                 ).apply {
                     putExtra(EXTRA_WALLET_ID, walletId)
                     putExtra(EXTRA_FILE_PATH, filePath)
+                    putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
                 })
         }
     }

@@ -239,7 +239,8 @@ interface PremiumWalletRepository {
     suspend fun generateInheritanceClaimCreateTransactionUserData(
         magic: String,
         address: String,
-        feeRate: String
+        feeRate: String,
+        amount: Double
     ): String
 
     suspend fun inheritanceClaimStatus(

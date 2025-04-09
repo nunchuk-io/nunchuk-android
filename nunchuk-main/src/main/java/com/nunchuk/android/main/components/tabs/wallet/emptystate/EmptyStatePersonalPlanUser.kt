@@ -70,7 +70,7 @@ class EmptyStatePersonalPlanUser(
             KeyWalletEntryData(
                 title = activityContext.getString(R.string.nc_create_unassisted_wallet),
                 buttonAction = {
-                    navigator.openWalletIntermediaryScreen(activityContext, conditionInfo.hasSigner)
+                    navigator.openWalletIntermediaryScreen(activityContext)
                 },
                 iconResId = R.drawable.ic_wallet_empty_state
             )

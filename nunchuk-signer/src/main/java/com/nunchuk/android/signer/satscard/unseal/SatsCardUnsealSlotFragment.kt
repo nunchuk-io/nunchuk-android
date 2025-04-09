@@ -31,18 +31,18 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.util.SelectWalletType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.signer.R
-import com.nunchuk.android.signer.SatscardNavigationDirections
 import com.nunchuk.android.signer.databinding.FragmentUnsealSlotBinding
 import com.nunchuk.android.signer.satscard.SatsCardSlotViewModel
 import com.nunchuk.android.signer.satscard.unSealBalanceSlots
-import com.nunchuk.android.signer.satscard.wallets.SelectWalletFragment
 import com.nunchuk.android.signer.util.openSweepRecipeScreen
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -79,7 +79,12 @@ class SatsCardUnsealSlotFragment : BaseFragment<FragmentUnsealSlotBinding>(), Bo
             if (args.hasWallet) {
                 openSelectWallet()
             } else {
-                navigator.openQuickWalletScreen(launcher, requireActivity())
+                navigator.openQuickWalletScreen(
+                    activityContext = requireActivity(),
+                    quickWalletParam = QuickWalletParam(
+                        slots = viewModel.getUnsealSlots().unSealBalanceSlots()
+                    )
+                )
             }
         } else if (option.type == SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS) {
             val slots = viewModel.getUnsealSlots().unSealBalanceSlots()
@@ -107,11 +112,11 @@ class SatsCardUnsealSlotFragment : BaseFragment<FragmentUnsealSlotBinding>(), Bo
     }
 
     private fun openSelectWallet() {
-        val action = SatscardNavigationDirections.toSelectWalletFragment(
-            slots = viewModel.getUnsealSlots().unSealBalanceSlots().toTypedArray(),
-            type = SelectWalletFragment.TYPE_SWEEP_UNSEAL_SLOT,
+        navigator.openSelectWalletScreen(
+            activityContext = requireActivity(),
+            slots = viewModel.getUnsealSlots().unSealBalanceSlots(),
+            type = SelectWalletType.TYPE_SWEEP_UNSEAL_SLOT,
         )
-        findNavController().navigate(action)
     }
 
     private fun showSweepOptions() {

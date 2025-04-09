@@ -5,14 +5,6 @@
     android:id="@+id/satscard_navigation"
     app:startDestination="@id/satsCardSlotQrFragment">
 
-    <action
-        android:id="@+id/to_selectWalletFragment"
-        app:destination="@id/selectWalletFragment"
-        app:enterAnim="@anim/nav_default_enter_anim"
-        app:exitAnim="@anim/nav_default_exit_anim"
-        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-        app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-
     <fragment
         android:id="@+id/satsCardSlotFragment"
         android:name="com.nunchuk.android.signer.satscard.SatsCardSlotFragment"
@@ -40,30 +32,6 @@
             app:destination="@id/satsCardSlotQrFragment" />
     </fragment>
 
-    <fragment
-        android:id="@+id/selectWalletFragment"
-        android:name="com.nunchuk.android.signer.satscard.wallets.SelectWalletFragment"
-        android:label="SelectWalletFragment">
-
-        <argument
-            android:name="slots"
-            app:argType="com.nunchuk.android.model.SatsCardSlot[]" />
-
-        <argument
-            android:name="type"
-            app:argType="integer" />
-
-        <argument
-            android:name="wallet_balance"
-            android:defaultValue="0"
-            app:argType="float" />
-
-        <argument
-            android:name="claim_param"
-            android:defaultValue="@null"
-            app:nullable="true"
-            app:argType="com.nunchuk.android.core.data.model.ClaimInheritanceTxParam" />
-    </fragment>
     <fragment
         android:id="@+id/satsCardSlotQrFragment"
         android:name="com.nunchuk.android.signer.satscard.qr.SatsCardSlotQrFragment"

@@ -22,44 +22,160 @@ package com.nunchuk.android.app.wallet
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.result.ActivityResultLauncher
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.fragment.findNavController
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.dp
 import com.nunchuk.android.R
-import com.nunchuk.android.core.base.BaseActivity
-import com.nunchuk.android.databinding.ActivityQuickWalletBinding
-import com.nunchuk.android.wallet.personal.components.WalletIntermediaryFragmentArgs
-import com.nunchuk.android.widget.util.setLightStatusBar
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.data.model.QuickWalletParam
+import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class QuickWalletActivity : BaseActivity<ActivityQuickWalletBinding>() {
+class QuickWalletActivity : BaseComposeActivity() {
 
-    private val isQuickWallet: Boolean by lazy { intent.extras?.let { WalletIntermediaryFragmentArgs.fromBundle(it).isQuickWallet } ?: false }
-
-    override fun initializeBinding(): ActivityQuickWalletBinding {
-        return ActivityQuickWalletBinding.inflate(layoutInflater)
+    private val quickWalletParam by lazy {
+        intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM)
     }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setLightStatusBar()
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
-        val inflater = navHostFragment.navController.navInflater
-        val graph = inflater.inflate(R.navigation.quick_wallet_navigation)
-        if (isQuickWallet) {
-            graph.setStartDestination(R.id.walletIntermediaryFragment)
-        } else {
-            graph.setStartDestination(R.id.walletIntermediaryNewUIFragment)
-        }
-        navHostFragment.navController.setGraph(graph, intent.extras)
+        enableEdgeToEdge()
+        setContentView(ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
+            setContent {
+                QuickWalletScreen(
+                    onContinueClicked = {
+                        navigator.openHotWalletScreen(
+                            launcher = null,
+                            activityContext = this@QuickWalletActivity,
+                            quickWalletParam = quickWalletParam
+                        )
+                    },
+                    onCreateOwnWalletClicked = {
+                        navigator.openWalletIntermediaryScreen(
+                            activityContext = this@QuickWalletActivity,
+                            quickWalletParam = quickWalletParam,
+                        )
+                    }
+                )
+            }
+        })
     }
 
     companion object {
-        fun start(launcher: ActivityResultLauncher<Intent>, activityContext: Context) {
-            launcher.launch(Intent(activityContext, QuickWalletActivity::class.java).apply {
-                putExtras(WalletIntermediaryFragmentArgs(isQuickWallet = true).toBundle())
+
+        private const val EXTRA_QUICK_WALLET_PARAM = "extra_quick_wallet_param"
+
+        fun navigate(context: Context, quickWalletParam: QuickWalletParam?) {
+            context.startActivity(Intent(context, QuickWalletActivity::class.java).apply {
+                putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
             })
         }
     }
+}
+
+@Composable
+fun QuickWalletScreen(
+    onContinueClicked: () -> Unit = {},
+    onCreateOwnWalletClicked: () -> Unit = {},
+) {
+    NunchukTheme {
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                NcTopAppBar(
+                    title = "",
+                    isBack = false
+                )
+            }, bottomBar = {
+                Column {
+
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = {
+                            onContinueClicked()
+                        },
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_text_continue))
+                    }
+
+                    NcOutlineButton(
+                        modifier = Modifier
+                            .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+                            .fillMaxWidth(),
+                        onClick = onCreateOwnWalletClicked,
+                    ) {
+                        Text(text = stringResource(R.string.nc_create_my_own_wallet))
+                    }
+                }
+
+            }) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp)
+                    .navigationBarsPadding()
+                    .fillMaxHeight()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_circle_new_wallet),
+                        contentDescription = "Help Icon",
+                        modifier = Modifier.size(96.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = stringResource(id = R.string.nc_you_dont_have_a_wallet_yet),
+                    style = NunchukTheme.typography.heading,
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = stringResource(id = R.string.nc_you_dont_have_a_wallet_yet_desc),
+                    style = NunchukTheme.typography.body,
+                )
+            }
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+fun PreviewQuickWalletScreen() {
+    QuickWalletScreen(
+    )
 }

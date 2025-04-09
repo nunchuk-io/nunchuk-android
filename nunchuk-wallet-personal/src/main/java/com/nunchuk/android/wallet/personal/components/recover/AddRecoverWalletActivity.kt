@@ -25,8 +25,10 @@ import android.os.Bundle
 import android.text.InputFilter.LengthFilter
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.DEFAULT_COLDCARD_WALLET_NAME
+import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.utils.parcelable
@@ -44,6 +46,9 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
 
     private val recoverWalletData: RecoverWalletData
         get() = intent.parcelable(EXTRAS_DATA)!!
+
+    private val quickWalletParam: QuickWalletParam?
+        get() = intent.parcelable(QUICK_WALLET_PARAM)
 
     override fun initializeBinding() = ActivityAddRecoverWalletBinding.inflate(layoutInflater)
 
@@ -75,7 +80,7 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
             is RecoverWalletEvent.WalletSetupDoneEvent -> handleWalletSetupDoneEvent()
             RecoverWalletEvent.WalletNameRequiredEvent -> binding.walletName.setError(getString(R.string.nc_text_required))
             is RecoverWalletEvent.ImportGroupWalletSuccessEvent -> {
-                navigator.openFreeGroupWalletScreen(this, groupId = event.walletId)
+                navigator.openFreeGroupWalletScreen(this, groupId = event.walletId, quickWalletParam = quickWalletParam)
             }
         }
     }
@@ -97,7 +102,12 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
 
     private fun handleSuccessRecoverEvent(walletId: String, walletName: String) {
         NcToastManager.scheduleShowMessage(getString(R.string.nc_txt_import_wallet_success, walletName))
-        openWalletConfigScreen(walletId)
+        navigateToSelectWallet(
+            navigator = navigator,
+            quickWalletParam = quickWalletParam
+        ) {
+            openWalletConfigScreen(walletId)
+        }
     }
 
     private fun importWallet(walletName: String, filePath: String) {
@@ -152,10 +162,12 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
     companion object {
         private const val MAX_LENGTH = 20
         private const val EXTRAS_DATA = "EXTRAS_DATA"
+        private const val QUICK_WALLET_PARAM = "QUICK_WALLET_PARAM"
 
-        fun start(activityContext: Context, data: RecoverWalletData) {
+        fun start(activityContext: Context, data: RecoverWalletData, quickWalletParam: QuickWalletParam?) {
             val intent = Intent(activityContext, AddRecoverWalletActivity::class.java).apply {
                 putExtra(EXTRAS_DATA, data)
+                putExtra(QUICK_WALLET_PARAM, quickWalletParam)
             }
             activityContext.startActivity(intent)
         }

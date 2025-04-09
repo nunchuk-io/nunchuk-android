@@ -62,6 +62,7 @@ import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.RollOverWalletFlow
 import com.nunchuk.android.core.util.RollOverWalletSource
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
@@ -101,7 +102,14 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                                     .build()
                             )
                         } else {
-                            navigator.returnToMainScreen(requireActivity())
+                            val quickWalletParam =
+                                (requireActivity() as? MembershipActivity)?.quickWalletParam
+                            requireActivity().navigateToSelectWallet(
+                                navigator = navigator,
+                                quickWalletParam = quickWalletParam
+                            ) {
+                                navigator.returnToMainScreen(requireActivity())
+                            }
                         }
                     },
                     onContinueClicked = viewModel::onContinueClicked
@@ -153,11 +161,17 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                                 .build()
                         )
                     } else {
-                        navigator.returnToMainScreen(requireActivity())
-                        navigator.openWalletDetailsScreen(
-                            requireActivity(),
-                            args.walletId
-                        )
+                        val quickWalletParam = (requireActivity() as? MembershipActivity)?.quickWalletParam
+                        requireActivity().navigateToSelectWallet(
+                            navigator = navigator,
+                            quickWalletParam = quickWalletParam
+                        ) {
+                            navigator.returnToMainScreen(requireActivity())
+                            navigator.openWalletDetailsScreen(
+                                requireActivity(),
+                                args.walletId
+                            )
+                        }
                     }
                 }
             }

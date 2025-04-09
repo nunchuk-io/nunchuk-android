@@ -49,6 +49,7 @@ import com.nunchuk.android.wallet.personal.R
 fun WalletIntermediaryScreen(
     isMembership: Boolean = false,
     remainingAssistedWallets: Int = 0,
+    isQuickWalletFlow: Boolean = false,
     onWalletTypeSelected: (WalletType) -> Unit = {},
     onRecoverWalletClicked: () -> Unit = {},
     onJoinGroupWalletClicked: () -> Unit = {},
@@ -75,13 +76,13 @@ fun WalletIntermediaryScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    text = stringResource(id = R.string.nc_wallet_create_wallet),
+                    text = if (isQuickWalletFlow) stringResource(R.string.nc_you_dont_have_a_wallet_yet) else stringResource(id = R.string.nc_wallet_create_wallet),
                     style = NunchukTheme.typography.heading,
                 )
 
                 Text(
                     modifier = Modifier.padding(top = 4.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(id = R.string.nc_select_wallet_type),
+                    text = if (isQuickWalletFlow) stringResource(R.string.nc_choose_type_wallet_you_want_to_create) else stringResource(id = R.string.nc_select_wallet_type),
                     style = NunchukTheme.typography.body,
                 )
 

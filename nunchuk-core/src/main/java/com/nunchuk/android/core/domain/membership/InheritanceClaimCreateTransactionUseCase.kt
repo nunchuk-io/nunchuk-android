@@ -40,7 +40,8 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
         val userData = userWalletRepository.generateInheritanceClaimCreateTransactionUserData(
             magic = parameters.magic,
             address = parameters.address,
-            feeRate = nunchukNativeSdk.valueFromAmount(parameters.feeRate)
+            feeRate = nunchukNativeSdk.valueFromAmount(parameters.feeRate),
+            amount = parameters.amount
         )
         val signatures = arrayListOf<String>()
         val singleSigners = arrayListOf<SingleSigner>()
@@ -81,6 +82,7 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
         val address: String,
         val magic: String,
         val feeRate: Amount = Amount(-1),
-        val derivationPaths: List<String>
+        val derivationPaths: List<String>,
+        val amount: Double
     )
 }

@@ -216,7 +216,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
                     groupStep = stage,
                     walletId = walletsViewModel.getAssistedWalletId(),
                     isPersonalWallet = isPersonalWallet,
-                    walletType = walletType
+                    walletType = walletType,
                 )
             }
         }
@@ -252,7 +252,7 @@ internal class WalletsFragment : BaseFragment<FragmentWalletsBinding>() {
     }
 
     private fun openAddWalletScreen() {
-        navigator.openWalletIntermediaryScreen(requireActivity(), signersViewModel.hasSigner())
+        navigator.openWalletIntermediaryScreen(requireActivity())
     }
 
     private fun showAssistedWalletStart(

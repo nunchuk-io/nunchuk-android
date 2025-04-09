@@ -28,9 +28,11 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.core.base.ScannerViewComposer
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.ActivityScanDynamicQrBinding
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
@@ -46,6 +48,9 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
             IS_JOIN_GROUP_WALLET_FLOW,
             false
         )
+    }
+    private val quickWalletParam: QuickWalletParam? by lazy {
+        intent.parcelable<QuickWalletParam>(QUICK_WALLET_PARAM)
     }
 
     override fun decodeQRCodeFromUri(uri: Uri) {
@@ -81,7 +86,11 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
         flowObserver(scanDynamicQRViewModel.event) {
             when (it) {
                 is ScanDynamicQREvent.JoinGroupWalletSuccess -> {
-                    navigator.openFreeGroupWalletScreen(this, groupId = it.groupSandbox.id)
+                    navigator.openFreeGroupWalletScreen(
+                        this,
+                        groupId = it.groupSandbox.id,
+                        quickWalletParam = quickWalletParam
+                    )
                     finish()
                 }
 
@@ -140,12 +149,16 @@ class ScanDynamicQRActivity : BaseCameraActivity<ActivityScanDynamicQrBinding>()
 
     companion object {
         private const val IS_JOIN_GROUP_WALLET_FLOW = "is_join_group_wallet_flow"
+        private const val QUICK_WALLET_PARAM = "quick_wallet_param"
+
         fun buildIntent(
             activityContext: Context,
             isJoinGroupWalletFlow: Boolean = false,
+            quickWalletParam: QuickWalletParam? = null
         ): Intent {
             val intent = Intent(activityContext, ScanDynamicQRActivity::class.java).apply {
                 putExtra(IS_JOIN_GROUP_WALLET_FLOW, isJoinGroupWalletFlow)
+                putExtra(QUICK_WALLET_PARAM, quickWalletParam)
             }
             return intent
         }

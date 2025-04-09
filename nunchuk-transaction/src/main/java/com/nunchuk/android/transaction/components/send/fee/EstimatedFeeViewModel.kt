@@ -279,7 +279,8 @@ class EstimatedFeeViewModel @Inject constructor(
                 magic = claimInheritanceTxParam?.magicalPhrase.orEmpty(),
                 feeRate = getState().manualFeeRate.toManualFeeRate(),
                 derivationPaths = claimInheritanceTxParam?.derivationPaths.orEmpty(),
-                isDraft = true
+                isDraft = true,
+                amount = claimInheritanceTxParam?.customAmount ?: 0.0,
             )
         )
         setEvent(EstimatedFeeEvent.Loading(false))

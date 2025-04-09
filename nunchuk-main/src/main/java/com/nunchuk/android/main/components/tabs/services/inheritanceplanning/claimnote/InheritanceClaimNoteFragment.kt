@@ -19,14 +19,19 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claimnote
 
-import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
@@ -41,44 +46,35 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.*
-import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
-import com.nunchuk.android.core.nfc.SweepType
-import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.montserratMedium
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
-import com.nunchuk.android.core.sheet.SheetOption
-import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.util.*
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.main.R
-import com.nunchuk.android.model.Amount
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
-import com.nunchuk.android.signer.satscard.wallets.SelectWalletFragment
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private val viewModel: InheritanceClaimNoteViewModel by viewModels()
     private val args: InheritanceClaimNoteFragmentArgs by navArgs()
-
-    private val launcher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
-                openSelectWallet()
-            }
-        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -99,76 +95,19 @@ class InheritanceClaimNoteFragment : MembershipFragment(), BottomSheetOptionList
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceClaimNoteEvent.Loading -> showOrHideLoading(loading = event.isLoading)
-                is InheritanceClaimNoteEvent.WithdrawClick -> showSweepOptions()
-                is InheritanceClaimNoteEvent.Error -> showError(message = event.message)
-                is InheritanceClaimNoteEvent.CheckHasWallet -> {
-                    openSelectWallet()
+                is InheritanceClaimNoteEvent.WithdrawClick -> {
+                    findNavController().navigate(
+                        InheritanceClaimNoteFragmentDirections.actionInheritanceClaimNoteFragmentToInheritanceClaimWithdrawBitcoinFragment(
+                            walletBalance = viewModel.getBalance().toFloat(),
+                            signers = args.signers,
+                            magic = args.magic,
+                            derivationPaths = args.derivationPaths,
+                        )
+                    )
                 }
+                is InheritanceClaimNoteEvent.Error -> showError(message = event.message)
             }
         }
-    }
-
-    private fun showSweepOptions() {
-        (childFragmentManager.findFragmentByTag("BottomSheetOption") as? DialogFragment)?.dismiss()
-        val dialog = BottomSheetOption.newInstance(
-            listOf(
-                SheetOption(
-                    SheetOptionType.TYPE_SWEEP_TO_WALLET,
-                    R.drawable.ic_wallet_info,
-                    R.string.nc_withdraw_nunchuk_wallet
-                ),
-                SheetOption(
-                    SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS,
-                    R.drawable.ic_sending_bitcoin,
-                    R.string.nc_withdraw_to_an_address
-                ),
-            )
-        )
-        dialog.show(childFragmentManager, "BottomSheetOption")
-    }
-
-    override fun onOptionClicked(option: SheetOption) {
-        super.onOptionClicked(option)
-        if (option.type == SheetOptionType.TYPE_SWEEP_TO_WALLET) {
-            viewModel.checkWallet()
-        } else if (option.type == SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS) {
-            openSweepRecipeScreen()
-        }
-    }
-
-    private fun openSweepRecipeScreen() {
-        val sweepType = SweepType.SWEEP_TO_EXTERNAL_ADDRESS
-        val totalBalance = viewModel.getBalance() * BTC_SATOSHI_EXCHANGE_RATE
-        val totalInBtc = Amount(value = totalBalance.toLong()).pureBTC()
-        navigator.openAddReceiptScreen(
-            activityContext = requireActivity(),
-            walletId = "",
-            outputAmount = totalInBtc,
-            availableAmount = totalInBtc,
-            subtractFeeFromAmount = true,
-            slots = emptyList(),
-            sweepType = sweepType,
-            claimInheritanceTxParam = ClaimInheritanceTxParam(
-                masterSignerIds = args.signers.map { it.id },
-                magicalPhrase = args.magic.trim(),
-                derivationPaths = args.derivationPaths.toList()
-            )
-        )
-    }
-
-    private fun openSelectWallet() {
-        findNavController().navigate(
-            InheritanceClaimNoteFragmentDirections.actionInheritanceClaimNoteFragmentToSelectWalletFragment(
-                slots = emptyArray(),
-                type = SelectWalletFragment.TYPE_INHERITANCE_WALLET,
-                walletBalance = viewModel.getBalance().toFloat(),
-                claimParam = ClaimInheritanceTxParam(
-                    masterSignerIds = args.signers.map { it.id },
-                    magicalPhrase = args.magic.trim(),
-                    derivationPaths = args.derivationPaths.toList()
-                )
-            )
-        )
     }
 }
 

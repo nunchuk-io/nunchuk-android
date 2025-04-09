@@ -794,10 +794,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun generateInheritanceClaimCreateTransactionUserData(
-        magic: String, address: String, feeRate: String,
+        magic: String, address: String, feeRate: String, amount: Double
     ): String {
         val body = InheritanceClaimCreateTransactionRequest.Body(
-            magic = magic, address = address, feeRate = feeRate
+            magic = magic, address = address, feeRate = feeRate, amount = if (amount == 0.0) null else amount
         )
         val nonce = getNonce()
         val request = InheritanceClaimCreateTransactionRequest(

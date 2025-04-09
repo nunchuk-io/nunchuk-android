@@ -17,7 +17,7 @@ class EmptyStateMultipleSubscriptionsUser(
             instructions = emptyList(),
             buttonText = activityContext.getString(R.string.nc_wallet_create_wallet),
             buttonAction = {
-                navigator.openWalletIntermediaryScreen(activityContext, conditionInfo.hasSigner)
+                navigator.openWalletIntermediaryScreen(activityContext)
             },
             imageResId = R.drawable.bg_empty_state_group_plan,
             backgroundColor = ContextCompat.getColor(activityContext, R.color.nc_fill_denim)

@@ -22,6 +22,7 @@ package com.nunchuk.android.nav
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.data.model.WalletConfigViewOnlyDataComposer
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.RecoverWalletData
@@ -42,14 +43,28 @@ interface PersonalWalletNavigator {
         decoyPin: String = "",
         groupWalletId: String = "",
         hasGroupSigner: Boolean = false,
-        walletConfigViewOnlyDataComposer: WalletConfigViewOnlyDataComposer? = null
+        walletConfigViewOnlyDataComposer: WalletConfigViewOnlyDataComposer? = null,
+        quickWalletParam: QuickWalletParam? = null,
     )
 
-    fun openWalletIntermediaryScreen(activityContext: Context, hasSigner: Boolean, isHideAddKeyDialog: Boolean = false)
+    fun openWalletIntermediaryScreen(
+        activityContext: Context,
+        isHideAddKeyDialog: Boolean = false,
+        quickWalletParam: QuickWalletParam? = null
+    )
 
-    fun openAddRecoverWalletScreen(activityContext: Context, data: RecoverWalletData)
+    fun openAddRecoverWalletScreen(
+        activityContext: Context,
+        data: RecoverWalletData,
+        quickWalletParam: QuickWalletParam?
+    )
 
-    fun openRecoverWalletQRCodeScreen(activityContext: Context, isCollaborativeWallet: Boolean)
+    fun openRecoverWalletQRCodeScreen(
+        activityContext: Context,
+        isCollaborativeWallet: Boolean,
+        quickWalletParam: QuickWalletParam? = null
+    )
+
     fun openParseWalletQRCodeScreen(
         launcher: ActivityResultLauncher<Intent>,
         activityContext: Context,
@@ -154,9 +169,10 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         addressType: AddressType,
         decoyPin: String = "",
         groupSandboxId: String = "",
+        quickWalletParam: QuickWalletParam?
     )
 
-    fun openQuickWalletScreen(launcher: ActivityResultLauncher<Intent>, activityContext: Context)
+    fun openQuickWalletScreen(activityContext: Context, quickWalletParam: QuickWalletParam?)
 
     fun openCoinList(
         launcher: ActivityResultLauncher<Intent>? = null,

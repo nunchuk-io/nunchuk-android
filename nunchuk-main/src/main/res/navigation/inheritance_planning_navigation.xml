@@ -52,7 +52,36 @@
             app:argType="string[]" />
 
         <action
-            android:id="@+id/action_inheritanceClaimNoteFragment_to_selectWalletFragment"
+            android:id="@+id/action_inheritanceClaimNoteFragment_to_inheritanceClaimWithdrawBitcoinFragment"
+            app:destination="@id/inheritanceClaimWithdrawBitcoinFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/inheritanceClaimWithdrawBitcoinFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.withdrawbitcoin.InheritanceClaimWithdrawBitcoinFragment"
+        android:label="InheritanceClaimWithdrawBitcoinFragment">
+
+        <argument
+            android:name="signers"
+            app:argType="com.nunchuk.android.core.signer.SignerModel[]" />
+        <argument
+            android:name="magic"
+            app:argType="string" />
+        <argument
+            android:name="derivation_paths"
+            app:argType="string[]" />
+
+        <argument
+            android:name="wallet_balance"
+            android:defaultValue="0"
+            app:argType="float" />
+
+        <action
+            android:id="@+id/action_inheritanceClaimWithdrawBitcoinFragment_to_selectWalletFragment"
             app:destination="@id/select_wallet_navigation"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
@@ -75,8 +104,8 @@
             <argument
                 android:name="claim_param"
                 android:defaultValue="@null"
-                app:nullable="true"
-                app:argType="com.nunchuk.android.core.data.model.ClaimInheritanceTxParam" />
+                app:argType="com.nunchuk.android.core.data.model.ClaimInheritanceTxParam"
+                app:nullable="true" />
         </action>
     </fragment>
 
@@ -107,9 +136,10 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim">
-            <argument android:name="source_flow"
-                app:argType="integer"
-                android:defaultValue="0"/>
+            <argument
+                android:name="source_flow"
+                android:defaultValue="0"
+                app:argType="integer" />
             <argument
                 android:name="magical_phrase"
                 app:argType="string" />
@@ -123,12 +153,13 @@
 
         </action>
 
-        <action android:id="@+id/action_inheritanceReviewPlanFragment_to_inheritanceBackUpDownloadFragment"
+        <action
+            android:id="@+id/action_inheritanceReviewPlanFragment_to_inheritanceBackUpDownloadFragment"
             app:destination="@id/inheritanceBackUpDownloadFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 
         <action
             android:id="@+id/action_inheritanceReviewPlanFragment_to_inheritanceNotifyPrefFragment"
@@ -145,9 +176,10 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim">
-            <argument android:name="source_flow"
-                app:argType="integer"
-                android:defaultValue="0"/>
+            <argument
+                android:name="source_flow"
+                android:defaultValue="0"
+                app:argType="integer" />
             <argument
                 android:name="magical_phrase"
                 app:argType="string" />
@@ -280,7 +312,8 @@
         android:id="@+id/findBackupPasswordFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.findbackup.FindBackupPasswordFragment"
         android:label="FindBackupPasswordFragment">
-        <argument android:name="step_number"
+        <argument
+            android:name="step_number"
             android:defaultValue="1"
             app:argType="integer" />
         <action
@@ -323,10 +356,10 @@
     <fragment
         android:id="@+id/inheritanceReviewPlanGroupGroupFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanGroupGroupFragment"
-        android:label="InheritanceReviewPlanGroupGroupFragment">
-    </fragment>
+        android:label="InheritanceReviewPlanGroupGroupFragment"></fragment>
 
-    <fragment android:id="@+id/inheritanceRequestPlanningConfirmFragment"
+    <fragment
+        android:id="@+id/inheritanceRequestPlanningConfirmFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.confirm.InheritanceRequestPlanningConfirmFragment"
         android:label="InheritanceRequestPlanningConfirmFragment">
         <argument
@@ -341,18 +374,18 @@
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim"
-            />
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
-    <fragment android:id="@+id/inheritanceRequestPlanningSentSuccessFragment"
+    <fragment
+        android:id="@+id/inheritanceRequestPlanningSentSuccessFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.requestplanningsent.sent.InheritanceRequestPlanningSentSuccessFragment"
-        android:label="InheritanceRequestPlanningSentFragment"/>
+        android:label="InheritanceRequestPlanningSentFragment" />
 
     <fragment
         android:id="@+id/inheritanceBackUpDownloadFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.backupdownload.InheritanceBackUpDownloadFragment"
-        android:label="InheritanceShareSecretSuccessFragment"/>
+        android:label="InheritanceShareSecretSuccessFragment" />
 
 
     <include app:graph="@navigation/select_wallet_navigation" />
