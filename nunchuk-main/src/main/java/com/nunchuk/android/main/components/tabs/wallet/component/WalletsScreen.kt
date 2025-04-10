@@ -253,22 +253,7 @@ internal fun WalletsScreen(
                                     Surface(shadowElevation = elevation) {
                                         PendingWalletView(
                                             modifier = Modifier
-                                                .longPressDraggableHandle(enabled = !it.wallet?.wallet?.id.isNullOrEmpty())
-                                                .draggableHandle(
-                                                    enabled = !it.wallet?.wallet?.id.isNullOrEmpty(),
-                                                    onDragStarted = {
-                                                        ViewCompat.performHapticFeedback(
-                                                            view,
-                                                            HapticFeedbackConstantsCompat.GESTURE_START
-                                                        )
-                                                    },
-                                                    onDragStopped = {
-                                                        ViewCompat.performHapticFeedback(
-                                                            view,
-                                                            HapticFeedbackConstantsCompat.GESTURE_END
-                                                        )
-                                                    },
-                                                ),
+                                                .longPressDraggableHandle(enabled = !it.wallet?.wallet?.id.isNullOrEmpty()),
                                             group = it.group,
                                             sandbox = it.sandbox,
                                             isSandboxWallet = it.isSandboxWallet,

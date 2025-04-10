@@ -575,7 +575,7 @@ internal class WalletsViewModel @Inject constructor(
         }
         results.addAll(pendingGroupSandboxes.map { GroupWalletUi(sandbox = it) })
         wallets.sortedWith(
-            compareBy<WalletExtended>({ walletOrderMap[it.wallet.id]?.order ?: Int.MAX_VALUE })
+            compareBy<WalletExtended>({ walletOrderMap[it.wallet.id]?.order ?: Int.MIN_VALUE })
                 .thenByDescending({ it.wallet.createDate })
         ).forEach { wallet ->
             ensureActive()
