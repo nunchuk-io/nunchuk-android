@@ -75,6 +75,7 @@ internal fun WalletsScreen(
     showWalletReplacedDialog: (oldWalletId: String, replaceByWalletId: String) -> Unit,
     openWalletDetailsScreen: (String) -> Unit,
     getWalletDetail: (String) -> Unit,
+    openArchivedWalletsScreen: () -> Unit,
     onMove: (from: String, to: String) -> Unit,
 ) {
     val view = LocalView.current
@@ -228,7 +229,7 @@ internal fun WalletsScreen(
                             )
                         }
 
-                        if (state.groupWalletUis.isEmpty()) {
+                        if (state.groupWalletUis.isEmpty() && state.totalArchivedWallet == 0) {
                             item {
                                 Text(
                                     modifier = Modifier
@@ -322,6 +323,18 @@ internal fun WalletsScreen(
                                             )
                                         )
                                     }
+                                }
+                            }
+
+                            if (state.totalArchivedWallet > 0) {
+                                item {
+                                    ArchivedWalletsRow(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 12.dp),
+                                        count = state.totalArchivedWallet,
+                                        onClick = openArchivedWalletsScreen
+                                    )
                                 }
                             }
                         }

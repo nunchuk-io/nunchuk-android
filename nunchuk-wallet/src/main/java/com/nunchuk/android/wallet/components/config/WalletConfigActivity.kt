@@ -296,6 +296,8 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     }"
                 )
             }
+
+            SheetOptionType.TYPE_ARCHIVE -> viewModel.archiveWallet()
         }
     }
 
@@ -426,6 +428,15 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 } else {
                     NCToastMessage(this).showError(getString(R.string.nc_save_file_failed))
                 }
+            }
+
+            is WalletConfigEvent.ArchiveWalletSuccessEvent -> {
+                val message = if (event.isArchive) {
+                    getString(R.string.nc_archived_wallet)
+                } else {
+                    getString(R.string.nc_unarchived_wallet)
+                }
+                NCToastMessage(this).showMessage(message)
             }
         }
     }
@@ -559,6 +570,26 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                             SheetOptionType.TYPE_ROLL_OVER_ANOTHER_WALLET,
                             R.drawable.ic_wallet_info,
                             R.string.nc_roll_funds_over_another_wallet
+                        )
+                    )
+                }
+            }
+
+            if (!viewModel.isAssistedWallet()) {
+                if (viewModel.isArchived()) {
+                    options.add(
+                        SheetOption(
+                            SheetOptionType.TYPE_ARCHIVE,
+                            R.drawable.ic_archive_box,
+                            R.string.nc_unarchive_wallet
+                        )
+                    )
+                } else {
+                    options.add(
+                        SheetOption(
+                            SheetOptionType.TYPE_ARCHIVE,
+                            R.drawable.ic_archive_box,
+                            R.string.nc_archive_wallet
                         )
                     )
                 }

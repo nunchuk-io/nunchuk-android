@@ -336,6 +336,14 @@ internal class WalletConfigViewModel @Inject constructor(
         updateWallet(newWallet, UpdateAction.GAP_LIMIT)
     }
 
+    fun archiveWallet() {
+        val oldWallet = getState().walletExtended.wallet
+        val newWallet = oldWallet.copy(
+            archived = !oldWallet.archived,
+        )
+        updateWallet(newWallet, UpdateAction.ARCHIVE)
+    }
+
     private fun updateWallet(newWallet: Wallet, updateAction: UpdateAction) =
         viewModelScope.launch {
             updateWalletUseCase(
@@ -345,11 +353,22 @@ internal class WalletConfigViewModel @Inject constructor(
                     groupId = assistedWalletManager.getGroupId(walletId)
                 )
             ).onSuccess {
-                if (updateAction == UpdateAction.NAME) {
-                    _state.update { it.copy(walletExtended = it.walletExtended.copy(wallet = newWallet)) }
-                    _event.emit(UpdateNameSuccessEvent)
-                } else if (updateAction == UpdateAction.GAP_LIMIT) {
-                    _event.emit(WalletConfigEvent.UpdateGapLimitSuccessEvent)
+                when (updateAction) {
+                    UpdateAction.NAME -> {
+                        _state.update { it.copy(walletExtended = it.walletExtended.copy(wallet = newWallet)) }
+                        _event.emit(UpdateNameSuccessEvent)
+                    }
+
+                    UpdateAction.GAP_LIMIT -> {
+                        _event.emit(WalletConfigEvent.UpdateGapLimitSuccessEvent)
+                    }
+
+                    UpdateAction.ARCHIVE -> {
+                        _event.emit(WalletConfigEvent.ArchiveWalletSuccessEvent(newWallet.archived))
+                    }
+                }
+                _state.update {
+                    it.copy(walletExtended = it.walletExtended.copy(wallet = newWallet))
                 }
             }.onFailure {
                 _event.emit(UpdateNameErrorEvent(it.message.orUnknownError()))
@@ -477,7 +496,8 @@ internal class WalletConfigViewModel @Inject constructor(
     fun saveToLocal() {
         if (filePathInteracting.isEmpty()) return
         viewModelScope.launch {
-            val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params(filePath = filePathInteracting))
+            val result =
+                saveLocalFileUseCase(SaveLocalFileUseCase.Params(filePath = filePathInteracting))
             filePathInteracting = ""
             _event.emit(WalletConfigEvent.SaveLocalFile(result.isSuccess))
         }
@@ -618,6 +638,7 @@ internal class WalletConfigViewModel @Inject constructor(
                         filePathInteracting = event.data
                         Result.Success(event.data)
                     }
+
                     is Result.Error -> event
                 }
             }
@@ -637,6 +658,7 @@ internal class WalletConfigViewModel @Inject constructor(
                 is Result.Success -> {
                     _event.emit(WalletConfigEvent.ExportInvoiceSuccess(result.data))
                 }
+
                 is Result.Error -> {
                     _event.emit(WalletConfigEvent.WalletDetailsError(result.exception.message.orUnknownError()))
                 }
@@ -668,18 +690,16 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun getWalletName() = getState().walletExtended.wallet.name
 
-    fun isHotWalletNeedBackup() = getState().walletExtended.wallet.needBackup
-
-    fun isSignerDeleted() = getState().signers.firstOrNull()?.type == SignerType.UNKNOWN
-
     fun getTransactions() = getState().transactions
 
     fun isGroupSandboxWallet() = getState().isGroupSandboxWallet
 
     fun getFilePathInteracting() = filePathInteracting
 
+    fun isArchived() = getState().walletExtended.wallet.archived
+
     @Keep
     enum class UpdateAction {
-        NAME, GAP_LIMIT
+        NAME, GAP_LIMIT, ARCHIVE
     }
 }

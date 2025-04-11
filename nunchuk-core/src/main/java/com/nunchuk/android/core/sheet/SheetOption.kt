@@ -149,12 +149,7 @@ object SheetOptionType {
     const val TYPE_ADD_SOFTWARE_KEY = 83
     const val TYPE_ADD_COLDCARD_QR = 84
 
-    const val TYPE_CREATE_NEW_WALLET = 85
-    const val TYPE_CREATE_HOT_WALLET = 86
-
     const val TYPE_REPLACE_KEY = 87
-
-    const val TYPE_CREATE_NEW_DECOY_WALLET = 88
 
     const val TYPE_ROLL_OVER_ANOTHER_WALLET = 89
 
@@ -168,4 +163,5 @@ object SheetOptionType {
     const val TYPE_SHARE_FILE = 96
     const val TYPE_EXPORT_TX_AS_PDF = 97
     const val TYPE_EXPORT_TX_AS_CSV = 98
+    const val TYPE_ARCHIVE = 99
 }

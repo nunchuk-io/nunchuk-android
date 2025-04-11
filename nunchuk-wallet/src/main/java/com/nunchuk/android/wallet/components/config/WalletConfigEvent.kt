@@ -25,7 +25,7 @@ sealed class WalletConfigEvent {
 
     data object UpdateNameSuccessEvent : WalletConfigEvent()
     data object UpdateGapLimitSuccessEvent : WalletConfigEvent()
-
+    data class ArchiveWalletSuccessEvent(val isArchive: Boolean) : WalletConfigEvent()
     data class UpdateNameErrorEvent(val message: String) : WalletConfigEvent()
 
     data class WalletDetailsError(val message: String) : WalletConfigEvent()
@@ -35,7 +35,12 @@ sealed class WalletConfigEvent {
     data class ExportInvoiceSuccess(val filePath: String) : WalletConfigEvent()
     data object ImportTxCoinControlSuccess : WalletConfigEvent()
 
-    data class VerifyPasswordSuccess(val token: String, val signer: SignerModel, val groupId: String?) : WalletConfigEvent()
+    data class VerifyPasswordSuccess(
+        val token: String,
+        val signer: SignerModel,
+        val groupId: String?
+    ) : WalletConfigEvent()
+
     class Loading(val isLoading: Boolean) : WalletConfigEvent()
     class Error(val message: String) : WalletConfigEvent()
     data object ForceRefreshWalletSuccess : WalletConfigEvent()

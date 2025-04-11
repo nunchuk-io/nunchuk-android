@@ -175,7 +175,7 @@ fun getWalletColors(
 ): List<Color> {
     val colors = if (!isJoined || wallet == null) {
         listOf(MaterialTheme.colorScheme.fillBeewax, MaterialTheme.colorScheme.fillBeewax)
-    } else if (isLimitAccess) {
+    } else if (isLimitAccess || wallet.archived) {
         listOf(NcColor.greyDark, NcColor.greyDark)
     } else if (hasGroup || isAssistedWallet) {
         listOf(MaterialTheme.colorScheme.ming, MaterialTheme.colorScheme.everglade)

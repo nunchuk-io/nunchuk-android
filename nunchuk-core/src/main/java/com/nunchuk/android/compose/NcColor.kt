@@ -112,4 +112,7 @@ val ColorScheme.fillSlimeT2: Color
 val ColorScheme.beeswaxDark: Color
     get() = Color(0xFFa66800)
 
+val ColorScheme.controlFillTertiary: Color
+    get() = if (isDark) Color(0xFF5b5b5b) else Color(0xFFeaeaea)
+
 

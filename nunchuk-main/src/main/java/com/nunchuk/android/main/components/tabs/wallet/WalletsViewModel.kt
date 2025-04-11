@@ -574,7 +574,8 @@ internal class WalletsViewModel @Inject constructor(
             results.add(GroupWalletUi(isPendingPersonalWallet = true))
         }
         results.addAll(pendingGroupSandboxes.map { GroupWalletUi(sandbox = it) })
-        wallets.sortedWith(
+        val totalArchivedWallet = wallets.count { it.wallet.archived }
+        wallets.filter { !it.wallet.archived }.sortedWith(
             compareBy<WalletExtended>({ walletOrderMap[it.wallet.id]?.order ?: Int.MIN_VALUE })
                 .thenByDescending({ it.wallet.createDate })
         ).forEach { wallet ->
@@ -645,7 +646,7 @@ internal class WalletsViewModel @Inject constructor(
         val mergedSortedGroups = sortedGroupsWithNullWallet + groupsWithNonNullWallet
 
         withContext(Main) {
-            _state.update { it.copy(groupWalletUis = mergedSortedGroups) }
+            _state.update { it.copy(groupWalletUis = mergedSortedGroups, totalArchivedWallet = totalArchivedWallet) }
         }
     }
 

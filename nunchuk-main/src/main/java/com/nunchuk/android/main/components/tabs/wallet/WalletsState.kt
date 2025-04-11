@@ -65,6 +65,7 @@ internal data class WalletsState(
     val isWalletLoading: Boolean = true,
     val chain: Chain = Chain.MAIN,
     val hasSigner: Boolean = false,
+    val totalArchivedWallet: Int = 0,
 )
 
 internal sealed class WalletsEvent {

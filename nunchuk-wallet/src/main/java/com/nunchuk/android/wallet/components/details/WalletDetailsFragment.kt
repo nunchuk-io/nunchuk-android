@@ -463,7 +463,9 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                     R.color.nc_white_color
                 )
             )
-        } else if (state.walletStatus == WalletStatus.REPLACED.name || state.walletStatus == WalletStatus.LOCKED.name || state.isDeprecatedGroupWallet) {
+        } else if (state.walletStatus == WalletStatus.REPLACED.name || state.walletStatus == WalletStatus.LOCKED.name
+            || state.isDeprecatedGroupWallet || state.walletExtended.wallet.archived
+        ) {
             val color = ContextCompat.getColor(requireContext(), R.color.nc_grey_dark_color)
             binding.statusBarBackground.setBackgroundColor(color)
             binding.shareIcon.text = getString(R.string.nc_deactivated)
@@ -708,8 +710,18 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
             R.drawable.ic_warning_outline, 0, 0, 0
         )
         binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_wallet_warning_background)
-        binding.tvWalletWarning.setTextColor(ContextCompat.getColor(requireContext(), R.color.cl_031F2B))
-        binding.tvWalletWarning.setCompoundDrawableTintList(ContextCompat.getColorStateList(requireContext(), R.color.cl_031F2B))
+        binding.tvWalletWarning.setTextColor(
+            ContextCompat.getColor(
+                requireContext(),
+                R.color.cl_031F2B
+            )
+        )
+        binding.tvWalletWarning.setCompoundDrawableTintList(
+            ContextCompat.getColorStateList(
+                requireContext(),
+                R.color.cl_031F2B
+            )
+        )
         binding.tvWalletWarning.setOnClickListener {
             onWarningClick()
         }

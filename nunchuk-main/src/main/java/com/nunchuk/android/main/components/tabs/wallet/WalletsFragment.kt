@@ -211,6 +211,7 @@ internal class WalletsFragment : Fragment() {
                 showWalletReplacedDialog = ::showWalletReplacedDialog,
                 getWalletDetail = walletsViewModel::getWalletDetail,
                 openWalletDetailsScreen = ::openWalletDetailsScreen,
+                openArchivedWalletsScreen = {},
                 onMove = walletsViewModel::onMove
             )
         }
