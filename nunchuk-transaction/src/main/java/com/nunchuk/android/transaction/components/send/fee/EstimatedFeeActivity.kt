@@ -186,7 +186,7 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         binding.subtractFeeCheckBox.isChecked = state.subtractFeeFromAmount
         binding.subtractFeeCheckBox.isEnabled = state.enableSubtractFeeFromAmount
 
-        binding.tvTaprootEffectiveFee.isVisible = state.scriptPathFee.value > 0
+        binding.tvTaprootEffectiveFee.isVisible = state.scriptPathFee.value > 0 && !state.isValueKeySetDisable
         binding.tvTaprootEffectiveFee.text = getHtmlText(
             R.string.nc_transaction_taproot_effective_fee_rate,
             (state.scriptPathFee.value.toDouble() / 1000.0).formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)

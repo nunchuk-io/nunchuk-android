@@ -24,8 +24,10 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
+import com.nunchuk.android.type.WalletTemplate
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,6 +41,7 @@ import javax.inject.Inject
 internal class ReplaceFeeViewModel @Inject constructor(
     private val estimateFeeUseCase: EstimateFeeUseCase,
     private val draftTransactionUseCase: DraftTransactionUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ReplaceFeeState())
     val state = _state.asStateFlow()
@@ -51,6 +54,16 @@ internal class ReplaceFeeViewModel @Inject constructor(
             val result = estimateFeeUseCase(Unit)
             if (result.isSuccess) {
                 _state.update { it.copy(fee = result.getOrThrow()) }
+            }
+        }
+    }
+
+    fun getWalletDetail(walletId: String) {
+        viewModelScope.launch {
+            getWalletDetail2UseCase(walletId).onSuccess { wallet ->
+                _state.update {
+                    it.copy(isValueKeySetDisable = wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH)
+                }
             }
         }
     }

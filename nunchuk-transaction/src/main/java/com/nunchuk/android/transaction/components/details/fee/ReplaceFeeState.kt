@@ -29,6 +29,7 @@ data class ReplaceFeeState(
     val previousFeeRate: Int = 0,
     val scriptPathFee: Amount = Amount.ZER0,
     val cpfpFee: Amount = Amount.ZER0,
+    val isValueKeySetDisable: Boolean = false,
 )
 
 sealed class ReplaceFeeEvent {

@@ -113,6 +113,7 @@ class ReplaceFeeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.getWalletDetail(args.walletId)
         viewModel.setPreviousFeeRate(args.transaction.feeRate.value.toInt())
         flowObserver(viewModel.event) {
             when (it) {
@@ -294,7 +295,7 @@ private fun ReplaceFeeContent(
                         )
                     }
 
-                    if (uiState.scriptPathFee.value > 0) {
+                    if (uiState.scriptPathFee.value > 0 && !uiState.isValueKeySetDisable) {
                         NcHighlightText(
                             modifier = Modifier.padding(top = 4.dp),
                             text = stringResource(

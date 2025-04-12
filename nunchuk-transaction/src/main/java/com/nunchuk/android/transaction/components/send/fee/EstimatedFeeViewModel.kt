@@ -40,12 +40,14 @@ import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
+import com.nunchuk.android.type.WalletTemplate
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.EstimateRollOverAmountUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -60,7 +62,8 @@ class EstimatedFeeViewModel @Inject constructor(
     private val getAllTagsUseCase: GetAllTagsUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
     private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase,
-    private val estimateRollOverAmountUseCase: EstimateRollOverAmountUseCase
+    private val estimateRollOverAmountUseCase: EstimateRollOverAmountUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
 ) : NunchukViewModel<EstimatedFeeState, EstimatedFeeEvent>() {
 
     private var walletId: String = ""
@@ -98,6 +101,7 @@ class EstimatedFeeViewModel @Inject constructor(
             getAllTags()
             getAllCoins()
         }
+        getWalletDetail(walletId)
     }
 
     fun updateNewInputs(inputs: List<UnspentOutput>) {
@@ -106,6 +110,14 @@ class EstimatedFeeViewModel @Inject constructor(
             addAll(inputs)
         }
         getEstimateFeeRates()
+    }
+
+    private fun getWalletDetail(walletId: String) {
+        viewModelScope.launch {
+            getWalletDetail2UseCase(walletId).onSuccess {
+                updateState { copy(isValueKeySetDisable = it.walletTemplate == WalletTemplate.DISABLE_KEY_PATH) }
+            }
+        }
     }
 
     private fun getAllTags() {
