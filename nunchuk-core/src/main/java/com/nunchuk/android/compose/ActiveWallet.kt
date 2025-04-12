@@ -176,7 +176,7 @@ fun getWalletColors(
     val colors = if (!isJoined || wallet == null) {
         listOf(MaterialTheme.colorScheme.fillBeewax, MaterialTheme.colorScheme.fillBeewax)
     } else if (isLimitAccess || wallet.archived) {
-        listOf(NcColor.greyDark, NcColor.greyDark)
+        disableWalletColor
     } else if (hasGroup || isAssistedWallet) {
         listOf(MaterialTheme.colorScheme.ming, MaterialTheme.colorScheme.everglade)
     } else if (isFreeGroupWallet) {
@@ -197,3 +197,5 @@ fun getWalletColors(
     }
     return colors
 }
+
+val disableWalletColor = listOf(NcColor.greyDark, NcColor.greyDark)

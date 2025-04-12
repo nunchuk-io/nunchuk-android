@@ -37,6 +37,7 @@ import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.RollOverWalletFlow
 import com.nunchuk.android.main.MainActivity
+import com.nunchuk.android.main.MainComposeActivity
 import com.nunchuk.android.main.components.tabs.services.emergencylockdown.EmergencyLockdownActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoveryActivity
@@ -59,6 +60,7 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.nav.args.MainComposeArgs
 import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
 import com.nunchuk.android.signer.nav.NfcNavigatorDelegate
 import com.nunchuk.android.signer.nav.SignerNavigatorDelegate
@@ -91,6 +93,10 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
             messages = messages,
             isClearTask = isClearTask,
         )
+    }
+
+    override fun openMainComposeScreen(activity: Activity, args: MainComposeArgs) {
+        MainComposeActivity.start(activity, args)
     }
 
     override fun returnToMainScreen(activity: Activity) {

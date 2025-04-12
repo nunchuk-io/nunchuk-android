@@ -5,8 +5,8 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/nc_title_message"
-            android:screenOrientation="portrait"
             android:launchMode="singleTask"
+            android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Dark" />
 
         <activity
@@ -73,17 +73,16 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
-        <activity android:name=".groupwallet.join.UnableJoinGroupWalletActivity"
+        <activity
+            android:name=".groupwallet.join.UnableJoinGroupWalletActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
 
-        <activity android:name=".groupwallet.join.CommonQRCodeActivity"
+        <activity
+            android:name=".groupwallet.join.CommonQRCodeActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
-
-        <activity android:name=".groupwallet.recover.FreeGroupWalletRecoverActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light" />
+        <activity android:name="com.nunchuk.android.main.MainComposeActivity" />
     </application>
 
 </manifest>

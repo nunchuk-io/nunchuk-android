@@ -889,4 +889,5 @@
     <string name="nc_archived_wallet">Archived wallet</string>
     <string name="nc_unarchive_wallet">Unarchive wallet</string>
     <string name="nc_unarchived_wallet">Unarchived wallet</string>
+    <string name="nc_archived_wallets">Archived wallets</string>
 </resources>

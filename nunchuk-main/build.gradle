@@ -1,5 +1,6 @@
 plugins {
     id 'org.jetbrains.kotlin.plugin.compose' version '2.0.21'
+    id 'org.jetbrains.kotlin.plugin.serialization'
 }
 apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
@@ -59,4 +60,5 @@ dependencies {
 
     implementation "com.airbnb.android:lottie-compose:6.1.0"
     implementation "sh.calvin.reorderable:reorderable:2.4.3"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
 }

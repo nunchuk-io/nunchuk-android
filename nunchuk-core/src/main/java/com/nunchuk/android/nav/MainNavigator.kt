@@ -21,6 +21,7 @@ package com.nunchuk.android.nav
 
 import android.app.Activity
 import android.content.Context
+import com.nunchuk.android.nav.args.MainComposeArgs
 
 interface MainNavigator {
     fun openMainScreen(
@@ -29,5 +30,7 @@ interface MainNavigator {
         messages: ArrayList<String>? = null,
         isClearTask: Boolean = false
     )
+
     fun returnToMainScreen(activity: Activity)
+    fun openMainComposeScreen(activity: Activity, args: MainComposeArgs)
 }

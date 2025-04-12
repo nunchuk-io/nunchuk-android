@@ -88,6 +88,7 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.isByzantineOrFinney
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.nav.args.MainComposeArgs
 import com.nunchuk.android.signer.satscard.SatsCardActivity
 import com.nunchuk.android.signer.signer.SignersViewModel
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
@@ -211,7 +212,12 @@ internal class WalletsFragment : Fragment() {
                 showWalletReplacedDialog = ::showWalletReplacedDialog,
                 getWalletDetail = walletsViewModel::getWalletDetail,
                 openWalletDetailsScreen = ::openWalletDetailsScreen,
-                openArchivedWalletsScreen = {},
+                openArchivedWalletsScreen = {
+                    navigator.openMainComposeScreen(
+                        activity = requireActivity(),
+                        args = MainComposeArgs(MainComposeArgs.TYPE_ARCHIVE)
+                    )
+                },
                 onMove = walletsViewModel::onMove
             )
         }
