@@ -38,6 +38,7 @@ import com.nunchuk.android.wallet.personal.databinding.ActivityImportWalletQrcod
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 @AndroidEntryPoint
@@ -73,7 +74,21 @@ class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcod
     private fun handleEvent(event: RecoverWalletQrCodeEvent) {
         when (event) {
             is RecoverWalletQrCodeEvent.ImportQRCodeError -> onImportQRCodeError()
-            is RecoverWalletQrCodeEvent.ImportQRCodeSuccess -> onImportQRCodeSuccess(event)
+            is RecoverWalletQrCodeEvent.ImportQRCodeSuccess -> {
+                Timber.tag("recover-wallet").e("ImportQRCodeSuccess: ${viewModel.getQrList().size} - ${event.wallet.id}")
+                if (isGroupWallet) {
+                    navigator.openFreeGroupWalletRecoverScreen(
+                        activityContext = this@RecoverWalletQrCodeActivity,
+                        walletId = event.wallet.id,
+                        qrList = viewModel.getQrList(),
+                        quickWalletParam = intent.parcelable(EXTRA_QUICK_WALLET_PARAM)
+                    )
+                    finish()
+                } else {
+                    onImportQRCodeSuccess(event)
+                }
+            }
+
             is RecoverWalletQrCodeEvent.ParseQRCodeFromPhotoSuccess -> viewModel.updateQRCode(
                 isParseOnly, event.content, ""
             )
@@ -144,20 +159,29 @@ class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcod
     private val isParseOnly: Boolean
         get() = intent.getBooleanExtra(EXTRA_PARSE_ONLY, false)
 
+    private val isGroupWallet: Boolean
+        get() = intent.getBooleanExtra(EXTRA_GROUP_WALLET, false)
+
     companion object {
         private const val EXTRA_COLLABORATIVE_WALLET = "_a"
         private const val EXTRA_PARSE_ONLY = "_b"
         private const val EXTRA_QUICK_WALLET_PARAM = "_c"
+        private const val EXTRA_GROUP_WALLET = "_d"
+        private const val EXTRA_IS_PARSE_ONLY = "_e"
+
         fun start(
             activityContext: Context,
             isCollaborativeWallet: Boolean,
+            isGroupWallet: Boolean,
+            isParseOnly: Boolean,
             quickWalletParam: QuickWalletParam?
         ) {
             activityContext.startActivity(
                 buildIntent(
                     activityContext,
                     isCollaborativeWallet,
-                    false,
+                    isParseOnly,
+                    isGroupWallet = isGroupWallet,
                     quickWalletParam = quickWalletParam
                 )
             )
@@ -167,12 +191,15 @@ class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcod
             activityContext: Context,
             isCollaborativeWallet: Boolean,
             isParseOnly: Boolean,
-            quickWalletParam: QuickWalletParam? = null
+            isGroupWallet: Boolean,
+            quickWalletParam: QuickWalletParam?
         ): Intent {
             return Intent(activityContext, RecoverWalletQrCodeActivity::class.java).apply {
                 putExtra(EXTRA_COLLABORATIVE_WALLET, isCollaborativeWallet)
                 putExtra(EXTRA_PARSE_ONLY, isParseOnly)
                 putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
+                putExtra(EXTRA_GROUP_WALLET, isGroupWallet)
+                putExtra(EXTRA_IS_PARSE_ONLY, isParseOnly)
             }
         }
     }

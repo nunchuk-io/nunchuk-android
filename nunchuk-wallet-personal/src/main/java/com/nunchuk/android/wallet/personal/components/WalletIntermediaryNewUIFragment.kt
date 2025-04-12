@@ -97,6 +97,8 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
             false
         )
 
+    private var isRecoverGroupWalletViaScanQrCode = false
+
     override fun initializeBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -252,6 +254,16 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                     showRunOutWallet(true)
                 }
             }
+
+            SheetOptionType.TYPE_RECOVER_GROUP_WALLET_QR_CODE -> {
+                isRecoverGroupWalletViaScanQrCode = true
+                requestCameraPermissionOrExecuteAction()
+            }
+            SheetOptionType.TYPE_RECOVER_GROUP_WALLET_BSMS -> {
+                openSelectFileChooser(WalletIntermediaryActivity.REQUEST_CODE_GROUP_WALLET)
+            }
+
+            else -> Unit
         }
     }
 
@@ -381,7 +393,10 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
         val recoverWalletBottomSheet = RecoverWalletActionBottomSheet.show(childFragmentManager)
         recoverWalletBottomSheet.listener = {
             when (it) {
-                RecoverWalletOption.QrCode -> requestCameraPermissionOrExecuteAction()
+                RecoverWalletOption.QrCode -> {
+                    isRecoverGroupWalletViaScanQrCode = false
+                    requestCameraPermissionOrExecuteAction()
+                }
                 RecoverWalletOption.BSMSFile -> openSelectFileChooser(WalletIntermediaryActivity.REQUEST_CODE)
                 RecoverWalletOption.ColdCard -> showOptionImportFromColdCard()
                 RecoverWalletOption.HotWallet -> navigator.openRecoverSeedScreen(
@@ -400,7 +415,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
 
                 RecoverWalletOption.GroupWallet -> {
                     checkRunOutGroupWallet {
-                        openSelectFileChooser(WalletIntermediaryActivity.REQUEST_CODE_GROUP_WALLET)
+                        showRecoveryFormatGroupWallet()
                     }
                 }
             }
@@ -410,9 +425,10 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
     private fun openScanQRCodeScreen() {
         navigator.openRecoverWalletQRCodeScreen(
             requireContext(),
-            false,
+            isGroupWallet = isRecoverGroupWalletViaScanQrCode,
             quickWalletParam = quickWalletParam
         )
+        isRecoverGroupWalletViaScanQrCode = false
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
@@ -495,6 +511,22 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                 ),
             ),
             title = getString(R.string.nc_which_type_wallet_you_want_import)
+        ).show(childFragmentManager, "BottomSheetOption")
+    }
+
+    private fun showRecoveryFormatGroupWallet() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    SheetOptionType.TYPE_RECOVER_GROUP_WALLET_QR_CODE,
+                    stringId = R.string.nc_text_wallet_qr_code,
+                ),
+                SheetOption(
+                    SheetOptionType.TYPE_RECOVER_GROUP_WALLET_BSMS,
+                    stringId = R.string.nc_bsms_descriptors,
+                ),
+            ),
+            title = getString(R.string.nc_select_recovery_format)
         ).show(childFragmentManager, "BottomSheetOption")
     }
 

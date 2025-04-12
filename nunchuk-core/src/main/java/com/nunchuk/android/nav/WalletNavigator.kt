@@ -61,13 +61,11 @@ interface PersonalWalletNavigator {
 
     fun openRecoverWalletQRCodeScreen(
         activityContext: Context,
-        isCollaborativeWallet: Boolean,
+        launcher: ActivityResultLauncher<Intent>? = null,
+        isCollaborativeWallet: Boolean = false,
+        isGroupWallet: Boolean = false,
+        isParseOnly: Boolean = false,
         quickWalletParam: QuickWalletParam? = null
-    )
-
-    fun openParseWalletQRCodeScreen(
-        launcher: ActivityResultLauncher<Intent>,
-        activityContext: Context,
     )
 
     fun openReviewWalletScreen(

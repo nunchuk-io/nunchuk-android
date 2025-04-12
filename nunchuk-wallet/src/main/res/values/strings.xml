@@ -17,7 +17,6 @@
     <string name="nc_wallet_skip_upload_configuration">I’ll do this later</string>
 
     <string name="nc_text_wallet_config_title">Wallet config</string>
-    <string name="nc_text_wallet_qr_code">QR code</string>
 
     <string name="nc_wallet_checking_account">Checking Account</string>
     <string name="nc_wallet_view_wallet_config">View wallet config</string>

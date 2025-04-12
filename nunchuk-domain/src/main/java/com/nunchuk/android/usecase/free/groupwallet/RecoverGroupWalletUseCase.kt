@@ -31,15 +31,24 @@ class RecoverGroupWalletUseCase @Inject constructor(
 ) : UseCase<RecoverGroupWalletUseCase.Params, Unit>(ioDispatcher) {
 
     override suspend fun execute(parameters: Params) {
-        return nativeSdk.recoverFreeGroupWallet(
-            name = parameters.name,
-            filePath = parameters.filePath,
-            description = ""
-        )
+        val wallet = if (parameters.filePath.isNotEmpty()) {
+            nativeSdk.importWallet(
+                name = parameters.name,
+                filePath = parameters.filePath,
+                description = "",
+            )
+        } else {
+            nativeSdk.importKeystoneWallet(
+                qrData = parameters.qrList,
+                description = ""
+            )
+        }
+        nativeSdk.recoverFreeGroupWallet(walletId = wallet.id)
     }
 
     data class Params(
         val name: String,
-        val filePath: String
+        val filePath: String,
+        val qrList: List<String>,
     )
 }

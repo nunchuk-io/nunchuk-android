@@ -51,6 +51,8 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_WALLET_ID).orEmpty()
     val filePath: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_FILE_PATH).orEmpty()
+    val qrList: List<String>
+        get() = savedStateHandle.get<Array<String>>(FreeGroupWalletActivity.EXTRA_QR_LIST)?.toList() ?: emptyList()
 
     private val _uiState = MutableStateFlow(FreeGroupWalletRecoverUiState())
     val uiState: StateFlow<FreeGroupWalletRecoverUiState> = _uiState.asStateFlow()
@@ -195,7 +197,8 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
             recoverGroupWalletUseCase(
                 RecoverGroupWalletUseCase.Params(
                     name = _uiState.value.wallet?.name.orEmpty(),
-                    filePath = filePath
+                    filePath = filePath,
+                    qrList = qrList,
                 )
             ).onSuccess {
                 Timber.tag(TAG).e("Recover group wallet success")

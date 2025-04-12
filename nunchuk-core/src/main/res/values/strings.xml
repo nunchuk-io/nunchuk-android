@@ -161,6 +161,7 @@
     <string name="nc_which_type_wallet_you_want_import">Which type of wallet do you want to import?</string>
     <string name="nc_remove_transaction">Remove transaction</string>
     <string name="nc_unknown">Unknown</string>
+    <string name="nc_select_recovery_format">Select recovery format:</string>
     <string name="nc_primary_key_account_xfp">XFP: %s</string>
     <string name="nc_text_nunchuk_as_signer">Add software key</string>
     <string name="nc_text_ss_desc">The software key will be stored locally on this device.</string>
@@ -890,4 +891,6 @@
     <string name="nc_unarchive_wallet">Unarchive wallet</string>
     <string name="nc_unarchived_wallet">Unarchived wallet</string>
     <string name="nc_archived_wallets">Archived wallets</string>
+    <string name="nc_text_wallet_qr_code">QR code</string>
+    <string name="nc_bsms_descriptors">BSMS/descriptors</string>
 </resources>

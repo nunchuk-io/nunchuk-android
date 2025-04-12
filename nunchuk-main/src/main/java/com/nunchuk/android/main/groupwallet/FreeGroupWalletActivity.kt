@@ -59,11 +59,8 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
     private val viewModel: FreeGroupWalletViewModel by viewModels()
     private val replaceWalletId by lazy { intent.getStringExtra(EXTRA_REPLACE_WALLET_ID).orEmpty() }
     private val filePath by lazy { intent.getStringExtra(EXTRA_FILE_PATH).orEmpty() }
-    private val quickWalletParam by lazy {
-        intent.parcelable<QuickWalletParam>(
-            EXTRA_QUICK_WALLET_PARAM
-        )
-    }
+    private val quickWalletParam by lazy { intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM) }
+    private val isRecoverWallet by lazy { intent.getBooleanExtra(EXTRA_IS_RECOVER_WALLET, false) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -121,7 +118,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                     NunchukTheme {
                         NavHost(
                             navController = navController,
-                            startDestination = if (filePath.isNotEmpty()) {
+                            startDestination = if (isRecoverWallet) {
                                 freeGroupWalletRecoverRoute
                             } else if (replaceWalletId.isEmpty()) {
                                 freeGroupWalletRoute
@@ -232,6 +229,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                 navigator = navigator,
                                 walletId = intent.getStringExtra(EXTRA_WALLET_ID).orEmpty(),
                                 filePath = filePath,
+                                qrList = intent.getStringArrayListExtra(EXTRA_QR_LIST).orEmpty(),
                                 onAddNewKey = { walletId, supportedSigners ->
                                     openSignerIntro(
                                         index = -1,
@@ -365,6 +363,8 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
         const val EXTRA_REPLACE_WALLET_ID = "replace_wallet_id"
         const val EXTRA_FILE_PATH = "file_path"
         const val EXTRA_QUICK_WALLET_PARAM = "quick_wallet_param"
+        const val EXTRA_QR_LIST = "qr_list"
+        const val EXTRA_IS_RECOVER_WALLET = "is_recover_wallet"
 
         /**
          * Start [FreeGroupWalletActivity] with [groupId] and [walletId]
@@ -386,7 +386,9 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
         }
 
         fun startRecover(
-            context: Context, walletId: String, filePath: String,
+            context: Context, walletId: String,
+            filePath: String = "",
+            qrList: List<String> = emptyList(),
             quickWalletParam: QuickWalletParam? = null
         ) {
             context.startActivity(
@@ -397,6 +399,8 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                     putExtra(EXTRA_WALLET_ID, walletId)
                     putExtra(EXTRA_FILE_PATH, filePath)
                     putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
+                    putExtra(EXTRA_QR_LIST, ArrayList(qrList))
+                    putExtra(EXTRA_IS_RECOVER_WALLET, true)
                 })
         }
     }

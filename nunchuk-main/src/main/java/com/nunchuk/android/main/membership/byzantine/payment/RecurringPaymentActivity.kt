@@ -12,7 +12,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.core.base.BaseComposeActivity
-import com.nunchuk.android.core.wallet.AssistedWalletBottomSheet
 import com.nunchuk.android.core.wallet.WalletBottomSheetResult
 import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.main.R
@@ -135,9 +134,10 @@ class RecurringPaymentActivity : BaseComposeActivity() {
                                 navController.navigateToWhitelistAddress()
                             },
                             openScanQRCodeScreen = {
-                                navigator.openParseWalletQRCodeScreen(
+                                navigator.openRecoverWalletQRCodeScreen(
                                     launcher = scanWalletLauncher,
-                                    activityContext = this@RecurringPaymentActivity
+                                    activityContext = this@RecurringPaymentActivity,
+                                    isParseOnly = true,
                                 )
                             },
                             openBsmsScreen = {

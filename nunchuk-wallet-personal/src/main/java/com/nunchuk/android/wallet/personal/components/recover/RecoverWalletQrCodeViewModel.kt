@@ -30,14 +30,12 @@ import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -62,39 +60,34 @@ internal class RecoverWalletQrCodeViewModel @Inject constructor(
 
     fun updateQRCode(isParseOnly: Boolean, qrData: String, description: String) {
         qrDataList.add(qrData)
-        if (!isProcessing) {
-            if (isParseOnly) {
-                viewModelScope.launch {
-                    parseKeystoneWalletUseCase(qrDataList.toList())
-                        .onSuccess {
-                            _event.emit(RecoverWalletQrCodeEvent.ImportQRCodeSuccess(it))
-                        }.onFailure {
-                            if (state.value.progress >= 100.0) {
+        viewModelScope.launch {
+            analyzeQrUseCase(qrDataList.toList()).onSuccess { value ->
+                val progress = value.times(100.0)
+                _state.update { it.copy(progress = progress) }
+                if (progress >= 100.0 && !isProcessing) {
+                    isProcessing = true
+                    if (isParseOnly) {
+                        parseKeystoneWalletUseCase(qrDataList.toList())
+                            .onSuccess {
+                                _event.emit(RecoverWalletQrCodeEvent.ImportQRCodeSuccess(it))
+                            }
+                            .onFailure {
                                 _event.emit(RecoverWalletQrCodeEvent.ImportQRCodeError(it.message.orEmpty()))
                             }
-                        }
-                }
-            } else {
-                viewModelScope.launch {
-                    importKeystoneWalletUseCase.execute(
-                        description = description,
-                        qrData = qrDataList.toList()
-                    ).onStart { isProcessing = true }
-                        .flowOn(IO)
-                        .onException {
-                            if (state.value.progress >= 100.0) {
+                        isProcessing = false
+                    } else {
+                        importKeystoneWalletUseCase.execute(
+                            description = description,
+                            qrData = qrDataList.toList()
+                        )
+                            .flowOn(IO)
+                            .onException {
                                 _event.emit(RecoverWalletQrCodeEvent.ImportQRCodeError(it.message.orEmpty()))
                             }
-                        }
-                        .flowOn(Main)
-                        .onCompletion { isProcessing = false }
-                        .collect { _event.emit(RecoverWalletQrCodeEvent.ImportQRCodeSuccess(it)) }
-                }
-            }
-            viewModelScope.launch {
-                analyzeQrUseCase(qrDataList.toList()).onSuccess { value ->
-                    delay(150L)
-                    _state.update { it.copy(progress = value.times(100.0)) }
+                            .flowOn(Main)
+                            .onCompletion { isProcessing = false }
+                            .collect { _event.emit(RecoverWalletQrCodeEvent.ImportQRCodeSuccess(it)) }
+                    }
                 }
             }
         }
@@ -108,6 +101,10 @@ internal class RecoverWalletQrCodeViewModel @Inject constructor(
                 _event.emit(RecoverWalletQrCodeEvent.ImportQRCodeError(it.message.orEmpty()))
             }
         }
+    }
+
+    fun getQrList(): List<String> {
+        return qrDataList.toList()
     }
 }
 

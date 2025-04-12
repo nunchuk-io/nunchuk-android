@@ -98,27 +98,31 @@ interface WalletNavigatorDelegate : WalletNavigator {
 
     override fun openRecoverWalletQRCodeScreen(
         activityContext: Context,
+        launcher: ActivityResultLauncher<Intent>?,
         isCollaborativeWallet: Boolean,
+        isGroupWallet: Boolean,
+        isParseOnly: Boolean,
         quickWalletParam: QuickWalletParam?,
     ) {
-        RecoverWalletQrCodeActivity.start(
-            activityContext,
-            isCollaborativeWallet,
-            quickWalletParam = quickWalletParam
-        )
-    }
-
-    override fun openParseWalletQRCodeScreen(
-        launcher: ActivityResultLauncher<Intent>,
-        activityContext: Context,
-    ) {
-        launcher.launch(
-            RecoverWalletQrCodeActivity.buildIntent(
-                activityContext = activityContext,
-                isCollaborativeWallet = false,
-                isParseOnly = true
+        if (launcher != null) {
+            launcher.launch(
+                RecoverWalletQrCodeActivity.buildIntent(
+                    activityContext = activityContext,
+                    isCollaborativeWallet = isCollaborativeWallet,
+                    isParseOnly = isParseOnly,
+                    isGroupWallet = isGroupWallet,
+                    quickWalletParam = quickWalletParam
+                )
             )
-        )
+        } else {
+            RecoverWalletQrCodeActivity.start(
+                activityContext,
+                isCollaborativeWallet,
+                isParseOnly = isParseOnly,
+                isGroupWallet = isGroupWallet,
+                quickWalletParam = quickWalletParam
+            )
+        }
     }
 
     override fun openConfigureWalletScreen(activityContext: Context, args: ConfigureWalletArgs) {

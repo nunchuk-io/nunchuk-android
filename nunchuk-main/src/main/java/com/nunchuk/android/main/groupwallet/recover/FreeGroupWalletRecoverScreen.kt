@@ -83,12 +83,13 @@ import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.type.SignerType
 
-const val freeGroupWalletRecoverRoute = "free_group_wallet_recover/{wallet_id}/{file_path}"
+const val freeGroupWalletRecoverRoute = "free_group_wallet_recover/{wallet_id}/{file_path}/{qr_list}"
 
 fun NavGraphBuilder.freeGroupWalletRecover(
     navigator: NunchukNavigator,
     walletId: String,
     filePath: String,
+    qrList: List<String>,
     onAddNewKey: (String, List<SupportedSigner>) -> Unit = { _, _ -> },
     finishScreen: () -> Unit,
     onOpenWalletDetail: (String) -> Unit = {},
@@ -107,6 +108,12 @@ fun NavGraphBuilder.freeGroupWalletRecover(
             ) {
                 type = NavType.StringType
                 defaultValue = filePath
+            },
+            navArgument(
+                name = FreeGroupWalletActivity.EXTRA_QR_LIST
+            ) {
+                type = NavType.StringListType
+                defaultValue = qrList
             }
         )
     ) {

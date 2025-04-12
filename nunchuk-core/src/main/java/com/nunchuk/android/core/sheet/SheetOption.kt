@@ -164,4 +164,6 @@ object SheetOptionType {
     const val TYPE_EXPORT_TX_AS_PDF = 97
     const val TYPE_EXPORT_TX_AS_CSV = 98
     const val TYPE_ARCHIVE = 99
+    const val TYPE_RECOVER_GROUP_WALLET_QR_CODE = 100
+    const val TYPE_RECOVER_GROUP_WALLET_BSMS = 101
 }

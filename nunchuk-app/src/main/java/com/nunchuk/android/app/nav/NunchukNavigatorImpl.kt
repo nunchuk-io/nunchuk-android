@@ -188,12 +188,14 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
         activityContext: Context,
         walletId: String,
         filePath: String,
+        qrList: List<String>,
         quickWalletParam: QuickWalletParam?
     ) {
         FreeGroupWalletActivity.startRecover(
             activityContext,
             walletId,
             filePath,
+            qrList = qrList,
             quickWalletParam = quickWalletParam
         )
     }

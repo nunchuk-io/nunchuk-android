@@ -157,7 +157,8 @@ interface AppNavigator {
     fun openFreeGroupWalletRecoverScreen(
         activityContext: Context,
         walletId: String,
-        filePath: String,
+        filePath: String = "",
+        qrList: List<String> = emptyList(),
         quickWalletParam: QuickWalletParam?
     )
 }

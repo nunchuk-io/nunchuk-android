@@ -80,7 +80,7 @@ class RecoverSharedWalletActivity : BaseCameraActivity<ActivityRecoverSharedWall
     }
 
     private fun openScanQRCodeScreen() {
-        navigator.openRecoverWalletQRCodeScreen(this, true)
+        navigator.openRecoverWalletQRCodeScreen(this, isCollaborativeWallet = true)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
