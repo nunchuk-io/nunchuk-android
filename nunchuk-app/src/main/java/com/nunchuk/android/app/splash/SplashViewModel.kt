@@ -20,7 +20,6 @@
 package com.nunchuk.android.app.splash
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountInfo
@@ -73,12 +72,14 @@ internal class SplashViewModel @Inject constructor(
                 .map { it.getOrDefault(true) }
                 .first()
             val isBiometricEnable =
-                getBiometricConfigUseCase(Unit).first().getOrNull()?.enabled ?: false
+                getBiometricConfigUseCase(Unit).first().getOrNull()?.enabled == true
             val shouldAskPin = pin.isNotEmpty()
                     || (settings.protectWalletPassphrase && mode == SignInMode.PRIMARY_KEY)
                     || (settings.protectWalletPassword && mode == SignInMode.EMAIL)
             @Suppress("DEPRECATION")
             when {
+                shouldAskPin && (mode == SignInMode.UNKNOWN || mode == SignInMode.PRIMARY_KEY) -> _event.emit(SplashEvent.NavUnlockPinScreenEvent)
+
                 isAccountExisted && accountManager.isStaySignedIn().not() -> _event.emit(
                     SplashEvent.NavSignInEvent
                 )
@@ -102,8 +103,6 @@ internal class SplashViewModel @Inject constructor(
                         )
                     )
                 }
-
-                shouldAskPin && mode == SignInMode.UNKNOWN -> _event.emit(SplashEvent.NavUnlockPinScreenEvent)
 
                 else -> _event.emit(SplashEvent.NavSignInEvent)
             }
