@@ -37,6 +37,7 @@ import com.nunchuk.android.core.wallet.WalletBottomSheetResult
 import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.R
+import com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingActivity
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -59,7 +60,8 @@ class DecoyWalletCreateFragment : Fragment() {
         DecoyWalletCreateScreen(onCreateDecoyWallet = {
             navigator.openAddWalletScreen(
                 activityContext = requireContext(),
-                decoyPin = args.decoyPin
+                decoyPin = args.decoyPin,
+                quickWalletParam = (requireActivity() as? WalletSecuritySettingActivity)?.args?.quickWalletParam
             )
         }, onUseExistingWallet = {
             WalletComposeBottomSheet.show(

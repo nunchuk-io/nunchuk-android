@@ -198,7 +198,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
             WalletType.DECOY -> {
                 navigator.openWalletSecuritySettingScreen(
                     activityContext = requireContext(),
-                    args = WalletSecurityArgs(type = WalletSecurityType.CREATE_DECOY_WALLET)
+                    args = WalletSecurityArgs(type = WalletSecurityType.CREATE_DECOY_WALLET, quickWalletParam = quickWalletParam),
                 )
             }
         }

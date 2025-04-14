@@ -59,6 +59,7 @@ import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.R
+import com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingActivity
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -77,7 +78,7 @@ class DecoyPinFragment : Fragment() {
                         DecoyPinFragmentDirections.actionDecoyPinFragmentToDecoyWalletCreateFragment(pin)
                     )
                 } else {
-                    navigator.openAddWalletScreen(activityContext = requireContext(), decoyPin = pin)
+                    navigator.openAddWalletScreen(activityContext = requireContext(), decoyPin = pin, quickWalletParam = (requireActivity() as? WalletSecuritySettingActivity)?.args?.quickWalletParam)
                 }
             }
         )

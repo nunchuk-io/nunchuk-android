@@ -130,7 +130,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
     fun openBackupWalletScreen(
         activityContext: Context,
         wallet: Wallet,
-        isQuickWallet: Boolean = false,
+        quickWalletParam: QuickWalletParam? = null,
         isDecoyWallet: Boolean = false,
     )
 

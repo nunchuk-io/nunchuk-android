@@ -26,8 +26,10 @@ import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.settings.R
+import com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingActivity
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -47,8 +49,13 @@ class DecoyPinNoteFragment : Fragment() {
         DecoyPinNoteScreen(
             isSignedAccount = signInModeHolder.getCurrentMode() == SignInMode.EMAIL
         ) {
-            navigator.returnToMainScreen(requireActivity())
-            navigator.openUnlockPinScreen(requireActivity())
+            requireActivity().navigateToSelectWallet(
+                navigator = navigator,
+                quickWalletParam = (activity as? WalletSecuritySettingActivity)?.args?.quickWalletParam,
+            ) {
+                navigator.returnToMainScreen(requireActivity())
+                navigator.openUnlockPinScreen(requireActivity())
+            }
         }
     }
 }
@@ -60,7 +67,8 @@ fun DecoyPinNoteScreen(
     onAction: () -> Unit = {}
 ) {
     NunchukTheme {
-        NcScaffold(topBar = {
+        NcScaffold(
+            topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.bg_decoy_pin_note
             )

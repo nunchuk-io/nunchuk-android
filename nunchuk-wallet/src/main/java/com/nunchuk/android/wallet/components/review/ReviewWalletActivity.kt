@@ -180,7 +180,8 @@ class ReviewWalletActivity : BaseComposeActivity() {
             navigator.openBackupWalletScreen(
                 activityContext = this,
                 wallet = event.wallet,
-                isDecoyWallet = args.decoyPin.isNotEmpty()
+                isDecoyWallet = args.decoyPin.isNotEmpty(),
+                quickWalletParam = args.quickWalletParam
             )
         }
     }

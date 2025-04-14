@@ -23,6 +23,8 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseShareSaveFileActivity
+import com.nunchuk.android.core.data.model.QuickWalletParam
+import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.core.wallet.WalletSecurityArgs
 import com.nunchuk.android.core.wallet.WalletSecurityType
 import com.nunchuk.android.model.Wallet
@@ -78,11 +80,15 @@ class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalle
             navigator.returnToMainScreen(this)
             navigator.openWalletSecuritySettingScreen(
                 this, WalletSecurityArgs(
-                    type = WalletSecurityType.CREATE_DECOY_SUCCESS
+                    type = WalletSecurityType.CREATE_DECOY_SUCCESS,
+                    quickWalletParam = args.quickWalletParam
                 )
             )
-        } else if (args.isQuickWallet) {
-            finish()
+        } else if (args.quickWalletParam != null) {
+            navigateToSelectWallet(
+                navigator = navigator,
+                quickWalletParam = args.quickWalletParam
+            )
         } else {
             navigator.returnToMainScreen(this)
             navigator.openWalletDetailsScreen(this, args.wallet.id)
@@ -119,13 +125,13 @@ class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalle
         fun start(
             activityContext: Context,
             wallet: Wallet,
-            isQuickWallet: Boolean,
+            quickWalletParam: QuickWalletParam?,
             isDecoyWallet: Boolean
         ) {
             activityContext.startActivity(
                 BackupWalletArgs(
                     wallet = wallet,
-                    isQuickWallet = isQuickWallet,
+                    quickWalletParam = quickWalletParam,
                     isDecoyWallet = isDecoyWallet
                 ).buildIntent(activityContext)
             )

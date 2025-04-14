@@ -33,7 +33,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class WalletSecuritySettingActivity : BaseActivity<ActivityNavigationBinding>() {
-    private val args: WalletSecurityArgs by lazy {
+    val args: WalletSecurityArgs by lazy {
         WalletSecurityArgs.fromBundle(intent.extras!!)
     }
 
