@@ -44,6 +44,8 @@ class IntentSharingController private constructor(
     }
 
     fun shareFile(filePath: String) {
+        val file = File(filePath)
+        if (!file.exists()) return
         val context = activityContext.applicationContext
         val intent = Intent(Intent.ACTION_SEND)
         val uri: Uri = FileProvider.getUriForFile(
