@@ -64,7 +64,7 @@
 
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/signUpPrimaryKey"
-        style="@style/NCPrimaryButton.Light"
+        style="@style/NCPrimaryButton.Light.Solid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"

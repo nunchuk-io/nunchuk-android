@@ -163,6 +163,9 @@ class UnlockPinViewModel @Inject constructor(
                             return@checkPin
                         }
                         val account = accountManager.getAccount()
+                        accountManager.storeAccount(
+                            account.copy(decoyPin = "")
+                        )
                         val accountId = if (account.loginType == SignInMode.PRIMARY_KEY.value) {
                             account.username
                         } else {

@@ -36,7 +36,8 @@ class CreateSoftwareSignerUseCase @Inject constructor(
             mnemonic = parameters.mnemonic,
             passphrase = parameters.passphrase,
             isPrimary = parameters.isPrimaryKey,
-            replace = parameters.replace
+            replace = parameters.replace,
+            primaryDecoyPin = parameters.primaryDecoyPin,
         )
         if (parameters.isBackupNow.not()) {
             nativeSdk.updateMasterSigner(
@@ -53,5 +54,6 @@ class CreateSoftwareSignerUseCase @Inject constructor(
         val isPrimaryKey: Boolean,
         val replace: Boolean = false,
         val isBackupNow: Boolean,
+        val primaryDecoyPin: String = "",
     )
 }

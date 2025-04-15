@@ -47,7 +47,6 @@ import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
 import com.nunchuk.android.core.retry.RetryPolicy
 import com.nunchuk.android.core.retry.retryIO
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.share.InitNunchukUseCase
@@ -57,7 +56,6 @@ import com.nunchuk.android.usecase.UpdateBiometricConfigUseCase
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -260,7 +258,7 @@ internal class SignInViewModel @Inject constructor(
     }
 
     private fun checkPrimaryKeyAccounts() = viewModelScope.launch {
-        getPrimaryKeyListUseCase(Unit)
+        getPrimaryKeyListUseCase(accountManager.getAccount().decoyPin)
             .onSuccess { data ->
                 _state.update { state -> state.copy(accounts = data) }
             }

@@ -63,7 +63,7 @@ class PrimaryKeySignerInfoHolder @Inject constructor(
     suspend fun getPrimaryKeyInfo(): PrimaryKey? {
         primaryKeyMutex.withLock {
             if (primaryKey != null) return primaryKey
-            val result = getPrimaryKeyListUseCase.invoke(Unit)
+            val result = getPrimaryKeyListUseCase.invoke(accountManager.getAccount().decoyPin)
             if (result.isSuccess) {
                 result.getOrNull()?.firstOrNull {
                     it.masterFingerprint == accountManager.getPrimaryKeyInfo()?.xfp

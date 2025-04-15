@@ -60,7 +60,7 @@ class ReloadPrimaryKeyInfoUseCase @Inject constructor(
     }
 
     private suspend fun loadPrimaryKey() {
-        val result = getPrimaryKeyListUseCase.invoke(Unit)
+        val result = getPrimaryKeyListUseCase.invoke(accountManager.getAccount().decoyPin)
         if (result.isSuccess) {
             result.getOrNull()?.firstOrNull {
                 it.masterFingerprint == accountManager.getPrimaryKeyInfo()?.xfp

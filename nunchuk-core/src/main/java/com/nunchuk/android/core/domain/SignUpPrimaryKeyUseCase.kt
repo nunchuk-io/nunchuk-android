@@ -62,7 +62,8 @@ class SignUpPrimaryKeyUseCase @Inject constructor(
             mnemonic = parameters.mnemonic,
             passphrase = parameters.passphrase,
             isPrimary = true,
-            replace = false
+            replace = false,
+            primaryDecoyPin = accountManager.getAccount().decoyPin
         )
 
         accountManager.storeAccount(

@@ -22,6 +22,7 @@ package com.nunchuk.android.signer.software.components.passphrase
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.ChangePrimaryKeyUseCase
 import com.nunchuk.android.core.push.PushEvent
@@ -88,6 +89,7 @@ internal class SetPassphraseViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val assistedWalletManager: AssistedWalletManager,
+    private val accountManager: AccountManager,
 ) : NunchukViewModel<SetPassphraseState, SetPassphraseEvent>() {
     private val args: SetPassphraseFragmentArgs by lazy {
         SetPassphraseFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -195,7 +197,10 @@ internal class SetPassphraseViewModel @Inject constructor(
                         name = signerName,
                         xprv = xprv,
                         isPrimaryKey = primaryKeyFlow.isPrimaryKeyFlow(),
-                        replace = isReplaceKey
+                        replace = isReplaceKey,
+                        primaryDecoyPin = if (primaryKeyFlow.isPrimaryKeyFlow()) {
+                            accountManager.getAccount().decoyPin
+                        } else "",
                     )
                 )
             } else {
@@ -206,7 +211,10 @@ internal class SetPassphraseViewModel @Inject constructor(
                         passphrase = passphrase,
                         isPrimaryKey = primaryKeyFlow.isPrimaryKeyFlow(),
                         replace = isReplaceKey,
-                        isBackupNow = isHotKey.not()
+                        isBackupNow = isHotKey.not(),
+                        primaryDecoyPin = if (primaryKeyFlow.isPrimaryKeyFlow()) {
+                            accountManager.getAccount().decoyPin
+                        } else "",
                     )
                 )
             }.onSuccess { signer ->

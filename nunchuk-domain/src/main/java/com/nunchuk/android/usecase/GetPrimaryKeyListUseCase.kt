@@ -25,17 +25,15 @@ import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.util.FileHelper
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.async
-import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
 
 class GetPrimaryKeyListUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val nunchukNativeSdk: NunchukNativeSdk,
-    private val filerHelper: FileHelper
-) : UseCase<Unit, List<PrimaryKey>>(dispatcher) {
+    private val filerHelper: FileHelper,
+) : UseCase<String, List<PrimaryKey>>(dispatcher) {
 
-    override suspend fun execute(parameters: Unit): List<PrimaryKey> {
+    override suspend fun execute(parameters: String): List<PrimaryKey> {
         val primaryKeys = mutableListOf<PrimaryKey>()
         val storagePath = filerHelper.getOrCreateNunchukRootDir()
         val mainResult = nunchukNativeSdk.getPrimaryKeys(chain = Chain.MAIN.ordinal, storagePath = storagePath).map { it.copy(chain = Chain.MAIN) }
@@ -44,6 +42,8 @@ class GetPrimaryKeyListUseCase @Inject constructor(
         primaryKeys.addAll(mainResult)
         primaryKeys.addAll(testnetResult)
         primaryKeys.addAll(signetResult)
-        return primaryKeys
+        return primaryKeys.filter {
+            (parameters.isEmpty() && it.decoyPin.isEmpty()) || (parameters.isNotEmpty() && it.decoyPin == parameters)
+        }
     }
 }

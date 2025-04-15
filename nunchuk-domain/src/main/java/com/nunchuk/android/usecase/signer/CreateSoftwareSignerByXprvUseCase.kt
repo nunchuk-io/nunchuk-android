@@ -36,7 +36,8 @@ class CreateSoftwareSignerByXprvUseCase @Inject constructor(
             name = parameters.name,
             xprv = parameters.xprv,
             isPrimary = parameters.isPrimaryKey,
-            replace = parameters.replace
+            replace = parameters.replace,
+            primaryDecoyPin = parameters.primaryDecoyPin
         ) ?: throw NullPointerException("Master signer empty")
     }
 
@@ -45,5 +46,6 @@ class CreateSoftwareSignerByXprvUseCase @Inject constructor(
         val xprv: String,
         val isPrimaryKey: Boolean,
         val replace: Boolean = false,
+        val primaryDecoyPin: String = "",
     )
 }
