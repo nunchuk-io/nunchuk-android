@@ -30,6 +30,7 @@ import com.nunchuk.android.auth.components.signin.SignInEvent.PasswordValidEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.ProcessingEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.SignInErrorEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.SignInSuccessEvent
+import com.nunchuk.android.auth.domain.AppleSignInUseCase
 import com.nunchuk.android.auth.domain.BiometricLoginUseCase
 import com.nunchuk.android.auth.domain.CheckEmailAvailabilityUseCase
 import com.nunchuk.android.auth.domain.GoogleSignInUseCase
@@ -93,6 +94,7 @@ internal class SignInViewModel @Inject constructor(
     private val updateBiometricConfigUseCase: UpdateBiometricConfigUseCase,
     private val googleSignInUseCase: GoogleSignInUseCase,
     private val getWalletPinUseCase: GetWalletPinUseCase,
+    private val appleSignInUseCase: AppleSignInUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SignInEvent>()
     val event = _event.asSharedFlow()
@@ -335,6 +337,32 @@ internal class SignInViewModel @Inject constructor(
         viewModelScope.launch {
             _event.emit(ProcessingEvent(true))
             googleSignInUseCase(token)
+                .onSuccess {
+                    initNunchuk()
+                    signInModeHolder.setCurrentMode(SignInMode.EMAIL)
+                    _event.emit(SignInSuccessEvent())
+                }
+                .onFailure { exception ->
+                    if (exception is NunchukApiException) {
+                        _event.emit(
+                            SignInErrorEvent(
+                                code = exception.code,
+                                message = exception.message,
+                                errorDetail = exception.errorDetail,
+                            )
+                        )
+                    } else {
+                        _event.emit(SignInErrorEvent(message = exception.message.orUnknownError()))
+                    }
+                }
+            _event.emit(ProcessingEvent(false))
+        }
+    }
+
+    fun appleSignIn(json: String) {
+        viewModelScope.launch {
+            _event.emit(ProcessingEvent(true))
+            appleSignInUseCase(json)
                 .onSuccess {
                     initNunchuk()
                     signInModeHolder.setCurrentMode(SignInMode.EMAIL)

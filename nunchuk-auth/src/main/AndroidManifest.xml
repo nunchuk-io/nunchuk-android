@@ -12,8 +12,21 @@
 
         <activity
             android:name=".components.signin.SignInActivity"
-            android:windowSoftInputMode="stateAlwaysVisible"
-            android:screenOrientation="portrait" />
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateAlwaysVisible">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="callback"
+                    android:scheme="nunchuk" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".components.forgot.ForgotPasswordActivity"
@@ -29,10 +42,11 @@
 
         <activity
             android:name=".components.enterxpub.EnterXPUBActivity"
-            android:windowSoftInputMode="stateAlwaysVisible"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateAlwaysVisible" />
 
-        <activity android:name=".components.authentication.SignInAuthenticationActivity"
+        <activity
+            android:name=".components.authentication.SignInAuthenticationActivity"
             android:screenOrientation="portrait" />
 
     </application>

@@ -43,6 +43,10 @@ android {
         }
 
         multiDexEnabled true
+
+        manifestPlaceholders = [
+                appAuthRedirectScheme: "https"
+        ]
     }
 
     signingConfigs {

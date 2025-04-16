@@ -27,6 +27,8 @@ import android.widget.EditText
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
@@ -63,10 +65,17 @@ import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
+import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import net.openid.appauth.AuthorizationService
+import net.openid.appauth.AuthorizationServiceConfiguration
+import net.openid.appauth.GrantTypeValues
+import net.openid.appauth.TokenRequest
 import timber.log.Timber
+import java.net.URLDecoder
 import java.util.UUID
+
 
 @AndroidEntryPoint
 class SignInActivity : BaseActivity<ActivitySigninBinding>() {
@@ -83,11 +92,25 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         BiometricPromptManager(activity = this)
     }
 
+    private val authService by lazy {
+        AuthorizationService(this)
+    }
 
     private val viewModel: SignInViewModel by viewModels()
 
     override fun initializeBinding() = ActivitySigninBinding.inflate(layoutInflater).also {
         enableEdgeToEdge()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        Timber.d("Intent data ${intent.data}")
+        val uri = intent.data ?: return
+        val encodedResponse = uri.getQueryParameter("response") ?: return
+        val decodedJson = URLDecoder.decode(encodedResponse, Charsets.UTF_8.name())
+        if (decodedJson.isNotEmpty()) {
+            viewModel.appleSignIn(decodedJson)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -324,7 +347,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
             getString(R.string.nc_hyperlink_text_policy),
             PRIVACY_URL
         )
-        binding.signInGoogle.setOnClickListener {
+        binding.signInGoogle.setOnDebounceClickListener {
             signInGoogle()
         }
         if (viewModel.type == SignInType.GUEST) {
@@ -350,12 +373,63 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                 )
             }
         }
+        binding.signInApple.setOnDebounceClickListener {
+            signInWithApple()
+        }
         clearInputFields()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         clearInputFields()
+        authService.dispose()
+    }
+
+    private fun signInWithApple() {
+        val authUri = "https://appleid.apple.com/auth/authorize".toUri().buildUpon()
+            .appendQueryParameter("response_type", "code")
+            .appendQueryParameter(
+                "response_mode",
+                "form_post"
+            )
+            .appendQueryParameter("client_id", APPLE_CLIENT_ID)
+            .appendQueryParameter("redirect_uri", APPLE_REDIRECT_URI)
+            .appendQueryParameter("scope", "name email")
+            .appendQueryParameter("state", "android_${UUID.randomUUID()}")
+            .build()
+
+        val intent = CustomTabsIntent.Builder().build()
+        intent.launchUrl(this, authUri)
+    }
+
+    private fun exchangeCodeForToken(authCode: String) {
+        Timber.d("Exchange code for token: $authCode")
+        val tokenRequest = TokenRequest.Builder(
+            AuthorizationServiceConfiguration(
+                "https://appleid.apple.com/auth/authorize".toUri(),
+                "https://appleid.apple.com/auth/token".toUri()
+            ),
+            APPLE_CLIENT_ID
+        ).setGrantType(GrantTypeValues.AUTHORIZATION_CODE)
+            .setAuthorizationCode(authCode)
+            .setRedirectUri(APPLE_REDIRECT_URI.toUri())
+            .build()
+
+        authService.performTokenRequest(tokenRequest) { response, error ->
+            if (response != null) {
+                // Successfully received tokens
+                val accessToken = response.accessToken
+                val idToken = response.idToken
+                Timber.d("Access Token: $accessToken")
+                Timber.d("ID Token: $idToken")
+            } else {
+                Timber.e("Token exchange error: ${error?.error}")
+                val errorMessage = error?.errorDescription
+                if (!errorMessage.isNullOrEmpty()) {
+                    NCToastMessage(this).showError(errorMessage)
+                }
+            }
+        }
     }
 
     private fun clearInputFields() {
@@ -391,6 +465,10 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         private const val EXTRA_IS_DELETED = "EXTRA_IS_DELETED"
         const val SERVER_ID =
             "712097058578-e7nv8fncujddo54d8as7brhrrn3s0ur4.apps.googleusercontent.com"
+
+        private val APPLE_CLIENT_ID = "io.nunchuk.signin"
+        private val APPLE_REDIRECT_URI =
+            "https://api.nunchuk.io/v1.1/passport/apple/signin_callback"
 
         fun start(
             activityContext: Context,

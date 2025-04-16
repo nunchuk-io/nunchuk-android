@@ -22,8 +22,6 @@ package com.nunchuk.android.auth.domain
 import com.nunchuk.android.auth.api.UserTokenResponse
 import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountInfo
-import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -42,10 +40,7 @@ interface SignInUseCase {
 
 internal class SignInUseCaseImpl @Inject constructor(
     private val authRepository: AuthRepository,
-    private val accountManager: AccountManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val getUserProfileUseCase: GetUserProfileUseCase,
-    private val checkShowOnboardUseCase: CheckShowOnboardUseCase,
     private val storeAccountUseCase: StoreAccountUseCase
 ) : SignInUseCase {
 
