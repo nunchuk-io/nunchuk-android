@@ -413,7 +413,8 @@ interface AppNavigatorDelegate : AppNavigator {
         selectedTagIds: List<Int>,
         selectedCollectionIds: List<Int>,
         feeRate: Amount,
-        source: Int
+        source: Int,
+        antiFeeSniping: Boolean,
     ) {
         RollOverWalletActivity.navigate(
             activity = activityContext,
@@ -423,7 +424,8 @@ interface AppNavigatorDelegate : AppNavigator {
             selectedTagIds = selectedTagIds,
             selectedCollectionIds = selectedCollectionIds,
             feeRate = feeRate,
-            source = source
+            source = source,
+            antiFeeSniping = antiFeeSniping
         )
     }
 }

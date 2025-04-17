@@ -23,7 +23,6 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -37,9 +36,13 @@ class ReplaceTransactionUseCase @Inject constructor(
         return nativeSdk.replaceTransaction(
             parameters.walletId,
             parameters.txId,
-            Amount(value = parameters.newFee.toLong())
+            Amount(value = parameters.newFee.toLong()),
+            antiFeeSniping = parameters.antiFeeSniping
         )
     }
 
-    data class Data(val groupId: String?, val walletId: String, val txId: String, val newFee: Int)
+    data class Data(
+        val groupId: String?, val walletId: String, val txId: String, val newFee: Int,
+        val antiFeeSniping: Boolean,
+    )
 }

@@ -41,7 +41,8 @@ class CreateTransactionUseCase @Inject constructor(
             inputs = parameters.inputs,
             feeRate = parameters.feeRate,
             subtractFeeFromAmount = parameters.subtractFeeFromAmount,
-            replaceTxId = parameters.replaceTxId
+            replaceTxId = parameters.replaceTxId,
+            antiFeeSniping = parameters.antiFeeSniping,
         )
         if (parameters.isAssistedWallet) {
             try {
@@ -67,6 +68,7 @@ class CreateTransactionUseCase @Inject constructor(
         val inputs: List<TxInput> = emptyList(),
         val feeRate: Amount = Amount(-1),
         val subtractFeeFromAmount: Boolean = false,
-        val replaceTxId : String = ""
+        val replaceTxId : String = "",
+        val antiFeeSniping: Boolean,
     )
 }

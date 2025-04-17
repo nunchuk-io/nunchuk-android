@@ -121,4 +121,10 @@ internal class ReplaceFeeViewModel @Inject constructor(
             _event.emit(ReplaceFeeEvent.Loading(false))
         }
     }
+
+    fun onAntiFeeSnipingChange() {
+        _state.update {
+            it.copy(antiFeeSniping = !it.antiFeeSniping)
+        }
+    }
 }

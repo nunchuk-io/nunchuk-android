@@ -83,10 +83,15 @@ class RbfCancelTransactionViewModel @Inject constructor(
             _event.emit(ReplaceFeeEvent.Loading(false))
         }
     }
+
+    fun onAntiFeeSnipingChange() {
+        _state.update { it.copy(antiFeeSniping = !it.antiFeeSniping) }
+    }
 }
 
 data class RbfCancelTransactionUiState(
     val fee: EstimateFeeRates = EstimateFeeRates(),
     val address: String = "",
     val previousFeeRate: Int = 0,
+    val antiFeeSniping: Boolean = false,
 )

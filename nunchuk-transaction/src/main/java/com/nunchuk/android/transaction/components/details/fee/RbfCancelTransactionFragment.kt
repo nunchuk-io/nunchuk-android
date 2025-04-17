@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -42,6 +43,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.wallet.AddressWithQrView
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.CurrencyFormatter
@@ -70,7 +72,8 @@ class RbfCancelTransactionFragment : Fragment() {
                     onCustomizeDestinationClick = { newFeeRate ->
                         findNavController().navigate(
                             RbfCancelTransactionFragmentDirections.actionRbfCancelTransactionFragmentToRbfCustomizeDestinationFragment(
-                                newFeeRate
+                                newFeeRate,
+                                antiFeeSniping = viewModel.state.value.antiFeeSniping
                             )
                         )
                     },
@@ -92,6 +95,7 @@ class RbfCancelTransactionFragment : Fragment() {
                         RbfCancelTransactionFragmentDirections.actionRbfCancelTransactionFragmentToConfirmReplaceTransactionFragment(
                             newFee = it.newFee,
                             address = viewModel.state.value.address,
+                            antiFeeSniping = viewModel.state.value.antiFeeSniping
                         )
                     )
                 }
@@ -114,6 +118,7 @@ private fun RbfCancelTransactionScreen(
         uiState = uiState,
         onContinueClick = onContinueClick,
         onCustomizeDestinationClick = onCustomizeDestinationClick,
+        onAntiFeeSnipingChange = viewModel::onAntiFeeSnipingChange
     )
 }
 
@@ -122,6 +127,7 @@ private fun RbfCancelTransactionContent(
     uiState: RbfCancelTransactionUiState = RbfCancelTransactionUiState(),
     onContinueClick: (Int) -> Unit = {},
     onCustomizeDestinationClick: (Int) -> Unit = {},
+    onAntiFeeSnipingChange: () -> Unit = {},
 ) {
     var newFeeRate by rememberSaveable {
         mutableStateOf("")
@@ -295,6 +301,35 @@ private fun RbfCancelTransactionContent(
                             title = stringResource(id = R.string.nc_transaction_economical_rate),
                             value = uiState.fee.economicRate
                         )
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(top = 16.dp),
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Anti-fee sniping",
+                                style = NunchukTheme.typography.body,
+                            )
+
+                            Text(
+                                modifier = Modifier.padding(top = 4.dp),
+                                text = "Adds the latest block height to the PSBT to prevent fee sniping attacks.",
+                                style = NunchukTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.textSecondary
+                            )
+                        }
+
+                        Checkbox(checked = uiState.antiFeeSniping, onCheckedChange = {
+                            onAntiFeeSnipingChange()
+                        }, modifier = Modifier.padding(top = 16.dp))
                     }
                 }
             }

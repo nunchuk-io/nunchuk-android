@@ -271,7 +271,8 @@ class BatchTransactionFragment : Fragment() {
             subtractFeeFromAmount = subtractFeeFromAmount,
             manualFeeRate = manualFeeRate,
             slots = emptyList(),
-            inputs = args.unspentOutputs.toList()
+            inputs = args.unspentOutputs.toList(),
+            antiFeeSniping = false
         )
     }
 }

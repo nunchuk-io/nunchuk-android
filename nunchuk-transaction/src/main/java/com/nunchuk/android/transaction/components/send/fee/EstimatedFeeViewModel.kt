@@ -341,6 +341,14 @@ class EstimatedFeeViewModel @Inject constructor(
         return true
     }
 
+    fun setAntiFeeSniping(checked: Boolean) {
+        updateState { copy(antiFeeSniping = checked) }
+    }
+
+    fun getAntiFeeSniping(): Boolean {
+        return getState().antiFeeSniping
+    }
+
     val defaultRate: Int
         get() = getState().estimateFeeRates.defaultRate
 

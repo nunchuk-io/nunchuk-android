@@ -52,5 +52,6 @@ data class EstimatedFeeState(
     val cpfpFee: Amount = Amount.ZER0,
     val scriptPathFee: Amount = Amount.ZER0,
     val rollOverWalletPairAmount: PairAmount = PairAmount(Amount.ZER0, Amount.ZER0),
-    val isValueKeySetDisable: Boolean = false
+    val isValueKeySetDisable: Boolean = false,
+    val antiFeeSniping: Boolean = false,
 )

@@ -60,7 +60,10 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
     val state = _state.asStateFlow()
     val event = _event.asSharedFlow()
 
-    fun init(walletId: String, oldTx: Transaction) {
+    private var antiFeeSniping: Boolean = false
+
+    fun init(walletId: String, oldTx: Transaction, antiFeeSniping: Boolean) {
+        this.antiFeeSniping = antiFeeSniping
         viewModelScope.launch {
             getCoinsFromTxInputsUseCase(
                 GetCoinsFromTxInputsUseCase.Params(
@@ -141,6 +144,7 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                     walletId = walletId,
                     txId = txId,
                     newFee = newFee,
+                    antiFeeSniping = antiFeeSniping
                 )
             )
             _event.emit(ReplaceFeeEvent.Loading(false))
@@ -180,7 +184,8 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                         feeRate = newFee.toManualFeeRate(),
                         subtractFeeFromAmount = true,
                         isAssistedWallet = false, // hard code to false to don't sync to server
-                        replaceTxId = oldTx.txId
+                        replaceTxId = oldTx.txId,
+                        antiFeeSniping = antiFeeSniping
                     )
                 ).onSuccess {
                     if (assistedWalletManager.isActiveAssistedWallet(walletId)) {

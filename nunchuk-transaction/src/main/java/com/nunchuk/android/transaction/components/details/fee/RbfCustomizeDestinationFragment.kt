@@ -65,7 +65,8 @@ class RbfCustomizeDestinationFragment : Fragment() {
                         findNavController().navigate(
                             RbfCustomizeDestinationFragmentDirections.actionRbfCustomizeDestinationFragmentToConfirmReplaceTransactionFragment(
                                 newFee = args.newFee,
-                                address = address
+                                address = address,
+                                antiFeeSniping = args.antiFeeSniping
                             )
                         )
                     }

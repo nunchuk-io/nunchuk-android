@@ -160,6 +160,9 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                 amount = binding.totalAmountBTC.tag as Double
             )
         }
+        binding.antiFeeSnipingCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.setAntiFeeSniping(isChecked)
+        }
     }
 
     private fun handleManualFeeSwitch(isChecked: Boolean) {
@@ -257,7 +260,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                         selectedTagIds = args.rollOverWalletParam!!.tags.map { it.id },
                         selectedCollectionIds = args.rollOverWalletParam!!.collections.map { it.id },
                         feeRate = event.manualFeeRate.toManualFeeRate(),
-                        source = args.rollOverWalletParam!!.source
+                        source = args.rollOverWalletParam!!.source,
+                        antiFeeSniping = viewModel.getAntiFeeSniping()
                     )
                 } else {
                     openTransactionConfirmScreen(
@@ -300,7 +304,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             slots = args.slots,
             inputs = viewModel.getSelectedCoins(),
             claimInheritanceTxParam = args.claimInheritanceTxParam,
-            actionButtonText = args.confirmTxActionButtonText
+            actionButtonText = args.confirmTxActionButtonText,
+            antiFeeSniping = viewModel.getAntiFeeSniping()
         )
     }
 

@@ -65,7 +65,7 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
         super.onViewCreated(view, savedInstanceState)
         observer()
         updateTransaction(activityArgs.transaction)
-        viewModel.init(activityArgs.walletId, activityArgs.transaction)
+        viewModel.init(activityArgs.walletId, activityArgs.transaction, args.antiFeeSniping)
         registerEvents()
         if (args.address.isNullOrEmpty()) {
             viewModel.draftTransaction(

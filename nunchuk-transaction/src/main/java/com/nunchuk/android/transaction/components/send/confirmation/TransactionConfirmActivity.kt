@@ -93,7 +93,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             manualFeeRate = args.manualFeeRate,
             slots = args.slots,
             claimInheritanceTxParam = args.claimInheritanceTxParam,
-            inputs = args.inputs
+            inputs = args.inputs,
+            antiFeeSniping = args.antiFeeSniping
         )
         viewModel.draftTransaction()
     }
@@ -253,7 +254,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             slots: List<SatsCardSlot> = emptyList(),
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
             inputs: List<UnspentOutput> = emptyList(),
-            actionButtonText: String
+            actionButtonText: String,
+            antiFeeSniping: Boolean
         ) {
             activityContext.startActivity(
                 TransactionConfirmArgs(
@@ -267,7 +269,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                     slots = slots,
                     claimInheritanceTxParam = claimInheritanceTxParam,
                     inputs = inputs,
-                    actionButtonText = actionButtonText
+                    actionButtonText = actionButtonText,
+                    antiFeeSniping = antiFeeSniping
                 ).buildIntent(activityContext)
             )
         }

@@ -23,7 +23,6 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
-import com.nunchuk.android.model.DraftRollOverTransaction
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.TransactionRepository
@@ -41,7 +40,8 @@ class CreateAndBroadcastRollOverTransactionsUseCase @Inject constructor(
             newWalletId = parameters.newWalletId,
             tags = parameters.tags,
             collections = parameters.collections,
-            feeRate = parameters.feeRate
+            feeRate = parameters.feeRate,
+            antiFeeSniping = parameters.antiFeeSniping
         )
         if (transactions.isEmpty()) return null
         if (parameters.isFreeWallet) return transactions
@@ -71,6 +71,7 @@ class CreateAndBroadcastRollOverTransactionsUseCase @Inject constructor(
         val days: Int,
         val groupId: String,
         val randomizeBroadcast: Boolean,
-        val isFreeWallet: Boolean
+        val isFreeWallet: Boolean,
+        val antiFeeSniping: Boolean,
     )
 }

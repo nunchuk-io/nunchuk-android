@@ -53,7 +53,8 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
             selectedTagIds = intent.getIntegerArrayListExtra(SELECT_TAG_IDS).orEmpty(),
             selectedCollectionIds = intent.getIntegerArrayListExtra(SELECT_COLLECTION_IDS).orEmpty(),
             feeRate = intent.parcelable<Amount>(FEE_RATE) ?: Amount.ZER0,
-            source = intent.getIntExtra(SOURCE, RollOverWalletSource.WALLET_CONFIG)
+            source = intent.getIntExtra(SOURCE, RollOverWalletSource.WALLET_CONFIG),
+            antiFeeSniping = intent.getBooleanExtra(ANTI_FEE_SNIPING, false)
         )
 
         flowObserver(viewModel.event) { event ->
@@ -87,6 +88,7 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
         private const val SELECT_COLLECTION_IDS = "select_collection_ids"
         private const val FEE_RATE = "fee_rate"
         private const val SOURCE = "source"
+        private const val ANTI_FEE_SNIPING = "anti_fee_sniping"
 
         fun navigate(
             activity: Context,
@@ -96,7 +98,8 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
             selectedTagIds: List<Int>,
             selectedCollectionIds: List<Int>,
             feeRate: Amount,
-            source: Int
+            source: Int,
+            antiFeeSniping: Boolean,
         ) {
             val intent = Intent(activity, RollOverWalletActivity::class.java)
                 .apply {
@@ -110,6 +113,7 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
                     )
                     putExtra(FEE_RATE, feeRate)
                     putExtra(SOURCE, source)
+                    putExtra(ANTI_FEE_SNIPING, antiFeeSniping)
                 }
             activity.startActivity(intent)
         }

@@ -133,7 +133,7 @@ interface AppNavigator {
     fun openOnBoardingScreen(activityContext: Context)
 
     /**
-     * @param selectedTagIds, selectedCollectionIds, feeRate for [RollOverWalletFlow.PREVIEW]
+     * @param selectedTagIds, selectedCollectionIds, feeRate ,antiFeeSniping for [RollOverWalletFlow.PREVIEW]
      */
     fun openRollOverWalletScreen(
         activityContext: Context,
@@ -143,7 +143,8 @@ interface AppNavigator {
         selectedTagIds: List<Int> = emptyList(),
         selectedCollectionIds: List<Int> = emptyList(),
         feeRate: Amount = Amount.ZER0,
-        source: Int
+        source: Int,
+        antiFeeSniping: Boolean = false,
     )
 
     fun openReferralScreen(activityContext: Context, args: ReferralArgs)

@@ -93,6 +93,7 @@ class TransactionConfirmViewModel @Inject constructor(
     private val inputs = mutableListOf<UnspentOutput>()
     private lateinit var privateNote: String
     private var claimInheritanceTxParam: ClaimInheritanceTxParam? = null
+    private var antiFeeSniping: Boolean = false
 
     override val initialState = Unit
 
@@ -105,12 +106,14 @@ class TransactionConfirmViewModel @Inject constructor(
         slots: List<SatsCardSlot>,
         inputs: List<UnspentOutput> = emptyList(),
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
+        antiFeeSniping: Boolean = false,
     ) {
         this.walletId = walletId
         this.txReceipts = txReceipts
         this.subtractFeeFromAmount = subtractFeeFromAmount
         this.privateNote = privateNote
         this.manualFeeRate = manualFeeRate
+        this.antiFeeSniping = antiFeeSniping
         this.slots.apply {
             clear()
             addAll(slots)
@@ -272,6 +275,7 @@ class TransactionConfirmViewModel @Inject constructor(
                     feeRate = manualFeeRate.toManualFeeRate(),
                     memo = privateNote,
                     isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
+                    antiFeeSniping = antiFeeSniping
                 )
             )
             if (result.isSuccess) {

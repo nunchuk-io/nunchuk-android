@@ -164,7 +164,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         slots: List<SatsCardSlot>,
         inputs: List<UnspentOutput>,
         claimInheritanceTxParam: ClaimInheritanceTxParam?,
-        actionButtonText: String
+        actionButtonText: String,
+        antiFeeSniping: Boolean
     ) {
         TransactionConfirmActivity.start(
             activityContext = activityContext,
@@ -178,7 +179,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             slots = slots,
             claimInheritanceTxParam = claimInheritanceTxParam,
             inputs = inputs,
-            actionButtonText = actionButtonText
+            actionButtonText = actionButtonText,
+            antiFeeSniping = antiFeeSniping
         )
     }
 

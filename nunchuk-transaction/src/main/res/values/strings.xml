@@ -24,6 +24,7 @@
     <string name="nc_transaction_subtract_fee_title">Subtract fee from send amount</string>
     <string name="nc_transaction_subtract_fee_desc">The fee will be deducted from the amount being sent. The recipient will receive less bitcoin than you entered in the send amount.</string>
     <string name="nc_transaction_manual_fee_rate">Manual fee rate</string>
+    <string name="nc_transaction_anti_fee_sniping">Anti-fee sniping</string>
     <string name="nc_transaction_effective_fee_rate"><![CDATA[Effective package fee rate: <b>%1$s sat/vB</b>]]></string>
     <string name="nc_transaction_taproot_effective_fee_rate"><![CDATA[About <b>%1$s sat/vB</b> when not using the Value Keyset]]></string>
     <string name="nc_transaction_fee_rate_unit">sat/vB</string>
@@ -70,6 +71,7 @@
     <string name="nc_transaction_smaller_than_minimum_fee_msg">Transactions with fee too low might get kicked out of the mempool. Are you sure you want to continue?</string>
     <string name="nc_more_address">"%1$d more address"</string>
     <string name="nc_transaction_include_unconfirmed_coins">This transaction includes unconfirmed coins.</string>
+    <string name="nc_transaction_anti_fee_sniping_desc">Adds the latest block height to the PSBT to prevent fee sniping attacks.</string>
     <string name="nc_co_signing_in_progress">Co-signing in progress…</string>
     <string name="nc_request_signature_dialog_title">Whom do you like to request signature from?</string>
     <string name="nc_request_signature_sent">Signature request sent</string>

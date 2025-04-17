@@ -100,7 +100,8 @@ interface TransactionNavigator {
         slots: List<SatsCardSlot> = emptyList(),
         inputs: List<UnspentOutput> = emptyList(),
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
-        actionButtonText: String = ""
+        actionButtonText: String = "",
+        antiFeeSniping: Boolean,
     )
 
     /**

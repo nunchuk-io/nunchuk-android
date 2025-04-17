@@ -50,6 +50,7 @@ class RollOverWalletViewModel @Inject constructor(
     private var selectedCollectionIds: List<Int> = emptyList()
     private var feeRate: Amount = Amount.ZER0
     private var source: Int = RollOverWalletSource.WALLET_CONFIG
+    private var antiFeeSniping: Boolean = false
 
     fun init(
         oldWalletId: String,
@@ -57,7 +58,8 @@ class RollOverWalletViewModel @Inject constructor(
         selectedTagIds: List<Int>,
         selectedCollectionIds: List<Int>,
         feeRate: Amount,
-        source: Int
+        source: Int,
+        antiFeeSniping: Boolean,
     ) {
 
         savedStateHandle[OLD_WALLET_ID] = oldWalletId
@@ -67,6 +69,7 @@ class RollOverWalletViewModel @Inject constructor(
         this.selectedCollectionIds = selectedCollectionIds
         this.feeRate = feeRate
         this.source = source
+        this.antiFeeSniping = antiFeeSniping
 
         getAllCoins()
         getAllTags()
@@ -140,7 +143,8 @@ class RollOverWalletViewModel @Inject constructor(
                     groupId = groupId,
                     days = days,
                     randomizeBroadcast = randomizeBroadcast,
-                    isFreeWallet = uiState.value.isFreeWallet
+                    isFreeWallet = uiState.value.isFreeWallet,
+                    antiFeeSniping = antiFeeSniping
                 )
             ).onSuccess {
                 if (it.isNullOrEmpty()) {

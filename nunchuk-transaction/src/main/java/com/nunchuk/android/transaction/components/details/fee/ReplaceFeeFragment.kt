@@ -36,6 +36,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -121,7 +122,8 @@ class ReplaceFeeFragment : Fragment() {
                 is ReplaceFeeEvent.DraftTransactionSuccess -> {
                     findNavController().navigate(
                         ReplaceFeeFragmentDirections.actionReplaceFeeFragmentToConfirmReplaceTransactionFragment(
-                            it.newFee
+                            it.newFee,
+                            antiFeeSniping = viewModel.state.value.antiFeeSniping
                         )
                     )
                 }
@@ -155,6 +157,9 @@ private fun ReplaceFeeScreen(
         uiState = uiState,
         onContinueClick = onContinueClick,
         onFeeChange = onFeeChange,
+        onAntiFeeSnipingChange = {
+            viewModel.onAntiFeeSnipingChange()
+        }
     )
 }
 
@@ -163,6 +168,7 @@ private fun ReplaceFeeContent(
     uiState: ReplaceFeeState = ReplaceFeeState(),
     onContinueClick: (Int) -> Unit = {},
     onFeeChange: (Int) -> Unit = {},
+    onAntiFeeSnipingChange: () -> Unit = {},
 ) {
     var newFeeRate by rememberSaveable {
         mutableStateOf("")
@@ -343,6 +349,35 @@ private fun ReplaceFeeContent(
                             title = stringResource(id = R.string.nc_transaction_economical_rate),
                             value = uiState.fee.economicRate
                         )
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(top = 16.dp),
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Anti-fee sniping",
+                                style = NunchukTheme.typography.body,
+                            )
+
+                            Text(
+                                modifier = Modifier.padding(top = 4.dp),
+                                text = "Adds the latest block height to the PSBT to prevent fee sniping attacks.",
+                                style = NunchukTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.textSecondary
+                            )
+                        }
+
+                        Checkbox(checked = uiState.antiFeeSniping, onCheckedChange = {
+                            onAntiFeeSnipingChange()
+                        }, modifier = Modifier.padding(top = 16.dp))
                     }
                 }
             }

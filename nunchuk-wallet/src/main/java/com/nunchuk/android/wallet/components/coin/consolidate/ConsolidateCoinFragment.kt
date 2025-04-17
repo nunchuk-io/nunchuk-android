@@ -79,7 +79,8 @@ class ConsolidateCoinFragment : Fragment() {
                             ),
                             privateNote = note,
                             manualFeeRate = state.manualFeeRate,
-                            subtractFeeFromAmount = true
+                            subtractFeeFromAmount = true,
+                            antiFeeSniping = false
                         )
                     },
                     onCustomizeTransaction = { note ->

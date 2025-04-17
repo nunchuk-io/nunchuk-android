@@ -19,6 +19,9 @@
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
+        <argument
+            android:name="anti_fee_sniping"
+            app:argType="boolean" />
     </fragment>
     <fragment
         android:id="@+id/replaceFeeFragment"
@@ -59,6 +62,9 @@
         <argument
             android:name="newFee"
             app:argType="integer" />
+        <argument
+            android:name="anti_fee_sniping"
+            app:argType="boolean" />
         <action
             android:id="@+id/action_rbfCustomizeDestinationFragment_to_confirmReplaceTransactionFragment"
             app:destination="@id/confirmReplaceTransactionFragment"
