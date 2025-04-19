@@ -127,6 +127,9 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        if (savedInstanceState == null && intent.getBooleanExtra(EXTRAS_ASK_PIN, false)) {
+            navigator.openUnlockPinScreen(this)
+        }
         setupData()
         setupNavigationView()
         setBottomNavViewPosition(bottomNavViewPosition)
@@ -288,19 +291,22 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
 
         const val EXTRAS_BOTTOM_NAV_VIEW_POSITION = "EXTRAS_BOTTOM_NAV_VIEW_POSITION"
         const val EXTRAS_MESSAGE_LIST = "EXTRAS_MESSAGE_LIST"
+        const val EXTRAS_ASK_PIN = "EXTRAS_ASK_PIN"
 
         fun start(
             activityContext: Context,
             position: Int? = null,
             messages: ArrayList<String>? = null,
             isClearTask: Boolean = false,
+            askPin: Boolean = false,
         ) {
             activityContext.startActivity(
                 createIntent(
                     activityContext = activityContext,
                     bottomNavViewPosition = position,
                     messages = messages,
-                    isClearTask = isClearTask
+                    isClearTask = isClearTask,
+                    askPin = askPin
                 )
             )
         }
@@ -311,6 +317,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
             @IdRes bottomNavViewPosition: Int? = null,
             messages: ArrayList<String>? = null,
             isClearTask: Boolean = false,
+            askPin: Boolean = false,
         ): Intent {
             return Intent(activityContext, MainActivity::class.java).apply {
                 if (isClearTask) {
@@ -320,6 +327,7 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
                 }
                 putExtra(EXTRAS_BOTTOM_NAV_VIEW_POSITION, bottomNavViewPosition)
                 putExtra(EXTRAS_MESSAGE_LIST, messages)
+                putExtra(EXTRAS_ASK_PIN, askPin)
             }
         }
     }

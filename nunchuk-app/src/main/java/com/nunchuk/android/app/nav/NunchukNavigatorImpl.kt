@@ -86,12 +86,14 @@ internal class NunchukNavigatorImpl @Inject constructor() : NunchukNavigator,
         bottomNavViewPosition: Int?,
         messages: ArrayList<String>?,
         isClearTask: Boolean,
+        askPin: Boolean,
     ) {
         MainActivity.start(
             activityContext = activityContext,
             position = bottomNavViewPosition,
             messages = messages,
             isClearTask = isClearTask,
+            askPin = askPin,
         )
     }
 

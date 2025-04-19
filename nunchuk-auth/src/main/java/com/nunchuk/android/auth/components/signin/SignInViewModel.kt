@@ -39,6 +39,7 @@ import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.account.SignInType
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
+import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.network.NunchukApiException
@@ -91,11 +92,13 @@ internal class SignInViewModel @Inject constructor(
     private val biometricLoginUseCase: BiometricLoginUseCase,
     private val updateBiometricConfigUseCase: UpdateBiometricConfigUseCase,
     private val googleSignInUseCase: GoogleSignInUseCase,
+    private val getWalletPinUseCase: GetWalletPinUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SignInEvent>()
     val event = _event.asSharedFlow()
 
     private var staySignedIn = false
+    private var pin = ""
     val type = savedStateHandle.get<SignInType>(EXTRA_TYPE) ?: SignInType.EMAIL
     private val _state =
         MutableStateFlow(SignInUiState(type = type))
@@ -115,7 +118,13 @@ internal class SignInViewModel @Inject constructor(
                 clearInfoSessionUseCase(Unit)
             }
         }
+
         checkPrimaryKeyAccounts()
+        viewModelScope.launch {
+            getWalletPinUseCase(Unit)
+                .map { it.getOrDefault("") }
+                .collect { pin = it }
+        }
     }
 
     private suspend fun validateEmail(email: String) = when {
@@ -270,7 +279,7 @@ internal class SignInViewModel @Inject constructor(
                 .onSuccess {
                     accountManager.storeAccount(AccountInfo().copy(loginType = SignInMode.GUEST_MODE.value))
                     signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
-                    _event.emit(SignInSuccessEvent())
+                    _event.emit(SignInSuccessEvent(askPin = pin.isNotEmpty()))
                 }.onFailure {
                     _event.emit(SignInErrorEvent(message = it.message.orUnknownError()))
                 }
@@ -348,13 +357,13 @@ internal class SignInViewModel @Inject constructor(
         }
     }
 
-    fun checkClearBiometric() {
+    fun checkClearBiometric(askPin: Boolean) {
         viewModelScope.launch {
             val loggedAccountId = accountManager.getAccount().id
             if (biometricConfig.value.userId == loggedAccountId) {
                 updateBiometricConfigUseCase(BiometricConfig.DEFAULT)
             }
-            _event.emit(SignInEvent.OpenMainScreen)
+            _event.emit(SignInEvent.OpenMainScreen(askPin))
         }
     }
 

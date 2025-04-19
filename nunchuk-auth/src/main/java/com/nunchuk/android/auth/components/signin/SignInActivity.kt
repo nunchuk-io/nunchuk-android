@@ -162,9 +162,9 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
                 is SignInSuccessEvent -> {
                     if (it.ignoreCheckBiometric) {
-                        openMainScreen()
+                        openMainScreen(it.askPin)
                     } else {
-                        viewModel.checkClearBiometric()
+                        viewModel.checkClearBiometric(it.askPin)
                     }
                 }
 
@@ -177,8 +177,8 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
                 SignInEvent.NameRequiredEvent -> binding.name.setError(getString(R.string.nc_text_required))
                 SignInEvent.NameValidEvent -> binding.name.hideError()
-                SignInEvent.OpenMainScreen -> {
-                    openMainScreen()
+                is SignInEvent.OpenMainScreen -> {
+                    openMainScreen(it.askPin)
                 }
             }
         }
@@ -278,7 +278,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         }
     }
 
-    private fun openMainScreen() {
+    private fun openMainScreen(askPin: Boolean = false) {
         hideLoading()
         if (NotificationUtils.areNotificationsEnabled(this).not()) {
             navigator.openTurnNotificationScreen(this)
@@ -286,6 +286,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
             navigator.openMainScreen(
                 activityContext = this,
                 isClearTask = true,
+                askPin = askPin,
             )
         }
         finish()

@@ -28,7 +28,8 @@ interface MainNavigator {
         activityContext: Context,
         bottomNavViewPosition: Int? = null,
         messages: ArrayList<String>? = null,
-        isClearTask: Boolean = false
+        isClearTask: Boolean = false,
+        askPin: Boolean = false,
     )
 
     fun returnToMainScreen(activity: Activity)

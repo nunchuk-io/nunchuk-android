@@ -173,7 +173,7 @@ internal fun WalletsScreen(
         } else {
             if (isShowEmptyState) {
                 WalletEmptyStateView(
-                    modifier = Modifier.padding(padding),
+                    modifier = Modifier.padding(padding).padding(16.dp),
                     activityContext = activity,
                     navigator = navigator,
                     groupStage = stage,
