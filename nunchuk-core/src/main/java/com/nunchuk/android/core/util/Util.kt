@@ -75,6 +75,7 @@ const val BTC_SATOSHI_EXCHANGE_RATE = 100000000
 const val NFC_CARD_TIMEOUT = 5000
 const val NFC_DEFAULT_NAME = "NFC Key"
 const val HARDWARE_KEY_NAME = "Hardware key"
+const val DEFAULT_KEY_NAME = "Key"
 
 const val ONE_HOUR_TO_SECONDS = 60 * 60
 

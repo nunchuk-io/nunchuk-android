@@ -98,7 +98,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                AddKeyListScreen(
+                AddByzantineKeyListScreen(
                     viewModel = viewModel,
                     isAddOnly = args.isAddOnly,
                     membershipStepManager = membershipStepManager,
@@ -530,7 +530,7 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
 }
 
 @Composable
-fun AddKeyListScreen(
+fun AddByzantineKeyListScreen(
     viewModel: AddByzantineKeyListViewModel = viewModel(),
     isAddOnly: Boolean = false,
     membershipStepManager: MembershipStepManager,

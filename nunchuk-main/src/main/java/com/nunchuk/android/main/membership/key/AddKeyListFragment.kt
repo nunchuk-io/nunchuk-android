@@ -103,7 +103,6 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.isAddInheritanceKey
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -113,7 +112,6 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Collections.emptyList
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
@@ -601,11 +599,12 @@ fun AddKeyListContent(
 @Composable
 fun AddKeyCard(
     item: AddKeyData,
-    isMissingBackup: Boolean = false,
     modifier: Modifier = Modifier,
+    isMissingBackup: Boolean = false,
     onAddClicked: (data: AddKeyData) -> Unit = {},
     onVerifyClicked: (data: AddKeyData) -> Unit = {},
-    isDisabled: Boolean = false
+    isDisabled: Boolean = false,
+    isStandard: Boolean = false
 ) {
     if (item.signer != null) {
         Box(
@@ -698,7 +697,7 @@ fun AddKeyCard(
             }
         } else {
             NcDashLineBox(modifier = modifier) {
-                ConfigItem(item, onAddClicked, isDisabled = isDisabled)
+                ConfigItem(item = item, onAddClicked = onAddClicked, isDisabled = isDisabled, isStandard = isStandard)
             }
         }
     }
@@ -708,7 +707,8 @@ fun AddKeyCard(
 private fun ConfigItem(
     item: AddKeyData,
     onAddClicked: ((data: AddKeyData) -> Unit)? = null,
-    isDisabled: Boolean = false
+    isDisabled: Boolean = false,
+    isStandard: Boolean = false
 ) {
     Row(
         modifier = Modifier.padding(12.dp),
@@ -721,7 +721,7 @@ private fun ConfigItem(
                 .padding(start = 8.dp)
         ) {
             Text(
-                text = item.type.getLabel(LocalContext.current),
+                text = item.type.getLabel(context = LocalContext.current, isStandard = isStandard),
                 style = NunchukTheme.typography.body
             )
             Row(modifier = Modifier.padding(top = 4.dp)) {
