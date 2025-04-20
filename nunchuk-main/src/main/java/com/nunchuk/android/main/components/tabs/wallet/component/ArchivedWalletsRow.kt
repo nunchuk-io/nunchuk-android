@@ -46,7 +46,7 @@ fun ArchivedWalletsRow(
         )
 
         Text(
-            text = stringResource(R.string.nc_archive_wallet),
+            text = stringResource(R.string.nc_archive_wallets),
             style = NunchukTheme.typography.titleSmall,
             modifier = Modifier.padding(start = 8.dp).weight(1f)
         )

@@ -62,7 +62,7 @@ fun NcToastMessage(type: NcToastType = NcToastType.SUCCESS, message: String) {
         NcToastType.WARNING -> colorResource(id = R.color.nc_green_color)
     }
     val iconResId = when (type) {
-        NcToastType.SUCCESS -> R.drawable.ic_info
+        NcToastType.SUCCESS -> R.drawable.ic_check_circle_outline
         NcToastType.ERROR -> R.drawable.ic_info_white
         NcToastType.WARNING -> R.drawable.ic_warn
     }

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,6 +18,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.ActiveWallet
 import com.nunchuk.android.compose.NcScaffold
@@ -33,6 +33,12 @@ internal fun ArchiveRoute(
     openWalletDetail: (String) -> Unit = {},
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
+
+    LifecycleResumeEffect(Unit) {
+        viewModel.loadArchiveWallets()
+
+        onPauseOrDispose {}
+    }
 
     ArchiveScreen(
         uiState = uiState,
@@ -55,7 +61,6 @@ internal fun ArchiveScreen(
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
-                .systemBarsPadding()
                 .padding(innerPadding),
             contentPadding = PaddingValues(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)

@@ -17,7 +17,7 @@ internal class ArchiveViewModel @Inject constructor(
     private val _state = MutableStateFlow(ArchiveUiState())
     val state = _state.asStateFlow()
 
-    init {
+    fun loadArchiveWallets() {
         viewModelScope.launch {
             getAllWalletsUseCase(Unit)
                 .onSuccess { wallets ->

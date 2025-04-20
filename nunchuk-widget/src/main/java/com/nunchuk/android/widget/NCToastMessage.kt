@@ -57,7 +57,7 @@ class NCToastMessage(private val activity: Activity) : DefaultLifecycleObserver 
         message: String,
         background: Int = R.drawable.nc_toast_background,
         contentColor: Int = R.color.nc_grey_g7,
-        icon: Int = R.drawable.ic_info,
+        icon: Int = R.drawable.ic_check_circle_outline,
         gravity: Int = BOTTOM or FILL_HORIZONTAL,
         duration: Int = Toast.LENGTH_LONG,
         offset: Int = R.dimen.nc_padding_16,

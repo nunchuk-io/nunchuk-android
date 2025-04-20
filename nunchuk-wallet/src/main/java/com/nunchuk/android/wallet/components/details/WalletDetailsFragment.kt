@@ -205,12 +205,14 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                 unreadCount = state.unreadMessagesCount,
                 onSendMessage = {
                     viewModel.sendMessage(it)
-                }, onOpenChat = {
+                },
+                onOpenChat = {
                     navigator.openGroupChatScreen(
                         activityContext = requireActivity(),
                         walletId = args.walletId,
                     )
-                })
+                },
+            )
         }
         handleChatViewCollapseExpand()
     }
@@ -455,7 +457,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
     }
 
     private fun handleWalletBackground(state: WalletDetailsState) {
-        if (state.isFreeGroupWallet && !state.isDeprecatedGroupWallet) {
+        if (state.isFreeGroupWallet && !state.isDeprecatedGroupWallet && !state.walletExtended.wallet.archived) {
             binding.statusBarBackground.setBackgroundResource(R.drawable.nc_header_free_group_wallet_background)
             binding.cashAmount.setTextColor(
                 ContextCompat.getColor(
