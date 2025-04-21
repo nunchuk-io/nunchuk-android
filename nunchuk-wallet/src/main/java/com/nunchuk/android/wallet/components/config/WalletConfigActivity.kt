@@ -580,7 +580,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     options.add(
                         SheetOption(
                             SheetOptionType.TYPE_ARCHIVE,
-                            R.drawable.ic_archive_box,
+                            R.drawable.ic_un_archive_box,
                             R.string.nc_unarchive_wallet
                         )
                     )
