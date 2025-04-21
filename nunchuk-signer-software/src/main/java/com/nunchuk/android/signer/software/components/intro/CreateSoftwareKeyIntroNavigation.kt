@@ -146,7 +146,7 @@ fun CreateSoftwareKeyIntroScreen(
 
                 NcOptionItem(
                     isSelected = selectedOption == CreateOption.RecoverSeed.ordinal,
-                    label = stringResource(R.string.nc_ssigner_recover_seed),
+                    label = stringResource(R.string.nc_ssigner_recover_key),
                     onClick = {
                         selectedOption = CreateOption.RecoverSeed.ordinal
                     }

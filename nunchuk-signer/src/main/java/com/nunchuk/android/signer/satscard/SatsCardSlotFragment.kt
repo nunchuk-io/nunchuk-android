@@ -20,12 +20,10 @@
 package com.nunchuk.android.signer.satscard
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
@@ -66,14 +64,6 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(),
     private val args: SatsCardArgs by lazy { SatsCardArgs.deserializeBundle(requireArguments()) }
 
     private var isSweepActiveSlot: Boolean = true
-
-    private val launcher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
-                val activeSlot = viewModel.getActiveSlot() ?: return@registerForActivityResult
-                openSelectWallet(arrayOf(activeSlot))
-            }
-        }
 
     override fun initializeBinding(
         inflater: LayoutInflater,

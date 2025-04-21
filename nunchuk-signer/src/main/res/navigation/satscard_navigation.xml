@@ -40,6 +40,7 @@
 
         <argument
             android:name="slot"
-            app:argType="com.nunchuk.android.model.SatsCardSlot" />
+            app:argType="com.nunchuk.android.model.SatsCardSlot"
+            app:nullable="false" />
     </fragment>
 </navigation>

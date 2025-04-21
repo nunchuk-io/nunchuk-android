@@ -37,7 +37,6 @@ import com.nunchuk.android.signer.software.components.intro.createSoftwareKeyInt
 import com.nunchuk.android.signer.software.components.intro.createSoftwareKeyIntroRoute
 import com.nunchuk.android.signer.software.components.intro.recoverByXprv
 import com.nunchuk.android.signer.software.components.intro.recoverByXprvRoute
-import com.nunchuk.android.signer.software.components.intro.softwareSignerIntro
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateSoftwareSignerCompletedEvent
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -121,14 +120,6 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                         },
                         onRecoverSeedClicked = { openRecoverSeedScreen() },
                         onRecoverXprvClicked = { navigationController.navigate(recoverByXprvRoute) }
-                    )
-                    softwareSignerIntro(
-                        isSupportXprv = !keyFlow.isSignInFlow(),
-                        onCreateNewSeedClicked = ::openCreateNewSeedScreen,
-                        onRecoverSeedClicked = ::openRecoverSeedScreen,
-                        onRecoverXprvClicked = {
-                            navigationController.navigate(recoverByXprvRoute)
-                        }
                     )
                     recoverByXprv { xprv ->
                         onRecoverFromXprv(xprv)
