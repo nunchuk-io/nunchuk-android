@@ -301,6 +301,7 @@ class EstimatedFeeViewModel @Inject constructor(
                 derivationPaths = claimInheritanceTxParam?.derivationPaths.orEmpty(),
                 isDraft = true,
                 amount = claimInheritanceTxParam?.customAmount ?: 0.0,
+                antiFeeSniping = getAntiFeeSniping()
             )
         )
         setEvent(EstimatedFeeEvent.Loading(false))

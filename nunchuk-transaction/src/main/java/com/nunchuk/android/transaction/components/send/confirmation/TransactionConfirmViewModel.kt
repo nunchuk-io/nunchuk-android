@@ -218,7 +218,8 @@ class TransactionConfirmViewModel @Inject constructor(
                     feeRate = manualFeeRate.toManualFeeRate(),
                     derivationPaths = claimInheritanceTxParam?.derivationPaths.orEmpty(),
                     isDraft = true,
-                    amount = claimInheritanceTxParam?.customAmount ?: 0.0
+                    amount = claimInheritanceTxParam?.customAmount ?: 0.0,
+                    antiFeeSniping = antiFeeSniping
                 )
             )
             if (result.isSuccess) {
@@ -326,6 +327,7 @@ class TransactionConfirmViewModel @Inject constructor(
                 derivationPaths = claimInheritanceTxParam?.derivationPaths.orEmpty(),
                 isDraft = false,
                 amount = claimInheritanceTxParam?.customAmount ?: 0.0,
+                antiFeeSniping = antiFeeSniping
             )
         )
         if (result.isSuccess) {

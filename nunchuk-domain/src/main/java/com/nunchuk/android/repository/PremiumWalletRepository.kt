@@ -240,7 +240,8 @@ interface PremiumWalletRepository {
         magic: String,
         address: String,
         feeRate: String,
-        amount: Double
+        amount: Double,
+        antiFeeSniping: Boolean
     ): String
 
     suspend fun inheritanceClaimStatus(
