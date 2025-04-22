@@ -163,6 +163,8 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override val displayTotalBalance: Flow<Boolean>
         get() = ncDataStore.displayTotalBalanceFlow
+    override val antiFeeSniping: Flow<Boolean>
+        get() = ncDataStore.antiFeeSnipingFlow
     override val defaultFee: Flow<Int>
         get() = ncDataStore.defaultFee
 
@@ -192,5 +194,9 @@ internal class SettingRepositoryImpl @Inject constructor(
         val chain = _chain.value
         val entities = orders.map { it.toEntity(chatId, chain) }
         walletOrderDao.replaceWalletOrders(chatId, chain, entities)
+    }
+
+    override suspend fun setAntiFeeSniping(isEnable: Boolean) {
+        ncDataStore.setAntiFeeSniping(isEnable)
     }
 }

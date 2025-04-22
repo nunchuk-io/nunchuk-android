@@ -896,4 +896,6 @@
     <string name="nc_bsms_descriptors">BSMS/descriptors</string>
     <string name="nc_or">Or</string>
     <string name="nc_sign_in_with_apple">Sign in with Apple</string>
+    <string name="nc_enable_anti_fee_sniping_by_default">Enable Anti-Fee Sniping by default</string>
+    <string name="nc_enable_anti_fee_sniping_by_default_desc">Adds the latest block height to the PSBT to prevent fee sniping attacks</string>
 </resources>

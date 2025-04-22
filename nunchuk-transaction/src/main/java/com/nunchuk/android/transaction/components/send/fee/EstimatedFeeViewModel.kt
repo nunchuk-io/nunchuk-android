@@ -45,6 +45,7 @@ import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.EstimateRollOverAmountUseCase
+import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -64,6 +65,7 @@ class EstimatedFeeViewModel @Inject constructor(
     private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase,
     private val estimateRollOverAmountUseCase: EstimateRollOverAmountUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val getDefaultAntiFeeSnipingUseCase: GetDefaultAntiFeeSnipingUseCase,
 ) : NunchukViewModel<EstimatedFeeState, EstimatedFeeEvent>() {
 
     private var walletId: String = ""
@@ -102,6 +104,12 @@ class EstimatedFeeViewModel @Inject constructor(
             getAllCoins()
         }
         getWalletDetail(walletId)
+        viewModelScope.launch {
+            getDefaultAntiFeeSnipingUseCase(Unit)
+                .collect { result ->
+                    updateState { copy(antiFeeSniping = result.getOrDefault(false)) }
+                }
+        }
     }
 
     fun updateNewInputs(inputs: List<UnspentOutput>) {

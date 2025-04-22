@@ -1,6 +1,5 @@
 package com.nunchuk.android.settings.feesettings
 
-import android.R.id.message
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -17,11 +16,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,11 +40,12 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
+import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseComposeActivity
-import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.model.FreeRateOption
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -61,9 +64,16 @@ class FeeSettingsActivity : BaseComposeActivity() {
                 setContent {
                     val state by viewModel.state.collectAsStateWithLifecycle()
 
-                    FeeSettingsContent(defaultSelectedOption = state.defaultFee) {
-                        viewModel.setDefaultFee(it)
-                        NCToastMessage(this@FeeSettingsActivity).showMessage(message = getString(R.string.nc_fee_settings_updated), icon = R.drawable.ic_check_circle_outline)
+                    FeeSettingsContent(
+                        defaultSelectedOption = state.defaultFee,
+                        defaultAntiFeeSnipingEnabled = state.antiFeeSniping,
+                    ) { option, antiFeeSniping ->
+                        viewModel.setDefaultFee(option)
+                        viewModel.setAntiFeeSniping(antiFeeSniping)
+                        NCToastMessage(this@FeeSettingsActivity).showMessage(
+                            message = getString(R.string.nc_fee_settings_updated),
+                            icon = R.drawable.ic_check_circle_outline
+                        )
                     }
                 }
             })
@@ -79,9 +89,13 @@ class FeeSettingsActivity : BaseComposeActivity() {
 @Composable
 fun FeeSettingsContent(
     defaultSelectedOption: Int = FreeRateOption.ECONOMIC.ordinal,
-    onContinueClick: (option: Int) -> Unit = { }
+    defaultAntiFeeSnipingEnabled: Boolean = false,
+    onContinueClick: (option: Int, antiFeeSniping: Boolean) -> Unit = { _, _ -> },
 ) {
     var selectedOption by remember(defaultSelectedOption) { mutableIntStateOf(defaultSelectedOption) }
+    var antiFeeSnipingEnabled by remember(defaultAntiFeeSnipingEnabled) {
+        mutableStateOf(defaultAntiFeeSnipingEnabled)
+    }
 
     NunchukTheme {
         Scaffold(
@@ -103,9 +117,10 @@ fun FeeSettingsContent(
                         modifier = Modifier
                             .padding(top = 16.dp)
                             .fillMaxWidth(),
-                        enabled = selectedOption != defaultSelectedOption,
+                        enabled = selectedOption != defaultSelectedOption ||
+                                antiFeeSnipingEnabled != defaultAntiFeeSnipingEnabled,
                         onClick = {
-                            onContinueClick(selectedOption)
+                            onContinueClick(selectedOption, antiFeeSnipingEnabled)
                         }) {
                         Text(text = stringResource(R.string.nc_save_fee_settings))
                     }
@@ -148,6 +163,36 @@ fun FeeSettingsContent(
                 ) {
                     selectedOption = FreeRateOption.PRIORITY.ordinal
                 }
+
+                HorizontalDivider()
+
+                Row(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f, true)
+                            .padding(end = 12.dp),
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.nc_enable_anti_fee_sniping_by_default),
+                            style = NunchukTheme.typography.body
+                        )
+                        Text(
+                            modifier = Modifier.padding(top = 4.dp),
+                            text = stringResource(id = R.string.nc_enable_anti_fee_sniping_by_default_desc),
+                            style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.textSecondary)
+                        )
+                    }
+
+                    NcSwitch(
+                        checked = antiFeeSnipingEnabled,
+                        onCheckedChange = {
+                            antiFeeSnipingEnabled = it
+                        },
+                    )
+                }
             }
         }
     }
@@ -189,7 +234,10 @@ private fun OptionItem(
                     ) {
                         Text(
                             text = stringResource(R.string.nc_recommended),
-                            style = NunchukTheme.typography.bold.copy(color = colorResource(R.color.nc_text_primary), fontSize = 10.sp),
+                            style = NunchukTheme.typography.bold.copy(
+                                color = colorResource(R.color.nc_text_primary),
+                                fontSize = 10.sp
+                            ),
                         )
                     }
                 }

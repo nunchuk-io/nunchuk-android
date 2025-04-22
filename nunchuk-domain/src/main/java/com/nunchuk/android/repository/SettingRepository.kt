@@ -46,6 +46,7 @@ interface SettingRepository {
     val campaign: Flow<Campaign?>
     val lastCloseApp: Flow<Long>
     val displayTotalBalance: Flow<Boolean>
+    val antiFeeSniping: Flow<Boolean>
     val defaultFee: Flow<Int>
     suspend fun setSyncEnable(isEnable: Boolean)
     suspend fun setQrDensity(density: Int)
@@ -68,4 +69,5 @@ interface SettingRepository {
     suspend fun setDefaultFree(fee: Int)
     fun getAllWalletOrders(): Flow<List<WalletOrder>>
     suspend fun insertWalletOrders(orders: List<WalletOrder>)
+    suspend fun setAntiFeeSniping(isEnable: Boolean)
 }

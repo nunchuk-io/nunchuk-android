@@ -11,6 +11,7 @@ import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
+import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
 import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,6 +29,7 @@ class RbfCancelTransactionViewModel @Inject constructor(
     private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase,
     private val draftTransactionUseCase: DraftTransactionUseCase,
     private val getCoinsFromTxInputsUseCase: GetCoinsFromTxInputsUseCase,
+    private val getDefaultAntiFeeSnipingUseCase: GetDefaultAntiFeeSnipingUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val walletId = savedStateHandle.get<String>(ReplaceFeeArgs.EXTRA_WALLET_ID).orEmpty()
@@ -49,6 +51,14 @@ class RbfCancelTransactionViewModel @Inject constructor(
             getUnusedWalletAddressUseCase(walletId).onSuccess { address ->
                 _state.update { it.copy(address = address.firstOrNull().orEmpty()) }
             }
+        }
+        viewModelScope.launch {
+            getDefaultAntiFeeSnipingUseCase(Unit)
+                .collect { result ->
+                    _state.update {
+                        it.copy(antiFeeSniping = result.getOrDefault(false))
+                    }
+                }
         }
     }
 

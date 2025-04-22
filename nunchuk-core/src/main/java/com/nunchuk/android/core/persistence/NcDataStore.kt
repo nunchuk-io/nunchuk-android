@@ -73,6 +73,7 @@ class NcDataStore @Inject constructor(
     private val currentStepKey = intPreferencesKey("current_step")
     private val useLargeFontHomeBalances = booleanPreferencesKey("use_large_font_home_balances")
     private val displayTotalBalance = booleanPreferencesKey("display_total_balance")
+    private val antiFeeSniping = booleanPreferencesKey("anti_fee_sniping")
     private val showNewPortalKey = booleanPreferencesKey("show_new_portal")
     private val passwordTokenKey = stringPreferencesKey("password_token")
     private val lastCloseAppKey = longPreferencesKey("last_close_app")
@@ -356,6 +357,11 @@ class NcDataStore @Inject constructor(
             it[displayTotalBalance] == true
         }
 
+    val antiFeeSnipingFlow: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[antiFeeSniping] == true
+        }
+
     val currentStep: Flow<MembershipStep?>
         get() = context.dataStore.data.map {
             it[currentStepKey]?.let { index -> MembershipStep.entries[index] }
@@ -473,6 +479,12 @@ class NcDataStore @Inject constructor(
     suspend fun setDefaultFee(fee: Int) {
         context.dataStore.edit {
             it[defaultFeeKey] = fee
+        }
+    }
+
+    suspend fun setAntiFeeSniping(isEnable: Boolean) {
+        context.dataStore.edit {
+            it[antiFeeSniping] = isEnable
         }
     }
 
