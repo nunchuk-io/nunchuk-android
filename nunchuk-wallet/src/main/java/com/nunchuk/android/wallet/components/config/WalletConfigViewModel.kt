@@ -690,6 +690,10 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun getWalletName() = getState().walletExtended.wallet.name
 
+    fun isHotWalletNeedBackup() = getState().walletExtended.wallet.needBackup
+
+    fun isSignerDeleted() = getState().signers.firstOrNull()?.type == SignerType.UNKNOWN
+
     fun getTransactions() = getState().transactions
 
     fun isGroupSandboxWallet() = getState().isGroupSandboxWallet

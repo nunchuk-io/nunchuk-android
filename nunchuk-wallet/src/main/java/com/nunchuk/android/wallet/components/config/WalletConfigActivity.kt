@@ -67,6 +67,7 @@ import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent
 import com.nunchuk.android.wallet.databinding.ActivityWalletConfigBinding
 import com.nunchuk.android.widget.NCDeleteConfirmationDialog
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCProgressDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
@@ -335,6 +336,11 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             NCWarningDialog(this).showDialog(
                 message = getString(R.string.nc_delete_collaborative_wallet),
                 onYesClick = { viewModel.handleDeleteWallet() }
+            )
+        } else if (viewModel.isHotWalletNeedBackup() && !viewModel.isSignerDeleted()) {
+            NCInfoDialog(this).showDialog(
+                message = getString(R.string.nc_delete_hot_wallet_need_backup),
+                onYesClick = { }
             )
         } else {
             NCDeleteConfirmationDialog(this).showDialog(
