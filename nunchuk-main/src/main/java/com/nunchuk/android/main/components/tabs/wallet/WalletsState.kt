@@ -25,6 +25,7 @@ import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
@@ -66,6 +67,7 @@ internal data class WalletsState(
     val chain: Chain = Chain.MAIN,
     val hasSigner: Boolean = false,
     val totalArchivedWallet: Int = 0,
+    val stage: MembershipStage = MembershipStage.NONE,
 )
 
 internal sealed class WalletsEvent {

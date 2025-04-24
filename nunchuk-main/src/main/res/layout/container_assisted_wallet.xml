@@ -6,7 +6,6 @@
     android:layout_height="wrap_content"
     android:background="@drawable/nc_rounded_denim_background"
     android:padding="@dimen/nc_padding_16"
-    android:visibility="gone"
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintTop_toTopOf="parent"
     tools:visibility="visible">

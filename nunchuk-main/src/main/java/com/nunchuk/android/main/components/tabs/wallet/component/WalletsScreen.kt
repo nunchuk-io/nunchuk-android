@@ -49,7 +49,6 @@ import com.nunchuk.android.main.components.tabs.wallet.totalbalance.TotalBalance
 import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
 import com.nunchuk.android.main.membership.byzantine.views.PendingWalletView
 import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.banner.Banner
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
@@ -83,8 +82,7 @@ internal fun WalletsScreen(
     val snackState = remember { SnackbarHostState() }
     val banner = state.banner
     val isShowEmptyState = state.wallets.isEmpty() && state.groupWalletUis.isEmpty()
-    val stage = getGroupStage(state)
-    val isAssistedBannerGone = stage == MembershipStage.DONE || state.allGroups.isNotEmpty()
+    val isAssistedBannerGone = state.stage == MembershipStage.DONE || state.allGroups.isNotEmpty()
     val groupWalletUis = state.groupWalletUis
     val useLargeFont = state.homeDisplaySetting.useLargeFont
     val hideWalletDetail = state.walletSecuritySetting.hideWalletDetail
@@ -176,7 +174,7 @@ internal fun WalletsScreen(
                     modifier = Modifier.padding(padding).padding(16.dp),
                     activityContext = activity,
                     navigator = navigator,
-                    groupStage = stage,
+                    groupStage = state.stage,
                     assistedWalletId = state.assistedWallets.firstOrNull()?.localId.orEmpty(),
                     hasSigner = hasSigner,
                     state = state
@@ -201,15 +199,16 @@ internal fun WalletsScreen(
                         contentPadding = PaddingValues(vertical = 24.dp, horizontal = 16.dp),
                         state = lazyListState
                     ) {
-                        if (isAssistedBannerGone) {
+                        if (!isAssistedBannerGone) {
                             item {
                                 AssistedWalletIntro(
                                     modifier = Modifier
-                                        .fillMaxWidth(),
+                                        .fillMaxWidth()
+                                        .padding(bottom = 16.dp),
                                     state = state,
-                                    stage = stage,
+                                    stage = state.stage,
                                     context = context,
-                                    onClick = { onIntroContainerClick(stage) }
+                                    onClick = { onIntroContainerClick(state.stage) }
                                 )
                             }
                         }
@@ -357,31 +356,4 @@ internal fun WalletsScreen(
             )
         }
     }
-}
-
-private fun getGroupStage(state: WalletsState): MembershipStage {
-    val allGroups = state.allGroups
-    val assistedWallets = state.assistedWallets
-    if (allGroups.isNotEmpty()) {
-        return MembershipStage.DONE
-    }
-    if (assistedWallets.isNotEmpty()) {
-        if (assistedWallets.size == 1
-            && !assistedWallets.first().isSetupInheritance
-            && assistedWallets.first().status == WalletStatus.ACTIVE.name
-            && assistedWallets.first().plan == MembershipPlan.HONEY_BADGER
-        ) {
-            return MembershipStage.SETUP_INHERITANCE
-        }
-        return MembershipStage.DONE
-    }
-    val plans = state.plans
-    if (!plans.isNullOrEmpty()) {
-        if (state.personalSteps.orEmpty().isNotEmpty()) {
-            return MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS
-        }
-        return MembershipStage.NONE
-    }
-
-    return MembershipStage.DONE
 }

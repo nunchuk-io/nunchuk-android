@@ -48,7 +48,6 @@ import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.listener.GroupDeleteListener
 import com.nunchuk.android.listener.GroupSandboxListener
-import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.AddWalletEvent
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GetTapSignerStatusSuccess
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.GoToSatsCardScreen
 import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.Loading
@@ -646,7 +645,13 @@ internal class WalletsViewModel @Inject constructor(
         val mergedSortedGroups = sortedGroupsWithNullWallet + groupsWithNonNullWallet
 
         withContext(Main) {
-            _state.update { it.copy(groupWalletUis = mergedSortedGroups, totalArchivedWallet = totalArchivedWallet) }
+            _state.update {
+                it.copy(
+                    groupWalletUis = mergedSortedGroups,
+                    totalArchivedWallet = totalArchivedWallet,
+                    stage = getGroupStage()
+                )
+            }
         }
     }
 
@@ -687,10 +692,6 @@ internal class WalletsViewModel @Inject constructor(
                 mapGroupWalletUi()
             }
         }
-    }
-
-    fun handleAddWallet() = viewModelScope.launch {
-        _event.emit(AddWalletEvent)
     }
 
     fun hasWallet() = getState().wallets.isNotEmpty()
