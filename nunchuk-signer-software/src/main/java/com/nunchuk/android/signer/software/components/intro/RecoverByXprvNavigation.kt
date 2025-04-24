@@ -2,7 +2,9 @@ package com.nunchuk.android.signer.software.components.intro
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,7 +43,6 @@ fun NavGraphBuilder.recoverByXprv(
 
 @Composable
 fun RecoverByXprvScreen(
-    modifier: Modifier = Modifier,
     viewModel: RecoverByXprvViewModel = hiltViewModel(),
     onContinueClicked: (String) -> Unit = {}
 ) {
@@ -64,7 +65,6 @@ fun RecoverByXprvScreen(
     }
 
     RecoverByXprvContent(
-        modifier = modifier,
         state = state,
         onContinueClicked = viewModel::validateXprv,
         onXprvChanged = viewModel::onXprvChanged,
@@ -74,7 +74,6 @@ fun RecoverByXprvScreen(
 
 @Composable
 fun RecoverByXprvContent(
-    modifier: Modifier = Modifier,
     state: RecoverByXprvViewState = RecoverByXprvViewState(),
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     onXprvChanged: (String) -> Unit = {},
@@ -82,7 +81,9 @@ fun RecoverByXprvContent(
 ) {
     NunchukTheme {
         NcScaffold(
-            modifier = modifier,
+            modifier = Modifier
+                .navigationBarsPadding()
+                .statusBarsPadding(),
             topBar = {
                 NcTopAppBar(
                     title = stringResource(R.string.nc_recover_key_via_xprv),
