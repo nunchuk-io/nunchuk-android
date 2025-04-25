@@ -225,7 +225,7 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
         when (event) {
             SignOutEvent -> {
                 hideLoading()
-                navigator.restartApp(requireActivity())
+                navigator.openSignInScreen(requireActivity(), true)
             }
 
             is AccountEvent.GetUserProfileSuccessEvent -> {
