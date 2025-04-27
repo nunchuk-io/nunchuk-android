@@ -24,6 +24,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.GroupSandbox
+import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStepInfo
@@ -68,6 +69,7 @@ internal data class WalletsState(
     val hasSigner: Boolean = false,
     val totalArchivedWallet: Int = 0,
     val stage: MembershipStage = MembershipStage.NONE,
+    val inheritances: Map<String, InheritanceStatus> = mutableMapOf()
 )
 
 internal sealed class WalletsEvent {

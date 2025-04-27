@@ -797,7 +797,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         magic: String, address: String, feeRate: String, amount: Double, antiFeeSniping: Boolean
     ): String {
         val body = InheritanceClaimCreateTransactionRequest.Body(
-            magic = magic, address = address, feeRate = feeRate, amount = if (amount == 0.0) null else amount, antiFeeSniping = antiFeeSniping
+            magic = magic,
+            address = address,
+            feeRate = feeRate,
+            amount = if (amount == 0.0) null else amount,
+            antiFeeSniping = antiFeeSniping
         )
         val nonce = getNonce()
         val request = InheritanceClaimCreateTransactionRequest(
@@ -944,7 +948,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (request.body?.groupId == null) {
             val inheritance = response.data.inheritance
             inheritance?.walletLocalId?.also { walletLocalId ->
-                markSetupInheritance(walletId = walletLocalId, isSetupInheritance = true)
                 updateAssistedWalletBriefExt(walletLocalId, inheritance.toInheritance())
             }
         }
@@ -969,7 +972,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.walletApi.inheritanceCancel(headers, request, draft)
         if (response.isSuccess && request.body?.groupId == null) {
             updateAssistedWalletBriefExt(walletId, null)
-            markSetupInheritance(walletId, false)
         }
         return response.data.dummyTransaction?.id.orEmpty()
     }
@@ -1218,12 +1220,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             inheritance.walletLocalId.also { walletLocalId ->
                 updateAssistedWalletBriefExt(walletLocalId, inheritance)
             }
-            return inheritance.also {
-                markSetupInheritance(
-                    walletId = walletId,
-                    isSetupInheritance = it.status != InheritanceStatus.PENDING_CREATION && it.status != InheritanceStatus.PENDING_APPROVAL,
-                )
-            }
+            return inheritance
         }
     }
 
@@ -1246,7 +1243,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         inheritanceOwnerId = inheritance?.ownerId.orEmpty(),
                         isPlanningRequest = inheritance?.pendingRequests?.isNotEmpty() == true
                     )
-                )
+                ),
+                isSetupInheritance = inheritance != null
+                        && inheritance.status != InheritanceStatus.PENDING_CREATION
+                        && inheritance.status != InheritanceStatus.PENDING_APPROVAL,
             )
         )
     }

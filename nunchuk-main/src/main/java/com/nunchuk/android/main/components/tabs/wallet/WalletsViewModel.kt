@@ -58,6 +58,7 @@ import com.nunchuk.android.main.components.tabs.wallet.WalletsEvent.ShowErrorEve
 import com.nunchuk.android.model.ConnectionStatusHelper
 import com.nunchuk.android.model.DEFAULT_FEE
 import com.nunchuk.android.model.FreeRateOption
+import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
@@ -469,18 +470,22 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     private fun checkInheritance(wallets: List<AssistedWalletBrief>) = viewModelScope.launch {
-        val walletsUnSetupInheritance = wallets.filter { it.plan.isAllowSetupInheritance() }
+        val walletsUnSetupInheritance = wallets.filter { it.status == WalletStatus.ACTIVE.name && it.plan.isAllowSetupInheritance() }
         supervisorScope {
-            walletsUnSetupInheritance.map {
+            val inheritances = walletsUnSetupInheritance.map {
                 async {
                     getInheritanceUseCase(
                         GetInheritanceUseCase.Param(
-                            it.localId,
+                            walletId = it.localId,
                             groupId = it.groupId
                         )
-                    )
+                    ).getOrNull()
                 }
-            }.awaitAll()
+            }.awaitAll().filterNotNull()
+                .associate { it.walletLocalId to it.status }
+
+            _state.update { it.copy(inheritances = inheritances) }
+            mapGroupWalletUi()
         }
     }
 
@@ -724,17 +729,20 @@ internal class WalletsViewModel @Inject constructor(
     // Don't change, logic is very complicated :D
     fun getGroupStage(): MembershipStage {
         val allGroups = getState().allGroups
+        val inheritances = getState().inheritances
         val assistedWallets = getState().assistedWallets
         if (allGroups.isNotEmpty()) {
             return MembershipStage.DONE
         }
         if (assistedWallets.isNotEmpty()) {
             if (assistedWallets.size == 1
-                && !assistedWallets.first().isSetupInheritance
                 && assistedWallets.first().status == WalletStatus.ACTIVE.name
                 && assistedWallets.first().plan == MembershipPlan.HONEY_BADGER
             ) {
-                return MembershipStage.SETUP_INHERITANCE
+                val status = inheritances[assistedWallets.first().localId]
+                if (status != null && status == InheritanceStatus.PENDING_CREATION) {
+                    return MembershipStage.SETUP_INHERITANCE
+                }
             }
             return MembershipStage.DONE
         }
