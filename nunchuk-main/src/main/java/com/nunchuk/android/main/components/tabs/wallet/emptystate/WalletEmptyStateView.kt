@@ -5,13 +5,16 @@ import KeyWalletEntryView
 import android.app.Activity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.main.components.tabs.wallet.WalletsState
+import com.nunchuk.android.main.components.tabs.wallet.component.ArchivedWalletsRow
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.GroupWalletType
@@ -27,7 +30,8 @@ internal fun WalletEmptyStateView(
     groupStage: MembershipStage,
     assistedWalletId: String,
     hasSigner: Boolean,
-    state: WalletsState
+    state: WalletsState,
+    openArchivedWalletsScreen: () -> Unit,
 ) {
     val personalSteps = state.personalSteps
     val plans = state.plans.orEmpty()
@@ -117,6 +121,16 @@ internal fun WalletEmptyStateView(
             KeyWalletEntryView(it, onClick = {
                 it.buttonAction.invoke()
             })
+        }
+
+        if (state.totalArchivedWallet > 0) {
+            ArchivedWalletsRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                count = state.totalArchivedWallet,
+                onClick = openArchivedWalletsScreen
+            )
         }
     }
 }

@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -81,7 +83,7 @@ internal fun WalletsScreen(
     val context = LocalContext.current
     val snackState = remember { SnackbarHostState() }
     val banner = state.banner
-    val isShowEmptyState = state.wallets.isEmpty() && state.groupWalletUis.isEmpty()
+    val isShowEmptyState = state.groupWalletUis.isEmpty()
     val isAssistedBannerGone = state.stage == MembershipStage.DONE || state.allGroups.isNotEmpty()
     val groupWalletUis = state.groupWalletUis
     val useLargeFont = state.homeDisplaySetting.useLargeFont
@@ -171,13 +173,16 @@ internal fun WalletsScreen(
         } else {
             if (isShowEmptyState) {
                 WalletEmptyStateView(
-                    modifier = Modifier.padding(padding).padding(16.dp),
+                    modifier = Modifier.padding(padding)
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState()),
                     activityContext = activity,
                     navigator = navigator,
                     groupStage = state.stage,
                     assistedWalletId = state.assistedWallets.firstOrNull()?.localId.orEmpty(),
                     hasSigner = hasSigner,
-                    state = state
+                    state = state,
+                    openArchivedWalletsScreen = openArchivedWalletsScreen
                 )
             } else {
                 Column(
