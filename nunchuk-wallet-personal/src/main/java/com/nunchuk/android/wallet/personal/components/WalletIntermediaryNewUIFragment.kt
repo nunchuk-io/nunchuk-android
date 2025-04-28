@@ -116,6 +116,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                 WalletIntermediaryScreen(
                     isMembership = state.isMembership,
                     remainingAssistedWallets = state.walletsCount.values.sum(),
+                    isQuickWalletFlow = quickWalletParam != null,
                     onRecoverWalletClicked = {
                         openRecoverWalletScreen()
                     },
@@ -340,7 +341,7 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
     }
 
     private fun showNoSignerDialog() {
-        if (isHideAddKeyDialog.not()) return
+        if (isHideAddKeyDialog) return
         NCInfoDialog(requireActivity()).init(
             message = getString(R.string.nc_no_signer_dialog_message),
             btnYes = getString(R.string.nc_add_key),

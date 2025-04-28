@@ -32,7 +32,7 @@
     <string name="nc_recover_wallet_from_portal">Recover wallet from Portal</string>
     <string name="nc_create_new_decoy_wallet">Create a decoy wallet</string>
     <string name="nc_create_new_decoy_wallet_desc">Generate a concealed wallet accessible via a specific PIN.</string>
-    <string name="nc_no_signer_dialog_message">You don’t have any keys yet. Would you like to add a key now?</string>
+    <string name="nc_no_signer_dialog_message">You don\'t have any keys yet. Please add a key before adding a wallet. Would you like to add one now?</string>
     <string name="nc_single_signature_wallet">Single-Signature Wallet</string>
     <string name="nc_multisignature_wallet">Multi-signature Wallet</string>
     <string name="nc_single_signature_taproot_wallet_desc">Taproot-based single-signature wallets function similarly to traditional single-signature wallets but use Bech32m addresses (starting with “[B]bc1p[/B]”).</string>

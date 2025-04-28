@@ -38,7 +38,6 @@ import com.nunchuk.android.wallet.personal.databinding.ActivityImportWalletQrcod
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import kotlin.math.roundToInt
 
 @AndroidEntryPoint
@@ -75,7 +74,6 @@ class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcod
         when (event) {
             is RecoverWalletQrCodeEvent.ImportQRCodeError -> onImportQRCodeError()
             is RecoverWalletQrCodeEvent.ImportQRCodeSuccess -> {
-                Timber.tag("recover-wallet").e("ImportQRCodeSuccess: ${viewModel.getQrList().size} - ${event.wallet.id}")
                 if (isGroupWallet) {
                     navigator.openFreeGroupWalletRecoverScreen(
                         activityContext = this@RecoverWalletQrCodeActivity,
@@ -121,7 +119,7 @@ class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcod
 
     private fun onImportQRCodeError() {
         hideLoading()
-        NCToastMessage(this).showWarning(getString(R.string.nc_invalid_qr))
+        if (isGroupWallet.not()) NCToastMessage(this).showWarning(getString(R.string.nc_invalid_qr))
     }
 
     override fun onResume() {
