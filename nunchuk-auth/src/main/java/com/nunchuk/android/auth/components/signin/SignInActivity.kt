@@ -94,9 +94,8 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         enableEdgeToEdge()
     }
 
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        Timber.d("Intent data ${intent.data}")
+    override fun onResume() {
+        super.onResume()
         val uri = intent.data ?: return
         val encodedResponse = uri.getQueryParameter("response") ?: return
         val decodedJson = URLDecoder.decode(encodedResponse, Charsets.UTF_8.name())
