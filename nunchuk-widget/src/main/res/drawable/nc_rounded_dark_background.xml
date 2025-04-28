@@ -3,19 +3,19 @@
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
             <corners android:radius="@dimen/nc_padding_44" />
-            <solid android:color="@color/nc_button_press_state_color" />
+            <solid android:color="@color/nc_control_fill_secondary" />
         </shape>
     </item>
     <item android:state_enabled="false">
         <shape android:shape="rectangle">
             <corners android:radius="@dimen/nc_padding_44" />
-            <solid android:color="@color/nc_bg_mid_gray" />
+            <solid android:color="@color/nc_control_fill_tertiary" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="@dimen/nc_padding_44" />
-            <solid android:color="@color/nc_text_primary" />
+            <solid android:color="@color/nc_control_fill_primary" />
         </shape>
     </item>
 </selector>

@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.compose
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.RowScope
@@ -29,7 +28,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -54,8 +52,9 @@ fun NcPrimaryDarkButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val color =
-        if (isPressed) colorResource(id = R.color.nc_button_press_state_color) else colorResource(id = R.color.nc_fill_primary)
+    val containerColor =
+        if (isPressed) colorResource(id = R.color.nc_button_press_state_color) else colorResource(id = R.color.nc_control_fill_primary)
+    val contentColor = if (isPressed) colorResource(id = R.color.nc_control_text_secondary) else colorResource(id = R.color.nc_control_text_primary)
     Button(
         enabled = enabled,
         modifier = if (isAutoExpandHeight) modifier.wrapContentHeight() else modifier.height(height),
@@ -68,13 +67,12 @@ fun NcPrimaryDarkButton(
                 content()
             }
         },
-        border = if (enabled) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
         shape = RoundedCornerShape(48.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = color,
-            contentColor = colorResource(R.color.nc_control_text_primary),
-            disabledContainerColor = colorResource(id = R.color.nc_bg_mid_gray),
-            disabledContentColor = colorResource(R.color.nc_grey_dark_color)
+            containerColor = containerColor,
+            contentColor = contentColor,
+            disabledContainerColor = colorResource(id = R.color.nc_control_fill_tertiary),
+            disabledContentColor = colorResource(R.color.nc_control_text_tertiary)
         )
     )
 }

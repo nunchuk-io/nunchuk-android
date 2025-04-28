@@ -28,7 +28,7 @@
     <color name="nc_stroke_primary">#DEDEDE</color>
     <color name="nc_edit_text_stroke_error_color">#FFD7D9</color>
 
-    <color name="nc_button_press_state_color">@color/nc_blue_color</color>
+    <color name="nc_button_press_state_color">@color/nc_control_fill_secondary</color>
     <color name="nc_slime_tint_color">#A7F0BA</color>
 
     <color name="nc_skeleton_color">#EEEEEE</color>
@@ -46,9 +46,12 @@
     <color name="nc_color_222222_40">#66222222</color>
     <color name="nc_text_primary">#031F2B</color>
     <color name="nc_control_text_primary">#FFFFFF</color>
+    <color name="nc_control_text_secondary">#FFFFFF</color>
     <color name="nc_text_secondary">#757575</color>
     <color name="nc_state_active">#031F2B</color>
     <color name="nc_fill_primary">#031F2B</color>
+    <color name="nc_control_fill_primary">#031F2B</color>
+    <color name="nc_control_fill_secondary">#032B3C</color>
     <color name="nc_grey_g7">#1C1C1C</color>
     <color name="nc_background_primary">#FFFFFF</color>
     <color name="nc_popup_bg">#FFFFFF</color>
