@@ -94,8 +94,20 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         enableEdgeToEdge()
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        Timber.d("Intent data ${intent.data}")
+        val uri = intent.data ?: return
+        val encodedResponse = uri.getQueryParameter("response") ?: return
+        val decodedJson = URLDecoder.decode(encodedResponse, Charsets.UTF_8.name())
+        if (decodedJson.isNotEmpty()) {
+            viewModel.appleSignIn(decodedJson)
+        }
+    }
+
     override fun onResume() {
         super.onResume()
+        Timber.d("Intent data ${intent.data}")
         val uri = intent.data ?: return
         val encodedResponse = uri.getQueryParameter("response") ?: return
         val decodedJson = URLDecoder.decode(encodedResponse, Charsets.UTF_8.name())
