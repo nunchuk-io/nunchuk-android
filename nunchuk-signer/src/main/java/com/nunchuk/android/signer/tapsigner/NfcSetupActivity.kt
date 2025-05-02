@@ -23,7 +23,6 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
-import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcViewModel.Companion.EXTRA_MASTER_SIGNER_ID
@@ -80,18 +79,6 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             else -> intent.extras
         }
         navHostFragment.navController.setGraph(graph, extras)
-        navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
-            when (destination.id) {
-                R.id.nfcKeyRecoverInfoFragment,
-                R.id.recoverNfcKeyGuideFragment,
-                R.id.nfcDecryptionKeyFragment,
-                R.id.addNfcNameFragment,
-                R.id.setupChainCodeFragment,
-                R.id.changeNfcCvcFragment -> WindowCompat.setDecorFitsSystemWindows(window, true)
-
-                else -> WindowCompat.setDecorFitsSystemWindows(window, false)
-            }
-        }
     }
 
     val setUpAction: Int
