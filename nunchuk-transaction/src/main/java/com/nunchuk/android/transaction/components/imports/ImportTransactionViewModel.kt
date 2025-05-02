@@ -66,12 +66,14 @@ internal class ImportTransactionViewModel @Inject constructor(
     }
 
     fun importTransactionViaQR(qrData: String) {
-        qrDataList.add(qrData)
-        analyzeQr()
-        if (isDummyFlow) {
-            parseDummyTransaction()
-        } else {
-            parseNormalTransaction()
+        if (!qrDataList.contains(qrData)) {
+            qrDataList.add(qrData)
+            analyzeQr()
+            if (isDummyFlow) {
+                parseDummyTransaction()
+            } else {
+                parseNormalTransaction()
+            }
         }
     }
 
