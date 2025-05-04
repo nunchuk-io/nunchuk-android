@@ -40,6 +40,7 @@ class SignInManuallyPrimaryKeyUseCase @Inject constructor(
             signature = parameters.signature,
             address = null
         )
+        val decoyPin = accountManager.getAccount().decoyPin
         accountManager.storeAccount(
             AccountInfo(
                 token = response.tokenId,
@@ -49,6 +50,7 @@ class SignInManuallyPrimaryKeyUseCase @Inject constructor(
                 username = parameters.username,
                 deviceId = response.deviceId,
                 loginType = SignInMode.PRIMARY_KEY.value,
+                decoyPin = decoyPin,
             )
         )
     }

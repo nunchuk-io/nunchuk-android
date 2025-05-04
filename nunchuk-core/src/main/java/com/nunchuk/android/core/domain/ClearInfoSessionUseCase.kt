@@ -42,7 +42,7 @@ class ClearInfoSessionUseCase @Inject constructor(
     private val ncDataStore: NcDataStore,
     private val premiumWalletRepository: PremiumWalletRepository,
     private val notificationDeviceUnregisterUseCase: NotificationDeviceUnregisterUseCase,
-    private val applicationScope: CoroutineScope
+    private val applicationScope: CoroutineScope,
 ) : UseCase<Unit, Unit>(dispatcher) {
 
     override suspend fun execute(parameters: Unit) {

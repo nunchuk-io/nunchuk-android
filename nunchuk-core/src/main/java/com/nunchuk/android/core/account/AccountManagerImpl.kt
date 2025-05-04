@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.core.account
 
+import com.nunchuk.android.core.guestmode.LastSignInModeHolder
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.util.AppUpdateStateHolder
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,6 +57,7 @@ interface AccountManager {
 @Singleton
 internal class AccountManagerImpl @Inject constructor(
     private val accountSharedPref: AccountSharedPref,
+    private val lastSignInModeHolder: LastSignInModeHolder
 ) : AccountManager {
     private val shouldShowOnBoard = MutableStateFlow<Boolean?>(null)
 
@@ -77,6 +79,7 @@ internal class AccountManagerImpl @Inject constructor(
 
     override fun storeAccount(accountInfo: AccountInfo) {
         accountSharedPref.storeAccountInfo(accountInfo)
+        lastSignInModeHolder.clear()
     }
 
     override fun storePrimaryKeyInfo(primaryKeyInfo: PrimaryKeyInfo) {
@@ -85,6 +88,9 @@ internal class AccountManagerImpl @Inject constructor(
     }
 
     override suspend fun signOut() {
+        if (getAccount().loginType == SignInMode.PRIMARY_KEY.value) {
+            lastSignInModeHolder.setLastLoginDecoyPin(getAccount().decoyPin)
+        }
         clearUserData()
     }
 

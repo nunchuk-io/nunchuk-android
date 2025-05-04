@@ -71,7 +71,7 @@ class SignInImportPrimaryKeyUseCase @Inject constructor(
             replace = false,
             primaryDecoyPin = accountManager.getAccount().decoyPin
         )
-
+        val decoyPin = accountManager.getAccount().decoyPin
         accountManager.storeAccount(
             AccountInfo(
                 token = response.tokenId,
@@ -81,7 +81,8 @@ class SignInImportPrimaryKeyUseCase @Inject constructor(
                 username = parameters.username,
                 deviceId = response.deviceId,
                 loginType = SignInMode.PRIMARY_KEY.value,
-                primaryKeyInfo = PrimaryKeyInfo(xfp = masterFingerprint)
+                primaryKeyInfo = PrimaryKeyInfo(xfp = masterFingerprint),
+                decoyPin = decoyPin,
             )
         )
     }

@@ -22,6 +22,7 @@ package com.nunchuk.android.signer.software.components.primarykey.account
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.guestmode.LastSignInModeHolder
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.usecase.GetPrimaryKeyListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,7 +32,8 @@ import javax.inject.Inject
 @HiltViewModel
 internal class PKeyAccountViewModel @Inject constructor(
     private val getPrimaryKeyListUseCase: GetPrimaryKeyListUseCase,
-    private val accountManager: AccountManager
+    private val accountManager: AccountManager,
+    private val lastSignInModeHolder: LastSignInModeHolder
 ) : NunchukViewModel<PKeyAccountState, PKeyAccountEvent>() {
 
     override val initialState = PKeyAccountState()
@@ -42,7 +44,9 @@ internal class PKeyAccountViewModel @Inject constructor(
 
     private fun getAccounts() = viewModelScope.launch {
         setEvent(PKeyAccountEvent.LoadingEvent(true))
-        val result = getPrimaryKeyListUseCase(accountManager.getAccount().decoyPin)
+        val result = getPrimaryKeyListUseCase(accountManager.getAccount().decoyPin.ifBlank {
+            lastSignInModeHolder.getLastLoginDecoyPin()
+        })
         setEvent(PKeyAccountEvent.LoadingEvent(false))
         if (result.isSuccess) {
             updateState { copy(primaryKeys = result.getOrThrow()) }
