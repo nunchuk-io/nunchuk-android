@@ -13,7 +13,7 @@ fun Activity.navigateToSelectWallet(
         navigator.openSelectWalletScreen(
             activityContext = this,
             slots = quickWalletParam.slots,
-            type = SelectWalletType.TYPE_INHERITANCE_WALLET,
+            type = quickWalletParam.type,
             claimInheritanceTxParam = quickWalletParam.claimInheritanceTxParam
         )
     } else {

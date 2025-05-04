@@ -8,4 +8,5 @@ import kotlinx.parcelize.Parcelize
 class QuickWalletParam(
     val claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
     val slots: List<SatsCardSlot> = emptyList(),
+    val type: Int
 ) : Parcelable

@@ -134,7 +134,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
 
     private fun setupViews() {
         binding.toolbarTitle.text =
-            args.sweepType.toTitle(this, getString(R.string.nc_transaction_confirm_transaction))
+            args.sweepType.toTitle(this, getString(R.string.nc_transaction_confirm_transaction), true)
         binding.btnConfirm.text = when (args.sweepType) {
             SweepType.NONE -> getString(R.string.nc_transaction_confirm_and_create_transaction)
             else -> getString(R.string.nc_confirm_and_sweep)

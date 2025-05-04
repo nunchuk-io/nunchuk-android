@@ -130,13 +130,16 @@ class InheritanceClaimWithdrawBitcoinFragment : MembershipFragment(), BottomShee
                     } else {
                         navigator.openWalletIntermediaryScreen(
                             requireActivity(),
-                            quickWalletParam = QuickWalletParam(claimInheritanceTxParam =
-                                ClaimInheritanceTxParam(
-                                    masterSignerIds = args.signers.map { it.id },
-                                    magicalPhrase = args.magic.trim(),
-                                    derivationPaths = args.derivationPaths.toList(),
-                                    totalAmount = args.walletBalance.toDouble()
-                                ))
+                            quickWalletParam = QuickWalletParam(
+                                claimInheritanceTxParam =
+                                    ClaimInheritanceTxParam(
+                                        masterSignerIds = args.signers.map { it.id },
+                                        magicalPhrase = args.magic.trim(),
+                                        derivationPaths = args.derivationPaths.toList(),
+                                        totalAmount = args.walletBalance.toDouble()
+                                    ),
+                                type = SelectWalletType.TYPE_INHERITANCE_WALLET
+                            )
                         )
                     }
                 }

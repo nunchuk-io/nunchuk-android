@@ -5,15 +5,15 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.navigation.fragment.NavHostFragment
-import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
+import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SelectWalletActivity : BaseActivity<ActivityNavigationBinding>() {
+class SelectWalletActivity : BaseNfcActivity<ActivityNavigationBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

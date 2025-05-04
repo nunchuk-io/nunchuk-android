@@ -77,7 +77,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlin.math.abs
 
 @AndroidEntryPoint
-class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(), BottomSheetOptionListener {
+class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(),
+    BottomSheetOptionListener {
 
     private val args: InputAmountArgs by lazy { InputAmountArgs.deserializeFrom(intent) }
 
@@ -287,7 +288,15 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                         claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(customAmount = viewModel.getAmountBtc())
                     )
                 } else {
-                    navigator.openWalletIntermediaryScreen(this, quickWalletParam = QuickWalletParam(claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(customAmount = viewModel.getAmountBtc())))
+                    navigator.openWalletIntermediaryScreen(
+                        this,
+                        quickWalletParam = QuickWalletParam(
+                            claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(
+                                customAmount = viewModel.getAmountBtc()
+                            ),
+                            type = SelectWalletType.TYPE_INHERITANCE_WALLET
+                        )
+                    )
                 }
             }
         }

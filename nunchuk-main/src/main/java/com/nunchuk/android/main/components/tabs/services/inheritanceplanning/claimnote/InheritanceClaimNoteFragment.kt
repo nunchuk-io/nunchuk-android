@@ -232,7 +232,7 @@ private fun InheritanceClaimNoteContent(
                     enabled = balance > 0,
                     onClick = onWithdrawClick,
                 ) {
-                    Text(text = stringResource(id = R.string.nc_withdraw_inheritance))
+                    Text(text = stringResource(id = R.string.nc_withdraw_bitcoin))
                 }
                 NcOutlineButton(
                     modifier = Modifier

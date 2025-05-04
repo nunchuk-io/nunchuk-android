@@ -82,7 +82,8 @@ class SatsCardUnsealSlotFragment : BaseFragment<FragmentUnsealSlotBinding>(), Bo
                 navigator.openQuickWalletScreen(
                     activityContext = requireActivity(),
                     quickWalletParam = QuickWalletParam(
-                        slots = viewModel.getUnsealSlots().unSealBalanceSlots()
+                        slots = viewModel.getUnsealSlots().unSealBalanceSlots(),
+                        type = SelectWalletType.TYPE_SWEEP_UNSEAL_SLOT
                     )
                 )
             }

@@ -13,8 +13,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:menu="@menu/menu_scan_qr">
+        app:layout_constraintTop_toTopOf="parent">
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/toolbarTitle"
@@ -68,6 +67,17 @@
             android:layout_height="24dp"
             android:layout_marginEnd="@dimen/nc_padding_12"
             android:src="@drawable/ic_arrow_drop_down"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/nc_text_primary" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/receiptInputQrCode"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="@dimen/nc_padding_12"
+            android:src="@drawable/ic_qr"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"

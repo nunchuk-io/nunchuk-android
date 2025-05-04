@@ -28,6 +28,7 @@ import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
+import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
@@ -148,6 +149,9 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         if (args.sweepType != SweepType.NONE) {
             binding.receiptLabel.text = getString(R.string.nc_enter_recipient_address)
         }
+        if (isWithdrawFlow().not()) {
+            binding.toolbar.inflateMenu(R.menu.menu_scan_qr)
+        }
         binding.receiptInput.onTextPaste = {
             viewModel.parseBtcUri(binding.receiptInput.text.toString())
         }
@@ -163,7 +167,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 .distinctUntilChanged()
                 .collect(viewModel::handlePrivateNoteChanged)
         }
-        binding.containerPrivateNote.isVisible = args.slots.isEmpty()
+        binding.containerPrivateNote.isVisible = isWithdrawFlow().not()
         binding.privateNoteInput.setMaxLength(MAX_NOTE_LENGTH)
 
         binding.toolbar.setOnMenuItemClickListener {
@@ -195,6 +199,16 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 )
             }
         }
+
+        binding.receiptInputDropdown.isVisible = isWithdrawFlow().not()
+        binding.receiptInputQrCode.isVisible = isWithdrawFlow()
+        binding.receiptInputQrCode.setOnDebounceClickListener {
+            startQRCodeScan(launcher)
+        }
+    }
+
+    private fun isWithdrawFlow(): Boolean {
+        return args.slots.isNotEmpty() || args.claimInheritanceTxParam.isInheritanceClaimFlow()
     }
 
     private fun updateSelectAddressView(

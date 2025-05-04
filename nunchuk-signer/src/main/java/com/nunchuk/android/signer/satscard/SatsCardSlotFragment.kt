@@ -74,7 +74,7 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        isSweepActiveSlot = savedInstanceState?.getBoolean(EXTRA_IS_SWEEP_ACTIVE_SLOT, true) ?: true
+        isSweepActiveSlot = savedInstanceState?.getBoolean(EXTRA_IS_SWEEP_ACTIVE_SLOT, true) != false
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -115,7 +115,8 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(),
                     navigator.openQuickWalletScreen(
                         activityContext = requireActivity(),
                         quickWalletParam = QuickWalletParam(
-                            slots = getInteractSlots()
+                            slots = getInteractSlots(),
+                            type = getSelectWalletType()
                         )
                     )
                 }
@@ -192,13 +193,17 @@ class SatsCardSlotFragment : BaseFragment<FragmentSatscardActiveSlotBinding>(),
     }
 
     private fun openSelectWallet(slots: Array<SatsCardSlot>) {
-        val type =
-            if (isSweepActiveSlot) SelectWalletType.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT else SelectWalletType.TYPE_SWEEP_UNSEAL_SLOT
         navigator.openSelectWalletScreen(
             activityContext = requireActivity(),
             slots = slots.toList(),
-            type = type,
+            type = getSelectWalletType(),
         )
+    }
+
+    private fun getSelectWalletType(): Int {
+        val type =
+            if (isSweepActiveSlot) SelectWalletType.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT else SelectWalletType.TYPE_SWEEP_UNSEAL_SLOT
+        return type
     }
 
     private fun showMore() {
