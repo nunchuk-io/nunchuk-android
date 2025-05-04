@@ -27,7 +27,7 @@ import com.nunchuk.android.transaction.R
 fun SweepType.toTitle(context: Context, label: String, isConfirmTx: Boolean = false) = when (this) {
     SweepType.NONE -> label
     SweepType.SWEEP_TO_NUNCHUK_WALLET,
-    SweepType.UNSEAL_SWEEP_TO_NUNCHUK_WALLET -> context.getString(R.string.nc_sweep_to_a_wallet)
+    SweepType.UNSEAL_SWEEP_TO_NUNCHUK_WALLET -> context.getString(R.string.nc_withdraw_to_a_wallet)
     SweepType.SWEEP_TO_EXTERNAL_ADDRESS,
     SweepType.UNSEAL_SWEEP_TO_EXTERNAL_ADDRESS -> if (isConfirmTx) context.getString(R.string.nc_transaction_confirm_transaction) else context.getString(R.string.nc_withdraw_to_an_address)
 }

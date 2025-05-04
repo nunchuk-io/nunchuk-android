@@ -100,9 +100,9 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
     }
 
     private fun initViews() {
-        binding.toolbarTitle.text = if (args.claimParam != null) getString(R.string.nc_withdraw_to_nunchuk_wallet) else getString(R.string.nc_sweep_balance)
+        binding.toolbarTitle.text = if (args.claimParam != null) getString(R.string.nc_withdraw_nunchuk_wallet) else getString(R.string.nc_withdraw_to_a_wallet)
         binding.tvQuestion.text = if (args.claimParam != null) getString(R.string.nc_which_wallet_do_you_want_to_withdraw_bitcoin) else getString(R.string.nc_which_wallet_do_you_want_to_deposit_into)
-        binding.btnContinueSweep.text = if (args.claimParam != null) getString(R.string.nc_continue_to_withdraw) else getString(R.string.nc_continue_to_sweep)
+        binding.btnContinueSweep.text = getString(R.string.nc_continue_to_withdraw)
         binding.recyclerView.adapter = adapter
     }
 

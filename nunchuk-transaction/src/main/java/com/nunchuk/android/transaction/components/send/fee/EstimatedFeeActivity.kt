@@ -105,9 +105,13 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     private fun setupViews() {
         binding.tvCustomize.isVisible = !args.isConsolidateFlow
         binding.tvCustomize.setUnderline()
-        binding.toolbarTitle.text = args.sweepType.toTitle(
-            this,
-            args.title.ifEmpty { getString(R.string.nc_customize_transaction) })
+        binding.toolbarTitle.text = if (args.claimInheritanceTxParam != null) {
+            getString(R.string.nc_withdraw_nunchuk_wallet)
+        } else {
+            args.sweepType.toTitle(
+                this,
+                args.title.ifEmpty { getString(R.string.nc_customize_transaction) })
+        }
         val subtractFeeFromAmount = args.subtractFeeFromAmount
         viewModel.handleSubtractFeeSwitch(subtractFeeFromAmount, !subtractFeeFromAmount)
 
