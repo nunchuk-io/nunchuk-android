@@ -974,6 +974,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (response.isSuccess && request.body?.groupId == null) {
             updateAssistedWalletBriefExt(walletId, null)
         }
+        pushEventManager.push(PushEvent.InheritanceEvent(walletId = walletId, isCancelled = true))
         return response.data.dummyTransaction?.id.orEmpty()
     }
 

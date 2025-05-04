@@ -221,6 +221,9 @@ fun TimelineEvent.isCoinControlUpdated() =
 fun TimelineEvent.isInheritanceEvent() =
     getMsgType() == WALLET_INHERITANCE_UPDATED || getMsgType() == WALLET_INHERITANCE_CHANGE || getMsgType() == WALLET_INHERITANCE_CANCELED
 
+fun TimelineEvent.isWalletInheritanceCanceled() =
+    getMsgType() == WALLET_INHERITANCE_CANCELED
+
 fun TimelineEvent.isHealthCheckReminderEvent() =
     getMsgType() == HEALTH_CHECK_REMINDER || getMsgType() == HEALTH_CHECK_REMINDER_UPDATED || getMsgType() == HEALTH_CHECK_SKIPPED
 

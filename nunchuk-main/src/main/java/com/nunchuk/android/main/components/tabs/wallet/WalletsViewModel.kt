@@ -302,10 +302,23 @@ internal class WalletsViewModel @Inject constructor(
                     }
 
                     is PushEvent.InheritanceEvent -> {
-                        val assistedWallets =
-                            getState().assistedWallets.filter { it.localId == event.walletId }
-                        if (assistedWallets.isNotEmpty()) {
-                            checkInheritance(assistedWallets)
+                        if (event.isCancelled) {
+                            val oldInheritance = getState().inheritances[event.walletId]
+                            if (oldInheritance != null) {
+                                _state.update { state ->
+                                    state.copy(
+                                        inheritances = state.inheritances.toMutableMap().apply {
+                                            put(event.walletId, InheritanceStatus.PENDING_CREATION)
+                                        },
+                                    )
+                                }
+                            }
+                        } else {
+                            val assistedWallets =
+                                getState().assistedWallets.filter { it.localId == event.walletId }
+                            if (assistedWallets.isNotEmpty()) {
+                                checkInheritance(assistedWallets)
+                            }
                         }
                     }
 
@@ -470,7 +483,8 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     private fun checkInheritance(wallets: List<AssistedWalletBrief>) = viewModelScope.launch {
-        val walletsUnSetupInheritance = wallets.filter { it.status == WalletStatus.ACTIVE.name && it.plan.isAllowSetupInheritance() }
+        val walletsUnSetupInheritance =
+            wallets.filter { it.status == WalletStatus.ACTIVE.name && it.plan.isAllowSetupInheritance() }
         supervisorScope {
             val inheritances = walletsUnSetupInheritance.map {
                 async {

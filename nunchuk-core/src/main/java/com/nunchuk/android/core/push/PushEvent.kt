@@ -39,7 +39,7 @@ sealed class PushEvent {
     data class PrimaryOwnerUpdated(val walletId: String) : PushEvent()
     data class SignedChanged(val xfp: String) : PushEvent()
     data class CoinUpdated(val walletId: String) : PushEvent()
-    data class InheritanceEvent(val walletId: String) : PushEvent()
+    data class InheritanceEvent(val walletId: String, val isCancelled: Boolean) : PushEvent()
     data class ReplaceKeyChange(val walletId: String) : PushEvent()
     data class WalletReplaced(val newWalletId: String, val newWalletName: String) : PushEvent()
     data class ReloadUsedAddress(val address: String) : PushEvent()

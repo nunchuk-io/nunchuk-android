@@ -29,6 +29,7 @@ import com.nunchuk.android.messages.util.isTransactionHandleErrorMessageEvent
 import com.nunchuk.android.messages.util.isTransactionReplaced
 import com.nunchuk.android.messages.util.isTransferFundCompleted
 import com.nunchuk.android.messages.util.isWalletCreated
+import com.nunchuk.android.messages.util.isWalletInheritanceCanceled
 import com.nunchuk.android.messages.util.isWalletReplacedEvent
 import com.nunchuk.android.usecase.IsHandledEventUseCase
 import com.nunchuk.android.usecase.SaveHandledEventUseCase
@@ -166,7 +167,8 @@ class HandlePushMessageUseCase @Inject constructor(
                     saveHandledEventUseCase.invoke(parameters.eventId)
                     pushEventManager.push(
                         PushEvent.InheritanceEvent(
-                            parameters.getWalletId().orEmpty(),
+                            walletId = parameters.getWalletId().orEmpty(),
+                            isCancelled = parameters.isWalletInheritanceCanceled()
                         )
                     )
                 }
