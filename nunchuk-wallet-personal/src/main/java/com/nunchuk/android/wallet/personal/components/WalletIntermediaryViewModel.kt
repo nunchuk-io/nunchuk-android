@@ -88,24 +88,25 @@ class WalletIntermediaryViewModel @Inject constructor(
     fun init(isQuickWallet: Boolean) {
         viewModelScope.launch {
             getCompoundSignersUseCase.execute().collect { signers ->
-                val isHasSigner = signers.first.isNotEmpty() || signers.second.isNotEmpty()
+                val signerSize = signers.first.size + signers.second.size
+                val isHasSigner = signerSize > if (isQuickWallet && signers.first.any {
+                        it.isVisible && it.name.startsWith("Inherited key")
+                    }) 1 else 0
                 _state.update { it.copy(isHasSigner = isHasSigner) }
-                if (isHasSigner.not()) {
+                if (!isHasSigner) {
                     _event.emit(WalletIntermediaryEvent.NoSigner)
                 }
             }
         }
-        if (isQuickWallet.not()) {
-            viewModelScope.launch {
-                getLocalMembershipPlansFlowUseCase(Unit)
-                    .map { it.getOrElse { emptyList() } }
-                    .collect { plans ->
-                        _state.update { it.copy(isMembership = plans.isNotEmpty()) }
-                        if (plans.isNotEmpty()) {
-                            getAssistedWalletConfig()
-                        }
+        viewModelScope.launch {
+            getLocalMembershipPlansFlowUseCase(Unit)
+                .map { it.getOrElse { emptyList() } }
+                .collect { plans ->
+                    _state.update { it.copy(isMembership = plans.isNotEmpty()) }
+                    if (plans.isNotEmpty()) {
+                        getAssistedWalletConfig()
                     }
-            }
+                }
         }
         viewModelScope.launch {
             getPersonalMembershipStepUseCase(Unit).map { result ->
