@@ -450,6 +450,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             val wallet = nunchukNativeSdk.parseWalletDescriptor(walletServer.bsms.orEmpty()).apply {
                 name = walletServer.name.orEmpty()
                 description = walletServer.description.orEmpty()
+                createDate = walletServer.createdTimeMilis / 1000
             }
             nunchukNativeSdk.createWallet2(wallet)
         } else if (!isRemoveKey) {
@@ -462,7 +463,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             nunchukNativeSdk.updateWallet(
                 wallet.copy(
                     name = walletServer.name.orEmpty(),
-                    description = walletServer.description.orEmpty()
+                    description = walletServer.description.orEmpty(),
                 )
             )
         }
