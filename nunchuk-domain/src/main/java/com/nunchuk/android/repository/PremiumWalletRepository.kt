@@ -240,7 +240,7 @@ interface PremiumWalletRepository {
         magic: String,
         address: String,
         feeRate: String,
-        amount: Double,
+        amount: String,
         antiFeeSniping: Boolean
     ): String
 

@@ -795,13 +795,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun generateInheritanceClaimCreateTransactionUserData(
-        magic: String, address: String, feeRate: String, amount: Double, antiFeeSniping: Boolean
+        magic: String, address: String, feeRate: String, amount: String, antiFeeSniping: Boolean
     ): String {
         val body = InheritanceClaimCreateTransactionRequest.Body(
             magic = magic,
             address = address,
             feeRate = feeRate,
-            amount = if (amount == 0.0) null else amount,
+            amount = if (amount == 0.0.toString()) null else amount.toString(),
             antiFeeSniping = antiFeeSniping
         )
         val nonce = getNonce()
@@ -862,7 +862,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             subAmount = response.data.subAmount ?: 0.0,
             fee = response.data.txFee ?: 0.0,
             feeRate = response.data.txFeeRate ?: 0.0,
-            status = transaction.status.toTransactionStatus()
+            status = transaction.status.toTransactionStatus(),
+            changePos = response.data.changePos ?: -1,
         )
     }
 

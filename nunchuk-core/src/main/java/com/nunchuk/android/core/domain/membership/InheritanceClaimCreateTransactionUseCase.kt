@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.core.domain.membership
 
+import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SingleSigner
@@ -41,7 +42,7 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
             magic = parameters.magic,
             address = parameters.address,
             feeRate = nunchukNativeSdk.valueFromAmount(parameters.feeRate),
-            amount = parameters.amount,
+            amount = nunchukNativeSdk.valueFromAmount(parameters.amount.toAmount()),
             antiFeeSniping = parameters.antiFeeSniping,
         )
         val signatures = arrayListOf<String>()
@@ -69,12 +70,12 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
             feeRate = transactionResponse.feeRate.toString(),
             isDraft = parameters.isDraft,
         )
-        if (parameters.isDraft) return transaction
+        if (parameters.isDraft) return transaction.copy(changeIndex = transactionResponse.changePos)
         val transactionAdditional = userWalletRepository.inheritanceClaimingClaim(
             magic = parameters.magic,
             psbt = transaction.psbt
         )
-        return transaction.copy(status = transactionAdditional.status)
+        return transaction.copy(status = transactionAdditional.status, changeIndex = transactionResponse.changePos)
     }
 
     data class Param(

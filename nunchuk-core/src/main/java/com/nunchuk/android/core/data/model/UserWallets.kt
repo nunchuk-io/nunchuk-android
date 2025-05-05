@@ -253,7 +253,7 @@ data class InheritanceClaimCreateTransactionRequest(
         @SerializedName("fee_rate")
         val feeRate: String? = null,
         @SerializedName("amount")
-        val amount: Double? = null,
+        val amount: String? = null,
         @SerializedName("anti_fee_sniping")
         val antiFeeSniping: Boolean? = null,
     )
@@ -279,7 +279,8 @@ data class TransactionAdditionalResponse(
     @SerializedName("transaction") val transaction: TransactionServerDto? = null,
     @SerializedName("fee") val txFee: Double? = null,
     @SerializedName("fee_rate") val txFeeRate: Double? = null,
-    @SerializedName("sub_amount") val subAmount: Double? = null
+    @SerializedName("sub_amount") val subAmount: Double? = null,
+    @SerializedName("change_pos") val changePos: Int? = null,
 )
 
 data class DeleteAssistedWalletRequest(

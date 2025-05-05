@@ -38,6 +38,7 @@ import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
@@ -135,9 +136,12 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
     private fun setupViews() {
         binding.toolbarTitle.text =
             args.sweepType.toTitle(this, getString(R.string.nc_transaction_confirm_transaction), true)
-        binding.btnConfirm.text = when (args.sweepType) {
-            SweepType.NONE -> getString(R.string.nc_transaction_confirm_and_create_transaction)
-            else -> getString(R.string.nc_confirm_and_sweep)
+        binding.btnConfirm.text = if (viewModel.isInheritanceClaimingFlow()) {
+            getString(R.string.nc_confirm_withdraw_balance)
+        } else if (args.sweepType == SweepType.NONE) {
+            getString(R.string.nc_transaction_confirm_and_create_transaction)
+        } else {
+            getString(R.string.nc_confirm_and_sweep)
         }
         binding.noteContent.isVisible = args.privateNote.isNotEmpty()
         binding.privateNote.isVisible = args.privateNote.isNotEmpty()
@@ -205,8 +209,16 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             }
 
             is TransactionConfirmEvent.DraftTransactionSuccess -> {
-                val coins = if (event.transaction.outputs.size == 1) event.transaction.outputs else
-                    event.transaction.outputs.filter { viewModel.isMyCoin(it) == event.transaction.isReceive }
+                val coins = if (event.transaction.outputs.size == 1) {
+                    event.transaction.outputs
+                } else {
+                    val outputs = if (viewModel.isInheritanceClaimingFlow() && event.transaction.hasChangeIndex()) {
+                        event.transaction.outputs.filterIndexed { index, _ -> index != event.transaction.changeIndex }
+                    } else {
+                        event.transaction.outputs
+                    }
+                    outputs.filter { viewModel.isMyCoin(it) == event.transaction.isReceive }
+                }
                 TxReceiptViewBinder(binding.receiptList, coins) {
                     handleCopyContent(it)
                 }.bindItems()
