@@ -56,7 +56,7 @@
             android:textColor="@color/nc_text_primary"
             android:textCursorDrawable="@null"
             android:textSize="@dimen/nc_text_size_16"
-            app:layout_constraintEnd_toStartOf="@+id/receiptInputDropdown"
+            app:layout_constraintEnd_toStartOf="@+id/receiptInputBarrier"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="tb1qgu4hrgq6elva2px86xefkkhsjkeh8a5sellrygtb1qgu4hrgq6elva2px86xefkkhsjkeh8a5sellryg" />
@@ -82,6 +82,13 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/nc_text_primary" />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/receiptInputBarrier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="start"
+            app:constraint_referenced_ids="receiptInputDropdown, receiptInputQrCode"/>
 
         <LinearLayout
             android:id="@+id/receiptSelectLayout"
