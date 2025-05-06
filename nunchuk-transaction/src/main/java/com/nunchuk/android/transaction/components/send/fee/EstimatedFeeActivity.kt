@@ -106,7 +106,11 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         binding.tvCustomize.isVisible = !args.isConsolidateFlow
         binding.tvCustomize.setUnderline()
         binding.toolbarTitle.text = if (args.claimInheritanceTxParam != null) {
-            getString(R.string.nc_withdraw_nunchuk_wallet)
+            if (args.claimInheritanceTxParam?.isUseWallet == true) {
+                getString(R.string.nc_withdraw_nunchuk_wallet)
+            } else {
+                getString(R.string.nc_withdraw_to_an_address)
+            }
         } else {
             args.sweepType.toTitle(
                 this,

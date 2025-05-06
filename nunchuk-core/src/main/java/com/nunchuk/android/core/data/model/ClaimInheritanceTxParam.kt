@@ -10,6 +10,7 @@ data class ClaimInheritanceTxParam(
     val derivationPaths: List<String> = arrayListOf(),
     val totalAmount: Double = 0.0,
     val customAmount: Double = 0.0,
+    val isUseWallet: Boolean = true
 ) : Parcelable {
     companion object {
         fun empty() = ClaimInheritanceTxParam()

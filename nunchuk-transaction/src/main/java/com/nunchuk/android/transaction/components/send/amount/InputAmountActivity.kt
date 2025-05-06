@@ -203,7 +203,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             subtractFeeFromAmount = true,
             slots = emptyList(),
             sweepType = sweepType,
-            claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(customAmount = amount)
+            claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(customAmount = amount, isUseWallet = false)
         )
     }
 
@@ -285,14 +285,15 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                         activityContext = this,
                         slots = emptyList(),
                         type = SelectWalletType.TYPE_INHERITANCE_WALLET,
-                        claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(customAmount = viewModel.getAmountBtc())
+                        claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(customAmount = viewModel.getAmountBtc(), isUseWallet = true)
                     )
                 } else {
                     navigator.openWalletIntermediaryScreen(
                         this,
                         quickWalletParam = QuickWalletParam(
                             claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(
-                                customAmount = viewModel.getAmountBtc()
+                                customAmount = viewModel.getAmountBtc(),
+                                isUseWallet = true
                             ),
                             type = SelectWalletType.TYPE_INHERITANCE_WALLET
                         )

@@ -136,7 +136,8 @@ class InheritanceClaimWithdrawBitcoinFragment : MembershipFragment(), BottomShee
                                         masterSignerIds = args.signers.map { it.id },
                                         magicalPhrase = args.magic.trim(),
                                         derivationPaths = args.derivationPaths.toList(),
-                                        totalAmount = args.walletBalance.toDouble()
+                                        totalAmount = args.walletBalance.toDouble(),
+                                        isUseWallet = true
                                     ),
                                 type = SelectWalletType.TYPE_INHERITANCE_WALLET
                             )
@@ -202,7 +203,8 @@ class InheritanceClaimWithdrawBitcoinFragment : MembershipFragment(), BottomShee
                 masterSignerIds = args.signers.map { it.id },
                 magicalPhrase = args.magic.trim(),
                 derivationPaths = args.derivationPaths.toList(),
-                totalAmount = args.walletBalance.toDouble()
+                totalAmount = args.walletBalance.toDouble(),
+                isUseWallet = false
             )
         )
     }
@@ -217,7 +219,8 @@ class InheritanceClaimWithdrawBitcoinFragment : MembershipFragment(), BottomShee
                     masterSignerIds = args.signers.map { it.id },
                     magicalPhrase = args.magic.trim(),
                     derivationPaths = args.derivationPaths.toList(),
-                    totalAmount = args.walletBalance.toDouble()
+                    totalAmount = args.walletBalance.toDouble(),
+                    isUseWallet = true
                 )
             )
         )

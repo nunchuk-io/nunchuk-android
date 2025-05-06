@@ -84,7 +84,6 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
-        setupViews()
         observeEvent()
         viewModel.init(
             walletId = args.walletId,
@@ -97,6 +96,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             inputs = args.inputs,
             antiFeeSniping = args.antiFeeSniping
         )
+        setupViews()
         viewModel.draftTransaction()
     }
 
@@ -135,7 +135,11 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
 
     private fun setupViews() {
         binding.toolbarTitle.text =
-            args.sweepType.toTitle(this, getString(R.string.nc_transaction_confirm_transaction), true)
+            args.sweepType.toTitle(
+                this,
+                getString(R.string.nc_transaction_confirm_transaction),
+                true
+            )
         binding.btnConfirm.text = if (viewModel.isInheritanceClaimingFlow()) {
             getString(R.string.nc_confirm_withdraw_balance)
         } else if (args.sweepType == SweepType.NONE) {
@@ -212,11 +216,12 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                 val coins = if (event.transaction.outputs.size == 1) {
                     event.transaction.outputs
                 } else {
-                    val outputs = if (viewModel.isInheritanceClaimingFlow() && event.transaction.hasChangeIndex()) {
-                        event.transaction.outputs.filterIndexed { index, _ -> index != event.transaction.changeIndex }
-                    } else {
-                        event.transaction.outputs
-                    }
+                    val outputs =
+                        if (viewModel.isInheritanceClaimingFlow() && event.transaction.hasChangeIndex()) {
+                            event.transaction.outputs.filterIndexed { index, _ -> index != event.transaction.changeIndex }
+                        } else {
+                            event.transaction.outputs
+                        }
                     outputs.filter { viewModel.isMyCoin(it) == event.transaction.isReceive }
                 }
                 TxReceiptViewBinder(binding.receiptList, coins) {
