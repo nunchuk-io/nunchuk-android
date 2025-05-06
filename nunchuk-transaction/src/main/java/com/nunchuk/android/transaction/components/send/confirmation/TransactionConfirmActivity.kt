@@ -239,7 +239,10 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
 
     private fun bindChangAddress(changeAddress: String, amount: Amount) {
         hideLoading()
-
+        if (viewModel.isInheritanceClaimingFlow()) {
+            binding.changeAddressGroup.visibility = View.GONE
+            return
+        }
         if (changeAddress.isNotBlank()) {
             binding.changeAddressLabel.text = changeAddress
             binding.changeAddressBTC.text = amount.getBTCAmount()

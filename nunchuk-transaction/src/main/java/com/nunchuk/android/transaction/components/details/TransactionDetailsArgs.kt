@@ -22,6 +22,7 @@ package com.nunchuk.android.transaction.components.details
 import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
+import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.Transaction
@@ -33,7 +34,7 @@ data class TransactionDetailsArgs(
     val initEventId: String = "",
     val roomId: String = "",
     val transaction: Transaction? = null,
-    val isInheritanceClaimingFlow: Boolean = false,
+    val inheritanceClaimTxDetailInfo: InheritanceClaimTxDetailInfo? = null,
     val isCancelBroadcast: Boolean = false,
     val errorMessage: String = "",
     val isRequestSignatureFlow: Boolean = false,
@@ -46,7 +47,7 @@ data class TransactionDetailsArgs(
             putExtra(EXTRA_INIT_EVENT_ID, initEventId)
             putExtra(EXTRA_ROOM_ID, roomId)
             putExtra(EXTRA_TRANSACTION, transaction)
-            putExtra(EXTRA_INHERITANCE_CLAIMING_FLOW, isInheritanceClaimingFlow)
+            putExtra(EXTRA_INHERITANCE_CLAIMING_FLOW, inheritanceClaimTxDetailInfo)
             putExtra(EXTRA_IS_CANCEL_BROADCAST, isCancelBroadcast)
             putExtra(EXTRA_ERROR_MESSAGE, errorMessage)
             putExtra(EXTRA_REQUEST_SIGNATURE_FLOW, isRequestSignatureFlow)
@@ -71,7 +72,7 @@ data class TransactionDetailsArgs(
                 initEventId = extras.getStringValue(EXTRA_INIT_EVENT_ID),
                 roomId = extras.getStringValue(EXTRA_ROOM_ID),
                 transaction = extras?.parcelable(EXTRA_TRANSACTION),
-                isInheritanceClaimingFlow = extras.getBooleanValue(EXTRA_INHERITANCE_CLAIMING_FLOW),
+                inheritanceClaimTxDetailInfo = extras?.parcelable(EXTRA_INHERITANCE_CLAIMING_FLOW),
                 isCancelBroadcast = extras.getBooleanValue(EXTRA_IS_CANCEL_BROADCAST),
                 errorMessage = extras.getStringValue(EXTRA_ERROR_MESSAGE),
                 isRequestSignatureFlow = extras.getBooleanValue(EXTRA_REQUEST_SIGNATURE_FLOW),

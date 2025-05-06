@@ -21,6 +21,7 @@ package com.nunchuk.android.transaction.components.utils
 
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.send.amount.InputAmountActivity
 import com.nunchuk.android.widget.NCToastMessage
@@ -48,7 +49,10 @@ fun BaseActivity<*>.openTransactionDetailScreen(
         walletId = walletId,
         txId = txId,
         roomId = roomId,
-        isInheritanceClaimingFlow = isInheritanceClaimingFlow,
+        inheritanceClaimTxDetailInfo = if (isInheritanceClaimingFlow)
+            InheritanceClaimTxDetailInfo(
+                changePos = transaction?.changeIndex ?: -1,
+            ) else null,
         transaction = transaction
     )
     NCToastMessage(this).showMessage("Transaction created::$txId")

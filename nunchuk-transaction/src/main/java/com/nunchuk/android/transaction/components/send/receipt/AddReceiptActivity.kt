@@ -34,6 +34,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.qr.startQRCodeScan
+import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.MAX_NOTE_LENGTH
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.pureBTC
@@ -292,7 +293,9 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                         initEventId = "",
                         roomId = "",
                         transaction = event.transaction,
-                        isInheritanceClaimingFlow = true
+                        inheritanceClaimTxDetailInfo = InheritanceClaimTxDetailInfo(
+                            changePos = event.transaction.changeIndex
+                        )
                     )
                 } else {
                     openTransactionDetailScreen(

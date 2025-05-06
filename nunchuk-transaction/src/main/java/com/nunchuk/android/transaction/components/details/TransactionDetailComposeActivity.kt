@@ -229,7 +229,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             )
         }
 
-        if (args.isInheritanceClaimingFlow) {
+        if (args.inheritanceClaimTxDetailInfo != null) {
             showInheritanceClaimingDialog()
         }
         if (args.errorMessage.isBlank().not()) {
@@ -344,7 +344,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             is TransactionDetailsError -> handleSignError(event)
             is PromptInputPassphrase -> requireInputPassphrase(event.func)
             is PromptTransactionOptions -> promptTransactionOptions(event)
-            LoadingEvent -> if (args.isInheritanceClaimingFlow.not()) showLoading()
+            LoadingEvent -> if (args.inheritanceClaimTxDetailInfo == null) showLoading()
             is NfcLoadingEvent -> showOrHideNfcLoading(true, event.isColdcard)
             is ExportToFileSuccess -> showExportToFileSuccess(event)
             is TransactionError -> showExportToFileError(event)
@@ -672,7 +672,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         val transaction = viewModel.getTransaction()
         return transaction.toInvoiceInfo(
             this,
-            isInheritanceClaimingFlow = args.isInheritanceClaimingFlow
+            isInheritanceClaimingFlow = args.inheritanceClaimTxDetailInfo != null,
         )
     }
 }

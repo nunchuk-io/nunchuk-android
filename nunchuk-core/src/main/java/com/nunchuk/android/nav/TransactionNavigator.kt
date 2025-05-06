@@ -28,6 +28,7 @@ import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.SavedAddressFlow
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SavedAddress
@@ -114,7 +115,7 @@ interface TransactionNavigator {
         initEventId: String = "",
         roomId: String = "",
         transaction: Transaction? = null,
-        isInheritanceClaimingFlow: Boolean = false,
+        inheritanceClaimTxDetailInfo: InheritanceClaimTxDetailInfo? = null,
         isRequestSignatureFlow: Boolean = false,
     )
 

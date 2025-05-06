@@ -212,6 +212,12 @@
                 app:barrierDirection="bottom"
                 app:constraint_referenced_ids="changeAddressUSD,changeAddressLabel" />
 
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/changeAddressGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:constraint_referenced_ids="changeAddress, changeAddressBTC, changeAddressLabel, changeAddressUSD"/>
+
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/privateNote"
                 android:layout_width="match_parent"

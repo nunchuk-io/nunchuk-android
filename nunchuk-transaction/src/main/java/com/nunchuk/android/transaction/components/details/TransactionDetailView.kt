@@ -101,10 +101,13 @@ fun TransactionDetailView(
     var showDetail by rememberSaveable { mutableStateOf(false) }
     var showInputCoin by rememberSaveable { mutableStateOf(false) }
     var isExpanded by rememberSaveable(state.isValueKeySetDisable) { mutableStateOf(state.isValueKeySetDisable) }
-    val transaction = state.transaction
-    val outputs = if (transaction.isReceive)
-        transaction.receiveOutputs else
+    val transaction =
+        if (args.inheritanceClaimTxDetailInfo != null) state.transaction.copy(changeIndex = args.inheritanceClaimTxDetailInfo.changePos) else state.transaction
+    val outputs = if (transaction.isReceive) {
+        transaction.receiveOutputs
+    } else {
         transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
+    }
     val signerMap by remember(state.signers) {
         derivedStateOf {
             state.signers.associateBy { it.fingerPrint }
@@ -137,7 +140,7 @@ fun TransactionDetailView(
             },
             bottomBar = {
                 if (transaction.status.canBroadCast()
-                    && args.isInheritanceClaimingFlow.not() && state.userRole.isObserver.not()
+                    && args.inheritanceClaimTxDetailInfo == null && state.userRole.isObserver.not()
                     && isServerBroadcastTime(transaction, state.serverTransaction).not()
                 ) {
                     NcPrimaryDarkButton(
@@ -230,7 +233,7 @@ fun TransactionDetailView(
                         }
                     }
 
-                    if (hasChange) {
+                    if (hasChange && args.inheritanceClaimTxDetailInfo == null) {
                         item {
                             Box(
                                 modifier = Modifier
@@ -402,7 +405,7 @@ fun TransactionDetailView(
                             }
                         }
                     }
-                } else if (!transaction.isReceive && !args.isInheritanceClaimingFlow && state.signers.isNotEmpty()) {
+                } else if (!transaction.isReceive && args.inheritanceClaimTxDetailInfo == null && state.signers.isNotEmpty()) {
                     item {
                         PendingSignatureStatusView(
                             pendingSigners = transaction.getPendingSignatures(),
@@ -629,7 +632,7 @@ private fun TransactionHeader(
             modifier = Modifier.padding(top = 4.dp),
         )
 
-        if (args.isInheritanceClaimingFlow.not()) {
+        if (args.inheritanceClaimTxDetailInfo == null) {
             Text(
                 text = transaction.getFormatDate(),
                 style = NunchukTheme.typography.body,
@@ -829,7 +832,7 @@ private fun TransactionDetailViewPreview() {
         args = TransactionDetailsArgs(
             walletId = "walletId",
             txId = "txId",
-            isInheritanceClaimingFlow = false
+            inheritanceClaimTxDetailInfo = null
         ),
         state = TransactionDetailsState(
             transaction = Transaction(

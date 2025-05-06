@@ -28,6 +28,7 @@ import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.Transaction
@@ -191,7 +192,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         initEventId: String,
         roomId: String,
         transaction: Transaction?,
-        isInheritanceClaimingFlow: Boolean,
+        inheritanceClaimTxDetailInfo: InheritanceClaimTxDetailInfo?,
         isRequestSignatureFlow: Boolean
     ) {
         activityContext.startActivity(
@@ -201,7 +202,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
                 initEventId = initEventId,
                 roomId = roomId,
                 transaction = transaction,
-                isInheritanceClaimingFlow = isInheritanceClaimingFlow,
+                inheritanceClaimTxDetailInfo = inheritanceClaimTxDetailInfo,
                 isRequestSignatureFlow = isRequestSignatureFlow
             ).buildIntent(activityContext)
         )

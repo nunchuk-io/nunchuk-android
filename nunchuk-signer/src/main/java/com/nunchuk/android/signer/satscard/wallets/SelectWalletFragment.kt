@@ -36,6 +36,7 @@ import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.BTC_SATOSHI_EXCHANGE_RATE
+import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.SelectWalletType.TYPE_INHERITANCE_WALLET
 import com.nunchuk.android.core.util.SelectWalletType.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT
 import com.nunchuk.android.core.util.flowObserver
@@ -174,7 +175,11 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
             initEventId = "",
             roomId = "",
             transaction = transaction,
-            isInheritanceClaimingFlow = args.claimParam.isInheritanceClaimFlow()
+            inheritanceClaimTxDetailInfo = if (args.claimParam.isInheritanceClaimFlow()) {
+                InheritanceClaimTxDetailInfo(
+                    changePos = transaction.changeIndex,
+                )
+            } else null,
         )
     }
 
