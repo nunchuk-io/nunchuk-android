@@ -187,7 +187,7 @@ internal fun WalletsScreen(
             } else {
                 Column(
                     modifier = Modifier
-                        .padding(padding)
+                        .padding(top = padding.calculateTopPadding())
                         .fillMaxSize()
                 ) {
                     if (banner != null && state.plans?.isEmpty() == true) {
