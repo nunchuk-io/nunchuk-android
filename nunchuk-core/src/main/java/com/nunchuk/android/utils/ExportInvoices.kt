@@ -4,8 +4,6 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
-import android.os.Environment
-import android.widget.Toast
 import androidx.core.content.res.ResourcesCompat
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.util.getBTCAmount
@@ -17,7 +15,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.time.delay
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -393,7 +390,7 @@ fun Transaction.toInvoiceInfo(context: Context, isInheritanceClaimingFlow: Boole
         changeAddress = if (transaction.hasChangeIndex()) txOutput?.first.orEmpty() else "",
         changeAddressAmount = if (transaction.hasChangeIndex()) txOutput?.second?.getBTCAmount()
             .orEmpty() else "",
-        note = transaction.memo.ifEmpty { context.getString(R.string.nc_none) },
+        note = transaction.memo,
         isReceive = transaction.isReceive,
     )
 }
