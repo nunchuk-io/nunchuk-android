@@ -216,13 +216,11 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                 val coins = if (event.transaction.outputs.size == 1) {
                     event.transaction.outputs
                 } else {
-                    val outputs =
-                        if (viewModel.isInheritanceClaimingFlow() && event.transaction.hasChangeIndex()) {
-                            event.transaction.outputs.filterIndexed { index, _ -> index != event.transaction.changeIndex }
-                        } else {
-                            event.transaction.outputs
-                        }
-                    outputs.filter { viewModel.isMyCoin(it) == event.transaction.isReceive }
+                    if (viewModel.isInheritanceClaimingFlow() && event.transaction.hasChangeIndex()) {
+                        event.transaction.outputs.filterIndexed { index, _ -> index != event.transaction.changeIndex }
+                    } else {
+                        event.transaction.outputs.filter { viewModel.isMyCoin(it) == event.transaction.isReceive }
+                    }
                 }
                 TxReceiptViewBinder(binding.receiptList, coins) {
                     handleCopyContent(it)
