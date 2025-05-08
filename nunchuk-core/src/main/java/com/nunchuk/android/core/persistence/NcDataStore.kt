@@ -38,6 +38,7 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.model.setting.HomeDisplaySetting
+import com.nunchuk.android.model.setting.TaprootFeeSelectionSetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.type.Chain
@@ -82,6 +83,7 @@ class NcDataStore @Inject constructor(
     private val biometricConfigKey = stringPreferencesKey("biometric_config")
     private val groupWalletBackupBannerKeysPreferenceKey = stringSetPreferencesKey("group_wallet_backup_banner_key")
     private val defaultFeeKey = intPreferencesKey("default_fee")
+    private val taprootFeeSelectionKey = stringPreferencesKey("taproot_fee_selection")
 
     /**
      * Current membership plan key
@@ -491,6 +493,20 @@ class NcDataStore @Inject constructor(
     val lastCloseApp: Flow<Long>
         get() = context.dataStore.data.map {
             it[lastCloseAppKey] ?: 0L
+        }
+
+    suspend fun setTaprootFeeSelection(info: TaprootFeeSelectionSetting) {
+        context.dataStore.edit {
+            it[taprootFeeSelectionKey] = gson.toJson(info)
+        }
+    }
+
+    val taprootFeeSelection: Flow<TaprootFeeSelectionSetting>
+        get() = context.dataStore.data.map {
+            gson.fromJson(
+                it[taprootFeeSelectionKey],
+                TaprootFeeSelectionSetting::class.java
+            ) ?: TaprootFeeSelectionSetting()
         }
 
     suspend fun clear() {

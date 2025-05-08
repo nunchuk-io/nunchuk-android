@@ -4,10 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.model.DEFAULT_FEE
 import com.nunchuk.android.model.FreeRateOption
+import com.nunchuk.android.model.setting.TaprootFeeSelectionSetting
 import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
 import com.nunchuk.android.usecase.GetDefaultFeeUseCase
+import com.nunchuk.android.usecase.GetTaprootSelectionFeeSettingUseCase
 import com.nunchuk.android.usecase.SetDefaultAntiFeeSnipingUseCase
 import com.nunchuk.android.usecase.SetDefaultFeeUseCase
+import com.nunchuk.android.usecase.SetTaprootSelectionFeeSettingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +24,8 @@ class FeeSettingsViewModel @Inject constructor(
     private val setDefaultFeeUseCase: SetDefaultFeeUseCase,
     private val getDefaultAntiFeeSnipingUseCase: GetDefaultAntiFeeSnipingUseCase,
     private val setDefaultAntiFeeSnipingUseCase: SetDefaultAntiFeeSnipingUseCase,
+    private val getTaprootSelectionFeeSettingUseCase: GetTaprootSelectionFeeSettingUseCase,
+    private val setTaprootSelectionFeeSettingUseCase: SetTaprootSelectionFeeSettingUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(FeeSettingsState())
@@ -43,6 +48,30 @@ class FeeSettingsViewModel @Inject constructor(
                     }
                 }
         }
+        viewModelScope.launch {
+            getTaprootSelectionFeeSettingUseCase(Unit)
+                .collect { result ->
+                    val taprootFeeSetting = result.getOrThrow()
+                    if (taprootFeeSetting.isFirstTime()) {
+                        _state.update {
+                            it.copy(
+                                automaticFee = false,
+                                taprootPercentage = 10.toString(),
+                                taprootAmount = 0.2.toString()
+                            )
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                automaticFee = taprootFeeSetting.automaticFeeEnabled,
+                                taprootPercentage = taprootFeeSetting.feeDifferenceThresholdPercent.toString(),
+                                taprootAmount = taprootFeeSetting.feeDifferenceThresholdUsd.toString()
+                            )
+                        }
+                    }
+
+                }
+        }
     }
 
     fun setDefaultFee(fee: Int) = viewModelScope.launch {
@@ -57,9 +86,36 @@ class FeeSettingsViewModel @Inject constructor(
             _state.update { it.copy(antiFeeSniping = enable) }
         }
     }
+
+    fun saveTaprootSelectionFeeSetting(
+        enabled: Boolean,
+        taprootPercentage: String,
+        taprootAmount: String,
+    ) = viewModelScope.launch {
+        var percentage = taprootPercentage.toIntOrNull() ?: 0
+        var amount = taprootAmount
+        setTaprootSelectionFeeSettingUseCase(
+            TaprootFeeSelectionSetting(
+                automaticFeeEnabled = enabled,
+                feeDifferenceThresholdPercent = percentage,
+                feeDifferenceThresholdUsd = amount.toFloatOrNull() ?: 0f
+            )
+        ).onSuccess {
+            _state.update {
+                it.copy(
+                    automaticFee = enabled,
+                    taprootPercentage = percentage.toString(),
+                    taprootAmount = amount
+                )
+            }
+        }
+    }
 }
 
 data class FeeSettingsState(
     val defaultFee: Int = FreeRateOption.ECONOMIC.ordinal,
-    val antiFeeSniping: Boolean = false
+    val antiFeeSniping: Boolean = false,
+    val automaticFee: Boolean = false,
+    val taprootPercentage: String = "",
+    val taprootAmount: String = "",
 )

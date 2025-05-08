@@ -28,6 +28,7 @@ import com.nunchuk.android.model.campaigns.Campaign
 import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.model.setting.HomeDisplaySetting
+import com.nunchuk.android.model.setting.TaprootFeeSelectionSetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.wallet.WalletOrder
 import com.nunchuk.android.persistence.dao.WalletOrderDao
@@ -198,5 +199,13 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override suspend fun setAntiFeeSniping(isEnable: Boolean) {
         ncDataStore.setAntiFeeSniping(isEnable)
+    }
+
+    override suspend fun setTaprootFeeSelection(info: TaprootFeeSelectionSetting) {
+        ncDataStore.setTaprootFeeSelection(info)
+    }
+
+    override fun getTaprootFeeSelection(): Flow<TaprootFeeSelectionSetting> {
+        return ncDataStore.taprootFeeSelection
     }
 }

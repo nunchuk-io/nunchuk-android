@@ -24,6 +24,7 @@ import com.nunchuk.android.model.campaigns.Campaign
 import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.model.setting.HomeDisplaySetting
+import com.nunchuk.android.model.setting.TaprootFeeSelectionSetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.wallet.WalletOrder
 import com.nunchuk.android.type.Chain
@@ -70,4 +71,6 @@ interface SettingRepository {
     fun getAllWalletOrders(): Flow<List<WalletOrder>>
     suspend fun insertWalletOrders(orders: List<WalletOrder>)
     suspend fun setAntiFeeSniping(isEnable: Boolean)
+    suspend fun setTaprootFeeSelection(info: TaprootFeeSelectionSetting)
+    fun getTaprootFeeSelection(): Flow<TaprootFeeSelectionSetting>
 }
