@@ -31,6 +31,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.KeyFlow
+import com.nunchuk.android.core.signer.KeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.signer.KeyFlow.isSignInFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.signer.software.components.intro.createSoftwareKeyIntro
@@ -107,7 +108,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                     startDestination = createSoftwareKeyIntroRoute
                 ) {
                     createSoftwareKeyIntro(
-                        isSupportXprv = !keyFlow.isSignInFlow(),
+                        isSupportXprv = !keyFlow.isSignInFlow() && keyFlow.isPrimaryKeyFlow().not(),
                         keyFlow = keyFlow,
                         onContinueClicked = { isBackUpNow ->
                             if (isBackUpNow) {
