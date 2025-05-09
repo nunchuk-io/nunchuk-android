@@ -82,6 +82,7 @@ class NcDataStore @Inject constructor(
     private val biometricConfigKey = stringPreferencesKey("biometric_config")
     private val groupWalletBackupBannerKeysPreferenceKey = stringSetPreferencesKey("group_wallet_backup_banner_key")
     private val defaultFeeKey = intPreferencesKey("default_fee")
+    private val customExplorerUrlKey = stringPreferencesKey("custom_explorer_url")
 
     /**
      * Current membership plan key
@@ -492,6 +493,17 @@ class NcDataStore @Inject constructor(
         get() = context.dataStore.data.map {
             it[lastCloseAppKey] ?: 0L
         }
+
+    val customExplorerUrl: Flow<String>
+        get() = context.dataStore.data.map {
+            it[customExplorerUrlKey].orEmpty()
+        }
+
+    suspend fun setCustomExplorerUrl(url: String) {
+        context.dataStore.edit { settings ->
+            settings[customExplorerUrlKey] = url
+        }
+    }
 
     suspend fun clear() {
         context.dataStore.edit {

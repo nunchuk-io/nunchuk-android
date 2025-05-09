@@ -5,7 +5,6 @@ apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-parcelize'
-apply plugin: 'kotlinx-serialization'
 
 android {
 

@@ -48,6 +48,7 @@ interface SettingRepository {
     val displayTotalBalance: Flow<Boolean>
     val antiFeeSniping: Flow<Boolean>
     val defaultFee: Flow<Int>
+    val customExplorerUrl: Flow<String>
     suspend fun setSyncEnable(isEnable: Boolean)
     suspend fun setQrDensity(density: Int)
     suspend fun markSyncRoomSuccess()
@@ -70,4 +71,5 @@ interface SettingRepository {
     fun getAllWalletOrders(): Flow<List<WalletOrder>>
     suspend fun insertWalletOrders(orders: List<WalletOrder>)
     suspend fun setAntiFeeSniping(isEnable: Boolean)
+    suspend fun setCustomExplorerUrl(url: String)
 }

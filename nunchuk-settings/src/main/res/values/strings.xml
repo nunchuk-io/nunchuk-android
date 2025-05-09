@@ -147,4 +147,8 @@
     <string name="nc_dark">Dark</string>
     <string name="nc_automatic">Automatic</string>
     <string name="nc_appearance_system_description">Display a theme based on your operating system’s current theme.</string>
+    <string name="nc_custom_blockchain_explorer">Custom blockchain explorer</string>
+    <string name="nc_default">Default</string>
+    <string name="nc_customize_blockchain_explorer">Customize blockchain explorer</string>
+    <string name="nc_update_saved">Update saved</string>
 </resources>

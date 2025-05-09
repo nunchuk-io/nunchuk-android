@@ -26,12 +26,16 @@ import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.usecase.UseCase
+import com.nunchuk.android.usecase.settings.GetCustomExplorerUrlFlowUseCase
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class GetBlockchainExplorerUrlUseCase @Inject constructor(
     private val appSettingsUseCase: GetAppSettingUseCase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val getCustomExplorerUrlFlowUseCase: GetCustomExplorerUrlFlowUseCase,
 ) : UseCase<String, String>(dispatcher) {
 
     override suspend fun execute(parameters: String): String {
@@ -39,8 +43,16 @@ class GetBlockchainExplorerUrlUseCase @Inject constructor(
         return formatUrl(settings.chain, parameters, settings.signetExplorerHost)
     }
 
-    private fun formatUrl(chain: Chain, txId: String, signetExplorerHost: String) =
-        getTemplate(chain, signetExplorerHost) + txId
+    private suspend fun formatUrl(chain: Chain, txId: String, signetExplorerHost: String) =
+        getCustomUrl(chain, signetExplorerHost) + txId
+
+    private suspend fun getCustomUrl(chain: Chain, signetExplorerHost: String) =
+        getCustomExplorerUrlFlowUseCase(Unit)
+            .map { result ->
+                val custom = result.getOrNull()?.takeIf { it.isNotEmpty() }
+                custom?.let { it.substringBeforeLast("tx") + "tx/" }
+            }.first().takeIf { !it.isNullOrEmpty() }
+            ?: getTemplate(chain, signetExplorerHost)
 
     private fun getTemplate(chain: Chain, signetExplorerHost: String) = when (chain) {
         Chain.MAIN -> MAINNET_URL_TEMPLATE

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingVertical="@dimen/nc_padding_12">
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/customExplorer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:textAppearance="@style/NCText.Body"
+        android:paddingHorizontal="@dimen/nc_padding_16"
+        android:paddingVertical="@dimen/nc_padding_12"
+        android:text="@string/nc_custom_blockchain_explorer" />
+
+</LinearLayout> 
