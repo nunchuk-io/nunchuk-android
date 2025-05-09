@@ -25,7 +25,6 @@ import com.nunchuk.android.ReplaceTransactionUseCase
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.CoinTag
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.model.UnspentOutput
@@ -87,18 +86,20 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
         viewModelScope.launch {
             delay(150) // work around shared flow not show loading
             _event.emit(ReplaceFeeEvent.Loading(true))
-            when (val result = draftTransactionUseCase.execute(
-                walletId = walletId,
-                inputs = oldTx.inputs,
-                outputs = oldTx.userOutputs.associate { it.first to it.second },
-                subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
-                feeRate = newFee.toManualFeeRate(),
-                replaceTxId = oldTx.txId
-            )) {
-                is Result.Success -> _state.update { it.copy(transaction = result.data) }
-                is Result.Error -> {
-                    _event.emit(ReplaceFeeEvent.ShowError(result.exception))
-                }
+
+            draftTransactionUseCase(
+                DraftTransactionUseCase.Params(
+                    walletId = walletId,
+                    inputs = oldTx.inputs,
+                    outputs = oldTx.userOutputs.associate { it.first to it.second },
+                    subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
+                    feeRate = newFee.toManualFeeRate(),
+                    replaceTxId = oldTx.txId
+                )
+            ).onSuccess { transaction ->
+                _state.update { it.copy(transaction = transaction) }
+            }.onFailure {
+                _event.emit(ReplaceFeeEvent.ShowError(it))
             }
             _event.emit(ReplaceFeeEvent.Loading(false))
         }
@@ -114,19 +115,19 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                     txInputs = oldTx.inputs
                 )
             ).onSuccess { coins ->
-                when (val result = draftTransactionUseCase.execute(
-                    walletId = walletId,
-                    inputs = coins.map { TxInput(it.txid, it.vout) },
-                    outputs = mapOf(address to coins.sumOf { it.amount.value }.toAmount()),
-                    subtractFeeFromAmount = true,
-                    feeRate = newFee.toManualFeeRate(),
-                    replaceTxId = oldTx.txId
-                )) {
-                    is Result.Success -> _state.update { it.copy(transaction = result.data) }
-
-                    is Result.Error -> {
-                        _event.emit(ReplaceFeeEvent.ShowError(result.exception))
-                    }
+                draftTransactionUseCase(
+                    DraftTransactionUseCase.Params(
+                        walletId = walletId,
+                        inputs = coins.map { TxInput(it.txid, it.vout) },
+                        outputs = mapOf(address to coins.sumOf { it.amount.value }.toAmount()),
+                        subtractFeeFromAmount = true,
+                        feeRate = newFee.toManualFeeRate(),
+                        replaceTxId = oldTx.txId
+                    )
+                ).onSuccess { tx ->
+                    _state.update { it.copy(transaction = tx) }
+                }.onFailure {
+                    _event.emit(ReplaceFeeEvent.ShowError(it))
                 }
             }.onFailure {
                 _event.emit(ReplaceFeeEvent.ShowError(it))

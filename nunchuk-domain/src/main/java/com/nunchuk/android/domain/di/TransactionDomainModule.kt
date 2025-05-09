@@ -21,8 +21,6 @@ package com.nunchuk.android.domain.di
 
 import com.nunchuk.android.usecase.BroadcastTransactionUseCase
 import com.nunchuk.android.usecase.BroadcastTransactionUseCaseImpl
-import com.nunchuk.android.usecase.DraftTransactionUseCase
-import com.nunchuk.android.usecase.DraftTransactionUseCaseImpl
 import com.nunchuk.android.usecase.ExportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.ExportKeystoneTransactionUseCaseImpl
 import com.nunchuk.android.usecase.ExportTransactionUseCase
@@ -54,9 +52,6 @@ internal interface TransactionDomainModule {
 
     @Binds
     fun binBroadcastTransactionUseCase(useCase: BroadcastTransactionUseCaseImpl): BroadcastTransactionUseCase
-
-    @Binds
-    fun bindDraftTransactionUseCase(useCase: DraftTransactionUseCaseImpl): DraftTransactionUseCase
 
     @Binds
     fun bindExportTransactionUseCase(useCase: ExportTransactionUseCaseImpl): ExportTransactionUseCase

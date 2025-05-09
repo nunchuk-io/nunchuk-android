@@ -370,7 +370,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
     }
 
     private fun handleCreateTransaction() {
-        estimateFeeViewModel.getEstimateFeeRates()
+        estimateFeeViewModel.getEstimateFeeRates(false)
     }
 
     private fun showInvalidAddressError() {

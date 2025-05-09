@@ -21,7 +21,6 @@ package com.nunchuk.android.transaction.components.details.fee
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.type.WalletTemplate
@@ -86,25 +85,24 @@ internal class ReplaceFeeViewModel @Inject constructor(
 
     fun onFeeChange(oldTx: Transaction, walletId: String, newFee: Int) {
         viewModelScope.launch {
-            when (val result = draftTransactionUseCase.execute(
-                walletId = walletId,
-                inputs = oldTx.inputs,
-                outputs = oldTx.userOutputs.associate { it.first to it.second },
-                subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
-                feeRate = newFee.toManualFeeRate(),
-                replaceTxId = oldTx.txId
-            )) {
-                is Result.Success -> {
-                    val transaction = result.data
-                    _state.update {
-                        it.copy(
-                            cpfpFee = transaction.cpfpFee,
-                            scriptPathFee = transaction.scriptPathFee
-                        )
-                    }
+            draftTransactionUseCase(
+                DraftTransactionUseCase.Params(
+                    walletId = walletId,
+                    inputs = oldTx.inputs,
+                    outputs = oldTx.userOutputs.associate { it.first to it.second },
+                    subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
+                    feeRate = newFee.toManualFeeRate(),
+                    replaceTxId = oldTx.txId
+                )
+            ).onSuccess { transaction ->
+                _state.update {
+                    it.copy(
+                        cpfpFee = transaction.cpfpFee,
+                        scriptPathFee = transaction.scriptPathFee
+                    )
                 }
-
-                is Result.Error -> Unit
+            }.onFailure { exception ->
+                _event.emit(ReplaceFeeEvent.ShowError(exception))
             }
         }
     }
@@ -112,21 +110,20 @@ internal class ReplaceFeeViewModel @Inject constructor(
     fun draftTransaction(oldTx: Transaction, walletId: String, newFee: Int) {
         viewModelScope.launch {
             _event.emit(ReplaceFeeEvent.Loading(true))
-            when (val result = draftTransactionUseCase.execute(
-                walletId = walletId,
-                inputs = oldTx.inputs,
-                outputs = oldTx.userOutputs.associate { it.first to it.second },
-                subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
-                feeRate = newFee.toManualFeeRate(),
-                replaceTxId = oldTx.txId
-            )) {
-                is Result.Success -> {
-                    _event.emit(ReplaceFeeEvent.DraftTransactionSuccess(result.data, newFee))
-                }
 
-                is Result.Error -> {
-                    _event.emit(ReplaceFeeEvent.ShowError(result.exception))
-                }
+            draftTransactionUseCase(
+                DraftTransactionUseCase.Params(
+                    walletId = walletId,
+                    inputs = oldTx.inputs,
+                    outputs = oldTx.userOutputs.associate { it.first to it.second },
+                    subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
+                    feeRate = newFee.toManualFeeRate(),
+                    replaceTxId = oldTx.txId
+                )
+            ).onSuccess { transaction ->
+                _event.emit(ReplaceFeeEvent.DraftTransactionSuccess(transaction, newFee))
+            }.onFailure { exception ->
+                _event.emit(ReplaceFeeEvent.ShowError(exception))
             }
             _event.emit(ReplaceFeeEvent.Loading(false))
         }

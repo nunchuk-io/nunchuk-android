@@ -43,6 +43,7 @@ class CreateTransactionUseCase @Inject constructor(
             subtractFeeFromAmount = parameters.subtractFeeFromAmount,
             replaceTxId = parameters.replaceTxId,
             antiFeeSniping = parameters.antiFeeSniping,
+            useScriptPath = parameters.useScriptPath
         )
         if (parameters.isAssistedWallet) {
             try {
@@ -70,5 +71,6 @@ class CreateTransactionUseCase @Inject constructor(
         val subtractFeeFromAmount: Boolean = false,
         val replaceTxId : String = "",
         val antiFeeSniping: Boolean,
+        val useScriptPath: Boolean = false,
     )
 }

@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.EstimateFeeRates
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
@@ -71,21 +70,19 @@ class RbfCancelTransactionViewModel @Inject constructor(
                     txInputs = oldTx.inputs
                 )
             ).onSuccess { coins ->
-                when (val result = draftTransactionUseCase.execute(
-                    walletId = walletId,
-                    inputs = coins.map { TxInput(it.txid, it.vout) },
-                    outputs = mapOf(address to coins.sumOf { it.amount.value }.toAmount()),
-                    subtractFeeFromAmount = true,
-                    feeRate = newFee.toManualFeeRate(),
-                    replaceTxId = oldTx.txId
-                )) {
-                    is Result.Success -> {
-                        _event.emit(ReplaceFeeEvent.DraftTransactionSuccess(result.data, newFee))
-                    }
-
-                    is Result.Error -> {
-                        _event.emit(ReplaceFeeEvent.ShowError(result.exception))
-                    }
+                draftTransactionUseCase(
+                    DraftTransactionUseCase.Params(
+                        walletId = walletId,
+                        inputs = coins.map { TxInput(it.txid, it.vout) },
+                        outputs = mapOf(address to coins.sumOf { it.amount.value }.toAmount()),
+                        subtractFeeFromAmount = true,
+                        feeRate = newFee.toManualFeeRate(),
+                        replaceTxId = oldTx.txId
+                    )
+                ).onSuccess { transaction ->
+                    _event.emit(ReplaceFeeEvent.DraftTransactionSuccess(transaction, newFee))
+                }.onFailure {
+                    _event.emit(ReplaceFeeEvent.ShowError(it))
                 }
             }.onFailure {
                 _event.emit(ReplaceFeeEvent.ShowError(it))

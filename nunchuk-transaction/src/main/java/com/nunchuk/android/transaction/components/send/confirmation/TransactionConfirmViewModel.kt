@@ -34,8 +34,6 @@ import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxInput
@@ -176,15 +174,18 @@ class TransactionConfirmViewModel @Inject constructor(
     private fun draftNormalTransaction() {
         event(LoadingEvent())
         viewModelScope.launch {
-            when (val result = draftTransactionUseCase.execute(
-                walletId = walletId,
-                outputs = getOutputs(),
-                subtractFeeFromAmount = subtractFeeFromAmount,
-                feeRate = manualFeeRate.toManualFeeRate(),
-                inputs = inputs.map { TxInput(it.txid, it.vout) }
-            )) {
-                is Success -> onDraftTransactionSuccess(result.data)
-                is Error -> event(CreateTxErrorEvent(result.exception.message.orEmpty()))
+            draftTransactionUseCase(
+                DraftTransactionUseCase.Params(
+                    walletId = walletId,
+                    outputs = getOutputs(),
+                    subtractFeeFromAmount = subtractFeeFromAmount,
+                    feeRate = manualFeeRate.toManualFeeRate(),
+                    inputs = inputs.map { TxInput(it.txid, it.vout) }
+                )
+            ).onSuccess {
+                onDraftTransactionSuccess(it)
+            }.onFailure {
+                event(CreateTxErrorEvent(it.message.orUnknownError()))
             }
         }
     }

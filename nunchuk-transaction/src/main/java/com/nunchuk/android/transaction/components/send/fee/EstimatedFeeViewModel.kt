@@ -31,8 +31,6 @@ import com.nunchuk.android.core.util.sum
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.EstimateFeeRates
-import com.nunchuk.android.model.Result.Error
-import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.model.UnspentOutput
@@ -178,7 +176,7 @@ class EstimatedFeeViewModel @Inject constructor(
         }
     }
 
-    fun getEstimateFeeRates() {
+    fun getEstimateFeeRates(isDraft: Boolean = true) {
         viewModelScope.launch {
             val result = estimateFeeUseCase(Unit)
             if (result.isSuccess) {
@@ -193,7 +191,7 @@ class EstimatedFeeViewModel @Inject constructor(
                 setEvent(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
                 updateState { copy(estimateFeeRates = EstimateFeeRates()) }
             }
-            if (walletId.isNotEmpty()) {
+            if (walletId.isNotEmpty() && isDraft) {
                 draftTransaction()
             }
         }
@@ -226,31 +224,30 @@ class EstimatedFeeViewModel @Inject constructor(
                 enableSubtractFeeFromAmount = false
             }
         }
-        when (val result = draftTransactionUseCase.execute(
-            walletId = walletId,
-            outputs = getOutputs(),
-            subtractFeeFromAmount = subtractFeeFromAmount,
-            feeRate = state.manualFeeRate.toManualFeeRate(),
-            inputs = inputs.map { TxInput(it.txid, it.vout) }
-        )) {
-            is Success -> {
-                updateState {
-                    copy(
-                        estimatedFee = result.data.fee,
-                        inputs = result.data.inputs,
-                        cpfpFee = result.data.cpfpFee,
-                        scriptPathFee = result.data.scriptPathFee,
-                        subtractFeeFromAmount = subtractFeeFromAmount,
-                        enableSubtractFeeFromAmount = enableSubtractFeeFromAmount,
-                    )
-                }
-                setEvent(EstimatedFeeEvent.DraftTransactionSuccess)
-            }
 
-            is Error -> {
-                if (result.exception !is CancellationException) {
-                    setEvent(EstimatedFeeErrorEvent(result.exception.message.orEmpty()))
-                }
+        draftTransactionUseCase(
+            DraftTransactionUseCase.Params(
+                walletId = walletId,
+                outputs = getOutputs(),
+                subtractFeeFromAmount = subtractFeeFromAmount,
+                feeRate = state.manualFeeRate.toManualFeeRate(),
+                inputs = inputs.map { TxInput(it.txid, it.vout) }
+            )
+        ).onSuccess {
+            updateState {
+                copy(
+                    estimatedFee = it.fee,
+                    inputs = it.inputs,
+                    cpfpFee = it.cpfpFee,
+                    scriptPathFee = it.scriptPathFee,
+                    subtractFeeFromAmount = subtractFeeFromAmount,
+                    enableSubtractFeeFromAmount = enableSubtractFeeFromAmount,
+                )
+            }
+            setEvent(EstimatedFeeEvent.DraftTransactionSuccess)
+        }.onFailure { exception ->
+            if (exception !is CancellationException) {
+                setEvent(EstimatedFeeErrorEvent(exception.message.orUnknownError()))
             }
         }
         setEvent(EstimatedFeeEvent.Loading(false))

@@ -19,43 +19,37 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface DraftTransactionUseCase {
-    suspend fun execute(
-        walletId: String,
-        outputs: Map<String, Amount>,
-        inputs: List<TxInput> = emptyList(),
-        feeRate: Amount = Amount(-1),
-        subtractFeeFromAmount: Boolean = false,
-        replaceTxId: String = ""
-    ): Result<Transaction>
-}
-
-internal class DraftTransactionUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), DraftTransactionUseCase {
-    override suspend fun execute(
-        walletId: String,
-        outputs: Map<String, Amount>,
-        inputs: List<TxInput>,
-        feeRate: Amount,
-        subtractFeeFromAmount: Boolean,
-        replaceTxId: String
-    ) = exe {
-        nativeSdk.draftTransaction(
-            walletId = walletId,
-            outputs = outputs,
-            inputs = inputs,
-            feeRate = feeRate,
-            subtractFeeFromAmount = subtractFeeFromAmount,
-            replaceTxId = replaceTxId
+class DraftTransactionUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : UseCase<DraftTransactionUseCase.Params, Transaction>(ioDispatcher) {
+    override suspend fun execute(parameters: Params): Transaction {
+        return nativeSdk.draftTransaction(
+            walletId = parameters.walletId,
+            outputs = parameters.outputs,
+            inputs = parameters.inputs,
+            feeRate = parameters.feeRate,
+            subtractFeeFromAmount = parameters.subtractFeeFromAmount,
+            replaceTxId = parameters.replaceTxId,
+            useScriptPath = parameters.useScriptPath
         )
     }
 
+    data class Params(
+        val walletId: String,
+        val outputs: Map<String, Amount>,
+        val inputs: List<TxInput> = emptyList(),
+        val feeRate: Amount = Amount(-1),
+        val  subtractFeeFromAmount: Boolean = false,
+        val replaceTxId: String = "",
+        val useScriptPath: Boolean = false,
+    )
 }
