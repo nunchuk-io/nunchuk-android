@@ -23,13 +23,11 @@ import com.nunchuk.android.core.constants.Constants.GLOBAL_SIGNET_EXPLORER
 import com.nunchuk.android.core.constants.Constants.MAINNET_URL_TEMPLATE
 import com.nunchuk.android.core.constants.Constants.TESTNET_URL_TEMPLATE
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
+import com.nunchuk.android.core.domain.settings.GetCustomExplorerUrlFlowUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.usecase.UseCase
-import com.nunchuk.android.usecase.settings.GetCustomExplorerUrlFlowUseCase
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class GetBlockchainExplorerUrlUseCase @Inject constructor(
@@ -47,11 +45,11 @@ class GetBlockchainExplorerUrlUseCase @Inject constructor(
         getCustomUrl(chain, signetExplorerHost) + txId
 
     private suspend fun getCustomUrl(chain: Chain, signetExplorerHost: String) =
-        getCustomExplorerUrlFlowUseCase(Unit)
-            .map { result ->
+        getCustomExplorerUrlFlowUseCase(chain)
+            .let { result ->
                 val custom = result.getOrNull()?.takeIf { it.isNotEmpty() }
                 custom?.let { it.substringBeforeLast("tx") + "tx/" }
-            }.first().takeIf { !it.isNullOrEmpty() }
+            }.takeIf { !it.isNullOrEmpty() }
             ?: getTemplate(chain, signetExplorerHost)
 
     private fun getTemplate(chain: Chain, signetExplorerHost: String) = when (chain) {

@@ -30,7 +30,6 @@
                     android:id="@+id/rbMainNet"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/nc_padding_16"
                     app:layout_constraintBottom_toBottomOf="@+id/tvMainNetHost"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/tvMainNetHost"
@@ -90,7 +89,6 @@
                     android:id="@+id/rbTestNet"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/nc_padding_16"
                     app:layout_constraintBottom_toBottomOf="@+id/tvTestNetHost"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/tvTestNetHost"
@@ -136,7 +134,6 @@
                     android:id="@+id/rbSigNet"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/nc_padding_16"
                     app:layout_constraintBottom_toBottomOf="@+id/tvSigNetHost"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/tvSigNetHost"
@@ -166,52 +163,6 @@
                     android:text="@string/nc_text_signet_server"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
-
-
-                <com.nunchuk.android.widget.NCFontTextView
-                    android:id="@+id/tvExploreAddressSigNet"
-                    style="@style/NCText.Body"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="@dimen/nc_padding_16"
-                    android:layout_marginTop="@dimen/nc_padding_16"
-                    android:text="@string/nc_txt_explorer_address"
-                    app:layout_constraintEnd_toStartOf="@+id/exploreAddressSwitch"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvSigNetHost" />
-
-                <com.nunchuk.android.widget.NCSwitchButton
-                    android:id="@+id/exploreAddressSwitch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/nc_padding_16"
-                    app:layout_constraintBottom_toBottomOf="@+id/tvExploreAddressSigNet"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/tvExploreAddressSigNet"
-                    app:sb_checked_color="@color/nc_primary_color"
-                    app:sb_enable_animate="false" />
-
-                <com.nunchuk.android.widget.NCFontEditText
-                    android:id="@+id/edtExploreAddressSigNetHost"
-                    style="@style/NCText.Body"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_marginHorizontal="@dimen/nc_padding_16"
-                    android:layout_marginTop="@dimen/nc_padding_16"
-                    android:background="@drawable/nc_edit_text_bg"
-                    android:gravity="start|center_vertical"
-                    android:padding="@dimen/nc_padding_12"
-                    android:textSize="@dimen/nc_text_size_16"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvExploreAddressSigNet"
-                    tools:text="signet.5001" />
-
-                <androidx.constraintlayout.widget.Group
-                    android:id="@+id/groupSigNetExplorer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:constraint_referenced_ids="exploreAddressSwitch,edtExploreAddressSigNetHost,tvExploreAddressSigNet" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <com.nunchuk.android.widget.NCFontTextView

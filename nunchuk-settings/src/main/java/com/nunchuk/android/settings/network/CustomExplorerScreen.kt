@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -65,9 +66,12 @@ fun CustomExplorerContent(
     val context = LocalContext.current
     NunchukTheme {
         NcScaffold(
+            snackState = snackState,
+            modifier = Modifier.systemBarsPadding(),
             topBar = {
                 NcTopAppBar(
                     title = stringResource(R.string.nc_custom_blockchain_explorer),
+                    textStyle = NunchukTheme.typography.titleLarge,
                 )
             },
             bottomBar = {

@@ -42,7 +42,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.constants.Constants.GLOBAL_SIGNET_EXPLORER
 import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.openExternalLink
@@ -50,7 +49,6 @@ import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.ActivityNetworkSettingBinding
 import com.nunchuk.android.type.Chain
-import com.nunchuk.android.utils.getTrimmedText
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.addTextChangedCallback
@@ -119,13 +117,6 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
 
         binding.ivMainNetArrow.isVisible = binding.rbMainNet.isChecked
 
-        binding.groupSigNetExplorer.isVisible = state.appSetting.chain == Chain.SIGNET
-
-        binding.edtExploreAddressSigNetHost.setText(state.appSetting.signetExplorerHost)
-        binding.edtExploreAddressSigNetHost.isVisible =
-            state.appSetting.signetExplorerHost.isNotEmpty() && state.appSetting.chain == Chain.SIGNET
-        binding.exploreAddressSwitch.isChecked = state.appSetting.signetExplorerHost.isNotEmpty()
-
         binding.tvMainNetHost.setupNetworkViewInfo(
             currentChain = Chain.MAIN,
             selectedChain = state.appSetting.chain
@@ -143,9 +134,7 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
     }
 
     private fun isAppSettingChanged(): Boolean {
-        return viewModel.currentAppSettings?.copy(
-            signetExplorerHost = binding.edtExploreAddressSigNetHost.getTrimmedText()
-        ) != viewModel.initAppSettings
+        return viewModel.currentAppSettings != viewModel.initAppSettings
     }
 
     private fun TextView.setupNetworkViewInfo(currentChain: Chain, selectedChain: Chain) {
@@ -249,11 +238,7 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
 
         binding.btnSave.setOnClickListener {
             viewModel.currentAppSettings?.let {
-                viewModel.updateAppSettings(
-                    it.copy(
-                        signetExplorerHost = binding.edtExploreAddressSigNetHost.getTrimmedText()
-                    )
-                )
+                viewModel.updateAppSettings(it)
             }
         }
 
@@ -281,22 +266,6 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
         }
         binding.tvMainNetHost.setOnDebounceClickListener {
             openSelectElectrumServer()
-        }
-
-        binding.exploreAddressSwitch.setOnCheckedChangeListener { _, isChecked ->
-            binding.edtExploreAddressSigNetHost.isVisible = isChecked
-            if (!isChecked) {
-                handleSignetHostChangeCallback("")
-                return@setOnCheckedChangeListener
-            }
-
-            binding.edtExploreAddressSigNetHost.text?.ifEmpty {
-                binding.edtExploreAddressSigNetHost.setText(GLOBAL_SIGNET_EXPLORER)
-            }
-        }
-
-        binding.edtExploreAddressSigNetHost.addTextChangedCallback {
-            handleExplorerHostTextChange()
         }
 
         showGuideText()
