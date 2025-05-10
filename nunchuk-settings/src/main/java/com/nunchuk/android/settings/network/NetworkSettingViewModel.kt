@@ -51,6 +51,9 @@ internal class NetworkSettingViewModel @Inject constructor(
     val currentAppSettings: AppSettings?
         get() = state.value?.appSetting
 
+    val customMainnetServerName: String?
+        get() = state.value?.customMainnetServerName
+
     var initAppSettings: AppSettings? = null
 
     init {
@@ -66,13 +69,11 @@ internal class NetworkSettingViewModel @Inject constructor(
         }
     }
 
-    private fun loadCustomMainnetServer(url: String?) {
-        viewModelScope.launch {
-            getElectrumServersUseCase(Unit).onSuccess {
-                val customMainnetServer = it.mainnet.find { server -> server.url == url }
-                updateState {
-                    copy(customMainnetServerName = customMainnetServer?.name)
-                }
+    private suspend fun loadCustomMainnetServer(url: String?) {
+        getElectrumServersUseCase(Unit).onSuccess {
+            val customMainnetServer = it.mainnet.find { server -> server.url == url }
+            updateState {
+                copy(customMainnetServerName = customMainnetServer?.name)
             }
         }
     }

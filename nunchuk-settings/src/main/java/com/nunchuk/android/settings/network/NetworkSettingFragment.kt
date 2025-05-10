@@ -171,9 +171,7 @@ class NetworkSettingFragment : BaseFragment<ActivityNetworkSettingBinding>(){
             }
 
             is NetworkSettingEvent.ResetTextHostServerEvent -> {
-                binding.tvMainNetHost.setText(
-                    event.appSetting.mainnetServers[0]
-                )
+                binding.tvMainNetHost.text = viewModel.customMainnetServerName ?: event.appSetting.mainnetServers[0]
                 binding.tvTestNetHost.setText(
                     event.appSetting.testnetServers[0]
                 )
