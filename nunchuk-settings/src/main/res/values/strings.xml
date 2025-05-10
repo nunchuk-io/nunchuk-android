@@ -151,4 +151,5 @@
     <string name="nc_default">Default</string>
     <string name="nc_customize_blockchain_explorer">Customize blockchain explorer</string>
     <string name="nc_update_saved">Update saved</string>
+    <string name="nc_invalid_url_format">Invalid URL format</string>
 </resources>

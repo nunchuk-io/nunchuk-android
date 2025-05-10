@@ -80,14 +80,26 @@ fun CustomExplorerContent(
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = {
-                        onSave(customText, isCustomSelected)
-                        coroutineScope.launch {
-                            snackState.showSnackbar(
-                                NcSnackbarVisuals(
-                                    type = NcToastType.SUCCESS,
-                                    message = context.getString(R.string.nc_update_saved),
+                        val isValidUrl = android.util.Patterns.WEB_URL.matcher(customText).matches()
+                        if (isCustomSelected && !isValidUrl) {
+                            coroutineScope.launch {
+                                snackState.showSnackbar(
+                                    NcSnackbarVisuals(
+                                        type = NcToastType.ERROR,
+                                        message = context.getString(R.string.nc_invalid_url_format),
+                                    )
                                 )
-                            )
+                            }
+                        } else {
+                            onSave(customText, isCustomSelected)
+                            coroutineScope.launch {
+                                snackState.showSnackbar(
+                                    NcSnackbarVisuals(
+                                        type = NcToastType.SUCCESS,
+                                        message = context.getString(R.string.nc_update_saved),
+                                    )
+                                )
+                            }
                         }
                     },
                     enabled = !isCustomSelected || customText.isNotBlank()
