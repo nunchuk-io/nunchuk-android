@@ -2,6 +2,9 @@ package com.nunchuk.android.settings.network
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.constants.Constants.GLOBAL_SIGNET_EXPLORER
+import com.nunchuk.android.core.constants.Constants.MAINNET_URL_TEMPLATE
+import com.nunchuk.android.core.constants.Constants.TESTNET_URL_TEMPLATE
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.domain.settings.GetCustomExplorerUrlFlowUseCase
 import com.nunchuk.android.core.domain.settings.SetCustomExplorerUrlUseCase
@@ -19,7 +22,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 data class CustomExplorerUiState(
-    val defaultUrl: String = "https://mempool.space/tx/<tx_id>",
+    val defaultUrl: String = MAINNET_URL_TEMPLATE,
     val customUrl: String = "",
     val isCustomSelected: Boolean = false,
     val chain: Chain = Chain.MAIN
@@ -39,10 +42,10 @@ class CustomExplorerViewModel @Inject constructor(
             .map { it.getOrThrow() }
             .onEach { chain ->
                 val defaultUrl = when (chain) {
-                    Chain.MAIN -> "https://mempool.space/tx/<tx_id>"
-                    Chain.TESTNET -> "https://mempool.space/testnet4/tx/<tx_id>"
-                    Chain.SIGNET -> "https://mempool.space/signet/tx/<tx_id>"
-                    else -> "https://mempool.space/tx/<tx_id>"
+                    Chain.MAIN -> MAINNET_URL_TEMPLATE
+                    Chain.TESTNET -> TESTNET_URL_TEMPLATE
+                    Chain.SIGNET -> GLOBAL_SIGNET_EXPLORER
+                    else -> MAINNET_URL_TEMPLATE
                 }
                 val customUrl = getCustomExplorerUrlFlowUseCase(chain).getOrThrow()
                 _uiState.update {
