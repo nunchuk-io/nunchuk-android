@@ -167,8 +167,6 @@ internal class SettingRepositoryImpl @Inject constructor(
         get() = ncDataStore.antiFeeSnipingFlow
     override val defaultFee: Flow<Int>
         get() = ncDataStore.defaultFee
-    override val customExplorerUrl: Flow<String>
-        get() = ncDataStore.customExplorerUrl
 
     override fun getCustomPinConfig(decoyPin: String): Flow<Boolean> =
         ncDataStore.getCustomPinConfig(decoyPin)
@@ -200,9 +198,5 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override suspend fun setAntiFeeSniping(isEnable: Boolean) {
         ncDataStore.setAntiFeeSniping(isEnable)
-    }
-
-    override suspend fun setCustomExplorerUrl(url: String) {
-        ncDataStore.setCustomExplorerUrl(url)
     }
 }
