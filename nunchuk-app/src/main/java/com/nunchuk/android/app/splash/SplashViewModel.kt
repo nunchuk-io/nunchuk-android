@@ -78,7 +78,9 @@ internal class SplashViewModel @Inject constructor(
                     || (settings.protectWalletPassword && mode == SignInMode.EMAIL)
             @Suppress("DEPRECATION")
             when {
-                shouldAskPin && (mode == SignInMode.UNKNOWN || mode == SignInMode.PRIMARY_KEY) -> _event.emit(SplashEvent.NavUnlockPinScreenEvent)
+                shouldAskPin && (mode == SignInMode.UNKNOWN || (mode == SignInMode.PRIMARY_KEY && accountManager.isStaySignedIn().not())) -> {
+                    _event.emit(SplashEvent.NavUnlockPinScreenEvent)
+                }
 
                 isAccountExisted && accountManager.isStaySignedIn().not() -> _event.emit(
                     SplashEvent.NavSignInEvent
@@ -88,7 +90,8 @@ internal class SplashViewModel @Inject constructor(
                     _event.emit(
                         SplashEvent.NavHomeScreenEvent(
                             askPin = shouldAskPin && isDecoyDisablePin,
-                            askBiometric = isBiometricEnable && mode.isGuestMode().not() && mode.isPrimaryKey().not()
+                            askBiometric = isBiometricEnable && mode.isGuestMode()
+                                .not() && mode.isPrimaryKey().not()
                         )
                     )
                 }
