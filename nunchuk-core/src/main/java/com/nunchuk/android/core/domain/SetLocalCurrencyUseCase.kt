@@ -17,19 +17,44 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase
+package com.nunchuk.android.core.domain
 
+import com.nunchuk.android.core.repository.BtcRepository
+import com.nunchuk.android.core.util.CurrencyUtil
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.repository.SettingRepository
+import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class SetLocalCurrencyUseCase @Inject constructor(
     private val settingRepository: SettingRepository,
+    private val btcRepository: BtcRepository,
     @IoDispatcher ioDispatcher: CoroutineDispatcher
-) : UseCase<String, Unit>(ioDispatcher) {
+) : UseCase<SetLocalCurrencyUseCase.Params, Unit>(ioDispatcher) {
 
-    override suspend fun execute(parameters: String) {
-        settingRepository.setLocalCurrency(parameters)
+    override suspend fun execute(parameters: Params) {
+        settingRepository.setLocalCurrency(parameters.toCurrency)
+        updateCurrencyTaprootFeeSelection(parameters)
     }
+
+    private suspend fun updateCurrencyTaprootFeeSelection(params: Params) {
+        val taprootFeeSelectionSetting = settingRepository.getTaprootFeeSelection().first()
+        val forexRates = btcRepository.getForexRates()
+        val newValueCurrency = CurrencyUtil.convertCurrency(
+            fromCurrency = params.fromCurrency,
+            toCurrency = params.toCurrency,
+            amount = taprootFeeSelectionSetting.feeDifferenceThresholdCurrency,
+            rates = forexRates
+        )
+        settingRepository.setTaprootFeeSelection(taprootFeeSelectionSetting.copy(
+            feeDifferenceThresholdCurrency = newValueCurrency,
+        ))
+    }
+
+    data class Params(
+        val fromCurrency: String,
+        val toCurrency: String,
+    )
 }

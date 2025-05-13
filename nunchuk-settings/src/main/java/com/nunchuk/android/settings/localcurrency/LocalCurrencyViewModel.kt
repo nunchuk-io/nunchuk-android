@@ -22,10 +22,10 @@ package com.nunchuk.android.settings.localcurrency
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetForexCurrenciesUseCase
+import com.nunchuk.android.core.domain.SetLocalCurrencyUseCase
 import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
-import com.nunchuk.android.usecase.SetLocalCurrencyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -77,7 +77,10 @@ class LocalCurrencyViewModel @Inject constructor(
     }
 
     fun onSaveClick() = viewModelScope.launch {
-        val result = setCurrencyUseCase(_state.value.selectedCurrency)
+        val result = setCurrencyUseCase(SetLocalCurrencyUseCase.Params(
+            fromCurrency = _state.value.currentCurrency,
+            toCurrency = _state.value.selectedCurrency,
+        ))
         if (result.isSuccess) {
             LOCAL_CURRENCY = _state.value.selectedCurrency
             _event.emit(LocalCurrencyEvent.SetLocalCurrencySuccess)
