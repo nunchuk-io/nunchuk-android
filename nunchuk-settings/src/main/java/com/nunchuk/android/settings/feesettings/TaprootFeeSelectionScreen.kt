@@ -55,6 +55,7 @@ fun TaprootFeeSelectionContent(
     val isButtonEnable = if (automaticFeeEnabled.not()) {
         automaticFeeEnabled != state.automaticFee
     } else {
+        state.isFirstTimeSettingTaprootFee ||
         taprootPercentageVal > 0 && taprootAmountVal > 0.0f && (
                 taprootAmountVal != state.taprootAmount.toDoubleOrNull() ||
                         taprootPercentageVal != state.taprootPercentage.toIntOrNull()
@@ -107,12 +108,12 @@ fun TaprootFeeSelectionContent(
                             .padding(end = 12.dp),
                     ) {
                         Text(
-                            text = "Automatic fee",
+                            text = stringResource(R.string.nc_automatic_fee),
                             style = NunchukTheme.typography.body
                         )
                         Text(
                             modifier = Modifier.padding(top = 4.dp),
-                            text = "Automatically selects the highest fee from available signing policies if the fee difference is below your configured threshold",
+                            text = stringResource(R.string.nc_automatic_fee_desc),
                             style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.textSecondary)
                         )
                     }
@@ -129,7 +130,7 @@ fun TaprootFeeSelectionContent(
                     NcNumberInputField(
                         modifier = Modifier
                             .padding(top = 16.dp),
-                        title = "Fee difference threshold (%)",
+                        title = stringResource(R.string.nc_fee_difference_threshold_percent),
                         value = taprootPercentage,
                         onValueChange = { s ->
                             val numberOfDigit = 4
@@ -146,7 +147,7 @@ fun TaprootFeeSelectionContent(
                     NcNumberInputField(
                         modifier = Modifier
                             .padding(top = 16.dp),
-                        title = "Fee difference threshold (USD)",
+                        title = stringResource(R.string.nc_fee_difference_threshold_currency, "USD"),
                         value = taprootAmount,
                         onValueChange = { s ->
                             val numberOfDigit = 2
@@ -164,5 +165,11 @@ fun TaprootFeeSelectionContent(
 @PreviewLightDark
 @Composable
 fun TaprootFeeSelectionContentPreview() {
-    TaprootFeeSelectionContent()
+    TaprootFeeSelectionContent(
+        state = FeeSettingsState(
+            automaticFee = true,
+            taprootPercentage = "10",
+            taprootAmount = "0.01"
+        ),
+    )
 }

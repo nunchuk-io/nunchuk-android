@@ -52,24 +52,14 @@ class FeeSettingsViewModel @Inject constructor(
             getTaprootSelectionFeeSettingUseCase(Unit)
                 .collect { result ->
                     val taprootFeeSetting = result.getOrThrow()
-                    if (taprootFeeSetting.isFirstTime()) {
-                        _state.update {
-                            it.copy(
-                                automaticFee = false,
-                                taprootPercentage = 10.toString(),
-                                taprootAmount = 0.2.toString()
-                            )
-                        }
-                    } else {
-                        _state.update {
-                            it.copy(
-                                automaticFee = taprootFeeSetting.automaticFeeEnabled,
-                                taprootPercentage = taprootFeeSetting.feeDifferenceThresholdPercent.toString(),
-                                taprootAmount = taprootFeeSetting.feeDifferenceThresholdUsd.toString()
-                            )
-                        }
+                    _state.update {
+                        it.copy(
+                            automaticFee = taprootFeeSetting.automaticFeeEnabled,
+                            taprootPercentage = taprootFeeSetting.feeDifferenceThresholdPercent.toString(),
+                            taprootAmount = taprootFeeSetting.feeDifferenceThresholdCurrency.toString(),
+                            isFirstTimeSettingTaprootFee = taprootFeeSetting.isFirstTime
+                        )
                     }
-
                 }
         }
     }
@@ -98,11 +88,13 @@ class FeeSettingsViewModel @Inject constructor(
             TaprootFeeSelectionSetting(
                 automaticFeeEnabled = enabled,
                 feeDifferenceThresholdPercent = percentage,
-                feeDifferenceThresholdUsd = amount.toFloatOrNull() ?: 0f
+                feeDifferenceThresholdCurrency = amount.toDoubleOrNull() ?: 0.0,
+                isFirstTime = false
             )
         ).onSuccess {
             _state.update {
                 it.copy(
+                    isFirstTimeSettingTaprootFee = false,
                     automaticFee = enabled,
                     taprootPercentage = percentage.toString(),
                     taprootAmount = amount
@@ -118,4 +110,5 @@ data class FeeSettingsState(
     val automaticFee: Boolean = false,
     val taprootPercentage: String = "",
     val taprootAmount: String = "",
+    val isFirstTimeSettingTaprootFee: Boolean = false,
 )
