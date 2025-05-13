@@ -7,7 +7,6 @@ import com.nunchuk.android.model.FreeRateOption
 import com.nunchuk.android.model.setting.TaprootFeeSelectionSetting
 import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
 import com.nunchuk.android.usecase.GetDefaultFeeUseCase
-import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.usecase.GetTaprootSelectionFeeSettingUseCase
 import com.nunchuk.android.usecase.SetDefaultAntiFeeSnipingUseCase
 import com.nunchuk.android.usecase.SetDefaultFeeUseCase
@@ -27,7 +26,6 @@ class FeeSettingsViewModel @Inject constructor(
     private val setDefaultAntiFeeSnipingUseCase: SetDefaultAntiFeeSnipingUseCase,
     private val getTaprootSelectionFeeSettingUseCase: GetTaprootSelectionFeeSettingUseCase,
     private val setTaprootSelectionFeeSettingUseCase: SetTaprootSelectionFeeSettingUseCase,
-    private val getLocalCurrencyUseCase: GetLocalCurrencyUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(FeeSettingsState())
@@ -54,22 +52,25 @@ class FeeSettingsViewModel @Inject constructor(
             getTaprootSelectionFeeSettingUseCase(Unit)
                 .collect { result ->
                     val taprootFeeSetting = result.getOrThrow()
-                    _state.update {
-                        it.copy(
-                            automaticFee = taprootFeeSetting.automaticFeeEnabled,
-                            taprootPercentage = taprootFeeSetting.feeDifferenceThresholdPercent.toString(),
-                            taprootAmount = taprootFeeSetting.feeDifferenceThresholdCurrency.toString(),
-                            isFirstTimeSettingTaprootFee = taprootFeeSetting.isFirstTime
-                        )
+                    if (taprootFeeSetting.isFirstTime()) {
+                        _state.update {
+                            it.copy(
+                                automaticFee = false,
+                                taprootPercentage = 10.toString(),
+                                taprootAmount = 0.2.toString()
+                            )
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(
+                                automaticFee = taprootFeeSetting.automaticFeeEnabled,
+                                taprootPercentage = taprootFeeSetting.feeDifferenceThresholdPercent.toString(),
+                                taprootAmount = taprootFeeSetting.feeDifferenceThresholdUsd.toString()
+                            )
+                        }
                     }
+
                 }
-        }
-        viewModelScope.launch {
-            getLocalCurrencyUseCase(Unit).collect { result ->
-                _state.update {
-                    it.copy(currentCurrency = result.getOrDefault(""))
-                }
-            }
         }
     }
 
@@ -97,13 +98,11 @@ class FeeSettingsViewModel @Inject constructor(
             TaprootFeeSelectionSetting(
                 automaticFeeEnabled = enabled,
                 feeDifferenceThresholdPercent = percentage,
-                feeDifferenceThresholdCurrency = amount.toDoubleOrNull() ?: 0.0,
-                isFirstTime = false
+                feeDifferenceThresholdUsd = amount.toFloatOrNull() ?: 0f
             )
         ).onSuccess {
             _state.update {
                 it.copy(
-                    isFirstTimeSettingTaprootFee = false,
                     automaticFee = enabled,
                     taprootPercentage = percentage.toString(),
                     taprootAmount = amount
@@ -119,6 +118,4 @@ data class FeeSettingsState(
     val automaticFee: Boolean = false,
     val taprootPercentage: String = "",
     val taprootAmount: String = "",
-    val currentCurrency: String = "",
-    val isFirstTimeSettingTaprootFee: Boolean = false,
 )

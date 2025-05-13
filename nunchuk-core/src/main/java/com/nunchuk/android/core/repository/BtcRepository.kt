@@ -41,7 +41,6 @@ interface BtcRepository {
     fun getLocalElectrumServers(): Flow<List<ElectrumServer>>
     suspend fun addElectrumServer(server: ElectrumServer)
     suspend fun removeElectrumServer(ids: List<Long>)
-    suspend fun getForexRates(): HashMap<String, Double>
 }
 
 internal class BtcRepositoryImpl @Inject constructor(
@@ -102,9 +101,5 @@ internal class BtcRepositoryImpl @Inject constructor(
 
     override suspend fun removeElectrumServer(ids: List<Long>) {
         electrumServerDao.deleteByIds(ids)
-    }
-
-    override suspend fun getForexRates(): HashMap<String, Double> {
-        return priceConverterAPI.getForexRates()
     }
 }
