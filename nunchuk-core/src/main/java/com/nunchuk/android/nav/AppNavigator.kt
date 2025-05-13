@@ -35,6 +35,7 @@ import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.nav.args.MiniscriptArgs
 
 interface AppNavigator {
     fun restartApp(activityContext: Context)
@@ -161,5 +162,10 @@ interface AppNavigator {
         filePath: String = "",
         qrList: List<String> = emptyList(),
         quickWalletParam: QuickWalletParam?
+    )
+
+    fun openMiniscriptScreen(
+        activityContext: Context,
+        args: MiniscriptArgs
     )
 }

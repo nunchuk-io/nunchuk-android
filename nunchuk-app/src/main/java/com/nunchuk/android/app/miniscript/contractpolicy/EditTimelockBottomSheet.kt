@@ -1,0 +1,378 @@
+package com.nunchuk.android.app.miniscript.contractpolicy
+
+import android.icu.text.SimpleDateFormat
+import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcDatePickerDialog
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcRadioButton
+import com.nunchuk.android.compose.NcTextField
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.type.MiniscriptTimelockBased
+import com.nunchuk.android.type.MiniscriptTimelockType
+import java.util.Calendar
+import java.util.Locale
+
+data class TimelockData(
+    val timelockType: MiniscriptTimelockType,
+    val timeUnit: MiniscriptTimelockBased,
+    val value: Long
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditTimelockBottomSheet(
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    currentBlockHeight: Long = 0L,
+    initialData: TimelockData? = null,
+    onDismiss: () -> Unit = {},
+    onSave: (TimelockData) -> Unit = {}
+) {
+    val coroutineScope = rememberCoroutineScope()
+
+    ModalBottomSheet(
+        sheetState = sheetState,
+        onDismissRequest = onDismiss,
+        dragHandle = {},
+        content = {
+            Column(
+                modifier = Modifier
+                    .background(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                    )
+                    .nestedScroll(rememberNestedScrollInteropConnection())
+            ) {
+                EditTimelockContent(
+                    currentBlockHeight = currentBlockHeight,
+                    initialData = initialData,
+                    onSave = onSave
+                )
+            }
+        }
+    )
+}
+
+@Composable
+fun EditTimelockContent(
+    currentBlockHeight: Long = 0L,
+    initialData: TimelockData? = null,
+    onSave: (TimelockData) -> Unit = {}
+) {
+    var timelockType by remember { 
+        mutableStateOf(initialData?.timelockType ?: MiniscriptTimelockType.ABSOLUTE) 
+    }
+    var timeUnit by remember { 
+        mutableStateOf(initialData?.timeUnit ?: MiniscriptTimelockBased.TIME_LOCK) 
+    }
+    
+    val calendar = remember { 
+        mutableStateOf(
+            if (initialData != null &&
+                initialData.timelockType == MiniscriptTimelockType.ABSOLUTE && 
+                initialData.timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
+                Calendar.getInstance().apply { timeInMillis = initialData.value }
+            } else {
+                Calendar.getInstance()
+            }
+        )
+    }
+    
+    val dateFormat = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()) }
+    val selectedDateText by remember { derivedStateOf { dateFormat.format(calendar.value.time) } }
+    
+    var numericValue by remember { 
+        mutableStateOf(
+            if (initialData != null && 
+                !(initialData.timelockType == MiniscriptTimelockType.ABSOLUTE && 
+                  initialData.timeUnit == MiniscriptTimelockBased.TIME_LOCK)) {
+                // For relative timelock or absolute block height, the value is already in the correct unit
+                initialData.value.toString()
+            } else {
+                "90"
+            }
+        )
+    }
+    
+    val context = LocalContext.current
+
+    Column(
+        modifier = Modifier
+            .background(Color.White)
+            .fillMaxWidth()
+            .padding(vertical = 24.dp, horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = "Edit timelock",
+            style = NunchukTheme.typography.title
+        )
+
+        Text("Timelock type", style = NunchukTheme.typography.titleSmall)
+
+        RadioOption(
+            title = "Absolute time",
+            description = "Unlock after a fixed point (specific date or block)",
+            selected = timelockType == MiniscriptTimelockType.ABSOLUTE,
+            onClick = { timelockType = MiniscriptTimelockType.ABSOLUTE }
+        )
+
+        RadioOption(
+            title = "Relative time",
+            description = "Unlocks after a set period from the time coins are received. Transfers within the same wallet will reset the timelock.",
+            selected = timelockType == MiniscriptTimelockType.RELATIVE,
+            onClick = { timelockType = MiniscriptTimelockType.RELATIVE }
+        )
+
+        Divider()
+
+        Text("Time unit", style = MaterialTheme.typography.labelMedium)
+
+        RadioOption(
+            title = "Timestamp",
+            description = "Unlock after a specific time (Unix timestamp)",
+            selected = timeUnit == MiniscriptTimelockBased.TIME_LOCK,
+            onClick = { timeUnit = MiniscriptTimelockBased.TIME_LOCK }
+        )
+
+        RadioOption(
+            title = "Block height",
+            description = "Unlock after a specific block number",
+            selected = timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK,
+            onClick = { timeUnit = MiniscriptTimelockBased.HEIGHT_LOCK }
+        )
+
+        Divider()
+
+        DatePickerField(
+            calendar = calendar,
+            selectedDateText = selectedDateText,
+            timeUnit = timeUnit,
+            timelockType = timelockType,
+            numericValue = numericValue,
+            currentBlockHeight = currentBlockHeight,
+            onNumericValueChange = { numericValue = it }
+        )
+
+        NcPrimaryDarkButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                if (timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK) {
+                    val blockHeight = numericValue.toLongOrNull() ?: 0L
+                    if (blockHeight < 0 || blockHeight > 65535) {
+                        Toast.makeText(
+                            context,
+                            "Invalid block height. Enter a value between 0 and 65 535 blocks.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@NcPrimaryDarkButton
+                    }
+                } else if (timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
+                    val today = Calendar.getInstance()
+                    val selectedDate = calendar.value
+                    val diffInMillis = selectedDate.timeInMillis - today.timeInMillis
+                    val diffInDays = diffInMillis / (24 * 60 * 60 * 1000)
+                    
+                    if (diffInDays > 388) {
+                        Toast.makeText(
+                            context,
+                            "Invalid timestamp. Enter a value between 0 and 388 days.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@NcPrimaryDarkButton
+                    }
+                }
+                
+                val value = if (timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
+                    calendar.value.timeInMillis
+                } else {
+                    numericValue.toLongOrNull() ?: 0L
+                }
+                onSave(TimelockData(timelockType, timeUnit, value))
+            }
+        ) {
+            Text(text = "Save")
+        }
+    }
+}
+
+@Composable
+fun DatePickerField(
+    calendar: MutableState<Calendar>,
+    selectedDateText: String,
+    timeUnit: MiniscriptTimelockBased,
+    timelockType: MiniscriptTimelockType,
+    numericValue: String,
+    currentBlockHeight: Long = 0L,
+    onNumericValueChange: (String) -> Unit
+) {
+    var datePickerDialog by remember {
+        mutableStateOf(false)
+    }
+
+    val isTimestampCase = timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.TIME_LOCK
+
+    val datePickerTextTitle = if (timelockType == MiniscriptTimelockType.ABSOLUTE) {
+        if (timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
+            "Unlock after a fixed date"
+        } else {
+            "Unlock after the target block number"
+        }
+    } else {
+        "Unlock after the target block number"
+    }
+
+    val datePickerTextDesc =
+        if (timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK) {
+            "Current Bitcoin block height is $currentBlockHeight"
+        } else {
+            ""
+        }
+
+    val datePickerTitleHint = if (timelockType == MiniscriptTimelockType.RELATIVE) {
+        if (timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
+            "(days)"
+        } else {
+            "(blocks)"
+        }
+    } else {
+        ""
+    }
+
+    if (isTimestampCase) {
+        NcTextField(
+            title = datePickerTextTitle,
+            titleHint = datePickerTitleHint,
+            value = selectedDateText,
+            readOnly = true,
+            onClick = {
+                datePickerDialog = true
+            },
+            bottomContent = {
+                if (datePickerTextDesc.isNotEmpty()) {
+                    Text(
+                        text = datePickerTextDesc,
+                        style = NunchukTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    )
+                }
+            },
+            rightContent = {
+                Icon(
+                    modifier = Modifier
+                        .padding(end = 12.dp)
+                        .clickable {
+                            datePickerDialog = true
+                        },
+                    painter = painterResource(id = com.nunchuk.android.core.R.drawable.ic_calendar),
+                    contentDescription = ""
+                )
+            }
+        ) {
+
+        }
+
+        if (datePickerDialog) {
+            NcDatePickerDialog(
+                onDismissRequest = { datePickerDialog = false },
+                onConfirm = { date ->
+                    calendar.value = Calendar.getInstance().apply { timeInMillis = date }
+                    datePickerDialog = false
+                }
+            )
+        }
+    } else {
+        NcTextField(
+            title = datePickerTextTitle,
+            titleHint = datePickerTitleHint,
+            value = numericValue,
+            onValueChange = { value ->
+                // Only allow numeric input
+                if (value.isEmpty() || value.all { it.isDigit() }) {
+                    onNumericValueChange(value)
+                }
+            },
+            bottomContent = {
+                if (datePickerTextDesc.isNotEmpty()) {
+                    Text(
+                        text = datePickerTextDesc,
+                        style = NunchukTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    )
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun RadioOption(
+    title: String,
+    description: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, style = NunchukTheme.typography.body)
+            Text(
+                modifier = Modifier.padding(top = 2.dp),
+                text = description,
+                style = NunchukTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            )
+        }
+        NcRadioButton(
+            selected = selected,
+            onClick = null, // Handled by parent Row
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+fun EditTimelockBottomSheetPreview() {
+    EditTimelockContent()
+}

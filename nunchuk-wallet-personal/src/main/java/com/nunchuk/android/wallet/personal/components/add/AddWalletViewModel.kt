@@ -25,16 +25,16 @@ class AddWalletViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val groupId =
-        savedStateHandle.get<String>(AddWalletActivity.GROUP_WALLET_ID).orEmpty()
-
     private val _state = MutableStateFlow(AddWalletState())
     val state = _state.asStateFlow()
 
     private val _event = MutableSharedFlow<AddWalletEvent>()
     val event = _event.asSharedFlow()
 
-    init {
+    private var groupId = ""
+
+    fun init(groupId: String) {
+        this.groupId = groupId
         if (groupId.isNotEmpty()) {
             viewModelScope.launch {
                 _state.update { it.copy(isLoading = true) }

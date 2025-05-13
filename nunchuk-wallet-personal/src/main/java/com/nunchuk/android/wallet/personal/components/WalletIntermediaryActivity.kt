@@ -42,7 +42,7 @@ class WalletIntermediaryActivity : BaseNfcActivity<ActivityWalletIntermediaryBin
         setLightStatusBar()
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
-                replace(R.id.fragment_container, WalletIntermediaryNewUIFragment().apply {
+                replace(R.id.fragment_container, WalletIntermediaryFragment().apply {
                     arguments = intent.extras
                 })
             }

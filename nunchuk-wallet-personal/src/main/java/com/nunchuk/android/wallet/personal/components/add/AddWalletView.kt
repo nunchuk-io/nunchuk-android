@@ -72,6 +72,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun AddWalletView(
     state: AddWalletState,
+    isCreateMiniscriptWallet: Boolean = false,
     viewOnlyComposer: WalletConfigViewOnlyDataComposer? = null,
     isEditGroupWallet: Boolean,
     isViewConfigOnly: Boolean = true,
@@ -107,7 +108,10 @@ fun AddWalletView(
         keys = walletConfigType.getMN().second
     }
 
-    val options = if (!viewAll) listOf(
+    val options = if (!viewAll && !isCreateMiniscriptWallet) listOf(
+        AddressType.NATIVE_SEGWIT,
+        AddressType.TAPROOT
+    ) else if (isCreateMiniscriptWallet) listOf(
         AddressType.NATIVE_SEGWIT,
         AddressType.TAPROOT
     ) else listOf(
@@ -191,7 +195,7 @@ fun AddWalletView(
                     )
                 }
 
-                if (!viewAll) {
+                if (!viewAll && !isCreateMiniscriptWallet) {
                     Row(
                         modifier = Modifier
                             .clickable(onClick = { viewAll = !viewAll })
@@ -214,36 +218,38 @@ fun AddWalletView(
                 }
 
                 if ((isEditGroupWallet && state.groupSandbox != null) || isViewConfigOnly) {
-                    HorizontalDivider(
-                        thickness = 1.dp,
-                        modifier = Modifier.padding(vertical = 24.dp),
-                        color = MaterialTheme.colorScheme.backgroundMidGray
-                    )
-
-                    Text(
-                        text = "Wallet config",
-                        modifier = Modifier.padding(bottom = 6.dp),
-                        style = NunchukTheme.typography.titleSmall
-                    )
-
-                    walletConfigOptions.forEach { option ->
-                        TypeOption(
-                            isViewOnly = isViewConfigOnly && option != viewOnlyComposer?.walletConfigType,
-                            selected = if (viewOnlyComposer != null) viewOnlyComposer.walletConfigType == option else walletConfigType == option,
-                            name = option.toOptionName(),
-                            badge = null,
-                            isEndItem = option == WalletConfigType.CUSTOM,
-                            onClick = {
-                                walletConfigType = option
-                                if (option != WalletConfigType.CUSTOM) {
-                                    requiredKeys = option.getMN().first
-                                    keys = option.getMN().second
-                                }
-                            }
+                    if (!isCreateMiniscriptWallet) {
+                        HorizontalDivider(
+                            thickness = 1.dp,
+                            modifier = Modifier.padding(vertical = 24.dp),
+                            color = MaterialTheme.colorScheme.backgroundMidGray
                         )
+
+                        Text(
+                            text = "Wallet config",
+                            modifier = Modifier.padding(bottom = 6.dp),
+                            style = NunchukTheme.typography.titleSmall
+                        )
+
+                        walletConfigOptions.forEach { option ->
+                            TypeOption(
+                                isViewOnly = isViewConfigOnly && option != viewOnlyComposer?.walletConfigType,
+                                selected = if (viewOnlyComposer != null) viewOnlyComposer.walletConfigType == option else walletConfigType == option,
+                                name = option.toOptionName(),
+                                badge = null,
+                                isEndItem = option == WalletConfigType.CUSTOM,
+                                onClick = {
+                                    walletConfigType = option
+                                    if (option != WalletConfigType.CUSTOM) {
+                                        requiredKeys = option.getMN().first
+                                        keys = option.getMN().second
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
-                if (walletConfigType == WalletConfigType.CUSTOM) {
+                if (walletConfigType == WalletConfigType.CUSTOM && !isCreateMiniscriptWallet) {
                     KeysAndRequiredKeysScreen(
                         state.freeGroupWalletConfig,
                         m = viewOnlyComposer?.requireKeys ?: state.groupSandbox?.m ?: 0,
@@ -254,6 +260,8 @@ fun AddWalletView(
                         requiredKeys = m
                     }
                 }
+
+//                MiniscriptSection()
             }
         }
     }
@@ -339,7 +347,8 @@ fun KeyManagementSection(
     title: String,
     description: String,
     value: Int,
-    enable: Boolean,
+    enableIncrement: Boolean = true,
+    enableDecrement: Boolean = true,
     onIncrement: () -> Unit,
     onDecrement: () -> Unit
 ) {
@@ -375,8 +384,9 @@ fun KeyManagementSection(
             Box(
                 modifier = Modifier
                     .size(36.dp)
+                    .alpha(if (enableDecrement) 1f else 0.4f)
                     .border(1.dp, MaterialTheme.colorScheme.textPrimary, CircleShape)
-                    .clickable(enable) {
+                    .clickable(enableDecrement) {
                         onDecrement()
                     },
                 contentAlignment = Alignment.Center
@@ -390,7 +400,6 @@ fun KeyManagementSection(
             Box(
                 modifier = Modifier
                     .padding(horizontal = 12.dp)
-                    .alpha(if (enable) 1f else 0.4f)
                     .size(48.dp)
                     .border(1.dp, Color.Gray, RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center
@@ -404,9 +413,9 @@ fun KeyManagementSection(
             Box(
                 modifier = Modifier
                     .size(36.dp)
-                    .alpha(if (enable) 1f else 0.4f)
+                    .alpha(if (enableIncrement) 1f else 0.4f)
                     .border(1.dp, MaterialTheme.colorScheme.textPrimary, CircleShape)
-                    .clickable(enable) { onIncrement() },
+                    .clickable(enableIncrement) { onIncrement() },
                 contentAlignment = Alignment.Center
             ) {
                 NcIcon(
@@ -447,9 +456,10 @@ fun KeysAndRequiredKeysScreen(
             title = "Keys",
             description = "Number of keys assigned to the wallet (up to ${freeGroupWalletConfig.maxKey}).",
             value = keys,
+            enableIncrement = keys < freeGroupWalletConfig.maxKey && viewOnly.not(),
+            enableDecrement = keys > 2 && keys > requiredKeys && viewOnly.not(),
             onIncrement = { if (keys < freeGroupWalletConfig.maxKey) keys++ },
-            onDecrement = { if (keys > 2 && keys > requiredKeys) keys-- },
-            enable = keys < freeGroupWalletConfig.maxKey && viewOnly.not()
+            onDecrement = { if (keys > 2 && keys > requiredKeys) keys-- }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -458,10 +468,104 @@ fun KeysAndRequiredKeysScreen(
             title = "Required keys",
             description = "Number of signatures required to unlock funds.",
             value = requiredKeys,
+            enableIncrement = requiredKeys < keys && viewOnly.not(),
+            enableDecrement = requiredKeys > 1 && viewOnly.not(),
             onIncrement = { if (requiredKeys < keys) requiredKeys++ },
-            onDecrement = { if (requiredKeys > 1) requiredKeys-- },
-            enable = requiredKeys <= keys && viewOnly.not()
+            onDecrement = { if (requiredKeys > 1) requiredKeys-- }
         )
+    }
+}
+
+@Composable
+private fun MiniscriptSection() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = Color(0xFFFDEBD2),
+                    shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                )
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Miniscript",
+                    style = NunchukTheme.typography.body
+                )
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.surface,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.border,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = "New",
+                        style = NunchukTheme.typography.caption
+                    )
+                }
+            }
+            
+            NcRadioButton(
+                selected = false,
+                onClick = { }
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+                )
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.border,
+                    shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+                )
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "No miniscript added yet. Start creating your own spending rules.",
+                    style = NunchukTheme.typography.body,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                NcPrimaryDarkButton(
+                    modifier = Modifier,
+                    height = 36.dp,
+                    onClick = { }
+                ) {
+                    Text(
+                        text = "Add miniscript",
+                        style = NunchukTheme.typography.titleSmall.copy(
+                            color = MaterialTheme.colorScheme.controlTextPrimary
+                        )
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -470,6 +574,7 @@ fun KeysAndRequiredKeysScreen(
 private fun AddWalletViewPreview() {
     AddWalletView(
         state = AddWalletState(),
-        isEditGroupWallet = true
+        isEditGroupWallet = true,
+        isCreateMiniscriptWallet = false
     )
 }

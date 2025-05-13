@@ -81,6 +81,7 @@ import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
 import com.nunchuk.android.main.groupwallet.component.WalletInfo
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.nav.args.AddWalletArgs
 import com.nunchuk.android.type.SignerType
 
 const val freeGroupWalletRecoverRoute = "free_group_wallet_recover/{wallet_id}/{file_path}/{qr_list}"
@@ -194,18 +195,20 @@ fun NavGraphBuilder.freeGroupWalletRecover(
                 viewModel.getWallet()?.let { wallet ->
                     navigator.openAddWalletScreen(
                         activityContext = context,
-                        decoyPin = "",
                         launcher = launcher,
-                        walletConfigViewOnlyDataComposer = WalletConfigViewOnlyDataComposer(
-                            walletName = wallet.name,
-                            addressType = wallet.addressType,
-                            requireKeys = wallet.totalRequireSigns,
-                            totalKeys = wallet.signers.size,
-                            walletConfigType = getWalletConfigTypeBy(
-                                wallet.signers.size,
-                                wallet.totalRequireSigns
+                        args = AddWalletArgs(
+                            decoyPin = "",
+                            viewOnlyComposer = WalletConfigViewOnlyDataComposer(
+                                walletName = wallet.name,
+                                addressType = wallet.addressType,
+                                requireKeys = wallet.totalRequireSigns,
+                                totalKeys = wallet.signers.size,
+                                walletConfigType = getWalletConfigTypeBy(
+                                    wallet.signers.size,
+                                    wallet.totalRequireSigns
+                                )
                             )
-                        )
+                        ),
                     )
                 }
             },

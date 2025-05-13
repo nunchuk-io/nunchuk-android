@@ -23,7 +23,6 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.data.model.QuickWalletParam
-import com.nunchuk.android.core.data.model.WalletConfigViewOnlyDataComposer
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RoomWalletData
@@ -31,6 +30,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nav.args.BackUpWalletArgs
+import com.nunchuk.android.nav.args.AddWalletArgs
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.AddressType
@@ -41,11 +41,7 @@ interface PersonalWalletNavigator {
     fun openAddWalletScreen(
         activityContext: Context,
         launcher: ActivityResultLauncher<Intent>? = null,
-        decoyPin: String = "",
-        groupWalletId: String = "",
-        hasGroupSigner: Boolean = false,
-        walletConfigViewOnlyDataComposer: WalletConfigViewOnlyDataComposer? = null,
-        quickWalletParam: QuickWalletParam? = null,
+        args: AddWalletArgs
     )
 
     fun openWalletIntermediaryScreen(

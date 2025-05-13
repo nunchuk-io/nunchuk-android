@@ -21,6 +21,7 @@ package com.nunchuk.android.wallet.components.config
 
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ByzantineGroup
+import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
@@ -28,7 +29,9 @@ import com.nunchuk.android.model.membership.AssistedWalletBrief
 
 data class WalletConfigState(
     val walletExtended: WalletExtended = WalletExtended(),
+    val scriptNode: ScriptNode? = null,
     val signers: List<SignerModel> = emptyList(),
+    val signerMap: Map<String, SignerModel?> = emptyMap(),
     val isAssistedWallet: Boolean = false,
     val isInactiveAssistedWallet: Boolean = false,
     val verifyToken: String? = null,
@@ -39,5 +42,5 @@ data class WalletConfigState(
     val assistedWallet: AssistedWalletBrief? = null,
     val group: ByzantineGroup? = null,
     val isGroupSandboxWallet: Boolean = false,
-    val isDeprecatedGroupWallet: Boolean = false
+    val isDeprecatedGroupWallet: Boolean = false,
 )

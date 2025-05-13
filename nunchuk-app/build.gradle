@@ -1,6 +1,7 @@
 plugins {
     id 'androidx.baselineprofile'
     id 'org.jetbrains.kotlin.plugin.compose' version '2.0.21'
+    id 'org.jetbrains.kotlin.plugin.serialization'
 }
 apply from: '../configs/dependencies.gradle'
 apply plugin: 'com.android.application'
@@ -171,6 +172,7 @@ dependencies {
     implementation project(':nunchuk-wallet')
     implementation project(':nunchuk-wallet-personal')
     implementation project(':nunchuk-wallet-shared')
+    implementation project(':nunchuk-wallet-core')
     implementation project(':nunchuk-widget')
     implementation project(':nunchuk-transaction')
     implementation project(':nunchuk-messages')
@@ -207,6 +209,8 @@ dependencies {
     // Kotlin
     implementation navigationDeps.values()
     implementation coroutineDeps.values()
+
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
 
     implementation "com.github.skydoves:landscapist-glide:2.2.2"
 

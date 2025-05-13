@@ -61,7 +61,6 @@ interface SignerNavigatorDelegate : SignerNavigator {
         activityContext: Context,
         walletId: String,
         groupId: String?,
-        index: Int,
         supportedSigners: List<SupportedSigner>?,
         keyFlow: Int,
     ) {
@@ -69,7 +68,6 @@ interface SignerNavigatorDelegate : SignerNavigator {
             activityContext = activityContext,
             walletId = walletId,
             groupId = groupId,
-            index = index,
             supportedSigners = supportedSigners,
             keyFlow = keyFlow,
         )

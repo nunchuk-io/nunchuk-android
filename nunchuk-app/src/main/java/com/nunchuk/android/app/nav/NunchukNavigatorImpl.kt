@@ -24,6 +24,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
+import com.nunchuk.android.app.miniscript.MiniscriptActivity
 import com.nunchuk.android.app.onboard.OnboardActivity
 import com.nunchuk.android.app.referral.ReferralActivity
 import com.nunchuk.android.app.splash.SplashActivity
@@ -61,6 +62,7 @@ import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.MainComposeArgs
+import com.nunchuk.android.nav.args.MiniscriptArgs
 import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
 import com.nunchuk.android.signer.nav.NfcNavigatorDelegate
 import com.nunchuk.android.signer.nav.SignerNavigatorDelegate
@@ -429,5 +431,12 @@ interface AppNavigatorDelegate : AppNavigator {
             source = source,
             antiFeeSniping = antiFeeSniping
         )
+    }
+
+    override fun openMiniscriptScreen(
+        activityContext: Context,
+        args: MiniscriptArgs
+    ) {
+        MiniscriptActivity.start(activityContext, args)
     }
 }

@@ -148,7 +148,6 @@ class SignerIntroActivity : BaseComposeActivity() {
     companion object {
         private const val EXTRA_WALLET_ID = "wallet_id"
         private const val EXTRA_GROUP_ID = "group_id"
-        private const val EXTRA_INDEX = "index"
         private const val EXTRA_SUPPORTED_SIGNERS = "supported_signers"
         private const val EXTRA_KEY_FLOW = "key_flow"
 
@@ -156,7 +155,6 @@ class SignerIntroActivity : BaseComposeActivity() {
             activityContext: Context,
             walletId: String? = null,
             groupId: String? = null,
-            index: Int = -1,
             supportedSigners: List<SupportedSigner>? = null,
             @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
         ) {
@@ -164,7 +162,6 @@ class SignerIntroActivity : BaseComposeActivity() {
                 Intent(activityContext, SignerIntroActivity::class.java).apply {
                     putExtra(EXTRA_WALLET_ID, walletId)
                     putExtra(EXTRA_GROUP_ID, groupId)
-                    putExtra(EXTRA_INDEX, index)
                     putExtra(EXTRA_KEY_FLOW, keyFlow)
                     supportedSigners?.let {
                         putParcelableArrayListExtra(EXTRA_SUPPORTED_SIGNERS, ArrayList(it))

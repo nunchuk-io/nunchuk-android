@@ -40,6 +40,8 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.getWalletColors
 import com.nunchuk.android.compose.isLimitAccess
+import com.nunchuk.android.compose.miniscript.PolicyHeader
+import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.textPrimary
@@ -223,37 +225,66 @@ internal fun WalletConfigView(
                         }
                     }
                 }
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
-                ) {
-                    item("key") {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            NcIcon(
-                                modifier = Modifier.size(24.dp),
-                                painter = painterResource(id = R.drawable.ic_mulitsig_dark),
-                                contentDescription = "Key",
-                                tint = MaterialTheme.colorScheme.textPrimary
-                            )
+                if (state.scriptNode != null && state.signerMap.isNotEmpty()) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        val parentModifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
+                        item {
+                            Column(modifier = parentModifier) {
 
-                            Text(
-                                text = stringResource(id = R.string.nc_title_signers),
-                                style = NunchukTheme.typography.body
-                            )
+                                PolicyHeader(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp, bottom = 20.dp)
+                                )
+
+                                ScriptNodeTree(
+                                    parentModifier = Modifier,
+                                    node = state.scriptNode,
+                                    signers = state.signerMap,
+                                    showBip32Path = true,
+                                    onChangeBip32Path = { _, _ -> },
+                                    onAddNewKey = { },
+                                    onRemoveKey = { },
+                                    readOnly = true
+                                )
+                            }
                         }
                     }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        item("key") {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                NcIcon(
+                                    modifier = Modifier.size(24.dp),
+                                    painter = painterResource(id = R.drawable.ic_mulitsig_dark),
+                                    contentDescription = "Key",
+                                    tint = MaterialTheme.colorScheme.textPrimary
+                                )
 
-                    itemsIndexed(state.signers) { index, signer ->
-                        WalletSignerCard(
-                            signer = signer,
-                            state = state,
-                            isValueKey = isTaproot && !isValueKeySetDisabled && index < totalRequireSigns,
-                            openWalletConfig = openWalletConfig
-                        )
+                                Text(
+                                    text = stringResource(id = R.string.nc_title_signers),
+                                    style = NunchukTheme.typography.body
+                                )
+                            }
+                        }
+
+                        itemsIndexed(state.signers) { index, signer ->
+                            WalletSignerCard(
+                                signer = signer,
+                                state = state,
+                                isValueKey = isTaproot && !isValueKeySetDisabled && index < totalRequireSigns,
+                                openWalletConfig = openWalletConfig
+                            )
+                        }
                     }
                 }
             }

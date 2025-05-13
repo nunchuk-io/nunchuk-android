@@ -896,6 +896,9 @@
     <string name="nc_text_wallet_qr_code">QR code</string>
     <string name="nc_bsms_descriptors">BSMS/descriptors</string>
     <string name="nc_or">Or</string>
+    <string name="nc_miniscript">Miniscript</string>
+    <string name="nc_miniscript_wallet_desc">Build custom spending rules with signatures, timelocks, and hashlocks.</string>
+    <string name="nc_miniscript_desc">Miniscript is a structured language for writing Bitcoin scripts in a more efficient, composable, and analyzable way. It simplifies complex spending conditions by allowing logical combinations of signatures, timelocks, and hashlocks.\n\nWith Miniscript, users can create flexible wallet rules while ensuring security and compatibility with Bitcoin’s scripting system. This makes it ideal for advanced multisig setups, automated recovery mechanisms, and custom wallet logic.</string>
     <string name="nc_fee_difference_threshold_percent">Fee difference threshold (%)</string>
     <string name="nc_automatic_fee">Automatic fee</string>
     <string name="nc_automatic_fee_desc">Automatically selects the highest fee from available signing policies if the fee difference is below your configured threshold</string>

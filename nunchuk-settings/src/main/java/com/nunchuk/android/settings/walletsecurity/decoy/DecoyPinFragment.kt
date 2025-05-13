@@ -58,6 +58,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.nav.args.AddWalletArgs
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingActivity
 import dagger.hilt.android.AndroidEntryPoint
@@ -75,10 +76,17 @@ class DecoyPinFragment : Fragment() {
             onContinueClick = { hasWallet, pin ->
                 if (hasWallet) {
                     findNavController().navigate(
-                        DecoyPinFragmentDirections.actionDecoyPinFragmentToDecoyWalletCreateFragment(pin)
+                        DecoyPinFragmentDirections.actionDecoyPinFragmentToDecoyWalletCreateFragment(
+                            pin
+                        )
                     )
                 } else {
-                    navigator.openAddWalletScreen(activityContext = requireContext(), decoyPin = pin, quickWalletParam = (requireActivity() as? WalletSecuritySettingActivity)?.args?.quickWalletParam)
+                    navigator.openAddWalletScreen(
+                        activityContext = requireContext(), args = AddWalletArgs(
+                            decoyPin = pin,
+                            quickWalletParam = (requireActivity() as? WalletSecuritySettingActivity)?.args?.quickWalletParam
+                        )
+                    )
                 }
             }
         )
@@ -125,7 +133,8 @@ private fun DecoyPinContent(
                     enabled = pin.isNotEmpty() && confirmPin.isNotEmpty(),
                     onClick = {
                         if (getHashPin(pin) == uiState.walletPin) {
-                            pinErrorMsg = context.getString(R.string.nc_decoy_pin_same_as_wallet_pin)
+                            pinErrorMsg =
+                                context.getString(R.string.nc_decoy_pin_same_as_wallet_pin)
                         } else if (pin != confirmPin) {
                             confirmPinErrorMsg =
                                 context.getString(R.string.nc_confirm_pin_does_not_match)

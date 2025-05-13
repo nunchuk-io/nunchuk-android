@@ -40,6 +40,7 @@ import com.nunchuk.android.main.membership.wallet.navigateCreateWalletSuccessScr
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.nav.args.AddWalletArgs
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
@@ -132,9 +133,11 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                 onEditClicked = { groupId, hasGroupSigner ->
                                     navigator.openAddWalletScreen(
                                         activityContext = this@FreeGroupWalletActivity,
-                                        decoyPin = "",
-                                        groupWalletId = groupId,
-                                        hasGroupSigner = hasGroupSigner,
+                                        args = AddWalletArgs(
+                                            decoyPin = "",
+                                            groupWalletId = groupId,
+                                            hasGroupSigner = hasGroupSigner,
+                                        )
                                     )
                                 },
                                 onShowQRCodeClicked = {
@@ -150,7 +153,6 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                 },
                                 onAddNewKey = {
                                     openSignerIntro(
-                                        index = it,
                                         groupId = viewModel.groupId,
                                         supportedSigners = viewModel.getSuggestedSigners()
                                     )
@@ -232,7 +234,6 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                 qrList = intent.getStringArrayListExtra(EXTRA_QR_LIST).orEmpty(),
                                 onAddNewKey = { walletId, supportedSigners ->
                                     openSignerIntro(
-                                        index = -1,
                                         groupId = walletId,
                                         supportedSigners = supportedSigners
                                     )
@@ -345,14 +346,12 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
     }
 
     private fun openSignerIntro(
-        index: Int,
         groupId: String,
         supportedSigners: List<SupportedSigner>
     ) {
         navigator.openSignerIntroScreen(
             activityContext = this,
             groupId = groupId,
-            index = index,
             supportedSigners = supportedSigners
         )
     }

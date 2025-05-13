@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.wallet.personal.components.add
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -33,15 +32,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.base.BaseComposeActivity
-import com.nunchuk.android.core.data.model.QuickWalletParam
-import com.nunchuk.android.core.data.model.WalletConfigViewOnlyDataComposer
 import com.nunchuk.android.core.util.ADD_WALLET_RESULT
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.showToast
+import com.nunchuk.android.nav.args.AddWalletArgs
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
+import com.nunchuk.android.nav.args.MiniscriptArgs
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
-import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.personal.R
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -52,45 +50,29 @@ class AddWalletActivity : BaseComposeActivity() {
 
     private val viewModel: AddWalletViewModel by viewModels()
 
-    private val pin: String by lazy(LazyThreadSafetyMode.NONE) {
-        intent.getStringExtra(DECOY_PIN).orEmpty()
-    }
-
-    private val groupWalletId: String by lazy(LazyThreadSafetyMode.NONE) {
-        intent.getStringExtra(GROUP_WALLET_ID).orEmpty()
-    }
-
-    private val hasGroupSigner: Boolean by lazy(LazyThreadSafetyMode.NONE) {
-        intent.getBooleanExtra(HAS_GROUP_SIGNER, false)
-    }
-
-    private val viewOnlyComposer: WalletConfigViewOnlyDataComposer? by lazy(LazyThreadSafetyMode.NONE) {
-        intent.parcelable(VIEW_ONLY_COMPOSER)
-    }
-
-    private val quickWalletParam: QuickWalletParam? by lazy(LazyThreadSafetyMode.NONE) {
-        intent.parcelable(QUICK_WALLET_PARAM)
-    }
+    private val args: AddWalletArgs by lazy { AddWalletArgs.deserializeFrom(intent) }
 
     private var isAlreadyShowChangeAddressTypeDialog = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel.init(args.groupWalletId)
         enableEdgeToEdge()
         setContent {
             val state by viewModel.state.collectAsStateWithLifecycle()
             AddWalletView(
                 state = state,
-                viewOnlyComposer = viewOnlyComposer,
-                isViewConfigOnly = viewOnlyComposer != null || !state.groupSandbox?.replaceWalletId.isNullOrEmpty(),
-                isEditGroupWallet = groupWalletId.isNotEmpty(),
+                isCreateMiniscriptWallet = args.isCreateMiniscriptWallet,
+                viewOnlyComposer = args.viewOnlyComposer,
+                isViewConfigOnly = args.viewOnlyComposer != null || !state.groupSandbox?.replaceWalletId.isNullOrEmpty(),
+                isEditGroupWallet = args.groupWalletId.isNotEmpty(),
                 onSelectAddressType = {
-                    if (groupWalletId.isNotEmpty()) {
+                    if (args.groupWalletId.isNotEmpty()) {
                         val action = {
                             viewModel.updateAddressTypeSelected(it)
                             viewModel.getFreeGroupWalletConfig(it)
                         }
-                        if (viewModel.state.value.groupSandbox?.addressType != it && hasGroupSigner && isAlreadyShowChangeAddressTypeDialog.not()) {
+                        if (viewModel.state.value.groupSandbox?.addressType != it && args.hasGroupSigner && isAlreadyShowChangeAddressTypeDialog.not()) {
                             showChangeAddressTypeDialog {
                                 isAlreadyShowChangeAddressTypeDialog = true
                                 action()
@@ -102,14 +84,20 @@ class AddWalletActivity : BaseComposeActivity() {
                         viewModel.updateAddressTypeSelected(it)
                     }
                 }, onContinue = { walletName, addressType, m, n ->
-                    if (viewOnlyComposer != null) {
+                    if (args.viewOnlyComposer != null) {
                         setResult(
-                            Activity.RESULT_OK,
+                            RESULT_OK,
                             Intent().apply { putExtra(ADD_WALLET_RESULT, walletName) }
                         )
                         finish()
-                    } else if (groupWalletId.isNotEmpty()) {
+                    } else if (args.groupWalletId.isNotEmpty()) {
                         viewModel.updateGroupSandboxConfig(walletName, m, n)
+                    } else if (args.isCreateMiniscriptWallet) {
+                        navigator.openMiniscriptScreen(this,
+                            args = MiniscriptArgs(
+                                walletName = walletName,
+                                addressType = addressType
+                            ))
                     } else {
                         openAssignSignerScreen(
                             walletName = walletName,
@@ -146,8 +134,8 @@ class AddWalletActivity : BaseComposeActivity() {
                 walletName = walletName,
                 walletType = WalletType.MULTI_SIG,
                 addressType = addressType,
-                decoyPin = pin,
-                quickWalletParam = quickWalletParam
+                decoyPin = args.decoyPin,
+                quickWalletParam = args.quickWalletParam
             )
         } else {
             navigator.openConfigureWalletScreen(
@@ -156,8 +144,8 @@ class AddWalletActivity : BaseComposeActivity() {
                     walletName = walletName,
                     walletType = WalletType.MULTI_SIG,
                     addressType = addressType,
-                    decoyPin = pin,
-                    quickWalletParam = quickWalletParam
+                    decoyPin = args.decoyPin,
+                    quickWalletParam = args.quickWalletParam
                 )
             )
         }
@@ -174,25 +162,13 @@ class AddWalletActivity : BaseComposeActivity() {
     }
 
     companion object {
-        private const val DECOY_PIN = "decoy_wallet"
-        const val GROUP_WALLET_ID = "group_wallet_id"
-        private const val HAS_GROUP_SIGNER = "has_group_signer"
-        private const val VIEW_ONLY_COMPOSER = "view_only_composer"
-        private const val QUICK_WALLET_PARAM = "quick_wallet_param"
-
         fun start(
             activityContext: Context,
             launcher: ActivityResultLauncher<Intent>? = null,
-            decoyPin: String, groupWalletId: String,
-            hasGroupSigner: Boolean, viewOnlyComposer: WalletConfigViewOnlyDataComposer? = null,
-            quickWalletParam: QuickWalletParam?
+            args: AddWalletArgs
         ) {
             val intent = Intent(activityContext, AddWalletActivity::class.java).apply {
-                putExtra(DECOY_PIN, decoyPin)
-                putExtra(GROUP_WALLET_ID, groupWalletId)
-                putExtra(HAS_GROUP_SIGNER, hasGroupSigner)
-                putExtra(VIEW_ONLY_COMPOSER, viewOnlyComposer)
-                putExtra(QUICK_WALLET_PARAM, quickWalletParam)
+                putExtras(args.buildBundle())
             }
             if (launcher != null) {
                 launcher.launch(intent)

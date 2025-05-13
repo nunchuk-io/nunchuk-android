@@ -14,8 +14,8 @@ class GetCurrentIndexFromMasterSignerUseCase @Inject constructor(
 ) : UseCase<GetCurrentIndexFromMasterSignerUseCase.Param, Int>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param): Int {
-        return nativeSdk.getCurrentSignerIndex(
-            xfp = parameters.xfp,
+        return nativeSdk.getCurrentIndexFromMasterSigner(
+            mastersignerId = parameters.xfp,
             walletType = parameters.walletType.ordinal,
             addressType = parameters.addressType.ordinal
         )

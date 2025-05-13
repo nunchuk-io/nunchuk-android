@@ -57,6 +57,7 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.nav.args.AddWalletArgs
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.personal.R
@@ -69,7 +70,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
+class WalletIntermediaryFragment : BaseCameraFragment<ViewBinding>(),
     BottomSheetOptionListener {
 
     @Inject
@@ -201,6 +202,10 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
                     activityContext = requireContext(),
                     args = WalletSecurityArgs(type = WalletSecurityType.CREATE_DECOY_WALLET, quickWalletParam = quickWalletParam),
                 )
+            }
+
+            WalletType.MINISCRIPT -> {
+                openCreateNewWalletScreen(true)
             }
         }
     }
@@ -386,8 +391,13 @@ class WalletIntermediaryNewUIFragment : BaseCameraFragment<ViewBinding>(),
         }
     }
 
-    private fun openCreateNewWalletScreen() {
-        navigator.openAddWalletScreen(requireContext(), quickWalletParam = quickWalletParam)
+    private fun openCreateNewWalletScreen(
+        isMiniscript: Boolean = false,
+    ) {
+        navigator.openAddWalletScreen(requireContext(), args = AddWalletArgs(
+            quickWalletParam = quickWalletParam,
+            isCreateMiniscriptWallet = isMiniscript,
+        ))
     }
 
     private fun openRecoverWalletScreen() {

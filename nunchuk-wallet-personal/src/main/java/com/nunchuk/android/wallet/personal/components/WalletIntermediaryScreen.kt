@@ -375,6 +375,17 @@ fun FreeUserWalletTypeContent(
             modifier = Modifier
                 .padding(start = 16.dp, end = 16.dp, top = 24.dp)
                 .clickable {
+                    onWalletTypeSelected(WalletType.MINISCRIPT)
+                },
+            title = stringResource(id = R.string.nc_miniscript),
+            desc = stringResource(R.string.nc_miniscript_wallet_desc),
+            resId = R.drawable.ic_miniscript
+        )
+
+        WalletTypeItem(
+            modifier = Modifier
+                .padding(start = 16.dp, end = 16.dp, top = 24.dp)
+                .clickable {
                     onWalletTypeSelected(WalletType.DECOY)
                 },
             title = stringResource(id = R.string.nc_decoy_wallet),
@@ -475,5 +486,6 @@ enum class WalletType {
     GROUP,
     DECOY,
     ASSISTED,
-    UNASSISTED
+    UNASSISTED,
+    MINISCRIPT
 }

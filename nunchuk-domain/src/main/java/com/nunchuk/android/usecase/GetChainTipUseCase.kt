@@ -19,20 +19,17 @@
 
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Result
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface GetChainTipUseCase {
-    suspend fun execute(): Result<Int>
-}
+class GetChainTipUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<Unit, Int>(ioDispatcher) {
 
-internal class GetChainTipUseCaseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
-) : BaseUseCase(), GetChainTipUseCase {
-
-    override suspend fun execute() = exe {
-        nativeSdk.getChainTip()
+    override suspend fun execute(parameters: Unit): Int {
+        return nativeSdk.getChainTip()
     }
-
 }

@@ -31,6 +31,7 @@ import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesDel
 import com.nunchuk.android.core.domain.membership.DeleteAssistedWalletUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
+import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -41,6 +42,7 @@ import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.messages.usecase.message.LeaveRoomUseCase
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.RoomWallet
+import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
@@ -54,6 +56,7 @@ import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.DeleteWalletUseCase
 import com.nunchuk.android.usecase.ExportTransactionsHistoryUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
+import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
@@ -126,6 +129,8 @@ internal class WalletConfigViewModel @Inject constructor(
     private val getDeprecatedGroupWalletsUseCase: GetDeprecatedGroupWalletsUseCase,
     private val setBackUpBannerWalletIdsUseCase: SetBackUpBannerWalletIdsUseCase,
     private val exportTransactionsHistoryUseCase: ExportTransactionsHistoryUseCase,
+    private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
+    private val parseSignerStringUseCase: ParseSignerStringUseCase,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletConfigState())
@@ -223,8 +228,36 @@ internal class WalletConfigViewModel @Inject constructor(
                             assistedWallet = state.assistedWallet
                         )
                     }
+                    getMiniscriptInfo()
                 }
         }
+    }
+
+    private suspend fun getMiniscriptInfo() {
+        if (state.value.walletExtended.wallet.miniscript.isNotEmpty()) {
+            getScriptNodeFromMiniscriptTemplateUseCase(state.value.walletExtended.wallet.miniscript).onSuccess { scriptNode ->
+                _state.update { it.copy(scriptNode = scriptNode) }
+                val signerMap = parseSignersFromScriptNode(scriptNode)
+                _state.update { it.copy(signerMap = signerMap) }
+            }.onFailure {
+                _event.emit(WalletConfigEvent.WalletDetailsError(it.message.orUnknownError()))
+            }
+        } else {
+            _state.update { it.copy(scriptNode = null) }
+        }
+    }
+
+    private suspend fun parseSignersFromScriptNode(node: ScriptNode): Map<String, SignerModel?> {
+        val signerMap = mutableMapOf<String, SignerModel?>()
+        node.keys.forEach { key ->
+            val signer = parseSignerStringUseCase(key).getOrNull()
+            val existingSigner = _state.value.signers.find { it.fingerPrint == signer?.masterFingerprint }
+            signerMap[key] = signer?.toModel()?.copy(name = existingSigner?.name ?: signer.name)
+        }
+        node.subs.forEach { subNode ->
+            signerMap.putAll(parseSignersFromScriptNode(subNode))
+        }
+        return signerMap
     }
 
     private fun getUserRole() {

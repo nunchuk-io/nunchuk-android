@@ -38,7 +38,6 @@ interface SignerNavigator {
         activityContext: Context,
         walletId: String = "",
         groupId: String? = null,
-        index: Int = -1,
         supportedSigners: List<SupportedSigner>? = null,
         @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
     )

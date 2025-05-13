@@ -99,6 +99,7 @@ fun NcTextField(
     roundBoxRadius: Dp = 8.dp,
     onFocusEvent: (Boolean) -> Unit = {},
     secondTitle: @Composable (() -> Unit)? = null,
+    bottomContent: @Composable (() -> Unit)? = null,
     onValueChange: (value: String) -> Unit,
 ) {
     val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
@@ -211,11 +212,15 @@ fun NcTextField(
                 )
             },
         )
-        if (!error.isNullOrEmpty() || !hint.isNullOrEmpty()) {
+        if (!error.isNullOrEmpty() || !hint.isNullOrEmpty() || bottomContent != null) {
             val color =
                 if (hasError) colorResource(R.color.nc_orange_color) else MaterialTheme.colorScheme.textSecondary
             CompositionLocalProvider(LocalContentColor provides color) {
-                BottomText(error ?: hint)
+                if (bottomContent != null) {
+                    bottomContent()
+                } else {
+                    BottomText(error ?: hint)
+                }
             }
         }
     }

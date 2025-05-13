@@ -32,6 +32,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nav.WalletNavigator
 import com.nunchuk.android.nav.args.BackUpWalletArgs
+import com.nunchuk.android.nav.args.AddWalletArgs
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.AddressType
@@ -62,18 +63,12 @@ interface WalletNavigatorDelegate : WalletNavigator {
     override fun openAddWalletScreen(
         activityContext: Context,
         launcher: ActivityResultLauncher<Intent>?,
-        decoyPin: String, groupWalletId: String, hasGroupSigner: Boolean,
-        walletConfigViewOnlyDataComposer: WalletConfigViewOnlyDataComposer?,
-        quickWalletParam: QuickWalletParam?
+        args: AddWalletArgs
     ) {
         AddWalletActivity.start(
             activityContext = activityContext,
             launcher = launcher,
-            decoyPin = decoyPin,
-            groupWalletId = groupWalletId,
-            hasGroupSigner = hasGroupSigner,
-            viewOnlyComposer = walletConfigViewOnlyDataComposer,
-            quickWalletParam = quickWalletParam
+            args = args
         )
     }
 
