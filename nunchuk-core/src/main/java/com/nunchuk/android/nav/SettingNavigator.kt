@@ -22,6 +22,7 @@ package com.nunchuk.android.nav
 import android.content.Context
 import com.nunchuk.android.core.util.UnlockPinSourceFlow
 import com.nunchuk.android.core.wallet.WalletSecurityArgs
+import com.nunchuk.android.nav.args.FeeSettingArgs
 
 interface SettingNavigator {
     fun openNetworkSettingScreen(activityContext: Context)
@@ -40,5 +41,5 @@ interface SettingNavigator {
     fun openLocalCurrencyScreen(activityContext: Context)
     fun openUnlockPinScreen(activityContext: Context, sourceFlowInfo: Int = UnlockPinSourceFlow.NONE)
     fun openBiometricScreen(activityContext: Context)
-    fun openFeeSettingsScreen(activityContext: Context)
+    fun openFeeSettingsScreen(activityContext: Context, args: FeeSettingArgs)
 }

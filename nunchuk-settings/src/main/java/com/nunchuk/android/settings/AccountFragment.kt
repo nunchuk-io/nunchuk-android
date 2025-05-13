@@ -49,6 +49,8 @@ import com.nunchuk.android.core.wallet.WalletSecurityArgs
 import com.nunchuk.android.core.wallet.WalletSecurityType
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.campaigns.CampaignType
+import com.nunchuk.android.nav.args.FeeSettingArgs
+import com.nunchuk.android.nav.args.FeeSettingStartDestination
 import com.nunchuk.android.settings.AccountEvent.SignOutEvent
 import com.nunchuk.android.settings.databinding.FragmentAccountBinding
 import com.nunchuk.android.utils.consumeEdgeToEdge
@@ -332,7 +334,7 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
             )
         }
         binding.feeSettings.setOnClickListener {
-            navigator.openFeeSettingsScreen(requireActivity())
+            navigator.openFeeSettingsScreen(requireActivity(), FeeSettingArgs(FeeSettingStartDestination.MAIN))
         }
     }
 

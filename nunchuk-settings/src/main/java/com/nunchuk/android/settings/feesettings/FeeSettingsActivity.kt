@@ -13,6 +13,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.nav.args.FeeSettingArgs
+import com.nunchuk.android.nav.args.FeeSettingStartDestination
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -20,10 +22,18 @@ import dagger.hilt.android.AndroidEntryPoint
 class FeeSettingsActivity : BaseComposeActivity() {
 
     private val viewModel: FeeSettingsViewModel by viewModels()
+    private val args: FeeSettingArgs by lazy { FeeSettingArgs.deserializeFrom(intent.extras ?: Bundle()) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val startDestination = when (args.destination) {
+            FeeSettingStartDestination.MAIN -> "fee_settings"
+            FeeSettingStartDestination.DEFAULT_FEE_RATE -> "default_fee_rate"
+            FeeSettingStartDestination.TAPROOT_FEE_SELECTION -> "taproot_fee_selection"
+        }
+
         setContentView(
             ComposeView(this).apply {
                 setContent {
@@ -32,7 +42,7 @@ class FeeSettingsActivity : BaseComposeActivity() {
 
                     NavHost(
                         navController = navHostController,
-                        startDestination = "fee_settings"
+                        startDestination = startDestination
                     ) {
                         composable("fee_settings") {
                             FeeSettingsContent(
@@ -80,8 +90,10 @@ class FeeSettingsActivity : BaseComposeActivity() {
     }
 
     companion object {
-        fun start(context: Context) {
-            context.startActivity(Intent(context, FeeSettingsActivity::class.java))
+        fun start(context: Context, args: FeeSettingArgs) {
+            context.startActivity(Intent(context, FeeSettingsActivity::class.java).apply {
+                putExtras(args.buildBundle())
+            })
         }
     }
 }

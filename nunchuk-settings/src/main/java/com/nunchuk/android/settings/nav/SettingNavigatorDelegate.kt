@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.core.wallet.WalletSecurityArgs
 import com.nunchuk.android.nav.SettingNavigator
+import com.nunchuk.android.nav.args.FeeSettingArgs
 import com.nunchuk.android.settings.about.AboutActivity
 import com.nunchuk.android.settings.developer.DeveloperSettingActivity
 import com.nunchuk.android.settings.devices.UserDevicesActivity
@@ -103,7 +104,7 @@ interface SettingNavigatorDelegate : SettingNavigator {
         )
     }
 
-    override fun openFeeSettingsScreen(activityContext: Context) {
-        FeeSettingsActivity.start(activityContext)
+    override fun openFeeSettingsScreen(activityContext: Context, args: FeeSettingArgs) {
+        FeeSettingsActivity.start(context = activityContext, args = args)
     }
 }
