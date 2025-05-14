@@ -38,6 +38,7 @@ import com.nunchuk.android.persistence.dao.SavedAddressDao
 import com.nunchuk.android.persistence.dao.SyncEventDao
 import com.nunchuk.android.persistence.dao.SyncFileDao
 import com.nunchuk.android.persistence.dao.WalletOrderDao
+import com.nunchuk.android.persistence.dao.TaprootTransactionDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -123,4 +124,9 @@ internal object NunchukPersistenceModule {
     @Provides
     fun provideWalletOrderDao(database: NunchukDatabase): WalletOrderDao =
         database.walletOrderDao()
+
+    @Singleton
+    @Provides
+    fun provideTaprootTransactionDao(database: NunchukDatabase): TaprootTransactionDao =
+        database.taprootTransactionDao()
 }

@@ -19,8 +19,8 @@
 
 package com.nunchuk.android.transaction.components.send.confirmation
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
@@ -28,8 +28,10 @@ import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransact
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.util.fromBTCToCurrency
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Amount
@@ -50,17 +52,23 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
+import com.nunchuk.android.usecase.GetTaprootSelectionFeeSettingUseCase
 import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
 import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
+import com.nunchuk.android.usecase.transaction.SaveTaprootKeySetSelectionUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -79,9 +87,14 @@ class TransactionConfirmViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val isMyCoinUseCase: IsMyCoinUseCase,
     private val addToCoinTagUseCase: AddToCoinTagUseCase,
-) : NunchukViewModel<Unit, TransactionConfirmEvent>() {
+    private val getTaprootSelectionFeeSettingUseCase: GetTaprootSelectionFeeSettingUseCase,
+    private val saveTaprootKeySetSelectionUseCase: SaveTaprootKeySetSelectionUseCase
+) : ViewModel() {
     private val _state = MutableStateFlow(TransactionConfirmUiState())
     val uiState = _state.asStateFlow()
+
+    private val _event = MutableSharedFlow<TransactionConfirmEvent>()
+    val event = _event.asSharedFlow()
 
     private var manualFeeRate: Int = -1
     private lateinit var walletId: String
@@ -92,8 +105,6 @@ class TransactionConfirmViewModel @Inject constructor(
     private lateinit var privateNote: String
     private var claimInheritanceTxParam: ClaimInheritanceTxParam? = null
     private var antiFeeSniping: Boolean = false
-
-    override val initialState = Unit
 
     fun init(
         walletId: String,
@@ -143,8 +154,8 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 
     private fun initRoomTransaction() {
-        event(LoadingEvent())
         viewModelScope.launch {
+            _event.emit(LoadingEvent())
             val roomId = sessionHolder.getActiveRoomId()
             initRoomTransactionUseCase.execute(
                 roomId = roomId,
@@ -153,10 +164,10 @@ class TransactionConfirmViewModel @Inject constructor(
                 feeRate = manualFeeRate.toManualFeeRate()
             )
                 .flowOn(Dispatchers.IO)
-                .onException { event(InitRoomTransactionError(it.message.orUnknownError())) }
+                .onException { _event.emit(InitRoomTransactionError(it.message.orUnknownError())) }
                 .collect {
                     delay(WAITING_FOR_CONSUME_EVENT_SECONDS)
-                    event(InitRoomTransactionSuccess(roomId))
+                    _event.emit(InitRoomTransactionSuccess(roomId))
                 }
         }
     }
@@ -172,27 +183,31 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 
     private fun draftNormalTransaction() {
-        event(LoadingEvent())
         viewModelScope.launch {
-            draftTransactionUseCase(
-                DraftTransactionUseCase.Params(
-                    walletId = walletId,
-                    outputs = getOutputs(),
-                    subtractFeeFromAmount = subtractFeeFromAmount,
-                    feeRate = manualFeeRate.toManualFeeRate(),
-                    inputs = inputs.map { TxInput(it.txid, it.vout) }
-                )
-            ).onSuccess {
+            _event.emit(LoadingEvent())
+            draftNormalTransaction(false).onSuccess {
                 onDraftTransactionSuccess(it)
             }.onFailure {
-                event(CreateTxErrorEvent(it.message.orUnknownError()))
+                _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
             }
         }
     }
 
+    private suspend fun draftNormalTransaction(useScriptPath: Boolean = false) =
+        draftTransactionUseCase(
+            DraftTransactionUseCase.Params(
+                walletId = walletId,
+                outputs = getOutputs(),
+                subtractFeeFromAmount = subtractFeeFromAmount,
+                feeRate = manualFeeRate.toManualFeeRate(),
+                inputs = inputs.map { TxInput(it.txid, it.vout) },
+                useScriptPath = useScriptPath
+            )
+        )
+
     private fun draftSatsCardTransaction() {
-        event(LoadingEvent())
         viewModelScope.launch {
+            _event.emit(LoadingEvent())
             val result = draftSatsCardTransactionUseCase(
                 DraftSatsCardTransactionUseCase.Data(
                     txReceipts.first().address,
@@ -203,14 +218,14 @@ class TransactionConfirmViewModel @Inject constructor(
             if (result.isSuccess) {
                 onDraftTransactionSuccess(result.getOrThrow())
             } else {
-                event(CreateTxErrorEvent(result.exceptionOrNull()?.message.orEmpty()))
+                _event.emit(CreateTxErrorEvent(result.exceptionOrNull()?.message.orEmpty()))
             }
         }
     }
 
     private fun draftInheritanceTransaction() {
-        event(LoadingEvent())
         viewModelScope.launch {
+            _event.emit(LoadingEvent())
             val result = inheritanceClaimCreateTransactionUseCase(
                 InheritanceClaimCreateTransactionUseCase.Param(
                     masterSignerIds = claimInheritanceTxParam?.masterSignerIds.orEmpty(),
@@ -226,7 +241,7 @@ class TransactionConfirmViewModel @Inject constructor(
             if (result.isSuccess) {
                 onDraftTransactionSuccess(result.getOrThrow())
             } else {
-                event(CreateTxErrorEvent(result.exceptionOrNull()?.message.orEmpty()))
+                _event.emit(CreateTxErrorEvent(result.exceptionOrNull()?.message.orEmpty()))
             }
         }
     }
@@ -236,38 +251,76 @@ class TransactionConfirmViewModel @Inject constructor(
             false
         )
 
-    private fun onDraftTransactionSuccess(data: Transaction) {
+    private suspend fun onDraftTransactionSuccess(data: Transaction) {
         _state.update { state ->
             state.copy(transaction = data)
         }
-        setEvent(DraftTransactionSuccess(data))
+        _event.emit(DraftTransactionSuccess(data))
         val hasChange: Boolean = data.hasChangeIndex()
         if (hasChange) {
             val txOutput = data.outputs[data.changeIndex]
-            event(UpdateChangeAddress(txOutput.first, txOutput.second))
+            _event.emit(UpdateChangeAddress(txOutput.first, txOutput.second))
         } else {
-            event(UpdateChangeAddress("", Amount(0)))
+            _event.emit(UpdateChangeAddress("", Amount(0)))
         }
     }
 
-    fun handleConfirmEvent(isQuickCreateTransaction: Boolean = false) {
+    fun checkShowTaprootDraftTransaction() {
+        viewModelScope.launch {
+            runCatching {
+                val autoSelectionSetting =
+                    getTaprootSelectionFeeSettingUseCase(Unit).map { it.getOrThrow() }.first()
+                val draftTxKeyPath = draftNormalTransaction(true).getOrThrow()
+                val draftTxScriptPath = draftNormalTransaction(false).getOrThrow()
+
+                val feeDifference = draftTxScriptPath.fee - draftTxKeyPath.fee
+                val draftTx =
+                    if (!autoSelectionSetting.automaticFeeEnabled || feeDifference.pureBTC()
+                            .fromBTCToCurrency() > autoSelectionSetting.feeDifferenceThresholdUsd.toDouble()
+                    ) {
+                        TaprootDraftTransaction(
+                            draftTxKeyPath = draftTxKeyPath,
+                            draftTxScriptPath = draftTxScriptPath,
+                        )
+                    } else null
+                _event.emit(
+                    TransactionConfirmEvent.DraftTaprootTransactionSuccess(draftTx)
+                )
+            }.onFailure {
+                _event.emit(
+                    CreateTxErrorEvent(it.message.orUnknownError())
+                )
+            }
+        }
+    }
+
+    /**
+     * @param keySetIndex only for taproot transaction, 0 is value keyset, other is script path
+     */
+    fun handleConfirmEvent(
+        isQuickCreateTransaction: Boolean = false,
+        keySetIndex: Int = 0
+    ) {
         if (sessionHolder.hasActiveRoom()) {
             initRoomTransaction()
         } else {
             if (isInheritanceClaimingFlow()) {
                 createInheritanceTransaction()
             } else {
-                createNewTransaction(isQuickCreateTransaction)
+                createNewTransaction(
+                    isQuickCreateTransaction = isQuickCreateTransaction,
+                    keySetIndex = keySetIndex
+                )
             }
         }
     }
 
     fun isInheritanceClaimingFlow() = claimInheritanceTxParam.isInheritanceClaimFlow()
 
-    private fun createNewTransaction(isQuickCreateTransaction: Boolean) {
+    private fun createNewTransaction(isQuickCreateTransaction: Boolean, keySetIndex: Int) {
         viewModelScope.launch {
-            event(LoadingEvent())
-            val result = createTransactionUseCase(
+            _event.emit(LoadingEvent())
+            createTransactionUseCase(
                 CreateTransactionUseCase.Param(
                     groupId = assistedWalletManager.getGroupId(walletId),
                     walletId = walletId,
@@ -277,11 +330,18 @@ class TransactionConfirmViewModel @Inject constructor(
                     feeRate = manualFeeRate.toManualFeeRate(),
                     memo = privateNote,
                     isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
-                    antiFeeSniping = antiFeeSniping
+                    antiFeeSniping = antiFeeSniping,
+                    useScriptPath = keySetIndex != 0,
                 )
-            )
-            if (result.isSuccess) {
-                val transaction = result.getOrThrow()
+            ).onSuccess { transaction ->
+                if (keySetIndex > 0) {
+                    saveTaprootKeySetSelectionUseCase(
+                        SaveTaprootKeySetSelectionUseCase.Param(
+                            transactionId = transaction.txId,
+                            keySetIndex = keySetIndex
+                        )
+                    )
+                }
                 val commonTagMap = mutableMapOf<Int, Int>()
                 inputs.forEach { output ->
                     output.tags.forEach {
@@ -298,7 +358,7 @@ class TransactionConfirmViewModel @Inject constructor(
                     if (isQuickCreateTransaction) {
                         addAddTagsToChangeCoin(tags, output, transaction.txId)
                     } else {
-                        setEvent(
+                        _event.emit(
                             AssignTagEvent(
                                 walletId = walletId,
                                 txId = transaction.txId,
@@ -308,17 +368,17 @@ class TransactionConfirmViewModel @Inject constructor(
                         )
                     }
                 } else {
-                    setEvent(CreateTxSuccessEvent(result.getOrThrow()))
+                    _event.emit(CreateTxSuccessEvent(transaction))
                 }
                 pushEventManager.push(PushEvent.TransactionCreatedEvent)
-            } else {
-                event(CreateTxErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+            }.onFailure { exception ->
+                _event.emit(CreateTxErrorEvent(exception.message.orUnknownError()))
             }
         }
     }
 
     private fun createInheritanceTransaction() = viewModelScope.launch {
-        event(LoadingEvent(isClaimInheritance = true))
+        _event.emit(LoadingEvent(isClaimInheritance = true))
         val result = inheritanceClaimCreateTransactionUseCase(
             InheritanceClaimCreateTransactionUseCase.Param(
                 address = txReceipts.first().address,
@@ -332,27 +392,28 @@ class TransactionConfirmViewModel @Inject constructor(
             )
         )
         if (result.isSuccess) {
-            setEvent(CreateTxSuccessEvent(result.getOrThrow()))
+            _event.emit(CreateTxSuccessEvent(result.getOrThrow()))
         } else {
-            event(CreateTxErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+            _event.emit(CreateTxErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 
-    private fun addAddTagsToChangeCoin(tags: List<CoinTag>, output: UnspentOutput, txId: String) = viewModelScope.launch {
-        addToCoinTagUseCase(
-            AddToCoinTagUseCase.Param(
-                groupId = assistedWalletManager.getGroupId(walletId),
-                walletId = walletId,
-                tagIds = tags.map { it.id },
-                coins = listOf(output),
-                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
-            )
-        ).onSuccess {
-            setEvent(TransactionConfirmEvent.AssignTagSuccess(txId))
-        }.onFailure {
-            setEvent(TransactionConfirmEvent.AssignTagError(it.message.orUnknownError()))
+    private fun addAddTagsToChangeCoin(tags: List<CoinTag>, output: UnspentOutput, txId: String) =
+        viewModelScope.launch {
+            addToCoinTagUseCase(
+                AddToCoinTagUseCase.Param(
+                    groupId = assistedWalletManager.getGroupId(walletId),
+                    walletId = walletId,
+                    tagIds = tags.map { it.id },
+                    coins = listOf(output),
+                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
+                )
+            ).onSuccess {
+                _event.emit(TransactionConfirmEvent.AssignTagSuccess(txId))
+            }.onFailure {
+                _event.emit(TransactionConfirmEvent.AssignTagError(it.message.orUnknownError()))
+            }
         }
-    }
 
     companion object {
         private const val WAITING_FOR_CONSUME_EVENT_SECONDS = 5L

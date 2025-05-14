@@ -44,4 +44,6 @@ sealed class TransactionConfirmEvent {
     data class InitRoomTransactionSuccess(val roomId: String) : TransactionConfirmEvent()
     data class AssignTagSuccess(val txId: String) : TransactionConfirmEvent()
     data class AssignTagError(val message: String) : TransactionConfirmEvent()
+    data class DraftTaprootTransactionSuccess(val draftTransaction: TaprootDraftTransaction?) :
+        TransactionConfirmEvent()
 }

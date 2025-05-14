@@ -29,10 +29,13 @@ import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.repository.TransactionRepository
 import com.nunchuk.android.type.Chain
+import com.nunchuk.android.persistence.dao.TaprootTransactionDao
+import com.nunchuk.android.persistence.entity.TaprootTransactionEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 internal class TransactionRepositoryImpl @Inject constructor(
@@ -41,6 +44,7 @@ internal class TransactionRepositoryImpl @Inject constructor(
     private val ncDataStore: NcDataStore,
     private val userWalletApiManager: UserWalletApiManager,
     applicationScope: CoroutineScope,
+    private val taprootTransactionDao: TaprootTransactionDao,
 ) : TransactionRepository {
     private val chain =
         ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
@@ -125,5 +129,18 @@ internal class TransactionRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) {
             throw response.error
         }
+    }
+
+    override suspend fun saveTaprootKeySetSelection(transactionId: String, keySetIndex: Int) {
+        taprootTransactionDao.insert(
+            TaprootTransactionEntity(
+                transactionId = transactionId,
+                keySetIndex = keySetIndex
+            )
+        )
+    }
+
+    override suspend fun getTaprootKeySetSelection(transactionId: String): Int? {
+        return taprootTransactionDao.getByTransactionId(transactionId).first()?.keySetIndex
     }
 }

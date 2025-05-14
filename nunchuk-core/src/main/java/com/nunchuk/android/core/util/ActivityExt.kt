@@ -46,8 +46,8 @@ import java.io.File
 
 fun Activity.showToast(message: String) = NCToastMessage(this).show(message)
 
-fun Activity.showLoading() {
-    (this as LoadingDialog).showLoading()
+fun Activity.showLoading(message: String? = null) {
+    (this as LoadingDialog).showLoading(message = message)
 }
 
 fun Activity.hideLoading() {
@@ -60,8 +60,8 @@ fun Activity.showOrHideLoading(
     (this as LoadingDialog).showOrHideLoading(loading, title, message)
 }
 
-fun Fragment.showLoading() {
-    activity?.let(FragmentActivity::showLoading)
+fun Fragment.showLoading(message: String? = null) {
+    activity?.showLoading(message = message)
 }
 
 fun Fragment.hideLoading() {

@@ -37,4 +37,14 @@ interface TransactionRepository {
         transactionIds: List<String>,
         days: Int
     )
+
+    /**
+     * Save the selected key set index for a taproot transaction.
+     */
+    suspend fun saveTaprootKeySetSelection(transactionId: String, keySetIndex: Int)
+
+    /**
+     * Get the selected key set index for a taproot transaction, or null if not set.
+     */
+    suspend fun getTaprootKeySetSelection(transactionId: String): Int?
 }

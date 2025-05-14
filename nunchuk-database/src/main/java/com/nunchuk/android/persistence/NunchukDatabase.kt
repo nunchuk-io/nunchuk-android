@@ -36,6 +36,7 @@ import com.nunchuk.android.persistence.dao.RequestAddKeyDao
 import com.nunchuk.android.persistence.dao.SavedAddressDao
 import com.nunchuk.android.persistence.dao.SyncEventDao
 import com.nunchuk.android.persistence.dao.SyncFileDao
+import com.nunchuk.android.persistence.dao.TaprootTransactionDao
 import com.nunchuk.android.persistence.dao.WalletOrderDao
 import com.nunchuk.android.persistence.entity.AlertEntity
 import com.nunchuk.android.persistence.entity.AssistedWalletEntity
@@ -50,6 +51,7 @@ import com.nunchuk.android.persistence.entity.RequestAddKeyEntity
 import com.nunchuk.android.persistence.entity.SavedAddressEntity
 import com.nunchuk.android.persistence.entity.SyncEventEntity
 import com.nunchuk.android.persistence.entity.SyncFileEntity
+import com.nunchuk.android.persistence.entity.TaprootTransactionEntity
 import com.nunchuk.android.persistence.entity.WalletOrderEntity
 import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
 
@@ -69,6 +71,7 @@ import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
         ElectrumServerEntity::class,
         SavedAddressEntity::class,
         WalletOrderEntity::class,
+        TaprootTransactionEntity::class,
     ],
     version = DATABASE_VERSION,
     exportSchema = true,
@@ -94,6 +97,7 @@ import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
         AutoMigration(from = 24, to = 25),
         AutoMigration(from = 25, to = 26),
         AutoMigration(from = 26, to = 27),
+        AutoMigration(from = 27, to = 28),
     ]
 )
 @TypeConverters(Converters::class)
@@ -112,4 +116,5 @@ internal abstract class NunchukDatabase : RoomDatabase() {
     abstract fun dummyTransactionDao(): DummyTransactionDao
     abstract fun electrumServerDao(): ElectrumServerDao
     abstract fun walletOrderDao(): WalletOrderDao
+    abstract fun taprootTransactionDao(): TaprootTransactionDao
 }

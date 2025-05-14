@@ -20,8 +20,6 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.EstimateFeeRates
-import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.TransactionRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject

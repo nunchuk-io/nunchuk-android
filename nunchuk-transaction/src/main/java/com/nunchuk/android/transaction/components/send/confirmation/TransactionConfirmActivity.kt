@@ -101,7 +101,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
     }
 
     private fun observeEvent() {
-        viewModel.event.observe(this, ::handleEvent)
+        flowObserver(viewModel.event, collector = ::handleEvent)
         observerSweepSatscard(sweepSatscardViewModel, nfcViewModel) { args.walletId }
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_SATSCARD_SWEEP_SLOT }) {
             sweepSatscardViewModel.init(args.txReceipts.first().address, args.manualFeeRate)
@@ -227,8 +227,9 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                 }.bindItems()
             }
 
-            is TransactionConfirmEvent.AssignTagError -> {}
-            is TransactionConfirmEvent.AssignTagSuccess -> {}
+            is TransactionConfirmEvent.AssignTagError,
+            is TransactionConfirmEvent.AssignTagSuccess,
+            is TransactionConfirmEvent.DraftTaprootTransactionSuccess -> {}
         }
     }
 

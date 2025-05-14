@@ -19,19 +19,19 @@
 
 package com.nunchuk.android.transaction.components.utils
 
-import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.send.amount.InputAmountActivity
 import com.nunchuk.android.widget.NCToastMessage
 
-fun BaseActivity<*>.showCreateTransactionError(message: String) {
+fun BaseComposeActivity.showCreateTransactionError(message: String) {
     hideLoading()
     NCToastMessage(this).showError("Create transaction error due to $message")
 }
 
-fun BaseActivity<*>.openTransactionDetailScreen(
+fun BaseComposeActivity.openTransactionDetailScreen(
     txId: String,
     walletId: String,
     roomId: String,
@@ -58,7 +58,7 @@ fun BaseActivity<*>.openTransactionDetailScreen(
     NCToastMessage(this).showMessage("Transaction created::$txId")
 }
 
-fun BaseActivity<*>.returnActiveRoom(roomId: String) {
+fun BaseComposeActivity.returnActiveRoom(roomId: String) {
     hideLoading()
     finish()
     ActivityManager.popUntilRoot()

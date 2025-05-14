@@ -19,7 +19,9 @@
 
 package com.nunchuk.android.transaction.components.send.receipt
 
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.type.AddressType
 
 sealed class AddReceiptEvent {
     data object InvalidAddressEvent : AddReceiptEvent()
@@ -38,5 +40,8 @@ data class AddReceiptState(
     val address: String = "",
     val privateNote: String = "",
     val amount: Amount = Amount(),
+    val addressType: AddressType = AddressType.ANY,
+    val isValueKeySetDisable: Boolean = false,
+    val signers : List<SignerModel> = emptyList(),
     val antiFeeSniping: Boolean = false,
 )
