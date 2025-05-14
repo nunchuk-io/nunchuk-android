@@ -358,7 +358,8 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 slots = args.slots,
                 inputs = args.inputs,
                 manualFeeRate = manualFeeRate,
-                claimInheritanceTxParam = args.claimInheritanceTxParam
+                claimInheritanceTxParam = args.claimInheritanceTxParam,
+                antiFeeSniping = viewModel.getAddReceiptState().antiFeeSniping
             )
             transactionConfirmViewModel.handleConfirmEvent(true)
         }

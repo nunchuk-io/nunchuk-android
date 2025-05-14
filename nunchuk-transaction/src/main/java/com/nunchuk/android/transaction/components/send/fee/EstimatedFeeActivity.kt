@@ -191,6 +191,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     }
 
     private fun handleState(state: EstimatedFeeState) {
+        binding.antiFeeSnipingCheckBox.isChecked = viewModel.getAntiFeeSniping()
+
         binding.estimatedFeeBTC.text = state.estimatedFee.getBTCAmount()
         binding.estimatedFeeUSD.text = state.estimatedFee.getCurrencyAmount()
 

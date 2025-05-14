@@ -38,4 +38,5 @@ data class AddReceiptState(
     val address: String = "",
     val privateNote: String = "",
     val amount: Amount = Amount(),
+    val antiFeeSniping: Boolean = false,
 )

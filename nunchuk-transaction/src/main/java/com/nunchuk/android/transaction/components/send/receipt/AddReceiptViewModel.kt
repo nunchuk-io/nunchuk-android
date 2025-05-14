@@ -22,9 +22,14 @@ package com.nunchuk.android.transaction.components.send.receipt
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.*
+import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.AcceptedAddressEvent
+import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.AddressRequiredEvent
+import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.InvalidAddressEvent
+import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.ParseBtcUriEvent
+import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.ShowError
 import com.nunchuk.android.transaction.components.utils.privateNote
 import com.nunchuk.android.usecase.CheckAddressValidUseCase
+import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,13 +40,23 @@ import javax.inject.Inject
 internal class AddReceiptViewModel @Inject constructor(
     private val checkAddressValidUseCase: CheckAddressValidUseCase,
     private val parseBtcUriUseCase: ParseBtcUriUseCase,
-    private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase
-) : NunchukViewModel<AddReceiptState, AddReceiptEvent>() {
+    private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase,
+    private val getDefaultAntiFeeSnipingUseCase: GetDefaultAntiFeeSnipingUseCase,
+    ) : NunchukViewModel<AddReceiptState, AddReceiptEvent>() {
 
     override val initialState = AddReceiptState()
 
     fun init(address: String, privateNote: String) {
         updateState { initialState.copy(address = address, privateNote = privateNote) }
+
+        viewModelScope.launch {
+            getDefaultAntiFeeSnipingUseCase(Unit)
+                .collect { result ->
+                    if (result.isSuccess) {
+                        updateState { copy(antiFeeSniping = result.getOrThrow()) }
+                    }
+                }
+        }
     }
 
     fun parseBtcUri(content: String) {
