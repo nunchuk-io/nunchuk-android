@@ -125,7 +125,7 @@ fun FeeSettingsContent(
                             .padding(end = 12.dp),
                     ) {
                         Text(
-                            text = "Taproot fee selection",
+                            text = "Automatic fee selection",
                             style = NunchukTheme.typography.body
                         )
                         Text(
