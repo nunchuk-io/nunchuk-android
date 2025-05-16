@@ -31,6 +31,7 @@ import com.nunchuk.android.auth.components.signin.SignInEvent.ProcessingEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.SignInErrorEvent
 import com.nunchuk.android.auth.components.signin.SignInEvent.SignInSuccessEvent
 import com.nunchuk.android.auth.domain.AppleSignInUseCase
+import com.nunchuk.android.auth.domain.AutoSelectElectrumSeverUseCase
 import com.nunchuk.android.auth.domain.BiometricLoginUseCase
 import com.nunchuk.android.auth.domain.CheckEmailAvailabilityUseCase
 import com.nunchuk.android.auth.domain.GoogleSignInUseCase
@@ -95,6 +96,7 @@ internal class SignInViewModel @Inject constructor(
     private val googleSignInUseCase: GoogleSignInUseCase,
     private val getWalletPinUseCase: GetWalletPinUseCase,
     private val appleSignInUseCase: AppleSignInUseCase,
+    private val autoSelectElectrumSeverUseCase: AutoSelectElectrumSeverUseCase
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SignInEvent>()
     val event = _event.asSharedFlow()
@@ -277,6 +279,7 @@ internal class SignInViewModel @Inject constructor(
 
     fun initGuestModeNunchuk() {
         viewModelScope.launch {
+            autoSelectElectrumSeverUseCase(Unit)
             initNunchukUseCase(InitNunchukUseCase.Param(accountId = ""))
                 .onSuccess {
                     accountManager.storeAccount(AccountInfo().copy(loginType = SignInMode.GUEST_MODE.value))
