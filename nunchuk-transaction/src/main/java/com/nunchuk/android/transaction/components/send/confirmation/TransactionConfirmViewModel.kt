@@ -56,6 +56,7 @@ import com.nunchuk.android.usecase.GetTaprootSelectionFeeSettingUseCase
 import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
+import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
 import com.nunchuk.android.usecase.transaction.SaveTaprootKeySetSelectionUseCase
 import com.nunchuk.android.utils.onException
@@ -88,7 +89,8 @@ class TransactionConfirmViewModel @Inject constructor(
     private val isMyCoinUseCase: IsMyCoinUseCase,
     private val addToCoinTagUseCase: AddToCoinTagUseCase,
     private val getTaprootSelectionFeeSettingUseCase: GetTaprootSelectionFeeSettingUseCase,
-    private val saveTaprootKeySetSelectionUseCase: SaveTaprootKeySetSelectionUseCase
+    private val saveTaprootKeySetSelectionUseCase: SaveTaprootKeySetSelectionUseCase,
+    private val getSavedAddressListLocalUseCase: GetSavedAddressListLocalUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionConfirmUiState())
     val uiState = _state.asStateFlow()
@@ -105,6 +107,16 @@ class TransactionConfirmViewModel @Inject constructor(
     private lateinit var privateNote: String
     private var claimInheritanceTxParam: ClaimInheritanceTxParam? = null
     private var antiFeeSniping: Boolean = false
+
+    init {
+        viewModelScope.launch {
+            getSavedAddressListLocalUseCase(Unit)
+                .map { it.getOrThrow() }
+                .collect { savedAddresses ->
+                    _state.update { it.copy(savedAddress = savedAddresses.associate { it.address to it.label }) }
+                }
+        }
+    }
 
     fun init(
         walletId: String,
@@ -423,6 +435,8 @@ class TransactionConfirmViewModel @Inject constructor(
             }
         }
 
+    fun getSavedAddress() = _state.value.savedAddress
+
     companion object {
         private const val WAITING_FOR_CONSUME_EVENT_SECONDS = 5L
     }
@@ -431,6 +445,7 @@ class TransactionConfirmViewModel @Inject constructor(
 data class TransactionConfirmUiState(
     val allTags: Map<Int, CoinTag> = emptyMap(),
     val transaction: Transaction = Transaction(),
+    val savedAddress: Map<String, String> = emptyMap(),
 )
 
 internal fun Int.toManualFeeRate() = if (this > 0) toAmount() else Amount(-1)

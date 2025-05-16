@@ -222,14 +222,19 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                         event.transaction.outputs.filter { viewModel.isMyCoin(it) == event.transaction.isReceive }
                     }
                 }
-                TxReceiptViewBinder(binding.receiptList, coins) {
+                TxReceiptViewBinder(
+                    container = binding.receiptList,
+                    outputs = coins,
+                    savedAddresses = viewModel.getSavedAddress()
+                ) {
                     handleCopyContent(it)
                 }.bindItems()
             }
 
             is TransactionConfirmEvent.AssignTagError,
             is TransactionConfirmEvent.AssignTagSuccess,
-            is TransactionConfirmEvent.DraftTaprootTransactionSuccess -> {}
+            is TransactionConfirmEvent.DraftTaprootTransactionSuccess -> {
+            }
         }
     }
 

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -40,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.CoinTagGroupView
@@ -119,7 +121,6 @@ fun TransactionDetailView(
         transaction.keySetStatus.withIndex().associate { it.index to it.value }
     }
     val firstKeySet = if (!state.isValueKeySetDisable) keySetMap[state.defaultKeySetIndex] else null
-    val offset = if (state.isValueKeySetDisable) 0 else 1
     NunchukTheme {
         NcScaffold(
             modifier = Modifier.systemBarsPadding(),
@@ -199,26 +200,25 @@ fun TransactionDetailView(
                         )
                     }
 
-                    outputs.forEach { output ->
-                        item {
-                            TransactionOutputItem(
-                                output = output,
-                                onCopyText = onCopyText,
-                            )
-                        }
+                    items(outputs) { output ->
+                        TransactionOutputItem(
+                            savedAddresses = state.savedAddress,
+                            output = output,
+                            onCopyText = onCopyText,
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.backgroundMidGray,
+                            thickness = 1.dp
+                        )
                     }
+
 
                     if (!transaction.isReceive) {
                         item {
-                            HorizontalDivider(
-                                modifier = Modifier.padding(16.dp),
-                                color = MaterialTheme.colorScheme.backgroundMidGray,
-                                thickness = 1.dp
-                            )
-                        }
-
-                        item {
                             TransactionEstimateFee(
+                                modifier = Modifier.padding(top = 24.dp),
                                 fee = transaction.fee,
                                 onShowFeeTooltip = onShowFeeTooltip
                             )
@@ -395,19 +395,20 @@ fun TransactionDetailView(
                         } else {
                             keySetMap
                         }
-                        finalKeySet.filter { state.isValueKeySetDisable || it.key != state.defaultKeySetIndex }.forEach { (index, keySetStatus) ->
-                            item {
-                                KeySetView(
-                                    signers = signerMap,
-                                    keySetIndex = index,
-                                    requiredSignatures = transaction.m,
-                                    keySet = keySetStatus,
-                                    onSignClick = onSignClick,
-                                    showDivider = index < finalKeySet.size.dec(),
-                                    isValueKeySetDisable = state.isValueKeySetDisable
-                                )
+                        finalKeySet.filter { state.isValueKeySetDisable || it.key != state.defaultKeySetIndex }
+                            .forEach { (index, keySetStatus) ->
+                                item {
+                                    KeySetView(
+                                        signers = signerMap,
+                                        keySetIndex = index,
+                                        requiredSignatures = transaction.m,
+                                        keySet = keySetStatus,
+                                        onSignClick = onSignClick,
+                                        showDivider = index < finalKeySet.size.dec(),
+                                        isValueKeySetDisable = state.isValueKeySetDisable
+                                    )
+                                }
                             }
-                        }
                     }
                 } else if (!transaction.isReceive && args.inheritanceClaimTxDetailInfo == null && state.signers.isNotEmpty()) {
                     item {
@@ -695,11 +696,12 @@ private fun TransactionHeader(
 
 @Composable
 private fun TransactionEstimateFee(
+    modifier: Modifier = Modifier,
     fee: Amount,
     onShowFeeTooltip: () -> Unit
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -782,14 +784,46 @@ private fun ChangeAddressView(
 
 @Composable
 private fun TransactionOutputItem(
+    savedAddresses: Map<String, String>,
+    output: TxOutput,
+    onCopyText: (String) -> Unit,
+) {
+    Column(
+        Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
+    ) {
+        if (savedAddresses.contains(output.first)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                NcIcon(
+                    painter = painterResource(id = R.drawable.ic_saved_address),
+                    contentDescription = "Saved Address",
+                    modifier = Modifier.size(16.dp),
+                )
+
+                Text(
+                    text = savedAddresses[output.first].orEmpty(),
+                    style = NunchukTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        TransactionOutputItem(
+            output = output,
+            onCopyText = onCopyText,
+        )
+    }
+}
+
+@Composable
+private fun TransactionOutputItem(
     output: TxOutput,
     onCopyText: (String) -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .padding(top = 16.dp)
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {

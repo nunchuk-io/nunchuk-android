@@ -89,6 +89,7 @@ import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.CurrencyFormatter
 import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
 import com.nunchuk.android.core.util.MAX_NOTE_LENGTH
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.wallet.WalletBottomSheetResult
@@ -199,7 +200,7 @@ class BatchTransactionFragment : Fragment() {
                 }
             }
         }
-        estimatedFeeViewModel.event.observe(requireActivity()) { event ->
+        flowObserver(estimatedFeeViewModel.event) { event ->
             when (event) {
                 is EstimatedFeeEvent.EstimatedFeeErrorEvent -> NCToastMessage(requireActivity()).showError(
                     event.message
@@ -346,7 +347,9 @@ private fun BatchTransactionContent(
 
     NunchukTheme {
         Scaffold(
-            modifier = Modifier.systemBarsPadding().imePadding(),
+            modifier = Modifier
+                .systemBarsPadding()
+                .imePadding(),
             topBar = {
                 NcTopAppBar(
                     title = stringResource(id = R.string.nc_batched_transaction),
@@ -392,7 +395,8 @@ private fun BatchTransactionContent(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 itemsIndexed(recipientList) { index, recipient ->
-                    RecipientView(index = index + 1,
+                    RecipientView(
+                        index = index + 1,
                         address = recipient.address,
                         amount = recipient.amount,
                         isBtc = recipient.isBtc,
@@ -527,7 +531,9 @@ private fun RecipientView(
                 .fillMaxWidth()
                 .clip(shape = RoundedCornerShape(12.dp))
                 .border(
-                    width = 1.dp, color = MaterialTheme.colorScheme.strokePrimary, shape = RoundedCornerShape(12.dp)
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.strokePrimary,
+                    shape = RoundedCornerShape(12.dp)
                 )
                 .background(color = MaterialTheme.colorScheme.greyLight)
                 .padding(16.dp)

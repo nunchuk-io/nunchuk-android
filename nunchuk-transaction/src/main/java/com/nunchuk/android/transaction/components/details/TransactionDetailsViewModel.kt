@@ -112,6 +112,7 @@ import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
+import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.membership.SignServerTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionUseCase
@@ -185,7 +186,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val application: Application,
     private val importPsbtUseCase: ImportPsbtUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
-    private val getTaprootKeySetSelectionUseCase: GetTaprootKeySetSelectionUseCase
+    private val getTaprootKeySetSelectionUseCase: GetTaprootKeySetSelectionUseCase,
+    private val getSavedAddressListLocalUseCase: GetSavedAddressListLocalUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionDetailsState())
     val state = _state.asStateFlow()
@@ -252,6 +254,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
                         .onSuccess { coins ->
                             _state.update { state -> state.copy(txInputCoins = coins) }
                         }
+                }
+        }
+        viewModelScope.launch {
+            getSavedAddressListLocalUseCase(Unit)
+                .map { it.getOrThrow() }
+                .collect { savedAddresses ->
+                    _state.update { it.copy(savedAddress = savedAddresses.associate { saved -> saved.address to saved.label }) }
                 }
         }
     }

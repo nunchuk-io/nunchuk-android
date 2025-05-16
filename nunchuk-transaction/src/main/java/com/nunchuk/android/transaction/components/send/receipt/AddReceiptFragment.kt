@@ -237,6 +237,11 @@ class AddReceiptFragment : BaseFragment<ActivityTransactionAddReceiptBinding>() 
                 isSelectMode = true,
                 isFromParse = true
             )
+
+            AddReceiptEvent.NoOp -> Unit
+        }
+        if (event !is AddReceiptEvent.NoOp) {
+            viewModel.setEventHandled()
         }
     }
 

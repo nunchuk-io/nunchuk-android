@@ -19,8 +19,8 @@
 
 package com.nunchuk.android.transaction.components.send.fee
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
@@ -50,6 +50,11 @@ import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -64,7 +69,13 @@ class EstimatedFeeViewModel @Inject constructor(
     private val estimateRollOverAmountUseCase: EstimateRollOverAmountUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getDefaultAntiFeeSnipingUseCase: GetDefaultAntiFeeSnipingUseCase,
-) : NunchukViewModel<EstimatedFeeState, EstimatedFeeEvent>() {
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(EstimatedFeeState())
+    val state = _state.asStateFlow()
+
+    private val _event = MutableSharedFlow<EstimatedFeeEvent>()
+    val event = _event.asSharedFlow()
 
     private var walletId: String = ""
     private var txReceipts: List<TxReceipt> = emptyList()
@@ -75,7 +86,8 @@ class EstimatedFeeViewModel @Inject constructor(
     private var address = ""
     private var claimInheritanceTxParam: ClaimInheritanceTxParam? = null
     private var rollOverWalletParam: RollOverWalletParam? = null
-    override val initialState = EstimatedFeeState()
+    
+    fun getState() = _state.value
 
     fun init(args: EstimatedFeeArgs) {
         this.walletId = args.walletId
@@ -105,7 +117,8 @@ class EstimatedFeeViewModel @Inject constructor(
         viewModelScope.launch {
             getDefaultAntiFeeSnipingUseCase(Unit)
                 .collect { result ->
-                    updateState { copy(antiFeeSniping = result.getOrDefault(false)) }
+                    _state.update { it.copy(antiFeeSniping = result.getOrDefault(false)) }
+                    _state.update { it.copy(antiFeeSniping = result.getOrDefault(false)) }
                 }
         }
     }
@@ -120,24 +133,24 @@ class EstimatedFeeViewModel @Inject constructor(
 
     private fun getWalletDetail(walletId: String) {
         viewModelScope.launch {
-            getWalletDetail2UseCase(walletId).onSuccess {
-                updateState { copy(isValueKeySetDisable = it.walletTemplate == WalletTemplate.DISABLE_KEY_PATH) }
+            getWalletDetail2UseCase(walletId).onSuccess { wallet ->
+                _state.update { it.copy(isValueKeySetDisable = wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH) }
             }
         }
     }
 
     private fun getAllTags() {
         viewModelScope.launch {
-            getAllTagsUseCase(walletId).onSuccess {
-                updateState { copy(allTags = it.associateBy { it.id }) }
+            getAllTagsUseCase(walletId).onSuccess { tags ->
+                _state.update { it.copy(allTags = tags.associateBy { it.id }) }
             }
         }
     }
 
     private fun getAllCoins() {
         viewModelScope.launch {
-            getAllCoinUseCase(walletId).onSuccess {
-                updateState { copy(allCoins = it) }
+            getAllCoinUseCase(walletId).onSuccess { coins ->
+                _state.update { it.copy(allCoins = coins) }
             }
         }
     }
@@ -145,8 +158,8 @@ class EstimatedFeeViewModel @Inject constructor(
     private fun getEstimateRollOverAmount() = viewModelScope.launch {
         val resultFeeRate = estimateFeeUseCase(Unit)
         if (resultFeeRate.isSuccess) {
-            updateState {
-                copy(
+            _state.update {
+                it.copy(
                     estimateFeeRates = resultFeeRate.getOrThrow(),
                     manualFeeRate = resultFeeRate.getOrThrow().defaultRate
                 )
@@ -161,8 +174,8 @@ class EstimatedFeeViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
-                updateState {
-                    copy(
+            _state.update {
+                it.copy(
                         estimatedFee = result.getOrThrow().second,
                         manualFeeRate = result.getOrThrow().second.value.toInt(),
                         rollOverWalletPairAmount = result.getOrThrow()
@@ -170,7 +183,7 @@ class EstimatedFeeViewModel @Inject constructor(
                 }
             } else {
                 if (result.exceptionOrNull() !is CancellationException) {
-                    setEvent(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+                    _event.emit(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
                 }
             }
         }
@@ -180,16 +193,16 @@ class EstimatedFeeViewModel @Inject constructor(
         viewModelScope.launch {
             val result = estimateFeeUseCase(Unit)
             if (result.isSuccess) {
-                setEvent(EstimatedFeeEvent.GetFeeRateSuccess(result.getOrThrow()))
-                updateState {
-                    copy(
+                _event.emit(EstimatedFeeEvent.GetFeeRateSuccess(result.getOrThrow()))
+                _state.update {
+                    it.copy(
                         estimateFeeRates = result.getOrThrow(),
                         manualFeeRate = result.getOrThrow().defaultRate
                     )
                 }
             } else {
-                setEvent(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
-                updateState { copy(estimateFeeRates = EstimateFeeRates()) }
+                _event.emit(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+                _state.update { it.copy(estimateFeeRates = EstimateFeeRates()) }
             }
             if (walletId.isNotEmpty() && isDraft) {
                 draftTransaction()
@@ -213,7 +226,7 @@ class EstimatedFeeViewModel @Inject constructor(
 
     private suspend fun draftNormalTransaction() {
         val state = getState()
-        setEvent(EstimatedFeeEvent.Loading(true))
+        _event.emit(EstimatedFeeEvent.Loading(true))
         // if selected coin amount is smaller than send amount + fee, we should auto check subtract fee and disable toggle
         var subtractFeeFromAmount = state.subtractFeeFromAmount
         var enableSubtractFeeFromAmount = state.enableSubtractFeeFromAmount
@@ -233,10 +246,10 @@ class EstimatedFeeViewModel @Inject constructor(
                 feeRate = state.manualFeeRate.toManualFeeRate(),
                 inputs = inputs.map { TxInput(it.txid, it.vout) }
             )
-        ).onSuccess {
-            updateState {
-                copy(
-                    estimatedFee = it.fee,
+        ).onSuccess { tx ->
+            _state.update {
+                it.copy(
+                    estimatedFee = tx.fee,
                     inputs = it.inputs,
                     cpfpFee = it.cpfpFee,
                     scriptPathFee = it.scriptPathFee,
@@ -244,13 +257,13 @@ class EstimatedFeeViewModel @Inject constructor(
                     enableSubtractFeeFromAmount = enableSubtractFeeFromAmount,
                 )
             }
-            setEvent(EstimatedFeeEvent.DraftTransactionSuccess)
+            _event.emit(EstimatedFeeEvent.DraftTransactionSuccess)
         }.onFailure { exception ->
             if (exception !is CancellationException) {
-                setEvent(EstimatedFeeErrorEvent(exception.message.orUnknownError()))
+                _event.emit(EstimatedFeeErrorEvent(exception.message.orUnknownError()))
             }
         }
-        setEvent(EstimatedFeeEvent.Loading(false))
+        _event.emit(EstimatedFeeEvent.Loading(false))
     }
 
     fun getOutputAmount() = txReceipts.sumOf { it.amount }
@@ -269,7 +282,7 @@ class EstimatedFeeViewModel @Inject constructor(
 
 
     private suspend fun draftSatsCardTransaction() {
-        setEvent(EstimatedFeeEvent.Loading(true))
+        _event.emit(EstimatedFeeEvent.Loading(true))
         val result = draftSatsCardTransactionUseCase(
             DraftSatsCardTransactionUseCase.Data(
                 txReceipts.first().address,
@@ -277,18 +290,18 @@ class EstimatedFeeViewModel @Inject constructor(
                 getState().manualFeeRate
             )
         )
-        setEvent(EstimatedFeeEvent.Loading(false))
+        _event.emit(EstimatedFeeEvent.Loading(false))
         if (result.isSuccess) {
-            updateState { copy(estimatedFee = result.getOrThrow().fee) }
+            _state.update { it.copy(estimatedFee = result.getOrThrow().fee) }
         } else {
             if (result.exceptionOrNull() !is CancellationException) {
-                setEvent(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+                _event.emit(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
     }
 
     private suspend fun draftInheritanceTransaction() {
-        setEvent(EstimatedFeeEvent.Loading(true))
+        _event.emit(EstimatedFeeEvent.Loading(true))
         val result = inheritanceClaimCreateTransactionUseCase(
             InheritanceClaimCreateTransactionUseCase.Param(
                 masterSignerIds = claimInheritanceTxParam?.masterSignerIds.orEmpty(),
@@ -301,29 +314,29 @@ class EstimatedFeeViewModel @Inject constructor(
                 antiFeeSniping = getAntiFeeSniping()
             )
         )
-        setEvent(EstimatedFeeEvent.Loading(false))
+        _event.emit(EstimatedFeeEvent.Loading(false))
         if (result.isSuccess) {
-            updateState { copy(estimatedFee = result.getOrThrow().fee) }
+            _state.update { it.copy(estimatedFee = result.getOrThrow().fee) }
         } else {
             if (result.exceptionOrNull() !is CancellationException) {
-                setEvent(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+                _event.emit(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
     }
 
     fun handleSubtractFeeSwitch(checked: Boolean, enable: Boolean = true) {
-        updateState { copy(subtractFeeFromAmount = checked, enableSubtractFeeFromAmount = enable) }
+        _state.update { it.copy(subtractFeeFromAmount = checked, enableSubtractFeeFromAmount = enable) }
         draftTransaction()
     }
 
     fun handleManualFeeSwitch(checked: Boolean) {
-        updateState { copy(manualFeeDetails = checked) }
+        _state.update { it.copy(manualFeeDetails = checked) }
         updateFeeRate(defaultRate)
     }
 
-    fun handleContinueEvent() {
+    fun handleContinueEvent() = viewModelScope.launch {
         getState().apply {
-            event(
+            _event.emit(
                 EstimatedFeeCompletedEvent(
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     manualFeeRate = manualFeeRate
@@ -334,21 +347,23 @@ class EstimatedFeeViewModel @Inject constructor(
 
     fun updateFeeRate(feeRate: Int) {
         if (feeRate != getState().manualFeeRate) {
-            updateState { copy(manualFeeRate = feeRate) }
+            _state.update { it.copy(manualFeeRate = feeRate) }
             draftTransaction()
         }
     }
 
     fun validateFeeRate(feeRate: Int): Boolean {
         if (feeRate < getState().estimateFeeRates.minimumFee) {
-            setEvent(EstimatedFeeEvent.InvalidManualFee)
+            viewModelScope.launch {
+                _event.emit(EstimatedFeeEvent.InvalidManualFee)
+            }
             return false
         }
         return true
     }
 
     fun setAntiFeeSniping(checked: Boolean) {
-        updateState { copy(antiFeeSniping = checked) }
+        _state.update { it.copy(antiFeeSniping = checked) }
     }
 
     fun getAntiFeeSniping(): Boolean {

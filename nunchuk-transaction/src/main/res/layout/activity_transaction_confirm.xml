@@ -61,15 +61,6 @@
                 app:barrierDirection="bottom"
                 app:constraint_referenced_ids="receiptList" />
 
-            <View
-                android:id="@+id/divider"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_margin="@dimen/nc_padding_16"
-                android:background="@color/nc_bg_mid_gray"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/sendAddressBarrier" />
-
             <com.nunchuk.android.widget.NCFontTextView
                 android:id="@+id/estimatedFeeBTC"
                 android:layout_width="wrap_content"
@@ -80,7 +71,7 @@
                 android:textSize="@dimen/nc_text_size_16"
                 app:fontTextStyle="semi_bold"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/divider"
+                app:layout_constraintTop_toBottomOf="@+id/sendAddressBarrier"
                 tools:text="0.001 BTC" />
 
             <com.nunchuk.android.widget.NCFontTextView

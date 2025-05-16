@@ -152,4 +152,7 @@ internal class AddReceiptViewModel @Inject constructor(
     }
 
     fun getAddReceiptState() = getState()
+    fun setEventHandled() {
+        setEvent(AddReceiptEvent.NoOp)
+    }
 }

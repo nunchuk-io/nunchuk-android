@@ -21,7 +21,7 @@ package com.nunchuk.android.transaction.components
 
 import android.view.ViewGroup
 import androidx.core.view.get
-import com.nunchuk.android.core.data.model.TxReceipt
+import androidx.core.view.isVisible
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.model.TxOutput
@@ -31,6 +31,7 @@ import com.nunchuk.android.widget.util.AbsViewBinder
 internal class TxReceiptViewBinder(
     container: ViewGroup,
     outputs: List<TxOutput>,
+    private val savedAddresses : Map<String, String>,
     private val onCopyText: (text: String) -> Unit
 ) : AbsViewBinder<TxOutput, ItemTransactionAddressBinding>(container, outputs) {
 
@@ -39,6 +40,8 @@ internal class TxReceiptViewBinder(
 
     override fun bindItem(position: Int, model: TxOutput) {
         val binding = ItemTransactionAddressBinding.bind(container[position])
+        binding.tvSavedAddress.isVisible = savedAddresses[model.first] != null
+        binding.tvSavedAddress.text = savedAddresses[model.first]
         binding.sendAddressLabel.text = model.first
         binding.sendAddressBTC.text = model.second.getBTCAmount()
         binding.sendAddressUSD.text = model.second.getCurrencyAmount()

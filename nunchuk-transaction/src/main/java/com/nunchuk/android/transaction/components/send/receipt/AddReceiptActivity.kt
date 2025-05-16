@@ -170,7 +170,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
     }
     
     private fun observer() {
-        estimateFeeViewModel.event.observe(this, ::handleEstimateFeeEvent)
+        flowObserver(estimateFeeViewModel.event, collector = ::handleEstimateFeeEvent)
         flowObserver(transactionConfirmViewModel.event, collector = ::handleCreateTransactionEvent)
     }
 

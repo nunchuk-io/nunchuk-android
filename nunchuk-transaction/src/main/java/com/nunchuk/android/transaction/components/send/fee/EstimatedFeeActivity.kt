@@ -34,6 +34,7 @@ import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.sheet.BottomSheetTooltip
 import com.nunchuk.android.core.util.RollOverWalletFlow
 import com.nunchuk.android.core.util.USD_FRACTION_DIGITS
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.formatDecimal
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
@@ -97,8 +98,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
     }
 
     private fun observeEvent() {
-        viewModel.event.observe(this, ::handleEvent)
-        viewModel.state.observe(this, ::handleState)
+        flowObserver(viewModel.event, collector = ::handleEvent)
+        flowObserver(viewModel.state, collector = ::handleState)
     }
 
     @OptIn(FlowPreview::class)
@@ -199,7 +200,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
         binding.subtractFeeCheckBox.isChecked = state.subtractFeeFromAmount
         binding.subtractFeeCheckBox.isEnabled = state.enableSubtractFeeFromAmount
 
-        binding.tvTaprootEffectiveFee.isVisible = state.scriptPathFee.value > 0 && !state.isValueKeySetDisable
+        binding.tvTaprootEffectiveFee.isVisible =
+            state.scriptPathFee.value > 0 && !state.isValueKeySetDisable
         binding.tvTaprootEffectiveFee.text = getHtmlText(
             R.string.nc_transaction_taproot_effective_fee_rate,
             (state.scriptPathFee.value.toDouble() / 1000.0).formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
