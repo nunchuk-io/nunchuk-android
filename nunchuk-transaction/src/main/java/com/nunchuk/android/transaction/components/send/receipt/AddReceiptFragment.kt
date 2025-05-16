@@ -28,39 +28,23 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
-import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
-import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
-import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_SATSCARD_SWEEP_SLOT
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.qr.startQRCodeScan
-import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.MAX_NOTE_LENGTH
-import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.hideLoading
-import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.pureBTC
-import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.core.wallet.WalletBottomSheetResult
 import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent
-import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmViewModel
-import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeViewModel
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.AcceptedAddressEvent
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.AddressRequiredEvent
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.InvalidAddressEvent
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.ShowError
-import com.nunchuk.android.transaction.components.utils.openTransactionDetailScreen
-import com.nunchuk.android.transaction.components.utils.returnActiveRoom
-import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
 import com.nunchuk.android.transaction.components.utils.toTitle
 import com.nunchuk.android.transaction.databinding.ActivityTransactionAddReceiptBinding
 import com.nunchuk.android.utils.parcelable
@@ -85,7 +69,6 @@ class AddReceiptFragment : BaseFragment<ActivityTransactionAddReceiptBinding>() 
 
     private val viewModel: AddReceiptViewModel by activityViewModels()
     private val estimateFeeViewModel: EstimatedFeeViewModel by activityViewModels()
-    private val transactionConfirmViewModel: TransactionConfirmViewModel by activityViewModels()
 
     private val launcher = registerForActivityResult(ScanContract()) { result ->
         result.contents?.let { content ->
@@ -129,10 +112,8 @@ class AddReceiptFragment : BaseFragment<ActivityTransactionAddReceiptBinding>() 
     }
 
     private fun observeEvent() {
-        viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
-        estimateFeeViewModel.event.observe(viewLifecycleOwner, ::handleEstimateFeeEvent)
-        flowObserver(transactionConfirmViewModel.event, ::handleCreateTransactionEvent)
+        viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
     }
 
     private fun setupViews() {
@@ -257,111 +238,6 @@ class AddReceiptFragment : BaseFragment<ActivityTransactionAddReceiptBinding>() 
                 isFromParse = true
             )
         }
-    }
-
-    private fun handleEstimateFeeEvent(event: EstimatedFeeEvent) {
-        val state = viewModel.getAddReceiptState()
-        val amount = state.amount
-        val address = state.address
-        if (event is EstimatedFeeEvent.GetFeeRateSuccess) {
-            handleCreateTransaction(amount, address, state, event)
-        } else if (event is EstimatedFeeEvent.EstimatedFeeErrorEvent) {
-            showEventError(event.message)
-        }
-    }
-
-    private fun handleCreateTransactionEvent(event: TransactionConfirmEvent) {
-        when (event) {
-            is TransactionConfirmEvent.CreateTxErrorEvent -> (requireActivity() as BaseComposeActivity).showCreateTransactionError(event.message)
-            is TransactionConfirmEvent.CreateTxSuccessEvent -> {
-                hideLoading()
-                if (transactionConfirmViewModel.isInheritanceClaimingFlow()) {
-                    ActivityManager.popUntilRoot()
-                    navigator.openTransactionDetailsScreen(
-                        activityContext = requireActivity(),
-                        walletId = "",
-                        txId = event.transaction.txId,
-                        initEventId = "",
-                        roomId = "",
-                        transaction = event.transaction,
-                        inheritanceClaimTxDetailInfo = InheritanceClaimTxDetailInfo(
-                            changePos = event.transaction.changeIndex
-                        )
-                    )
-                } else {
-                    (requireActivity() as BaseComposeActivity).openTransactionDetailScreen(
-                        event.transaction.txId,
-                        args.walletId,
-                        sessionHolder.getActiveRoomIdSafe(),
-                        isInheritanceClaimingFlow = false
-                    )
-                }
-            }
-
-            is TransactionConfirmEvent.LoadingEvent -> showLoading(
-                message = if (event.isClaimInheritance) getString(
-                    R.string.nc_withdrawal_in_progress
-                ) else null
-            )
-
-            is TransactionConfirmEvent.InitRoomTransactionError -> (requireActivity() as BaseComposeActivity).showCreateTransactionError(event.message)
-            is TransactionConfirmEvent.InitRoomTransactionSuccess -> (requireActivity() as BaseComposeActivity).returnActiveRoom(event.roomId)
-            is TransactionConfirmEvent.UpdateChangeAddress -> {}
-            is TransactionConfirmEvent.AssignTagEvent -> {}
-            is TransactionConfirmEvent.AssignTagError -> {
-                hideLoading()
-                NCToastMessage(requireActivity()).showError(event.message)
-            }
-
-            is TransactionConfirmEvent.AssignTagSuccess -> {
-                hideLoading()
-                NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_tags_assigned))
-                (requireActivity() as BaseComposeActivity).openTransactionDetailScreen(
-                    event.txId,
-                    args.walletId,
-                    sessionHolder.getActiveRoomIdSafe(),
-                    transactionConfirmViewModel.isInheritanceClaimingFlow()
-                )
-            }
-
-            else -> {}
-        }
-    }
-
-    private fun handleCreateTransaction(
-        amount: Amount,
-        address: String,
-        state: AddReceiptState,
-        event: EstimatedFeeEvent.GetFeeRateSuccess
-    ) {
-        if (args.slots.isNotEmpty()) {
-            (requireActivity() as BaseComposeNfcActivity).startNfcFlow(REQUEST_SATSCARD_SWEEP_SLOT)
-        } else {
-            val finalAmount = if (amount.value > 0) amount.pureBTC() else args.outputAmount
-            val subtractFeeFromAmount = if (amount.value > 0) false else args.subtractFeeFromAmount
-            val manualFeeRate =
-                if (transactionConfirmViewModel.isInheritanceClaimingFlow()) event.estimateFeeRates.priorityRate else event.estimateFeeRates.defaultRate
-            transactionConfirmViewModel.init(
-                walletId = args.walletId,
-                txReceipts = listOf(TxReceipt(address, finalAmount)),
-                privateNote = state.privateNote,
-                subtractFeeFromAmount = subtractFeeFromAmount,
-                slots = args.slots,
-                inputs = args.inputs,
-                manualFeeRate = manualFeeRate,
-                claimInheritanceTxParam = args.claimInheritanceTxParam
-            )
-
-            if (state.addressType.isTaproot() && !state.isValueKeySetDisable) {
-                transactionConfirmViewModel.checkShowTaprootDraftTransaction()
-            } else {
-                transactionConfirmViewModel.handleConfirmEvent(true)
-            }
-        }
-    }
-
-    private fun showEventError(message: String) {
-        NCToastMessage(requireActivity()).showError(message)
     }
 
     private fun handleCreateTransaction() {

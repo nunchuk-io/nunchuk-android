@@ -34,18 +34,17 @@ import com.google.android.play.core.review.ReviewManagerFactory
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.ExportPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.GetRawTransactionUseCase
-import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.ImportTransactionFromMk4UseCase
 import com.nunchuk.android.core.domain.SignRoomTransactionByTapSignerUseCase
 import com.nunchuk.android.core.domain.SignTransactionByTapSignerUseCase
 import com.nunchuk.android.core.domain.membership.CancelScheduleBroadcastTransactionUseCase
 import com.nunchuk.android.core.domain.membership.RequestSignatureTransactionUseCase
+import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.network.ApiErrorCode
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.isNoInternetException
@@ -53,6 +52,7 @@ import com.nunchuk.android.core.util.isPending
 import com.nunchuk.android.core.util.isPendingConfirm
 import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.isRejected
+import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
@@ -116,6 +116,7 @@ import com.nunchuk.android.usecase.membership.SignServerTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
+import com.nunchuk.android.usecase.transaction.GetTaprootKeySetSelectionUseCase
 import com.nunchuk.android.usecase.transaction.ImportPsbtUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.CrashlyticsReporter
@@ -142,6 +143,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
+// TODO: Remove TaprootKeySetSelection if tx status is confirmed
 @HiltViewModel
 internal class TransactionDetailsViewModel @Inject constructor(
     private val getBlockchainExplorerUrlUseCase: GetBlockchainExplorerUrlUseCase,
@@ -165,7 +167,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getTransactionFromNetworkUseCase: GetTransactionFromNetworkUseCase,
     private val getWalletUseCase: GetWalletUseCase,
     private val accountManager: AccountManager,
-    private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
+    private val singleSignerMapper: SingleSignerMapper,
     private val assistedWalletManager: AssistedWalletManager,
     private val pushEventManager: PushEventManager,
     private val signServerTransactionUseCase: SignServerTransactionUseCase,
@@ -182,7 +184,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val application: Application,
     private val importPsbtUseCase: ImportPsbtUseCase,
-    private val saveLocalFileUseCase: SaveLocalFileUseCase
+    private val saveLocalFileUseCase: SaveLocalFileUseCase,
+    private val getTaprootKeySetSelectionUseCase: GetTaprootKeySetSelectionUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionDetailsState())
     val state = _state.asStateFlow()
@@ -405,13 +408,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
                         isValueKeySetDisable = wallet.wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH
                     )
                 }
+                if (wallet.wallet.walletTemplate != WalletTemplate.DISABLE_KEY_PATH && wallet.wallet.addressType.isTaproot()) {
+                    loadKeySetSelection()
+                }
                 val signers = wallet.wallet.signers.map { signer ->
-                    if (signer.type == SignerType.NFC) {
-                        signer.toModel()
-                            .copy(cardId = getTapSignerStatusByIdUseCase(signer.masterSignerId).getOrNull()?.ident.orEmpty())
-                    } else {
-                        signer.toModel()
-                    }
+                    singleSignerMapper(signer)
                 }
                 if (wallet.roomWallet != null) {
                     _state.update {
@@ -423,6 +424,16 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     }
                 } else {
                     _state.update { it.copy(signers = signers) }
+                }
+            }
+        }
+    }
+
+    private fun loadKeySetSelection() {
+        viewModelScope.launch {
+            getTaprootKeySetSelectionUseCase(txId).onSuccess { keySet ->
+                if (keySet != null) {
+                    _state.update { it.copy(defaultKeySetIndex = keySet) }
                 }
             }
         }

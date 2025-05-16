@@ -10,11 +10,12 @@ import com.nunchuk.android.type.SignerType
 import javax.inject.Inject
 
 class SingleSignerMapper @Inject constructor(
-    private val accountManager: AccountManager,
+    accountManager: AccountManager,
     private val cardIdManager: CardIdManager
 ) {
+    private val accountInfo = accountManager.getAccount()
+
     suspend operator fun invoke(from: SingleSigner) : SignerModel {
-        val accountInfo = accountManager.getAccount()
         val isPrimaryKey =
             accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == from.masterFingerprint
         val cardId = if (from.type == SignerType.NFC) cardIdManager.getCardId(from.masterSignerId) else ""

@@ -40,19 +40,34 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
+import com.nunchuk.android.core.data.model.TxReceipt
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.isTaproot
+import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.defaultRate
+import com.nunchuk.android.nav.args.FeeSettingArgs
+import com.nunchuk.android.nav.args.FeeSettingStartDestination
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.confirmation.TaprootDraftTransaction
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmViewModel
+import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeViewModel
+import com.nunchuk.android.transaction.components.utils.openTransactionDetailScreen
+import com.nunchuk.android.transaction.components.utils.returnActiveRoom
+import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
 import com.nunchuk.android.transaction.databinding.ActivityTransactionAddReceiptBinding
+import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import javax.inject.Inject
@@ -99,8 +114,12 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             LaunchedEffect(Unit) {
                 transactionConfirmViewModel.event.collect {
                     if (it is TransactionConfirmEvent.DraftTaprootTransactionSuccess) {
-                        draftTx = it.draftTransaction
-                        navController.navigate(ReceiptNavigation.TaprootFeeSelection)
+                        if (it.draftTransaction != null) {
+                            draftTx = it.draftTransaction
+                            navController.navigate(ReceiptNavigation.TaprootFeeSelection)
+                        } else {
+                            transactionConfirmViewModel.handleConfirmEvent()
+                        }
                     }
                 }
             }
@@ -119,14 +138,24 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     )
                 }
                 composable<ReceiptNavigation.TaprootFeeSelection> {
-                    val state by viewModel.state.asFlow().collectAsStateWithLifecycle(AddReceiptState())
+                    val state by viewModel.state.asFlow()
+                        .collectAsStateWithLifecycle(AddReceiptState())
                     val tx = draftTx
+                    LaunchedEffect(tx) {
+                        if (tx == null) {
+                            navController.popBackStack()
+                        }
+                    }
                     if (tx != null) {
                         FeeSelectionScreen(
                             draftTx = tx,
                             signers = state.signers,
                             onFeeSettingsClick = {
-                                navigator.openFeeSettingsScreen(this@AddReceiptActivity)
+                                navigator.openFeeSettingsScreen(
+                                    this@AddReceiptActivity, args = FeeSettingArgs(
+                                        destination = FeeSettingStartDestination.TAPROOT_FEE_SELECTION
+                                    )
+                                )
                             },
                             onContinue = { keySetIndex ->
                                 transactionConfirmViewModel.handleConfirmEvent(keySetIndex = keySetIndex)
@@ -136,6 +165,120 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 }
             }
         }
+
+        observer()
+    }
+    
+    private fun observer() {
+        estimateFeeViewModel.event.observe(this, ::handleEstimateFeeEvent)
+        flowObserver(transactionConfirmViewModel.event, collector = ::handleCreateTransactionEvent)
+    }
+
+
+    private fun handleEstimateFeeEvent(event: EstimatedFeeEvent) {
+        val state = viewModel.getAddReceiptState()
+        val amount = state.amount
+        val address = state.address
+        if (event is EstimatedFeeEvent.GetFeeRateSuccess) {
+            handleCreateTransaction(amount, address, state, event)
+        } else if (event is EstimatedFeeEvent.EstimatedFeeErrorEvent) {
+            showEventError(event.message)
+        }
+    }
+
+    private fun handleCreateTransactionEvent(event: TransactionConfirmEvent) {
+        when (event) {
+            is TransactionConfirmEvent.CreateTxErrorEvent -> showCreateTransactionError(event.message)
+            is TransactionConfirmEvent.CreateTxSuccessEvent -> {
+                hideLoading()
+                if (transactionConfirmViewModel.isInheritanceClaimingFlow()) {
+                    ActivityManager.popUntilRoot()
+                    navigator.openTransactionDetailsScreen(
+                        activityContext = this,
+                        walletId = "",
+                        txId = event.transaction.txId,
+                        initEventId = "",
+                        roomId = "",
+                        transaction = event.transaction,
+                        inheritanceClaimTxDetailInfo = InheritanceClaimTxDetailInfo(
+                            changePos = event.transaction.changeIndex
+                        )
+                    )
+                } else {
+                   openTransactionDetailScreen(
+                        event.transaction.txId,
+                        args.walletId,
+                        sessionHolder.getActiveRoomIdSafe(),
+                        isInheritanceClaimingFlow = false
+                    )
+                }
+            }
+
+            is TransactionConfirmEvent.LoadingEvent -> showLoading(
+                message = if (event.isClaimInheritance) getString(
+                    R.string.nc_withdrawal_in_progress
+                ) else null
+            )
+
+            is TransactionConfirmEvent.InitRoomTransactionError -> showCreateTransactionError(event.message)
+            is TransactionConfirmEvent.InitRoomTransactionSuccess -> returnActiveRoom(event.roomId)
+            is TransactionConfirmEvent.UpdateChangeAddress -> {}
+            is TransactionConfirmEvent.AssignTagEvent -> {}
+            is TransactionConfirmEvent.AssignTagError -> {
+                hideLoading()
+                NCToastMessage(this).showError(event.message)
+            }
+
+            is TransactionConfirmEvent.AssignTagSuccess -> {
+                hideLoading()
+                NCToastMessage(this).showMessage(getString(R.string.nc_tags_assigned))
+                openTransactionDetailScreen(
+                    event.txId,
+                    args.walletId,
+                    sessionHolder.getActiveRoomIdSafe(),
+                    transactionConfirmViewModel.isInheritanceClaimingFlow()
+                )
+            }
+
+            else -> {}
+        }
+    }
+
+
+    private fun handleCreateTransaction(
+        amount: Amount,
+        address: String,
+        state: AddReceiptState,
+        event: EstimatedFeeEvent.GetFeeRateSuccess
+    ) {
+        if (args.slots.isNotEmpty()) {
+            startNfcFlow(REQUEST_SATSCARD_SWEEP_SLOT)
+        } else {
+            val finalAmount = if (amount.value > 0) amount.pureBTC() else args.outputAmount
+            val subtractFeeFromAmount = if (amount.value > 0) false else args.subtractFeeFromAmount
+            val manualFeeRate =
+                if (transactionConfirmViewModel.isInheritanceClaimingFlow()) event.estimateFeeRates.priorityRate else event.estimateFeeRates.defaultRate
+            transactionConfirmViewModel.init(
+                walletId = args.walletId,
+                txReceipts = listOf(TxReceipt(address, finalAmount)),
+                privateNote = state.privateNote,
+                subtractFeeFromAmount = subtractFeeFromAmount,
+                slots = args.slots,
+                inputs = args.inputs,
+                manualFeeRate = manualFeeRate,
+                claimInheritanceTxParam = args.claimInheritanceTxParam
+            )
+
+            if (state.addressType.isTaproot() && !state.isValueKeySetDisable) {
+                transactionConfirmViewModel.checkShowTaprootDraftTransaction()
+            } else {
+                transactionConfirmViewModel.handleConfirmEvent(true)
+            }
+        }
+    }
+
+    private fun showEventError(message: String) {
+        NCToastMessage(this).showError(message)
     }
 
     companion object {

@@ -22,6 +22,7 @@ package com.nunchuk.android.wallet.components.details
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.wallet.R
@@ -35,6 +36,7 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
         navHostFragment.navController.setGraph(R.navigation.wallet_detail_navigation, intent.extras)

@@ -115,11 +115,10 @@ fun TransactionDetailView(
     }
     val hasChange: Boolean = transaction.hasChangeIndex()
     val changeCoin = state.coins.find { it.vout == transaction.changeIndex }
-    val keySet = if (state.isValueKeySetDisable) {
-        transaction.keySetStatus
-    } else {
-        transaction.keySetStatus.drop(1)
+    val keySetMap = remember(state.transaction, state.defaultKeySetIndex) {
+        transaction.keySetStatus.withIndex().associate { it.index to it.value }
     }
+    val firstKeySet = if (!state.isValueKeySetDisable) keySetMap[state.defaultKeySetIndex] else null
     val offset = if (state.isValueKeySetDisable) 0 else 1
     NunchukTheme {
         NcScaffold(
@@ -353,13 +352,13 @@ fun TransactionDetailView(
                 }
 
                 if (transaction.keySetStatus.isNotEmpty()) {
-                    if (!state.isValueKeySetDisable) {
+                    if (firstKeySet != null) {
                         item {
                             KeySetView(
                                 signers = signerMap,
-                                keySetIndex = 0,
+                                keySetIndex = state.defaultKeySetIndex,
                                 requiredSignatures = transaction.m,
-                                keySet = transaction.keySetStatus.first(),
+                                keySet = firstKeySet,
                                 onSignClick = onSignClick
                             )
                         }
@@ -391,15 +390,20 @@ fun TransactionDetailView(
                     }
 
                     if (isExpanded) {
-                        keySet.forEachIndexed { index, keySetStatus ->
+                        val finalKeySet = if (state.isValueKeySetDisable) {
+                            keySetMap.filter { it.key != state.defaultKeySetIndex }
+                        } else {
+                            keySetMap
+                        }
+                        finalKeySet.filter { state.isValueKeySetDisable || it.key != state.defaultKeySetIndex }.forEach { (index, keySetStatus) ->
                             item {
                                 KeySetView(
                                     signers = signerMap,
-                                    keySetIndex = index + offset,
+                                    keySetIndex = index,
                                     requiredSignatures = transaction.m,
                                     keySet = keySetStatus,
                                     onSignClick = onSignClick,
-                                    showDivider = index < keySet.size.dec(),
+                                    showDivider = index < finalKeySet.size.dec(),
                                     isValueKeySetDisable = state.isValueKeySetDisable
                                 )
                             }

@@ -38,5 +38,6 @@ data class TransactionDetailsState(
     val userRole: AssistedWalletRole = AssistedWalletRole.NONE,
     val txInputCoins: List<UnspentOutput> = emptyList(),
     val addressType: AddressType = AddressType.NATIVE_SEGWIT,
-    val isValueKeySetDisable: Boolean = false
+    val isValueKeySetDisable: Boolean = false,
+    val defaultKeySetIndex: Int = 0
 )

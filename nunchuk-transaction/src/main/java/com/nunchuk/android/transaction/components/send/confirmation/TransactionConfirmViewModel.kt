@@ -270,13 +270,21 @@ class TransactionConfirmViewModel @Inject constructor(
             runCatching {
                 val autoSelectionSetting =
                     getTaprootSelectionFeeSettingUseCase(Unit).map { it.getOrThrow() }.first()
-                val draftTxKeyPath = draftNormalTransaction(true).getOrThrow()
-                val draftTxScriptPath = draftNormalTransaction(false).getOrThrow()
+                val draftTxKeyPath = draftNormalTransaction(false).getOrThrow()
+                val draftTxScriptPath = draftNormalTransaction(true).getOrThrow()
 
                 val feeDifference = draftTxScriptPath.fee - draftTxKeyPath.fee
+                // check fee difference percentage with draftTxKeyPath
+                val feeDifferencePercentage =
+                    if (draftTxKeyPath.fee.value > 0) {
+                        feeDifference.value / draftTxKeyPath.fee.value
+                    } else {
+                        100
+                    }
                 val draftTx =
                     if (!autoSelectionSetting.automaticFeeEnabled || feeDifference.pureBTC()
-                            .fromBTCToCurrency() > autoSelectionSetting.feeDifferenceThresholdUsd.toDouble()
+                            .fromBTCToCurrency() > autoSelectionSetting.feeDifferenceThresholdCurrency
+                        || feeDifferencePercentage > autoSelectionSetting.feeDifferenceThresholdPercent
                     ) {
                         TaprootDraftTransaction(
                             draftTxKeyPath = draftTxKeyPath,
