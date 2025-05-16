@@ -65,6 +65,7 @@ import com.nunchuk.android.core.util.getPendingSignatures
 import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.isPendingSignatures
+import com.nunchuk.android.core.util.isRejected
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.signDone
 import com.nunchuk.android.core.util.truncatedAddress
@@ -139,7 +140,7 @@ fun TransactionDetailView(
                 )
             },
             bottomBar = {
-                if (transaction.status.canBroadCast()
+                if ((transaction.status.canBroadCast() || transaction.status.isRejected())
                     && args.inheritanceClaimTxDetailInfo == null && state.userRole.isObserver.not()
                     && isServerBroadcastTime(transaction, state.serverTransaction).not()
                 ) {
@@ -150,7 +151,7 @@ fun TransactionDetailView(
                         onClick = onBroadcastClick
                     ) {
                         Text(
-                            text = stringResource(R.string.nc_transaction_broadcast),
+                            text = if (transaction.status.isRejected()) stringResource(R.string.nc_re_broadcast_transaction) else stringResource(R.string.nc_transaction_broadcast),
                         )
                     }
                 } else if (transaction.status.hadBroadcast()) {
@@ -875,7 +876,7 @@ private fun TransactionDetailViewPreview() {
         state = TransactionDetailsState(
             transaction = Transaction(
                 txId = "txId",
-                status = TransactionStatus.READY_TO_BROADCAST,
+                status = TransactionStatus.NETWORK_REJECTED,
                 isReceive = false,
                 receiveOutputs = emptyList(),
                 outputs = listOf(
