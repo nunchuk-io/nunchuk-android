@@ -85,7 +85,7 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
             when (it) {
                 is ProcessErrorEvent -> onHandleError(it.message)
                 is SignInSuccessEvent -> {
-                    openMainScreen(it.token, it.encryptedDeviceId)
+                    openMainScreen()
                 }
 
                 is ProcessingEvent -> showLoading()
@@ -102,7 +102,7 @@ class VerifyNewDeviceActivity : BaseActivity<ActivityVerifyNewDeviceBinding>() {
         NCToastMessage(this).showError(message)
     }
 
-    private fun openMainScreen(token: String, deviceId: String) {
+    private fun openMainScreen() {
         hideLoading()
         setResult(RESULT_OK)
         finish()

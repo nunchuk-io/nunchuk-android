@@ -65,7 +65,6 @@ class StoreAccountUseCase @Inject constructor(
         }
 
         return accountManager.getAccount()
-
     }
 
     class Param(

@@ -50,9 +50,6 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
 
     override val initialState = Unit
 
-    private var token: String? = null
-    private var encryptedDeviceId: String? = null
-
     fun handleVerifyNewDevice(
         email: String,
         loginHalfToken: String,
@@ -70,15 +67,13 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
             ).flowOn(Dispatchers.IO)
                 .onStart { event(ProcessingEvent) }
                 .map {
-                    token = it.first
-                    encryptedDeviceId = it.second
                     initNunchuk()
                 }
                 .flowOn(Dispatchers.Main)
                 .onException { setEvent(VerifyNewDeviceEvent.ProcessErrorEvent(message = it.message.orUnknownError())) }
                 .collect {
                     signInModeHolder.setCurrentMode(SignInMode.EMAIL)
-                    event(SignInSuccessEvent(token = token.orEmpty(), encryptedDeviceId = encryptedDeviceId.orEmpty()))
+                    event(SignInSuccessEvent)
                 }
         }
     }
