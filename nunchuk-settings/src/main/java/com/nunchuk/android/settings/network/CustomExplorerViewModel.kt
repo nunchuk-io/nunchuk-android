@@ -48,6 +48,9 @@ class CustomExplorerViewModel @Inject constructor(
                     else -> MAINNET_URL_TEMPLATE
                 }
                 val customUrl = getCustomExplorerUrlFlowUseCase(chain).getOrThrow()
+                    .takeIf {
+                        it.isNotBlank() && it != defaultUrl
+                    }.orEmpty()
                 _uiState.update {
                     it.copy(
                         chain = chain,

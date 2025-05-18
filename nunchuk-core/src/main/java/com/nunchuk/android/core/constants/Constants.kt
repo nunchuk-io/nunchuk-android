@@ -22,7 +22,8 @@ package com.nunchuk.android.core.constants
 object Constants {
     const val MAIN_NET_HOST = "mainnet.nunchuk.io:51001"
     const val TEST_NET_HOST = "testnet.nunchuk.io:50001"
-    const val SIG_NET_HOST = "signet.nunchuk.io:50002"
+    const val OLD_SIG_NET_HOST = "signet.nunchuk.io:50002"
+    const val SIG_NET_HOST = "mempool.space:60602"
 
     const val TESTNET_URL_TEMPLATE = "https://mempool.space/testnet4/tx/"
     const val MAINNET_URL_TEMPLATE = "https://mempool.space/tx/"

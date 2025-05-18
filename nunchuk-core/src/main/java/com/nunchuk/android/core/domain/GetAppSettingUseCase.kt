@@ -20,6 +20,8 @@
 package com.nunchuk.android.core.domain
 
 import com.google.gson.Gson
+import com.nunchuk.android.core.constants.Constants.OLD_SIG_NET_HOST
+import com.nunchuk.android.core.constants.Constants.SIG_NET_HOST
 import com.nunchuk.android.core.persistence.NCSharePreferences
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.AppSettings
@@ -38,6 +40,12 @@ class GetAppSettingUseCase @Inject constructor(
         return gson.fromJson(
             ncSharedPreferences.appSettings,
             AppSettings::class.java
-        ) ?: initAppSettingsUseCase(Unit).getOrThrow()
+        ).let {
+            if (it.signetServers.isNotEmpty() && it.signetServers.first() == OLD_SIG_NET_HOST) {
+                it.copy(signetServers = listOf(SIG_NET_HOST))
+            } else {
+                it
+            }
+        } ?: initAppSettingsUseCase(Unit).getOrThrow()
     }
 }
