@@ -28,7 +28,7 @@ object Constants {
     const val TESTNET_URL_TEMPLATE = "https://mempool.space/testnet4/tx/"
     const val MAINNET_URL_TEMPLATE = "https://mempool.space/tx/"
     const val BLOCKSTREAM_MAINNET_ADDRESS_TEMPLATE = "https://mempool.space/address/"
-    const val GLOBAL_SIGNET_EXPLORER = "https://mempool.space/signet"
+    const val GLOBAL_SIGNET_EXPLORER = "https://mempool.space/signet/tx/"
 
 }
 
