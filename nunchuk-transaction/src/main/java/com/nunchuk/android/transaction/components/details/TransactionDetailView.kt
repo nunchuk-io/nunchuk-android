@@ -547,7 +547,7 @@ private fun TransactionHeader(
         TransactionStatus.READY_TO_BROADCAST -> colorResource(R.color.nc_beeswax_tint)
         TransactionStatus.PENDING_CONFIRMATION -> colorResource(R.color.nc_lavender_tint_color)
         TransactionStatus.CONFIRMED -> colorResource(R.color.nc_denim_tint_color)
-        TransactionStatus.NETWORK_REJECTED -> colorResource(R.color.nc_orange_dark_color)
+        TransactionStatus.NETWORK_REJECTED -> colorResource(R.color.nc_red_tint_color)
         TransactionStatus.REPLACED -> colorResource(R.color.nc_white_color)
         TransactionStatus.PENDING_NONCE -> colorResource(R.color.nc_white_color)
     }
