@@ -38,24 +38,24 @@ class GetBlockchainExplorerUrlUseCase @Inject constructor(
 
     override suspend fun execute(parameters: String): String {
         val settings = appSettingsUseCase(Unit).getOrThrow()
-        return formatUrl(settings.chain, parameters, settings.signetExplorerHost)
+        return formatUrl(settings.chain, parameters)
     }
 
-    private suspend fun formatUrl(chain: Chain, txId: String, signetExplorerHost: String) =
-        getCustomUrl(chain, signetExplorerHost) + txId
+    private suspend fun formatUrl(chain: Chain, txId: String) =
+        getCustomUrl(chain) + txId
 
-    private suspend fun getCustomUrl(chain: Chain, signetExplorerHost: String) =
+    private suspend fun getCustomUrl(chain: Chain) =
         getCustomExplorerUrlFlowUseCase(chain)
             .let { result ->
                 val custom = result.getOrNull()?.takeIf { it.isNotEmpty() }
                 custom?.let { it.substringBeforeLast("tx") + "tx/" }
             }.takeIf { !it.isNullOrEmpty() }
-            ?: getTemplate(chain, signetExplorerHost)
+            ?: getTemplate(chain)
 
-    private fun getTemplate(chain: Chain, signetExplorerHost: String) = when (chain) {
+    private fun getTemplate(chain: Chain) = when (chain) {
         Chain.MAIN -> MAINNET_URL_TEMPLATE
         Chain.TESTNET -> TESTNET_URL_TEMPLATE
-        Chain.SIGNET -> if (signetExplorerHost.isEmpty()) "$GLOBAL_SIGNET_EXPLORER/tx/" else "$signetExplorerHost/tx/"
+        Chain.SIGNET -> GLOBAL_SIGNET_EXPLORER
         else -> ""
     }
 
