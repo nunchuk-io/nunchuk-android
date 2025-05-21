@@ -9,26 +9,32 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcNumberInputField
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSwitch
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.util.CurrencyFormatter
+import kotlinx.coroutines.launch
 
 @Composable
 fun TaprootFeeSelectionContent(
@@ -39,6 +45,9 @@ fun TaprootFeeSelectionContent(
         taprootAmount: String,
     ) -> Unit = { _, _, _ -> },
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val snackState = remember { SnackbarHostState() }
     var automaticFeeEnabled by remember(state.automaticFee) {
         mutableStateOf(state.automaticFee)
     }
@@ -52,21 +61,13 @@ fun TaprootFeeSelectionContent(
 
     val taprootPercentageVal = taprootPercentage.toIntOrNull() ?: 0
     val taprootAmountVal = taprootAmount.toDoubleOrNull() ?: 0.0
-    val isButtonEnable = if (automaticFeeEnabled.not()) {
-        automaticFeeEnabled != state.automaticFee
-    } else {
-        state.isFirstTimeSettingTaprootFee ||
-        taprootPercentageVal > 0 && taprootAmountVal > 0.0f && (
-                taprootAmountVal != state.taprootAmount.toDoubleOrNull() ||
-                        taprootPercentageVal != state.taprootPercentage.toIntOrNull()
-                )
-    }
 
     NunchukTheme {
-        Scaffold(
+        NcScaffold(
             modifier = Modifier
                 .navigationBarsPadding()
                 .statusBarsPadding(),
+            snackState = snackState,
             topBar = {
                 NcTopAppBar(
                     title = stringResource(R.string.nc_fee_settings),
@@ -82,11 +83,24 @@ fun TaprootFeeSelectionContent(
                         modifier = Modifier
                             .padding(top = 16.dp)
                             .fillMaxWidth(),
-                        enabled = isButtonEnable,
                         onClick = {
-                            onContinueClick(automaticFeeEnabled, taprootPercentage, taprootAmount)
-                        }) {
-                        Text(text = stringResource(R.string.nc_save_fee_settings))
+                            if (taprootAmountVal <= 0.0 || taprootPercentageVal <= 0) {
+                                coroutineScope.launch {
+                                    snackState.showNunchukSnackbar(
+                                        message = context.getString(com.nunchuk.android.settings.R.string.nc_threshold_must_be_greater_than_0),
+                                        type = NcToastType.ERROR
+                                    )
+                                }
+                            } else {
+                                onContinueClick(
+                                    automaticFeeEnabled,
+                                    taprootPercentage,
+                                    taprootAmount
+                                )
+                            }
+                        },
+                    ) {
+                        Text(text = stringResource(R.string.nc_save))
                     }
                 }
             },
@@ -147,7 +161,10 @@ fun TaprootFeeSelectionContent(
                     NcNumberInputField(
                         modifier = Modifier
                             .padding(top = 16.dp),
-                        title = stringResource(R.string.nc_fee_difference_threshold_currency, "USD"),
+                        title = stringResource(
+                            R.string.nc_fee_difference_threshold_currency,
+                            "USD"
+                        ),
                         value = taprootAmount,
                         onValueChange = { s ->
                             val numberOfDigit = 2

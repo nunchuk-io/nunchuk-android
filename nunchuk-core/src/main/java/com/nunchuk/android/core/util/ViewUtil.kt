@@ -81,7 +81,7 @@ fun TextView.bindTransactionStatus(transaction: Transaction) {
         }
         NETWORK_REJECTED -> {
             text = context.getString(R.string.nc_transaction_network_rejected)
-            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_orange_dark_color)
+            backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_red_tint_color)
         }
         REPLACED -> {
             text = context.getString(R.string.nc_transaction_replaced)
