@@ -205,8 +205,8 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
-    private suspend fun draftNormalTransaction(useScriptPath: Boolean = false) =
-        draftTransactionUseCase(
+    private suspend fun draftNormalTransaction(useScriptPath: Boolean = false): Result<Transaction> {
+        return draftTransactionUseCase(
             DraftTransactionUseCase.Params(
                 walletId = walletId,
                 outputs = getOutputs(),
@@ -216,6 +216,7 @@ class TransactionConfirmViewModel @Inject constructor(
                 useScriptPath = useScriptPath
             )
         )
+    }
 
     private fun draftSatsCardTransaction() {
         viewModelScope.launch {
@@ -340,6 +341,7 @@ class TransactionConfirmViewModel @Inject constructor(
     private fun createNewTransaction(isQuickCreateTransaction: Boolean, keySetIndex: Int) {
         viewModelScope.launch {
             _event.emit(LoadingEvent())
+            val useScriptPath = keySetIndex > 0
             createTransactionUseCase(
                 CreateTransactionUseCase.Param(
                     groupId = assistedWalletManager.getGroupId(walletId),
@@ -351,7 +353,7 @@ class TransactionConfirmViewModel @Inject constructor(
                     memo = privateNote,
                     isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
                     antiFeeSniping = antiFeeSniping,
-                    useScriptPath = keySetIndex != 0,
+                    useScriptPath = useScriptPath,
                 )
             ).onSuccess { transaction ->
                 if (keySetIndex > 0) {

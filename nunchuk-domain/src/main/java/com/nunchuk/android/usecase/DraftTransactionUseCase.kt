@@ -48,7 +48,7 @@ class DraftTransactionUseCase @Inject constructor(
         val outputs: Map<String, Amount>,
         val inputs: List<TxInput> = emptyList(),
         val feeRate: Amount = Amount(-1),
-        val  subtractFeeFromAmount: Boolean = false,
+        val subtractFeeFromAmount: Boolean = false,
         val replaceTxId: String = "",
         val useScriptPath: Boolean = false,
     )
