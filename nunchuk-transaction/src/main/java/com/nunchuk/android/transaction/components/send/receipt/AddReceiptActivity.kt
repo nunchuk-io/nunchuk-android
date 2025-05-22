@@ -140,6 +140,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 composable<ReceiptNavigation.TaprootFeeSelection> {
                     val state by viewModel.state.asFlow()
                         .collectAsStateWithLifecycle(AddReceiptState())
+                    val confirmTransactionUiState by transactionConfirmViewModel.uiState.collectAsStateWithLifecycle()
                     val tx = draftTx
                     LaunchedEffect(tx) {
                         if (tx == null) {
@@ -148,6 +149,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     }
                     if (tx != null) {
                         FeeSelectionScreen(
+                            isAutoFeeSelectionEnabled = confirmTransactionUiState.feeSelectionSetting.automaticFeeEnabled,
                             draftTx = tx,
                             signers = state.signers,
                             onFeeSettingsClick = {

@@ -41,6 +41,7 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.model.TxOutput
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.setting.TaprootFeeSelectionSetting
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.AssignTagEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.CreateTxErrorEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.CreateTxSuccessEvent
@@ -67,7 +68,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -114,6 +114,13 @@ class TransactionConfirmViewModel @Inject constructor(
                 .map { it.getOrThrow() }
                 .collect { savedAddresses ->
                     _state.update { it.copy(savedAddress = savedAddresses.associate { it.address to it.label }) }
+                }
+        }
+        viewModelScope.launch {
+            getTaprootSelectionFeeSettingUseCase(Unit)
+                .map { it.getOrThrow() }
+                .collect { taprootFeeSelectionSetting ->
+                    _state.update { it.copy(feeSelectionSetting = taprootFeeSelectionSetting) }
                 }
         }
     }
@@ -281,8 +288,7 @@ class TransactionConfirmViewModel @Inject constructor(
     fun checkShowTaprootDraftTransaction() {
         viewModelScope.launch {
             runCatching {
-                val autoSelectionSetting =
-                    getTaprootSelectionFeeSettingUseCase(Unit).map { it.getOrThrow() }.first()
+                val autoSelectionSetting = uiState.value.feeSelectionSetting
                 val draftTxKeyPath = draftNormalTransaction(false).getOrThrow()
                 val draftTxScriptPath = draftNormalTransaction(true).getOrThrow()
 
@@ -290,9 +296,9 @@ class TransactionConfirmViewModel @Inject constructor(
                 // check fee difference percentage with draftTxKeyPath
                 val feeDifferencePercentage =
                     if (draftTxKeyPath.fee.value > 0) {
-                        feeDifference.value / draftTxKeyPath.fee.value
+                        feeDifference.value * 100f / draftTxKeyPath.fee.value
                     } else {
-                        100
+                        100f
                     }
                 val draftTx =
                     if (!autoSelectionSetting.automaticFeeEnabled || feeDifference.pureBTC()
@@ -448,6 +454,7 @@ data class TransactionConfirmUiState(
     val allTags: Map<Int, CoinTag> = emptyMap(),
     val transaction: Transaction = Transaction(),
     val savedAddress: Map<String, String> = emptyMap(),
+    val feeSelectionSetting: TaprootFeeSelectionSetting = TaprootFeeSelectionSetting(),
 )
 
 internal fun Int.toManualFeeRate() = if (this > 0) toAmount() else Amount(-1)

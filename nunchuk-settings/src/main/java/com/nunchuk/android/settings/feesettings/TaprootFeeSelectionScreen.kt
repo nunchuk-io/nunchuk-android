@@ -167,9 +167,7 @@ fun TaprootFeeSelectionContent(
                         ),
                         value = taprootAmount,
                         onValueChange = { s ->
-                            val numberOfDigit = 2
-                            val format = CurrencyFormatter.format(s, numberOfDigit)
-                            taprootAmount = format
+                            taprootAmount = CurrencyFormatter.format(s, 2)
                         },
                         suffix = "",
                     )

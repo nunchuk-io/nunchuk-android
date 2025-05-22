@@ -110,5 +110,6 @@
     <string name="nc_select_signing_policy">Select signing policy</string>
     <string name="nc_estimated_fees_for_each_signing_policy">These are the estimated fees for each signing policy. Which policy would you like to use?</string>
     <string name="nc_configure_automatic_fee_selection">To configure automatic fee selection, go to [A]Fee Settings.[/A]</string>
+    <string name="nc_update_automatic_fee_selection">To update automatic fee selection, go to [A]Fee Settings.[/A]</string>
     <string name="nc_re_broadcast_transaction">Re-broadcast transaction</string>
 </resources>

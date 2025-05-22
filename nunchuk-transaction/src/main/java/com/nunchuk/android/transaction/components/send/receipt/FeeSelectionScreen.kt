@@ -51,6 +51,7 @@ import com.nunchuk.android.type.TransactionStatus
 
 @Composable
 fun FeeSelectionScreen(
+    isAutoFeeSelectionEnabled: Boolean,
     draftTx: TaprootDraftTransaction,
     signers: List<SignerModel>,
     onContinue: (Int) -> Unit = {},
@@ -105,7 +106,8 @@ fun FeeSelectionScreen(
                 ) {
                     NcSpannedClickableText(
                         modifier = Modifier,
-                        text = stringResource(R.string.nc_configure_automatic_fee_selection),
+                        text = if (isAutoFeeSelectionEnabled) stringResource(R.string.nc_update_automatic_fee_selection)
+                        else stringResource(R.string.nc_configure_automatic_fee_selection),
                         baseStyle = NunchukTheme.typography.body,
                         styles = mapOf(
                             SpanIndicator('A') to SpanStyle(
@@ -191,14 +193,16 @@ private fun FeeSelectionScreenPreview(
         keySetStatus = listOf(
             KeySetStatus(
                 TransactionStatus.CONFIRMED, mapOf(
-                "79EB35F4" to true,
-                "79EB35F5" to false
-            )),
+                    "79EB35F4" to true,
+                    "79EB35F5" to false
+                )
+            ),
             KeySetStatus(
                 TransactionStatus.CONFIRMED, mapOf(
-                "79EB35F4" to true,
-                "79EB35F5" to false
-            )),
+                    "79EB35F4" to true,
+                    "79EB35F5" to false
+                )
+            ),
         ),
         scriptPathFee = Amount(200)
     )
@@ -208,7 +212,8 @@ private fun FeeSelectionScreenPreview(
                 draftTxKeyPath = transaction,
                 draftTxScriptPath = transaction
             ),
-            signers = emptyList()
+            signers = emptyList(),
+            isAutoFeeSelectionEnabled = true
         )
     }
 }

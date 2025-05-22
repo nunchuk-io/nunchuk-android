@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -56,7 +57,7 @@ class FeeSettingsViewModel @Inject constructor(
                         it.copy(
                             automaticFee = taprootFeeSetting.automaticFeeEnabled,
                             taprootPercentage = taprootFeeSetting.feeDifferenceThresholdPercent.toString(),
-                            taprootAmount = taprootFeeSetting.feeDifferenceThresholdCurrency.toString(),
+                            taprootAmount = String.format(Locale.US, "%.2f", taprootFeeSetting.feeDifferenceThresholdCurrency),
                             isFirstTimeSettingTaprootFee = taprootFeeSetting.isFirstTime
                         )
                     }
@@ -82,8 +83,8 @@ class FeeSettingsViewModel @Inject constructor(
         taprootPercentage: String,
         taprootAmount: String,
     ) = viewModelScope.launch {
-        var percentage = taprootPercentage.toIntOrNull() ?: 0
-        var amount = taprootAmount
+        val percentage = taprootPercentage.toIntOrNull() ?: 0
+        val amount = taprootAmount
         setTaprootSelectionFeeSettingUseCase(
             TaprootFeeSelectionSetting(
                 automaticFeeEnabled = enabled,
