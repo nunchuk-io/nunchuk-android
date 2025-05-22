@@ -136,7 +136,7 @@ fun KeySetFeeView(
                     Text(
                         text = fee.getCurrencyAmount(),
                         style = NunchukTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.textSecondary
+                        color = MaterialTheme.colorScheme.textPrimary
                     )
                 }
             }
