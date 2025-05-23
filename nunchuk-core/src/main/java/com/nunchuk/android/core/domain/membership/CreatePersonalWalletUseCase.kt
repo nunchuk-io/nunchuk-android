@@ -29,8 +29,16 @@ import javax.inject.Inject
 class CreatePersonalWalletUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val userWalletsRepository: PremiumWalletRepository,
-) : UseCase<String, Wallet>(dispatcher) {
-    override suspend fun execute(parameters: String): Wallet {
-        return userWalletsRepository.createPersonalWallet(parameters)
+) : UseCase<CreatePersonalWalletUseCase.Param, Wallet>(dispatcher) {
+    override suspend fun execute(parameters: Param): Wallet {
+        return userWalletsRepository.createPersonalWallet(
+            name = parameters.name,
+            sendBsmsEmail = parameters.sendBsmsEmail
+        )
     }
+
+    data class Param(
+        val name: String,
+        val sendBsmsEmail: Boolean = false
+    )
 }

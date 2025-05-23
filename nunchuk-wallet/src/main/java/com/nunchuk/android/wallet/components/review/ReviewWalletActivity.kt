@@ -70,6 +70,7 @@ import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.navigateToSelectWallet
+import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
@@ -179,9 +180,11 @@ class ReviewWalletActivity : BaseComposeActivity() {
             navigator.returnToMainScreen(this)
             navigator.openBackupWalletScreen(
                 activityContext = this,
-                wallet = event.wallet,
-                isDecoyWallet = args.decoyPin.isNotEmpty(),
-                quickWalletParam = args.quickWalletParam
+                args = BackUpWalletArgs(
+                    wallet = event.wallet,
+                    quickWalletParam = args.quickWalletParam,
+                    isDecoyWallet = args.decoyPin.isNotEmpty(),
+                )
             )
         }
     }

@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,6 +40,8 @@ class Mk4ViewModel @Inject constructor(
             )
         ).onSuccess {
             _event.emit(Mk4Event.Success)
+        }.onFailure {
+            Timber.e(it)
         }
         _event.emit(Mk4Event.Loading(false))
     }

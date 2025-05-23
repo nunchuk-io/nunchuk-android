@@ -19,10 +19,12 @@
 
 package com.nunchuk.android.main.membership.honey.registerwallet
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcImageAppBar
@@ -53,6 +56,9 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.wallet.CreateWalletFragmentDirections
+import com.nunchuk.android.nav.args.BackUpWalletArgs
+import com.nunchuk.android.nav.args.BackUpWalletType
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.wallet.components.upload.SharedWalletConfigurationViewModel
@@ -66,6 +72,21 @@ class RegisterWalletToAirgapFragment : MembershipFragment() {
     private val sharedViewModel by activityViewModels<SharedWalletConfigurationViewModel>()
 
     private val args: RegisterWalletToAirgapFragmentArgs by navArgs()
+
+    private val launcher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            findNavController().navigate(
+                CreateWalletFragmentDirections.actionCreateWalletFragmentToCreateWalletSuccessFragment(
+                    args.walletId
+                ),
+                NavOptions.Builder()
+                    .setPopUpTo(findNavController().graph.startDestinationId, true)
+                    .build()
+            )
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,13 +115,26 @@ class RegisterWalletToAirgapFragment : MembershipFragment() {
         }
 
         flowObserver(sharedViewModel.event) {
+            val wallet = viewModel.wallet
             if (it == UploadConfigurationEvent.DoneScanQr) {
                 viewModel.setRegisterAirgapSuccess(args.walletId)
-                findNavController().navigate(
-                    RegisterWalletToAirgapFragmentDirections.actionRegisterWalletToAirgapFragmentToCreateWalletSuccessFragment(
-                        args.walletId
+                if (args.sendBsmsEmail) {
+                    findNavController().navigate(
+                        RegisterWalletToAirgapFragmentDirections.actionRegisterWalletToAirgapFragmentToCreateWalletSuccessFragment(
+                            args.walletId
+                        )
                     )
-                )
+                } else if (wallet != null) {
+                    launcher.launch(
+                        navigator.buildBackupWalletIntent(
+                            activityContext = requireActivity(),
+                            args = BackUpWalletArgs(
+                                wallet = wallet,
+                                backUpWalletType = BackUpWalletType.ASSISTED_CREATED
+                            )
+                        )
+                    )
+                }
             }
         }
     }

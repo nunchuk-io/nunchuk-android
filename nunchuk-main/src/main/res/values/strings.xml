@@ -385,4 +385,5 @@
     <string name="nc_waiting_for_other_devices">Waiting for other devices</string>
     <string name="nc_has_been_recovered">%1$s has been successfully recovered</string>
     <string name="nc_waiting_to_join">Waiting to join</string>
+    <string name="nc_send_wallet_config_to_email">Send a copy of wallet config file to my email</string>
 </resources>

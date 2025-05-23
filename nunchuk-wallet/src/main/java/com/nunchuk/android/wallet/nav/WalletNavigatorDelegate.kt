@@ -31,6 +31,7 @@ import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nav.WalletNavigator
+import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.AddressType
@@ -135,15 +136,18 @@ interface WalletNavigatorDelegate : WalletNavigator {
 
     override fun openBackupWalletScreen(
         activityContext: Context,
-        wallet: Wallet,
-        quickWalletParam: QuickWalletParam?,
-        isDecoyWallet: Boolean,
+        args: BackUpWalletArgs,
     ) {
         BackupWalletActivity.start(
             activityContext = activityContext,
-            wallet = wallet,
-            quickWalletParam = quickWalletParam,
-            isDecoyWallet = isDecoyWallet
+            args = args
+        )
+    }
+
+    override fun buildBackupWalletIntent(activityContext: Context, args: BackUpWalletArgs): Intent {
+        return BackupWalletActivity.buildIntent(
+            activityContext = activityContext,
+            args = args
         )
     }
 

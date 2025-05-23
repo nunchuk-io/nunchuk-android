@@ -19,10 +19,13 @@
 
 package com.nunchuk.android.main.membership.honey.registerwallet
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -33,11 +36,25 @@ import javax.inject.Inject
 class RegisterWalletToAirgapViewModel @Inject constructor(
     membershipStepManager: MembershipStepManager,
     private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    private val args = RegisterWalletToAirgapFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val _event = MutableSharedFlow<RegisterWalletToAirgapEvent>()
     val event = _event.asSharedFlow()
 
+    var wallet: Wallet? = null
+
     val remainTime = membershipStepManager.remainingTime
+
+    init {
+        viewModelScope.launch {
+            getWalletDetail2UseCase(args.walletId)
+                .onSuccess {
+                    wallet = it
+                }
+        }
+    }
 
     fun onExportAirgapClicked() {
         viewModelScope.launch {

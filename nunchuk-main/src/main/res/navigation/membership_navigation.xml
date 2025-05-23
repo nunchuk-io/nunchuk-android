@@ -219,6 +219,10 @@
         <argument
             android:name="wallet_id"
             app:argType="string" />
+        <argument
+            android:name="send_bsms_email"
+            android:defaultValue="false"
+            app:argType="boolean" />
         <action
             android:id="@+id/action_registerWalletToAirgapFragment_to_createWalletSuccessFragment"
             app:destination="@id/createWalletSuccessFragment"
@@ -531,15 +535,15 @@
 
         <argument
             android:name="group_id"
+            android:defaultValue="@null"
             app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null"/>
+            app:nullable="true" />
 
         <argument
             android:name="wallet_id"
+            android:defaultValue="@null"
             app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null"/>
+            app:nullable="true" />
     </fragment>
 
     <fragment

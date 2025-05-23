@@ -2084,14 +2084,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun createGroupWallet(
         groupId: String,
         name: String,
-        primaryMembershipId: String?
+        primaryMembershipId: String?,
+        sendBsmsEmail: Boolean
     ): Wallet {
         val response =
             userWalletApiManager.groupWalletApi.createGroupWallet(
                 groupId,
                 CreateDraftWalletRequest(
                     name = name,
-                    primaryMembershipId = primaryMembershipId
+                    primaryMembershipId = primaryMembershipId,
+                    sendBsmsEmail = sendBsmsEmail
                 )
             )
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
@@ -2110,9 +2112,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
     }
 
-    override suspend fun createPersonalWallet(name: String): Wallet {
+    override suspend fun createPersonalWallet(
+        name: String,
+        sendBsmsEmail: Boolean
+    ): Wallet {
         val response = userWalletApiManager.walletApi.createWalletFromDraft(
-            CreateDraftWalletRequest(name = name)
+            CreateDraftWalletRequest(
+                name = name,
+                sendBsmsEmail = sendBsmsEmail
+            )
         )
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         val chatId = accountManager.getAccount().chatId

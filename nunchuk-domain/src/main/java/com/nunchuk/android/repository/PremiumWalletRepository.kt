@@ -393,11 +393,13 @@ interface PremiumWalletRepository {
     suspend fun createGroupWallet(
         groupId: String,
         name: String,
-        primaryMembershipId: String?
+        primaryMembershipId: String?,
+        sendBsmsEmail: Boolean = false
     ): Wallet
 
     suspend fun createPersonalWallet(
-        name: String
+        name: String,
+        sendBsmsEmail: Boolean = false
     ): Wallet
 
     suspend fun groupMemberAcceptRequest(groupId: String)

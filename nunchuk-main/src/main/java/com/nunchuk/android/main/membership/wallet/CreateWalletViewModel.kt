@@ -56,32 +56,47 @@ class CreateWalletViewModel @Inject constructor(
         }
     }
 
-    fun createQuickWallet() {
+    fun createQuickWallet(sendBsmsEmail: Boolean) {
         if (createWalletJob?.isActive == true) return
         createWalletJob = viewModelScope.launch {
             _event.emit(CreateWalletEvent.Loading(true))
-            createPersonalWalletUseCase(_state.value.walletName).onFailure {
+            createPersonalWalletUseCase(
+                CreatePersonalWalletUseCase.Param(
+                    name = _state.value.walletName,
+                    sendBsmsEmail = sendBsmsEmail
+                )
+            ).onFailure {
                 _event.emit(CreateWalletEvent.ShowError(it.message.orUnknownError()))
-            }.onSuccess {
+            }.onSuccess { wallet ->
+                _state.update {
+                    it.copy(
+                        walletId = wallet.id,
+                    )
+                }
                 val totalAirgap =
-                    it.signers.count { signer -> signer.type == SignerType.AIRGAP && !signer.isColdCard }
+                    wallet.signers.count { signer -> signer.type == SignerType.AIRGAP && !signer.isColdCard }
                 if (totalAirgap > 0) {
                     setRegisterAirgapUseCase(
                         SetRegisterAirgapUseCase.Params(
-                            it.id,
+                            wallet.id,
                             totalAirgap
                         )
                     )
                 }
                 _event.emit(
                     CreateWalletEvent.OnCreateWalletSuccess(
-                        walletId = it.id,
-                        airgapCount = totalAirgap
+                        wallet = wallet,
+                        airgapCount = totalAirgap,
+                        sendBsmsEmail = sendBsmsEmail
                     )
                 )
             }
             _event.emit(CreateWalletEvent.Loading(false))
 
         }
+    }
+
+    fun getWalletId(): String {
+        return _state.value.walletId.orEmpty()
     }
 }

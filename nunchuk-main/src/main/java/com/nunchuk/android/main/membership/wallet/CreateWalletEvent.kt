@@ -19,15 +19,22 @@
 
 package com.nunchuk.android.main.membership.wallet
 
+import com.nunchuk.android.model.Wallet
+
 sealed class CreateWalletEvent {
     data class Loading(val isLoading: Boolean) : CreateWalletEvent()
     data class ShowError(val message: String) : CreateWalletEvent()
-    data class OnCreateWalletSuccess(val walletId: String, val airgapCount: Int) : CreateWalletEvent()
+    data class OnCreateWalletSuccess(
+        val wallet: Wallet,
+        val airgapCount: Int,
+        val sendBsmsEmail: Boolean
+    ) : CreateWalletEvent()
 }
 
 data class CreateWalletState(
     val walletName: String = "",
     val primaryMembershipId: String? = null,
+    val walletId : String? = null,
 ) {
     companion object {
         val EMPTY = CreateWalletState()

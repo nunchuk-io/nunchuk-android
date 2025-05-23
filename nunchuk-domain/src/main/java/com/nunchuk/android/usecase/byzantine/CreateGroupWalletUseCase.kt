@@ -35,11 +35,17 @@ class CreateGroupWalletUseCase @Inject constructor(
         val wallet = userWalletRepository.createGroupWallet(
             groupId = parameters.groupId,
             name = parameters.name,
-            primaryMembershipId = parameters.primaryMembershipId
+            primaryMembershipId = parameters.primaryMembershipId,
+            sendBsmsEmail = parameters.sendBsmsEmail
         )
         userWalletRepository.updateGroupStatus(parameters.groupId, GroupStatus.ACTIVE.name)
         return wallet
     }
 
-    data class Param(val groupId: String, val name: String, val primaryMembershipId: String?)
+    data class Param(
+        val groupId: String,
+        val name: String,
+        val primaryMembershipId: String?,
+        val sendBsmsEmail: Boolean = false
+    )
 }

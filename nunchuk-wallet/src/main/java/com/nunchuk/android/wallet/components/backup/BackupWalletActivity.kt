@@ -23,11 +23,11 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseShareSaveFileActivity
-import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.core.wallet.WalletSecurityArgs
 import com.nunchuk.android.core.wallet.WalletSecurityType
-import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.nav.args.BackUpWalletArgs
+import com.nunchuk.android.nav.args.BackUpWalletType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Failure
 import com.nunchuk.android.wallet.components.backup.BackupWalletEvent.Success
@@ -41,7 +41,7 @@ class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalle
 
     private var isShared: Boolean = false
 
-    private val args: BackupWalletArgs by lazy { BackupWalletArgs.deserializeFrom(intent) }
+    private val args: BackUpWalletArgs by lazy { BackUpWalletArgs.deserializeFrom(intent) }
 
     private val viewModel: BackupWalletViewModel by viewModels()
 
@@ -76,7 +76,10 @@ class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalle
     }
 
     private fun navigateToNextScreen() {
-        if (args.isDecoyWallet) {
+        if (args.backUpWalletType == BackUpWalletType.ASSISTED_CREATED) {
+            setResult(RESULT_OK)
+            finish()
+        } else if (args.isDecoyWallet) {
             navigator.returnToMainScreen(this)
             navigator.openWalletSecuritySettingScreen(
                 this, WalletSecurityArgs(
@@ -124,17 +127,22 @@ class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalle
 
         fun start(
             activityContext: Context,
-            wallet: Wallet,
-            quickWalletParam: QuickWalletParam?,
-            isDecoyWallet: Boolean
+            args: BackUpWalletArgs
         ) {
             activityContext.startActivity(
-                BackupWalletArgs(
-                    wallet = wallet,
-                    quickWalletParam = quickWalletParam,
-                    isDecoyWallet = isDecoyWallet
-                ).buildIntent(activityContext)
+                buildIntent(
+                    activityContext,
+                    args
+                )
             )
         }
+
+        fun buildIntent(
+            activityContext: Context,
+            args: BackUpWalletArgs
+        ) = args.buildIntent(activityContext).setClass(
+            activityContext,
+            BackupWalletActivity::class.java
+        )
     }
 }

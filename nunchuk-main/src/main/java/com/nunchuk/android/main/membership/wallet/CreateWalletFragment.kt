@@ -19,14 +19,18 @@
 
 package com.nunchuk.android.main.membership.wallet
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
@@ -35,6 +39,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -49,6 +57,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
+import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
@@ -60,6 +69,8 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.AddKeyStepViewModel
+import com.nunchuk.android.nav.args.BackUpWalletArgs
+import com.nunchuk.android.nav.args.BackUpWalletType
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -69,6 +80,22 @@ class CreateWalletFragment : MembershipFragment() {
     private val viewModel: CreateWalletViewModel by viewModels()
     private val addKeyStepViewModel: AddKeyStepViewModel by activityViewModels()
     private val groupId: String by lazy { (activity as MembershipActivity).groupId }
+
+    private val launcher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            findNavController().navigate(
+                CreateWalletFragmentDirections.actionCreateWalletFragmentToCreateWalletSuccessFragment(
+                    viewModel.getWalletId()
+                ),
+                NavOptions.Builder()
+                    .setPopUpTo(findNavController().graph.startDestinationId, true)
+                    .build()
+            )
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -80,7 +107,7 @@ class CreateWalletFragment : MembershipFragment() {
                     viewModel = viewModel,
                     onMoreClicked = ::handleShowMore,
                     membershipStepManager = membershipStepManager,
-                    onContinueClicked = {
+                    onContinueClicked = { sendBsmsEmail ->
                         if (groupId.isNotEmpty()) {
                             findNavController().navigate(
                                 CreateWalletFragmentDirections.actionCreateWalletFragmentToPrimaryOwnerFragment(
@@ -91,7 +118,7 @@ class CreateWalletFragment : MembershipFragment() {
                                 ),
                             )
                         } else {
-                            viewModel.createQuickWallet()
+                            viewModel.createQuickWallet(sendBsmsEmail)
                         }
                     }
                 )
@@ -105,7 +132,7 @@ class CreateWalletFragment : MembershipFragment() {
             when (it) {
                 is CreateWalletEvent.Loading -> showOrHideLoading(it.isLoading)
                 is CreateWalletEvent.OnCreateWalletSuccess -> {
-                    addKeyStepViewModel.requireInheritance(it.walletId)
+                    addKeyStepViewModel.requireInheritance(it.wallet.id)
                     handleCreateWalletSuccess(it)
                 }
 
@@ -118,16 +145,27 @@ class CreateWalletFragment : MembershipFragment() {
         if (event.airgapCount > 0) {
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletToAirgapFragment(
-                    event.walletId,
+                    walletId = event.wallet.id,
+                    sendBsmsEmail = event.sendBsmsEmail
                 ),
                 NavOptions.Builder()
                     .setPopUpTo(findNavController().graph.startDestinationId, true)
                     .build()
             )
+        } else if (!event.sendBsmsEmail) {
+            launcher.launch(
+                navigator.buildBackupWalletIntent(
+                    activityContext = requireActivity(),
+                    args = BackUpWalletArgs(
+                        wallet = event.wallet,
+                        backUpWalletType = BackUpWalletType.ASSISTED_CREATED
+                    )
+                )
+            )
         } else {
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToCreateWalletSuccessFragment(
-                    event.walletId
+                    event.wallet.id
                 ),
                 NavOptions.Builder()
                     .setPopUpTo(findNavController().graph.startDestinationId, true)
@@ -141,7 +179,7 @@ class CreateWalletFragment : MembershipFragment() {
 fun CreateWalletScreen(
     viewModel: CreateWalletViewModel = viewModel(),
     onMoreClicked: () -> Unit = {},
-    onContinueClicked: () -> Unit = {},
+    onContinueClicked: (Boolean) -> Unit = {},
     membershipStepManager: MembershipStepManager,
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
@@ -152,25 +190,27 @@ fun CreateWalletScreen(
         onMoreClicked = onMoreClicked,
         onWalletNameTextChange = viewModel::updateWalletName,
         remainTime = remainTime,
-        walletName = state.walletName
+        walletName = state.walletName,
     )
 }
 
 @Composable
 fun CreateWalletScreenContent(
-    onContinueClicked: () -> Unit = {},
+    onContinueClicked: (Boolean) -> Unit = {},
     onMoreClicked: () -> Unit = {},
     onWalletNameTextChange: (value: String) -> Unit = {},
     remainTime: Int = 0,
     walletName: String = "",
 ) {
+    var sendBsmsEmail by rememberSaveable { mutableStateOf(false) }
     NunchukTheme {
         Scaffold(
             modifier = Modifier.systemBarsPadding(),
             topBar = {
-                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainTime),
+                NcTopAppBar(
+                    stringResource(R.string.nc_estimate_remain_time, remainTime),
                     actions = {
-                        IconButton(onClick = onMoreClicked) {
+                        IconButton(onClick = { onMoreClicked() }) {
                             Icon(
                                 painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
                                 contentDescription = "More icon"
@@ -205,6 +245,23 @@ fun CreateWalletScreenContent(
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
                 )
 
+                Row(
+                    modifier = Modifier
+                        .padding(start = 16.dp, top = 12.dp, end = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    NcCheckBox(
+                        modifier = Modifier.size(24.dp),
+                        checked = sendBsmsEmail,
+                        onCheckedChange = { sendBsmsEmail = it },
+                    )
+                    Text(
+                        text = stringResource(id = R.string.nc_send_wallet_config_to_email),
+                        style = NunchukTheme.typography.body,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+
                 Spacer(modifier = Modifier.weight(1.0f))
 
                 NcPrimaryDarkButton(
@@ -212,7 +269,7 @@ fun CreateWalletScreenContent(
                         .fillMaxWidth()
                         .padding(16.dp),
                     enabled = walletName.isNotEmpty(),
-                    onClick = onContinueClicked,
+                    onClick = { onContinueClicked(sendBsmsEmail) },
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
                 }
