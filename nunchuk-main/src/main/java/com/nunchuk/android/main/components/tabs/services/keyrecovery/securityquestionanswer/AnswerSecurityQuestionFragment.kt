@@ -26,12 +26,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -44,7 +42,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
@@ -136,11 +133,23 @@ fun AnswerSecurityQuestionScreenContent(
     onTextChange: (value: String) -> Unit = {}
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(
+            modifier = Modifier.systemBarsPadding().fillMaxSize(),
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    enabled = answer.isNotEmpty(),
+                    onClick = onContinueClick,
+                ) {
+                    Text(text = stringResource(id = R.string.nc_text_continue))
+                }
+            }
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
+                    .padding(innerPadding)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
@@ -172,17 +181,6 @@ fun AnswerSecurityQuestionScreenContent(
                         error = error,
                         onValueChange = onTextChange
                     )
-                }
-
-                Spacer(modifier = Modifier.weight(1.0f))
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    enabled = answer.isNotEmpty(),
-                    onClick = onContinueClick,
-                ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
                 }
             }
         }

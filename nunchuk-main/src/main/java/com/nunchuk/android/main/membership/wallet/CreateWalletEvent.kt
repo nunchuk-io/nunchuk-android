@@ -34,7 +34,6 @@ sealed class CreateWalletEvent {
 data class CreateWalletState(
     val walletName: String = "",
     val primaryMembershipId: String? = null,
-    val walletId : String? = null,
 ) {
     companion object {
         val EMPTY = CreateWalletState()

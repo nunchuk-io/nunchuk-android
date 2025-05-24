@@ -22,6 +22,7 @@ package com.nunchuk.android.main.membership.authentication
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.navigation.fragment.NavHostFragment
@@ -45,6 +46,7 @@ class WalletAuthenticationActivity : BasePortalActivity<ActivityNavigationBindin
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         initStartDestination()
         observer()
     }

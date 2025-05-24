@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.membership.wallet
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.CreatePersonalWalletUseCase
@@ -40,6 +41,7 @@ import javax.inject.Inject
 class CreateWalletViewModel @Inject constructor(
     private val createPersonalWalletUseCase: CreatePersonalWalletUseCase,
     private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<CreateWalletEvent>()
@@ -47,6 +49,9 @@ class CreateWalletViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(CreateWalletState.EMPTY)
     val state = _state.asStateFlow()
+
+    val walletId: String
+        get() = savedStateHandle.get<String?>("wallet_id").orEmpty()
 
     private var createWalletJob: Job? = null
 
@@ -68,11 +73,7 @@ class CreateWalletViewModel @Inject constructor(
             ).onFailure {
                 _event.emit(CreateWalletEvent.ShowError(it.message.orUnknownError()))
             }.onSuccess { wallet ->
-                _state.update {
-                    it.copy(
-                        walletId = wallet.id,
-                    )
-                }
+                savedStateHandle["wallet_id"] = wallet.id
                 val totalAirgap =
                     wallet.signers.count { signer -> signer.type == SignerType.AIRGAP && !signer.isColdCard }
                 if (totalAirgap > 0) {
@@ -94,9 +95,5 @@ class CreateWalletViewModel @Inject constructor(
             _event.emit(CreateWalletEvent.Loading(false))
 
         }
-    }
-
-    fun getWalletId(): String {
-        return _state.value.walletId.orEmpty()
     }
 }

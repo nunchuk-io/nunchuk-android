@@ -581,6 +581,10 @@
             android:defaultValue=""
             app:argType="string"
             app:nullable="true" />
+        <argument
+            android:name="send_bsms_email"
+            android:defaultValue="false"
+            app:argType="boolean" />
     </fragment>
     <fragment
         android:id="@+id/replaceKeyIntroFragment"

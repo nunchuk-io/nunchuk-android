@@ -24,6 +24,10 @@
             app:argType="string"
             app:nullable="true"
             android:defaultValue=""/>
+        <argument
+            android:name="send_bsms_email"
+            android:defaultValue="false"
+            app:argType="boolean" />
     </fragment>
 
 </navigation>

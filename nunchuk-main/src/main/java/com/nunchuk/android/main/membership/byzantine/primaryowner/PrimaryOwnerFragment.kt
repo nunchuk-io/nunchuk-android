@@ -1,9 +1,11 @@
 package com.nunchuk.android.main.membership.byzantine.primaryowner
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,7 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenu
@@ -69,11 +71,11 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.AddKeyStepViewModel
 import com.nunchuk.android.model.ByzantineMember
-import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.nav.args.BackUpWalletArgs
+import com.nunchuk.android.nav.args.BackUpWalletType
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -82,6 +84,21 @@ class PrimaryOwnerFragment : MembershipFragment() {
     private val viewModel: PrimaryOwnerViewModel by viewModels()
     private val args: PrimaryOwnerFragmentArgs by navArgs()
     private val addKeyStepViewModel: AddKeyStepViewModel by activityViewModels()
+
+    private val launcher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            findNavController().navigate(
+                PrimaryOwnerFragmentDirections.actionPrimaryOwnerFragmentToCreateWalletSuccessFragment(
+                    viewModel.walletId
+                ),
+                NavOptions.Builder()
+                    .setPopUpTo(findNavController().graph.startDestinationId, true)
+                    .build()
+            )
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -117,7 +134,7 @@ class PrimaryOwnerFragment : MembershipFragment() {
                 }
 
                 is PrimaryOwnerEvent.OnCreateWalletSuccess -> {
-                    addKeyStepViewModel.requireInheritance(event.walletId)
+                    addKeyStepViewModel.requireInheritance(event.wallet.id)
                     handleCreateWalletSuccess(event)
                 }
             }
@@ -128,16 +145,26 @@ class PrimaryOwnerFragment : MembershipFragment() {
         if (event.airgapCount > 0) {
             findNavController().navigate(
                 PrimaryOwnerFragmentDirections.actionPrimaryOwnerFragmentToRegisterWalletToAirgapFragment(
-                    event.walletId,
+                    event.wallet.id,
                 ),
                 NavOptions.Builder()
                     .setPopUpTo(findNavController().graph.startDestinationId, true)
                     .build()
             )
+        } else if (!args.sendBsmsEmail) {
+            launcher.launch(
+                navigator.buildBackupWalletIntent(
+                    activityContext = requireActivity(),
+                    args = BackUpWalletArgs(
+                        wallet = event.wallet,
+                        backUpWalletType = BackUpWalletType.ASSISTED_CREATED
+                    )
+                )
+            )
         } else {
             findNavController().navigate(
                 PrimaryOwnerFragmentDirections.actionPrimaryOwnerFragmentToCreateWalletSuccessFragment(
-                    event.walletId
+                    event.wallet.id
                 ),
                 NavOptions.Builder()
                     .setPopUpTo(findNavController().graph.startDestinationId, true)
@@ -193,7 +220,7 @@ private fun PrimaryOwnerContent(
     NunchukTheme {
         Scaffold(
             modifier = Modifier
-                .statusBarsPadding(),
+                .systemBarsPadding(),
             topBar = {
                 NcTopAppBar(
                     title = if (flow != PrimaryOwnerFlow.EDIT) stringResource(

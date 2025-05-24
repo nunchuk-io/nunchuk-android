@@ -87,7 +87,7 @@ class CreateWalletFragment : MembershipFragment() {
         if (it.resultCode == Activity.RESULT_OK) {
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToCreateWalletSuccessFragment(
-                    viewModel.getWalletId()
+                    viewModel.walletId
                 ),
                 NavOptions.Builder()
                     .setPopUpTo(findNavController().graph.startDestinationId, true)
@@ -115,6 +115,7 @@ class CreateWalletFragment : MembershipFragment() {
                                     flow = PrimaryOwnerFlow.SETUP,
                                     walletName = viewModel.state.value.walletName,
                                     walletId = "",
+                                    sendBsmsEmail = sendBsmsEmail,
                                 ),
                             )
                         } else {

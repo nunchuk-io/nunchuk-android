@@ -9,6 +9,7 @@ import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.isColdCard
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.ByzantineMember
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.type.SignerType
@@ -26,7 +27,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PrimaryOwnerViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle,
     private val getGroupUseCase: GetGroupUseCase,
     private val updatePrimaryOwnerUseCase: UpdatePrimaryOwnerUseCase,
     private val createGroupWalletUseCase: CreateGroupWalletUseCase,
@@ -39,6 +40,9 @@ class PrimaryOwnerViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(PrimaryOwnerState())
     val state = _state.asStateFlow()
+
+    val walletId: String
+        get() = savedStateHandle.get<String?>("wallet_id").orEmpty()
 
     private val args = PrimaryOwnerFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
@@ -88,17 +92,19 @@ class PrimaryOwnerViewModel @Inject constructor(
                 CreateGroupWalletUseCase.Param(
                     name = args.walletName!!,
                     groupId = groupId,
-                    primaryMembershipId = membershipId
+                    primaryMembershipId = membershipId,
+                    sendBsmsEmail = args.sendBsmsEmail
                 )
             ).onSuccess {
+                savedStateHandle["wallet_id"] = it.id
                 val totalAirgap = it.signers.count { signer -> signer.type == SignerType.AIRGAP && !signer.isColdCard }
                 if (totalAirgap > 0) {
                     setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, totalAirgap))
                 }
                 _event.emit(
                     PrimaryOwnerEvent.OnCreateWalletSuccess(
-                        walletId = it.id,
-                        airgapCount = totalAirgap
+                        wallet = it,
+                        airgapCount = totalAirgap,
                     )
                 )
             }.onFailure {
@@ -160,5 +166,5 @@ sealed class PrimaryOwnerEvent {
     data class Loading(val isLoading: Boolean) : PrimaryOwnerEvent()
     data class Error(val message: String) : PrimaryOwnerEvent()
     data object UpdatePrimaryOwnerSuccess : PrimaryOwnerEvent()
-    data class OnCreateWalletSuccess(val walletId: String, val airgapCount: Int) : PrimaryOwnerEvent()
+    data class OnCreateWalletSuccess(val wallet: Wallet, val airgapCount: Int) : PrimaryOwnerEvent()
 }
