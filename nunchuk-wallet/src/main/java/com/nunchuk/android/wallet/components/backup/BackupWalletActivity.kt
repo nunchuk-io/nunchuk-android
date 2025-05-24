@@ -21,7 +21,9 @@ package com.nunchuk.android.wallet.components.backup
 
 import android.content.Context
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseShareSaveFileActivity
 import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.core.wallet.WalletSecurityArgs
@@ -35,6 +37,8 @@ import com.nunchuk.android.wallet.databinding.ActivityWalletBackupWalletBinding
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalletBinding>() {
@@ -54,6 +58,11 @@ class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalle
         setupViews()
         observeEvent()
         viewModel.init(args.wallet)
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                navigateToNextScreen()
+            }
+        })
     }
 
     override fun onResume() {
@@ -114,7 +123,13 @@ class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalle
         when (event) {
             is Success -> shareFile(event)
             is Failure -> NCToastMessage(this).showWarning(event.message)
-            is BackupWalletEvent.SaveLocalFile -> showSaveFileState(event.isSuccess)
+            is BackupWalletEvent.SaveLocalFile -> {
+                showSaveFileState(event.isSuccess)
+                lifecycleScope.launch {
+                    delay(1000L)
+                    navigateToNextScreen()
+                }
+            }
         }
     }
 

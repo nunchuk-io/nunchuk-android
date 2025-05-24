@@ -20,24 +20,30 @@ data class BackUpWalletArgs(
     val quickWalletParam: QuickWalletParam? = null,
     val isDecoyWallet: Boolean = false,
     val backUpWalletType: Int = BackUpWalletType.NORMAL,
-): Parcelable, ActivityArgs {
+) : Parcelable, ActivityArgs {
 
     override fun buildIntent(activityContext: Context) =
         Intent().apply {
             putExtra(EXTRA_WALLET, wallet)
             putExtra(EXTRA_IS_DECOY_WALLET, isDecoyWallet)
             putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
+            putExtra(EXTRA_BACKUP_WALLET_TYPE, backUpWalletType)
         }
 
     companion object {
         private const val EXTRA_WALLET = "EXTRA_WALLET"
         private const val EXTRA_IS_DECOY_WALLET = "EXTRA_IS_DECOY_WALLET"
         private const val EXTRA_QUICK_WALLET_PARAM = "EXTRA_QUICK_WALLET_PARAM"
+        private const val EXTRA_BACKUP_WALLET_TYPE = "EXTRA_BACKUP_WALLET_TYPE"
 
         fun deserializeFrom(intent: Intent): BackUpWalletArgs = BackUpWalletArgs(
             wallet = intent.parcelable<Wallet>(EXTRA_WALLET)!!,
             isDecoyWallet = intent.getBooleanExtra(EXTRA_IS_DECOY_WALLET, false),
             quickWalletParam = intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM),
+            backUpWalletType = intent.getIntExtra(
+                EXTRA_BACKUP_WALLET_TYPE,
+                BackUpWalletType.NORMAL
+            ),
         )
     }
 }
