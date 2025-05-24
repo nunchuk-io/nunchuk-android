@@ -554,7 +554,7 @@ internal class WalletDetailsViewModel @Inject constructor(
         get() = getState().groupId
 
     val isLockedAssistedWallet: Boolean
-        get() = getState().walletStatus == WalletStatus.LOCKED.name && getState().isFreeGroupWallet == false
+        get() = getState().walletStatus == WalletStatus.LOCKED.name && !getState().isFreeGroupWallet
 
     fun isInactiveAssistedWallet() = assistedWalletManager.isInactiveAssistedWallet(args.walletId)
 
