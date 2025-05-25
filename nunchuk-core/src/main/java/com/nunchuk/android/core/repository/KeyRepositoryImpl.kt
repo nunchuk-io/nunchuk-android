@@ -96,7 +96,8 @@ internal class KeyRepositoryImpl @Inject constructor(
         plan: MembershipPlan,
         groupId: String,
         newIndex: Int,
-        isRequestAddKey: Boolean
+        isRequestAddKey: Boolean,
+        existingColdCard: SingleSigner?
     ): Flow<KeyUpload> {
         return callbackFlow {
             val file = File(filePath)
@@ -138,12 +139,13 @@ internal class KeyRepositoryImpl @Inject constructor(
                 val chatId = accountManager.getAccount().chatId
                 val verifyType =
                     if (result.error.code == ALREADY_VERIFIED_CODE) VerifyType.SELF_VERIFIED else VerifyType.NONE
-                val signer = nativeSdk.getSignerByIndex(
-                    xfp,
-                    WalletType.MULTI_SIG.ordinal,
-                    AddressType.NATIVE_SEGWIT.ordinal,
-                    newIndex
-                ) ?: throw NullPointerException("Can not get signer by index $newIndex")
+                val signer = existingColdCard
+                    ?: (nativeSdk.getSignerByIndex(
+                        xfp,
+                        WalletType.MULTI_SIG.ordinal,
+                        AddressType.NATIVE_SEGWIT.ordinal,
+                        newIndex
+                    ) ?: throw NullPointerException("Can not get signer by index $newIndex"))
                 val info = MembershipStepEntity(
                     chatId = chatId,
                     step = step,
@@ -203,6 +205,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                     index = step.toIndex()
                 )
                 if (isRequestAddKey) {
+                    Timber.tag("inheritance-add").e("uploadBackupKey - $groupId, $xfp, $payload")
                     val keyResponse = if (groupId.isNotEmpty()) {
                         userWalletApiManager.groupWalletApi.addKeyToServer(
                             groupId = groupId,
@@ -257,7 +260,8 @@ internal class KeyRepositoryImpl @Inject constructor(
         signerIndex: Int,
         walletId: String,
         groupId: String,
-        isRequestReplaceKey: Boolean
+        isRequestReplaceKey: Boolean,
+        exisingColdCard: SingleSigner?
     ): Flow<KeyUpload> {
         return callbackFlow {
             val file = File(filePath)
@@ -302,7 +306,7 @@ internal class KeyRepositoryImpl @Inject constructor(
             if (result.isSuccess.not() && result.error.code != ALREADY_VERIFIED_CODE) {
                 throw result.error
             }
-            val signer = nativeSdk.getSignerByIndex(
+            val signer = exisingColdCard ?: nativeSdk.getSignerByIndex(
                 xfp,
                 WalletType.MULTI_SIG.ordinal,
                 AddressType.NATIVE_SEGWIT.ordinal,
@@ -318,7 +322,7 @@ internal class KeyRepositoryImpl @Inject constructor(
             val isInheritance =
                 wallet.signerServerDtos.find { it.xfp == replacedXfp }?.tags?.contains(
                     SignerTag.INHERITANCE.name
-                ) ?: false
+                ) == true
             val tags = if (isInheritance) {
                 when (keyType) {
                     SignerType.NFC.name -> {

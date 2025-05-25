@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.signer.components.backup
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.CardIdManager
@@ -27,6 +26,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
@@ -65,6 +65,7 @@ class BackingUpViewModel @Inject constructor(
     private var signerType = SignerType.NFC
     private var keyName = ""
     private var isRequestAddOrReplaceKey = true
+    private var existingColdCard: SingleSigner? = null
 
     fun init(
         isAddNewKey: Boolean,
@@ -76,7 +77,8 @@ class BackingUpViewModel @Inject constructor(
         masterSignerId: String,
         signerType: SignerType = SignerType.NFC,
         keyName: String = "",
-        isRequestAddOrReplaceKey: Boolean
+        isRequestAddOrReplaceKey: Boolean,
+        existingColdCard: SingleSigner? = null
     ) {
         this.isAddNewKey = isAddNewKey
         this.groupId = groupId
@@ -88,6 +90,7 @@ class BackingUpViewModel @Inject constructor(
         this.signerType = signerType
         this.keyName = keyName
         this.isRequestAddOrReplaceKey = isRequestAddOrReplaceKey
+        this.existingColdCard = existingColdCard
     }
 
     fun upload() {
@@ -109,7 +112,8 @@ class BackingUpViewModel @Inject constructor(
                         groupId = groupId,
                         replacedXfp = replacedXfp,
                         walletId = walletId,
-                        isRequestReplaceKey = isRequestAddOrReplaceKey
+                        existingColdCard = existingColdCard,
+                        isRequestReplaceKey = true
                     )
                 )
             } else {
@@ -127,6 +131,7 @@ class BackingUpViewModel @Inject constructor(
                             ?: MembershipPlan.BYZANTINE,
                         groupId = groupId,
                         signerIndex = signerIndex,
+                        existingColdCard = existingColdCard,
                         isRequestAddKey = isRequestAddOrReplaceKey
                     )
                 )

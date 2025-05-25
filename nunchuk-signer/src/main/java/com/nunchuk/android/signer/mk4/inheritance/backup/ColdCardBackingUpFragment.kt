@@ -16,6 +16,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.manager.NcToastManager
+import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -61,7 +62,8 @@ class ColdCardBackingUpFragment : MembershipFragment() {
             filePath = args.filePath,
             signerType = mk4ViewModel.coldCardBackUpParam.keyType,
             keyName = mk4ViewModel.coldCardBackUpParam.keyName,
-            isRequestAddOrReplaceKey = mk4ViewModel.coldCardBackUpParam.isRequestAddOrReplaceKey
+            isRequestAddOrReplaceKey = false,
+            existingColdCard = mk4ViewModel.getColdCardExistingSigner()?.toSingleSigner()
         )
     }
 

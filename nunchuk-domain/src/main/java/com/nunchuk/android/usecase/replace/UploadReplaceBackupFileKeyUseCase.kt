@@ -22,6 +22,7 @@ package com.nunchuk.android.usecase.replace
 import com.nunchuk.android.FlowUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.KeyUpload
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.repository.KeyRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -43,7 +44,8 @@ class UploadReplaceBackupFileKeyUseCase @Inject constructor(
             signerIndex = parameters.signerIndex,
             walletId = parameters.walletId,
             groupId = parameters.groupId,
-            isRequestReplaceKey = parameters.isRequestReplaceKey
+            isRequestReplaceKey = parameters.isRequestReplaceKey,
+            existingColdCard = parameters.existingColdCard
         )
     data class Param(
         val replacedXfp: String,
@@ -56,6 +58,7 @@ class UploadReplaceBackupFileKeyUseCase @Inject constructor(
         val signerIndex: Int,
         val walletId: String,
         val groupId: String,
+        val existingColdCard: SingleSigner?,
         val isRequestReplaceKey: Boolean = true
     )
 }

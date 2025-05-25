@@ -24,6 +24,7 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.repository.KeyRepository
 import com.nunchuk.android.repository.PremiumWalletRepository
 import kotlinx.coroutines.CoroutineDispatcher
@@ -50,7 +51,8 @@ class UploadBackupFileKeyUseCase @Inject constructor(
             plan = parameters.plan,
             groupId = parameters.groupId,
             newIndex = parameters.signerIndex,
-            isRequestAddKey = parameters.isRequestAddKey
+            isRequestAddKey = parameters.isRequestAddKey,
+            existingColdCard = parameters.existingColdCard
         ).onCompletion {
             withContext(NonCancellable) {
                 runCatching {
@@ -70,6 +72,7 @@ class UploadBackupFileKeyUseCase @Inject constructor(
         val plan: MembershipPlan,
         val groupId: String,
         val signerIndex: Int,
+        val existingColdCard: SingleSigner?,
         val isRequestAddKey: Boolean = true
     )
 }

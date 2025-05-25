@@ -19,6 +19,8 @@
 
 package com.nunchuk.android.core.domain
 
+import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.gson
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipPlan
@@ -27,8 +29,6 @@ import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.type.AddressType
-import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.UseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
@@ -42,12 +42,7 @@ class SaveMembershipExistingColdCardUseCase @Inject constructor(
     private val syncKeyUseCase: SyncKeyUseCase
 ) : UseCase<SaveMembershipExistingColdCardUseCase.Params, Unit>(dispatcher) {
     override suspend fun execute(parameters: Params) {
-        val signer = nativeSdk.getSignerByIndex(
-            parameters.xfp,
-            WalletType.MULTI_SIG.ordinal,
-            AddressType.NATIVE_SEGWIT.ordinal,
-            parameters.newIndex
-        ) ?: throw NullPointerException("Can not get signer by index ${parameters.newIndex}")
+        val signer = parameters.signer.toSingleSigner()
         saveMembershipStepUseCase(
             MembershipStepInfo(
                 step = parameters.step,
@@ -76,9 +71,8 @@ class SaveMembershipExistingColdCardUseCase @Inject constructor(
 
     data class Params(
         val step: MembershipStep,
-        val xfp: String,
         val plan: MembershipPlan,
         val groupId: String,
-        val newIndex: Int,
+        val signer: SignerModel
     )
 }
