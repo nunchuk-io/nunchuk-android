@@ -25,16 +25,19 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.nav.args.MainComposeArgs
 import com.nunchuk.android.settings.databinding.ActivityTurnNotificationBinding
 import com.nunchuk.android.widget.NCToastMessage
-import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class TurnNotificationActivity : BaseActivity<ActivityTurnNotificationBinding>() {
+    private val viewModel: TurnNotificationViewModel by viewModels()
 
     private val args: TurnNotificationArgs by lazy {
         TurnNotificationArgs.deserializeFrom(
@@ -60,7 +63,8 @@ class TurnNotificationActivity : BaseActivity<ActivityTurnNotificationBinding>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setLightStatusBar()
+        enableEdgeToEdge()
+        viewModel.checkShowGuestWalletNotice()
         setupViews()
         showMessage()
     }
@@ -68,9 +72,17 @@ class TurnNotificationActivity : BaseActivity<ActivityTurnNotificationBinding>()
     private fun openMainScreen() {
         finish()
         navigator.openMainScreen(
-            this,
+            activityContext = this,
             isClearTask = true
         )
+        if (viewModel.isShowGuestWalletNotice) {
+            navigator.openMainComposeScreen(
+                activity = this,
+                args = MainComposeArgs(
+                    type = MainComposeArgs.TYPE_GUEST_WALLET_NOTICE
+                )
+            )
+        }
     }
 
     private fun showMessage() {
@@ -91,7 +103,10 @@ class TurnNotificationActivity : BaseActivity<ActivityTurnNotificationBinding>()
     }
 
     private fun openNotificationSetting() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !shouldShowRequestPermissionRationale(
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+        ) {
             pushNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else {
             val intent = Intent()

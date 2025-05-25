@@ -40,7 +40,7 @@ class GetAppSettingUseCase @Inject constructor(
         return gson.fromJson(
             ncSharedPreferences.appSettings,
             AppSettings::class.java
-        ).let {
+        )?.let {
             if (it.signetServers.isNotEmpty() && it.signetServers.first() == OLD_SIG_NET_HOST) {
                 it.copy(signetServers = listOf(SIG_NET_HOST))
             } else {

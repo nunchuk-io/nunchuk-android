@@ -35,8 +35,10 @@ import com.nunchuk.android.auth.domain.ResendPasswordUseCase
 import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.usecase.SetFirstCreateEmailUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.flow.first
@@ -50,6 +52,8 @@ internal class ChangePasswordViewModel @Inject constructor(
     private val changePasswordUseCase: ChangePasswordUseCase,
     private val resendPasswordUseCase: ResendPasswordUseCase,
     private val signInUseCase: SignInUseCase,
+    private val setFirstCreateEmailUseCase: SetFirstCreateEmailUseCase,
+    private val applicationScope: CoroutineScope,
     accountManager: AccountManager,
 ) : NunchukViewModel<Unit, ChangePasswordEvent>() {
 
@@ -84,8 +88,21 @@ internal class ChangePasswordViewModel @Inject constructor(
                     .onStart { event(LoadingEvent) }
                     .onException { event(ChangePasswordSuccessError(it.message)) }
                     .flowOn(Main)
-                    .collect { onChangePasswordSuccess() }
+                    .collect {
+                        saveFirstCreateEmail(account.email)
+                        onChangePasswordSuccess()
+                    }
             }
+        }
+    }
+
+    private fun saveFirstCreateEmail(email: String) {
+        applicationScope.launch {
+            setFirstCreateEmailUseCase(
+                SetFirstCreateEmailUseCase.Params(
+                    email = email,
+                )
+            )
         }
     }
 
@@ -125,7 +142,7 @@ internal class ChangePasswordViewModel @Inject constructor(
         }
     }
 
-    companion object{
+    companion object {
         const val SPECIAL_CHARACTERS = "!@#\$%^&*()_+[]{}|;:',.<>?/~`-="
     }
 }

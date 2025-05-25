@@ -14,6 +14,7 @@ data class MainComposeArgs(
 
     companion object {
         const val TYPE_ARCHIVE = 1
+        const val TYPE_GUEST_WALLET_NOTICE = 2
 
         private const val EXTRA_TYPE = "EXTRA_TYPE"
 

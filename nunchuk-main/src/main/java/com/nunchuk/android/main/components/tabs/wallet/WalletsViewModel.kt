@@ -34,6 +34,8 @@ import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
+import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.push.PushEvent
@@ -85,6 +87,7 @@ import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.MigrateHomeDisplaySettingUseCase
+import com.nunchuk.android.usecase.SetHasWalletInGuestModeUseCase
 import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.byzantine.GetListGroupWalletKeyHealthStatusUseCase
 import com.nunchuk.android.usecase.byzantine.GroupMemberAcceptRequestUseCase
@@ -180,6 +183,8 @@ internal class WalletsViewModel @Inject constructor(
     private val getDefaultFeeUseCase: GetDefaultFeeUseCase,
     private val getWalletOrderListUseCase: GetWalletOrderListUseCase,
     private val insertWalletOrderListUseCase: InsertWalletOrderListUseCase,
+    private val setHasWalletInGuestModeUseCase: SetHasWalletInGuestModeUseCase,
+    private val signInModeHolder: SignInModeHolder,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletsState())
@@ -562,6 +567,9 @@ internal class WalletsViewModel @Inject constructor(
                 groupSandboxWalletsDeferred.await().getOrElse { emptyList() }.map { it.id }.toSet()
             val deprecatedGroupWalletIds =
                 deprecatedGroupWalletsDeferred.await().getOrElse { emptyList() }.toSet()
+            if (signInModeHolder.getCurrentMode().isGuestMode()) {
+                setHasWalletInGuestModeUseCase(wallets.isNotEmpty())
+            }
             _state.update {
                 it.copy(
                     pendingGroupSandboxes = pendingWallets.filter { !it.finalized },

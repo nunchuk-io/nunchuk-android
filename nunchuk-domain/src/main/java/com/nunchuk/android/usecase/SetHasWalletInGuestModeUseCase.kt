@@ -17,30 +17,19 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.auth.components.signin
+package com.nunchuk.android.usecase
 
-import com.nunchuk.android.core.network.ErrorDetail
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SettingRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-internal sealed class SignInEvent {
-    data object EmailRequiredEvent : SignInEvent()
-    data object EmailValidEvent : SignInEvent()
-    data object EmailInvalidEvent : SignInEvent()
-    data object PasswordRequiredEvent : SignInEvent()
-    data object NameRequiredEvent : SignInEvent()
-    data object NameValidEvent : SignInEvent()
-    data object PasswordValidEvent : SignInEvent()
-    data class ProcessingEvent(val isLoading: Boolean = true) : SignInEvent()
-    data class SignInSuccessEvent(
-        val ignoreCheckBiometric: Boolean = false,
-        val askPin: Boolean = false,
-    ) : SignInEvent()
+class SetHasWalletInGuestModeUseCase @Inject constructor(
+    private val settingRepository: SettingRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : UseCase<Boolean, Unit>(ioDispatcher) {
 
-    data class SignInErrorEvent(
-        val code: Int? = null,
-        val message: String? = null,
-        val errorDetail: ErrorDetail? = null
-    ) : SignInEvent()
-
-    data class RequireChangePassword(val isNew: Boolean) : SignInEvent()
-    data class OpenMainScreen(val askPin: Boolean) : SignInEvent()
-}
+    override suspend fun execute(parameters: Boolean) {
+        settingRepository.setHasWalletInGuestMode(parameters)
+    }
+} 

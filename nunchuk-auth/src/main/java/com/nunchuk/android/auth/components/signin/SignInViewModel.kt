@@ -44,6 +44,7 @@ import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
+import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.profile.UpdateUseProfileUseCase
 import com.nunchuk.android.core.retry.DEFAULT_RETRY_POLICY
@@ -397,6 +398,9 @@ internal class SignInViewModel @Inject constructor(
             _event.emit(SignInEvent.OpenMainScreen(askPin))
         }
     }
+
+    val isGuestMode
+        get() : Boolean = signInModeHolder.getCurrentMode().isGuestMode()
 
     companion object {
         const val EXTRA_TYPE = "type"

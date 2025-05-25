@@ -208,4 +208,18 @@ internal class SettingRepositoryImpl @Inject constructor(
     override fun getTaprootFeeSelection(): Flow<TaprootFeeSelectionSetting> {
         return ncDataStore.taprootFeeSelection
     }
+
+    override val firstCreateEmail: Flow<String>
+        get() = ncDataStore.firstCreateEmail
+
+    override val hasWalletInGuestMode: Flow<Boolean>
+        get() = ncDataStore.hasWalletInGuestMode
+
+    override suspend fun setFirstCreateEmail(email: String, isForce: Boolean) {
+        ncDataStore.setFirstCreateEmail(email, isForce)
+    }
+
+    override suspend fun setHasWalletInGuestMode(hasWallet: Boolean) {
+        ncDataStore.setHasWalletInGuestMode(hasWallet)
+    }
 }

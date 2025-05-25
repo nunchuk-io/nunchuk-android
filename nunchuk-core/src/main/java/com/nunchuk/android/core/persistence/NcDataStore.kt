@@ -84,6 +84,8 @@ class NcDataStore @Inject constructor(
     private val groupWalletBackupBannerKeysPreferenceKey = stringSetPreferencesKey("group_wallet_backup_banner_key")
     private val defaultFeeKey = intPreferencesKey("default_fee")
     private val taprootFeeSelectionKey = stringPreferencesKey("taproot_fee_selection")
+    private val firstCreateEmailKey = stringPreferencesKey("first_create_email")
+    private val hasWalletInGuestModeKey = booleanPreferencesKey("has_wallet_in_guest_mode")
 
     /**
      * Current membership plan key
@@ -508,6 +510,30 @@ class NcDataStore @Inject constructor(
                 TaprootFeeSelectionSetting::class.java
             ) ?: TaprootFeeSelectionSetting()
         }
+
+    val firstCreateEmail: Flow<String>
+        get() = context.dataStore.data.map {
+            it[firstCreateEmailKey].orEmpty()
+        }
+
+    val hasWalletInGuestMode: Flow<Boolean>
+        get() = context.dataStore.data.map {
+            it[hasWalletInGuestModeKey] == true
+        }
+
+    suspend fun setFirstCreateEmail(email: String, isForce: Boolean) {
+        context.dataStore.edit { preferences ->
+            if (preferences[firstCreateEmailKey].isNullOrEmpty() || isForce) {
+                preferences[firstCreateEmailKey] = email
+            }
+        }
+    }
+
+    suspend fun setHasWalletInGuestMode(hasWallet: Boolean) {
+        context.dataStore.edit {
+            it[hasWalletInGuestModeKey] = hasWallet
+        }
+    }
 
     suspend fun clear() {
         context.dataStore.edit {

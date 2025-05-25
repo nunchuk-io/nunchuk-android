@@ -49,6 +49,8 @@ interface SettingRepository {
     val displayTotalBalance: Flow<Boolean>
     val antiFeeSniping: Flow<Boolean>
     val defaultFee: Flow<Int>
+    val firstCreateEmail: Flow<String>
+    val hasWalletInGuestMode: Flow<Boolean>
     suspend fun setSyncEnable(isEnable: Boolean)
     suspend fun setQrDensity(density: Int)
     suspend fun markSyncRoomSuccess()
@@ -73,4 +75,6 @@ interface SettingRepository {
     suspend fun setAntiFeeSniping(isEnable: Boolean)
     suspend fun setTaprootFeeSelection(info: TaprootFeeSelectionSetting)
     fun getTaprootFeeSelection(): Flow<TaprootFeeSelectionSetting>
+    suspend fun setFirstCreateEmail(email: String, isForce: Boolean)
+    suspend fun setHasWalletInGuestMode(hasWallet: Boolean)
 }

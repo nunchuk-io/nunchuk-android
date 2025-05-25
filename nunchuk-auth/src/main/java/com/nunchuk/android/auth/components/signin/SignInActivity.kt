@@ -306,7 +306,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
 
     private fun openMainScreen(askPin: Boolean = false) {
         hideLoading()
-        if (NotificationUtils.areNotificationsEnabled(this).not()) {
+        if (NotificationUtils.areNotificationsEnabled(this).not() && !viewModel.isGuestMode) {
             navigator.openTurnNotificationScreen(this)
         } else {
             navigator.openMainScreen(

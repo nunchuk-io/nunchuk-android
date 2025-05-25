@@ -11,6 +11,8 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.main.archive.Archive
 import com.nunchuk.android.main.archive.archiveScreen
+import com.nunchuk.android.main.guest.GuestWalletNotice
+import com.nunchuk.android.main.guest.guestWalletNoticeScreen
 import com.nunchuk.android.nav.args.MainComposeArgs
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -26,8 +28,9 @@ class MainComposeActivity : BaseComposeActivity() {
         setContent {
             val navController = rememberNavController()
 
-            val startDestination = when (args.type) {
+            val startDestination: Any = when (args.type) {
                 MainComposeArgs.TYPE_ARCHIVE -> Archive
+                MainComposeArgs.TYPE_GUEST_WALLET_NOTICE -> GuestWalletNotice
                 else -> throw IllegalArgumentException("Unknown type: ${args.type}")
             }
 
@@ -44,6 +47,9 @@ class MainComposeActivity : BaseComposeActivity() {
                             )
                         }
                     )
+                    guestWalletNoticeScreen(onGotIt = {
+                        finish()
+                    })
                 }
             }
         }
