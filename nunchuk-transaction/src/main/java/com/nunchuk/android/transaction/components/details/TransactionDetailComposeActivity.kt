@@ -154,7 +154,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             txId = args.txId,
             initEventId = args.initEventId,
             roomId = args.roomId,
-            transaction = args.transaction
+            transaction = args.transaction,
+            isClaimingInheritance = args.inheritanceClaimTxDetailInfo != null
         )
 
         enableEdgeToEdge()

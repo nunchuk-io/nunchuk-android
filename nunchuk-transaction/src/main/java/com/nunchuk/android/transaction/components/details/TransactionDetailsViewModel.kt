@@ -201,6 +201,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private var initEventId: String = ""
     private var roomId: String = ""
     private var initTransaction: Transaction? = null
+    private var isClaimingInheritance: Boolean = false
 
     private var masterSigners: List<MasterSigner> = emptyList()
 
@@ -271,12 +272,14 @@ internal class TransactionDetailsViewModel @Inject constructor(
         initEventId: String,
         roomId: String,
         transaction: Transaction?,
+        isClaimingInheritance: Boolean = false
     ) {
         this.walletId = walletId
         this.txId = txId
         this.initEventId = initEventId
         this.roomId = roomId
         this.initTransaction = transaction
+        this.isClaimingInheritance = isClaimingInheritance
 
         if (isSharedTransaction()) {
             getContacts()
@@ -288,7 +291,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             _state.update { it.copy(transaction = initTransaction) }
         }
         loadMasterSigner()
-        listenTransactionChanged()
+        if (isClaimingInheritance.not()) listenTransactionChanged()
         getAllTags()
         getAllCoins()
         getGroupMembers()
@@ -478,6 +481,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun getTransactionInfo() {
+        if (isClaimingInheritance) return
         if (initTransaction != null) {
             getTransactionFromNetwork()
         } else {
