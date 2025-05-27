@@ -23,7 +23,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
-import com.nunchuk.android.core.domain.GetElectrumServersUseCase
+import com.nunchuk.android.core.domain.GetRemoteElectrumServersCacheUseCase
 import com.nunchuk.android.core.domain.InitAppSettingsUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
 import com.nunchuk.android.core.guestmode.SignInModeHolder
@@ -31,6 +31,7 @@ import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.model.AppSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -42,7 +43,7 @@ internal class NetworkSettingViewModel @Inject constructor(
     private val sendSignOutUseCase: SendSignOutUseCase,
     private val appScope: CoroutineScope,
     private val clearInfoSessionUseCase: ClearInfoSessionUseCase,
-    private val getElectrumServersUseCase: GetElectrumServersUseCase,
+    private val getRemoteElectrumServersCacheUseCase: GetRemoteElectrumServersCacheUseCase,
     private val signInModeHolder: SignInModeHolder,
 ) : NunchukViewModel<NetworkSettingState, NetworkSettingEvent>() {
 
@@ -69,9 +70,9 @@ internal class NetworkSettingViewModel @Inject constructor(
         }
     }
 
-    private suspend fun loadCustomMainnetServer(url: String?) {
-        getElectrumServersUseCase(Unit).onSuccess {
-            val customMainnetServer = it.mainnet.find { server -> server.url == url }
+    private fun loadCustomMainnetServer(url: String?) = viewModelScope.launch {
+        getRemoteElectrumServersCacheUseCase(Unit).map { it.getOrThrow() }.collect {
+            val customMainnetServer = it.find { server -> server.url == url }
             updateState {
                 copy(customMainnetServerName = customMainnetServer?.name)
             }

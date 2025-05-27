@@ -17,27 +17,22 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.persistence.dao
+package com.nunchuk.android.core.domain
 
-import androidx.room.Dao
-import androidx.room.Query
-import com.nunchuk.android.persistence.BaseDao
-import com.nunchuk.android.persistence.TABLE_ELECTRUM_SERVER
-import com.nunchuk.android.persistence.entity.ElectrumServerEntity
-import com.nunchuk.android.type.Chain
+import com.nunchuk.android.FlowUseCase
+import com.nunchuk.android.core.repository.BtcRepository
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.ElectrumServer
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-@Dao
-interface ElectrumServerDao : BaseDao<ElectrumServerEntity> {
-    @Query("SELECT * FROM $TABLE_ELECTRUM_SERVER WHERE name = '' AND chain = :chain")
-    fun getLocalElectrumServers(chain: Chain): Flow<List<ElectrumServerEntity>>
+class GetRemoteElectrumServersCacheUseCase @Inject constructor(
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    private val btcRepository: BtcRepository,
+) : FlowUseCase<Unit, List<ElectrumServer>>(ioDispatcher) {
 
-    @Query("SELECT * FROM $TABLE_ELECTRUM_SERVER WHERE name != '' AND chain = :chain")
-    fun getRemoteElectrumServers(chain: Chain): Flow<List<ElectrumServerEntity>>
-
-    @Query("DELETE FROM $TABLE_ELECTRUM_SERVER WHERE name != ''")
-    suspend fun deleteAllRemoteServers()
-
-    @Query("DELETE FROM $TABLE_ELECTRUM_SERVER WHERE id IN (:ids)")
-    suspend fun deleteByIds(ids: List<Long>)
-}
+    override fun execute(parameters: Unit): Flow<List<ElectrumServer>> {
+        return btcRepository.getRemoteElectrumServers()
+    }
+} 

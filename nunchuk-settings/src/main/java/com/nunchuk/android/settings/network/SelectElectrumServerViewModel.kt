@@ -8,6 +8,7 @@ import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.GetElectrumServersUseCase
 import com.nunchuk.android.core.domain.GetLocalElectrumServersUseCase
+import com.nunchuk.android.core.domain.GetRemoteElectrumServersCacheUseCase
 import com.nunchuk.android.core.domain.RemoveLocalElectrumServersUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
 import com.nunchuk.android.core.profile.SendSignOutUseCase
@@ -28,6 +29,7 @@ import javax.inject.Inject
 class SelectElectrumServerViewModel @Inject constructor(
     private val getElectrumServersUseCase: GetElectrumServersUseCase,
     private val getLocalElectrumServersUseCase: GetLocalElectrumServersUseCase,
+    private val getRemoteElectrumServersCacheUseCase: GetRemoteElectrumServersCacheUseCase,
     private val addLocalElectrumServersUseCase: AddLocalElectrumServersUseCase,
     private val removeLocalElectrumServersUseCase: RemoveLocalElectrumServersUseCase,
     private val getAppSettingUseCase: GetAppSettingUseCase,
@@ -47,14 +49,23 @@ class SelectElectrumServerViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getElectrumServersUseCase(Unit).onSuccess { electrumServers ->
-                val servers = when (chain) {
-                    Chain.MAIN -> electrumServers.mainnet
-                    Chain.TESTNET -> electrumServers.testnet
-                    else -> electrumServers.signet
+            getRemoteElectrumServersCacheUseCase(Unit)
+                .map { it.getOrThrow() }
+                .collect { remoteServers ->
+                    _uiState.update {
+                        it.copy(
+                            remoteServers = remoteServers.map { server ->
+                                RemoteElectrumServer(
+                                    url = server.url,
+                                    name = server.name,
+                                )
+                            },
+                        )
+                    }
                 }
-                _uiState.update { it.copy(remoteServers = servers) }
-            }
+        }
+        viewModelScope.launch {
+            getElectrumServersUseCase(Unit)
         }
         viewModelScope.launch {
             getLocalElectrumServersUseCase(Unit)
@@ -72,7 +83,12 @@ class SelectElectrumServerViewModel @Inject constructor(
             if (!isLocalExist && !isRemoteExist) {
                 addLocalElectrumServersUseCase(ElectrumServer(url = server, chain = chain))
                 val currentSettings = getAppSettingUseCase(Unit).getOrThrow()
-                updateAppSettingUseCase(currentSettings.copy(mainnetServers = listOf(server), chain = Chain.MAIN))
+                updateAppSettingUseCase(
+                    currentSettings.copy(
+                        mainnetServers = listOf(server),
+                        chain = Chain.MAIN
+                    )
+                )
                 _uiState.update { it.copy(addSuccessEvent = StateEvent.String(server)) }
             }
         }
