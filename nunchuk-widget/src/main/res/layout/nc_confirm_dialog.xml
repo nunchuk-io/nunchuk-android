@@ -33,29 +33,41 @@
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/tvDesc"
             style="@style/NCText.Body"
-            android:layout_marginTop="@dimen/nc_padding_12"
-            tools:visibility="visible"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_12"
             android:gravity="center"
             android:textSize="@dimen/nc_text_size_16"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title"
-            tools:text="Description here" />
+            tools:text="Description here"
+            tools:visibility="visible" />
+
+        <com.nunchuk.android.widget.NCFontTextView
+            android:id="@+id/tvInputBoxTitle"
+            style="@style/NCText.Title.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/nc_padding_24"
+            android:text="Confirmation code"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvDesc" />
 
         <com.nunchuk.android.widget.NCEditTextView
             android:id="@+id/message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/nc_padding_24"
+            android:layout_marginTop="4dp"
             app:edit_input_type="text"
             app:edit_title_color="@color/nc_black_color"
             app:edit_title_text_size="@dimen/nc_text_size_16"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvDesc" />
+            app:layout_constraintTop_toBottomOf="@+id/tvInputBoxTitle" />
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline"

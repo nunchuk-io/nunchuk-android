@@ -636,6 +636,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return token
     }
 
+    override suspend fun requestFederatedToken(targetAction: String) {
+        val response = membershipApi.requestFederatedToken(
+            targetAction
+        )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
     override suspend fun verifiedPKeyToken(
         targetAction: String, address: String, signature: String,
     ): String? {
