@@ -53,7 +53,7 @@ internal class AddReceiptViewModel @Inject constructor(
 
     fun init(args: AddReceiptArgs) {
         updateState { initialState.copy(address = args.address, privateNote = args.privateNote) }
-        getWalletDetail(args.walletId)
+        if (args.walletId.isNotEmpty()) getWalletDetail(args.walletId)
 
         viewModelScope.launch {
             getDefaultAntiFeeSnipingUseCase(Unit)
