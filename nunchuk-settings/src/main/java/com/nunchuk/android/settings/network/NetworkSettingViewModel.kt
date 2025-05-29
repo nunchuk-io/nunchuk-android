@@ -31,6 +31,7 @@ import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.model.AppSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -70,12 +71,13 @@ internal class NetworkSettingViewModel @Inject constructor(
         }
     }
 
-    private fun loadCustomMainnetServer(url: String?) = viewModelScope.launch {
-        getRemoteElectrumServersCacheUseCase(Unit).map { it.getOrThrow() }.collect {
-            val customMainnetServer = it.find { server -> server.url == url }
-            updateState {
-                copy(customMainnetServerName = customMainnetServer?.name)
-            }
+    private suspend fun loadCustomMainnetServer(url: String?) {
+        val servers =
+            getRemoteElectrumServersCacheUseCase(Unit).map { it.getOrThrow() }.firstOrNull()
+                .orEmpty()
+        val customMainnetServer = servers.find { server -> server.url == url }
+        updateState {
+            copy(customMainnetServerName = customMainnetServer?.name)
         }
     }
 

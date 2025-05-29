@@ -28,6 +28,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.sheet.BottomSheetTooltip
+import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
@@ -38,6 +39,7 @@ import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.TxReceiptViewBinder
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmCoinList
 import com.nunchuk.android.transaction.databinding.FragmentTransactionConfirmBinding
 import com.nunchuk.android.widget.NCToastMessage
@@ -112,17 +114,22 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
     }
 
     private fun updateTransaction(transaction: Transaction) {
-        binding.sendAddressLabel.text = transaction.outputs.firstOrNull()?.first
+        val outputs = transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
         binding.estimatedFeeBTC.text = transaction.fee.pureBTC().getBTCAmount()
         binding.estimatedFeeUSD.text = transaction.fee.pureBTC().getCurrencyAmount()
-        binding.sendAddressBTC.text = transaction.subAmount.pureBTC().getBTCAmount()
-        binding.sendAddressUSD.text = transaction.subAmount.pureBTC().getCurrencyAmount()
         binding.totalAmountBTC.text = transaction.totalAmount.pureBTC().getBTCAmount()
         binding.totalAmountUSD.text = transaction.totalAmount.pureBTC().getCurrencyAmount()
         binding.noteContent.text = transaction.memo.ifEmpty { getString(R.string.nc_none) }
 
         val txOutput = transaction.outputs.getOrNull(transaction.changeIndex)
         val changeAddress = txOutput?.first.orEmpty()
+        TxReceiptViewBinder(
+            container = binding.receiptList,
+            outputs = outputs,
+            savedAddresses = viewModel.getSavedAddress()
+        ) {
+            handleCopyContent(it)
+        }.bindItems()
         if (changeAddress.isNotBlank() && txOutput != null) {
             val amount = txOutput.second
             binding.changeAddressLabel.text = changeAddress
@@ -134,6 +141,11 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
             binding.changeAddressBTC.visibility = View.GONE
             binding.changeAddressUSD.visibility = View.GONE
         }
+    }
+
+    private fun handleCopyContent(content: String) {
+        requireActivity().copyToClipboard(label = "Nunchuk", text = content)
+        NCToastMessage(requireActivity()).showMessage(getString(R.string.nc_copied_to_clipboard))
     }
 
     private fun observer() {

@@ -33,6 +33,7 @@ import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
+import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.membership.ReplaceServerTransactionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -40,6 +41,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -53,6 +55,7 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
     private val assistedWalletManager: AssistedWalletManager,
     private val replaceServerTransactionUseCase: ReplaceServerTransactionUseCase,
     private val getAllTagsUseCase: GetAllTagsUseCase,
+    private val getSavedAddressListLocalUseCase: GetSavedAddressListLocalUseCase
 ) : ViewModel() {
     private val _event = MutableSharedFlow<ReplaceFeeEvent>()
     private val _state = MutableStateFlow(ConfirmReplaceTransactionState())
@@ -60,6 +63,16 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     private var antiFeeSniping: Boolean = false
+
+    init {
+        viewModelScope.launch {
+            getSavedAddressListLocalUseCase(Unit)
+                .map { it.getOrThrow() }
+                .collect { savedAddresses ->
+                    _state.update { it.copy(savedAddress = savedAddresses.associate { address -> address.address to address.label }) }
+                }
+        }
+    }
 
     fun init(walletId: String, oldTx: Transaction, antiFeeSniping: Boolean) {
         this.antiFeeSniping = antiFeeSniping
@@ -209,10 +222,15 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
             _event.emit(ReplaceFeeEvent.Loading(false))
         }
     }
+
+    fun getSavedAddress(): Map<String, String> {
+        return _state.value.savedAddress
+    }
 }
 
 data class ConfirmReplaceTransactionState(
     val transaction: Transaction? = null,
     val inputCoins: List<UnspentOutput> = emptyList(),
+    val savedAddress: Map<String, String> = emptyMap(),
     val allTags: Map<Int, CoinTag> = emptyMap()
 )
