@@ -73,7 +73,8 @@
         android:max="100"
         android:visibility="gone"
         app:indicatorColor="@color/nc_red_color"
-        app:layout_constraintTop_toTopOf="@+id/barcodeView"
+        android:layout_marginBottom="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/scannerActionView"
         app:trackColor="@color/nc_bg_mid_gray"
         tools:progress="50" />
 
