@@ -105,6 +105,7 @@ class CreateWalletFragment : MembershipFragment() {
             setContent {
                 CreateWalletScreen(
                     viewModel = viewModel,
+                    groupId = groupId,
                     onMoreClicked = ::handleShowMore,
                     membershipStepManager = membershipStepManager,
                     onContinueClicked = { sendBsmsEmail ->
@@ -179,6 +180,7 @@ class CreateWalletFragment : MembershipFragment() {
 @Composable
 fun CreateWalletScreen(
     viewModel: CreateWalletViewModel = viewModel(),
+    groupId: String = "",
     onMoreClicked: () -> Unit = {},
     onContinueClicked: (Boolean) -> Unit = {},
     membershipStepManager: MembershipStepManager,
@@ -192,6 +194,7 @@ fun CreateWalletScreen(
         onWalletNameTextChange = viewModel::updateWalletName,
         remainTime = remainTime,
         walletName = state.walletName,
+        groupId = groupId,
     )
 }
 
@@ -200,10 +203,11 @@ fun CreateWalletScreenContent(
     onContinueClicked: (Boolean) -> Unit = {},
     onMoreClicked: () -> Unit = {},
     onWalletNameTextChange: (value: String) -> Unit = {},
+    groupId: String = "",
     remainTime: Int = 0,
     walletName: String = "",
 ) {
-    var sendBsmsEmail by rememberSaveable { mutableStateOf(false) }
+    var sendBsmsEmail by rememberSaveable { mutableStateOf(true) }
     NunchukTheme {
         Scaffold(
             modifier = Modifier.systemBarsPadding(),
@@ -257,7 +261,9 @@ fun CreateWalletScreenContent(
                         onCheckedChange = { sendBsmsEmail = it },
                     )
                     Text(
-                        text = stringResource(id = R.string.nc_send_wallet_config_to_email),
+                        text = if (groupId.isNotEmpty()) stringResource(id = R.string.nc_email_copy_wallet_config_file_to_keyholders) else stringResource(
+                            id = R.string.nc_send_wallet_config_to_email
+                        ),
                         style = NunchukTheme.typography.body,
                         modifier = Modifier.padding(start = 8.dp)
                     )
