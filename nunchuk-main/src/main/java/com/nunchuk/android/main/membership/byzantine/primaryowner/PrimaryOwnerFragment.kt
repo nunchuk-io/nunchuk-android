@@ -145,7 +145,8 @@ class PrimaryOwnerFragment : MembershipFragment() {
         if (event.airgapCount > 0) {
             findNavController().navigate(
                 PrimaryOwnerFragmentDirections.actionPrimaryOwnerFragmentToRegisterWalletToAirgapFragment(
-                    event.wallet.id,
+                    walletId = event.wallet.id,
+                    sendBsmsEmail = args.sendBsmsEmail
                 ),
                 NavOptions.Builder()
                     .setPopUpTo(findNavController().graph.startDestinationId, true)
