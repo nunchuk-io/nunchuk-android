@@ -35,9 +35,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -64,7 +64,7 @@ internal class RecoverWalletQrCodeViewModel @Inject constructor(
             analyzeQrUseCase(qrDataList.toList()).onSuccess { value ->
                 val progress = value.times(100.0)
                 _state.update { it.copy(progress = progress) }
-                if (progress >= 100.0 && !isProcessing) {
+                if (!isProcessing) {
                     isProcessing = true
                     if (isParseOnly) {
                         parseKeystoneWalletUseCase(qrDataList.toList())
@@ -72,9 +72,9 @@ internal class RecoverWalletQrCodeViewModel @Inject constructor(
                                 _event.emit(RecoverWalletQrCodeEvent.ImportQRCodeSuccess(it))
                             }
                             .onFailure {
-                                _event.emit(RecoverWalletQrCodeEvent.ImportQRCodeError(it.message.orEmpty()))
+                                Timber.tag("recover-wallet").e("Parse QR Code Error: ${it.message}")
+                                isProcessing = false
                             }
-                        isProcessing = false
                     } else {
                         importKeystoneWalletUseCase.execute(
                             description = description,
@@ -82,13 +82,20 @@ internal class RecoverWalletQrCodeViewModel @Inject constructor(
                         )
                             .flowOn(IO)
                             .onException {
+                                isProcessing = false
+                                Timber.tag("recover-wallet")
+                                    .e("Import QR Code Error: ${it.message}")
                                 _event.emit(RecoverWalletQrCodeEvent.ImportQRCodeError(it.message.orEmpty()))
                             }
                             .flowOn(Main)
-                            .onCompletion { isProcessing = false }
-                            .collect { _event.emit(RecoverWalletQrCodeEvent.ImportQRCodeSuccess(it)) }
+                            .collect {
+                                Timber.tag("recover-wallet").e("Import QR Code Success")
+                                _event.emit(RecoverWalletQrCodeEvent.ImportQRCodeSuccess(it))
+                            }
                     }
                 }
+            }.onFailure {
+                Timber.tag("recover-wallet").e("Analyze QR Error: ${it.message}")
             }
         }
     }

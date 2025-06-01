@@ -72,7 +72,7 @@ class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcod
 
     private fun handleEvent(event: RecoverWalletQrCodeEvent) {
         when (event) {
-            is RecoverWalletQrCodeEvent.ImportQRCodeError -> onImportQRCodeError()
+            is RecoverWalletQrCodeEvent.ImportQRCodeError -> onImportQRCodeError(event.message)
             is RecoverWalletQrCodeEvent.ImportQRCodeSuccess -> {
                 if (isGroupWallet) {
                     navigator.openFreeGroupWalletRecoverScreen(
@@ -117,9 +117,9 @@ class RecoverWalletQrCodeActivity : BaseCameraActivity<ActivityImportWalletQrcod
         viewModel.decodeQRCodeFromUri(uri)
     }
 
-    private fun onImportQRCodeError() {
+    private fun onImportQRCodeError(message: String) {
         hideLoading()
-        if (isGroupWallet.not()) NCToastMessage(this).showWarning(getString(R.string.nc_invalid_qr))
+        if (isGroupWallet.not()) NCToastMessage(this).showWarning(if (message.isNotEmpty()) message else getString(R.string.nc_invalid_qr))
     }
 
     override fun onResume() {
