@@ -210,13 +210,13 @@ internal class SettingRepositoryImpl @Inject constructor(
     }
 
     override val firstCreateEmail: Flow<String>
-        get() = ncDataStore.firstCreateEmail
+        get() = ncDataStore.firstChatId
 
     override val hasWalletInGuestMode: Flow<Boolean>
         get() = ncDataStore.hasWalletInGuestMode
 
-    override suspend fun setFirstCreateEmail(email: String, isForce: Boolean) {
-        ncDataStore.setFirstCreateEmail(email, isForce)
+    override suspend fun setFirstChatId(chatId: String, isForce: Boolean) {
+        ncDataStore.setFirstChatId(chatId, isForce)
     }
 
     override suspend fun setHasWalletInGuestMode(hasWallet: Boolean) {

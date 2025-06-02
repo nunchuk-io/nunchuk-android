@@ -19,16 +19,25 @@
 
 package com.nunchuk.android.usecase
 
-import com.nunchuk.android.FlowUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.repository.SettingRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetFirstCreateEmailUseCase @Inject constructor(
+class SetFirstCreatedChatIdUseCase @Inject constructor(
     private val settingRepository: SettingRepository,
     @IoDispatcher ioDispatcher: CoroutineDispatcher
-) : FlowUseCase<Unit, String>(ioDispatcher) {
+) : UseCase<SetFirstCreatedChatIdUseCase.Params, Unit>(ioDispatcher) {
 
-    override fun execute(parameters: Unit) = settingRepository.firstCreateEmail
+    override suspend fun execute(parameters: Params) {
+        settingRepository.setFirstChatId(
+            chatId = parameters.chatId,
+            isForce = parameters.isForce
+        )
+    }
+
+    data class Params(
+        val chatId: String,
+        val isForce: Boolean = false
+    )
 } 

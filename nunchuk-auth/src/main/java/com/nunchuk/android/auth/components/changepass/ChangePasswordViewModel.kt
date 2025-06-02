@@ -35,7 +35,7 @@ import com.nunchuk.android.auth.domain.ResendPasswordUseCase
 import com.nunchuk.android.auth.domain.SignInUseCase
 import com.nunchuk.android.auth.validator.doAfterValidate
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.usecase.SetFirstCreateEmailUseCase
+import com.nunchuk.android.usecase.SetFirstCreatedChatIdUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -52,7 +52,7 @@ internal class ChangePasswordViewModel @Inject constructor(
     private val changePasswordUseCase: ChangePasswordUseCase,
     private val resendPasswordUseCase: ResendPasswordUseCase,
     private val signInUseCase: SignInUseCase,
-    private val setFirstCreateEmailUseCase: SetFirstCreateEmailUseCase,
+    private val setFirstCreatedChatIdUseCase: SetFirstCreatedChatIdUseCase,
     private val applicationScope: CoroutineScope,
     accountManager: AccountManager,
 ) : NunchukViewModel<Unit, ChangePasswordEvent>() {
@@ -89,18 +89,18 @@ internal class ChangePasswordViewModel @Inject constructor(
                     .onException { event(ChangePasswordSuccessError(it.message)) }
                     .flowOn(Main)
                     .collect {
-                        saveFirstCreateEmail(account.email)
+                        saveFirstCreateEmail(account.chatId)
                         onChangePasswordSuccess()
                     }
             }
         }
     }
 
-    private fun saveFirstCreateEmail(email: String) {
+    private fun saveFirstCreateEmail(chatId: String) {
         applicationScope.launch {
-            setFirstCreateEmailUseCase(
-                SetFirstCreateEmailUseCase.Params(
-                    email = email,
+            setFirstCreatedChatIdUseCase(
+                SetFirstCreatedChatIdUseCase.Params(
+                    chatId = chatId,
                 )
             )
         }

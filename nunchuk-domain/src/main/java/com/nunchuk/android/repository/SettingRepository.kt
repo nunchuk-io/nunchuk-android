@@ -75,6 +75,6 @@ interface SettingRepository {
     suspend fun setAntiFeeSniping(isEnable: Boolean)
     suspend fun setTaprootFeeSelection(info: TaprootFeeSelectionSetting)
     fun getTaprootFeeSelection(): Flow<TaprootFeeSelectionSetting>
-    suspend fun setFirstCreateEmail(email: String, isForce: Boolean)
+    suspend fun setFirstChatId(chatId: String, isForce: Boolean)
     suspend fun setHasWalletInGuestMode(hasWallet: Boolean)
 }

@@ -31,6 +31,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
 import com.nunchuk.android.usecase.GetPrimaryKeyAddressUseCase
+import com.nunchuk.android.usecase.SetFirstCreatedChatIdUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -45,7 +46,8 @@ internal class PKeyChooseUsernameViewModel @AssistedInject constructor(
     private val signInModeHolder: SignInModeHolder,
     private val getTurnOnNotificationStoreUseCase: GetTurnOnNotificationStoreUseCase,
     private val updateTurnOnNotificationStoreUseCase: UpdateTurnOnNotificationStoreUseCase,
-    private val getUserProfileUseCase: GetUserProfileUseCase
+    private val getUserProfileUseCase: GetUserProfileUseCase,
+    private val setFirstCreatedChatIdUseCase: SetFirstCreatedChatIdUseCase,
 ) : NunchukViewModel<PKeyChooseUsernameEventState, PKeyChooseUsernameEvent>() {
 
     override val initialState = PKeyChooseUsernameEventState()
@@ -109,8 +111,13 @@ internal class PKeyChooseUsernameViewModel @AssistedInject constructor(
             )
         )
         if (resultSignUp.isSuccess) {
-            getUserProfileUseCase(Unit).onSuccess {
+            getUserProfileUseCase(Unit).onSuccess { chatId ->
                 signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
+                setFirstCreatedChatIdUseCase(
+                    SetFirstCreatedChatIdUseCase.Params(
+                        chatId = chatId,
+                    )
+                )
                 setEvent(PKeyChooseUsernameEvent.SignUpSuccess)
             }
         } else {
