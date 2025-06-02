@@ -27,7 +27,6 @@ import com.nunchuk.android.core.domain.CheckHasPassphrasePrimaryKeyUseCase
 import com.nunchuk.android.core.domain.CheckWalletPinUseCase
 import com.nunchuk.android.core.domain.CreateOrUpdateWalletPinUseCase
 import com.nunchuk.android.core.domain.GetWalletPinUseCase
-import com.nunchuk.android.core.domain.membership.RequestFederatedTokenUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
 import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
@@ -57,7 +56,6 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
     private val getWalletPinUseCase: GetWalletPinUseCase,
     private val checkWalletPinUseCase: CheckWalletPinUseCase,
     private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
-    private val requestFederatedTokenUseCase: RequestFederatedTokenUseCase,
     private val verifiedPKeyTokenUseCase: VerifiedPKeyTokenUseCase,
     private val createOrUpdateWalletPinUseCase: CreateOrUpdateWalletPinUseCase,
     private val signInModeHolder: SignInModeHolder,
@@ -211,17 +209,28 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
                 return@launch
             }
 
-            biometricRegisterUseCase(
-                BiometricRegisterUseCase.Param(
-                    password
+            val result = verifiedPasswordTokenUseCase(
+                VerifiedPasswordTokenUseCase.Param(
+                    password = password,
+                    targetAction = TargetAction.REGISTER_BIOMETRIC_PUBLIC_KEY.name
                 )
             )
-                .onSuccess {
-                    updateProtectWalletBiometric(true, it)
-                }.onFailure {
-                    updateProtectWalletBiometric(false)
-                    event(WalletSecuritySettingEvent.Error(message = it.message.orUnknownError()))
-                }
+            if (result.isSuccess) {
+                biometricRegisterUseCase(
+                    BiometricRegisterUseCase.Param(
+                        result.getOrNull().orEmpty()
+                    )
+                )
+                    .onSuccess {
+                        updateProtectWalletBiometric(true, it)
+                    }.onFailure {
+                        updateProtectWalletBiometric(false)
+                        event(WalletSecuritySettingEvent.Error(message = it.message.orUnknownError()))
+                    }
+            } else {
+                updateProtectWalletBiometric(false)
+                event(WalletSecuritySettingEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
+            }
         }
     }
 
@@ -245,21 +254,6 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
                 event(WalletSecuritySettingEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
             }
         }
-
-    fun requestFederatedToken(isResend: Boolean) = viewModelScope.launch {
-        val result = requestFederatedTokenUseCase(
-            RequestFederatedTokenUseCase.Param(
-                targetAction = TargetAction.REGISTER_BIOMETRIC_PUBLIC_KEY.name
-            )
-        )
-        if (result.isSuccess) {
-            if (isResend) return@launch
-            event(WalletSecuritySettingEvent.RequestFederatedTokenSuccess(email = accountManager.getAccount().email))
-        } else {
-            updateProtectWalletPassphrase(false)
-            event(WalletSecuritySettingEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
-        }
-    }
 
     fun isAppPinEnable() = getState().isAppPinEnable
 }

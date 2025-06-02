@@ -90,7 +90,16 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                 biometricPromptManager.promptResults.collect { result ->
                     when (result) {
                         is BiometricPromptManager.BiometricResult.AuthenticationSuccess -> {
-                            viewModel.requestFederatedToken(false)
+                            NCInputDialog(requireContext()).showDialog(
+                                title = getString(R.string.nc_re_enter_your_password),
+                                descMessage = getString(R.string.nc_confirm_use_biometric_sign_in),
+                                onConfirmed = {
+                                    viewModel.registerBiometric(it)
+                                },
+                                onCanceled = {
+                                    viewModel.updateProtectWalletBiometric(false)
+                                }
+                            )
                         }
                         is BiometricPromptManager.BiometricResult.AuthenticationError -> {
                             viewModel.updateProtectWalletBiometric(false)
@@ -149,29 +158,6 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
 
             WalletSecuritySettingEvent.ShowBiometric -> {
                 biometricPromptManager.showBiometricPrompt()
-            }
-
-            is WalletSecuritySettingEvent.RequestFederatedTokenSuccess -> {
-                NCInputDialog(requireContext()).showDialog(
-                    title = getString(R.string.nc_enter_confirmation_code),
-                    descMessage = String.format(
-                        getString(R.string.nc_enter_confirmation_code_desc),
-                        event.email
-                    ),
-                    inputBoxTitle = getString(R.string.nc_confirmation_code),
-                    clickablePhrases = listOf(
-                        "Resend code" to {
-                            viewModel.requestFederatedToken(true)
-                        },
-                    ),
-                    confirmText = getString(R.string.nc_text_continue),
-                    onConfirmed = {
-                        viewModel.registerBiometric(it)
-                    },
-                    onCanceled = {
-                        viewModel.updateProtectWalletBiometric(false)
-                    }
-                )
             }
         }
         viewModel.clearEvent()

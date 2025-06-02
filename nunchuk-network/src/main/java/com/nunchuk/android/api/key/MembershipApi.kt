@@ -47,9 +47,4 @@ interface MembershipApi {
         @Path("target_action") targetAction: String,
         @Body payload: VerifiedPKeyTokenRequest
     ): Data<VerifiedPasswordTokenResponse>
-
-    @POST("/v1.1/passport/request-federated-token/{target_action}")
-    suspend fun requestFederatedToken(
-        @Path("target_action") targetAction: String,
-    ): Data<Unit>
 }
