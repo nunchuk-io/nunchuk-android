@@ -56,7 +56,6 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.wallet.CreateWalletFragmentDirections
 import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.BackUpWalletType
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -78,7 +77,7 @@ class RegisterWalletToAirgapFragment : MembershipFragment() {
     ) {
         if (it.resultCode == Activity.RESULT_OK) {
             findNavController().navigate(
-                CreateWalletFragmentDirections.actionCreateWalletFragmentToCreateWalletSuccessFragment(
+                RegisterWalletToAirgapFragmentDirections.actionRegisterWalletToAirgapFragmentToCreateWalletSuccessFragment(
                     args.walletId
                 ),
                 NavOptions.Builder()
