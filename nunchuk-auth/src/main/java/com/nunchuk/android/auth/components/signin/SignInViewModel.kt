@@ -56,6 +56,7 @@ import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.usecase.GetBiometricConfigUseCase
 import com.nunchuk.android.usecase.GetPrimaryKeyListUseCase
+import com.nunchuk.android.usecase.SetFirstCreatedChatIdUseCase
 import com.nunchuk.android.usecase.UpdateBiometricConfigUseCase
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
@@ -97,7 +98,8 @@ internal class SignInViewModel @Inject constructor(
     private val googleSignInUseCase: GoogleSignInUseCase,
     private val getWalletPinUseCase: GetWalletPinUseCase,
     private val appleSignInUseCase: AppleSignInUseCase,
-    private val autoSelectElectrumSeverUseCase: AutoSelectElectrumSeverUseCase
+    private val autoSelectElectrumSeverUseCase: AutoSelectElectrumSeverUseCase,
+    private val setFirstCreatedChatIdUseCase: SetFirstCreatedChatIdUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SignInEvent>()
     val event = _event.asSharedFlow()
@@ -341,24 +343,7 @@ internal class SignInViewModel @Inject constructor(
         viewModelScope.launch {
             _event.emit(ProcessingEvent(true))
             googleSignInUseCase(token)
-                .onSuccess {
-                    initNunchuk()
-                    signInModeHolder.setCurrentMode(SignInMode.EMAIL)
-                    _event.emit(SignInSuccessEvent())
-                }
-                .onFailure { exception ->
-                    if (exception is NunchukApiException) {
-                        _event.emit(
-                            SignInErrorEvent(
-                                code = exception.code,
-                                message = exception.message,
-                                errorDetail = exception.errorDetail,
-                            )
-                        )
-                    } else {
-                        _event.emit(SignInErrorEvent(message = exception.message.orUnknownError()))
-                    }
-                }
+                .handleSocialLoginResult()
             _event.emit(ProcessingEvent(false))
         }
     }
@@ -367,25 +352,34 @@ internal class SignInViewModel @Inject constructor(
         viewModelScope.launch {
             _event.emit(ProcessingEvent(true))
             appleSignInUseCase(json)
-                .onSuccess {
-                    initNunchuk()
-                    signInModeHolder.setCurrentMode(SignInMode.EMAIL)
-                    _event.emit(SignInSuccessEvent())
-                }
-                .onFailure { exception ->
-                    if (exception is NunchukApiException) {
-                        _event.emit(
-                            SignInErrorEvent(
-                                code = exception.code,
-                                message = exception.message,
-                                errorDetail = exception.errorDetail,
-                            )
-                        )
-                    } else {
-                        _event.emit(SignInErrorEvent(message = exception.message.orUnknownError()))
-                    }
-                }
+                .handleSocialLoginResult()
             _event.emit(ProcessingEvent(false))
+        }
+    }
+
+    private suspend fun Result<AccountInfo>.handleSocialLoginResult() {
+        onSuccess { accountInfo ->
+            setFirstCreatedChatIdUseCase(
+                SetFirstCreatedChatIdUseCase.Params(
+                    chatId = accountInfo.chatId
+                )
+            )
+            initNunchuk()
+            signInModeHolder.setCurrentMode(SignInMode.EMAIL)
+            _event.emit(SignInSuccessEvent())
+        }
+        onFailure { exception ->
+            if (exception is NunchukApiException) {
+                _event.emit(
+                    SignInErrorEvent(
+                        code = exception.code,
+                        message = exception.message,
+                        errorDetail = exception.errorDetail,
+                    )
+                )
+            } else {
+                _event.emit(SignInErrorEvent(message = exception.message.orUnknownError()))
+            }
         }
     }
 
