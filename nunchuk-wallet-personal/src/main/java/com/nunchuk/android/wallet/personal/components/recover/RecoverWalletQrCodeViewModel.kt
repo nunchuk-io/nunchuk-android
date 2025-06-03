@@ -63,8 +63,10 @@ internal class RecoverWalletQrCodeViewModel @Inject constructor(
         viewModelScope.launch {
             analyzeQrUseCase(qrDataList.toList()).onSuccess { value ->
                 val progress = value.times(100.0)
+                val isSingleQR = qrDataList.size == 1 && value == 0.0
+                val isDynamicQR = progress >= 100
                 _state.update { it.copy(progress = progress) }
-                if (!isProcessing) {
+                if (!isProcessing && (isDynamicQR || isSingleQR)) {
                     isProcessing = true
                     if (isParseOnly) {
                         parseKeystoneWalletUseCase(qrDataList.toList())
