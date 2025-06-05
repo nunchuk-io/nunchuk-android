@@ -153,4 +153,7 @@
     <string name="nc_update_saved">Update saved</string>
     <string name="nc_invalid_url_format">Invalid URL format</string>
     <string name="nc_threshold_must_be_greater_than_0">Threshold must be greater than 0</string>
+    <string name="nc_enter_confirmation_code">Enter confirmation code</string>
+    <string name="nc_confirmation_code">Confirmation code</string>
+    <string name="nc_enter_confirmation_code_desc">Enter the confirmation code we sent to %1$s. Resend code</string>
 </resources>

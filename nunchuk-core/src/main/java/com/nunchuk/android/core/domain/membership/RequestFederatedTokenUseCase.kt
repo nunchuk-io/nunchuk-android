@@ -17,28 +17,23 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.settings.walletsecurity
+package com.nunchuk.android.core.domain.membership
 
-import com.nunchuk.android.model.setting.WalletSecuritySetting
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class WalletSecuritySettingState(
-    val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting.DEFAULT,
-    val isAppPinEnable: Boolean = false,
-    val isCustomPinEnable: Boolean = false,
-    val isEnablePassphrase: Boolean = false,
-    val isEnableBiometric: Boolean = false,
-)
+class RequestFederatedTokenUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val userWalletsRepository: PremiumWalletRepository,
+) : UseCase<RequestFederatedTokenUseCase.Param, Unit>(dispatcher) {
+    override suspend fun execute(parameters: Param) {
+        return userWalletsRepository.requestFederatedToken(
+            targetAction = parameters.targetAction,
+        )
+    }
 
-sealed class WalletSecuritySettingEvent {
-    data object UpdateConfigSuccess : WalletSecuritySettingEvent()
-    data object CheckPasswordSuccess : WalletSecuritySettingEvent()
-    data object CheckPassphraseSuccess : WalletSecuritySettingEvent()
-    data class CheckWalletPin(val match: Boolean, val isHideWalletDetailFlow: Boolean) :
-        WalletSecuritySettingEvent()
-
-    data class Loading(val loading: Boolean) : WalletSecuritySettingEvent()
-    data class Error(val message: String) : WalletSecuritySettingEvent()
-    data object None : WalletSecuritySettingEvent()
-    data object ShowBiometric : WalletSecuritySettingEvent()
-    data class RequestFederatedTokenSuccess(val email: String) : WalletSecuritySettingEvent()
+    class Param(val targetAction: String)
 }
