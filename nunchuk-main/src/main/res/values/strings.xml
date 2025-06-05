@@ -387,4 +387,7 @@
     <string name="nc_waiting_to_join">Waiting to join</string>
     <string name="nc_send_wallet_config_to_email">Send a copy of wallet config file to my email</string>
     <string name="nc_email_copy_wallet_config_file_to_keyholders">Email a copy of wallet config file to keyholders</string>
+    <string name="nc_please_come_back_later">Please come back later</string>
+    <string name="nc_security_deposit_required">Security deposit required</string>
+    <string name="nc_go_to_website_to_deposit">Go to website to deposit</string>
 </resources>

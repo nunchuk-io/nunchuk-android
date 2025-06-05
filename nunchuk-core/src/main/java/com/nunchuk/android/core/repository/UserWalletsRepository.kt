@@ -1014,6 +1014,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = userWalletApiManager.walletApi.inheritanceClaimingDownloadBackups(
             InheritanceClaimDownloadBackupRequest(magic = magic, hashedBps = hashedBps)
         )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
         return response.data.keys?.map { it.toBackupKey() }.orEmpty()
     }
 

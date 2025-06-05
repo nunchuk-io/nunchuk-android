@@ -114,6 +114,8 @@ class InheritanceClaimInputFragment : Fragment() {
                 is InheritanceClaimInputEvent.Loading -> showOrHideLoading(loading = event.isLoading)
                 is InheritanceClaimInputEvent.SubscriptionExpired -> showSubscriptionExpiredDialog()
                 is InheritanceClaimInputEvent.InActivated -> showInActivatedDialog(event.message)
+                is InheritanceClaimInputEvent.PleaseComeLater -> showPleaseComeLaterDialog(event.message)
+                is InheritanceClaimInputEvent.SecurityDepositRequired -> showSecurityDepositRequiredDialog(event.message)
             }
         }
     }
@@ -131,6 +133,23 @@ class InheritanceClaimInputFragment : Fragment() {
 
     private fun showInActivatedDialog(message: String) {
         NCInfoDialog(requireActivity()).showDialog(message = message)
+    }
+
+    private fun showPleaseComeLaterDialog(message: String) {
+        NCInfoDialog(requireActivity()).showDialog(
+            title = getString(R.string.nc_please_come_back_later),
+            message = message,
+            btnYes = getString(R.string.nc_text_got_it)
+        )
+    }
+
+    private fun showSecurityDepositRequiredDialog(message: String) {
+        NCInfoDialog(requireActivity()).showDialog(
+            title = getString(R.string.nc_security_deposit_required),
+            message = message,
+            btnYes = getString(R.string.nc_go_to_website_to_deposit),
+            btnInfo = getString(R.string.nc_text_got_it)
+        )
     }
 }
 
