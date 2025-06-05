@@ -26,6 +26,7 @@ import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.WalletTemplate
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.roundToLong
@@ -36,7 +37,7 @@ fun Wallet.getCurrencyAmount() = balance.getCurrencyAmount()
 
 fun Amount.getBTCAmount() = pureBTC().getBTCAmount()
 
-fun Double.getBtcSat() =  when (CURRENT_DISPLAY_UNIT_TYPE) {
+fun Double.getBtcSat() = when (CURRENT_DISPLAY_UNIT_TYPE) {
     SAT -> this.roundToLong()
     else -> (this * BTC_SATOSHI_EXCHANGE_RATE).roundToLong()
 }
@@ -63,11 +64,13 @@ fun Double.getBTCAmountWithoutSat() = when (CURRENT_DISPLAY_UNIT_TYPE) {
 }
 
 
-fun Double.getCurrencyAmount() = "${getDisplayCurrency()}${fromBTCToCurrency().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
+fun Double.getCurrencyAmount() =
+    "${getDisplayCurrency()}${fromBTCToCurrency().formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)}"
 
 fun getDisplayCurrency() = if (LOCAL_CURRENCY == USD_CURRENCY) "$" else "$LOCAL_CURRENCY "
 
-private fun Amount.fromBTCToCurrency() = value * SATOSHI_BTC_EXCHANGE_RATE * BTC_CURRENCY_EXCHANGE_RATE
+private fun Amount.fromBTCToCurrency() =
+    value * SATOSHI_BTC_EXCHANGE_RATE * BTC_CURRENCY_EXCHANGE_RATE
 
 fun Double.fromSATtoBTC() = (this * SATOSHI_BTC_EXCHANGE_RATE)
 
@@ -94,3 +97,6 @@ fun Iterable<Amount>.sum(): Amount {
     }
     return sum
 }
+
+val Wallet.isValueKeySetDisable: Boolean
+    get() = walletTemplate == WalletTemplate.DISABLE_KEY_PATH || signers.size == 1

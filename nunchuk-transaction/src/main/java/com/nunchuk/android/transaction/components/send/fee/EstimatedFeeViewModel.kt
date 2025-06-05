@@ -26,6 +26,7 @@ import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
 import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
+import com.nunchuk.android.core.util.isValueKeySetDisable
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.sum
 import com.nunchuk.android.core.util.toAmount
@@ -38,7 +39,6 @@ import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeCompletedEvent
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent.EstimatedFeeErrorEvent
-import com.nunchuk.android.type.WalletTemplate
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
@@ -134,7 +134,7 @@ class EstimatedFeeViewModel @Inject constructor(
     private fun getWalletDetail(walletId: String) {
         viewModelScope.launch {
             getWalletDetail2UseCase(walletId).onSuccess { wallet ->
-                _state.update { it.copy(isValueKeySetDisable = wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH) }
+                _state.update { it.copy(isValueKeySetDisable = wallet.isValueKeySetDisable) }
             }
         }
     }

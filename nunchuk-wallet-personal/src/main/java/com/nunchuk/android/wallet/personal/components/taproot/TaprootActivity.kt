@@ -196,7 +196,7 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
                 if (event.isShow) {
                     showRiskSignerDialog()
                 } else {
-                    viewModel.showEnableKeySet()
+                    continueActionForRiskDialog()
                 }
             }
 
@@ -204,6 +204,14 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
             is ConfigureWalletEvent.CacheTapSignerXpubError -> handleCacheXpubError(event)
             is ConfigureWalletEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
             ConfigureWalletEvent.OpenConfigKeySet, ConfigureWalletEvent.ShowEnableKeySet -> Unit
+        }
+    }
+
+    private fun continueActionForRiskDialog() {
+        if (viewModel.isSingleSig()) {
+            viewModel.handleContinueEvent()
+        } else {
+            viewModel.showEnableKeySet()
         }
     }
 
@@ -274,9 +282,7 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
             btnYes = getString(R.string.nc_risk_signer_key_warning_button),
             btnNeutral = getString(R.string.nc_text_cancel),
             btnNo = "",
-            onYesClick = {
-                viewModel.showEnableKeySet()
-            })
+            onYesClick = ::continueActionForRiskDialog)
     }
 
     companion object {

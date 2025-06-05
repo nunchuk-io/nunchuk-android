@@ -22,6 +22,7 @@ package com.nunchuk.android.transaction.components.send.receipt
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.mapper.SingleSignerMapper
+import com.nunchuk.android.core.util.isValueKeySetDisable
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.AcceptedAddressEvent
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.AddressRequiredEvent
@@ -29,7 +30,6 @@ import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.I
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.ParseBtcUriEvent
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.ShowError
 import com.nunchuk.android.transaction.components.utils.privateNote
-import com.nunchuk.android.type.WalletTemplate
 import com.nunchuk.android.usecase.CheckAddressValidUseCase
 import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
@@ -74,7 +74,7 @@ internal class AddReceiptViewModel @Inject constructor(
                 updateState {
                     copy(
                         addressType = wallet.addressType,
-                        isValueKeySetDisable = wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH,
+                        isValueKeySetDisable = wallet.isValueKeySetDisable,
                         signers = signers
                     )
                 }

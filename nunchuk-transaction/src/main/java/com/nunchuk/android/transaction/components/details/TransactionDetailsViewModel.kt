@@ -53,6 +53,7 @@ import com.nunchuk.android.core.util.isPendingConfirm
 import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.isRejected
 import com.nunchuk.android.core.util.isTaproot
+import com.nunchuk.android.core.util.isValueKeySetDisable
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
@@ -417,7 +418,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         addressType = wallet.wallet.addressType,
-                        isValueKeySetDisable = wallet.wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH
+                        isValueKeySetDisable = wallet.wallet.isValueKeySetDisable
                     )
                 }
                 if (wallet.wallet.walletTemplate != WalletTemplate.DISABLE_KEY_PATH && wallet.wallet.addressType.isTaproot()) {

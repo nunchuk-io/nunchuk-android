@@ -21,9 +21,9 @@ package com.nunchuk.android.transaction.components.details.fee
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.util.isValueKeySetDisable
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
-import com.nunchuk.android.type.WalletTemplate
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
@@ -71,7 +71,7 @@ internal class ReplaceFeeViewModel @Inject constructor(
         viewModelScope.launch {
             getWalletDetail2UseCase(walletId).onSuccess { wallet ->
                 _state.update {
-                    it.copy(isValueKeySetDisable = wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH)
+                    it.copy(isValueKeySetDisable = wallet.isValueKeySetDisable)
                 }
             }
         }
