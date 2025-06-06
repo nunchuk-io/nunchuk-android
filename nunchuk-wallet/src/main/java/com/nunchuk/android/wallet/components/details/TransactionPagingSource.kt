@@ -24,6 +24,8 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.membership.isActiveWallet
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.utils.CrashlyticsReporter
@@ -31,9 +33,9 @@ import com.nunchuk.android.utils.CrashlyticsReporter
 internal const val STARTING_PAGE = 1
 internal const val PAGE_SIZE = 100
 
-class TransactionPagingSource constructor(
+class TransactionPagingSource(
     private val transactions: List<Transaction>,
-    private val isAssistedWallet: Boolean,
+    private val brief: AssistedWalletBrief?,
     private val serverTransactionCache: LruCache<String, ServerTransaction>,
 ) : PagingSource<Int, ExtendedTransaction>() {
 
@@ -44,13 +46,14 @@ class TransactionPagingSource constructor(
             val toIndex = (position * PAGE_SIZE).coerceAtMost(transactions.size)
             val subTransactions = transactions.subList(fromIndex, toIndex)
             val data = subTransactions.map { transaction ->
-                if (isAssistedWallet && transaction.status.canBroadCast()) {
+                if (brief?.isActiveWallet == true && transaction.status.canBroadCast()) {
                     return@map ExtendedTransaction(
                         transaction = transaction,
-                        serverTransaction = serverTransactionCache[transaction.txId]
+                        serverTransaction = serverTransactionCache[transaction.txId],
+                        hideFiatCurrency = brief.hideFiatCurrency
                     )
                 }
-                return@map ExtendedTransaction(transaction = transaction)
+                return@map ExtendedTransaction(transaction = transaction, hideFiatCurrency = brief?.hideFiatCurrency == true)
             }
             val hasNextPage = ((position * PAGE_SIZE) < transactions.size)
             LoadResult.Page(

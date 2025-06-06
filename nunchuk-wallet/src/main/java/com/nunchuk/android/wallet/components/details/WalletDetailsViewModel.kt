@@ -406,12 +406,13 @@ internal class WalletDetailsViewModel @Inject constructor(
                 .onException { event(WalletDetailsError(it.message.orUnknownError())) }
                 .flowOn(Main)
                 .collect {
+                    val brief = assistedWalletManager.getBriefWallet(args.walletId)
                     updateState {
                         copy(
                             walletExtended = it,
                             isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId),
-                            walletStatus = assistedWalletManager.getBriefWallet(args.walletId)?.status,
-                            groupId = assistedWalletManager.getGroupId(args.walletId)
+                            walletStatus = brief?.status,
+                            groupId = assistedWalletManager.getGroupId(args.walletId),
                         )
                     }
                     if (shouldRefreshTransaction) {
@@ -469,7 +470,7 @@ internal class WalletDetailsViewModel @Inject constructor(
             pagingSourceFactory = {
                 TransactionPagingSource(
                     transactions = transactions.toList(),
-                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId),
+                    brief = assistedWalletManager.getBriefWallet(args.walletId),
                     serverTransactionCache = serverTransactionCache,
                 )
             }).flow.flowOn(ioDispatcher)

@@ -75,6 +75,7 @@ import com.nunchuk.android.core.data.model.membership.TransactionServerDto
 import com.nunchuk.android.core.data.model.membership.UpdatePrimaryOwnerRequest
 import com.nunchuk.android.core.data.model.membership.WalletDto
 import com.nunchuk.android.core.data.model.membership.toDto
+import com.nunchuk.android.core.data.model.membership.toEntity
 import com.nunchuk.android.core.data.model.membership.toGroupKeyPolicy
 import com.nunchuk.android.core.data.model.membership.toHealthReminder
 import com.nunchuk.android.core.data.model.membership.toModel
@@ -173,7 +174,6 @@ import com.nunchuk.android.persistence.dao.GroupDao
 import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.dao.RequestAddKeyDao
 import com.nunchuk.android.persistence.dao.SavedAddressDao
-import com.nunchuk.android.persistence.entity.AssistedWalletEntity
 import com.nunchuk.android.persistence.entity.RequestAddKeyEntity
 import com.nunchuk.android.persistence.entity.SavedAddressEntity
 import com.nunchuk.android.repository.GroupWalletRepository
@@ -414,14 +414,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             assistedWalletDao.deleteAllPersonalWalletsExcept(wallets.map { it.localId.orEmpty() })
         if (wallets.isNotEmpty()) {
             assistedWalletDao.updateOrInsert(wallets.map { wallet ->
-                AssistedWalletEntity(
-                    localId = wallet.localId.orEmpty(),
-                    plan = wallet.slug.toMembershipPlan(),
-                    id = wallet.id?.toLongOrNull() ?: 0L,
-                    alias = wallet.alias.orEmpty(),
-                    status = wallet.status.orEmpty(),
-                    replaceByWalletId = wallet.replaceBy?.walletId.orEmpty()
-                )
+                wallet.toEntity()
             })
         }
         ncDataStore.setAssistedKey(assistedKeys)
@@ -1610,7 +1603,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     } ?: AssistedWalletBriefExt(),
                     alias = wallet.alias,
                     status = wallet.status,
-                    replaceByWalletId = wallet.replaceByWalletId
+                    replaceByWalletId = wallet.replaceByWalletId,
+                    hideFiatCurrency = wallet.hideFiatCurrency,
                 )
             }
         }
@@ -2111,13 +2105,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         saveWalletToLib(wallet, mutableSetOf())
         assistedWalletDao.insert(
-            AssistedWalletEntity(
-                localId = wallet.localId.orEmpty(),
-                plan = wallet.slug.toMembershipPlan(),
-                id = wallet.id?.toLongOrNull() ?: 0L,
+            wallet.toEntity().copy(
                 groupId = groupId,
-                primaryMembershipId = primaryMembershipId.orEmpty(),
-                status = wallet.status.orEmpty(),
+                primaryMembershipId = primaryMembershipId.orEmpty()
             )
         )
         membershipStepDao.deleteStepByGroupId(groupId)
@@ -2137,14 +2127,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         val chatId = accountManager.getAccount().chatId
         saveWalletToLib(wallet, mutableSetOf())
-        assistedWalletDao.insert(
-            AssistedWalletEntity(
-                localId = wallet.localId.orEmpty(),
-                plan = wallet.slug.toMembershipPlan(),
-                id = wallet.id?.toLongOrNull() ?: 0L,
-                status = wallet.status.orEmpty(),
-            )
-        )
+        assistedWalletDao.insert(wallet.toEntity())
         membershipStepDao.deleteStepByChatId(chain.value, chatId)
         requestAddKeyDao.deleteRequests(chatId, chain.value)
         return nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
@@ -2160,18 +2143,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         saveWalletToLib(wallet, groupAssistedKeys)
         membershipStepDao.deleteStepByGroupId(groupId)
         requestAddKeyDao.deleteRequests(groupId)
-        assistedWalletDao.updateOrInsert(
-            AssistedWalletEntity(
-                localId = wallet.localId.orEmpty(),
-                plan = slug,
-                id = wallet.id?.toLongOrNull() ?: 0L,
-                groupId = groupId,
-                primaryMembershipId = wallet.primaryMembershipId.orEmpty(),
-                alias = wallet.alias.orEmpty(),
-                status = wallet.status.orEmpty(),
-                replaceByWalletId = wallet.replaceBy?.walletId.orEmpty()
-            )
-        )
+        assistedWalletDao.updateOrInsert(wallet.toEntity().copy(groupId = groupId))
         if (slug.isAllowSetupInheritance()) {
             GlobalScope.launch { // This allows it to run in the background without blocking the return of wallet.toModel()
                 kotlin.runCatching { getInheritance(wallet.localId.orEmpty(), groupId = groupId) }
@@ -2795,15 +2767,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         saveWalletToLib(wallet, mutableSetOf())
-        assistedWalletDao.insert(
-            AssistedWalletEntity(
-                localId = wallet.localId.orEmpty(),
-                plan = wallet.slug.toMembershipPlan(),
-                id = wallet.id?.toLongOrNull() ?: 0L,
-                alias = wallet.alias.orEmpty(),
-                status = wallet.status.orEmpty(),
-            )
-        )
+        assistedWalletDao.insert(wallet.toEntity())
         return nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
     }
 

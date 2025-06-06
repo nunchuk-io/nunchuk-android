@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
@@ -104,6 +105,7 @@ internal class TransactionAdapter(
         }
 
         override fun bind(data: ExtendedTransaction) {
+            binding.amountUSD.isInvisible = data.hideFiatCurrency
             if (data.transaction.isReceive) {
                 binding.sendTo.text = context.getString(R.string.nc_transaction_receive_at)
                 binding.amountBTC.text =
