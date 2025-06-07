@@ -241,7 +241,7 @@
                     android:layout_marginStart="@dimen/nc_padding_16"
                     android:drawableEnd="@drawable/ic_help"
                     android:drawablePadding="@dimen/nc_padding_4"
-                    android:text="@string/nc_transaction_estimate_fee"
+                    android:text="@string/nc_fee"
                     android:textColor="@color/nc_text_primary"
                     android:textSize="@dimen/nc_text_size_16"
                     app:drawableTint="@color/nc_text_primary"

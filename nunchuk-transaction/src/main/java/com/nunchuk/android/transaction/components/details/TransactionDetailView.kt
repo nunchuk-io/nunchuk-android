@@ -714,7 +714,7 @@ private fun TransactionEstimateFee(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = stringResource(R.string.nc_transaction_estimate_fee),
+            text = stringResource(R.string.nc_fee),
             style = NunchukTheme.typography.body,
         )
 
