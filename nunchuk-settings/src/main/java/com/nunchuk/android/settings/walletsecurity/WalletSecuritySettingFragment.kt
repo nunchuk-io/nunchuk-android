@@ -54,6 +54,9 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
 
     private val viewModel: WalletSecuritySettingViewModel by viewModels()
 
+    // Add variable to track biometric operation intent
+    private var isTurningOnBiometric = true
+
     private val enrollLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
 
@@ -91,13 +94,35 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                 biometricPromptManager.promptResults.collect { result ->
                     when (result) {
                         is BiometricPromptManager.BiometricResult.AuthenticationSuccess -> {
-                            viewModel.requestFederatedToken(false)
+                            if (isTurningOnBiometric) {
+                                viewModel.requestFederatedToken(false)
+                            } else {
+                                // Authentication successful, turn off biometric protection
+                                viewModel.updateProtectWalletBiometric(false)
+                            }
                         }
                         is BiometricPromptManager.BiometricResult.AuthenticationError -> {
-                            viewModel.updateProtectWalletBiometric(false)
-                            NCToastMessage(requireActivity()).showError(message = result.error)
+                            if (isTurningOnBiometric) {
+                                viewModel.updateProtectWalletBiometric(false)
+                                NCToastMessage(requireActivity()).showError(message = result.error)
+                            } else {
+                                // Authentication failed, keep biometric option on
+                                binding.protectWalletFingerprintOption.setOptionChecked(true)
+                                NCToastMessage(requireActivity()).showError(message = result.error)
+                            }
                         }
-                        else -> {}
+                        is BiometricPromptManager.BiometricResult.AuthenticationFailed -> {
+                            if (!isTurningOnBiometric) {
+                                // Authentication failed, keep biometric option on
+                                binding.protectWalletFingerprintOption.setOptionChecked(true)
+                            }
+                        }
+                        else -> {
+                            if (!isTurningOnBiometric) {
+                                // Any other result (like cancelled), keep biometric option on
+                                binding.protectWalletFingerprintOption.setOptionChecked(true)
+                            }
+                        }
                     }
                 }
             }
@@ -252,6 +277,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         }
         binding.protectWalletFingerprintOption.setOptionChangeListener {
             if (it) {
+                isTurningOnBiometric = true
                 if (biometricPromptManager.checkDeviceHasBiometricEnrolled().not()) {
                     NCWarningVerticalDialog(requireActivity()).showDialog(
                         title = getString(R.string.nc_fingerprint_not_set_up_yet),
@@ -283,8 +309,8 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                     }
                 )
             } else {
-                binding.protectWalletFingerprintOption.setOptionChecked(false)
-                viewModel.updateProtectWalletBiometric(false)
+                isTurningOnBiometric = false
+                biometricPromptManager.showBiometricPrompt()
             }
         }
     }
