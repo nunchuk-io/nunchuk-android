@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -60,8 +61,8 @@ private fun CreateKeyItem(
         xfp = signer?.getXfpOrCardIdLabel().orEmpty(),
         position = position,
         modifier = modifier,
-        bip32PathContent = if (data.showBip32Path && signer != null) {
-            {
+        bip32PathContent = {
+            if (data.showBip32Path && signer != null) {
                 Row(
                     modifier = if (data.mode == ScriptMode.CONFIG) Modifier.clickable(
                         onClick = {
@@ -94,10 +95,10 @@ private fun CreateKeyItem(
                     }
                 }
             }
-        } else null,
-        actionContent = when {
-            data.mode == ScriptMode.CONFIG && signer == null -> {
-                {
+        },
+        actionContent = {
+            when {
+                data.mode == ScriptMode.CONFIG && signer == null -> {
                     NcPrimaryDarkButton(
                         height = 36.dp,
                         onClick = { onActionKey(key, null) },
@@ -105,10 +106,8 @@ private fun CreateKeyItem(
                         Text(stringResource(R.string.nc_add))
                     }
                 }
-            }
 
-            data.mode == ScriptMode.CONFIG && signer != null -> {
-                {
+                data.mode == ScriptMode.CONFIG && signer != null -> {
                     NcOutlineButton(
                         height = 36.dp,
                         onClick = { onActionKey(key, signer) },
@@ -116,10 +115,21 @@ private fun CreateKeyItem(
                         Text(stringResource(R.string.nc_remove))
                     }
                 }
-            }
 
-            data.mode == ScriptMode.SIGN && signer != null -> {
-                {
+                data.mode == ScriptMode.SIGN && signer != null && data.signedSigners[signer.fingerPrint] == true -> {
+                    Text(
+                        text = stringResource(R.string.nc_transaction_signed),
+                        style = NunchukTheme.typography.captionTitle,
+                    )
+
+                    NcIcon(
+                        modifier = Modifier.padding(start = 8.dp),
+                        painter = painterResource(R.drawable.ic_check_circle_24),
+                        contentDescription = "Signed",
+                    )
+                }
+
+                data.mode == ScriptMode.SIGN && signer != null -> {
                     NcPrimaryDarkButton(
                         height = 36.dp,
                         onClick = { onActionKey(key, signer) },
@@ -128,7 +138,6 @@ private fun CreateKeyItem(
                     }
                 }
             }
-            else -> null
         }
     )
 }
@@ -215,6 +224,7 @@ data class ScriptNodeData(
     val mode: ScriptMode = ScriptMode.CONFIG,
     val signers: Map<String, SignerModel?> = emptyMap(),
     val showBip32Path: Boolean = false,
+    val signedSigners: Map<String, Boolean> = emptyMap()
 )
 
 @Composable
@@ -556,8 +566,8 @@ fun KeyItem(
     title: String = "",
     xfp: String = "",
     position: String = "",
-    bip32PathContent: @Composable (() -> Unit)? = null,
-    actionContent: @Composable (() -> Unit)? = null
+    bip32PathContent: @Composable () -> Unit = {},
+    actionContent: @Composable RowScope.() -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -590,7 +600,7 @@ fun KeyItem(
             )
             bip32PathContent?.invoke()
         }
-        actionContent?.invoke()
+        actionContent()
     }
 }
 

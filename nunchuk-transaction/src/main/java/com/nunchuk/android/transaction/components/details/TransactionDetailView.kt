@@ -375,10 +375,13 @@ fun TransactionDetailView(
                                 data = ScriptNodeData(
                                     mode = ScriptMode.SIGN,
                                     signers = state.signerMap,
-                                    showBip32Path = false
+                                    showBip32Path = false,
+                                    signedSigners = transaction.signers
                                 ),
                                 onChangeBip32Path = { _, _ -> },
-                                onActionKey = { _, _ -> }
+                                onActionKey = { _, signer ->
+                                    signer?.let(onSignClick)
+                                }
                             )
                         }
                     }
