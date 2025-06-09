@@ -107,7 +107,14 @@ internal class SplashActivity : AppCompatActivity() {
 
     private fun handleEvent(event: SplashEvent) {
         when (event) {
-            SplashEvent.NavSignInEvent -> navigator.openSignInScreen(this, true)
+            is SplashEvent.NavSignInEvent -> {
+                navigator.openSignInScreen(this, true)
+                if (event.askPin) {
+                    startActivity(Intent(this, UnlockPinActivity::class.java))
+                } else if (event.askBiometric) {
+                    navigator.openBiometricScreen(this)
+                }
+            }
             is SplashEvent.NavHomeScreenEvent -> {
                 navigator.openMainScreen(this)
                 if (NotificationUtils.areNotificationsEnabled(this).not() && !event.isGuestMode) {

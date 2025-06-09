@@ -82,9 +82,11 @@ internal class SplashViewModel @Inject constructor(
                     _event.emit(SplashEvent.NavUnlockPinScreenEvent)
                 }
 
-                isAccountExisted && accountManager.isStaySignedIn().not() -> _event.emit(
-                    SplashEvent.NavSignInEvent
-                )
+                isAccountExisted && accountManager.isStaySignedIn().not() -> {
+                    val askPin = shouldAskPin && isDecoyDisablePin
+                    val askBiometric = isBiometricEnable && mode.isGuestMode().not() && mode.isPrimaryKey().not()
+                    _event.emit(SplashEvent.NavSignInEvent(askPin = askPin, askBiometric = askBiometric))
+                }
 
                 isAccountExisted && accountManager.isAccountActivated() || mode.isGuestMode() -> {
                     _event.emit(
@@ -109,7 +111,7 @@ internal class SplashViewModel @Inject constructor(
                     )
                 }
 
-                else -> _event.emit(SplashEvent.NavSignInEvent)
+                else -> _event.emit(SplashEvent.NavSignInEvent(askPin = false, askBiometric = false))
             }
         }
     }

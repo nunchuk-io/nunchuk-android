@@ -20,7 +20,7 @@
 package com.nunchuk.android.app.splash
 
 sealed class SplashEvent {
-    data object NavSignInEvent : SplashEvent()
+    data class NavSignInEvent(val askPin: Boolean, val askBiometric: Boolean) : SplashEvent()
 
     data class NavHomeScreenEvent(val askPin: Boolean, val askBiometric: Boolean, val isGuestMode: Boolean) : SplashEvent()
 
