@@ -718,14 +718,6 @@ private fun TransactionEstimateFee(
             style = NunchukTheme.typography.body,
         )
 
-        NcIcon(
-            painter = painterResource(id = R.drawable.ic_help),
-            contentDescription = "Info",
-            modifier = Modifier
-                .padding(start = 4.dp)
-                .clickable(onClick = onShowFeeTooltip),
-        )
-
         Spacer(modifier = Modifier.weight(1f))
 
         AmountView(fee, hideFiatCurrency)
