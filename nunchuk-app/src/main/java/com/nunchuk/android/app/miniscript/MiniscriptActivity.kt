@@ -32,11 +32,8 @@ import timber.log.Timber
 class MiniscriptActivity : BaseComposeActivity(), InputBipPathBottomSheetListener {
 
     private val args: MiniscriptArgs by lazy {
-        val data = MiniscriptArgs.deserializeFrom(
+        MiniscriptArgs.deserializeFrom(
             intent.extras ?: Bundle()
-        )
-        data.copy(
-            addressType = AddressType.NATIVE_SEGWIT
         )
     }
 

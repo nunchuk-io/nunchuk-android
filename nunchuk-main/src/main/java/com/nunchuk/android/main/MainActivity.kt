@@ -152,6 +152,11 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        walletViewModel.joinGroupWallet()
+    }
+
     override fun onDestroy() {
         MatrixEvenBus.instance.unsubscribe(matrixEventListener)
         AppEvenBus.instance.unsubscribe(appEventListener)
