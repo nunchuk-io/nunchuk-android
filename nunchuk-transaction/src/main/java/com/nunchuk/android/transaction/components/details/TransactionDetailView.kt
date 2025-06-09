@@ -56,6 +56,8 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.PreviewCoinCard
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.lightGray
+import com.nunchuk.android.compose.miniscript.ScriptMode
+import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.canBroadCast
@@ -370,9 +372,13 @@ fun TransactionDetailView(
                         ) {
                             ScriptNodeTree(
                                 node = state.scriptNode,
-                                signers = state.signerMap,
-                                showBip32Path = false,
+                                data = ScriptNodeData(
+                                    mode = ScriptMode.SIGN,
+                                    signers = state.signerMap,
+                                    showBip32Path = false
+                                ),
                                 onChangeBip32Path = { _, _ -> },
+                                onActionKey = { _, _ -> }
                             )
                         }
                     }

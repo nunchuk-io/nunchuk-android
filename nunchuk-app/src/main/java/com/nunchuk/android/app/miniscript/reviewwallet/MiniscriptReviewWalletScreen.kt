@@ -37,6 +37,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.miniscript.PolicyHeader
 import com.nunchuk.android.compose.miniscript.ScriptMode
+import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.AddressType
@@ -172,10 +173,13 @@ fun MiniscriptReviewWalletScreen(
                     uiState.scriptNode?.let { scriptNode ->
                         ScriptNodeTree(
                             node = scriptNode,
-                            signers = uiState.signers,
-                            showBip32Path = true,
+                            data = ScriptNodeData(
+                                mode = ScriptMode.VIEW,
+                                signers = uiState.signers,
+                                showBip32Path = true
+                            ),
                             onChangeBip32Path = { _, _ -> },
-                            mode = ScriptMode.VIEW
+                            onActionKey = { _, _ -> }
                         )
                     }
                 }

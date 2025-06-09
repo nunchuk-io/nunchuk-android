@@ -42,6 +42,7 @@ import com.nunchuk.android.compose.getWalletColors
 import com.nunchuk.android.compose.isLimitAccess
 import com.nunchuk.android.compose.miniscript.PolicyHeader
 import com.nunchuk.android.compose.miniscript.ScriptMode
+import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
@@ -241,10 +242,13 @@ internal fun WalletConfigView(
 
                                 ScriptNodeTree(
                                     node = state.scriptNode,
-                                    signers = state.signerMap,
-                                    showBip32Path = true,
+                                    data = ScriptNodeData(
+                                        mode = ScriptMode.VIEW,
+                                        signers = state.signerMap,
+                                        showBip32Path = true
+                                    ),
                                     onChangeBip32Path = { _, _ -> },
-                                    mode = ScriptMode.VIEW
+                                    onActionKey = { _, _ -> }
                                 )
                             }
                         }

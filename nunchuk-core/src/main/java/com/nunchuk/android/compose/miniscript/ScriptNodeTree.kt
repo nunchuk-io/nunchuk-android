@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
@@ -49,10 +50,9 @@ private fun CreateKeyItem(
     key: String,
     signer: SignerModel?,
     position: String,
-    showBip32Path: Boolean,
     onChangeBip32Path: (String, SignerModel) -> Unit,
     onActionKey: (String, SignerModel?) -> Unit,
-    mode: ScriptMode,
+    data: ScriptNodeData,
     modifier: Modifier = Modifier
 ) {
     KeyItem(
@@ -60,10 +60,10 @@ private fun CreateKeyItem(
         xfp = signer?.getXfpOrCardIdLabel().orEmpty(),
         position = position,
         modifier = modifier,
-        bip32PathContent = if (showBip32Path && signer != null) {
+        bip32PathContent = if (data.showBip32Path && signer != null) {
             {
                 Row(
-                    modifier = if (mode == ScriptMode.CONFIG) Modifier.clickable(
+                    modifier = if (data.mode == ScriptMode.CONFIG) Modifier.clickable(
                         onClick = {
                             onChangeBip32Path(key, signer)
                         },
@@ -78,14 +78,14 @@ private fun CreateKeyItem(
                             R.string.nc_bip32_path,
                             signer.derivationPath
                         ),
-                        style = if (mode == ScriptMode.CONFIG && signer.isMasterSigner) {
+                        style = if (data.mode == ScriptMode.CONFIG && signer.isMasterSigner) {
                             NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline)
                         } else {
                             NunchukTheme.typography.bodySmall
                         },
                         color = MaterialTheme.colorScheme.textSecondary
                     )
-                    if (mode == ScriptMode.CONFIG && signer.isMasterSigner) {
+                    if (data.mode == ScriptMode.CONFIG && signer.isMasterSigner) {
                         NcIcon(
                             modifier = Modifier.size(12.dp),
                             painter = painterResource(id = R.drawable.ic_edit_small),
@@ -96,35 +96,35 @@ private fun CreateKeyItem(
             }
         } else null,
         actionContent = when {
-            mode == ScriptMode.CONFIG && signer == null -> {
+            data.mode == ScriptMode.CONFIG && signer == null -> {
                 {
-                    NcOutlineButton(
+                    NcPrimaryDarkButton(
                         height = 36.dp,
                         onClick = { onActionKey(key, null) },
                     ) {
-                        Text("Add")
+                        Text(stringResource(R.string.nc_add))
                     }
                 }
             }
 
-            mode == ScriptMode.CONFIG && signer != null -> {
+            data.mode == ScriptMode.CONFIG && signer != null -> {
                 {
                     NcOutlineButton(
                         height = 36.dp,
                         onClick = { onActionKey(key, signer) },
                     ) {
-                        Text("Remove")
+                        Text(stringResource(R.string.nc_remove))
                     }
                 }
             }
 
-            mode == ScriptMode.SIGN && signer != null -> {
+            data.mode == ScriptMode.SIGN && signer != null -> {
                 {
-                    NcOutlineButton(
+                    NcPrimaryDarkButton(
                         height = 36.dp,
                         onClick = { onActionKey(key, signer) },
                     ) {
-                        Text("Sign")
+                        Text(stringResource(R.string.nc_sign))
                     }
                 }
             }
@@ -137,11 +137,9 @@ private fun CreateKeyItem(
 private fun NodeKeys(
     node: ScriptNode,
     index: String,
-    signers: Map<String, SignerModel?>,
-    showBip32Path: Boolean,
     onChangeBip32Path: (String, SignerModel) -> Unit,
     onActionKey: (String, SignerModel?) -> Unit,
-    mode: ScriptMode,
+    data: ScriptNodeData,
     modifier: Modifier = Modifier
 ) {
     node.keys.forEachIndexed { i, key ->
@@ -150,15 +148,14 @@ private fun NodeKeys(
             modifier = modifier.padding(start = 20.dp),
             drawLine = i != node.keys.size - 1 || node.subs.isNotEmpty(),
         ) {
-            val signer = signers[key]
+            val signer = data.signers[key]
             CreateKeyItem(
                 key = key,
                 signer = signer,
                 position = keyPosition,
-                showBip32Path = showBip32Path,
                 onChangeBip32Path = onChangeBip32Path,
                 onActionKey = onActionKey,
-                mode = mode
+                data = data
             )
         }
     }
@@ -168,11 +165,9 @@ private fun NodeKeys(
 private fun NodeSubs(
     node: ScriptNode,
     index: String,
-    signers: Map<String, SignerModel?>,
-    showBip32Path: Boolean,
     onChangeBip32Path: (String, SignerModel) -> Unit,
     onActionKey: (String, SignerModel?) -> Unit,
-    mode: ScriptMode,
+    data: ScriptNodeData,
     level: Int
 ) {
     node.subs.forEachIndexed { i, sub ->
@@ -181,11 +176,9 @@ private fun NodeSubs(
             index = "$index.${node.keys.size + i + 1}",
             isLastItem = i == node.subs.size - 1,
             level = level + 1,
-            signers = signers,
-            showBip32Path = showBip32Path,
             onChangeBip32Path = onChangeBip32Path,
             onActionKey = onActionKey,
-            mode = mode
+            data = data
         )
     }
 }
@@ -194,35 +187,35 @@ private fun NodeSubs(
 private fun NodeContent(
     node: ScriptNode,
     index: String,
-    signers: Map<String, SignerModel?>,
-    showBip32Path: Boolean,
     onChangeBip32Path: (String, SignerModel) -> Unit,
     onActionKey: (String, SignerModel?) -> Unit,
-    mode: ScriptMode,
+    data: ScriptNodeData,
     level: Int,
     modifier: Modifier = Modifier
 ) {
     NodeKeys(
         node = node,
         index = index,
-        signers = signers,
-        showBip32Path = showBip32Path,
         onChangeBip32Path = onChangeBip32Path,
         onActionKey = onActionKey,
-        mode = mode,
+        data = data,
         modifier = modifier
     )
     NodeSubs(
         node = node,
         index = index,
-        signers = signers,
-        showBip32Path = showBip32Path,
         onChangeBip32Path = onChangeBip32Path,
         onActionKey = onActionKey,
-        mode = mode,
+        data = data,
         level = level
     )
 }
+
+data class ScriptNodeData(
+    val mode: ScriptMode = ScriptMode.CONFIG,
+    val signers: Map<String, SignerModel?> = emptyMap(),
+    val showBip32Path: Boolean = false,
+)
 
 @Composable
 fun ScriptNodeTree(
@@ -230,12 +223,10 @@ fun ScriptNodeTree(
     index: String = "1",
     isLastItem: Boolean = false,
     level: Int = 0,
-    signers: Map<String, SignerModel?> = emptyMap(),
-    showBip32Path: Boolean = false,
     currentBlockHeight: Int = 0,
     onChangeBip32Path: (String, SignerModel) -> Unit = { _, _ -> },
     onActionKey: (String, SignerModel?) -> Unit = { _, _ -> },
-    mode: ScriptMode = ScriptMode.CONFIG
+    data: ScriptNodeData = ScriptNodeData()
 ) {
     val info = MiniscriptDataComponent.fromComponent(node.type)
     when (node.type) {
@@ -250,11 +241,9 @@ fun ScriptNodeTree(
                     NodeContent(
                         node = node,
                         index = index,
-                        signers = signers,
-                        showBip32Path = showBip32Path,
                         onChangeBip32Path = onChangeBip32Path,
                         onActionKey = onActionKey,
-                        mode = mode,
+                        data = data,
                         level = level
                     )
                 }
@@ -266,11 +255,9 @@ fun ScriptNodeTree(
                     NodeContent(
                         node = node,
                         index = index,
-                        signers = signers,
-                        showBip32Path = showBip32Path,
                         onChangeBip32Path = onChangeBip32Path,
                         onActionKey = onActionKey,
-                        mode = mode,
+                        data = data,
                         level = level
                     )
                 }
@@ -291,11 +278,9 @@ fun ScriptNodeTree(
                     NodeContent(
                         node = node,
                         index = index,
-                        signers = signers,
-                        showBip32Path = showBip32Path,
                         onChangeBip32Path = onChangeBip32Path,
                         onActionKey = onActionKey,
-                        mode = mode,
+                        data = data,
                         level = level,
                         modifier = modifier
                     )
@@ -316,11 +301,9 @@ fun ScriptNodeTree(
                     NodeContent(
                         node = node,
                         index = index,
-                        signers = signers,
-                        showBip32Path = showBip32Path,
                         onChangeBip32Path = onChangeBip32Path,
                         onActionKey = onActionKey,
-                        mode = mode,
+                        data = data,
                         level = level,
                         modifier = modifier
                     )
@@ -340,11 +323,9 @@ fun ScriptNodeTree(
                     NodeContent(
                         node = node,
                         index = index,
-                        signers = signers,
-                        showBip32Path = showBip32Path,
                         onChangeBip32Path = onChangeBip32Path,
                         onActionKey = onActionKey,
-                        mode = mode,
+                        data = data,
                         level = level,
                         modifier = modifier
                     )
@@ -356,11 +337,9 @@ fun ScriptNodeTree(
     NodeSubs(
         node = node,
         index = index,
-        signers = signers,
-        showBip32Path = showBip32Path,
         onChangeBip32Path = onChangeBip32Path,
         onActionKey = onActionKey,
-        mode = mode,
+        data = data,
         level = level
     )
 }
@@ -687,8 +666,11 @@ fun ConditionTreeUIPreview() {
         Column(Modifier.padding(16.dp)) {
             ScriptNodeTree(
                 node = sampleScriptNode,
-                signers = emptyMap(),
-                showBip32Path = true,
+                data = ScriptNodeData(
+                    mode = ScriptMode.CONFIG,
+                    signers = emptyMap(),
+                    showBip32Path = true
+                ),
                 onChangeBip32Path = { _, _ -> },
                 onActionKey = { _, _ -> }
             )

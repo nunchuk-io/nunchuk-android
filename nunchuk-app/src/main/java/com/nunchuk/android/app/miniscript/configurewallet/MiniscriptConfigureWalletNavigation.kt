@@ -42,6 +42,8 @@ import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.miniscript.PolicyHeader
+import com.nunchuk.android.compose.miniscript.ScriptMode
+import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.miniscript.ScripNoteType
@@ -226,8 +228,11 @@ fun MiniscriptConfigWalletScreen(
                     uiState.scriptNode?.let { scriptNode ->
                         ScriptNodeTree(
                             node = scriptNode,
-                            signers = uiState.signers,
-                            showBip32Path = showBip32Path,
+                            data = ScriptNodeData(
+                                mode = ScriptMode.CONFIG,
+                                signers = uiState.signers,
+                                showBip32Path = showBip32Path
+                            ),
                             onChangeBip32Path = onChangeBip32Path,
                             onActionKey = { keyName, signer ->
                                 if (signer != null) {
@@ -387,9 +392,13 @@ fun MiniscriptConfigWalletScreenPreview() {
                     previewState.scriptNode?.let { scriptNode ->
                         ScriptNodeTree(
                             node = scriptNode,
-                            signers = previewState.signers,
-                            showBip32Path = false,
+                            data = ScriptNodeData(
+                                mode = ScriptMode.CONFIG,
+                                signers = previewState.signers,
+                                showBip32Path = false
+                            ),
                             onChangeBip32Path = { _, _ -> },
+                            onActionKey = { _, _ -> }
                         )
                     }
                 }
