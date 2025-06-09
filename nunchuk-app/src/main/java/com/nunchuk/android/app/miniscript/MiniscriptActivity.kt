@@ -2,10 +2,14 @@ package com.nunchuk.android.app.miniscript
 
 import android.content.Context
 import android.content.Intent
+import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.app.miniscript.configurewallet.MiniscriptConfigureWallet
@@ -18,18 +22,20 @@ import com.nunchuk.android.app.miniscript.intro.MiniscriptIntro
 import com.nunchuk.android.app.miniscript.intro.miniscriptIntroDestination
 import com.nunchuk.android.app.miniscript.reviewwallet.MiniscriptReviewWallet
 import com.nunchuk.android.app.miniscript.reviewwallet.miniscriptReviewWalletDestination
-import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.miniscript.MultisignType
+import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.MiniscriptArgs
-import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.wallet.InputBipPathBottomSheet
 import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.filter
 import timber.log.Timber
 
 @AndroidEntryPoint
-class MiniscriptActivity : BaseComposeActivity(), InputBipPathBottomSheetListener {
+class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListener {
 
     private val args: MiniscriptArgs by lazy {
         MiniscriptArgs.deserializeFrom(
@@ -42,10 +48,28 @@ class MiniscriptActivity : BaseComposeActivity(), InputBipPathBottomSheetListene
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Handle NFC flow for TapSigner xpub caching
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_TOPUP_XPUBS }) {
+            sharedWalletViewModel.cacheTapSignerXpub(
+                IsoDep.get(it.tag),
+                nfcViewModel.inputCvc.orEmpty(),
+            )
+            nfcViewModel.clearScanInfo()
+        }
+
         setContentView(
             ComposeView(this).apply {
                 setContent {
                     val navHostController = rememberNavController()
+                    val uiState by sharedWalletViewModel.uiState.collectAsStateWithLifecycle()
+
+                    LaunchedEffect(uiState.requestCacheTapSignerXpubEvent) {
+                        if (uiState.requestCacheTapSignerXpubEvent) {
+                            handleCacheXpub()
+                            sharedWalletViewModel.resetRequestCacheTapSignerXpub()
+                        }
+                    }
 
                     NavHost(
                         navController = navHostController,
@@ -142,7 +166,19 @@ class MiniscriptActivity : BaseComposeActivity(), InputBipPathBottomSheetListene
         sharedWalletViewModel.updateBip32Path(masterSignerId, newInput)
     }
 
+    private fun handleCacheXpub() {
+        NCWarningDialog(this).showDialog(
+            title = getString(com.nunchuk.android.core.R.string.nc_text_info),
+            message = getString(com.nunchuk.android.core.R.string.nc_new_xpub_need),
+            onYesClick = {
+                startNfcFlow(REQUEST_NFC_TOPUP_XPUBS)
+            }
+        )
+    }
+
     companion object {
+        private const val REQUEST_NFC_TOPUP_XPUBS = 2001
+
         fun start(context: Context, args: MiniscriptArgs) {
             context.startActivity(Intent(context, MiniscriptActivity::class.java).apply {
                 putExtras(args.buildBundle())

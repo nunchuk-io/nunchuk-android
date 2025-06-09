@@ -1,9 +1,12 @@
 package com.nunchuk.android.app.miniscript
 
+import android.nfc.tech.IsoDep
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.app.miniscript.configurewallet.MiniscriptConfigureWallet
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerByPathUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
@@ -12,6 +15,7 @@ import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SingleSigner
@@ -53,7 +57,9 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     private val getCurrentIndexFromMasterSignerUseCase: GetCurrentIndexFromMasterSignerUseCase,
     private val createMiniscriptWalletUseCase: CreateMiniscriptWalletUseCase,
     private val getChainTipUseCase: GetChainTipUseCase,
-    private val accountManager: AccountManager
+    private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase,
+    private val accountManager: AccountManager,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MiniscriptSharedWalletState())
@@ -424,11 +430,17 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     )
                 }
             }.onFailure { error ->
-                _uiState.update {
-                    it.copy(
-                        event = MiniscriptSharedWalletEvent.Error(error.message.orUnknownError()),
-                        currentKey = ""
-                    )
+                if (error is NCNativeException && error.message.contains("-1009")) {
+                    savedStateHandle[NEW_PATH] = newPath
+                    _uiState.update { it.copy(requestCacheTapSignerXpubEvent = true) }
+                } else {
+                    Timber.e("Failed to change bip32 path $error")
+                    _uiState.update {
+                        it.copy(
+                            event = MiniscriptSharedWalletEvent.Error(error.message.orUnknownError()),
+                            currentKey = ""
+                        )
+                    }
                 }
             }
         }
@@ -491,6 +503,54 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
             }
         }
     }
+
+    fun resetRequestCacheTapSignerXpub() {
+        _uiState.update { it.copy(requestCacheTapSignerXpubEvent = false) }
+    }
+
+    fun cacheTapSignerXpub(isoDep: IsoDep?, cvc: String) {
+        val signer = _uiState.value.currentSigner ?: return
+        val newPath = savedStateHandle.get<String>(NEW_PATH) ?: return
+        Timber.d("Cache tap signer xpub $signer $newPath")
+        isoDep ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(event = MiniscriptSharedWalletEvent.Loading(true)) }
+            getSignerFromTapsignerMasterSignerByPathUseCase(
+                GetSignerFromTapsignerMasterSignerByPathUseCase.Data(
+                    isoDep = isoDep,
+                    masterSignerId = signer.id,
+                    path = newPath,
+                    cvc = cvc
+                )
+            ).onSuccess { newSigner ->
+                Timber.d("new signer $newSigner")
+                val currentKey = _uiState.value.currentKey
+                if (currentKey.isNotEmpty()) {
+                    val currentSigners = _uiState.value.signers.toMutableMap()
+                    currentSigners[currentKey] = newSigner.toModel()
+                    _uiState.update {
+                        it.copy(
+                            signers = currentSigners,
+                            event = MiniscriptSharedWalletEvent.Bip32PathChanged(newSigner.toModel()),
+                            currentKey = "",
+                            requestCacheTapSignerXpubEvent = false
+                        )
+                    }
+                }
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(
+                        event = MiniscriptSharedWalletEvent.Error(error.message.orUnknownError()),
+                        requestCacheTapSignerXpubEvent = false
+                    )
+                }
+            }
+        }
+    }
+
+    companion object {
+        private const val NEW_PATH = "new_path"
+    }
 }
 
 data class MiniscriptSharedWalletState(
@@ -505,7 +565,8 @@ data class MiniscriptSharedWalletState(
     val currentSigner: SignerModel? = null,
     val miniscriptTemplate: String = "",
     val walletName: String = "",
-    val currentBlockHeight: Int = 0
+    val currentBlockHeight: Int = 0,
+    val requestCacheTapSignerXpubEvent: Boolean = false
 )
 
 sealed class MiniscriptSharedWalletEvent {
@@ -520,4 +581,5 @@ sealed class MiniscriptSharedWalletEvent {
 
     data class Bip32PathChanged(val signer: SignerModel) : MiniscriptSharedWalletEvent()
     data class CreateWalletSuccess(val wallet: Wallet) : MiniscriptSharedWalletEvent()
+    data object RequestCacheTapSignerXpub : MiniscriptSharedWalletEvent()
 } 

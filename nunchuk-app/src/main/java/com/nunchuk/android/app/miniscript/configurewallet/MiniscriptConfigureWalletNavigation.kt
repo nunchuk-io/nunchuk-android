@@ -109,6 +109,10 @@ fun NavGraphBuilder.miniscriptConfigureWalletDestination(
                     ).show()
                 }
 
+                is MiniscriptSharedWalletEvent.RequestCacheTapSignerXpub -> {
+                    // This will be handled by the LaunchedEffect in MiniscriptActivity
+                }
+
                 else -> {}
             }
             viewModel.onEventHandled()
