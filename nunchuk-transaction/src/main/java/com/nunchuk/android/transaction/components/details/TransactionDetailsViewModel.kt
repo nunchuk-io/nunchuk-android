@@ -34,17 +34,20 @@ import com.google.android.play.core.review.ReviewManagerFactory
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.ExportPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.GetRawTransactionUseCase
+import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.domain.ImportTransactionFromMk4UseCase
 import com.nunchuk.android.core.domain.SignRoomTransactionByTapSignerUseCase
 import com.nunchuk.android.core.domain.SignTransactionByTapSignerUseCase
 import com.nunchuk.android.core.domain.membership.CancelScheduleBroadcastTransactionUseCase
 import com.nunchuk.android.core.domain.membership.RequestSignatureTransactionUseCase
+import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.network.ApiErrorCode
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.isNoInternetException
@@ -67,7 +70,9 @@ import com.nunchuk.android.model.Device
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.joinKeys
@@ -101,6 +106,7 @@ import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.DeleteTransactionUseCase
 import com.nunchuk.android.usecase.ExportTransactionUseCase
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
+import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.GetTransactionFromNetworkUseCase
 import com.nunchuk.android.usecase.GetTransactionUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -118,6 +124,7 @@ import com.nunchuk.android.usecase.membership.SignServerTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
+import com.nunchuk.android.usecase.signer.GetSignerUseCase
 import com.nunchuk.android.usecase.transaction.GetTaprootKeySetSelectionUseCase
 import com.nunchuk.android.usecase.transaction.ImportPsbtUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
@@ -188,7 +195,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val importPsbtUseCase: ImportPsbtUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
     private val getTaprootKeySetSelectionUseCase: GetTaprootKeySetSelectionUseCase,
-    private val getSavedAddressListLocalUseCase: GetSavedAddressListLocalUseCase
+    private val getSavedAddressListLocalUseCase: GetSavedAddressListLocalUseCase,
+    private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
+    private val parseSignerStringUseCase: ParseSignerStringUseCase,
+    private val hasSignerUseCase: HasSignerUseCase,
+    private val getSignerUseCase: GetSignerUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionDetailsState())
     val state = _state.asStateFlow()
@@ -426,22 +437,48 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 if (wallet.wallet.walletTemplate != WalletTemplate.DISABLE_KEY_PATH && wallet.wallet.addressType.isTaproot()) {
                     loadKeySetSelection()
                 }
-                val signers = wallet.wallet.signers.map { signer ->
-                    singleSignerMapper(signer)
-                }
-                if (wallet.roomWallet != null) {
-                    _state.update {
-                        it.copy(signers = wallet.roomWallet?.joinKeys().orEmpty().map { key ->
-                            key.retrieveInfo(
-                                key.chatId == account.chatId, signers, contacts
-                            )
-                        })
-                    }
+                if (wallet.wallet.miniscript.isNotEmpty()) {
+                    getMiniscriptInfo(wallet)
                 } else {
-                    _state.update { it.copy(signers = signers) }
+                    val signers = wallet.wallet.signers.map { signer ->
+                        singleSignerMapper(signer)
+                    }
+                    if (wallet.roomWallet != null) {
+                        _state.update {
+                            it.copy(signers = wallet.roomWallet?.joinKeys().orEmpty().map { key ->
+                                key.retrieveInfo(
+                                    key.chatId == account.chatId, signers, contacts
+                                )
+                            })
+                        }
+                    } else {
+                        _state.update { it.copy(signers = signers) }
+                    }
                 }
             }
         }
+    }
+
+    private suspend fun getMiniscriptInfo(walletExtended: WalletExtended) {
+        getScriptNodeFromMiniscriptTemplateUseCase(walletExtended.wallet.miniscript).onSuccess { scriptNode ->
+            val signerMap = parseSignersFromScriptNode(scriptNode)
+            _state.update { it.copy(signerMap = signerMap, scriptNode = scriptNode, signers = signerMap.values.toList()) }
+        }
+    }
+
+    private suspend fun parseSignersFromScriptNode(node: ScriptNode): Map<String, SignerModel> {
+        val signerMap = mutableMapOf<String, SignerModel>()
+        node.keys.forEach { key ->
+            parseSignerStringUseCase(key).getOrNull()?.let { signer ->
+                signerMap[key] = if (hasSignerUseCase(signer).getOrNull() == true) {
+                    singleSignerMapper(getSignerUseCase(signer).getOrThrow()).copy(isVisible = true)
+                } else signer.toModel()
+            }
+        }
+        node.subs.forEach { subNode ->
+            signerMap.putAll(parseSignersFromScriptNode(subNode))
+        }
+        return signerMap
     }
 
     private fun loadKeySetSelection() {

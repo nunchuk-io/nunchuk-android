@@ -41,6 +41,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.getWalletColors
 import com.nunchuk.android.compose.isLimitAccess
 import com.nunchuk.android.compose.miniscript.PolicyHeader
+import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
@@ -229,9 +230,8 @@ internal fun WalletConfigView(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        val parentModifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
                         item {
-                            Column(modifier = parentModifier) {
+                            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)) {
 
                                 PolicyHeader(
                                     modifier = Modifier
@@ -244,9 +244,7 @@ internal fun WalletConfigView(
                                     signers = state.signerMap,
                                     showBip32Path = true,
                                     onChangeBip32Path = { _, _ -> },
-                                    onAddNewKey = { },
-                                    onRemoveKey = { },
-                                    readOnly = true
+                                    mode = ScriptMode.VIEW
                                 )
                             }
                         }

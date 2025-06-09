@@ -56,6 +56,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.PreviewCoinCard
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.lightGray
+import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.getBTCAmount
@@ -151,7 +152,9 @@ fun TransactionDetailView(
                         onClick = onBroadcastClick
                     ) {
                         Text(
-                            text = if (transaction.status.isRejected()) stringResource(R.string.nc_re_broadcast_transaction) else stringResource(R.string.nc_transaction_broadcast),
+                            text = if (transaction.status.isRejected()) stringResource(R.string.nc_re_broadcast_transaction) else stringResource(
+                                R.string.nc_transaction_broadcast
+                            ),
                         )
                     }
                 } else if (transaction.status.hadBroadcast()) {
@@ -357,7 +360,25 @@ fun TransactionDetailView(
                     }
                 }
 
-                if (transaction.keySetStatus.isNotEmpty()) {
+                if (state.scriptNode != null && state.signerMap.isNotEmpty()) {
+                    item {
+                        Column(
+                            modifier = Modifier.padding(
+                                horizontal = 16.dp,
+                                vertical = 24.dp
+                            )
+                        ) {
+                            ScriptNodeTree(
+                                node = state.scriptNode,
+                                signers = state.signerMap,
+                                showBip32Path = false,
+                                onChangeBip32Path = { _, _ -> },
+                            )
+                        }
+                    }
+                }
+                // taproot key set view
+                else if (transaction.keySetStatus.isNotEmpty()) {
                     if (firstKeySet != null) {
                         item {
                             KeySetView(
@@ -416,7 +437,9 @@ fun TransactionDetailView(
                                 }
                             }
                     }
-                } else if (!transaction.isReceive && args.inheritanceClaimTxDetailInfo == null && state.signers.isNotEmpty()) {
+                }
+                // normal transaction signer view
+                else if (!transaction.isReceive && args.inheritanceClaimTxDetailInfo == null && state.signers.isNotEmpty()) {
                     item {
                         PendingSignatureStatusView(
                             pendingSigners = transaction.getPendingSignatures(),

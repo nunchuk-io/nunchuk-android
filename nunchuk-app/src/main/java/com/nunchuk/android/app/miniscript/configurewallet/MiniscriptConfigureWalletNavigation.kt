@@ -229,14 +229,15 @@ fun MiniscriptConfigWalletScreen(
                             signers = uiState.signers,
                             showBip32Path = showBip32Path,
                             onChangeBip32Path = onChangeBip32Path,
-                            onAddNewKey = { keyName ->
-                                Timber.tag("miniscript-feature").e("Adding new key: $keyName")
-                                currentKeyToAssign = keyName
-                                onSetCurrentKey(keyName)
-                                showSignerBottomSheet = true
-                            },
-                            onRemoveKey = { keyName ->
-                                onRemoveClicked(keyName)
+                            onActionKey = { keyName, signer ->
+                                if (signer != null) {
+                                    onRemoveClicked(keyName)
+                                } else {
+                                    Timber.tag("miniscript-feature").e("Adding new key: $keyName")
+                                    currentKeyToAssign = keyName
+                                    onSetCurrentKey(keyName)
+                                    showSignerBottomSheet = true
+                                }
                             }
                         )
                     }
@@ -389,8 +390,6 @@ fun MiniscriptConfigWalletScreenPreview() {
                             signers = previewState.signers,
                             showBip32Path = false,
                             onChangeBip32Path = { _, _ -> },
-                            onAddNewKey = { _ -> },
-                            onRemoveKey = { _ -> },
                         )
                     }
                 }

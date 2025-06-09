@@ -22,6 +22,7 @@ package com.nunchuk.android.transaction.components.details
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
@@ -42,4 +43,6 @@ data class TransactionDetailsState(
     val defaultKeySetIndex: Int = 0,
     val savedAddress: Map<String, String> = emptyMap(),
     val hideFiatCurrency: Boolean = false,
+    val scriptNode: ScriptNode? = null,
+    val signerMap: Map<String, SignerModel?> = emptyMap(),
 )
