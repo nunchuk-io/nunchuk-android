@@ -240,7 +240,6 @@ internal fun WalletConfigView(
                                 )
 
                                 ScriptNodeTree(
-                                    parentModifier = Modifier,
                                     node = state.scriptNode,
                                     signers = state.signerMap,
                                     showBip32Path = true,

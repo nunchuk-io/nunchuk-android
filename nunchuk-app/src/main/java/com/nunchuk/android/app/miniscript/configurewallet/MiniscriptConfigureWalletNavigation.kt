@@ -221,7 +221,6 @@ fun MiniscriptConfigWalletScreen(
                 Column(modifier = parentModifier) {
                     uiState.scriptNode?.let { scriptNode ->
                         ScriptNodeTree(
-                            parentModifier = parentModifier,
                             node = scriptNode,
                             signers = uiState.signers,
                             showBip32Path = showBip32Path,
@@ -382,7 +381,6 @@ fun MiniscriptConfigWalletScreenPreview() {
                 Column(modifier = parentModifier) {
                     previewState.scriptNode?.let { scriptNode ->
                         ScriptNodeTree(
-                            parentModifier = parentModifier,
                             node = scriptNode,
                             signers = previewState.signers,
                             showBip32Path = false,

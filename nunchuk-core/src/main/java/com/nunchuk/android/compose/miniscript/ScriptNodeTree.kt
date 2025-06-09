@@ -1,7 +1,6 @@
 package com.nunchuk.android.compose.miniscript
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -101,7 +100,6 @@ private fun NodeKeys(
 private fun NodeSubs(
     node: ScriptNode,
     index: String,
-    parentModifier: Modifier,
     signers: Map<String, SignerModel?>,
     showBip32Path: Boolean,
     onChangeBip32Path: (String, SignerModel) -> Unit,
@@ -112,7 +110,6 @@ private fun NodeSubs(
 ) {
     node.subs.forEachIndexed { i, sub ->
         ScriptNodeTree(
-            parentModifier = parentModifier,
             node = sub,
             index = "$index.${node.keys.size + i + 1}",
             isLastItem = i == node.subs.size - 1,
@@ -131,7 +128,6 @@ private fun NodeSubs(
 private fun NodeContent(
     node: ScriptNode,
     index: String,
-    parentModifier: Modifier,
     signers: Map<String, SignerModel?>,
     showBip32Path: Boolean,
     onChangeBip32Path: (String, SignerModel) -> Unit,
@@ -155,7 +151,6 @@ private fun NodeContent(
     NodeSubs(
         node = node,
         index = index,
-        parentModifier = parentModifier,
         signers = signers,
         showBip32Path = showBip32Path,
         onChangeBip32Path = onChangeBip32Path,
@@ -168,7 +163,6 @@ private fun NodeContent(
 
 @Composable
 fun ScriptNodeTree(
-    parentModifier: Modifier,
     node: ScriptNode,
     index: String = "1",
     isLastItem: Boolean = false,
@@ -194,7 +188,6 @@ fun ScriptNodeTree(
                     NodeContent(
                         node = node,
                         index = index,
-                        parentModifier = parentModifier,
                         signers = signers,
                         showBip32Path = showBip32Path,
                         onChangeBip32Path = onChangeBip32Path,
@@ -212,7 +205,6 @@ fun ScriptNodeTree(
                     NodeContent(
                         node = node,
                         index = index,
-                        parentModifier = parentModifier,
                         signers = signers,
                         showBip32Path = showBip32Path,
                         onChangeBip32Path = onChangeBip32Path,
@@ -239,7 +231,6 @@ fun ScriptNodeTree(
                     NodeContent(
                         node = node,
                         index = index,
-                        parentModifier = parentModifier,
                         signers = signers,
                         showBip32Path = showBip32Path,
                         onChangeBip32Path = onChangeBip32Path,
@@ -266,7 +257,6 @@ fun ScriptNodeTree(
                     NodeContent(
                         node = node,
                         index = index,
-                        parentModifier = parentModifier,
                         signers = signers,
                         showBip32Path = showBip32Path,
                         onChangeBip32Path = onChangeBip32Path,
@@ -292,7 +282,6 @@ fun ScriptNodeTree(
                     NodeContent(
                         node = node,
                         index = index,
-                        parentModifier = parentModifier,
                         signers = signers,
                         showBip32Path = showBip32Path,
                         onChangeBip32Path = onChangeBip32Path,
@@ -310,7 +299,6 @@ fun ScriptNodeTree(
     NodeSubs(
         node = node,
         index = index,
-        parentModifier = parentModifier,
         signers = signers,
         showBip32Path = showBip32Path,
         onChangeBip32Path = onChangeBip32Path,
@@ -695,9 +683,6 @@ fun ConditionTreeUIPreview() {
     NunchukTheme {
         Column(Modifier.padding(16.dp)) {
             ScriptNodeTree(
-                parentModifier = Modifier.background(
-                    color = MaterialTheme.colorScheme.surface,
-                ),
                 node = sampleScriptNode,
                 signers = emptyMap(),
                 showBip32Path = true,

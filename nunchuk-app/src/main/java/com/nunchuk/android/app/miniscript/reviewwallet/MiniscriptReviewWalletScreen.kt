@@ -170,7 +170,6 @@ fun MiniscriptReviewWalletScreen(
                 Column(modifier = parentModifier) {
                     uiState.scriptNode?.let { scriptNode ->
                         ScriptNodeTree(
-                            parentModifier = parentModifier,
                             node = scriptNode,
                             signers = uiState.signers,
                             showBip32Path = true,
