@@ -32,6 +32,7 @@ import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeR
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftRbfTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
+import com.nunchuk.android.usecase.TransactionAlreadyConfirmedException
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
@@ -111,7 +112,11 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
             ).onSuccess { transaction ->
                 _state.update { it.copy(transaction = transaction) }
             }.onFailure {
-                _event.emit(ReplaceFeeEvent.ShowError(it))
+                if (it is TransactionAlreadyConfirmedException) {
+                    _event.emit(ReplaceFeeEvent.TransactionAlreadyConfirmed)
+                } else {
+                    _event.emit(ReplaceFeeEvent.ShowError(it))
+                }
             }
             _event.emit(ReplaceFeeEvent.Loading(false))
         }
@@ -139,7 +144,11 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                 ).onSuccess { tx ->
                     _state.update { it.copy(transaction = tx) }
                 }.onFailure {
-                    _event.emit(ReplaceFeeEvent.ShowError(it))
+                    if (it is TransactionAlreadyConfirmedException) {
+                        _event.emit(ReplaceFeeEvent.TransactionAlreadyConfirmed)
+                    } else {
+                        _event.emit(ReplaceFeeEvent.ShowError(it))
+                    }
                 }
             }.onFailure {
                 _event.emit(ReplaceFeeEvent.ShowError(it))
@@ -159,7 +168,12 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                     newFee = newFee,
                     antiFeeSniping = antiFeeSniping
                 )
-            )
+            ).onFailure {
+                if (it is TransactionAlreadyConfirmedException) {
+                    _event.emit(ReplaceFeeEvent.TransactionAlreadyConfirmed)
+                    return@launch
+                }
+            }
             _event.emit(ReplaceFeeEvent.Loading(false))
             if (result.isSuccess) {
                 if (assistedWalletManager.isActiveAssistedWallet(walletId)) {
@@ -213,7 +227,11 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                     }
                     _event.emit(ReplaceFeeEvent.ReplaceTransactionSuccess(it.txId))
                 }.onFailure {
-                    _event.emit(ReplaceFeeEvent.ShowError(it))
+                    if (it is TransactionAlreadyConfirmedException) {
+                        _event.emit(ReplaceFeeEvent.TransactionAlreadyConfirmed)
+                    } else {
+                        _event.emit(ReplaceFeeEvent.ShowError(it))
+                    }
                 }
             }.onFailure {
                 _event.emit(ReplaceFeeEvent.ShowError(it))

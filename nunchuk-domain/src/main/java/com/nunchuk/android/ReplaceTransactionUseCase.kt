@@ -23,6 +23,8 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.usecase.TransactionAlreadyConfirmedException
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -33,6 +35,12 @@ class ReplaceTransactionUseCase @Inject constructor(
 ) : UseCase<ReplaceTransactionUseCase.Data, Transaction>(dispatcher) {
 
     override suspend fun execute(parameters: Data): Transaction {
+        // Check if the transaction being replaced is already confirmed
+        val tx = nativeSdk.getTransaction(parameters.walletId, parameters.txId)
+        if (tx.status == TransactionStatus.CONFIRMED) {
+            throw TransactionAlreadyConfirmedException()
+        }
+        
         return nativeSdk.replaceTransaction(
             parameters.walletId,
             parameters.txId,

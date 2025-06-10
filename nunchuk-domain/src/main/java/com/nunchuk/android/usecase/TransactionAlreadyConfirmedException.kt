@@ -17,28 +17,6 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.transaction.components.details.fee
+package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.EstimateFeeRates
-import com.nunchuk.android.model.Transaction
-
-data class ReplaceFeeState(
-    val fee: EstimateFeeRates = EstimateFeeRates(),
-    val manualFeeRate: Int = fee.standardRate,
-    val previousFeeRate: Int = 0,
-    val scriptPathFee: Amount = Amount.ZER0,
-    val cpfpFee: Amount = Amount.ZER0,
-    val isValueKeySetDisable: Boolean = false,
-    val antiFeeSniping: Boolean = false,
-)
-
-sealed class ReplaceFeeEvent {
-    data class Loading(val isLoading: Boolean) : ReplaceFeeEvent()
-    data class ReplaceTransactionSuccess(val newTxId: String) : ReplaceFeeEvent()
-    data class DraftTransactionSuccess(val transaction: Transaction, val newFee: Int) :
-        ReplaceFeeEvent()
-
-    data class ShowError(val e: Throwable?) : ReplaceFeeEvent()
-    data object TransactionAlreadyConfirmed : ReplaceFeeEvent()
-}
+class TransactionAlreadyConfirmedException : Exception("TransactionAlreadyConfirmed")

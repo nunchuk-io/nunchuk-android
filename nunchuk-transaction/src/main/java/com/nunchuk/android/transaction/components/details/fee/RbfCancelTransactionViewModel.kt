@@ -11,6 +11,7 @@ import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeR
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
+import com.nunchuk.android.usecase.TransactionAlreadyConfirmedException
 import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -82,7 +83,11 @@ class RbfCancelTransactionViewModel @Inject constructor(
                 ).onSuccess { transaction ->
                     _event.emit(ReplaceFeeEvent.DraftTransactionSuccess(transaction, newFee))
                 }.onFailure {
-                    _event.emit(ReplaceFeeEvent.ShowError(it))
+                    if (it is TransactionAlreadyConfirmedException) {
+                        _event.emit(ReplaceFeeEvent.TransactionAlreadyConfirmed)
+                    } else {
+                        _event.emit(ReplaceFeeEvent.ShowError(it))
+                    }
                 }
             }.onFailure {
                 _event.emit(ReplaceFeeEvent.ShowError(it))

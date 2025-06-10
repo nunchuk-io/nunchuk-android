@@ -27,6 +27,7 @@ import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeR
 import com.nunchuk.android.usecase.DraftRbfTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
+import com.nunchuk.android.usecase.TransactionAlreadyConfirmedException
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -99,7 +100,11 @@ internal class ReplaceFeeViewModel @Inject constructor(
                     )
                 }
             }.onFailure { exception ->
-                _event.emit(ReplaceFeeEvent.ShowError(exception))
+                if (exception is TransactionAlreadyConfirmedException) {
+                    _event.emit(ReplaceFeeEvent.TransactionAlreadyConfirmed)
+                } else {
+                    _event.emit(ReplaceFeeEvent.ShowError(exception))
+                }
             }
         }
     }
@@ -117,7 +122,11 @@ internal class ReplaceFeeViewModel @Inject constructor(
             ).onSuccess { transaction ->
                 _event.emit(ReplaceFeeEvent.DraftTransactionSuccess(transaction, newFee))
             }.onFailure { exception ->
-                _event.emit(ReplaceFeeEvent.ShowError(exception))
+                if (exception is TransactionAlreadyConfirmedException) {
+                    _event.emit(ReplaceFeeEvent.TransactionAlreadyConfirmed)
+                } else {
+                    _event.emit(ReplaceFeeEvent.ShowError(exception))
+                }
             }
             _event.emit(ReplaceFeeEvent.Loading(false))
         }

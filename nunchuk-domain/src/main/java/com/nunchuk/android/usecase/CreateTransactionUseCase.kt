@@ -25,6 +25,7 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.type.TransactionStatus
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
@@ -34,6 +35,14 @@ class CreateTransactionUseCase @Inject constructor(
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
 ) : UseCase<CreateTransactionUseCase.Param, Transaction>(ioDispatcher) {
     override suspend fun execute(parameters: Param): Transaction {
+        // Check if the transaction being replaced is already confirmed
+        if (parameters.replaceTxId.isNotEmpty()) {
+            val tx = nativeSdk.getTransaction(parameters.walletId, parameters.replaceTxId)
+            if (tx.status == TransactionStatus.CONFIRMED) {
+                throw TransactionAlreadyConfirmedException()
+            }
+        }
+        
         val transaction = nativeSdk.createTransaction(
             walletId = parameters.walletId,
             outputs = parameters.outputs,

@@ -42,6 +42,7 @@ import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.TxReceiptViewBinder
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmCoinList
 import com.nunchuk.android.transaction.databinding.FragmentTransactionConfirmBinding
+import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -163,6 +164,11 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
 
                 is ReplaceFeeEvent.ShowError -> NCToastMessage(requireActivity()).showError(it.e?.message.orUnknownError())
                 is ReplaceFeeEvent.DraftTransactionSuccess -> Unit
+                ReplaceFeeEvent.TransactionAlreadyConfirmed -> {
+                    NCInfoDialog(requireActivity()).showDialog(
+                        message = getString(R.string.nc_transaction_already_confirmed_error)
+                    )
+                }
             }
         }
         flowObserver(viewModel.state) {
