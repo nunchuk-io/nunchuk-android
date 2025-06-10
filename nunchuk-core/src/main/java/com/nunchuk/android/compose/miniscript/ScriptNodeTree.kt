@@ -595,11 +595,13 @@ fun KeyItem(
                 style = NunchukTheme.typography.body,
                 modifier = Modifier
             )
-            Text(
-                text = "XFP: $xfp",
-                style = NunchukTheme.typography.bodySmall,
-            )
-            bip32PathContent?.invoke()
+            if (xfp.isNotEmpty()) {
+                Text(
+                    text = xfp,
+                    style = NunchukTheme.typography.bodySmall,
+                )
+            }
+            bip32PathContent.invoke()
         }
         actionContent()
     }
