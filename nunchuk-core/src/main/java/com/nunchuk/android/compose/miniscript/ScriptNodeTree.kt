@@ -120,10 +120,11 @@ private fun CreateKeyItem(
                     Text(
                         text = stringResource(R.string.nc_transaction_signed),
                         style = NunchukTheme.typography.captionTitle,
+                        modifier = Modifier.align(Alignment.CenterVertically)
                     )
 
                     NcIcon(
-                        modifier = Modifier.padding(start = 8.dp),
+                        modifier = Modifier.align(Alignment.CenterVertically).padding(start = 8.dp),
                         painter = painterResource(R.drawable.ic_check_circle_24),
                         contentDescription = "Signed",
                     )
