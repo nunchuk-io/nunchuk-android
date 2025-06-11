@@ -78,6 +78,7 @@ import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.fee.toFeeRate
 import com.nunchuk.android.transaction.components.send.fee.toFeeRateInBtc
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToInt
 
@@ -324,7 +325,7 @@ private fun ReplaceFeeContent(
                             modifier = Modifier.padding(top = 4.dp),
                             text = stringResource(
                                 R.string.nc_transaction_effective_fee_rate,
-                                uiState.scriptPathFee.value.toDouble().div(1000.0)
+                                uiState.cpfpFee.value.toDouble().div(1000.0)
                                     .formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
                             ).replace("<b>", "[B]")
                                 .replace("</b>", "[/B]"),
