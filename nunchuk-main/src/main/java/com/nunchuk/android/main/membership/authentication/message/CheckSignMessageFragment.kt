@@ -162,6 +162,7 @@ class CheckSignMessageFragment : Fragment() {
                         is WalletAuthenticationEvent.UploadSignatureSuccess,
                         is WalletAuthenticationEvent.NoInternetConnectionToSign,
                         is WalletAuthenticationEvent.NoInternetConnectionForceSync,
+                        is WalletAuthenticationEvent.NoSignatureDetected,
                         -> Unit
                     }
                 }

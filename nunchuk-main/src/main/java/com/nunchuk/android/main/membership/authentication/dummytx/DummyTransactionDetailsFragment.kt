@@ -240,6 +240,8 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<FragmentDummyT
                         is WalletAuthenticationEvent.FinalizeDummyTxSuccess,
                         is WalletAuthenticationEvent.ShowError,
                         -> Unit
+
+                        WalletAuthenticationEvent.NoSignatureDetected -> showWarning(getString(R.string.nc_no_new_signatures_detected))
                     }
                 }
         }
