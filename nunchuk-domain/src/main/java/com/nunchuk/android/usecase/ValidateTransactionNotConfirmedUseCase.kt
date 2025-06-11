@@ -20,45 +20,35 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.type.TransactionStatus
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class DraftTransactionUseCase @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk,
-    private val validateTransactionNotConfirmedUseCase: ValidateTransactionNotConfirmedUseCase,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : UseCase<DraftTransactionUseCase.Params, Transaction>(ioDispatcher) {
-    override suspend fun execute(parameters: Params): Transaction {
-        // Validate that the transaction being replaced is not already confirmed
-        validateTransactionNotConfirmedUseCase(
-            ValidateTransactionNotConfirmedUseCase.Params(
-                walletId = parameters.walletId,
-                replaceTxId = parameters.replaceTxId
-            )
-        )
-        
-        return nativeSdk.draftTransaction(
-            walletId = parameters.walletId,
-            outputs = parameters.outputs,
-            inputs = parameters.inputs,
-            feeRate = parameters.feeRate,
-            subtractFeeFromAmount = parameters.subtractFeeFromAmount,
-            replaceTxId = parameters.replaceTxId,
-            useScriptPath = parameters.useScriptPath
-        )
+class ValidateTransactionNotConfirmedUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val nativeSdk: NunchukNativeSdk
+) : UseCase<ValidateTransactionNotConfirmedUseCase.Params, Unit>(dispatcher) {
+
+    override suspend fun execute(parameters: Params) {
+        // Only validate if replaceTxId is provided
+        if (parameters.replaceTxId.isNotEmpty()) {
+            try {
+                val tx = nativeSdk.getTransaction(parameters.walletId, parameters.replaceTxId)
+                if (tx.status == TransactionStatus.CONFIRMED) {
+                    throw TransactionAlreadyConfirmedException()
+                }
+            } catch (e: TransactionAlreadyConfirmedException) {
+                // Re-throw our specific exception
+                throw e
+            } catch (e: Exception) {
+                // Silently catch all other exceptions
+            }
+        }
     }
 
     data class Params(
         val walletId: String,
-        val outputs: Map<String, Amount>,
-        val inputs: List<TxInput> = emptyList(),
-        val feeRate: Amount = Amount(-1),
-        val subtractFeeFromAmount: Boolean = false,
-        val replaceTxId: String = "",
-        val useScriptPath: Boolean = false,
+        val replaceTxId: String
     )
-}
+} 
