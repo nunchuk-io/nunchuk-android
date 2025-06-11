@@ -76,7 +76,6 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.transaction.components.send.fee.toFeeRate
 import com.nunchuk.android.transaction.components.send.fee.toFeeRateInBtc
 import com.nunchuk.android.widget.NCInfoDialog
