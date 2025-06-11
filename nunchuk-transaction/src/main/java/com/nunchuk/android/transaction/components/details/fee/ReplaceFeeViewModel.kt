@@ -24,7 +24,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.isValueKeySetDisable
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
-import com.nunchuk.android.usecase.DraftTransactionUseCase
+import com.nunchuk.android.usecase.DraftRbfTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -40,7 +40,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class ReplaceFeeViewModel @Inject constructor(
     private val estimateFeeUseCase: EstimateFeeUseCase,
-    private val draftTransactionUseCase: DraftTransactionUseCase,
+    private val draftRbfTransactionUseCase: DraftRbfTransactionUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getDefaultAntiFeeSnipingUseCase: GetDefaultAntiFeeSnipingUseCase
 ) : ViewModel() {
@@ -85,12 +85,9 @@ internal class ReplaceFeeViewModel @Inject constructor(
 
     fun onFeeChange(oldTx: Transaction, walletId: String, newFee: Int) {
         viewModelScope.launch {
-            draftTransactionUseCase(
-                DraftTransactionUseCase.Params(
+            draftRbfTransactionUseCase(
+                DraftRbfTransactionUseCase.Params(
                     walletId = walletId,
-                    inputs = oldTx.inputs,
-                    outputs = oldTx.userOutputs.associate { it.first to it.second },
-                    subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
                     feeRate = newFee.toManualFeeRate(),
                     replaceTxId = oldTx.txId
                 )
@@ -111,12 +108,9 @@ internal class ReplaceFeeViewModel @Inject constructor(
         viewModelScope.launch {
             _event.emit(ReplaceFeeEvent.Loading(true))
 
-            draftTransactionUseCase(
-                DraftTransactionUseCase.Params(
+            draftRbfTransactionUseCase(
+                DraftRbfTransactionUseCase.Params(
                     walletId = walletId,
-                    inputs = oldTx.inputs,
-                    outputs = oldTx.userOutputs.associate { it.first to it.second },
-                    subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
                     feeRate = newFee.toManualFeeRate(),
                     replaceTxId = oldTx.txId
                 )

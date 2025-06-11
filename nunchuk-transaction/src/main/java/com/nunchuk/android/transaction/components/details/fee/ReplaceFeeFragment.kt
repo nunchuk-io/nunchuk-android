@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -177,36 +178,40 @@ private fun ReplaceFeeContent(
         mutableStateOf(false)
     }
     NunchukTheme {
-        Scaffold(topBar = {
-            NcTopAppBar(
-                isBack = false, title = stringResource(id = R.string.nc_replace_by_fee),
-                textStyle = NunchukTheme.typography.title
-            )
-        }, bottomBar = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                NcPrimaryDarkButton(
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                NcTopAppBar(
+                    isBack = false, title = stringResource(id = R.string.nc_replace_by_fee),
+                    textStyle = NunchukTheme.typography.title
+                )
+            },
+            bottomBar = {
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    enabled = newFeeRate.isNotEmpty(),
-                    onClick = {
-                        val newFee = newFeeRate.toDouble().times(1000).roundToInt()
-                        if (newFee > uiState.previousFeeRate) {
-                            onContinueClick(newFee)
-                        } else {
-                            showWarning = true
-                        }
-                    },
+                        .padding(vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(text = stringResource(id = R.string.nc_create_transaction_new_fee_rate))
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        enabled = newFeeRate.isNotEmpty(),
+                        onClick = {
+                            val newFee = newFeeRate.toDouble().times(1000).roundToInt()
+                            if (newFee > uiState.previousFeeRate) {
+                                onContinueClick(newFee)
+                            } else {
+                                showWarning = true
+                            }
+                        },
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_create_transaction_new_fee_rate))
+                    }
                 }
-            }
-        }) { innerPadding ->
+            },
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

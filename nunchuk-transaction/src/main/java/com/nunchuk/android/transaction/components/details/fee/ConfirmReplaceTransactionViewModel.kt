@@ -30,6 +30,7 @@ import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.usecase.CreateTransactionUseCase
+import com.nunchuk.android.usecase.DraftRbfTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
@@ -49,6 +50,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ConfirmReplaceTransactionViewModel @Inject constructor(
     private val replaceTransactionUseCase: ReplaceTransactionUseCase,
+    private val draftRbfTransactionUseCase: DraftRbfTransactionUseCase,
     private val draftTransactionUseCase: DraftTransactionUseCase,
     private val createTransactionUseCase: CreateTransactionUseCase,
     private val getCoinsFromTxInputsUseCase: GetCoinsFromTxInputsUseCase,
@@ -100,12 +102,9 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
             delay(150) // work around shared flow not show loading
             _event.emit(ReplaceFeeEvent.Loading(true))
 
-            draftTransactionUseCase(
-                DraftTransactionUseCase.Params(
+            draftRbfTransactionUseCase(
+                DraftRbfTransactionUseCase.Params(
                     walletId = walletId,
-                    inputs = oldTx.inputs,
-                    outputs = oldTx.userOutputs.associate { it.first to it.second },
-                    subtractFeeFromAmount = oldTx.subtractFeeFromAmount,
                     feeRate = newFee.toManualFeeRate(),
                     replaceTxId = oldTx.txId
                 )
