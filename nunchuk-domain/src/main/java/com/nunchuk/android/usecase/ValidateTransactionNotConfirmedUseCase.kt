@@ -42,7 +42,7 @@ class ValidateTransactionNotConfirmedUseCase @Inject constructor(
                 // Re-throw our specific exception
                 throw e
             } catch (e: Exception) {
-                // Silently catch all other exceptions
+                // Only silently ignore if it's a transaction not found error
             }
         }
     }

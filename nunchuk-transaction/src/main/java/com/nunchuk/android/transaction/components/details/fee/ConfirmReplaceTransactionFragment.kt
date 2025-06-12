@@ -164,11 +164,6 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
 
                 is ReplaceFeeEvent.ShowError -> NCToastMessage(requireActivity()).showError(it.e?.message.orUnknownError())
                 is ReplaceFeeEvent.DraftTransactionSuccess -> Unit
-                ReplaceFeeEvent.TransactionAlreadyConfirmed -> {
-                    NCInfoDialog(requireActivity()).showDialog(
-                        message = getString(R.string.nc_transaction_already_confirmed_error)
-                    )
-                }
             }
         }
         flowObserver(viewModel.state) {

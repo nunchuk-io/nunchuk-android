@@ -41,8 +41,7 @@ class ReplaceTransactionUseCase @Inject constructor(
                 walletId = parameters.walletId,
                 replaceTxId = parameters.txId
             )
-        )
-        
+        ).onFailure { exception -> throw exception }
         return nativeSdk.replaceTransaction(
             parameters.walletId,
             parameters.txId,

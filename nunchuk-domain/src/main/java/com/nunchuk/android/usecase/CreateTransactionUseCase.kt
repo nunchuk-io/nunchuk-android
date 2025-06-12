@@ -41,7 +41,7 @@ class CreateTransactionUseCase @Inject constructor(
                 walletId = parameters.walletId,
                 replaceTxId = parameters.replaceTxId
             )
-        )
+        ).onFailure { exception -> throw exception }
         
         val transaction = nativeSdk.createTransaction(
             walletId = parameters.walletId,

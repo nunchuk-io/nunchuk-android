@@ -39,7 +39,7 @@ class DraftTransactionUseCase @Inject constructor(
                 walletId = parameters.walletId,
                 replaceTxId = parameters.replaceTxId
             )
-        )
+        ).onFailure { exception -> throw exception }
         
         return nativeSdk.draftTransaction(
             walletId = parameters.walletId,

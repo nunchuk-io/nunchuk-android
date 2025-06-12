@@ -103,11 +103,6 @@ class RbfCancelTransactionFragment : Fragment() {
                 }
 
                 is ReplaceFeeEvent.Loading -> showOrHideLoading(it.isLoading)
-                ReplaceFeeEvent.TransactionAlreadyConfirmed -> {
-                    NCInfoDialog(requireActivity()).showDialog(
-                        message = getString(R.string.nc_transaction_already_confirmed_error)
-                    )
-                }
                 else -> Unit
             }
         }

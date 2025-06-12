@@ -40,5 +40,4 @@ sealed class ReplaceFeeEvent {
         ReplaceFeeEvent()
 
     data class ShowError(val e: Throwable?) : ReplaceFeeEvent()
-    data object TransactionAlreadyConfirmed : ReplaceFeeEvent()
 }

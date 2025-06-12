@@ -78,7 +78,6 @@ import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.fee.toFeeRate
 import com.nunchuk.android.transaction.components.send.fee.toFeeRateInBtc
-import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToInt
 
@@ -131,11 +130,6 @@ class ReplaceFeeFragment : Fragment() {
                 }
 
                 is ReplaceFeeEvent.Loading -> showOrHideLoading(it.isLoading)
-                ReplaceFeeEvent.TransactionAlreadyConfirmed -> {
-                    NCInfoDialog(requireActivity()).showDialog(
-                        message = getString(R.string.nc_transaction_already_confirmed_error)
-                    )
-                }
                 else -> Unit
             }
         }

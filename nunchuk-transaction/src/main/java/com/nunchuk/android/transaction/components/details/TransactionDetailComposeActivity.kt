@@ -414,7 +414,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
 
     private fun handleCancelTransaction() {
         if (viewModel.getTransaction().status.isConfirmed()) {
-            NCInfoDialog(this).showDialog(message = "Cannot replace transaction. The original transaction has already been confirmed")
+            NCToastMessage(this).showError("Cannot replace transaction. The original transaction has already been confirmed")
             return
         }
         if (viewModel.getTransaction().status.isPending()) {
@@ -523,7 +523,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         hideLoading()
         val state = viewModel.state.value
         if (state.addressType.isTaproot()) {
-            val round1Completed = state.transaction.keySetStatus.any { it.status != TransactionStatus.PENDING_NONCE && it.signerStatus.all { entry -> !entry.value } }
+            val round1Completed =
+                state.transaction.keySetStatus.any { it.status != TransactionStatus.PENDING_NONCE && it.signerStatus.all { entry -> !entry.value } }
             val readyToBroadcast = state.transaction.status == READY_TO_BROADCAST
             if (readyToBroadcast) {
                 NCToastMessage(this).show(getString(R.string.nc_transaction_ready_to_broadcast))

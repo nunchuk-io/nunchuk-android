@@ -11,7 +11,6 @@ import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeR
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
-import com.nunchuk.android.usecase.TransactionAlreadyConfirmedException
 import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,7 +34,8 @@ class RbfCancelTransactionViewModel @Inject constructor(
     private val walletId = savedStateHandle.get<String>(ReplaceFeeArgs.EXTRA_WALLET_ID).orEmpty()
     private val oldTx = savedStateHandle.get<Transaction>(ReplaceFeeArgs.EXTRA_TRANSACTION)!!
 
-    private val _state = MutableStateFlow(RbfCancelTransactionUiState(previousFeeRate = oldTx.feeRate.value.toInt()))
+    private val _state =
+        MutableStateFlow(RbfCancelTransactionUiState(previousFeeRate = oldTx.feeRate.value.toInt()))
     val state = _state.asStateFlow()
 
     private val _event = MutableSharedFlow<ReplaceFeeEvent>()
@@ -83,11 +83,7 @@ class RbfCancelTransactionViewModel @Inject constructor(
                 ).onSuccess { transaction ->
                     _event.emit(ReplaceFeeEvent.DraftTransactionSuccess(transaction, newFee))
                 }.onFailure {
-                    if (it is TransactionAlreadyConfirmedException) {
-                        _event.emit(ReplaceFeeEvent.TransactionAlreadyConfirmed)
-                    } else {
-                        _event.emit(ReplaceFeeEvent.ShowError(it))
-                    }
+                    _event.emit(ReplaceFeeEvent.ShowError(it))
                 }
             }.onFailure {
                 _event.emit(ReplaceFeeEvent.ShowError(it))

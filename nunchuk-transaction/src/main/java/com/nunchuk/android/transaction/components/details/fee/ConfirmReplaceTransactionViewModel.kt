@@ -112,11 +112,7 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
             ).onSuccess { transaction ->
                 _state.update { it.copy(transaction = transaction) }
             }.onFailure {
-                if (it is TransactionAlreadyConfirmedException) {
-                    _event.emit(ReplaceFeeEvent.TransactionAlreadyConfirmed)
-                } else {
-                    _event.emit(ReplaceFeeEvent.ShowError(it))
-                }
+                _event.emit(ReplaceFeeEvent.ShowError(it))
             }
             _event.emit(ReplaceFeeEvent.Loading(false))
         }
@@ -144,11 +140,7 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                 ).onSuccess { tx ->
                     _state.update { it.copy(transaction = tx) }
                 }.onFailure {
-                    if (it is TransactionAlreadyConfirmedException) {
-                        _event.emit(ReplaceFeeEvent.TransactionAlreadyConfirmed)
-                    } else {
-                        _event.emit(ReplaceFeeEvent.ShowError(it))
-                    }
+                    _event.emit(ReplaceFeeEvent.ShowError(it))
                 }
             }.onFailure {
                 _event.emit(ReplaceFeeEvent.ShowError(it))
@@ -170,7 +162,8 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                 )
             ).onFailure {
                 if (it is TransactionAlreadyConfirmedException) {
-                    _event.emit(ReplaceFeeEvent.TransactionAlreadyConfirmed)
+                    _event.emit(ReplaceFeeEvent.ShowError(it))
+                    _event.emit(ReplaceFeeEvent.Loading(false))
                     return@launch
                 }
             }
@@ -227,11 +220,7 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                     }
                     _event.emit(ReplaceFeeEvent.ReplaceTransactionSuccess(it.txId))
                 }.onFailure {
-                    if (it is TransactionAlreadyConfirmedException) {
-                        _event.emit(ReplaceFeeEvent.TransactionAlreadyConfirmed)
-                    } else {
-                        _event.emit(ReplaceFeeEvent.ShowError(it))
-                    }
+                    _event.emit(ReplaceFeeEvent.ShowError(it))
                 }
             }.onFailure {
                 _event.emit(ReplaceFeeEvent.ShowError(it))

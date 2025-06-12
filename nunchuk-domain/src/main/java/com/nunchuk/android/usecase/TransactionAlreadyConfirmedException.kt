@@ -19,4 +19,4 @@
 
 package com.nunchuk.android.usecase
 
-class TransactionAlreadyConfirmedException : Exception("TransactionAlreadyConfirmed")
+class TransactionAlreadyConfirmedException : Exception("Cannot replace transaction. The original transaction has already been confirmed")
