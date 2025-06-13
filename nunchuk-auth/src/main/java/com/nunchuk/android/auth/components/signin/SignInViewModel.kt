@@ -57,7 +57,6 @@ import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.usecase.GetBiometricConfigUseCase
 import com.nunchuk.android.usecase.GetPrimaryKeyListUseCase
 import com.nunchuk.android.usecase.SetFirstCreatedChatIdUseCase
-import com.nunchuk.android.usecase.UpdateBiometricConfigUseCase
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -94,7 +93,6 @@ internal class SignInViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     getBiometricConfigUseCase: GetBiometricConfigUseCase,
     private val biometricLoginUseCase: BiometricLoginUseCase,
-    private val updateBiometricConfigUseCase: UpdateBiometricConfigUseCase,
     private val googleSignInUseCase: GoogleSignInUseCase,
     private val getWalletPinUseCase: GetWalletPinUseCase,
     private val appleSignInUseCase: AppleSignInUseCase,
@@ -380,16 +378,6 @@ internal class SignInViewModel @Inject constructor(
             } else {
                 _event.emit(SignInErrorEvent(message = exception.message.orUnknownError()))
             }
-        }
-    }
-
-    fun checkClearBiometric(askPin: Boolean) {
-        viewModelScope.launch {
-            val loggedAccountId = accountManager.getAccount().id
-            if (biometricConfig.value.userId == loggedAccountId) {
-                updateBiometricConfigUseCase(BiometricConfig.DEFAULT)
-            }
-            _event.emit(SignInEvent.OpenMainScreen(askPin))
         }
     }
 

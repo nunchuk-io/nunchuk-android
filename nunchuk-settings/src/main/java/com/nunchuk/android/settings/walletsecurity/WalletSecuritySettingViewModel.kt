@@ -43,7 +43,6 @@ import com.nunchuk.android.usecase.pin.GetCustomPinConfigFlowUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -68,6 +67,9 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
 ) : NunchukViewModel<WalletSecuritySettingState, WalletSecuritySettingEvent>() {
     private var customPinJob: Job? = null
     override val initialState = WalletSecuritySettingState()
+
+    // Hold the latest biometric config for UI logic
+    private var biometricConfig: BiometricConfig? = null
 
     init {
         viewModelScope.launch {
@@ -98,10 +100,8 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
         viewModelScope.launch {
             getBiometricConfigUseCase(Unit)
                 .map { it.getOrDefault(BiometricConfig.DEFAULT) }
-                .filter {
-                    it.userId == accountManager.getAccount().id
-                }
                 .collect { result ->
+                    biometricConfig = result
                     updateState { copy(isEnableBiometric = result.enabled) }
                 }
         }
@@ -256,4 +256,14 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
         }
 
     fun isAppPinEnable() = getState().isAppPinEnable
+
+    // Expose current biometric config for UI logic
+    fun getCurrentBiometricConfig(): BiometricConfig? {
+        return biometricConfig
+    }
+
+    // Expose current account id for UI logic
+    fun getCurrentAccountId(): String? {
+        return accountManager.getAccount().id
+    }
 }

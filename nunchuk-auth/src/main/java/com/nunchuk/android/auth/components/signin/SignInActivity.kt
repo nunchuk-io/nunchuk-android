@@ -187,11 +187,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
                 )
 
                 is SignInSuccessEvent -> {
-                    if (it.ignoreCheckBiometric) {
-                        openMainScreen(it.askPin)
-                    } else {
-                        viewModel.checkClearBiometric(it.askPin)
-                    }
+                    openMainScreen(it.askPin)
                 }
 
                 is ProcessingEvent -> showOrHideLoading(it.isLoading)

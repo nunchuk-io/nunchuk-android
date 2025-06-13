@@ -35,6 +35,7 @@ import com.nunchuk.android.core.biometric.BiometricPromptManager
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.settings.R
 import com.nunchuk.android.settings.databinding.FragmentWalletSecuritySettingBinding
 import com.nunchuk.android.widget.NCInputDialog
@@ -123,7 +124,25 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         binding.passphraseOption.isVisible =
             signInModeHolder.getCurrentMode() == SignInMode.PRIMARY_KEY
         binding.passphraseOption.enableSwitchButton(state.isEnablePassphrase)
-        binding.protectWalletFingerprintOption.setOptionChecked(state.isEnableBiometric)
+
+        val biometricConfig = viewModel.getCurrentBiometricConfig()
+        val isCurrentAccount = biometricConfig?.userId == viewModel.getCurrentAccountId()
+        val isDefaultBiometric = biometricConfig == BiometricConfig.DEFAULT
+
+        binding.protectWalletFingerprintOption.setOptionChecked(isCurrentAccount && biometricConfig?.enabled == true)
+
+        // Enable if DEFAULT or current account has biometric enabled, otherwise disable
+        binding.protectWalletFingerprintOption.setEnable(
+            isDefaultBiometric || (isCurrentAccount && biometricConfig?.enabled == true)
+        )
+
+        if (
+            biometricPromptManager.checkHardwareSupport().not() ||
+            signInModeHolder.getCurrentMode() == SignInMode.GUEST_MODE ||
+            signInModeHolder.getCurrentMode() == SignInMode.PRIMARY_KEY
+        ) {
+            binding.protectWalletFingerprintOption.setEnable(false)
+        }
     }
 
     private fun handleEvent(event: WalletSecuritySettingEvent) {
@@ -253,12 +272,6 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                 binding.protectWalletFingerprintOption.setOptionChecked(false)
                 viewModel.updateProtectWalletBiometric(false)
             }
-        }
-        if (biometricPromptManager.checkHardwareSupport()
-                .not() || signInModeHolder.getCurrentMode() == SignInMode.GUEST_MODE ||
-            signInModeHolder.getCurrentMode() == SignInMode.PRIMARY_KEY
-        ) {
-            binding.protectWalletFingerprintOption.setEnable(false)
         }
     }
 
