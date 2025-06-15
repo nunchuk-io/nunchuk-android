@@ -30,6 +30,7 @@ import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.SavedAddressFlow
+import com.nunchuk.android.model.BtcUri
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.Transaction
@@ -56,6 +57,7 @@ interface TransactionNavigator {
         availableAmount: Double,
         inputs: List<UnspentOutput> = emptyList(),
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
+        btcUri: BtcUri? = null
     )
 
     fun openAddReceiptScreen(

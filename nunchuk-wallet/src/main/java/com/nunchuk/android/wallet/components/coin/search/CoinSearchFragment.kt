@@ -226,9 +226,9 @@ class CoinSearchFragment : BaseCoinListFragment() {
         navigator.openInputAmountScreen(
             activityContext = requireActivity(),
             walletId = args.walletId,
-            inputs = coinListViewModel.getSelectedCoins(),
             availableAmount = coinListViewModel.getSelectedCoins()
-                .sumOf { it.amount.value }.toDouble().fromSATtoBTC()
+                .sumOf { it.amount.value }.toDouble().fromSATtoBTC(),
+            inputs = coinListViewModel.getSelectedCoins()
         )
     }
 

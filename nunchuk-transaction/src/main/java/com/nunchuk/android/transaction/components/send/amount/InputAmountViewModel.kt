@@ -29,6 +29,7 @@ import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toNumericValue
+import com.nunchuk.android.model.BtcUri
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
 import com.nunchuk.android.transaction.components.utils.privateNote
 import com.nunchuk.android.usecase.GetWalletsUseCase
@@ -101,6 +102,17 @@ internal class InputAmountViewModel @Inject constructor(
             } else {
                 setEvent(InputAmountEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
+        }
+    }
+
+    fun updateBtcUri(btcUri: BtcUri) {
+        updateState {
+            copy(
+                address = btcUri.address,
+                privateNote = btcUri.privateNote,
+                amountBTC = btcUri.amount.pureBTC(),
+                useBtc = true
+            )
         }
     }
 

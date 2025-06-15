@@ -352,7 +352,7 @@ internal class WalletsFragment : Fragment() {
             WalletsEvent.JoinFreeGroupWalletFailed -> {
                 UnableJoinGroupWalletActivity.start(
                     requireActivity(),
-                    link = deeplinkHolder.info?.referringLink.orEmpty()
+                    link = deeplinkHolder.groupLinkInfo.value?.referringLink.orEmpty()
                 )
             }
 

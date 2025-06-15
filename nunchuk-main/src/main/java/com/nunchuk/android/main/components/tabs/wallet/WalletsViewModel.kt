@@ -24,6 +24,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.constants.NativeErrorCode
+import com.nunchuk.android.core.data.model.DeeplinkInfo
 import com.nunchuk.android.core.domain.BaseNfcUseCase
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
@@ -401,6 +402,13 @@ internal class WalletsViewModel @Inject constructor(
                     _state.update { it.copy(connectionStatus = syncStatus?.status) }
                 }
         }
+        viewModelScope.launch {
+            deeplinkHolder.groupLinkInfo.collect {
+                if (it != null && it.groupId.isNotEmpty()) {
+                    joinGroupWallet(it)
+                }
+            }
+        }
     }
 
     private fun listenGroupSandbox() {
@@ -427,9 +435,9 @@ internal class WalletsViewModel @Inject constructor(
         }
     }
 
-    fun joinGroupWallet() = viewModelScope.launch {
+    private fun joinGroupWallet(info: DeeplinkInfo) = viewModelScope.launch {
         delay(2000)
-        val groupId = deeplinkHolder.info?.groupId ?: return@launch
+        val groupId = info.groupId
         joinFreeGroupWalletByIdUseCase(groupId)
             .onSuccess {
                 _event.emit(WalletsEvent.JoinFreeGroupWalletSuccess(it.id))
@@ -441,7 +449,7 @@ internal class WalletsViewModel @Inject constructor(
                     _event.emit(WalletsEvent.JoinFreeGroupWalletFailed)
                 }
             }
-        deeplinkHolder.clearInfo()
+        deeplinkHolder.clearGroupInfo()
     }
 
     private fun getCampaign() {

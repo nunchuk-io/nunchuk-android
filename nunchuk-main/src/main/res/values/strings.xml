@@ -391,4 +391,5 @@
     <string name="nc_security_deposit_required">Security deposit required</string>
     <string name="nc_go_to_website_to_deposit">Go to website to deposit</string>
     <string name="nc_no_new_signatures_detected">No new signatures detected</string>
+    <string name="nc_choose_wallet_to_send">Choose wallet to send</string>
 </resources>

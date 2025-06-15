@@ -29,6 +29,7 @@ import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
+import com.nunchuk.android.model.BtcUri
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.Transaction
@@ -79,7 +80,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         walletId: String,
         availableAmount: Double,
         inputs: List<UnspentOutput>,
-        claimInheritanceTxParam: ClaimInheritanceTxParam?
+        claimInheritanceTxParam: ClaimInheritanceTxParam?,
+        btcUri: BtcUri?
     ) {
         InputAmountActivity.start(
             activityContext = activityContext,
@@ -87,7 +89,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             walletId = walletId,
             availableAmount = availableAmount,
             inputs = inputs,
-            claimInheritanceTxParam = claimInheritanceTxParam
+            claimInheritanceTxParam = claimInheritanceTxParam,
+            btcUri = btcUri
         )
     }
 
