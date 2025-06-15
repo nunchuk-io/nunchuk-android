@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -59,21 +60,23 @@ import com.nunchuk.android.compose.fillDenim2
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.whisper
+import com.nunchuk.android.core.data.model.GroupWalletDataComposer
 import com.nunchuk.android.core.data.model.WalletConfigType
-import com.nunchuk.android.core.data.model.WalletConfigViewOnlyDataComposer
 import com.nunchuk.android.core.data.model.getMN
 import com.nunchuk.android.core.data.model.getWalletConfigTypeBy
 import com.nunchuk.android.core.data.model.toOptionName
+import com.nunchuk.android.core.miniscript.SelectMultisignTypeBottomSheet
 import com.nunchuk.android.model.GlobalGroupWalletConfig
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.wallet.personal.R
 import kotlinx.coroutines.delay
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddWalletView(
     state: AddWalletState,
     isCreateMiniscriptWallet: Boolean = false,
-    viewOnlyComposer: WalletConfigViewOnlyDataComposer? = null,
+    viewOnlyComposer: GroupWalletDataComposer? = null,
     isEditGroupWallet: Boolean,
     isViewConfigOnly: Boolean = true,
     onSelectAddressType: (AddressType) -> Unit = {},
@@ -86,6 +89,7 @@ fun AddWalletView(
     }
     var keys by remember { mutableIntStateOf(0) }
     var requiredKeys by remember { mutableIntStateOf(0) }
+    var showMiniscriptBottomSheet by remember { mutableStateOf(false) }
 
     if (state.isLoading) {
         NcLoadingDialog()
@@ -231,38 +235,62 @@ fun AddWalletView(
                             style = NunchukTheme.typography.titleSmall
                         )
 
-                        walletConfigOptions.forEach { option ->
+                        walletConfigOptions.filter {
+                            // Hide MINISCRIPT when it is currently selected
+                            if (walletConfigType == WalletConfigType.MINISCRIPT && it == WalletConfigType.MINISCRIPT) {
+                                false
+                            } else {
+                                true
+                            }
+                        }.forEach { option ->
                             TypeOption(
                                 isViewOnly = isViewConfigOnly && option != viewOnlyComposer?.walletConfigType,
                                 selected = if (viewOnlyComposer != null) viewOnlyComposer.walletConfigType == option else walletConfigType == option,
                                 name = option.toOptionName(),
-                                badge = null,
-                                isEndItem = option == WalletConfigType.CUSTOM,
+                                badge = if (option == WalletConfigType.MINISCRIPT) "New" else null,
+                                isEndItem = option == WalletConfigType.CUSTOM && walletConfigType != WalletConfigType.CUSTOM,
                                 onClick = {
                                     walletConfigType = option
-                                    if (option != WalletConfigType.CUSTOM) {
+                                    if (option != WalletConfigType.CUSTOM && option != WalletConfigType.MINISCRIPT) {
                                         requiredKeys = option.getMN().first
                                         keys = option.getMN().second
                                     }
                                 }
                             )
+                            
+                            // Render KeysAndRequiredKeysScreen right after CUSTOM option when selected
+                            if (option == WalletConfigType.CUSTOM && walletConfigType == WalletConfigType.CUSTOM && !isCreateMiniscriptWallet) {
+                                KeysAndRequiredKeysScreen(
+                                    state.freeGroupWalletConfig,
+                                    m = viewOnlyComposer?.requireKeys ?: state.groupSandbox?.m ?: 0,
+                                    n = viewOnlyComposer?.totalKeys ?: state.groupSandbox?.n ?: 0,
+                                    viewOnly = isViewConfigOnly,
+                                ) { m, n ->
+                                    keys = n
+                                    requiredKeys = m
+                                }
+                            }
                         }
                     }
                 }
-                if (walletConfigType == WalletConfigType.CUSTOM && !isCreateMiniscriptWallet) {
-                    KeysAndRequiredKeysScreen(
-                        state.freeGroupWalletConfig,
-                        m = viewOnlyComposer?.requireKeys ?: state.groupSandbox?.m ?: 0,
-                        n = viewOnlyComposer?.totalKeys ?: state.groupSandbox?.n ?: 0,
-                        viewOnly = isViewConfigOnly,
-                    ) { m, n ->
-                        keys = n
-                        requiredKeys = m
-                    }
-                }
 
-//                MiniscriptSection()
+                if (walletConfigType == WalletConfigType.MINISCRIPT) {
+                    MiniscriptSection(onAddMiniscript = { showMiniscriptBottomSheet = true })
+                }
             }
+        }
+        
+        if (showMiniscriptBottomSheet) {
+            SelectMultisignTypeBottomSheet(
+                onSelect = { multisignType ->
+                    // Handle the selected multisign type
+                    // You can add logic here based on the selected type
+                    showMiniscriptBottomSheet = false
+                },
+                onDismiss = {
+                    showMiniscriptBottomSheet = false
+                }
+            )
         }
     }
 }
@@ -477,7 +505,7 @@ fun KeysAndRequiredKeysScreen(
 }
 
 @Composable
-private fun MiniscriptSection() {
+private fun MiniscriptSection(onAddMiniscript: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -523,7 +551,7 @@ private fun MiniscriptSection() {
             }
             
             NcRadioButton(
-                selected = false,
+                selected = true,
                 onClick = { }
             )
         }
@@ -555,7 +583,7 @@ private fun MiniscriptSection() {
                 NcPrimaryDarkButton(
                     modifier = Modifier,
                     height = 36.dp,
-                    onClick = { }
+                    onClick = onAddMiniscript
                 ) {
                     Text(
                         text = "Add miniscript",

@@ -63,8 +63,8 @@ class AddWalletActivity : BaseComposeActivity() {
             AddWalletView(
                 state = state,
                 isCreateMiniscriptWallet = args.isCreateMiniscriptWallet,
-                viewOnlyComposer = args.viewOnlyComposer,
-                isViewConfigOnly = args.viewOnlyComposer != null || !state.groupSandbox?.replaceWalletId.isNullOrEmpty(),
+                viewOnlyComposer = args.groupWalletComposer,
+                isViewConfigOnly = args.groupWalletComposer != null || !state.groupSandbox?.replaceWalletId.isNullOrEmpty(),
                 isEditGroupWallet = args.groupWalletId.isNotEmpty(),
                 onSelectAddressType = {
                     if (args.groupWalletId.isNotEmpty()) {
@@ -84,7 +84,7 @@ class AddWalletActivity : BaseComposeActivity() {
                         viewModel.updateAddressTypeSelected(it)
                     }
                 }, onContinue = { walletName, addressType, m, n ->
-                    if (args.viewOnlyComposer != null) {
+                    if (args.groupWalletComposer != null) {
                         setResult(
                             RESULT_OK,
                             Intent().apply { putExtra(ADD_WALLET_RESULT, walletName) }

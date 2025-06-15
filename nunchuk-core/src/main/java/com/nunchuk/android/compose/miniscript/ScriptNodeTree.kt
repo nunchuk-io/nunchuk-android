@@ -1,6 +1,7 @@
 package com.nunchuk.android.compose.miniscript
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -124,7 +125,9 @@ private fun CreateKeyItem(
                     )
 
                     NcIcon(
-                        modifier = Modifier.align(Alignment.CenterVertically).padding(start = 8.dp),
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .padding(start = 8.dp),
                         painter = painterResource(R.drawable.ic_check_circle_24),
                         contentDescription = "Signed",
                     )
@@ -676,7 +679,9 @@ fun ConditionTreeUIPreview() {
         )
     )
     NunchukTheme {
-        Column(Modifier.padding(16.dp)) {
+        Column(Modifier
+            .background(Color.White)
+            .padding(16.dp)) {
             ScriptNodeTree(
                 node = sampleScriptNode,
                 data = ScriptNodeData(
@@ -709,6 +714,7 @@ fun SigningStatusCard(
 
     Column(
         modifier = modifier
+            .background(Color.White)
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .drawBehind {

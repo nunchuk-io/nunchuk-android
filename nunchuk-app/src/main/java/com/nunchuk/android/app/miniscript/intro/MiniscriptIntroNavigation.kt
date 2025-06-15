@@ -33,6 +33,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.miniscript.MiniscriptUtil
 import com.nunchuk.android.core.miniscript.MultisignType
+import com.nunchuk.android.core.miniscript.SelectMultisignTypeBottomSheet
 import com.nunchuk.android.main.R
 import com.nunchuk.android.type.AddressType
 import kotlinx.serialization.Serializable

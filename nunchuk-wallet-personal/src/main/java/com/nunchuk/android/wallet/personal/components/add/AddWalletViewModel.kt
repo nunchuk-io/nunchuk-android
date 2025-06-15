@@ -1,6 +1,5 @@
 package com.nunchuk.android.wallet.personal.components.add
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.type.AddressType
@@ -22,7 +21,6 @@ class AddWalletViewModel @Inject constructor(
     private val getGlobalGroupWalletConfigUseCase: GetGlobalGroupWalletConfigUseCase,
     private val getGroupSandboxUseCase: GetGroupSandboxUseCase,
     private val updateGroupSandboxConfigUseCase: UpdateGroupSandboxConfigUseCase,
-    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddWalletState())

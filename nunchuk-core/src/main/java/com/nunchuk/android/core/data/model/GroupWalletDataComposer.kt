@@ -5,10 +5,11 @@ import com.nunchuk.android.type.AddressType
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class WalletConfigViewOnlyDataComposer(
+data class GroupWalletDataComposer(
     val walletName: String,
     val addressType: AddressType,
     val requireKeys: Int,
     val totalKeys: Int,
-    val walletConfigType: WalletConfigType
+    val walletConfigType: WalletConfigType,
+    val isCreateMiniscriptWallet: Boolean = false,
 ) : Parcelable

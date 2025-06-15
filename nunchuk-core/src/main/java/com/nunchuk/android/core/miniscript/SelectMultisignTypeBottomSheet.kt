@@ -1,4 +1,4 @@
-package com.nunchuk.android.app.miniscript.intro
+package com.nunchuk.android.core.miniscript
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,7 +24,6 @@ import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.nunchuk.android.core.miniscript.MultisignType
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.textPrimary
@@ -156,4 +155,4 @@ fun SelectMultisignTypeItem(modifier: Modifier, title: String, description: Stri
 @Composable
 fun SelectMultisignTypeBottomSheetPreview() {
     SelectMultisignTypeBottomSheetContent()
-}
+} 

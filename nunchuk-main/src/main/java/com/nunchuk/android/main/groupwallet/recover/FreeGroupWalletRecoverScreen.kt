@@ -71,7 +71,7 @@ import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
-import com.nunchuk.android.core.data.model.WalletConfigViewOnlyDataComposer
+import com.nunchuk.android.core.data.model.GroupWalletDataComposer
 import com.nunchuk.android.core.data.model.getWalletConfigTypeBy
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.SignerModel
@@ -198,7 +198,7 @@ fun NavGraphBuilder.freeGroupWalletRecover(
                         launcher = launcher,
                         args = AddWalletArgs(
                             decoyPin = "",
-                            viewOnlyComposer = WalletConfigViewOnlyDataComposer(
+                            groupWalletComposer = GroupWalletDataComposer(
                                 walletName = wallet.name,
                                 addressType = wallet.addressType,
                                 requireKeys = wallet.totalRequireSigns,
