@@ -83,6 +83,7 @@ class ChooseWalletToSendViewModel @Inject constructor(
                     _state.update {
                         it.copy(assistedWallets = wallets.associateBy { it.localId })
                     }
+                    composeWalletUiModels()
                 }
         }
     }
