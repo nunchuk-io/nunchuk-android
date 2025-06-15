@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -32,6 +33,13 @@ internal fun ChooseWalletToSendRoute(
     onWalletSelected: (WalletExtended) -> Unit = {},
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.wallets.size) {
+        if (uiState.wallets.size == 1) {
+            onWalletSelected(uiState.wallets.first())
+        }
+    }
+
     ChooseWalletToSendContent(
         uiState = uiState,
         onWalletSelected = onWalletSelected
