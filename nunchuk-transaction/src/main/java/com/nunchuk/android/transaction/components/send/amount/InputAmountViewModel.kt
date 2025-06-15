@@ -111,6 +111,7 @@ internal class InputAmountViewModel @Inject constructor(
                 address = btcUri.address,
                 privateNote = btcUri.privateNote,
                 amountBTC = btcUri.amount.pureBTC(),
+                amountUSD = btcUri.amount.pureBTC().fromBTCToCurrency(),
                 useBtc = true
             )
         }
