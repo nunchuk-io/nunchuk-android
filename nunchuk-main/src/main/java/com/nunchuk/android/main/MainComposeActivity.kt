@@ -63,6 +63,9 @@ class MainComposeActivity : BaseComposeActivity() {
                                 btcUri = args.btcUri
                             )
                             finish()
+                        },
+                        onClose = {
+                            finish()
                         }
                     )
                 }

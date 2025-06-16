@@ -41,6 +41,16 @@ class ChooseWalletToSendViewModel @Inject constructor(
 
     private fun loadWallets() {
         viewModelScope.launch {
+            getWalletsUseCase.execute()
+                .catch {
+                    Timber.e(it)
+                }
+                .collect { wallets ->
+                    _state.update { it.copy(wallets = wallets, hasNoWallets = wallets.isEmpty()) }
+                    composeWalletUiModels()
+                }
+        }
+        viewModelScope.launch {
             getGroupWalletsUseCase(Unit)
                 .onSuccess { wallets ->
                     _state.update { it.copy(groupWallets = wallets.map { wallet -> wallet.id }.toHashSet()) }
@@ -61,17 +71,6 @@ class ChooseWalletToSendViewModel @Inject constructor(
                     _state.update {
                         it.copy(joinedGroups = joinedGroups.associateBy { it.id }, roles = roles)
                     }
-                }
-        }
-
-        viewModelScope.launch {
-            getWalletsUseCase.execute()
-                .catch {
-                    Timber.e(it)
-                }
-                .collect { wallets ->
-                    _state.update { it.copy(wallets = wallets) }
-                    composeWalletUiModels()
                 }
         }
 

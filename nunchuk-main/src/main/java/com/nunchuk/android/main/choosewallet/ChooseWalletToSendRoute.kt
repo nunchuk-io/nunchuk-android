@@ -31,6 +31,7 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 internal fun ChooseWalletToSendRoute(
     viewModel: ChooseWalletToSendViewModel = hiltViewModel(),
     onWalletSelected: (WalletExtended) -> Unit = {},
+    onClose: () -> Unit = { }
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
@@ -40,10 +41,18 @@ internal fun ChooseWalletToSendRoute(
         }
     }
 
-    ChooseWalletToSendContent(
-        uiState = uiState,
-        onWalletSelected = onWalletSelected
-    )
+    LaunchedEffect(uiState.hasNoWallets) {
+        if (uiState.hasNoWallets) {
+            onClose()
+        }
+    }
+
+    if (uiState.wallets.isNotEmpty()) {
+        ChooseWalletToSendContent(
+            uiState = uiState,
+            onWalletSelected = onWalletSelected
+        )
+    }
 }
 
 @Composable

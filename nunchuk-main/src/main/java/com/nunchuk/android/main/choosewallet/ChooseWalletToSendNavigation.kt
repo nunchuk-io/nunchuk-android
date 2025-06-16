@@ -10,8 +10,9 @@ internal data object ChooseWalletToSend
 
 fun NavGraphBuilder.chooseWalletToSendScreen(
     onWalletSelected: (WalletExtended) -> Unit = {},
+    onClose: () -> Unit = { }
 ) {
     composable<ChooseWalletToSend> {
-        ChooseWalletToSendRoute(onWalletSelected = onWalletSelected)
+        ChooseWalletToSendRoute(onWalletSelected = onWalletSelected, onClose = onClose)
     }
 } 

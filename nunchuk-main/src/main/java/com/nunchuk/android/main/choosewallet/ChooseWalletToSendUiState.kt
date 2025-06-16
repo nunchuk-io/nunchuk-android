@@ -13,4 +13,5 @@ data class ChooseWalletToSendUiState(
     val groupWallets: HashSet<String> = hashSetOf(),
     val wallets: List<WalletExtended> = emptyList(),
     val roles: Map<String, AssistedWalletRole> = emptyMap(),
+    val hasNoWallets: Boolean = false,
 ) 
