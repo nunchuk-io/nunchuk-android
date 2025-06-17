@@ -151,7 +151,12 @@ class InheritanceClaimInputFragment : Fragment() {
             title = getString(R.string.nc_security_deposit_required),
             message = message,
             btnYes = getString(R.string.nc_go_to_website_to_deposit),
-            btnInfo = getString(R.string.nc_text_got_it)
+            btnInfo = getString(R.string.nc_text_got_it),
+            onYesClick = {
+                val link =
+                    if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/claim" else "https://www.nunchuk.io/claim"
+                requireActivity().openExternalLink(link)
+            }
         )
     }
 }
