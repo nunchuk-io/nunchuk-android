@@ -109,7 +109,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
                 val keys = it.data?.parcelableArrayList<SingleSigner>(PASSPORT_EXTRA_KEYS).orEmpty()
-                handleResult(viewModel.updateSigners(keys))
+                handleResult(viewModel.validateAndUpdateSigners(keys))
             }
         }
 

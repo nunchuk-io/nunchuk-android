@@ -333,7 +333,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                 )
                 if (result.isSuccess) {
                     val signers = result.getOrThrow()
-                    updateSigners(signers)
+                    validateAndUpdateSigners(signers)
                     if (isMembershipFlow && chain == Chain.MAIN && _signers.any { isTestNetPath(it.derivationPath) }) {
                         setEvent(ErrorMk4TestNet)
                     } else {
@@ -347,14 +347,17 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         }
     }
 
-    fun updateSigners(signers: List<SingleSigner>): List<SingleSigner> {
+    fun validateAndUpdateSigners(originalSigners: List<SingleSigner>): List<SingleSigner> {
         _signers.apply {
             clear()
             if (isMembershipFlow) {
-                addAll(signers.filter { it.derivationPath.isValidPathForAssistedWallet })
+                addAll(originalSigners.filter { it.derivationPath.isValidPathForAssistedWallet })
             } else {
-                addAll(signers)
+                addAll(originalSigners)
             }
+        }
+        if (originalSigners.isNotEmpty() && _signers.isEmpty()) {
+            setEvent(AddAirgapSignerErrorEvent("Single-sig key detected. Please add a BIP48 multisig key."))
         }
         return _signers
     }
