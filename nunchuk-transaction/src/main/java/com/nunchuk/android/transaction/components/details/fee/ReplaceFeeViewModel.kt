@@ -112,7 +112,8 @@ internal class ReplaceFeeViewModel @Inject constructor(
                 DraftRbfTransactionUseCase.Params(
                     walletId = walletId,
                     feeRate = newFee.toManualFeeRate(),
-                    replaceTxId = oldTx.txId
+                    replaceTxId = oldTx.txId,
+                    isValidateTransactionNotConfirmed = true,
                 )
             ).onSuccess { transaction ->
                 _event.emit(ReplaceFeeEvent.DraftTransactionSuccess(transaction, newFee))

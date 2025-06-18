@@ -107,7 +107,8 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                 DraftRbfTransactionUseCase.Params(
                     walletId = walletId,
                     feeRate = newFee.toManualFeeRate(),
-                    replaceTxId = oldTx.txId
+                    replaceTxId = oldTx.txId,
+                    isValidateTransactionNotConfirmed = true
                 )
             ).onSuccess { transaction ->
                 _state.update { it.copy(transaction = transaction) }
