@@ -60,6 +60,7 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.constants.Constants
 import com.nunchuk.android.core.util.countWords
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.openExternalLink
@@ -128,8 +129,7 @@ class InheritanceClaimInputFragment : Fragment() {
             btnInfo = getString(R.string.nc_text_do_this_later),
             onYesClick = {
                 val link =
-                    if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/claim" else "https://www.nunchuk.io/claim"
-                requireActivity().openExternalLink(link)
+                requireActivity().openExternalLink(Constants.CLAIM_URL)
             }
         )
     }
@@ -153,9 +153,7 @@ class InheritanceClaimInputFragment : Fragment() {
             btnYes = getString(R.string.nc_go_to_website_to_deposit),
             btnInfo = getString(R.string.nc_text_got_it),
             onYesClick = {
-                val link =
-                    if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/claim" else "https://www.nunchuk.io/claim"
-                requireActivity().openExternalLink(link)
+                requireActivity().openExternalLink(Constants.CLAIM_URL)
             }
         )
     }
