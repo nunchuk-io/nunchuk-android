@@ -1,0 +1,61 @@
+name: Build release
+
+on:
+  push:
+    branches: [ "*" ]
+    tags:     [ "*" ]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push builder image
+        working-directory: ${{ github.workspace }}
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            -f reproducible-builds/Dockerfile \
+            -t ghcr.io/${{ github.repository }}/nunchuk-android \
+            --cache-from type=registry,ref=ghcr.io/${{ github.repository }}/builder-cache \
+            --cache-to   type=registry,ref=ghcr.io/${{ github.repository }}/builder-cache,mode=max \
+            --push .
+
+      - name: Decode and save keystore files
+        env:
+          KEYSTORE_JKS_BASE64: ${{ secrets.KEYSTORE_JKS_BASE64 }}
+          KEYSTORE_PROPERTIES_BASE64: ${{ secrets.KEYSTORE_PROPERTIES_BASE64 }}
+        run: |
+          echo "${KEYSTORE_JKS_BASE64}" | base64 -d > "$GITHUB_WORKSPACE/nunchuk-keystore.jks"
+          echo "${KEYSTORE_PROPERTIES_BASE64}" | base64 -d > "$GITHUB_WORKSPACE/keystore.properties"
+
+      - name: Build app
+        working-directory: ${{ github.workspace }}
+        run: |
+          docker run --rm -v "$(pwd)":/app-src --device /dev/fuse --cap-add SYS_ADMIN --security-opt apparmor:unconfined ghcr.io/${{ github.repository }}/nunchuk-android bash -c "mkdir /app; disorderfs --sort-dirents=yes --reverse-dirents=no /app-src/ /app/; cd /app && ./gradlew clean bundleProductionRelease"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nativesdk-${{ github.sha }}
+          path: nunchuk-app/build/outputs/bundle/productionRelease
