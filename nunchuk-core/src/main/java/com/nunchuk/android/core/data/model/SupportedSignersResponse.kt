@@ -8,5 +8,7 @@ internal data class SupportedSignersData(
 
 internal data class SupportedSigner(
     @SerializedName("signer_type") val signerType: String,
-    @SerializedName("signer_tag") val signerTag: String
+    @SerializedName("signer_tag") val signerTag: String,
+    @SerializedName("wallet_type") val walletType: String? = null,
+    @SerializedName("address_type") val addressType: String
 )

@@ -8,6 +8,7 @@ import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.signer.GetSupportedSignersUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -32,7 +33,9 @@ class MembershipViewModel @Inject constructor(
         savedStateHandle.get<String>(MembershipActivity.EXTRA_KEY_WALLET_ID).orEmpty()
 
     private val _state = MutableStateFlow(
-        MembershipState(groupId = savedStateHandle.get<String>(MembershipFragment.EXTRA_GROUP_ID).orEmpty())
+        MembershipState(
+            groupId = savedStateHandle.get<String>(MembershipFragment.EXTRA_GROUP_ID).orEmpty()
+        )
     )
     val state = _state.asStateFlow()
 
@@ -52,9 +55,11 @@ class MembershipViewModel @Inject constructor(
                 val result = getWalletDetail2UseCase(walletId)
                 if (result.isSuccess) {
                     val wallet = result.getOrThrow()
+                    val walletType =
+                        if (wallet.signers.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
                     if (wallet.addressType.isTaproot()) {
                         getSupportedSignersUseCase(Unit).onSuccess { supportedTypes ->
-                            _state.update { it.copy(supportedTypes = supportedTypes) }
+                            _state.update { it.copy(supportedTypes = supportedTypes.filter { it.walletType == walletType || it.walletType == null }) }
                         }
                     }
                 }

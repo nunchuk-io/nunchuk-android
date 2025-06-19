@@ -16,6 +16,7 @@ import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.DeleteWalletUseCase
 import com.nunchuk.android.usecase.free.groupwallet.RecoverGroupWalletUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
@@ -46,13 +47,14 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
     private val recoverGroupWalletUseCase: RecoverGroupWalletUseCase,
     private val deleteWalletUseCase: DeleteWalletUseCase,
     private val pushEventManager: PushEventManager,
-    ) : ViewModel() {
+) : ViewModel() {
     val walletId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_WALLET_ID).orEmpty()
     val filePath: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_FILE_PATH).orEmpty()
     val qrList: List<String>
-        get() = savedStateHandle.get<Array<String>>(FreeGroupWalletActivity.EXTRA_QR_LIST)?.toList() ?: emptyList()
+        get() = savedStateHandle.get<Array<String>>(FreeGroupWalletActivity.EXTRA_QR_LIST)?.toList()
+            ?: emptyList()
 
     private val _uiState = MutableStateFlow(FreeGroupWalletRecoverUiState())
     val uiState: StateFlow<FreeGroupWalletRecoverUiState> = _uiState.asStateFlow()
@@ -87,7 +89,9 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
 
     fun getSuggestedSigners(): List<SupportedSigner> {
         return _uiState.value.let { state ->
-            state.supportedTypes.takeIf { state.wallet?.addressType?.isTaproot() == true }.orEmpty()
+            state.supportedTypes.takeIf { state.wallet?.addressType?.isTaproot() == true }
+                ?.filter { it.walletType == WalletType.MULTI_SIG || it.walletType == null }
+                .orEmpty()
         }
     }
 
@@ -107,7 +111,8 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
         val allSigners = getNewAllSigner()
         val oldAllSigners = _uiState.value.allSigners
         val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: -1
-        Timber.tag(TAG).e("Old all signers: ${oldAllSigners.size} - New all signers: ${allSigners.size}")
+        Timber.tag(TAG)
+            .e("Old all signers: ${oldAllSigners.size} - New all signers: ${allSigners.size}")
         if (index == -1) {
             Timber.tag(TAG).e("All signers size is the same")
 
@@ -161,7 +166,8 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
             Timber.tag(TAG).e("New signer found: $it")
             if (selectSigner?.fingerPrint == newSigner.fingerPrint) {
                 Timber.tag(TAG).e("New signer is selected")
-                val signerUi = SignerModelRecoverUi(signer = newSigner, index = index, isInDevice = true)
+                val signerUi =
+                    SignerModelRecoverUi(signer = newSigner, index = index, isInDevice = true)
                 val signers = _uiState.value.signerUis.toMutableList()
                 signers[index] = signerUi
                 _uiState.update { state -> state.copy(signerUis = signers) }
@@ -174,7 +180,8 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
 
     private suspend fun getNewAllSigner(): List<SignerModel> {
         return withContext(viewModelScope.coroutineContext) {
-            val pairSigner = getAllSignersUseCase(false).getOrNull() ?: return@withContext emptyList()
+            val pairSigner =
+                getAllSignersUseCase(false).getOrNull() ?: return@withContext emptyList()
             val singleSigner = pairSigner.second.filter { it.type != SignerType.SERVER }
             singleSigners.apply {
                 clear()
@@ -192,7 +199,7 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
     }
 
     fun recoverGroupWallet() {
-        Timber.tag(TAG).e( "Recover group wallet")
+        Timber.tag(TAG).e("Recover group wallet")
         viewModelScope.launch {
             recoverGroupWalletUseCase(
                 RecoverGroupWalletUseCase.Params(
@@ -202,7 +209,13 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
                 )
             ).onSuccess {
                 Timber.tag(TAG).e("Recover group wallet success")
-                _uiState.update {  it.copy(event = FreeGroupWalletRecoverEvent.RecoverSuccess(walletName = _uiState.value.wallet?.name.orEmpty())) }
+                _uiState.update {
+                    it.copy(
+                        event = FreeGroupWalletRecoverEvent.RecoverSuccess(
+                            walletName = _uiState.value.wallet?.name.orEmpty()
+                        )
+                    )
+                }
             }.onFailure { error ->
                 Timber.tag(TAG).e("Recover group wallet failed: $error")
                 deleteWallet()
@@ -224,7 +237,7 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
     }
 
     fun setCurrentSignerIndex(index: Int) {
-        Timber.tag(TAG).e( "Set current signer index $index")
+        Timber.tag(TAG).e("Set current signer index $index")
         savedStateHandle[CURRENT_SIGNER_INDEX] = index
     }
 
