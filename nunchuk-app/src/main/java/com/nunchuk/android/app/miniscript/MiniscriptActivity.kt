@@ -135,11 +135,11 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
                             }
                         )
 
-                        miniscriptCustomTemplateDestination { template ->
+                        miniscriptCustomTemplateDestination { template, addressType ->
                             navHostController.navigate(
                                 route = MiniscriptConfigureWallet(
                                     template = template,
-                                    addressType = args.addressType,
+                                    addressType = addressType ?: args.addressType,
                                     walletName = args.walletName,
                                 )
                             )

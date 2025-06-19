@@ -30,13 +30,13 @@ class MiniscriptIntroViewModel @Inject constructor(
                     template = content,
                     addressType = addressType
                 )
-            ).onSuccess { template ->
-                Timber.tag("miniscript-feature").d("Miniscript template created successfully: $template")
-                if (template.isNotEmpty()) {
+            ).onSuccess { result ->
+                Timber.tag("miniscript-feature").d("Miniscript template created successfully: ${result.template}")
+                if (result.template.isNotEmpty()) {
                     _uiState.update {
                         it.copy(
-                            template = template,
-                            event = MiniscriptIntroEvent.NavigateToCustomTemplate(template)
+                            template = result.template,
+                            event = MiniscriptIntroEvent.NavigateToCustomTemplate(result.template)
                         )
                     }
                 } else {

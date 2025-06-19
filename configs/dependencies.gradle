@@ -29,7 +29,7 @@ ext {
     camerax_version = "1.4.1"
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.1.98'
+    nativeSdkVersion = '1.1.96-mini'
     prebuildNativeSdkVersion = '1.1.98@aar'
 
     // Matrix

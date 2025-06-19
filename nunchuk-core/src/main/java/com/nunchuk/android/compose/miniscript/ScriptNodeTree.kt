@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcBadgeOutline
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -48,10 +49,11 @@ enum class ScriptMode {
 }
 
 @Composable
-private fun CreateKeyItem(
+internal fun CreateKeyItem(
     key: String,
     signer: SignerModel?,
     position: String,
+    showThreadCurve: Boolean = true,
     onChangeBip32Path: (String, SignerModel) -> Unit,
     onActionKey: (String, SignerModel?) -> Unit,
     data: ScriptNodeData,
@@ -62,6 +64,7 @@ private fun CreateKeyItem(
         xfp = signer?.getXfpOrCardIdLabel().orEmpty(),
         position = position,
         modifier = modifier,
+        showThreadCurve = showThreadCurve,
         bip32PathContent = {
             if (data.showBip32Path && signer != null) {
                 Row(
@@ -153,13 +156,15 @@ private fun NodeKeys(
     onChangeBip32Path: (String, SignerModel) -> Unit,
     onActionKey: (String, SignerModel?) -> Unit,
     data: ScriptNodeData,
+    level: Int,
     modifier: Modifier = Modifier
 ) {
     node.keys.forEachIndexed { i, key ->
         val keyPosition = "$index.${i + 1}"
         TreeBranchContainer(
-            modifier = modifier.padding(start = 20.dp),
+            modifier = modifier,
             drawLine = i != node.keys.size - 1 || node.subs.isNotEmpty(),
+            indentationLevel = level + 1 // Keys are one level deeper than their parent node
         ) {
             val signer = data.signers[key]
             CreateKeyItem(
@@ -212,6 +217,7 @@ private fun NodeContent(
         onChangeBip32Path = onChangeBip32Path,
         onActionKey = onActionKey,
         data = data,
+        level = level,
         modifier = modifier
     )
     NodeSubs(
@@ -244,12 +250,13 @@ fun ScriptNodeTree(
 ) {
     val info = MiniscriptDataComponent.fromComponent(node.type)
     when (node.type) {
-        ScripNoteType.ANDOR.name, ScripNoteType.AND.name, ScripNoteType.OR.name -> {
+        ScripNoteType.ANDOR.name, ScripNoteType.AND.name, ScripNoteType.OR.name, ScripNoteType.OR_TAPROOT.name -> {
             if (level == 0) {
                 AndOrView(
                     scripNoteTypeInfo = info,
                     isShowCurve = false,
                     padStart = 0,
+                    isShowTapscriptBadge = ScripNoteType.OR_TAPROOT.name == node.type,
                     index = index
                 ) {
                     NodeContent(
@@ -262,18 +269,25 @@ fun ScriptNodeTree(
                     )
                 }
             } else {
-                AndOrView(
-                    scripNoteTypeInfo = info,
-                    index = index
-                ) {
-                    NodeContent(
-                        node = node,
+                TreeBranchContainer(
+                    drawLine = isLastItem.not(),
+                    indentationLevel = level
+                ) { modifier ->
+                    AndOrView(
+                        scripNoteTypeInfo = info,
                         index = index,
-                        onChangeBip32Path = onChangeBip32Path,
-                        onActionKey = onActionKey,
-                        data = data,
-                        level = level
-                    )
+                        modifier = modifier
+                    ) {
+                        NodeContent(
+                            node = node,
+                            index = index,
+                            onChangeBip32Path = onChangeBip32Path,
+                            onActionKey = onActionKey,
+                            data = data,
+                            level = level,
+                            modifier = modifier
+                        )
+                    }
                 }
             }
             return
@@ -281,13 +295,15 @@ fun ScriptNodeTree(
 
         ScripNoteType.AFTER.name, ScripNoteType.OLDER.name -> {
             TreeBranchContainer(
-                drawLine = isLastItem.not()
+                drawLine = isLastItem.not(),
+                indentationLevel = level
             ) { modifier ->
                 TimelockItem(
                     index = index,
                     k = node.k,
                     currentBlockHeight = currentBlockHeight,
                     nodeType = node.type,
+                    modifier = modifier
                 ) {
                     NodeContent(
                         node = node,
@@ -305,12 +321,15 @@ fun ScriptNodeTree(
 
         ScripNoteType.MULTI.name, ScripNoteType.THRESH.name -> {
             TreeBranchContainer(
-                drawLine = isLastItem.not()
+                drawLine = isLastItem.not(),
+                indentationLevel = level
             ) { modifier ->
-                ThreadItem(
+                ThreadMultiItem(
                     index = index,
+                    type = node.type,
                     threshold = node.k,
-                    totalKeys = node.keys.size + node.subs.size
+                    totalKeys = node.keys.size + node.subs.size,
+                    modifier = modifier
                 ) {
                     NodeContent(
                         node = node,
@@ -328,11 +347,13 @@ fun ScriptNodeTree(
 
         ScripNoteType.HASH160.name, ScripNoteType.HASH256.name, ScripNoteType.RIPEMD160.name, ScripNoteType.SHA256.name -> {
             TreeBranchContainer(
-                drawLine = isLastItem.not()
+                drawLine = isLastItem.not(),
+                indentationLevel = level
             ) { modifier ->
                 HashlockItem(
                     index = index,
-                    hashType = node.type
+                    hashType = node.type,
+                    modifier = modifier
                 ) {
                     NodeContent(
                         node = node,
@@ -362,11 +383,13 @@ fun ScriptNodeTree(
 fun AndOrView(
     scripNoteTypeInfo: ComponentInfo = MiniscriptDataComponent.fromComponent(ScripNoteType.ANDOR.name),
     isShowCurve: Boolean = true,
+    isShowTapscriptBadge: Boolean = false,
     index: String = "",
     padStart: Int = 0,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {},
 ) {
-    Column {
+    Column(modifier = modifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -382,10 +405,19 @@ fun AndOrView(
                     .weight(1f)
                     .padding(start = padStart.dp)
             ) {
-                Text(
-                    text = if (index.isNotEmpty()) "$index. ${scripNoteTypeInfo.name}" else scripNoteTypeInfo.name,
-                    style = NunchukTheme.typography.body
-                )
+                Row {
+                    Text(
+                        text = if (index.isNotEmpty()) "$index. ${scripNoteTypeInfo.name}" else scripNoteTypeInfo.name,
+                        style = NunchukTheme.typography.body
+                    )
+                    if (isShowTapscriptBadge) {
+                        NcBadgeOutline(
+                            modifier = Modifier.padding(start = 8.dp),
+                            text = "Tapscript"
+                        )
+                    }
+                }
+
                 Text(
                     scripNoteTypeInfo.description,
                     style = NunchukTheme.typography.bodySmall.copy(
@@ -400,14 +432,16 @@ fun AndOrView(
 }
 
 @Composable
-fun ThreadItem(
+fun ThreadMultiItem(
     index: String,
+    type: String,
     threshold: Int,
     totalKeys: Int,
     topPadding: Int = 10,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {},
 ) {
-    Column {
+    Column(modifier = modifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -422,8 +456,13 @@ fun ThreadItem(
                     .weight(1f)
                     .padding(start = 8.dp)
             ) {
+                val text = when (type) {
+                    ScripNoteType.THRESH.name -> "Thresh"
+                    ScripNoteType.MULTI.name -> "Multisig"
+                    else -> ""
+                }
                 Text(
-                    text = "$index. Thresh $threshold/$totalKeys",
+                    text = "$index. $text",
                     style = NunchukTheme.typography.body
                 )
                 Text(
@@ -444,6 +483,7 @@ fun TimelockItem(
     k: Int,
     currentBlockHeight: Int = 0,
     nodeType: String,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {},
 ) {
     val currentTimeSeconds = System.currentTimeMillis() / 1000
@@ -479,7 +519,7 @@ fun TimelockItem(
         else -> Pair("Unknown timelock", "")
     }
 
-    Column {
+    Column(modifier = modifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -521,6 +561,7 @@ fun TimelockItem(
 fun HashlockItem(
     index: String,
     hashType: String,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {},
 ) {
     val description = when (hashType) {
@@ -530,7 +571,7 @@ fun HashlockItem(
         ScripNoteType.SHA256.name -> "Requires a preimage that hashes to a given value with SHA256"
         else -> "Requires a preimage that hashes to a given value"
     }
-    Column {
+    Column(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -570,6 +611,7 @@ fun KeyItem(
     title: String = "",
     xfp: String = "",
     position: String = "",
+    showThreadCurve: Boolean = true,
     bip32PathContent: @Composable () -> Unit = {},
     actionContent: @Composable RowScope.() -> Unit = {}
 ) {
@@ -578,10 +620,12 @@ fun KeyItem(
             .padding(bottom = 10.dp, top = 10.dp)
             .fillMaxWidth()
     ) {
-        Image(
-            painter = painterResource(R.drawable.ic_thread_curve),
-            contentDescription = null,
-        )
+        if (showThreadCurve) {
+            Image(
+                painter = painterResource(R.drawable.ic_thread_curve),
+                contentDescription = null,
+            )
+        }
         NcIcon(
             modifier = Modifier.size(20.dp),
             painter = painterResource(R.drawable.ic_key),
@@ -615,10 +659,14 @@ fun TreeBranchContainer(
     modifier: Modifier = Modifier,
     drawLine: Boolean = true,
     itemHeight: Float = 0f,
+    indentationLevel: Int = 0,
     content: @Composable (modifier: Modifier) -> Unit
 ) {
+    val indentationPadding = (indentationLevel * 10).dp
+    
     Box(
         modifier = modifier
+            .padding(start = indentationPadding)
             .drawBehind {
                 val stroke = Stroke(width = 3.5f)
                 val lineX = 2f
@@ -633,7 +681,7 @@ fun TreeBranchContainer(
                 }
             }
     ) {
-        content(modifier)
+        content(Modifier)
     }
 }
 
@@ -679,9 +727,11 @@ fun ConditionTreeUIPreview() {
         )
     )
     NunchukTheme {
-        Column(Modifier
-            .background(Color.White)
-            .padding(16.dp)) {
+        Column(
+            Modifier
+                .background(Color.White)
+                .padding(16.dp)
+        ) {
             ScriptNodeTree(
                 node = sampleScriptNode,
                 data = ScriptNodeData(

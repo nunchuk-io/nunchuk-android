@@ -2,6 +2,20 @@ package com.nunchuk.android.core.miniscript
 
 import androidx.annotation.Keep
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.miniscript.ComponentInfo.AFTER
+import com.nunchuk.android.core.miniscript.ComponentInfo.AND
+import com.nunchuk.android.core.miniscript.ComponentInfo.ANDOR
+import com.nunchuk.android.core.miniscript.ComponentInfo.HASH160
+import com.nunchuk.android.core.miniscript.ComponentInfo.HASH256
+import com.nunchuk.android.core.miniscript.ComponentInfo.MULTI
+import com.nunchuk.android.core.miniscript.ComponentInfo.None
+import com.nunchuk.android.core.miniscript.ComponentInfo.OLDER
+import com.nunchuk.android.core.miniscript.ComponentInfo.OR
+import com.nunchuk.android.core.miniscript.ComponentInfo.OR_TAPROOT
+import com.nunchuk.android.core.miniscript.ComponentInfo.PK
+import com.nunchuk.android.core.miniscript.ComponentInfo.RIPEMD160
+import com.nunchuk.android.core.miniscript.ComponentInfo.SHA256
+import com.nunchuk.android.core.miniscript.ComponentInfo.THRESH
 
 object MiniscriptDataComponent {
 
@@ -20,6 +34,7 @@ object MiniscriptDataComponent {
             "ANDOR" -> ScripNoteType.ANDOR
             "THRESH" -> ScripNoteType.THRESH
             "MULTI" -> ScripNoteType.MULTI
+            "OR_TAPROOT" -> ScripNoteType.OR_TAPROOT
             else -> throw IllegalArgumentException("Unknown component: $name")
         }
     }
@@ -27,19 +42,20 @@ object MiniscriptDataComponent {
     fun fromComponent(name: String): ComponentInfo {
         val component = getComponent(name)
         return when (component) {
-            ScripNoteType.NONE -> ComponentInfo.None()
-            ScripNoteType.PK -> ComponentInfo.PK()
-            ScripNoteType.OLDER -> ComponentInfo.OLDER()
-            ScripNoteType.AFTER -> ComponentInfo.AFTER()
-            ScripNoteType.HASH160 -> ComponentInfo.HASH160()
-            ScripNoteType.HASH256 -> ComponentInfo.HASH256()
-            ScripNoteType.RIPEMD160 -> ComponentInfo.RIPEMD160()
-            ScripNoteType.SHA256 -> ComponentInfo.SHA256()
-            ScripNoteType.AND -> ComponentInfo.AND()
-            ScripNoteType.OR -> ComponentInfo.OR()
-            ScripNoteType.ANDOR -> ComponentInfo.ANDOR()
-            ScripNoteType.THRESH -> ComponentInfo.THRESH()
-            ScripNoteType.MULTI -> ComponentInfo.MULTI()
+            ScripNoteType.NONE -> None()
+            ScripNoteType.PK -> PK()
+            ScripNoteType.OLDER -> OLDER()
+            ScripNoteType.AFTER -> AFTER()
+            ScripNoteType.HASH160 -> HASH160()
+            ScripNoteType.HASH256 -> HASH256()
+            ScripNoteType.RIPEMD160 -> RIPEMD160()
+            ScripNoteType.SHA256 -> SHA256()
+            ScripNoteType.AND -> AND()
+            ScripNoteType.OR -> OR()
+            ScripNoteType.ANDOR -> ANDOR()
+            ScripNoteType.THRESH -> THRESH()
+            ScripNoteType.MULTI -> MULTI()
+            ScripNoteType.OR_TAPROOT -> OR_TAPROOT()
         }
     }
 }
@@ -133,6 +149,12 @@ sealed class ComponentInfo(
         name = "Multisig 3/4",
         description = "Requires M of N keys."
     )
+
+    class OR_TAPROOT : ComponentInfo(
+        scripNoteType = ScripNoteType.OR_TAPROOT,
+        name = "OR",
+        description = "Only one tapscript needs to be satisfied."
+    )
 }
 
 @Keep
@@ -150,5 +172,6 @@ enum class ScripNoteType {
     ANDOR,
     THRESH,
     MULTI,
+    OR_TAPROOT
 }
 

@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -25,16 +26,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.nunchuk.android.core.miniscript.MiniscriptUtil
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcSnackBarHost
 import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.miniscript.MiniscriptUtil
 import com.nunchuk.android.type.AddressType
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import timber.log.Timber
 
 @Serializable
 data class MiniscriptCustomTemplate(
@@ -42,17 +47,22 @@ data class MiniscriptCustomTemplate(
     val addressType: AddressType
 )
 
-fun NavGraphBuilder.miniscriptCustomTemplateDestination(onNext: (String) -> Unit = {}) {
+fun NavGraphBuilder.miniscriptCustomTemplateDestination(onNext: (String, AddressType?) -> Unit = { _, _ -> }) {
     composable<MiniscriptCustomTemplate> { navBackStackEntry ->
         val data: MiniscriptCustomTemplate = navBackStackEntry.toRoute()
         val viewModel: MiniscriptCustomTemplateViewModel = hiltViewModel()
         val event by viewModel.event.collectAsStateWithLifecycle()
         val snackbarHostState = remember { SnackbarHostState() }
+        val coroutineScope = rememberCoroutineScope()
+        var showTaprootWarning by remember { mutableStateOf(false) }
+        var pendingTemplate by remember { mutableStateOf("") }
 
         LaunchedEffect(event) {
             when (event) {
                 is MiniscriptCustomTemplateEvent.Success -> {
-                    onNext((event as MiniscriptCustomTemplateEvent.Success).template)
+                    val successEvent = event as MiniscriptCustomTemplateEvent.Success
+                    Timber.tag("miniscript-feature").d("Miniscript custom template created successfully: ${successEvent.template}")
+                    onNext(successEvent.template, successEvent.addressType)
                     viewModel.clearEvent()
                 }
                 is MiniscriptCustomTemplateEvent.Error -> {
@@ -64,15 +74,52 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(onNext: (String) -> Unit
                     )
                     viewModel.clearEvent()
                 }
+                is MiniscriptCustomTemplateEvent.ShowTaprootWarning -> {
+                    pendingTemplate = (event as MiniscriptCustomTemplateEvent.ShowTaprootWarning).template
+                    showTaprootWarning = true
+                    viewModel.clearEvent()
+                }
+                is MiniscriptCustomTemplateEvent.AddressTypeChangedToTaproot -> {
+                    // Call proceedWithTaproot immediately, don't wait for snackbar
+                    viewModel.proceedWithTaproot(pendingTemplate)
+                    // Show snackbar without awaiting it
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            NcSnackbarVisuals(
+                                message = "Address type changed to Taproot",
+                                type = NcToastType.SUCCESS
+                            )
+                        )
+                    }
+                    // Don't clear event here - let the Success event be processed
+                }
                 null -> {}
             }
+        }
+
+        if (showTaprootWarning) {
+            NcConfirmationDialog(
+                title = "Warning",
+                message = "To use a Taproot script, the wallet's address type must be Taproot. Would you like to change it now?",
+                onPositiveClick = {
+                    showTaprootWarning = false
+                    viewModel.changeToTaprootAndContinue(pendingTemplate)
+                },
+                onDismiss = {
+                    showTaprootWarning = false
+                    viewModel.continueWithCurrentAddressType(pendingTemplate)
+                },
+                positiveButtonText = "Continue",
+                negativeButtonText = "No"
+            )
         }
 
         MiniscriptCustomTemplateScreen(
             template = MiniscriptUtil.formatMiniscriptCorrectly(data.template),
             onContinue = { template ->
                 viewModel.createMiniscriptTemplate(MiniscriptUtil.revertFormattedMiniscript(template), data.addressType)
-            }
+            },
+            snackbarHostState = snackbarHostState
         )
     }
 }
@@ -82,6 +129,7 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(onNext: (String) -> Unit
 fun MiniscriptCustomTemplateScreen(
     template: String = "",
     onContinue: (String) -> Unit = {},
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     var miniscriptValue by remember { mutableStateOf(template) }
 
@@ -94,6 +142,9 @@ fun MiniscriptCustomTemplateScreen(
                     title = "Enter miniscript",
                     textStyle = NunchukTheme.typography.titleLarge,
                 )
+            },
+            snackbarHost = {
+                NcSnackBarHost(snackbarHostState)
             },
             bottomBar = {
                 Column(

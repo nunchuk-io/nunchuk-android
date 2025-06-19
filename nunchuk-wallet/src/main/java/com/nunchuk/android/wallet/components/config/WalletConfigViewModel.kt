@@ -235,9 +235,9 @@ internal class WalletConfigViewModel @Inject constructor(
 
     private suspend fun getMiniscriptInfo() {
         if (state.value.walletExtended.wallet.miniscript.isNotEmpty()) {
-            getScriptNodeFromMiniscriptTemplateUseCase(state.value.walletExtended.wallet.miniscript).onSuccess { scriptNode ->
-                _state.update { it.copy(scriptNode = scriptNode) }
-                val signerMap = parseSignersFromScriptNode(scriptNode)
+            getScriptNodeFromMiniscriptTemplateUseCase(state.value.walletExtended.wallet.miniscript).onSuccess { result ->
+                _state.update { it.copy(scriptNode = result.scriptNode) }
+                val signerMap = parseSignersFromScriptNode(result.scriptNode)
                 _state.update { it.copy(signerMap = signerMap) }
             }.onFailure {
                 _event.emit(WalletConfigEvent.WalletDetailsError(it.message.orUnknownError()))

@@ -460,9 +460,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private suspend fun getMiniscriptInfo(walletExtended: WalletExtended) {
-        getScriptNodeFromMiniscriptTemplateUseCase(walletExtended.wallet.miniscript).onSuccess { scriptNode ->
-            val signerMap = parseSignersFromScriptNode(scriptNode)
-            _state.update { it.copy(signerMap = signerMap, scriptNode = scriptNode, signers = signerMap.values.toList()) }
+        getScriptNodeFromMiniscriptTemplateUseCase(walletExtended.wallet.miniscript).onSuccess { result ->
+            val signerMap = parseSignersFromScriptNode(result.scriptNode)
+            _state.update { it.copy(signerMap = signerMap, scriptNode = result.scriptNode, signers = signerMap.values.toList()) }
         }
     }
 

@@ -87,6 +87,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     if (currentKeyToAssign.isNotEmpty()) {
                         addSignerToState(it.signer.toModel(), currentKeyToAssign)
                         currentKeyToAssign = ""
+                        _uiState.update { state -> state.copy(currentKeyToAssign = "") }
                         loadInfo()
                     }
                 }
@@ -122,6 +123,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
 
     fun setCurrentKeyToAssign(keyName: String) {
         currentKeyToAssign = keyName
+        _uiState.update { it.copy(currentKeyToAssign = keyName) }
     }
 
     private fun loadInfo() {
@@ -161,6 +163,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 if (newSigners.isNotEmpty()) {
                     addSignerToState(newSigners.first(), currentKeyToAssign)
                     currentKeyToAssign = ""
+                    _uiState.update { it.copy(currentKeyToAssign = "") }
                 }
                 // Update oldSigners with current state after processing
                 oldSigners = currentSigners.map { it.fingerPrint }.toSet()
@@ -187,13 +190,15 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     fun getScriptNodeFromTemplate(template: String) {
         viewModelScope.launch {
             getScriptNodeFromMiniscriptTemplateUseCase(template).onSuccess { result ->
+                Timber.tag("miniscript-feature").d("MiniscriptSharedWalletViewModel - scriptNode: ${result.scriptNode} - keyPath: ${result.keyPath}")
                 _uiState.update {
                     it.copy(
-                        scriptNode = result,
-                        areAllKeysAssigned = areAllKeysAssigned(result, it.signers)
+                        scriptNode = result.scriptNode,
+                        keyPath = result.keyPath,
+                        areAllKeysAssigned = areAllKeysAssigned(result.scriptNode, it.signers)
                     )
                 }
-                mapKeyPositions(result, "")
+                mapKeyPositions(result.scriptNode, "")
             }.onFailure {
                 Timber.tag("miniscript-feature").e("MiniscriptSharedWalletViewModel - error: $it")
             }
@@ -719,6 +724,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
 
 data class MiniscriptSharedWalletState(
     val scriptNode: ScriptNode? = null,
+    val keyPath: String = "",
     val supportedTypes: List<SupportedSigner> = emptyList(),
     val signers: Map<String, SignerModel?> = emptyMap(),
     val allSigners: List<SignerModel> = emptyList(),
@@ -731,7 +737,8 @@ data class MiniscriptSharedWalletState(
     val walletName: String = "",
     val currentBlockHeight: Int = 0,
     val requestCacheTapSignerXpubEvent: Boolean = false,
-    val isTestNet: Boolean = false
+    val isTestNet: Boolean = false,
+    val currentKeyToAssign: String = ""
 )
 
 sealed class MiniscriptSharedWalletEvent {

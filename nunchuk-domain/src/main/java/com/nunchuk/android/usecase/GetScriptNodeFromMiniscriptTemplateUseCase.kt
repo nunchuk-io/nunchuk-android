@@ -20,7 +20,7 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.ScriptNode
+import com.nunchuk.android.model.ScriptNodeResult
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -28,9 +28,9 @@ import javax.inject.Inject
 class GetScriptNodeFromMiniscriptTemplateUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : UseCase<String, ScriptNode>(ioDispatcher) {
+) : UseCase<String, ScriptNodeResult>(ioDispatcher) {
 
-    override suspend fun execute(parameters: String): ScriptNode {
+    override suspend fun execute(parameters: String): ScriptNodeResult {
         return nunchukNativeSdk.getScriptNodeFromMiniscript(parameters)
     }
 }

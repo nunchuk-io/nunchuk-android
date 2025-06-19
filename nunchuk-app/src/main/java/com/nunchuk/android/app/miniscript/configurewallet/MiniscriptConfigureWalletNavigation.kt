@@ -37,10 +37,12 @@ import androidx.navigation.toRoute
 import com.nunchuk.android.app.miniscript.MiniscriptSharedWalletEvent
 import com.nunchuk.android.app.miniscript.MiniscriptSharedWalletState
 import com.nunchuk.android.app.miniscript.MiniscriptSharedWalletViewModel
+import com.nunchuk.android.compose.NcBadgePrimary
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.miniscript.MiniscriptTaproot
 import com.nunchuk.android.compose.miniscript.PolicyHeader
 import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
@@ -120,8 +122,15 @@ fun NavGraphBuilder.miniscriptConfigureWalletDestination(
             viewModel.onEventHandled()
         }
 
+        // Load signers when the screen returns from adding a new key
+        LifecycleResumeEffect(uiState.currentKeyToAssign) {
+            if (uiState.currentKeyToAssign.isNotEmpty()) {
+                viewModel.checkForNewlyAddedSigner()
+            }
+            onPauseOrDispose { }
+        }
+
         MiniscriptConfigWalletScreen(
-            viewModel = viewModel,
             uiState = uiState,
             onAddNewKey = {
                 onAddNewKey(viewModel.getSuggestedSigners())
@@ -150,7 +159,6 @@ fun NavGraphBuilder.miniscriptConfigureWalletDestination(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MiniscriptConfigWalletScreen(
-    viewModel: MiniscriptSharedWalletViewModel,
     uiState: MiniscriptSharedWalletState = MiniscriptSharedWalletState(),
     onAddNewKey: () -> Unit = {},
     onRemoveClicked: (String) -> Unit = {},
@@ -163,14 +171,6 @@ fun MiniscriptConfigWalletScreen(
     var currentKeyToAssign by rememberSaveable { mutableStateOf("") }
     var showMoreOption by rememberSaveable { mutableStateOf(false) }
     var showBip32Path by rememberSaveable { mutableStateOf(false) }
-
-    // Load signers when the screen returns from adding a new key
-    LifecycleResumeEffect(currentKeyToAssign) {
-        if (currentKeyToAssign.isNotEmpty()) {
-            viewModel.checkForNewlyAddedSigner()
-        }
-        onPauseOrDispose { }
-    }
 
     NunchukTheme {
         Scaffold(
@@ -222,12 +222,45 @@ fun MiniscriptConfigWalletScreen(
                         .padding(horizontal = 16.dp, vertical = 20.dp)
                 )
 
+                // Add MiniscriptTaproot component if addressType is TAPROOT
+                if (uiState.addressType == AddressType.TAPROOT) {
+                    MiniscriptTaproot(
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                        keyPath = uiState.keyPath,
+                        data = ScriptNodeData(
+                            mode = ScriptMode.CONFIG,
+                            signers = uiState.signers,
+                            showBip32Path = showBip32Path
+                        ),
+                        signer = if (uiState.keyPath.isNotEmpty()) uiState.signers[uiState.keyPath] else null,
+                        onChangeBip32Path = onChangeBip32Path,
+                        onActionKey = { keyName, signer ->
+                            if (signer != null) {
+                                onRemoveClicked(keyName)
+                            } else {
+                                Timber.tag("miniscript-feature").e("Adding new key: $keyName")
+                                currentKeyToAssign = keyName
+                                onSetCurrentKey(keyName)
+                                showSignerBottomSheet = true
+                            }
+                        }
+                    )
+
+                    // Add Script path badge
+                    NcBadgePrimary(
+                        modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+                        text = "Script path",
+                        enabled = true
+                    )
+                }
+
                 val parentModifier = Modifier.padding(horizontal = 16.dp)
 
                 Column(modifier = parentModifier) {
                     uiState.scriptNode?.let { scriptNode ->
                         ScriptNodeTree(
                             node = scriptNode,
+                            index = if (uiState.addressType == AddressType.TAPROOT && uiState.keyPath.isNotEmpty()) "2" else "1",
                             data = ScriptNodeData(
                                 mode = ScriptMode.CONFIG,
                                 signers = uiState.signers,
@@ -330,79 +363,21 @@ fun MiniscriptConfigWalletScreenPreview() {
                 )
             )
         ),
+        keyPath = "key_taproot",
+        addressType = AddressType.TAPROOT,
         signers = mapOf(
             "key_0_0" to null,
             "key_1_0" to null,
             "key_0_1" to null,
-            "key_1_1" to null
+            "key_1_1" to null,
+            "key_taproot" to null
         ),
         areAllKeysAssigned = false
     )
 
     NunchukTheme {
-        Scaffold(
-            modifier = Modifier.navigationBarsPadding(),
-            topBar = {
-                NcTopAppBar(
-                    title = "Configure wallet",
-                    textStyle = NunchukTheme.typography.titleLarge,
-                    actions = {
-                        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.textPrimary) {
-                            IconButton(onClick = {}) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_more),
-                                    contentDescription = "More icon"
-                                )
-                            }
-                        }
-                    }
-                )
-            },
-            bottomBar = {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    NcPrimaryDarkButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {},
-                        enabled = previewState.areAllKeysAssigned
-                    ) {
-                        Text(text = "Continue")
-                    }
-                }
-            },
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .navigationBarsPadding()
-                    .fillMaxHeight()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                PolicyHeader(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 20.dp)
-                )
-
-                val parentModifier = Modifier.padding(horizontal = 16.dp)
-
-                Column(modifier = parentModifier) {
-                    previewState.scriptNode?.let { scriptNode ->
-                        ScriptNodeTree(
-                            node = scriptNode,
-                            data = ScriptNodeData(
-                                mode = ScriptMode.CONFIG,
-                                signers = previewState.signers,
-                                showBip32Path = false
-                            ),
-                            onChangeBip32Path = { _, _ -> },
-                            onActionKey = { _, _ -> }
-                        )
-                    }
-                }
-            }
-        }
+        MiniscriptConfigWalletScreen(
+            uiState = previewState
+        )
     }
 }

@@ -9,11 +9,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 sealed class MiniscriptCustomTemplateEvent {
-    data class Success(val template: String) : MiniscriptCustomTemplateEvent()
+    data class Success(val template: String, val addressType: AddressType? = null) : MiniscriptCustomTemplateEvent()
     data class Error(val message: String) : MiniscriptCustomTemplateEvent()
+    data class ShowTaprootWarning(val template: String) : MiniscriptCustomTemplateEvent()
+    data object AddressTypeChangedToTaproot : MiniscriptCustomTemplateEvent()
 }
 
 @HiltViewModel
@@ -32,12 +35,31 @@ class MiniscriptCustomTemplateViewModel @Inject constructor(
                     addressType = addressType
                 )
             ).onSuccess { result ->
-                _event.value = MiniscriptCustomTemplateEvent.Success(result)
+                // Check if address type is not Taproot and the result is valid for Tapscript
+                if (addressType != AddressType.TAPROOT && result.isValidTapscript) {
+                    _event.value = MiniscriptCustomTemplateEvent.ShowTaprootWarning(result.template)
+                } else {
+                    _event.value = MiniscriptCustomTemplateEvent.Success(result.template)
+                }
             }.onFailure { e ->
                 _event.value =
                     MiniscriptCustomTemplateEvent.Error(e.message.orUnknownError())
             }
         }
+    }
+
+    fun continueWithCurrentAddressType(template: String) {
+        _event.value = MiniscriptCustomTemplateEvent.Success(template)
+    }
+
+    fun changeToTaprootAndContinue(template: String) {
+        // First show the success message for address type change
+        _event.value = MiniscriptCustomTemplateEvent.AddressTypeChangedToTaproot
+    }
+
+    fun proceedWithTaproot(template: String) {
+        Timber.tag("miniscript-feature").d("Proceeding with Taproot template: $template")
+        _event.value = MiniscriptCustomTemplateEvent.Success(template, AddressType.TAPROOT)
     }
 
     fun clearEvent() {
