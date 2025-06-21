@@ -52,6 +52,7 @@ import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.ChangeKeyTypeUseCase
 import com.nunchuk.android.usecase.CheckExistingKeyUseCase
 import com.nunchuk.android.usecase.CreatePassportSignersUseCase
@@ -63,6 +64,7 @@ import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -101,6 +103,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
     private val pushEventManager: PushEventManager,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
 ) : NunchukViewModel<Unit, AddAirgapSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
@@ -110,6 +113,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private var isMembershipFlow = false
     private var replacedXfp: String? = null
     private var walletId: String = ""
+    private var walletType = WalletType.MULTI_SIG
 
     private val _state = MutableStateFlow(AddAirgapSignerState())
     val uiState = _state.asStateFlow()
@@ -128,11 +132,25 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         this.isMembershipFlow = isMembershipFlow
         this.replacedXfp = replacedXfp
         this.walletId = walletId
+        if (walletId.isNotEmpty()) {
+            getWalletType(walletId)
+        }
     }
 
     private val _signers = mutableListOf<SingleSigner>()
     val signers: List<SingleSigner>
         get() = _signers
+
+    private fun getWalletType(walletId: String) = viewModelScope.launch {
+        getWalletDetail2UseCase(walletId)
+            .onSuccess { wallet ->
+                walletType = if (wallet.signers.size > 1) {
+                    WalletType.MULTI_SIG
+                } else {
+                    WalletType.SINGLE_SIG
+                }
+            }
+    }
 
     fun handleAddAirgapSigner(
         signerName: String,
@@ -192,7 +210,13 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                 setEvent(AddAirgapSignerEvent.XfpNotMatchException)
                 return@launch
             }
-            if (newIndex >= 0 && !signerInput.derivationPath.endsWith("${newIndex}h/2h")) {
+            val formatedDerivationPath = signerInput.derivationPath
+                .replace("'", "h")
+            if (newIndex >= 0 && walletType == WalletType.MULTI_SIG && !formatedDerivationPath.endsWith("${newIndex}h/2h")) {
+                setEvent(AddAirgapSignerEvent.NewIndexNotMatchException)
+                return@launch
+            }
+            if (newIndex >= 0 && walletType == WalletType.SINGLE_SIG && !formatedDerivationPath.endsWith("${newIndex}h")) {
                 setEvent(AddAirgapSignerEvent.NewIndexNotMatchException)
                 return@launch
             }
