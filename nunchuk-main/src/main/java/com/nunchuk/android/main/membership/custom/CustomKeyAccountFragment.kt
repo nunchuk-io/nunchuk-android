@@ -58,7 +58,6 @@ import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResult
@@ -72,7 +71,6 @@ import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener {
@@ -232,7 +230,7 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                                 navigator.openAddAirSignerScreenForResult(
                                     launcher = coldcardOrAirgapLauncher,
                                     activityContext = requireActivity(),
-                                    isMembershipFlow = true,
+                                    isMembershipFlow = !args.isFreeWallet,
                                     tag = tag,
                                     groupId = args.groupId.orEmpty(),
                                     xfp = args.signer.fingerPrint,
