@@ -200,6 +200,12 @@ fun TaprootConfigScreen(
                             style = NunchukTheme.typography.bodySmall,
                         )
 
+                        val walletTypeString = if (state.selectedSigners.size > 1) {
+                            stringResource(R.string.nc_wallet_multisig)
+                        } else {
+                            stringResource(R.string.nc_wallet_single_sig)
+                        }
+
                         Text(
                             modifier = Modifier
                                 .background(
@@ -207,11 +213,7 @@ fun TaprootConfigScreen(
                                     shape = RoundedCornerShape(20.dp)
                                 )
                                 .padding(horizontal = 10.dp, vertical = 4.dp),
-                            text = "${state.totalRequireSigns}/${state.selectedSigners.size} ${
-                                stringResource(
-                                    R.string.nc_multisig
-                                )
-                            }",
+                            text = "${state.totalRequireSigns}/${state.selectedSigners.size} $walletTypeString",
                             style = NunchukTheme.typography.caption,
                         )
                     }

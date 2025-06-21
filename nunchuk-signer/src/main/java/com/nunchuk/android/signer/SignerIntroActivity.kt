@@ -75,7 +75,8 @@ class SignerIntroActivity : BaseComposeActivity() {
             activityContext = this,
             isMembershipFlow = false,
             tag = tag,
-            groupId = groupId
+            groupId = groupId,
+            walletId = walletId,
         )
         finish()
     }
@@ -86,6 +87,7 @@ class SignerIntroActivity : BaseComposeActivity() {
             fromMembershipFlow = false,
             isFromAddKey = true,
             groupId = groupId,
+            walletId = walletId,
         )
         finish()
     }
