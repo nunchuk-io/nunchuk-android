@@ -38,6 +38,7 @@ import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.ConfigureWalletEvent
 import com.nunchuk.android.wallet.ConfigureWalletEvent.AssignSignerCompletedEvent
 import com.nunchuk.android.wallet.ConfigureWalletEvent.Loading
@@ -161,11 +162,12 @@ class ConfigureWalletActivity : BaseNfcActivity<ActivityConfigureWalletBinding>(
         totalRequireSigns: Int,
         signers: List<SingleSigner>,
     ) {
+        val walletType = if (signers.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
         navigator.openReviewWalletScreen(
             activityContext = this,
             args = ReviewWalletArgs(
                 walletName = args.walletName,
-                walletType = args.walletType,
+                walletType = walletType,
                 addressType = args.addressType,
                 decoyPin = args.decoyPin,
                 totalRequireSigns = totalRequireSigns,

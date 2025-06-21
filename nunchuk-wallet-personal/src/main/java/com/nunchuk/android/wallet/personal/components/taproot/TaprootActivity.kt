@@ -253,11 +253,12 @@ class TaprootActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListene
         totalRequireSigns: Int,
         signers: List<SingleSigner>,
     ) {
+        val walletType = if (viewModel.isSingleSig()) WalletType.SINGLE_SIG else WalletType.MULTI_SIG
         navigator.openReviewWalletScreen(
             activityContext = this,
             args = ReviewWalletArgs(
                 walletName = args.walletName,
-                walletType = args.walletType,
+                walletType = walletType,
                 addressType = args.addressType,
                 decoyPin = args.decoyPin,
                 totalRequireSigns = totalRequireSigns,
