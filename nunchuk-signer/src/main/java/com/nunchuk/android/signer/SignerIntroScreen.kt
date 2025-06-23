@@ -34,6 +34,7 @@ import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
@@ -292,11 +293,15 @@ fun SignerIntroScreenContentPreview() {
         supportedSigners = listOf(
             SupportedSigner(
                 type = SignerType.SOFTWARE,
-                tag = SignerTag.JADE
+                tag = SignerTag.JADE,
+                walletType = null,
+                addressType = AddressType.TAPROOT
             ),
             SupportedSigner(
                 type = SignerType.AIRGAP,
-                tag = SignerTag.JADE
+                tag = SignerTag.JADE,
+                walletType = null,
+                addressType = AddressType.TAPROOT
             ),
         )
     )

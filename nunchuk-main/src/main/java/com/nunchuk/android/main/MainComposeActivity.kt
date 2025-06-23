@@ -9,8 +9,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.archive.Archive
 import com.nunchuk.android.main.archive.archiveScreen
+import com.nunchuk.android.main.choosewallet.ChooseWalletToSend
+import com.nunchuk.android.main.choosewallet.chooseWalletToSendScreen
 import com.nunchuk.android.main.guest.GuestWalletNotice
 import com.nunchuk.android.main.guest.guestWalletNoticeScreen
 import com.nunchuk.android.nav.args.MainComposeArgs
@@ -31,6 +34,7 @@ class MainComposeActivity : BaseComposeActivity() {
             val startDestination: Any = when (args.type) {
                 MainComposeArgs.TYPE_ARCHIVE -> Archive
                 MainComposeArgs.TYPE_GUEST_WALLET_NOTICE -> GuestWalletNotice
+                MainComposeArgs.TYPE_CHOOSE_WALLET_TO_SEND -> ChooseWalletToSend
                 else -> throw IllegalArgumentException("Unknown type: ${args.type}")
             }
 
@@ -50,6 +54,20 @@ class MainComposeActivity : BaseComposeActivity() {
                     guestWalletNoticeScreen(onGotIt = {
                         finish()
                     })
+                    chooseWalletToSendScreen(
+                        onWalletSelected = { walletExtended ->
+                            navigator.openInputAmountScreen(
+                                activityContext = this@MainComposeActivity,
+                                walletId = walletExtended.wallet.id,
+                                availableAmount = walletExtended.wallet.balance.pureBTC(),
+                                btcUri = args.btcUri
+                            )
+                            finish()
+                        },
+                        onClose = {
+                            finish()
+                        }
+                    )
                 }
             }
         }

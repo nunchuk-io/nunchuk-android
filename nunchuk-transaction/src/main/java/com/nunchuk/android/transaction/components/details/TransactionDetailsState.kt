@@ -41,4 +41,5 @@ data class TransactionDetailsState(
     val isValueKeySetDisable: Boolean = false,
     val defaultKeySetIndex: Int = 0,
     val savedAddress: Map<String, String> = emptyMap(),
+    val hideFiatCurrency: Boolean = false,
 )

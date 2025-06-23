@@ -75,6 +75,13 @@ internal fun WalletConfigView(
     val isValueKeySetDisabled =
         state.walletExtended.wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH
     val totalRequireSigns = state.walletExtended.wallet.totalRequireSigns
+    val isMultisig = state.walletExtended.wallet.signers.size > 1
+    val requiredSignInfo = if (isMultisig) "${wallet.totalRequireSigns}/${wallet.signers.size} " else ""
+    val walletTypeString = if (isMultisig) {
+        stringResource(id = R.string.nc_wallet_multisig)
+    } else {
+        stringResource(id = R.string.nc_wallet_single_sig)
+    }
     NunchukTheme {
         NcScaffold(
             modifier = modifier.navigationBarsPadding(),
@@ -167,11 +174,7 @@ internal fun WalletConfigView(
                         ) {
                             Text(
                                 modifier = Modifier.padding(end = 8.dp),
-                                text = "${wallet.totalRequireSigns}/${wallet.signers.size} ${
-                                    stringResource(
-                                        R.string.nc_wallet_multisig
-                                    )
-                                }",
+                                text = "$requiredSignInfo$walletTypeString",
                                 style = NunchukTheme.typography.bodySmall
                                     .copy(color = colorResource(id = R.color.nc_white_color))
                             )

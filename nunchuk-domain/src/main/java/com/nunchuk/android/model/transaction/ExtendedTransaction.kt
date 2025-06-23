@@ -24,4 +24,5 @@ import com.nunchuk.android.model.Transaction
 data class ExtendedTransaction(
     val serverTransaction: ServerTransaction? = null,
     val transaction: Transaction,
+    val hideFiatCurrency: Boolean = false,
 )

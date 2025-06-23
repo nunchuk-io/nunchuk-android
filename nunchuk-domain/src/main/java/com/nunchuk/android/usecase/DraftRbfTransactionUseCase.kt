@@ -29,8 +29,18 @@ import javax.inject.Inject
 class DraftRbfTransactionUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val validateTransactionNotConfirmedUseCase: ValidateTransactionNotConfirmedUseCase,
 ) : UseCase<DraftRbfTransactionUseCase.Params, Transaction>(ioDispatcher) {
     override suspend fun execute(parameters: Params): Transaction {
+        if (parameters.isValidateTransactionNotConfirmed) {
+            // Validate that the transaction being replaced is not already confirmed
+            validateTransactionNotConfirmedUseCase(
+                ValidateTransactionNotConfirmedUseCase.Params(
+                    walletId = parameters.walletId,
+                    replaceTxId = parameters.replaceTxId
+                )
+            ).onFailure { exception -> throw exception }
+        }
         return nativeSdk.draftRbfTransaction(
             walletId = parameters.walletId,
             feeRate = parameters.feeRate,
@@ -42,5 +52,6 @@ class DraftRbfTransactionUseCase @Inject constructor(
         val walletId: String,
         val feeRate: Amount,
         val replaceTxId: String,
+        val isValidateTransactionNotConfirmed: Boolean = true,
     )
 } 

@@ -109,7 +109,7 @@ internal class BtcRepositoryImpl @Inject constructor(
         }
 
     override fun getLocalElectrumServers(): Flow<List<ElectrumServer>> {
-        return electrumServerDao.getLocalElectrumServers(chain.value)
+        return electrumServerDao.getLocalElectrumServers(Chain.MAIN)
             .map {
                 it.map { entity ->
                     ElectrumServer(
@@ -122,7 +122,7 @@ internal class BtcRepositoryImpl @Inject constructor(
     }
 
     override fun getRemoteElectrumServers(): Flow<List<ElectrumServer>> {
-        return electrumServerDao.getRemoteElectrumServers(chain.value)
+        return electrumServerDao.getRemoteElectrumServers(Chain.MAIN)
             .map {
                 it.map { entity ->
                     ElectrumServer(

@@ -344,9 +344,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                         && signatures.contains(it.masterFingerprint).not()
             }
             if (validSignatures.isEmpty()) {
-                getInteractSingleSigner()?.let {
-                    _event.emit(WalletAuthenticationEvent.SignFailed(it))
-                }
+                    _event.emit(WalletAuthenticationEvent.NoSignatureDetected)
                 return@launch
             }
             validSignatures.forEach {

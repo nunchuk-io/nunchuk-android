@@ -115,6 +115,8 @@ class InheritanceClaimInputViewModel @Inject constructor(
                 when (exception.code) {
                     400 -> _event.emit(InheritanceClaimInputEvent.SubscriptionExpired)
                     803 -> _event.emit(InheritanceClaimInputEvent.InActivated(result.exceptionOrNull()?.message.orUnknownError()))
+                    829 -> _event.emit(InheritanceClaimInputEvent.PleaseComeLater(result.exceptionOrNull()?.message.orUnknownError()))
+                    830 -> _event.emit(InheritanceClaimInputEvent.SecurityDepositRequired(result.exceptionOrNull()?.message.orUnknownError()))
                     else -> _event.emit(InheritanceClaimInputEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
                 }
             } else {

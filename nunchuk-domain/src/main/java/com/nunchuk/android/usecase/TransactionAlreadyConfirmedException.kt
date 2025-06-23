@@ -17,14 +17,6 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.app.splash
+package com.nunchuk.android.usecase
 
-sealed class SplashEvent {
-    data class NavSignInEvent(val askPin: Boolean, val askBiometric: Boolean) : SplashEvent()
-
-    data class NavHomeScreenEvent(val askPin: Boolean, val askBiometric: Boolean, val isGuestMode: Boolean) : SplashEvent()
-
-    data class InitErrorEvent(val error: String) : SplashEvent()
-    data object NavUnlockPinScreenEvent : SplashEvent()
-
-}
+class TransactionAlreadyConfirmedException : Exception("Cannot replace transaction. The original transaction has already been confirmed")

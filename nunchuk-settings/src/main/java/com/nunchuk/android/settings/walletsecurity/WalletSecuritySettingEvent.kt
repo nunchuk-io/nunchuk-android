@@ -40,4 +40,5 @@ sealed class WalletSecuritySettingEvent {
     data class Error(val message: String) : WalletSecuritySettingEvent()
     data object None : WalletSecuritySettingEvent()
     data object ShowBiometric : WalletSecuritySettingEvent()
+    data class RequestFederatedTokenSuccess(val email: String) : WalletSecuritySettingEvent()
 }

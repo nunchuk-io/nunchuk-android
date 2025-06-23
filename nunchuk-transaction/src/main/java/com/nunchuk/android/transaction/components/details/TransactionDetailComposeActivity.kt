@@ -31,6 +31,7 @@ import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
 import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.isConfirmed
 import com.nunchuk.android.core.util.isPending
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.openExternalLink
@@ -412,6 +413,10 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
     }
 
     private fun handleCancelTransaction() {
+        if (viewModel.getTransaction().status.isConfirmed()) {
+            NCToastMessage(this).showError("Cannot replace transaction. The original transaction has already been confirmed")
+            return
+        }
         if (viewModel.getTransaction().status.isPending()) {
             NCWarningDialog(this).showDialog(
                 title = getString(R.string.nc_text_confirmation),
@@ -518,7 +523,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         hideLoading()
         val state = viewModel.state.value
         if (state.addressType.isTaproot()) {
-            val round1Completed = state.transaction.keySetStatus.any { it.status != TransactionStatus.PENDING_NONCE && it.signerStatus.all { entry -> !entry.value } }
+            val round1Completed =
+                state.transaction.keySetStatus.any { it.status != TransactionStatus.PENDING_NONCE && it.signerStatus.all { entry -> !entry.value } }
             val readyToBroadcast = state.transaction.status == READY_TO_BROADCAST
             if (readyToBroadcast) {
                 NCToastMessage(this).show(getString(R.string.nc_transaction_ready_to_broadcast))

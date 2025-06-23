@@ -31,6 +31,8 @@ import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.core.domain.VerifyTapSignerBackupUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.usecase.GetDownloadBackUpKeyReplacementUseCase
+import com.nunchuk.android.usecase.GetDownloadBackUpKeyUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import com.nunchuk.android.utils.ChecksumUtil
@@ -40,6 +42,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -49,6 +52,8 @@ class CheckBackUpByAppViewModel @Inject constructor(
     private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
+    private val getDownloadBackUpKeyUseCase: GetDownloadBackUpKeyUseCase,
+    private val getDownloadBackUpKeyReplacementUseCase: GetDownloadBackUpKeyReplacementUseCase,
     savedStateHandle: SavedStateHandle,
     private val application: Application,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -63,15 +68,21 @@ class CheckBackUpByAppViewModel @Inject constructor(
     var errorMessage by mutableStateOf("")
         private set
 
-    var tryCount = 0
+    private var tryCount = 0
 
     fun onContinueClicked(groupId: String, masterSignerId: String) {
         viewModelScope.launch {
+            val newFile = downloadBackupKeyIfNeeded(
+                isReplaceKey = false,
+                masterSignerId = masterSignerId,
+                groupId = groupId,
+                walletId = ""
+            )
             val result =
                 verifyTapSignerBackupUseCase(
                     VerifyTapSignerBackupUseCase.Data(
                         masterSignerId = masterSignerId,
-                        backUpKey = args.filePath,
+                        backUpKey = newFile.path,
                         decryptionKey = decryptionKey
                     )
                 )
@@ -106,11 +117,18 @@ class CheckBackUpByAppViewModel @Inject constructor(
         walletId: String
     ) {
         viewModelScope.launch {
+            val newFile = downloadBackupKeyIfNeeded(
+                isReplaceKey = true,
+                groupId = groupId,
+                walletId = walletId,
+                masterSignerId = masterSignerId
+            )
+            val checkSum = getChecksum(newFile)
             val result =
                 verifyTapSignerBackupUseCase(
                     VerifyTapSignerBackupUseCase.Data(
                         masterSignerId = masterSignerId,
-                        backUpKey = args.filePath,
+                        backUpKey = newFile.path,
                         decryptionKey = decryptionKey
                     )
                 )
@@ -119,7 +137,7 @@ class CheckBackUpByAppViewModel @Inject constructor(
                     setReplaceKeyVerifiedUseCase(
                         SetReplaceKeyVerifiedUseCase.Param(
                             keyId = keyId,
-                            checkSum = getChecksum(),
+                            checkSum = checkSum,
                             isAppVerified = true,
                             groupId = groupId,
                             walletId = walletId
@@ -159,8 +177,43 @@ class CheckBackUpByAppViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getChecksum(): String = withContext(ioDispatcher) {
-        ChecksumUtil.getChecksum(File(args.filePath).readBytes())
+    private suspend fun getChecksum(file: File): String = withContext(ioDispatcher) {
+        ChecksumUtil.getChecksum(file.readBytes())
+    }
+
+    private suspend fun downloadBackupKeyIfNeeded(isReplaceKey: Boolean, masterSignerId: String, groupId: String, walletId: String): File {
+        return withContext(ioDispatcher) {
+            runCatching {
+                if (File(args.filePath).exists().not()) {
+                    throw Exception("File not found")
+                }
+            }.let {
+                if (it.isSuccess) {
+                    Timber.d("Using existing file: ${args.filePath}")
+                    File(args.filePath)
+                } else {
+                    Timber.d("File not found, downloading backup key")
+                    File(
+                        if (isReplaceKey.not()) {
+                            getDownloadBackUpKeyUseCase(
+                                GetDownloadBackUpKeyUseCase.Param(
+                                    xfp = masterSignerId,
+                                    groupId = groupId
+                                )
+                            ).getOrThrow()
+                        } else {
+                            getDownloadBackUpKeyReplacementUseCase(
+                                GetDownloadBackUpKeyReplacementUseCase.Param(
+                                    xfp = masterSignerId,
+                                    groupId = groupId,
+                                    walletId = walletId
+                                )
+                            ).getOrThrow()
+                        }
+                    )
+                }
+            }
+        }
     }
 
     fun onDecryptionKeyChange(value: String) {

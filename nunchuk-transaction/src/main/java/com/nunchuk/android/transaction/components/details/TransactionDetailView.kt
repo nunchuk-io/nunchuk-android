@@ -201,34 +201,38 @@ fun TransactionDetailView(
                         )
                     }
 
-                    items(outputs) { output ->
+                    itemsIndexed(outputs) { index, output ->
                         TransactionOutputItem(
                             savedAddresses = state.savedAddress,
                             output = output,
                             onCopyText = onCopyText,
+                            hideFiatCurrency = state.hideFiatCurrency
                         )
 
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.backgroundMidGray,
-                            thickness = 1.dp
-                        )
+                        if (!transaction.isReceive || index < outputs.lastIndex) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                color = MaterialTheme.colorScheme.backgroundMidGray,
+                                thickness = 1.dp
+                            )
+                        }
                     }
-
 
                     if (!transaction.isReceive) {
                         item {
                             TransactionEstimateFee(
                                 modifier = Modifier.padding(top = 24.dp),
                                 fee = transaction.fee,
-                                onShowFeeTooltip = onShowFeeTooltip
+                                onShowFeeTooltip = onShowFeeTooltip,
+                                hideFiatCurrency = state.hideFiatCurrency
                             )
                         }
 
                         item {
                             TransactionTotalAmount(
                                 modifier = Modifier.padding(top = 16.dp),
-                                total = transaction.totalAmount
+                                total = transaction.totalAmount,
+                                hideFiatCurrency = state.hideFiatCurrency
                             )
                         }
                     }
@@ -265,7 +269,8 @@ fun TransactionDetailView(
                             ChangeAddressView(
                                 txOutput = transaction.outputs[transaction.changeIndex],
                                 output = changeCoin,
-                                tags = state.tags
+                                tags = state.tags,
+                                hideFiatCurrency = state.hideFiatCurrency
                             )
                         }
                     }
@@ -273,7 +278,7 @@ fun TransactionDetailView(
                     item {
                         Box(
                             modifier = Modifier
-                                .padding(top = 16.dp)
+                                .padding(top = if (transaction.isReceive) 0.dp else 16.dp)
                                 .fillMaxWidth()
                                 .background(color = MaterialTheme.colorScheme.backgroundMidGray)
                                 .padding(16.dp)
@@ -699,7 +704,8 @@ private fun TransactionHeader(
 private fun TransactionEstimateFee(
     modifier: Modifier = Modifier,
     fee: Amount,
-    onShowFeeTooltip: () -> Unit
+    onShowFeeTooltip: () -> Unit,
+    hideFiatCurrency: Boolean = false
 ) {
     Row(
         modifier = modifier
@@ -708,28 +714,21 @@ private fun TransactionEstimateFee(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = stringResource(R.string.nc_transaction_estimate_fee),
+            text = stringResource(R.string.nc_fee),
             style = NunchukTheme.typography.body,
-        )
-
-        NcIcon(
-            painter = painterResource(id = R.drawable.ic_help),
-            contentDescription = "Info",
-            modifier = Modifier
-                .padding(start = 4.dp)
-                .clickable(onClick = onShowFeeTooltip),
         )
 
         Spacer(modifier = Modifier.weight(1f))
 
-        AmountView(fee)
+        AmountView(fee, hideFiatCurrency)
     }
 }
 
 @Composable
 private fun TransactionTotalAmount(
     modifier: Modifier = Modifier,
-    total: Amount
+    total: Amount,
+    hideFiatCurrency: Boolean = false
 ) {
     Row(
         modifier = modifier
@@ -743,7 +742,7 @@ private fun TransactionTotalAmount(
             modifier = Modifier.weight(1f),
         )
 
-        AmountView(total)
+        AmountView(total, hideFiatCurrency)
     }
 }
 
@@ -752,7 +751,8 @@ private fun ChangeAddressView(
     modifier: Modifier = Modifier,
     txOutput: TxOutput,
     output: UnspentOutput?,
-    tags: Map<Int, CoinTag>
+    tags: Map<Int, CoinTag>,
+    hideFiatCurrency: Boolean = false
 ) {
     Column(
         modifier = modifier
@@ -768,10 +768,10 @@ private fun ChangeAddressView(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp),
-                style = NunchukTheme.typography.body,
+                style = NunchukTheme.typography.title,
             )
 
-            AmountView(txOutput.second)
+            AmountView(txOutput.second, hideFiatCurrency)
         }
 
         if (output != null && output.tags.isNotEmpty()) {
@@ -788,6 +788,7 @@ private fun TransactionOutputItem(
     savedAddresses: Map<String, String>,
     output: TxOutput,
     onCopyText: (String) -> Unit,
+    hideFiatCurrency: Boolean = false
 ) {
     Column(
         Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
@@ -814,6 +815,7 @@ private fun TransactionOutputItem(
         TransactionOutputItem(
             output = output,
             onCopyText = onCopyText,
+            hideFiatCurrency = hideFiatCurrency
         )
     }
 }
@@ -822,6 +824,7 @@ private fun TransactionOutputItem(
 private fun TransactionOutputItem(
     output: TxOutput,
     onCopyText: (String) -> Unit,
+    hideFiatCurrency: Boolean = false
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -836,12 +839,12 @@ private fun TransactionOutputItem(
             style = NunchukTheme.typography.title,
         )
 
-        AmountView(output.second)
+        AmountView(output.second, hideFiatCurrency)
     }
 }
 
 @Composable
-private fun AmountView(amount: Amount) {
+private fun AmountView(amount: Amount, hideFiatCurrency: Boolean = false) {
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -850,10 +853,12 @@ private fun AmountView(amount: Amount) {
             style = NunchukTheme.typography.title,
         )
 
-        Text(
-            text = amount.getCurrencyAmount(),
-            style = NunchukTheme.typography.bodySmall,
-        )
+        if (!hideFiatCurrency) {
+            Text(
+                text = amount.getCurrencyAmount(),
+                style = NunchukTheme.typography.bodySmall,
+            )
+        }
     }
 }
 

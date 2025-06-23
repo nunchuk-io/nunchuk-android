@@ -54,4 +54,5 @@
     <string name="nc_value_keyset_hit">Some worry quantum computers could crack the Value Keyset’s cryptography, but experts see that threat as remote. If you’d rather be cautious, disable the Value Keyset.</string>
     <string name="nc_enable_value_keyset">Enable Value Keyset</string>
     <string name="nc_disable_value_keyset">Disable Value Keyset</string>
+    <string name="nc_error_not_supported_signer">The selected key (%1$s) doesn’t support this wallet type. Please choose a compatible key.</string>
 </resources>

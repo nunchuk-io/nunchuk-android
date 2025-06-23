@@ -136,6 +136,7 @@ interface PremiumWalletRepository {
     ): BackupKey
 
     suspend fun verifiedPasswordToken(targetAction: String, password: String): String?
+    suspend fun requestFederatedToken(targetAction: String)
     suspend fun verifiedPKeyToken(targetAction: String, address: String, signature: String): String?
     suspend fun calculateRequiredSignaturesSecurityQuestions(
         walletId: String,

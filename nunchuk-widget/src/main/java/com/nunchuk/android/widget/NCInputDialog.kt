@@ -34,12 +34,14 @@ class NCInputDialog @Inject constructor(private val context: Context) {
     fun showDialog(
         title: String,
         confirmText: String = context.getString(R.string.nc_text_confirm),
+        inputBoxTitle: String = "",
         onConfirmed: (String) -> Unit = {},
         onCanceled: () -> Unit = {},
         isMaskedInput: Boolean = true,
         errorMessage: String? = null,
         descMessage: String? = null,
-        inputType: Int = TEXT_TYPE
+        inputType: Int = TEXT_TYPE,
+        clickablePhrases: List<Pair<String, () -> Unit>> = emptyList()
     ) = Dialog(context).apply {
         window?.setBackgroundDrawableResource(android.R.color.transparent)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -62,7 +64,30 @@ class NCInputDialog @Inject constructor(private val context: Context) {
             binding.message.makeMaskedInput()
         }
         binding.tvDesc.isVisible = descMessage.isNullOrEmpty().not()
-        binding.tvDesc.text = descMessage
+        binding.tvInputBoxTitle.isVisible = clickablePhrases.isNotEmpty() && inputBoxTitle.isEmpty().not()
+        if (!descMessage.isNullOrEmpty() && clickablePhrases.isNotEmpty()) {
+            val spannable = android.text.SpannableString(descMessage)
+            clickablePhrases.forEach { (phrase, callback) ->
+                var start = descMessage.indexOf(phrase)
+                while (start >= 0) {
+                    val end = start + phrase.length
+                    val boldSpan = android.text.style.StyleSpan(android.graphics.Typeface.BOLD)
+                    spannable.setSpan(boldSpan, start, end, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    val clickableSpan = object : android.text.style.ClickableSpan() {
+                        override fun onClick(widget: android.view.View) {
+                            callback()
+                        }
+                    }
+                    spannable.setSpan(clickableSpan, start, end, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    start = descMessage.indexOf(phrase, end)
+                }
+            }
+            binding.tvDesc.text = spannable
+            binding.tvDesc.movementMethod = android.text.method.LinkMovementMethod.getInstance()
+            binding.tvDesc.highlightColor = android.graphics.Color.TRANSPARENT
+        } else {
+            binding.tvDesc.text = descMessage
+        }
         if (!errorMessage.isNullOrEmpty()) {
             binding.message.setError(errorMessage)
         } else {

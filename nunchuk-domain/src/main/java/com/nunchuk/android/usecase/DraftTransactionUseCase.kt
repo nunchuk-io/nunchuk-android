@@ -29,9 +29,18 @@ import javax.inject.Inject
 
 class DraftTransactionUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
+    private val validateTransactionNotConfirmedUseCase: ValidateTransactionNotConfirmedUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UseCase<DraftTransactionUseCase.Params, Transaction>(ioDispatcher) {
     override suspend fun execute(parameters: Params): Transaction {
+        // Validate that the transaction being replaced is not already confirmed
+        validateTransactionNotConfirmedUseCase(
+            ValidateTransactionNotConfirmedUseCase.Params(
+                walletId = parameters.walletId,
+                replaceTxId = parameters.replaceTxId
+            )
+        ).onFailure { exception -> throw exception }
+        
         return nativeSdk.draftTransaction(
             walletId = parameters.walletId,
             outputs = parameters.outputs,

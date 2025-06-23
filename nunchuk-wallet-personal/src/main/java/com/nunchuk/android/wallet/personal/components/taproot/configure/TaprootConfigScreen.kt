@@ -19,11 +19,15 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -36,6 +40,8 @@ import androidx.navigation.compose.composable
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
+import com.nunchuk.android.compose.NcSnackbarVisuals
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
@@ -44,9 +50,12 @@ import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.ConfigureWalletState
 import com.nunchuk.android.wallet.ConfigureWalletViewModel
 import com.nunchuk.android.wallet.personal.R
+import kotlinx.coroutines.launch
 
 const val TaprootConfigScreenRoute = "taproot_config_screen"
 
@@ -57,7 +66,7 @@ fun NavGraphBuilder.taprootConfigScreen(
     onContinue: () -> Unit,
     onSelectSigner: (SignerModel, Boolean) -> Unit,
     onEditPath: (SignerModel) -> Unit,
-    onToggleShowPath : () -> Unit,
+    onToggleShowPath: () -> Unit,
 ) {
     composable(TaprootConfigScreenRoute) {
         val state by viewModel.state.collectAsStateWithLifecycle()
@@ -93,15 +102,25 @@ fun TaprootConfigScreen(
     onUpdateRequiredKey: (Boolean) -> Unit = {},
     onToggleShowPath: () -> Unit = {},
 ) {
-    val partition = state.allSigners.partition { signer ->
-        state.supportedSigners.any { supportedSigner ->
-            supportedSigner.type == signer.type
-                    && (supportedSigner.tag == null || signer.tags.contains(supportedSigner.tag))
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val walletType =
+        if (state.selectedSigners.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
+    val partition =
+        remember(state.allSigners, state.supportedSigners, state.selectedSigners, walletType) {
+            state.allSigners.partition { signer ->
+                state.selectedSigners.contains(signer) || isSupportedSigner(
+                    state.supportedSigners,
+                    signer,
+                    walletType
+                )
+            }
         }
-    }
     NunchukTheme {
         NcScaffold(
             modifier = modifier.systemBarsPadding(),
+            snackState = snackbarHostState,
             topBar = {
                 NcTopAppBar(
                     title = stringResource(R.string.nc_wallet_configure_title),
@@ -181,6 +200,12 @@ fun TaprootConfigScreen(
                             style = NunchukTheme.typography.bodySmall,
                         )
 
+                        val walletTypeString = if (state.selectedSigners.size > 1) {
+                            stringResource(R.string.nc_wallet_multisig)
+                        } else {
+                            stringResource(R.string.nc_wallet_single_sig)
+                        }
+
                         Text(
                             modifier = Modifier
                                 .background(
@@ -188,11 +213,7 @@ fun TaprootConfigScreen(
                                     shape = RoundedCornerShape(20.dp)
                                 )
                                 .padding(horizontal = 10.dp, vertical = 4.dp),
-                            text = "${state.totalRequireSigns}/${state.selectedSigners.size} ${
-                                stringResource(
-                                    R.string.nc_multisig
-                                )
-                            }",
+                            text = "${state.totalRequireSigns}/${state.selectedSigners.size} $walletTypeString",
                             style = NunchukTheme.typography.caption,
                         )
                     }
@@ -201,7 +222,26 @@ fun TaprootConfigScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
                         enabled = state.selectedSigners.isNotEmpty(),
-                        onClick = onContinue,
+                        onClick = {
+                            val invalidSigner = state.selectedSigners.find { signer ->
+                                !isSupportedSigner(state.supportedSigners, signer, walletType)
+                            }
+                            if (invalidSigner != null) {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        NcSnackbarVisuals(
+                                            type = NcToastType.ERROR,
+                                            message = context.getString(
+                                                R.string.nc_error_not_supported_signer,
+                                                invalidSigner.getXfpOrCardIdLabel()
+                                            ),
+                                        )
+                                    )
+                                }
+                            } else {
+                                onContinue()
+                            }
+                        },
                     ) {
                         Text(text = stringResource(R.string.nc_text_continue))
                     }
@@ -266,6 +306,16 @@ fun TaprootConfigScreen(
             }
         }
     }
+}
+
+private fun isSupportedSigner(
+    supportedSigners: List<SupportedSigner>,
+    signer: SignerModel,
+    walletType: WalletType
+) = supportedSigners.isEmpty() || supportedSigners.any { supportedSigner ->
+    supportedSigner.type == signer.type
+            && (supportedSigner.tag == null || signer.tags.contains(supportedSigner.tag))
+            && (supportedSigner.walletType == null || supportedSigner.walletType == walletType)
 }
 
 @Composable

@@ -26,6 +26,7 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.constants.Constants
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
@@ -351,9 +352,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             btnYes = getString(R.string.nc_take_me_there),
             btnInfo = getString(R.string.nc_text_got_it),
             onYesClick = {
-                val link =
-                    if (BuildConfig.DEBUG) "https://stg-www.nunchuk.io/claim" else "https://www.nunchuk.io/claim"
-                requireActivity().openExternalLink(link)
+                requireActivity().openExternalLink(Constants.CLAIM_URL)
             }
         )
     }

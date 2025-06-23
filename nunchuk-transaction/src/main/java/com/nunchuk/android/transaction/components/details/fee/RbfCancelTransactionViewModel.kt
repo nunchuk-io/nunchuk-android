@@ -34,7 +34,8 @@ class RbfCancelTransactionViewModel @Inject constructor(
     private val walletId = savedStateHandle.get<String>(ReplaceFeeArgs.EXTRA_WALLET_ID).orEmpty()
     private val oldTx = savedStateHandle.get<Transaction>(ReplaceFeeArgs.EXTRA_TRANSACTION)!!
 
-    private val _state = MutableStateFlow(RbfCancelTransactionUiState(previousFeeRate = oldTx.feeRate.value.toInt()))
+    private val _state =
+        MutableStateFlow(RbfCancelTransactionUiState(previousFeeRate = oldTx.feeRate.value.toInt()))
     val state = _state.asStateFlow()
 
     private val _event = MutableSharedFlow<ReplaceFeeEvent>()

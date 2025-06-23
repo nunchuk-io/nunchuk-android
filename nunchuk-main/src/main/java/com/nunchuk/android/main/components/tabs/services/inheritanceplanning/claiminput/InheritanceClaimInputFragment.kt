@@ -23,7 +23,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -61,10 +60,13 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.constants.Constants
 import com.nunchuk.android.core.util.countWords
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -114,6 +116,8 @@ class InheritanceClaimInputFragment : Fragment() {
                 is InheritanceClaimInputEvent.Loading -> showOrHideLoading(loading = event.isLoading)
                 is InheritanceClaimInputEvent.SubscriptionExpired -> showSubscriptionExpiredDialog()
                 is InheritanceClaimInputEvent.InActivated -> showInActivatedDialog(event.message)
+                is InheritanceClaimInputEvent.PleaseComeLater -> showPleaseComeLaterDialog(event.message)
+                is InheritanceClaimInputEvent.SecurityDepositRequired -> showSecurityDepositRequiredDialog(event.message)
             }
         }
     }
@@ -124,13 +128,34 @@ class InheritanceClaimInputFragment : Fragment() {
             btnYes = getString(R.string.nc_take_me_reactivate_plan),
             btnInfo = getString(R.string.nc_text_do_this_later),
             onYesClick = {
-                requireActivity().finish()
+                val link =
+                requireActivity().openExternalLink(Constants.CLAIM_URL)
             }
         )
     }
 
     private fun showInActivatedDialog(message: String) {
         NCInfoDialog(requireActivity()).showDialog(message = message)
+    }
+
+    private fun showPleaseComeLaterDialog(message: String) {
+        NCInfoDialog(requireActivity()).showDialog(
+            title = getString(R.string.nc_please_come_back_later),
+            message = message,
+            btnYes = getString(R.string.nc_text_got_it)
+        )
+    }
+
+    private fun showSecurityDepositRequiredDialog(message: String) {
+        NCInfoDialog(requireActivity()).showDialog(
+            title = getString(R.string.nc_security_deposit_required),
+            message = message,
+            btnYes = getString(R.string.nc_go_to_website_to_deposit),
+            btnInfo = getString(R.string.nc_text_got_it),
+            onYesClick = {
+                requireActivity().openExternalLink(Constants.CLAIM_URL)
+            }
+        )
     }
 }
 

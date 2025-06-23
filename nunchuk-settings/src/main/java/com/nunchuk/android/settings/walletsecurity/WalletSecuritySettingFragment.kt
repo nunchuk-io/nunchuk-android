@@ -54,6 +54,9 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
 
     private val viewModel: WalletSecuritySettingViewModel by viewModels()
 
+    // Add variable to track biometric operation intent
+    private var isTurningOnBiometric = true
+
     private val enrollLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
 
@@ -91,22 +94,35 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                 biometricPromptManager.promptResults.collect { result ->
                     when (result) {
                         is BiometricPromptManager.BiometricResult.AuthenticationSuccess -> {
-                            NCInputDialog(requireContext()).showDialog(
-                                title = getString(R.string.nc_re_enter_your_password),
-                                descMessage = getString(R.string.nc_confirm_use_biometric_sign_in),
-                                onConfirmed = {
-                                    viewModel.registerBiometric(it)
-                                },
-                                onCanceled = {
-                                    viewModel.updateProtectWalletBiometric(false)
-                                }
-                            )
+                            if (isTurningOnBiometric) {
+                                viewModel.requestFederatedToken(false)
+                            } else {
+                                // Authentication successful, turn off biometric protection
+                                viewModel.updateProtectWalletBiometric(false)
+                            }
                         }
                         is BiometricPromptManager.BiometricResult.AuthenticationError -> {
-                            viewModel.updateProtectWalletBiometric(false)
-                            NCToastMessage(requireActivity()).showError(message = result.error)
+                            if (isTurningOnBiometric) {
+                                viewModel.updateProtectWalletBiometric(false)
+                                NCToastMessage(requireActivity()).showError(message = result.error)
+                            } else {
+                                // Authentication failed, keep biometric option on
+                                binding.protectWalletFingerprintOption.setOptionChecked(true)
+                                NCToastMessage(requireActivity()).showError(message = result.error)
+                            }
                         }
-                        else -> {}
+                        is BiometricPromptManager.BiometricResult.AuthenticationFailed -> {
+                            if (!isTurningOnBiometric) {
+                                // Authentication failed, keep biometric option on
+                                binding.protectWalletFingerprintOption.setOptionChecked(true)
+                            }
+                        }
+                        else -> {
+                            if (!isTurningOnBiometric) {
+                                // Any other result (like cancelled), keep biometric option on
+                                binding.protectWalletFingerprintOption.setOptionChecked(true)
+                            }
+                        }
                     }
                 }
             }
@@ -178,6 +194,29 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
             WalletSecuritySettingEvent.ShowBiometric -> {
                 biometricPromptManager.showBiometricPrompt()
             }
+
+            is WalletSecuritySettingEvent.RequestFederatedTokenSuccess -> {
+                NCInputDialog(requireContext()).showDialog(
+                    title = getString(R.string.nc_enter_confirmation_code),
+                    descMessage = String.format(
+                        getString(R.string.nc_enter_confirmation_code_desc),
+                        event.email
+                    ),
+                    inputBoxTitle = getString(R.string.nc_confirmation_code),
+                    clickablePhrases = listOf(
+                        "Resend code" to {
+                            viewModel.requestFederatedToken(true)
+                        },
+                    ),
+                    confirmText = getString(R.string.nc_text_continue),
+                    onConfirmed = {
+                        viewModel.registerBiometric(it)
+                    },
+                    onCanceled = {
+                        viewModel.updateProtectWalletBiometric(false)
+                    }
+                )
+            }
         }
         viewModel.clearEvent()
     }
@@ -238,6 +277,7 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         }
         binding.protectWalletFingerprintOption.setOptionChangeListener {
             if (it) {
+                isTurningOnBiometric = true
                 if (biometricPromptManager.checkDeviceHasBiometricEnrolled().not()) {
                     NCWarningVerticalDialog(requireActivity()).showDialog(
                         title = getString(R.string.nc_fingerprint_not_set_up_yet),
@@ -269,8 +309,8 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
                     }
                 )
             } else {
-                binding.protectWalletFingerprintOption.setOptionChecked(false)
-                viewModel.updateProtectWalletBiometric(false)
+                isTurningOnBiometric = false
+                biometricPromptManager.showBiometricPrompt()
             }
         }
     }

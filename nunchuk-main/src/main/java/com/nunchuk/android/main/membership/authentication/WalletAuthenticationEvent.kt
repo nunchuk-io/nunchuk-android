@@ -55,6 +55,7 @@ sealed class WalletAuthenticationEvent {
     data object PromptPassphrase : WalletAuthenticationEvent()
     data object NoInternetConnectionToSign : WalletAuthenticationEvent()
     data object NoInternetConnectionForceSync : WalletAuthenticationEvent()
+    data object NoSignatureDetected : WalletAuthenticationEvent()
 }
 
 data class WalletAuthenticationState(

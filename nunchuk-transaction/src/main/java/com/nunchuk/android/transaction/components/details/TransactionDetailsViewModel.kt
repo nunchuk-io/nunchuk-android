@@ -418,7 +418,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         addressType = wallet.wallet.addressType,
-                        isValueKeySetDisable = wallet.wallet.isValueKeySetDisable
+                        isValueKeySetDisable = wallet.wallet.isValueKeySetDisable,
+                        hideFiatCurrency = assistedWalletManager.getBriefWallet(walletId)?.hideFiatCurrency
+                            ?: false,
                     )
                 }
                 if (wallet.wallet.walletTemplate != WalletTemplate.DISABLE_KEY_PATH && wallet.wallet.addressType.isTaproot()) {

@@ -27,6 +27,8 @@ sealed class InheritanceClaimInputEvent {
     data class Error(val message: String) : InheritanceClaimInputEvent()
     data object SubscriptionExpired : InheritanceClaimInputEvent()
     data class InActivated(val message: String) : InheritanceClaimInputEvent()
+    data class PleaseComeLater(val message: String) : InheritanceClaimInputEvent()
+    data class SecurityDepositRequired(val message: String) : InheritanceClaimInputEvent()
     data class GetInheritanceStatusSuccess(
         val inheritanceAdditional: InheritanceAdditional,
         val signers: List<SignerModel>,

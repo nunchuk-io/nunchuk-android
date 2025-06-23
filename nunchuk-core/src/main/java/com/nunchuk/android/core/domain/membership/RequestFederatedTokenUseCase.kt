@@ -17,41 +17,23 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android
+package com.nunchuk.android.core.domain.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
-import com.nunchuk.android.usecase.ValidateTransactionNotConfirmedUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class ReplaceTransactionUseCase @Inject constructor(
+class RequestFederatedTokenUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
-    private val nativeSdk: NunchukNativeSdk,
-    private val validateTransactionNotConfirmedUseCase: ValidateTransactionNotConfirmedUseCase,
-) : UseCase<ReplaceTransactionUseCase.Data, Transaction>(dispatcher) {
-
-    override suspend fun execute(parameters: Data): Transaction {
-        // Validate that the transaction being replaced is not already confirmed
-        validateTransactionNotConfirmedUseCase(
-            ValidateTransactionNotConfirmedUseCase.Params(
-                walletId = parameters.walletId,
-                replaceTxId = parameters.txId
-            )
-        ).onFailure { exception -> throw exception }
-        return nativeSdk.replaceTransaction(
-            parameters.walletId,
-            parameters.txId,
-            Amount(value = parameters.newFee.toLong()),
-            antiFeeSniping = parameters.antiFeeSniping
+    private val userWalletsRepository: PremiumWalletRepository,
+) : UseCase<RequestFederatedTokenUseCase.Param, Unit>(dispatcher) {
+    override suspend fun execute(parameters: Param) {
+        return userWalletsRepository.requestFederatedToken(
+            targetAction = parameters.targetAction,
         )
     }
 
-    data class Data(
-        val groupId: String?, val walletId: String, val txId: String, val newFee: Int,
-        val antiFeeSniping: Boolean,
-    )
+    class Param(val targetAction: String)
 }

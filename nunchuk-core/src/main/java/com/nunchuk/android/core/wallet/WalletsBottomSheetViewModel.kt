@@ -179,16 +179,6 @@ class WalletsBottomSheetViewModel @Inject constructor(
     }
 }
 
-data class WalletUiModel(
-    val wallet: WalletExtended,
-    val assistedWallet: AssistedWalletBrief?,
-    val isAssistedWallet: Boolean,
-    val group: ByzantineGroup?,
-    val role: AssistedWalletRole,
-    val walletStatus: String,
-    val isGroupWallet: Boolean = false
-)
-
 data class WalletsBottomSheetState(
     val wallets: List<WalletExtended> = emptyList(),
     val assistedWallets: Map<String, AssistedWalletBrief> = hashMapOf(),

@@ -28,9 +28,7 @@ import androidx.activity.viewModels
 import androidx.annotation.IdRes
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.badge.BadgeDrawable
@@ -45,6 +43,8 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.util.AppEvenBus
 import com.nunchuk.android.core.util.AppEvent
 import com.nunchuk.android.core.util.AppEventListener
+import com.nunchuk.android.core.util.DeeplinkHolder
+import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.main.components.tabs.wallet.WalletsViewModel
 import com.nunchuk.android.main.databinding.ActivityMainBinding
@@ -53,12 +53,15 @@ import com.nunchuk.android.messages.components.list.RoomMessage
 import com.nunchuk.android.messages.components.list.RoomsState
 import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.messages.components.list.shouldShow
+import com.nunchuk.android.nav.args.MainComposeArgs
 import com.nunchuk.android.notifications.PushNotificationHelper
 import com.nunchuk.android.signer.signer.SignersViewModel
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -70,6 +73,9 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
 
     @Inject
     lateinit var sessionHolder: SessionHolder
+
+    @Inject
+    lateinit var deeplinkHolder: DeeplinkHolder
 
     private lateinit var navController: NavController
 
@@ -138,18 +144,12 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         AppEvenBus.instance.subscribe(appEventListener)
         viewModel.checkAppUpdateRecommend(false)
         syncInfoViewModel.init()
-        walletViewModel.joinGroupWallet()
 
         messages.forEachIndexed { index, message ->
             NCToastMessage(this).showMessage(
                 message = message, dismissTime = (index + 1) * DISMISS_TIME
             )
         }
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        walletViewModel.joinGroupWallet()
     }
 
     override fun onDestroy() {
@@ -180,17 +180,29 @@ class MainActivity : BaseNfcActivity<ActivityMainBinding>() {
         viewModel.event.observe(this, ::handleEvent)
         syncRoomViewModel.event.observe(this, ::handleEvent)
         roomViewModel.state.observe(this, ::handleRoomState)
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                signersViewModel.uiState.collect { handleKeyBadge(it.hotKeyCount) }
-            }
+        flowObserver(signersViewModel.uiState) {
+            handleKeyBadge(it.hotKeyCount)
+        }
+        flowObserver(
+            deeplinkHolder.btcUri.filterNotNull().distinctUntilChanged()
+        ) {
+            navigator.openMainComposeScreen(
+                activity = this@MainActivity,
+                args = MainComposeArgs(
+                    type = MainComposeArgs.TYPE_CHOOSE_WALLET_TO_SEND,
+                    btcUri = it,
+                ),
+            )
+            deeplinkHolder.clearBtcUri()
         }
     }
 
     private fun handleRoomState(state: RoomsState) {
         val roomCount =
-            state.rooms.filterIsInstance<RoomMessage.MatrixRoom>().map { it.data }.sumOf { if (it.shouldShow() && it.hasUnreadMessages) it.notificationCount else 0 }
-        val groupWalletCount = state.rooms.filterIsInstance<RoomMessage.GroupWalletRoom>().sumOf { it.data.unreadCount }
+            state.rooms.filterIsInstance<RoomMessage.MatrixRoom>().map { it.data }
+                .sumOf { if (it.shouldShow() && it.hasUnreadMessages) it.notificationCount else 0 }
+        val groupWalletCount = state.rooms.filterIsInstance<RoomMessage.GroupWalletRoom>()
+            .sumOf { it.data.unreadCount }
         val count = roomCount + groupWalletCount
         messageBadge.apply {
             isVisible = count > 0

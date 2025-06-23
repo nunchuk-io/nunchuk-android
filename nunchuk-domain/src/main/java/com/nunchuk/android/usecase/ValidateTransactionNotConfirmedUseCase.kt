@@ -17,41 +17,38 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android
+package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.usecase.UseCase
-import com.nunchuk.android.usecase.ValidateTransactionNotConfirmedUseCase
+import com.nunchuk.android.type.TransactionStatus
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class ReplaceTransactionUseCase @Inject constructor(
+class ValidateTransactionNotConfirmedUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
-    private val nativeSdk: NunchukNativeSdk,
-    private val validateTransactionNotConfirmedUseCase: ValidateTransactionNotConfirmedUseCase,
-) : UseCase<ReplaceTransactionUseCase.Data, Transaction>(dispatcher) {
+    private val nativeSdk: NunchukNativeSdk
+) : UseCase<ValidateTransactionNotConfirmedUseCase.Params, Unit>(dispatcher) {
 
-    override suspend fun execute(parameters: Data): Transaction {
-        // Validate that the transaction being replaced is not already confirmed
-        validateTransactionNotConfirmedUseCase(
-            ValidateTransactionNotConfirmedUseCase.Params(
-                walletId = parameters.walletId,
-                replaceTxId = parameters.txId
-            )
-        ).onFailure { exception -> throw exception }
-        return nativeSdk.replaceTransaction(
-            parameters.walletId,
-            parameters.txId,
-            Amount(value = parameters.newFee.toLong()),
-            antiFeeSniping = parameters.antiFeeSniping
-        )
+    override suspend fun execute(parameters: Params) {
+        // Only validate if replaceTxId is provided
+        if (parameters.replaceTxId.isNotEmpty()) {
+            try {
+                val tx = nativeSdk.getTransaction(parameters.walletId, parameters.replaceTxId)
+                if (tx.status == TransactionStatus.CONFIRMED) {
+                    throw TransactionAlreadyConfirmedException()
+                }
+            } catch (e: TransactionAlreadyConfirmedException) {
+                // Re-throw our specific exception
+                throw e
+            } catch (e: Exception) {
+                // Only silently ignore if it's a transaction not found error
+            }
+        }
     }
 
-    data class Data(
-        val groupId: String?, val walletId: String, val txId: String, val newFee: Int,
-        val antiFeeSniping: Boolean,
+    data class Params(
+        val walletId: String,
+        val replaceTxId: String
     )
-}
+} 

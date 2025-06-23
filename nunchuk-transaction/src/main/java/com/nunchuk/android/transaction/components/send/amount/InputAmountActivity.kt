@@ -26,7 +26,6 @@ import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.DialogFragment
-import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
@@ -56,6 +55,7 @@ import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.BtcUri
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.AcceptAmountEvent
@@ -72,8 +72,6 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
 import kotlin.math.abs
 
 @AndroidEntryPoint
@@ -96,9 +94,12 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         super.onCreate(savedInstanceState)
 
         setLightStatusBar()
+        viewModel.init(args.availableAmount, args.walletId, args.inputs.isNotEmpty())
+        args.btcUri?.let { btcUri ->
+            viewModel.updateBtcUri(btcUri)
+        }
         setupViews()
         observeEvent()
-        viewModel.init(args.availableAmount, args.walletId, args.inputs.isNotEmpty())
     }
 
     private fun observeEvent() {
@@ -157,8 +158,9 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                 resources.displayMetrics.widthPixels - resources.getDimensionPixelSize(R.dimen.nc_padding_16) * 3 - it.measuredWidth
             binding.tvMainCurrency.maxWidth = tvWidth
         }
+        args.btcUri?.let { binding.mainCurrency.setText(it.amount.getBTCAmount()) }
         flowObserver(
-            binding.mainCurrency.textChanges().stateIn(lifecycleScope, SharingStarted.Eagerly, "")
+            binding.mainCurrency.textChanges()
         ) { text ->
             binding.tvMainCurrency.text = text
             viewModel.handleAmountChanged(text)
@@ -203,7 +205,10 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             subtractFeeFromAmount = true,
             slots = emptyList(),
             sweepType = sweepType,
-            claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(customAmount = amount, isUseWallet = false)
+            claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(
+                customAmount = amount,
+                isUseWallet = false
+            )
         )
     }
 
@@ -285,7 +290,10 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                         activityContext = this,
                         slots = emptyList(),
                         type = SelectWalletType.TYPE_INHERITANCE_WALLET,
-                        claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(customAmount = viewModel.getAmountBtc(), isUseWallet = true)
+                        claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(
+                            customAmount = viewModel.getAmountBtc(),
+                            isUseWallet = true
+                        )
                     )
                 } else {
                     navigator.openWalletIntermediaryScreen(
@@ -348,7 +356,8 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             walletId: String,
             availableAmount: Double,
             inputs: List<UnspentOutput> = emptyList(),
-            claimInheritanceTxParam: ClaimInheritanceTxParam? = null
+            claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
+            btcUri: BtcUri? = null
         ) {
             activityContext.startActivity(
                 InputAmountArgs(
@@ -356,7 +365,8 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                     walletId = walletId,
                     availableAmount = availableAmount,
                     inputs = inputs,
-                    claimInheritanceTxParam = claimInheritanceTxParam
+                    claimInheritanceTxParam = claimInheritanceTxParam,
+                    btcUri = btcUri
                 ).buildIntent(activityContext)
             )
         }

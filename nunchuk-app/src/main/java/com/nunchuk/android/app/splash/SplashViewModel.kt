@@ -33,6 +33,7 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.usecase.GetBiometricConfigUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
+import com.nunchuk.android.usecase.ParseBtcUriUseCase
 import com.nunchuk.android.usecase.pin.GetCustomPinConfigFlowUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -53,6 +54,7 @@ internal class SplashViewModel @Inject constructor(
     private val getCustomPinConfigFlowUseCase: GetCustomPinConfigFlowUseCase,
     private val getBiometricConfigUseCase: GetBiometricConfigUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val parseBtcUriUseCase: ParseBtcUriUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<SplashEvent>(1)
     val event = _event.asSharedFlow()
@@ -82,9 +84,11 @@ internal class SplashViewModel @Inject constructor(
                     _event.emit(SplashEvent.NavUnlockPinScreenEvent)
                 }
 
-                isAccountExisted && accountManager.isStaySignedIn().not() -> _event.emit(
-                    SplashEvent.NavSignInEvent
-                )
+                isAccountExisted && accountManager.isStaySignedIn().not() -> {
+                    val askPin = shouldAskPin && isDecoyDisablePin
+                    val askBiometric = isBiometricEnable && mode.isGuestMode().not() && mode.isPrimaryKey().not()
+                    _event.emit(SplashEvent.NavSignInEvent(askPin = askPin, askBiometric = askBiometric))
+                }
 
                 isAccountExisted && accountManager.isAccountActivated() || mode.isGuestMode() -> {
                     _event.emit(
@@ -109,7 +113,7 @@ internal class SplashViewModel @Inject constructor(
                     )
                 }
 
-                else -> _event.emit(SplashEvent.NavSignInEvent)
+                else -> _event.emit(SplashEvent.NavSignInEvent(askPin = false, askBiometric = false))
             }
         }
     }

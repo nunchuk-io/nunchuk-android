@@ -713,7 +713,9 @@ internal class KeyRepositoryImpl @Inject constructor(
         return response.data.supportedSigners.map {
             SupportedSigner(
                 type = it.signerType.toSignerType(),
-                tag = it.signerTag.toSignerTag()
+                tag = it.signerTag.toSignerTag(),
+                walletType = WalletType.entries.find { entry -> entry.name == it.walletType },
+                addressType = AddressType.entries.find { entry -> entry.name == it.addressType }
             )
         }
     }

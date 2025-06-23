@@ -112,4 +112,5 @@
     <string name="nc_configure_automatic_fee_selection">To configure automatic fee selection, go to [A]Fee Settings.[/A]</string>
     <string name="nc_update_automatic_fee_selection">To update automatic fee selection, go to [A]Fee Settings.[/A]</string>
     <string name="nc_re_broadcast_transaction">Re-broadcast transaction</string>
+    <string name="nc_transaction_already_confirmed_error">Cannot replace transaction. The original transaction has already been confirmed</string>
 </resources>

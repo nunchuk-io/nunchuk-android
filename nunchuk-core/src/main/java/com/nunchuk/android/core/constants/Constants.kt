@@ -30,6 +30,8 @@ object Constants {
     const val BLOCKSTREAM_MAINNET_ADDRESS_TEMPLATE = "https://mempool.space/address/"
     const val GLOBAL_SIGNET_EXPLORER = "https://mempool.space/signet/tx/"
 
+    const val CLAIM_URL = "https://www.nunchuk.io/claim"
+
 }
 
 enum class RoomAction {
