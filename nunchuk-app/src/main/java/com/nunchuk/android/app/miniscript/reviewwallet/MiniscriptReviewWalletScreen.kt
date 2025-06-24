@@ -41,6 +41,7 @@ import com.nunchuk.android.compose.miniscript.PolicyHeader
 import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.wallet.R
@@ -179,7 +180,8 @@ fun MiniscriptReviewWalletScreen(
                         data =  ScriptNodeData(
                             mode = ScriptMode.VIEW,
                             signers = uiState.signers,
-                            showBip32Path = true
+                            showBip32Path = true,
+                            duplicateSignerKeys = getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner)
                         ),
                         signer = if (uiState.keyPath.isNotEmpty()) uiState.taprootSigner else null,
                         onChangeBip32Path = { _, _ -> },
@@ -202,7 +204,8 @@ fun MiniscriptReviewWalletScreen(
                             data = ScriptNodeData(
                                 mode = ScriptMode.VIEW,
                                 signers = uiState.signers,
-                                showBip32Path = true
+                                showBip32Path = true,
+                                duplicateSignerKeys = getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner)
                             ),
                             onChangeBip32Path = { _, _ -> },
                             onActionKey = { _, _ -> }
@@ -222,6 +225,28 @@ fun MiniscriptReviewWalletScreenPreview() {
             viewModel = hiltViewModel<MiniscriptSharedWalletViewModel>(),
         )
     }
+}
+
+private fun getDuplicateSignerKeys(
+    signers: Map<String, SignerModel?>,
+    taprootSigner: SignerModel?
+): Set<String> {
+    val signerKeyCounts = mutableMapOf<String, Int>()
+    
+    // Create a unique key for each signer combining fingerprint and derivation path
+    signers.values.filterNotNull().forEach { signer ->
+        val signerKey = "${signer.fingerPrint}:${signer.derivationPath}"
+        signerKeyCounts[signerKey] = signerKeyCounts.getOrDefault(signerKey, 0) + 1
+    }
+    
+    // Count taproot signer
+    taprootSigner?.let { signer ->
+        val signerKey = "${signer.fingerPrint}:${signer.derivationPath}"
+        signerKeyCounts[signerKey] = signerKeyCounts.getOrDefault(signerKey, 0) + 1
+    }
+    
+    // Return signer keys that appear more than once
+    return signerKeyCounts.filter { it.value > 1 }.keys.toSet()
 }
 
 fun NavGraphBuilder.miniscriptReviewWalletDestination(

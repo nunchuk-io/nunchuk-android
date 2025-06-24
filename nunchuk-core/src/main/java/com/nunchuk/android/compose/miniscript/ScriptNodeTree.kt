@@ -88,7 +88,11 @@ internal fun CreateKeyItem(
                         } else {
                             NunchukTheme.typography.bodySmall
                         },
-                        color = MaterialTheme.colorScheme.textSecondary
+                        color = if (data.duplicateSignerKeys.contains("${signer.fingerPrint}:${signer.derivationPath}")) {
+                            Color.Red
+                        } else {
+                            MaterialTheme.colorScheme.textSecondary
+                        }
                     )
                     if (data.mode == ScriptMode.CONFIG && signer.isMasterSigner) {
                         NcIcon(
@@ -234,7 +238,8 @@ data class ScriptNodeData(
     val mode: ScriptMode = ScriptMode.CONFIG,
     val signers: Map<String, SignerModel?> = emptyMap(),
     val showBip32Path: Boolean = false,
-    val signedSigners: Map<String, Boolean> = emptyMap()
+    val signedSigners: Map<String, Boolean> = emptyMap(),
+    val duplicateSignerKeys: Set<String> = emptySet()
 )
 
 @Composable

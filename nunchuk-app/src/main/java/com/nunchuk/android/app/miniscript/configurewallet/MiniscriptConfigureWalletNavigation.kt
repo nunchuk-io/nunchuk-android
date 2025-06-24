@@ -42,6 +42,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.miniscript.MiniscriptTaproot
 import com.nunchuk.android.compose.miniscript.PolicyHeader
 import com.nunchuk.android.compose.miniscript.ScriptMode
@@ -117,6 +118,16 @@ fun NavGraphBuilder.miniscriptConfigureWalletDestination(
                     // This will be handled by the LaunchedEffect in MiniscriptActivity
                 }
 
+                is MiniscriptSharedWalletEvent.ShowDuplicateSignerWarning -> {
+                    // Don't clear these events here - let the screen handle them
+                    return@LaunchedEffect
+                }
+                
+                is MiniscriptSharedWalletEvent.ShowDuplicateSignerUpdateWarning -> {
+                    // Don't clear these events here - let the screen handle them
+                    return@LaunchedEffect
+                }
+
                 else -> {}
             }
             viewModel.onEventHandled()
@@ -151,6 +162,15 @@ fun NavGraphBuilder.miniscriptConfigureWalletDestination(
             },
             onChangeBip32Path = { keyName, signer ->
                 viewModel.changeBip32Path(keyName, signer)
+            },
+            onProceedWithDuplicateSigner = { signer, keyName ->
+                viewModel.proceedWithDuplicateSigner(signer, keyName)
+            },
+            onProceedWithDuplicateBip32Update = {
+                viewModel.proceedWithDuplicateBip32Update()
+            },
+            onClearEvent = {
+                viewModel.onEventHandled()
             }
         )
     }
@@ -165,12 +185,39 @@ fun MiniscriptConfigWalletScreen(
     onAddExistingKey: (SignerModel, String) -> Unit = { _, _ -> },
     onSetCurrentKey: (String) -> Unit = {},
     onContinue: () -> Unit = {},
-    onChangeBip32Path: (String, SignerModel) -> Unit = { _, _ -> }
+    onChangeBip32Path: (String, SignerModel) -> Unit = { _, _ -> },
+    onProceedWithDuplicateSigner: (SignerModel, String) -> Unit = { _, _ -> },
+    onProceedWithDuplicateBip32Update: () -> Unit = {},
+    onClearEvent: () -> Unit = {}
 ) {
     var showSignerBottomSheet by rememberSaveable { mutableStateOf(false) }
     var currentKeyToAssign by rememberSaveable { mutableStateOf("") }
     var showMoreOption by rememberSaveable { mutableStateOf(false) }
-    var showBip32Path by rememberSaveable { mutableStateOf(false) }
+    var showBip32Path by rememberSaveable { mutableStateOf(uiState.showBip32PathForDuplicates) }
+    var showDuplicateSignerWarning by rememberSaveable { mutableStateOf(false) }
+    var duplicateSignerData by rememberSaveable { mutableStateOf<Pair<SignerModel, String>?>(null) }
+    var isDuplicateBip32Update by rememberSaveable { mutableStateOf(false) }
+    
+    // Handle duplicate signer warning events
+    LaunchedEffect(uiState.event) {
+        when (uiState.event) {
+            is MiniscriptSharedWalletEvent.ShowDuplicateSignerWarning -> {
+                Timber.tag("miniscript-feature").d("UI - Handling ShowDuplicateSignerWarning event")
+                duplicateSignerData = Pair(uiState.event.signer, uiState.event.keyName)
+                isDuplicateBip32Update = false
+                showDuplicateSignerWarning = true
+                Timber.tag("miniscript-feature").d("UI - Set showDuplicateSignerWarning = true")
+            }
+            is MiniscriptSharedWalletEvent.ShowDuplicateSignerUpdateWarning -> {
+                Timber.tag("miniscript-feature").d("UI - Handling ShowDuplicateSignerUpdateWarning event")
+                duplicateSignerData = Pair(uiState.event.signer, uiState.event.keyName)
+                isDuplicateBip32Update = true
+                showDuplicateSignerWarning = true
+                Timber.tag("miniscript-feature").d("UI - Set showDuplicateSignerWarning = true")
+            }
+            else -> {}
+        }
+    }
 
     NunchukTheme {
         Scaffold(
@@ -230,7 +277,10 @@ fun MiniscriptConfigWalletScreen(
                         data = ScriptNodeData(
                             mode = ScriptMode.CONFIG,
                             signers = uiState.signers,
-                            showBip32Path = showBip32Path
+                            showBip32Path = showBip32Path,
+                            duplicateSignerKeys = if (uiState.showBip32PathForDuplicates) {
+                                getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner)
+                            } else emptySet()
                         ),
                         signer = if (uiState.keyPath.isNotEmpty()) uiState.taprootSigner else null,
                         onChangeBip32Path = onChangeBip32Path,
@@ -264,7 +314,10 @@ fun MiniscriptConfigWalletScreen(
                             data = ScriptNodeData(
                                 mode = ScriptMode.CONFIG,
                                 signers = uiState.signers,
-                                showBip32Path = showBip32Path
+                                showBip32Path = showBip32Path,
+                                duplicateSignerKeys = if (uiState.showBip32PathForDuplicates) {
+                                    getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner)
+                                } else emptySet()
                             ),
                             onChangeBip32Path = onChangeBip32Path,
                             onActionKey = { keyName, signer ->
@@ -284,10 +337,7 @@ fun MiniscriptConfigWalletScreen(
         }
 
         if (showSignerBottomSheet) {
-            val addedSigners = uiState.signers.values.filterNotNull().map { it.fingerPrint }.toSet()
-            val allSigners = uiState.allSigners.filter {
-                !addedSigners.contains(it.fingerPrint)
-            }
+            val allSigners = uiState.allSigners
             if (allSigners.isNotEmpty()) {
                 SelectSignerBottomSheet(
                     onDismiss = {
@@ -330,7 +380,68 @@ fun MiniscriptConfigWalletScreen(
                 },
             )
         }
+        
+        Timber.tag("miniscript-feature").d("UI - Dialog check: showDuplicateSignerWarning=$showDuplicateSignerWarning, duplicateSignerData=$duplicateSignerData")
+        if (showDuplicateSignerWarning && duplicateSignerData != null) {
+            Timber.tag("miniscript-feature").d("UI - Showing duplicate signer warning dialog")
+            NcConfirmationDialog(
+                title = "Warning",
+                message = "This key is already used in this miniscript. Select a different BIP-32 path to derive a new child key, or add it in a separate miniscript instead.",
+                onPositiveClick = {
+                    Timber.tag("miniscript-feature").d("UI - Dialog positive click, isDuplicateBip32Update: $isDuplicateBip32Update")
+                    showDuplicateSignerWarning = false
+                    val (signer, keyName) = duplicateSignerData!!
+                    
+                    // Check if this is a BIP32 update warning or a regular duplicate signer warning
+                    if (isDuplicateBip32Update) {
+                        Timber.tag("miniscript-feature").d("UI - Calling onProceedWithDuplicateBip32Update")
+                        // For BIP32 path update duplicates, call the new function
+                        onProceedWithDuplicateBip32Update()
+                    } else {
+                        Timber.tag("miniscript-feature").d("UI - Calling onProceedWithDuplicateSigner")
+                        // For regular duplicate signer warnings, use the existing function
+                        onProceedWithDuplicateSigner(signer, keyName)
+                    }
+                    
+                    duplicateSignerData = null
+                    isDuplicateBip32Update = false
+                    showBip32Path = true
+                    onClearEvent()
+                },
+                onDismiss = {
+                    Timber.tag("miniscript-feature").d("UI - Dialog dismissed")
+                    showDuplicateSignerWarning = false
+                    duplicateSignerData = null
+                    isDuplicateBip32Update = false
+                    onClearEvent()
+                },
+                positiveButtonText = "Show BIP32 path",
+                negativeButtonText = "Cancel"
+            )
+        }
     }
+}
+
+private fun getDuplicateSignerKeys(
+    signers: Map<String, SignerModel?>,
+    taprootSigner: SignerModel?
+): Set<String> {
+    val signerKeyCounts = mutableMapOf<String, Int>()
+    
+    // Create a unique key for each signer combining fingerprint and derivation path
+    signers.values.filterNotNull().forEach { signer ->
+        val signerKey = "${signer.fingerPrint}:${signer.derivationPath}"
+        signerKeyCounts[signerKey] = signerKeyCounts.getOrDefault(signerKey, 0) + 1
+    }
+    
+    // Count taproot signer
+    taprootSigner?.let { signer ->
+        val signerKey = "${signer.fingerPrint}:${signer.derivationPath}"
+        signerKeyCounts[signerKey] = signerKeyCounts.getOrDefault(signerKey, 0) + 1
+    }
+    
+    // Return signer keys that appear more than once
+    return signerKeyCounts.filter { it.value > 1 }.keys.toSet()
 }
 
 @Preview
