@@ -251,7 +251,8 @@ internal class WalletConfigViewModel @Inject constructor(
         val signerMap = mutableMapOf<String, SignerModel?>()
         node.keys.forEach { key ->
             val signer = parseSignerStringUseCase(key).getOrNull()
-            val existingSigner = _state.value.signers.find { it.fingerPrint == signer?.masterFingerprint }
+            val existingSigner =
+                _state.value.signers.find { it.fingerPrint == signer?.masterFingerprint }
             signerMap[key] = signer?.toModel()?.copy(name = existingSigner?.name ?: signer.name)
         }
         node.subs.forEach { subNode ->

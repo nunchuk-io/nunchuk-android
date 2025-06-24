@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcBadgePrimary
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcScaffold
@@ -40,6 +41,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.getWalletColors
 import com.nunchuk.android.compose.isLimitAccess
+import com.nunchuk.android.compose.miniscript.MiniscriptTaproot
 import com.nunchuk.android.compose.miniscript.PolicyHeader
 import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
@@ -49,6 +51,7 @@ import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.Wallet
@@ -56,6 +59,7 @@ import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletTemplate
 import com.nunchuk.android.wallet.R
@@ -239,6 +243,34 @@ internal fun WalletConfigView(
                                         .fillMaxWidth()
                                         .padding(top = 8.dp, bottom = 20.dp)
                                 )
+
+                                // Add MiniscriptTaproot component if addressType is TAPROOT
+                                if (state.walletExtended.wallet.addressType == AddressType.TAPROOT) {
+                                    // assuming that the keyPath is the name of the first signer
+                                    val keyPath = if (state.walletExtended.wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH) {
+                                        ""
+                                    } else {
+                                        state.walletExtended.wallet.signers.firstOrNull()?.name
+                                    }
+                                    MiniscriptTaproot(
+                                        keyPath = keyPath.orEmpty(),
+                                        data =  ScriptNodeData(
+                                            mode = ScriptMode.VIEW,
+                                            signers = state.signerMap,
+                                            showBip32Path = true
+                                        ),
+                                        signer = wallet.signers.firstOrNull()?.toModel(),
+                                        onChangeBip32Path = { _, _ -> },
+                                        onActionKey = { _, _ -> }
+                                    )
+
+                                    // Add Script path badge
+                                    NcBadgePrimary(
+                                        modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+                                        text = "Script path",
+                                        enabled = true
+                                    )
+                                }
 
                                 ScriptNodeTree(
                                     node = state.scriptNode,

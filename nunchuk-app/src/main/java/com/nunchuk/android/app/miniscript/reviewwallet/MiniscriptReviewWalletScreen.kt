@@ -31,10 +31,12 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.nunchuk.android.app.miniscript.MiniscriptSharedWalletEvent
 import com.nunchuk.android.app.miniscript.MiniscriptSharedWalletViewModel
+import com.nunchuk.android.compose.NcBadgePrimary
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
+import com.nunchuk.android.compose.miniscript.MiniscriptTaproot
 import com.nunchuk.android.compose.miniscript.PolicyHeader
 import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
@@ -168,6 +170,30 @@ fun MiniscriptReviewWalletScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 20.dp)
                 )
+
+                // Add MiniscriptTaproot component if addressType is TAPROOT
+                if (uiState.addressType == AddressType.TAPROOT) {
+                    MiniscriptTaproot(
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                        keyPath = uiState.keyPath,
+                        data =  ScriptNodeData(
+                            mode = ScriptMode.VIEW,
+                            signers = uiState.signers,
+                            showBip32Path = true
+                        ),
+                        signer = if (uiState.keyPath.isNotEmpty()) uiState.taprootSigner else null,
+                        onChangeBip32Path = { _, _ -> },
+                        onActionKey = { _, _ -> }
+                    )
+
+                    // Add Script path badge
+                    NcBadgePrimary(
+                        modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+                        text = "Script path",
+                        enabled = true
+                    )
+                }
+
                 val parentModifier = Modifier.padding(horizontal = 16.dp)
                 Column(modifier = parentModifier) {
                     uiState.scriptNode?.let { scriptNode ->

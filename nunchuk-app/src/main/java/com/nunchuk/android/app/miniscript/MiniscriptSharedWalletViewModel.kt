@@ -94,10 +94,10 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         }
         viewModelScope.launch {
             getChainTipUseCase(Unit).onSuccess { blockHeight ->
-                Timber.tag("miniscript-feature").d("MiniscriptSharedWalletViewModel - blockHeight: $blockHeight")
+                Timber.tag(TAG).d("MiniscriptSharedWalletViewModel - blockHeight: $blockHeight")
                 _uiState.update { it.copy(currentBlockHeight = blockHeight) }
             }.onFailure { error ->
-                Timber.tag("miniscript-feature").e("MiniscriptSharedWalletViewModel - error: $error")
+                Timber.tag(TAG).e("MiniscriptSharedWalletViewModel - error: $error")
             }
         }
         viewModelScope.launch {
@@ -144,7 +144,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     } + singleSigner.map { signer -> signer.toModel() }
                 _uiState.update { it.copy(allSigners = signers) }
 
-                Timber.tag("miniscript-feature").d("Loaded signers: $signers")
+                Timber.tag(TAG).d("Loaded signers: $signers")
                 // Store current signers' fingerprints for comparison later
                 oldSigners = signers.map { it.fingerPrint }.toSet()
             }
@@ -190,7 +190,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     fun getScriptNodeFromTemplate(template: String) {
         viewModelScope.launch {
             getScriptNodeFromMiniscriptTemplateUseCase(template).onSuccess { result ->
-                Timber.tag("miniscript-feature").d("MiniscriptSharedWalletViewModel - scriptNode: ${result.scriptNode} - keyPath: ${result.keyPath}")
+                Timber.tag(TAG).d("MiniscriptSharedWalletViewModel - scriptNode: ${result.scriptNode} - keyPath: ${result.keyPath}")
                 _uiState.update {
                     it.copy(
                         scriptNode = result.scriptNode,
@@ -200,7 +200,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 }
                 mapKeyPositions(result.scriptNode, "")
             }.onFailure {
-                Timber.tag("miniscript-feature").e("MiniscriptSharedWalletViewModel - error: $it")
+                Timber.tag(TAG).e("MiniscriptSharedWalletViewModel - error: $it")
             }
         }
     }
@@ -250,11 +250,11 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     }
 
     private fun addSignerToState(signerModel: SignerModel, keyName: String) {
-        Timber.tag("miniscript-feature").d("Adding signer: $signerModel to key: $keyName")
+        Timber.tag(TAG).d("Adding signer: $signerModel to key: $keyName")
         
         // Check if this is a taproot signer (keyName matches keyPath)
         if (keyName == _uiState.value.keyPath && _uiState.value.keyPath.isNotEmpty()) {
-            Timber.tag("miniscript-feature").d("Storing taproot signer: $signerModel for keyPath: $keyName")
+            Timber.tag(TAG).d("Storing taproot signer: $signerModel for keyPath: $keyName")
             _uiState.update {
                 it.copy(
                     taprootSigner = signerModel,
@@ -269,7 +269,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         // If keyName matches the pattern key_x_y, we need to handle master signer case
         val components = keyName.split("_")
         if (components.size > 2 && signerModel.isMasterSigner) {
-            Timber.tag("miniscript-feature").d("Handling master signer case for key: $keyName")
+            Timber.tag(TAG).d("Handling master signer case for key: $keyName")
             // Extract the prefix (key_x)
             val prefix = "${components[0]}_${components[1]}"
 
@@ -278,7 +278,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 .filter { it.startsWith(prefix) }
                 .sorted() // Sort to ensure consistent order
 
-            Timber.tag("miniscript-feature").d("Found related keys: $relatedKeys")
+            Timber.tag(TAG).d("Found related keys: $relatedKeys")
 
             // Get the first available index from the master signer
             viewModelScope.launch {
@@ -289,7 +289,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                         addressType = _uiState.value.addressType
                     )
                 ).onSuccess { startIndex ->
-                    Timber.tag("miniscript-feature").d("Got start index: $startIndex for master signer: ${signerModel.fingerPrint}")
+                    Timber.tag(TAG).d("Got start index: $startIndex for master signer: ${signerModel.fingerPrint}")
                     // Reset startIndex to 0 if it's -1
                     val actualStartIndex = if (startIndex == -1) 0 else startIndex
 
@@ -298,8 +298,8 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     relatedKeys.forEach { key ->
                         // Only assign a signer if the key hasn't been assigned yet
                         if (currentSigners[key] == null) {
-                            Timber.tag("miniscript-feature").d("Getting signer at index: $currentIndex for unassigned key: $key")
-                            Timber.tag("miniscript-feature").d("Using master signer: $signerModel for key: $key")
+                            Timber.tag(TAG).d("Getting signer at index: $currentIndex for unassigned key: $key")
+                            Timber.tag(TAG).d("Using master signer: $signerModel for key: $key")
                             getSignerFromMasterSignerByIndexUseCase(
                                 GetSignerFromMasterSignerByIndexUseCase.Param(
                                     masterSignerId = signerModel.fingerPrint,
@@ -311,7 +311,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                                 singleSigner?.let {
                                     // Add the signer to the currentSigners map
                                     currentSigners[key] = it.toModel()
-                                    Timber.tag("miniscript-feature").d("Added signer: ${it.toModel()} to key: $key")
+                                    Timber.tag(TAG).d("Added signer: ${it.toModel()} to key: $key")
 
                                     // Update UI state immediately
                                     _uiState.update { state ->
@@ -321,14 +321,14 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                                         )
                                     }
                                 } ?: run {
-                                    Timber.tag("miniscript-feature").e("No signer found for key: $key at index: $currentIndex")
+                                    Timber.tag(TAG).e("No signer found for key: $key at index: $currentIndex")
                                 }
                             }.onFailure { error ->
-                                Timber.tag("miniscript-feature").e("Failed to get signer for key: $key at index: $currentIndex, error: $error")
+                                Timber.tag(TAG).e("Failed to get signer for key: $key at index: $currentIndex, error: $error")
 
                                 // Handle TapSigner caching case
                                 if (error is NCNativeException && error.message.contains("-1009")) {
-                                    Timber.tag("miniscript-feature").d("Handling TapSigner caching for key: $key at index: $currentIndex")
+                                    Timber.tag(TAG).d("Handling TapSigner caching for key: $key at index: $currentIndex")
 
                                     val isMultisig = isMultisigDerivationPath(signerModel.derivationPath)
                                     val newPath = getPath(currentIndex, _uiState.value.isTestNet, isMultisig)
@@ -356,7 +356,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                             }
                             currentIndex++
                         } else {
-                            Timber.tag("miniscript-feature").d("Skipping already assigned key: $key with signer: ${currentSigners[key]}")
+                            Timber.tag(TAG).d("Skipping already assigned key: $key with signer: ${currentSigners[key]}")
                         }
                     }
 
@@ -367,11 +367,11 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                             areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners)
                         )
                     }
-                    Timber.tag("miniscript-feature").d("Updated state with new signers: $currentSigners")
+                    Timber.tag(TAG).d("Updated state with new signers: $currentSigners")
                 }
             }
         } else {
-            Timber.tag("miniscript-feature").d("Handling non-master signer case or old key format")
+            Timber.tag(TAG).d("Handling non-master signer case or old key format")
             // Handle non-master signer case or old key format
             currentSigners[keyName] = signerModel
 
@@ -382,16 +382,16 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners)
                 )
             }
-            Timber.tag("miniscript-feature").d("Updated state with new signer: $signerModel for key: $keyName")
+            Timber.tag(TAG).d("Updated state with new signer: $signerModel for key: $keyName")
         }
     }
 
     fun removeSigner(keyName: String) {
-        Timber.tag("miniscript-feature").d("Removing signer for key: $keyName")
+        Timber.tag(TAG).d("Removing signer for key: $keyName")
         
         // Check if this is a taproot signer removal
         if (keyName == _uiState.value.keyPath && _uiState.value.keyPath.isNotEmpty()) {
-            Timber.tag("miniscript-feature").d("Removing taproot signer for keyPath: $keyName")
+            Timber.tag(TAG).d("Removing taproot signer for keyPath: $keyName")
             _uiState.update {
                 it.copy(
                     taprootSigner = null,
@@ -406,41 +406,41 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         // If keyName matches the pattern key_x_y, we need to handle related keys
         val components = keyName.split("_")
         if (components.size > 2) {
-            Timber.tag("miniscript-feature").d("Handling key with pattern key_x_y")
+            Timber.tag(TAG).d("Handling key with pattern key_x_y")
             // Extract the prefix (key_x)
             val prefix = "${components[0]}_${components[1]}"
 
             // Get the signer to remove
             val signerToRemove = currentSigners[keyName]
-            Timber.tag("miniscript-feature").d("Signer to remove: $signerToRemove")
+            Timber.tag(TAG).d("Signer to remove: $signerToRemove")
 
             // If it's a master signer, remove all related keys with the same master fingerprint
             if (signerToRemove?.isMasterSigner == true) {
                 val masterFingerprintToRemove = signerToRemove.fingerPrint
-                Timber.tag("miniscript-feature").d("Removing all related keys with master fingerprint: $masterFingerprintToRemove")
+                Timber.tag(TAG).d("Removing all related keys with master fingerprint: $masterFingerprintToRemove")
 
                 // Find all keys in scriptNode that share the same prefix
                 val relatedKeys = getAllKeysFromScriptNode(_uiState.value.scriptNode!!)
                     .filter { it.startsWith(prefix) }
 
-                Timber.tag("miniscript-feature").d("Found related keys to remove: $relatedKeys")
+                Timber.tag(TAG).d("Found related keys to remove: $relatedKeys")
 
                 // Remove signers for all related keys with the same master fingerprint
                 relatedKeys.forEach { key ->
                     if (currentSigners[key]?.fingerPrint == masterFingerprintToRemove) {
                         currentSigners[key] = null
-                        Timber.tag("miniscript-feature").d("Removed signer for key: $key")
+                        Timber.tag(TAG).d("Removed signer for key: $key")
                     }
                 }
             } else {
                 // For non-master signers, just remove the specific key
                 currentSigners[keyName] = null
-                Timber.tag("miniscript-feature").d("Removed non-master signer for key: $keyName")
+                Timber.tag(TAG).d("Removed non-master signer for key: $keyName")
             }
         } else {
             // Handle old key format
             currentSigners[keyName] = null
-            Timber.tag("miniscript-feature").d("Removed signer for old format key: $keyName")
+            Timber.tag(TAG).d("Removed signer for old format key: $keyName")
         }
 
         _uiState.update {
@@ -450,7 +450,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners)
             )
         }
-        Timber.tag("miniscript-feature").d("Updated state after removing signer(s). Current signers: $currentSigners")
+        Timber.tag(TAG).d("Updated state after removing signer(s). Current signers: $currentSigners")
     }
 
     private fun areAllKeysAssigned(scriptNode: ScriptNode?, signers: Map<String, SignerModel?>): Boolean {
@@ -579,7 +579,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         val keyPath = _uiState.value.keyPath
         val taprootSigner = _uiState.value.taprootSigner
         if (keyPath.isNotEmpty() && taprootSigner != null) {
-            Timber.tag("miniscript-feature").d("Adding taproot signer to keySignerMap: $taprootSigner for keyPath: $keyPath")
+            Timber.tag(TAG).d("Adding taproot signer to keySignerMap: $taprootSigner for keyPath: $keyPath")
             result[keyPath] = taprootSigner.toSingleSigner()
         }
         
@@ -607,13 +607,13 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     decoyPin = accountManager.getAccount().decoyPin
                 )
             ).onSuccess { wallet ->
-                Timber.tag("miniscript-feature").d("About to emit CreateWalletSuccess event with wallet: $wallet")
+                Timber.tag(TAG).d("About to emit CreateWalletSuccess event with wallet: $wallet")
                 _uiState.update {
                     it.copy(
                         event = MiniscriptSharedWalletEvent.CreateWalletSuccess(wallet)
                     )
                 }
-                Timber.tag("miniscript-feature").d("CreateWalletSuccess event emitted")
+                Timber.tag(TAG).d("CreateWalletSuccess event emitted")
             }.onFailure { error ->
                 Timber.e("Failed to create miniscript wallet: $error")
                 _uiState.update { it.copy(event = MiniscriptSharedWalletEvent.Error(error.message.orUnknownError())) }
@@ -628,7 +628,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     fun cacheTapSignerXpub(isoDep: IsoDep?, cvc: String) {
         val signer = _uiState.value.currentSigner ?: return
         val newPath = savedStateHandle.get<String>(NEW_PATH) ?: return
-        Timber.tag("miniscript-feature").d("Caching tap signer xpub $signer with path: $newPath")
+        Timber.tag(TAG).d("Caching tap signer xpub $signer with path: $newPath")
         isoDep ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(event = MiniscriptSharedWalletEvent.Loading(true)) }
@@ -640,7 +640,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     cvc = cvc
                 )
             ).onSuccess { newSigner ->
-                Timber.tag("miniscript-feature").d("new signer $newSigner")
+                Timber.tag(TAG).d("new signer $newSigner")
                 val currentKey = _uiState.value.currentKey
                 if (currentKey.isNotEmpty()) {
                     val newSignerModel = newSigner.toModel()
@@ -675,7 +675,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     resumeAddSignerProcess()
                 }
             }.onFailure { error ->
-                Timber.tag("miniscript-feature").e("Failed to cache tap signer xpub: $error")
+                Timber.tag(TAG).e("Failed to cache tap signer xpub: $error")
                 _uiState.update {
                     it.copy(
                         event = MiniscriptSharedWalletEvent.Error(error.message.orUnknownError()),
@@ -703,7 +703,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         val pendingState = pendingAddSignerState ?: return
         pendingAddSignerState = null
 
-        Timber.tag("miniscript-feature").d("Resuming addSignerToState process for key: ${pendingState.keyName}")
+        Timber.tag(TAG).d("Resuming addSignerToState process for key: ${pendingState.keyName}")
 
         // Resume the process from where it left off
         val currentSigners = _uiState.value.signers.toMutableMap()
@@ -721,7 +721,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
 
                 // Only assign a signer if the key hasn't been assigned yet
                 if (currentSigners[key] == null) {
-                    Timber.tag("miniscript-feature").d("Resuming - Getting signer at index: $currentIndex for key: $key")
+                    Timber.tag(TAG).d("Resuming - Getting signer at index: $currentIndex for key: $key")
 
                     getSignerFromMasterSignerByIndexUseCase(
                         GetSignerFromMasterSignerByIndexUseCase.Param(
@@ -733,7 +733,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     ).onSuccess { singleSigner ->
                         singleSigner?.let {
                             currentSigners[key] = it.toModel()
-                            Timber.tag("miniscript-feature").d("Resumed - Added signer: ${it.toModel()} to key: $key")
+                            Timber.tag(TAG).d("Resumed - Added signer: ${it.toModel()} to key: $key")
 
                             // Update UI state immediately
                             _uiState.update { state ->
@@ -743,10 +743,10 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                                 )
                             }
                         } ?: run {
-                            Timber.tag("miniscript-feature").e("Resumed - No signer found for key: $key at index: $currentIndex")
+                            Timber.tag(TAG).e("Resumed - No signer found for key: $key at index: $currentIndex")
                         }
                     }.onFailure { error ->
-                        Timber.tag("miniscript-feature").e("Resumed - Failed to get signer for key: $key at index: $currentIndex, error: $error")
+                        Timber.tag(TAG).e("Resumed - Failed to get signer for key: $key at index: $currentIndex, error: $error")
 
                         // Handle nested TapSigner caching case if needed
                         if (error is NCNativeException && error.message.contains("-1009")) {
@@ -774,7 +774,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     }
                     currentIndex++
                 } else {
-                    Timber.tag("miniscript-feature").d("Resumed - Skipping already assigned key: $key")
+                    Timber.tag(TAG).d("Resumed - Skipping already assigned key: $key")
                 }
             }
 
@@ -786,12 +786,13 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners)
                 )
             }
-            Timber.tag("miniscript-feature").d("Resumed - Updated state with signers: $currentSigners")
+            Timber.tag(TAG).d("Resumed - Updated state with signers: $currentSigners")
         }
     }
 
     companion object {
         private const val NEW_PATH = "new_path"
+        private const val TAG = "miniscript-feature"
     }
 }
 
