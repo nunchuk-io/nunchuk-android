@@ -232,7 +232,7 @@ fun MiniscriptConfigWalletScreen(
                             signers = uiState.signers,
                             showBip32Path = showBip32Path
                         ),
-                        signer = if (uiState.keyPath.isNotEmpty()) uiState.signers[uiState.keyPath] else null,
+                        signer = if (uiState.keyPath.isNotEmpty()) uiState.taprootSigner else null,
                         onChangeBip32Path = onChangeBip32Path,
                         onActionKey = { keyName, signer ->
                             if (signer != null) {
