@@ -324,6 +324,25 @@ fun ScriptNodeTree(
             return
         }
 
+        ScripNoteType.PK.name -> {
+            TreeBranchContainer(
+                drawLine = isLastItem.not(),
+                indentationLevel = level
+            ) { modifier ->
+                CreateKeyItem(
+                    key = node.keys.firstOrNull() ?: "",
+                    signer = data.signers[node.keys.firstOrNull().orEmpty()],
+                    position = index,
+                    onChangeBip32Path = onChangeBip32Path,
+                    onActionKey = onActionKey,
+                    data = data,
+                    showThreadCurve = true,
+                    modifier = modifier
+                )
+            }
+            return
+        }
+
         ScripNoteType.MULTI.name, ScripNoteType.THRESH.name -> {
             TreeBranchContainer(
                 drawLine = isLastItem.not(),
