@@ -24,7 +24,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,6 +41,7 @@ import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.MiniscriptTimelockType
+import java.text.DecimalFormat
 import java.util.Calendar
 import java.util.Locale
 
@@ -60,8 +60,6 @@ fun EditTimelockBottomSheet(
     onDismiss: () -> Unit = {},
     onSave: (TimelockData) -> Unit = {}
 ) {
-    val coroutineScope = rememberCoroutineScope()
-
     ModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = onDismiss,
@@ -316,14 +314,36 @@ fun DatePickerField(
             )
         }
     } else {
+        val numberFormatter = remember { DecimalFormat("#,###") }
+        val displayValue = remember(numericValue, timeUnit) {
+            if (timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK && numericValue.isNotEmpty()) {
+                try {
+                    val number = numericValue.toLong()
+                    numberFormatter.format(number)
+                } catch (e: NumberFormatException) {
+                    numericValue
+                }
+            } else {
+                numericValue
+            }
+        }
+
         NcTextField(
             title = datePickerTextTitle,
             titleHint = datePickerTitleHint,
-            value = numericValue,
+            value = displayValue,
             onValueChange = { value ->
-                // Only allow numeric input
-                if (value.isEmpty() || value.all { it.isDigit() }) {
-                    onNumericValueChange(value)
+                if (timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK) {
+                    // For height lock, strip commas and only allow numeric input
+                    val strippedValue = value.replace(",", "")
+                    if (strippedValue.isEmpty() || strippedValue.all { it.isDigit() }) {
+                        onNumericValueChange(strippedValue)
+                    }
+                } else {
+                    // For other cases, only allow numeric input
+                    if (value.isEmpty() || value.all { it.isDigit() }) {
+                        onNumericValueChange(value)
+                    }
                 }
             },
             bottomContent = {

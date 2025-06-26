@@ -351,34 +351,6 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         _uiState.update { it.copy(showBip32PathForDuplicates = true) }
         proceedWithAddingSigner(signer, keyName)
     }
-    
-    private fun getDuplicateSignerKeys(): Set<String> {
-        val currentSigners = _uiState.value.signers
-        val taprootSigner = _uiState.value.taprootSigner
-        val signerKeyCounts = mutableMapOf<String, Int>()
-        val duplicateSignerKeys = mutableSetOf<String>()
-        
-        // Create a unique key for each signer combining fingerprint and derivation path
-        currentSigners.values.filterNotNull().forEach { signer ->
-            val signerKey = "${signer.fingerPrint}:${signer.derivationPath}"
-            signerKeyCounts[signerKey] = signerKeyCounts.getOrDefault(signerKey, 0) + 1
-        }
-        
-        // Check taproot signer
-        taprootSigner?.let { signer ->
-            val signerKey = "${signer.fingerPrint}:${signer.derivationPath}"
-            signerKeyCounts[signerKey] = signerKeyCounts.getOrDefault(signerKey, 0) + 1
-        }
-        
-        // Return signer keys that appear more than once
-        signerKeyCounts.forEach { (signerKey, count) ->
-            if (count > 1) {
-                duplicateSignerKeys.add(signerKey)
-            }
-        }
-        
-        return duplicateSignerKeys
-    }
 
     private fun addSignerToState(signerModel: SignerModel, keyName: String) {
         Timber.tag(TAG).d("Adding signer: $signerModel to key: $keyName")

@@ -597,7 +597,11 @@ fun HashlockItem(
     }
     Column(modifier = modifier) {
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .padding(
+                    top = 10.dp,
+                )
+                .fillMaxWidth()
         ) {
             Image(
                 painter = painterResource(R.drawable.ic_thread_curve),
@@ -641,7 +645,7 @@ fun KeyItem(
 ) {
     Row(
         modifier = modifier
-            .padding(bottom = 10.dp, top = 10.dp)
+            .padding(vertical = 10.dp)
             .fillMaxWidth()
     ) {
         if (showThreadCurve) {
