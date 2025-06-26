@@ -64,7 +64,8 @@ fun MiniscriptReviewWalletScreen(
         Timber.tag("miniscript-feature").d("Event received in LaunchedEffect: ${uiState.event}")
         when (val event = uiState.event) {
             is MiniscriptSharedWalletEvent.CreateWalletSuccess -> {
-                Timber.tag("miniscript-feature").d("Processing CreateWalletSuccess event with wallet: ${event.wallet}")
+                Timber.tag("miniscript-feature")
+                    .d("Processing CreateWalletSuccess event with wallet: ${event.wallet}")
                 onNext(event.wallet)
                 Timber.tag("miniscript-feature").d("onNext called with wallet: ${event.wallet}")
             }
@@ -76,6 +77,7 @@ fun MiniscriptReviewWalletScreen(
             null -> {
                 Timber.tag("miniscript-feature").d("Null event received")
             }
+
             else -> {
                 Timber.tag("miniscript-feature").d("Other event received: $event")
             }
@@ -177,11 +179,14 @@ fun MiniscriptReviewWalletScreen(
                     MiniscriptTaproot(
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp),
                         keyPath = uiState.keyPath,
-                        data =  ScriptNodeData(
+                        data = ScriptNodeData(
                             mode = ScriptMode.VIEW,
                             signers = uiState.signers,
                             showBip32Path = true,
-                            duplicateSignerKeys = getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner)
+                            duplicateSignerKeys = getDuplicateSignerKeys(
+                                uiState.signers,
+                                uiState.taprootSigner
+                            )
                         ),
                         signer = if (uiState.keyPath.isNotEmpty()) uiState.taprootSigner else null,
                         onChangeBip32Path = { _, _ -> },
@@ -190,7 +195,12 @@ fun MiniscriptReviewWalletScreen(
 
                     // Add Script path badge
                     NcBadgePrimary(
-                        modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+                        modifier = Modifier.padding(
+                            top = 16.dp,
+                            bottom = 8.dp,
+                            start = 16.dp,
+                            end = 16.dp
+                        ),
                         text = "Script path",
                         enabled = true
                     )
@@ -205,7 +215,10 @@ fun MiniscriptReviewWalletScreen(
                                 mode = ScriptMode.VIEW,
                                 signers = uiState.signers,
                                 showBip32Path = true,
-                                duplicateSignerKeys = getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner)
+                                duplicateSignerKeys = getDuplicateSignerKeys(
+                                    uiState.signers,
+                                    uiState.taprootSigner
+                                )
                             ),
                             onChangeBip32Path = { _, _ -> },
                             onActionKey = { _, _ -> }
@@ -232,19 +245,19 @@ private fun getDuplicateSignerKeys(
     taprootSigner: SignerModel?
 ): Set<String> {
     val signerKeyCounts = mutableMapOf<String, Int>()
-    
+
     // Create a unique key for each signer combining fingerprint and derivation path
     signers.values.filterNotNull().forEach { signer ->
         val signerKey = "${signer.fingerPrint}:${signer.derivationPath}"
         signerKeyCounts[signerKey] = signerKeyCounts.getOrDefault(signerKey, 0) + 1
     }
-    
+
     // Count taproot signer
     taprootSigner?.let { signer ->
         val signerKey = "${signer.fingerPrint}:${signer.derivationPath}"
         signerKeyCounts[signerKey] = signerKeyCounts.getOrDefault(signerKey, 0) + 1
     }
-    
+
     // Return signer keys that appear more than once
     return signerKeyCounts.filter { it.value > 1 }.keys.toSet()
 }

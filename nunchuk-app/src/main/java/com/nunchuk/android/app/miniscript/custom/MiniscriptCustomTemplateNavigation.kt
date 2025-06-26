@@ -36,6 +36,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.miniscript.MiniscriptUtil
+import com.nunchuk.android.core.miniscript.formatMiniscript
 import com.nunchuk.android.type.AddressType
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -115,7 +116,7 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(onNext: (String, Address
         }
 
         MiniscriptCustomTemplateScreen(
-            template = MiniscriptUtil.formatMiniscriptCorrectly(data.template),
+            template = data.template.formatMiniscript(),
             onContinue = { template ->
                 viewModel.createMiniscriptTemplate(MiniscriptUtil.revertFormattedMiniscript(template), data.addressType)
             },
@@ -132,6 +133,16 @@ fun MiniscriptCustomTemplateScreen(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     var miniscriptValue by remember { mutableStateOf(template) }
+    var hasBeenEdited by remember { mutableStateOf(false) }
+    var initialValue by remember { mutableStateOf(template) }
+
+    // Format the initial template if it's provided and not empty
+    LaunchedEffect(template) {
+        if (template.isNotBlank() && !hasBeenEdited) {
+            miniscriptValue = template.formatMiniscript()
+            initialValue = template.formatMiniscript()
+        }
+    }
 
     NunchukTheme {
         Scaffold(
@@ -153,10 +164,9 @@ fun MiniscriptCustomTemplateScreen(
                 ) {
                     NcPrimaryDarkButton(
                         modifier = Modifier.fillMaxWidth(),
+                        enabled = miniscriptValue.isNotBlank(),
                         onClick = {
-                            if (miniscriptValue.isNotBlank()) {
-                                onContinue(miniscriptValue)
-                            }
+                            onContinue(miniscriptValue)
                         }) {
                         Text(text = "Continue")
                     }
@@ -177,9 +187,9 @@ fun MiniscriptCustomTemplateScreen(
                     placeholder = {
                         Text(
                             text = "Example: andor(\n" +
-                                    "ln:older(12900),\n" +
-                                    "thresh(2,pk(A), s:pk(B), s:pk(C)),\n" +
-                                    "thresh(2,pk(A),s:pk(D),s:pk(E))\n" +
+                                    "  ln:older(12900),\n" +
+                                    "  thresh(2,pk(A), s:pk(B), s:pk(C)),\n" +
+                                    "  thresh(2,pk(A),s:pk(D),s:pk(E))\n" +
                                     ")",
                             style = NunchukTheme.typography.body.copy(
                                 color = colorResource(
@@ -190,8 +200,24 @@ fun MiniscriptCustomTemplateScreen(
                     },
                     value = miniscriptValue,
                     minLines = 4,
-                    onValueChange = {
-                        miniscriptValue = it
+                    onValueChange = { newValue ->
+                        if (!hasBeenEdited && newValue != initialValue && newValue.isNotBlank()) {
+                            // First time entering/pasting content - apply formatting
+                            // Check if the input looks like unformatted miniscript (no line breaks)
+                            if (!newValue.contains('\n') && newValue.length > 20) {
+                                val formatted = newValue.formatMiniscript()
+                                miniscriptValue = formatted
+                            } else {
+                                miniscriptValue = newValue
+                            }
+                            hasBeenEdited = true
+                        } else {
+                            // Subsequent edits - no formatting
+                            miniscriptValue = newValue
+                            if (!hasBeenEdited) {
+                                hasBeenEdited = true
+                            }
+                        }
                     }
                 )
             }

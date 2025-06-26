@@ -100,7 +100,7 @@ fun MiniscriptIntroScreen(
                     val content = BufferedReader(inputStream.reader()).use { reader ->
                         reader.readText()
                     }
-                    viewModel.handleFileContent(MiniscriptUtil.revertFormattedMiniscript(content) , addressType)
+                    viewModel.handleFileContent(MiniscriptUtil.revertFormattedMiniscript(content), addressType)
                 }
             } catch (e: Exception) {
                 Timber.e("Error reading file: $e")

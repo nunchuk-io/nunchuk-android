@@ -59,7 +59,7 @@ fun NcBadgePrimary(
             color = if (enabled) {
                 MaterialTheme.colorScheme.controlTextPrimary
             } else {
-                colorResource(id = R.color.nc_text_secondary)
+                colorResource(id = R.color.nc_control_text_primary)
             }
         )
     )

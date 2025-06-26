@@ -236,7 +236,12 @@ internal fun WalletConfigView(
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         item {
-                            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)) {
+                            Column(
+                                modifier = Modifier.padding(
+                                    horizontal = 16.dp,
+                                    vertical = 24.dp
+                                )
+                            ) {
 
                                 PolicyHeader(
                                     modifier = Modifier
@@ -247,14 +252,15 @@ internal fun WalletConfigView(
                                 // Add MiniscriptTaproot component if addressType is TAPROOT
                                 if (state.walletExtended.wallet.addressType == AddressType.TAPROOT) {
                                     // assuming that the keyPath is the name of the first signer
-                                    val keyPath = if (state.walletExtended.wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH) {
-                                        ""
-                                    } else {
-                                        state.walletExtended.wallet.signers.firstOrNull()?.name
-                                    }
+                                    val keyPath =
+                                        if (state.walletExtended.wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH) {
+                                            ""
+                                        } else {
+                                            state.walletExtended.wallet.signers.firstOrNull()?.name
+                                        }
                                     MiniscriptTaproot(
                                         keyPath = keyPath.orEmpty(),
-                                        data =  ScriptNodeData(
+                                        data = ScriptNodeData(
                                             mode = ScriptMode.VIEW,
                                             signers = state.signerMap,
                                             showBip32Path = true
@@ -266,7 +272,12 @@ internal fun WalletConfigView(
 
                                     // Add Script path badge
                                     NcBadgePrimary(
-                                        modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+                                        modifier = Modifier.padding(
+                                            top = 16.dp,
+                                            bottom = 8.dp,
+                                            start = 16.dp,
+                                            end = 16.dp
+                                        ),
                                         text = "Script path",
                                         enabled = true
                                     )

@@ -107,7 +107,7 @@ internal fun CreateKeyItem(
         actionContent = {
             when {
                 data.mode == ScriptMode.CONFIG && signer == null -> {
-                    NcPrimaryDarkButton(
+                    NcOutlineButton(
                         height = 36.dp,
                         onClick = { onActionKey(key, null) },
                     ) {

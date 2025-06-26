@@ -35,8 +35,11 @@ class MiniscriptCustomTemplateViewModel @Inject constructor(
                     addressType = addressType
                 )
             ).onSuccess { result ->
-                // Check if address type is not Taproot and the result is valid for Tapscript
-                if (addressType != AddressType.TAPROOT && result.isValidTapscript) {
+                // Check if template is empty first
+                if (result.template.isEmpty()) {
+                    _event.value = MiniscriptCustomTemplateEvent.Error("Format not supported")
+                } else if (addressType != AddressType.TAPROOT && result.isValidTapscript) {
+                    // Check if address type is not Taproot and the result is valid for Tapscript
                     _event.value = MiniscriptCustomTemplateEvent.ShowTaprootWarning(result.template)
                 } else {
                     _event.value = MiniscriptCustomTemplateEvent.Success(result.template)
