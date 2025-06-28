@@ -150,11 +150,7 @@ object MiniscriptUtil {
     }
 
     fun revertFormattedMiniscript(formatted: String): String {
-        return formatted
-            .lines()
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-            .joinToString("") // Concatenate everything into one line
+        return formatted.replace(Regex("\\s+"), "")
     }
 }
 

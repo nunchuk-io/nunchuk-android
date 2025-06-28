@@ -3,7 +3,6 @@ package com.nunchuk.android.compose.miniscript
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,7 +27,6 @@ fun PolicyHeader(
             modifier = Modifier.size(24.dp),
             painter = painterResource(id = R.drawable.ic_policies),
             contentDescription = "Policies",
-            tint = MaterialTheme.colorScheme.primary
         )
         Text(
             text = "Policies",

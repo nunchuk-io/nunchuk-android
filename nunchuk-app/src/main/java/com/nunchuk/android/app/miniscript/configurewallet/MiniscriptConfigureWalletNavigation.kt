@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -456,7 +456,7 @@ private fun getDuplicateSignerKeys(
     return signerKeyCounts.filter { it.value > 1 }.keys.toSet()
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 fun MiniscriptConfigWalletScreenPreview() {
     val previewState = MiniscriptSharedWalletState(

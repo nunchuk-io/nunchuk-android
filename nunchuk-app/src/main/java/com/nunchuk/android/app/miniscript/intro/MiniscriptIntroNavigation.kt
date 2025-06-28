@@ -74,8 +74,10 @@ fun NavGraphBuilder.miniscriptIntroDestination(
 
         MiniscriptIntroScreen(
             addressType = addressType,
-            viewModel = viewModel,
-            onSelect = onSelect
+            onSelect = onSelect,
+            onFileContent = { content, addressType ->
+                viewModel.handleFileContent(content, addressType)
+            }
         )
     }
 }
@@ -84,8 +86,8 @@ fun NavGraphBuilder.miniscriptIntroDestination(
 @Composable
 fun MiniscriptIntroScreen(
     addressType: AddressType = AddressType.ANY,
-    viewModel: MiniscriptIntroViewModel,
     onSelect: (MultisignType) -> Unit = {},
+    onFileContent: (String, AddressType) -> Unit = { _, _ -> }
 ) {
     var showSelectMultisignTypeBottomSheet by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -100,7 +102,7 @@ fun MiniscriptIntroScreen(
                     val content = BufferedReader(inputStream.reader()).use { reader ->
                         reader.readText()
                     }
-                    viewModel.handleFileContent(MiniscriptUtil.revertFormattedMiniscript(content), addressType)
+                    onFileContent(MiniscriptUtil.revertFormattedMiniscript(content), addressType)
                 }
             } catch (e: Exception) {
                 Timber.e("Error reading file: $e")
@@ -176,5 +178,5 @@ fun MiniscriptIntroScreen(
 @PreviewLightDark
 @Composable
 fun MiniscriptIntroScreenPreview() {
-    MiniscriptIntroScreen(viewModel = hiltViewModel())
+    MiniscriptIntroScreen()
 }
