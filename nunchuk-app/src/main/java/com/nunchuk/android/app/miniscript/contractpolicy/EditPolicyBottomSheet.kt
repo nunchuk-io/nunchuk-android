@@ -153,6 +153,22 @@ fun KeysAndRequiredKeysScreen(
             onNumberChange(requiredKeys, totalKeys)
         }
 
+        if (showRequiredKeys) {
+            KeyManagementSection(
+                title = "Required keys",
+                description = "Number of signatures required",
+                value = requiredKeys,
+                enableIncrement = requiredKeys < if (showTotalKeys) totalKeys else maxM,
+                enableDecrement = requiredKeys > minM,
+                onIncrement = { if (requiredKeys < if (showTotalKeys) totalKeys else maxM) requiredKeys++ },
+                onDecrement = { if (requiredKeys > minM) requiredKeys-- }
+            )
+
+            if (showTotalKeys) {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+
         if (showTotalKeys) {
             KeyManagementSection(
                 title = "Total number of keys",
@@ -169,22 +185,6 @@ fun KeysAndRequiredKeysScreen(
                         }
                     }
                 }
-            )
-
-            if (showRequiredKeys) {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-        }
-
-        if (showRequiredKeys) {
-            KeyManagementSection(
-                title = "Required keys",
-                description = "Number of signatures required",
-                value = requiredKeys,
-                enableIncrement = requiredKeys < if (showTotalKeys) totalKeys else maxM,
-                enableDecrement = requiredKeys > minM,
-                onIncrement = { if (requiredKeys < if (showTotalKeys) totalKeys else maxM) requiredKeys++ },
-                onDecrement = { if (requiredKeys > minM) requiredKeys-- }
             )
         }
     }
