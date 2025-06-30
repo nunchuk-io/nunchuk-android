@@ -235,7 +235,11 @@ fun MiniscriptConfigTemplateScreen(
                                 n = n,
                                 m = m,
                                 timelockType = timelockData.timelockType.ordinal,
-                                timeUnit = timelockData.timeUnit.ordinal,
+                                timeUnit = when (timelockData.timeUnit) {
+                                    MiniscriptTimelockBased.TIME_LOCK -> 0
+                                    MiniscriptTimelockBased.HEIGHT_LOCK -> 1
+                                    else -> 0
+                                },
                                 time = time,
                                 addressType = addressType,
                                 reuseSigner = reuseSigner.value,
