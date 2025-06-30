@@ -42,7 +42,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.dialog.NcConfirmationDialog
+import com.nunchuk.android.compose.dialog.NcConfirmationVerticalDialog
 import com.nunchuk.android.compose.miniscript.MiniscriptTaproot
 import com.nunchuk.android.compose.miniscript.PolicyHeader
 import com.nunchuk.android.compose.miniscript.ScriptMode
@@ -202,20 +202,15 @@ fun MiniscriptConfigWalletScreen(
     LaunchedEffect(uiState.event) {
         when (uiState.event) {
             is MiniscriptSharedWalletEvent.ShowDuplicateSignerWarning -> {
-                Timber.tag("miniscript-feature").d("UI - Handling ShowDuplicateSignerWarning event")
                 duplicateSignerData = Pair(uiState.event.signer, uiState.event.keyName)
                 isDuplicateBip32Update = false
                 showDuplicateSignerWarning = true
-                Timber.tag("miniscript-feature").d("UI - Set showDuplicateSignerWarning = true")
             }
 
             is MiniscriptSharedWalletEvent.ShowDuplicateSignerUpdateWarning -> {
-                Timber.tag("miniscript-feature")
-                    .d("UI - Handling ShowDuplicateSignerUpdateWarning event")
                 duplicateSignerData = Pair(uiState.event.signer, uiState.event.keyName)
                 isDuplicateBip32Update = true
                 showDuplicateSignerWarning = true
-                Timber.tag("miniscript-feature").d("UI - Set showDuplicateSignerWarning = true")
             }
 
             else -> {}
@@ -389,28 +384,19 @@ fun MiniscriptConfigWalletScreen(
             )
         }
 
-        Timber.tag("miniscript-feature")
-            .d("UI - Dialog check: showDuplicateSignerWarning=$showDuplicateSignerWarning, duplicateSignerData=$duplicateSignerData")
         if (showDuplicateSignerWarning && duplicateSignerData != null) {
-            Timber.tag("miniscript-feature").d("UI - Showing duplicate signer warning dialog")
-            NcConfirmationDialog(
+            NcConfirmationVerticalDialog(
                 title = "Warning",
                 message = "This key is already used in this miniscript. Select a different BIP-32 path to derive a new child key, or add it in a separate miniscript instead.",
                 onPositiveClick = {
-                    Timber.tag("miniscript-feature")
-                        .d("UI - Dialog positive click, isDuplicateBip32Update: $isDuplicateBip32Update")
                     showDuplicateSignerWarning = false
                     val (signer, keyName) = duplicateSignerData!!
 
                     // Check if this is a BIP32 update warning or a regular duplicate signer warning
                     if (isDuplicateBip32Update) {
-                        Timber.tag("miniscript-feature")
-                            .d("UI - Calling onProceedWithDuplicateBip32Update")
                         // For BIP32 path update duplicates, call the new function
                         onProceedWithDuplicateBip32Update()
                     } else {
-                        Timber.tag("miniscript-feature")
-                            .d("UI - Calling onProceedWithDuplicateSigner")
                         // For regular duplicate signer warnings, use the existing function
                         onProceedWithDuplicateSigner(signer, keyName)
                     }
@@ -421,7 +407,6 @@ fun MiniscriptConfigWalletScreen(
                     onClearEvent()
                 },
                 onDismiss = {
-                    Timber.tag("miniscript-feature").d("UI - Dialog dismissed")
                     showDuplicateSignerWarning = false
                     duplicateSignerData = null
                     isDuplicateBip32Update = false
