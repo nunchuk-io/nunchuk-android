@@ -39,7 +39,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -73,7 +72,6 @@ fun NavGraphBuilder.miniscriptConfigTemplateDestination(
     onNext: (String) -> Unit
 ) {
     composable<MiniscriptConfigTemplate> { navBackStackEntry ->
-        val viewModel = hiltViewModel<MiniscriptConfigTemplateViewModel>()
 
         val data: MiniscriptConfigTemplate = navBackStackEntry.toRoute()
 
@@ -84,7 +82,6 @@ fun NavGraphBuilder.miniscriptConfigTemplateDestination(
         MiniscriptConfigTemplateScreen(
             addressType = addressType,
             multisignType = multisignType,
-            viewModel = viewModel,
             onContinueClick = { template ->
                 onNext(template)
             }
@@ -97,9 +94,9 @@ fun NavGraphBuilder.miniscriptConfigTemplateDestination(
 fun MiniscriptConfigTemplateScreen(
     addressType: AddressType = AddressType.ANY,
     multisignType: MultisignType = MultisignType.FLEXIBLE,
-    viewModel: MiniscriptConfigTemplateViewModel = hiltViewModel(),
     onContinueClick: (String) -> Unit = {}
 ) {
+    val viewModel: MiniscriptConfigTemplateViewModel = hiltViewModel()
     var showEditPolicyBottomSheet by remember { mutableStateOf(false) }
     var showEditTimelockBottomSheet by remember { mutableStateOf(false) }
     var timelockData by remember {
@@ -195,7 +192,7 @@ fun MiniscriptConfigTemplateScreen(
         else -> ""
     }
 
-    val reuseSigner = remember { mutableStateOf(multisignType == MultisignType.FLEXIBLE) }
+    val reuseSigner = remember { mutableStateOf(true) }
 
     NunchukTheme {
         Scaffold(
@@ -254,7 +251,6 @@ fun MiniscriptConfigTemplateScreen(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
                     .navigationBarsPadding()
                     .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
@@ -268,11 +264,12 @@ fun MiniscriptConfigTemplateScreen(
                 Text(
                     text = "Contract policy:",
                     style = NunchukTheme.typography.titleSmall,
-                    modifier = Modifier.padding(bottom = spacing)
+                    modifier = Modifier.padding(bottom = spacing, start = 16.dp, end = 16.dp)
                 )
 
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.lightGray)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -283,7 +280,7 @@ fun MiniscriptConfigTemplateScreen(
                                 showEditPolicyBottomSheet = true
                             }
                             Text(
-                                text = "multisig wallet",
+                                text = "multisig",
                                 style = NunchukTheme.typography.body
                             )
                         }
@@ -311,7 +308,7 @@ fun MiniscriptConfigTemplateScreen(
                                         text = "$newM of $newN",
                                         contentEnd = {
                                             Text(
-                                                text = " multisig wallet",
+                                                text = " multisig",
                                                 style = NunchukTheme.typography.body
                                             )
                                         },
@@ -334,7 +331,7 @@ fun MiniscriptConfigTemplateScreen(
                                         text = "$newN",
                                         contentEnd = {
                                             Text(
-                                                text = " multisig wallet",
+                                                text = " multisig",
                                                 style = NunchukTheme.typography.body
                                             )
                                         },
@@ -357,7 +354,7 @@ fun MiniscriptConfigTemplateScreen(
                                         text = "$newM",
                                         contentEnd = {
                                             Text(
-                                                text = " of $n multisig wallet",
+                                                text = " of $n multisig",
                                                 style = NunchukTheme.typography.body
                                             )
                                         },
@@ -402,21 +399,17 @@ fun MiniscriptConfigTemplateScreen(
                     }
                 }
 
-                val isCheckboxDisabled =
-                    timelockData.timelockType == MiniscriptTimelockType.RELATIVE
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .padding(top = 12.dp)
-                        .alpha(if (isCheckboxDisabled) 0.4f else 1f)
+                        .padding(start = 2.dp)
                 ) {
                     Checkbox(
                         checked = reuseSigner.value,
-                        onCheckedChange = if (isCheckboxDisabled) null else {
-                            { reuseSigner.value = it }
+                        onCheckedChange = {
+                            reuseSigner.value = it
                         },
-                        enabled = !isCheckboxDisabled
+                        enabled = true
                     )
                     Text(
                         modifier = Modifier.padding(start = 4.dp),
@@ -565,99 +558,6 @@ fun TextChip(text: String, modifier: Modifier = Modifier, onClick: () -> Unit = 
 @Composable
 private fun MiniscriptConfigTemplateScreenPreview() {
     NunchukTheme {
-        Scaffold(
-            modifier = Modifier.navigationBarsPadding(),
-            topBar = {
-                NcTopAppBar(
-                    title = "Flexible multisig",
-                    textStyle = NunchukTheme.typography.titleLarge,
-                )
-            }
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
-                    .navigationBarsPadding()
-                    .fillMaxHeight()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                val spacing = 12.dp
-                val chipModifier = Modifier
-                    .padding(end = 4.dp)
-                    .background(Color(0xFFFFF1CC), shape = RoundedCornerShape(8.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-
-                Text(
-                    text = "Contract policy:",
-                    style = NunchukTheme.typography.titleSmall,
-                    modifier = Modifier.padding(bottom = spacing)
-                )
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.lightGray)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            TextChip("2 of 3", chipModifier) {}
-                            Text(
-                                text = "multisig wallet",
-                                style = NunchukTheme.typography.body
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            "will automatically change to",
-                            style = NunchukTheme.typography.body
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            TextChipLineContent(
-                                contentBeginning = {
-                                    Text(
-                                        text = "a ",
-                                        style = NunchukTheme.typography.body
-                                    )
-                                },
-                                modifier = chipModifier,
-                                text = "3 of 3",
-                                contentEnd = {
-                                    Text(
-                                        text = " multisig wallet",
-                                        style = NunchukTheme.typography.body
-                                    )
-                                }
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            TextChip("after 30 days", chipModifier) {}
-                        }
-                    }
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 12.dp)
-                ) {
-                    Checkbox(
-                        checked = true,
-                        onCheckedChange = {}
-                    )
-                    Text(
-                        modifier = Modifier.padding(start = 4.dp),
-                        text = "Reuse keys across multisig policies",
-                        style = NunchukTheme.typography.body
-                    )
-                }
-            }
-        }
+        MiniscriptConfigTemplateScreen()
     }
 }

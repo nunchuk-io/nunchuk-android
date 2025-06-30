@@ -27,13 +27,16 @@ fun TextView.bindWalletConfiguration(wallet: Wallet, hideWalletDetail: Boolean =
     bindWalletConfiguration(
         requireSigns = wallet.totalRequireSigns,
         totalSigns = wallet.signers.size,
-        hideWalletDetail = hideWalletDetail
+        hideWalletDetail = hideWalletDetail,
+        isMiniscript = wallet.miniscript.isNotEmpty()
     )
 }
 
-fun TextView.bindWalletConfiguration(totalSigns: Int, requireSigns: Int, hideWalletDetail: Boolean = false) {
+fun TextView.bindWalletConfiguration(totalSigns: Int, requireSigns: Int, isMiniscript: Boolean = false, hideWalletDetail: Boolean = false) {
     text = if (hideWalletDetail) {
         '\u2022'.toString().repeat(6)
+    } else if (isMiniscript) {
+        context.getString(R.string.nc_miniscript)
     } else if (totalSigns == 0 || requireSigns == 0) {
         context.getString(R.string.nc_wallet_not_configured)
     } else if (totalSigns == 1 && requireSigns == 1) {

@@ -135,6 +135,8 @@ fun ActiveWallet(
                 val totalSigns = wallet.signers.size
                 val text = if (hideWalletDetail) {
                     '\u2022'.toString().repeat(6)
+                } else if (wallet.miniscript.isNotEmpty()) {
+                    stringResource(R.string.nc_miniscript)
                 } else if (totalSigns == 0 || requireSigns == 0) {
                     stringResource(R.string.nc_wallet_not_configured)
                 } else if (totalSigns == 1 && requireSigns == 1) {

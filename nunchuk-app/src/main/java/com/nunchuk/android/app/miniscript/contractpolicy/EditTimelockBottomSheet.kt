@@ -39,6 +39,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.MiniscriptTimelockType
 import java.text.DecimalFormat
@@ -380,7 +381,7 @@ fun RadioOption(
                 modifier = Modifier.padding(top = 2.dp),
                 text = description,
                 style = NunchukTheme.typography.bodySmall.copy(
-                    color = MaterialTheme.colorScheme.secondary
+                    color = MaterialTheme.colorScheme.textSecondary
                 )
             )
         }

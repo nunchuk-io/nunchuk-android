@@ -401,7 +401,7 @@ fun KeyManagementSection(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = description,
-                style = NunchukTheme.typography.caption.copy(
+                style = NunchukTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.textSecondary,
                     fontWeight = FontWeight.W400
                 )

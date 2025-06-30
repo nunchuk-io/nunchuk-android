@@ -106,7 +106,7 @@ fun SelectMultisignTypeBottomSheetContent(
 
             item {
                 Text(
-                    text = "Select multisig template",
+                    text = "Enter custom miniscript",
                     style = NunchukTheme.typography.titleSmall,
                 )
             }

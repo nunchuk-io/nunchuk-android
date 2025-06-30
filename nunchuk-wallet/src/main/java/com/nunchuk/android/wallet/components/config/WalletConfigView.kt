@@ -184,7 +184,7 @@ internal fun WalletConfigView(
                         ) {
                             Text(
                                 modifier = Modifier.padding(end = 8.dp),
-                                text = "$requiredSignInfo$walletTypeString",
+                                text = if (state.walletExtended.wallet.miniscript.isEmpty()) "$requiredSignInfo$walletTypeString" else "Miniscript",
                                 style = NunchukTheme.typography.bodySmall
                                     .copy(color = colorResource(id = R.color.nc_white_color))
                             )

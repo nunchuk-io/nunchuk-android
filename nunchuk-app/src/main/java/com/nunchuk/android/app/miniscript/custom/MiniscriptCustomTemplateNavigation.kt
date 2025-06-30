@@ -183,7 +183,7 @@ fun MiniscriptCustomTemplateScreen(
                 NcTextField(
                     modifier = Modifier
                         .padding(top = 16.dp),
-                    title = "Customize Miniscript",
+                    title = "Customize miniscript",
                     placeholder = {
                         Text(
                             text = "Example: andor(\n" +
