@@ -41,6 +41,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -401,7 +402,8 @@ fun KeyManagementSection(
             Text(
                 text = description,
                 style = NunchukTheme.typography.caption.copy(
-                    color = MaterialTheme.colorScheme.textSecondary
+                    color = MaterialTheme.colorScheme.textSecondary,
+                    fontWeight = FontWeight.W400
                 )
             )
         }

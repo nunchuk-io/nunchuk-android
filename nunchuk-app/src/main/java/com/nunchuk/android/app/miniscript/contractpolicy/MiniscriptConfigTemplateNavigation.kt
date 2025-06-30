@@ -430,7 +430,7 @@ fun MiniscriptConfigTemplateScreen(
                             initialN = n,
                             showTotalKeys = true,
                             showRequiredKeys = true,
-                            minM = 1,
+                            minM = if (multisignType == MultisignType.DECAYING) newM + 1 else 1,
                             maxM = 5,
                             minN = 2,
                             maxN = if (multisignType == MultisignType.EXPANDING) newN - 1 else 5
