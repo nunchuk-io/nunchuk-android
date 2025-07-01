@@ -1,7 +1,6 @@
 package com.nunchuk.android.app.miniscript.contractpolicy
 
 import android.icu.text.SimpleDateFormat
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -24,6 +24,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,9 +38,13 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcDatePickerDialog
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
+import com.nunchuk.android.compose.NcSnackBarHost
+import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcTextField
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.textSecondary
+import kotlinx.coroutines.launch
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.MiniscriptTimelockType
 import java.text.DecimalFormat
@@ -58,6 +63,7 @@ fun EditTimelockBottomSheet(
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     currentBlockHeight: Long = 0L,
     initialData: TimelockData? = null,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onDismiss: () -> Unit = {},
     onSave: (TimelockData) -> Unit = {}
 ) {
@@ -77,8 +83,10 @@ fun EditTimelockBottomSheet(
                 EditTimelockContent(
                     currentBlockHeight = currentBlockHeight,
                     initialData = initialData,
+                    snackbarHostState = snackbarHostState,
                     onSave = onSave
                 )
+                NcSnackBarHost(snackbarHostState)
             }
         }
     )
@@ -88,6 +96,7 @@ fun EditTimelockBottomSheet(
 fun EditTimelockContent(
     currentBlockHeight: Long = 0L,
     initialData: TimelockData? = null,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onSave: (TimelockData) -> Unit = {}
 ) {
     var timelockType by remember { 
@@ -126,6 +135,7 @@ fun EditTimelockContent(
     }
     
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -191,26 +201,57 @@ fun EditTimelockContent(
             onClick = {
                 if (timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK) {
                     val blockHeight = numericValue.toLongOrNull() ?: 0L
-                    if (blockHeight < 0 || blockHeight > 65535) {
-                        Toast.makeText(
-                            context,
-                            "Invalid block height. Enter a value between 0 and 65 535 blocks.",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                    if (blockHeight < currentBlockHeight || blockHeight > 499999999) {
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar(
+                                NcSnackbarVisuals(
+                                    message = "Please enter a value between the current block height and 499999999",
+                                    type = NcToastType.ERROR
+                                )
+                            )
+                        }
+                        return@NcPrimaryDarkButton
+                    }
+                } else if (timelockType == MiniscriptTimelockType.RELATIVE && timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
+                    val days = numericValue.toLongOrNull() ?: 0L
+                    if (days < 0 || days > 388) {
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar(
+                                NcSnackbarVisuals(
+                                    message = "Invalid timestamp. Enter a value between 0 and 388 days.",
+                                    type = NcToastType.ERROR
+                                )
+                            )
+                        }
+                        return@NcPrimaryDarkButton
+                    }
+                } else if (timelockType == MiniscriptTimelockType.RELATIVE && timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK) {
+                    val blocks = numericValue.toLongOrNull() ?: 0L
+                    if (blocks < 0 || blocks > 65535) {
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar(
+                                NcSnackbarVisuals(
+                                    message = "Invalid block height. Enter a value between 0 and 65,535 blocks.",
+                                    type = NcToastType.ERROR
+                                )
+                            )
+                        }
                         return@NcPrimaryDarkButton
                     }
                 } else if (timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
                     val today = Calendar.getInstance()
                     val selectedDate = calendar.value
-                    val diffInMillis = selectedDate.timeInMillis - today.timeInMillis
-                    val diffInDays = diffInMillis / (24 * 60 * 60 * 1000)
+                    val maxYear = Calendar.getInstance().apply { set(Calendar.YEAR, 11516) }
                     
-                    if (diffInDays > 388) {
-                        Toast.makeText(
-                            context,
-                            "Invalid timestamp. Enter a value between 0 and 388 days.",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                    if (selectedDate.before(today) || selectedDate.after(maxYear)) {
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar(
+                                NcSnackbarVisuals(
+                                    message = "Please select a date between today and the year 11516",
+                                    type = NcToastType.ERROR
+                                )
+                            )
+                        }
                         return@NcPrimaryDarkButton
                     }
                 }
@@ -395,5 +436,7 @@ fun RadioOption(
 @PreviewLightDark
 @Composable
 fun EditTimelockBottomSheetPreview() {
-    EditTimelockContent()
+    EditTimelockContent(
+        snackbarHostState = remember { SnackbarHostState() }
+    )
 }

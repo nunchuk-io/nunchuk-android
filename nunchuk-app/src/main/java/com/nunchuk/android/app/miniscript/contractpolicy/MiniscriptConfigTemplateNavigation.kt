@@ -504,6 +504,7 @@ fun MiniscriptConfigTemplateScreen(
                 EditTimelockBottomSheet(
                     currentBlockHeight = uiState.currentBlockHeight.toLong(),
                     initialData = timelockData,
+                    snackbarHostState = snackbarHostState,
                     onDismiss = { showEditTimelockBottomSheet = false },
                     onSave = { data ->
                         timelockData = data
