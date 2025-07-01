@@ -446,6 +446,8 @@ private fun getDuplicateSignerKeys(
 fun MiniscriptConfigWalletScreenPreview() {
     val previewState = MiniscriptSharedWalletState(
         scriptNode = ScriptNode(
+            id = emptyList(),
+            data = byteArrayOf(),
             type = ScripNoteType.ANDOR.name,
             keys = listOf(),
             k = 0,
@@ -459,15 +461,21 @@ fun MiniscriptConfigWalletScreenPreview() {
                             keys = listOf("key_0_0", "key_1_0"),
                             subs = emptyList(),
                             k = 0,
+                            id = emptyList(),
+                            data = byteArrayOf()
                         )
                     ),
                     k = 0,
+                    id = emptyList(),
+                    data = byteArrayOf()
                 ),
                 ScriptNode(
                     type = ScripNoteType.SHA256.name,
                     keys = listOf("key_0_1", "key_1_1"),
                     subs = emptyList(),
                     k = 0,
+                    id = emptyList(),
+                    data = byteArrayOf()
                 )
             )
         ),

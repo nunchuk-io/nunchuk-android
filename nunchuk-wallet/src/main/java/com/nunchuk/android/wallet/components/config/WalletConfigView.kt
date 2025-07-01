@@ -275,7 +275,6 @@ internal fun WalletConfigView(
                                         modifier = Modifier.padding(
                                             top = 16.dp,
                                             bottom = 8.dp,
-                                            start = 16.dp,
                                             end = 16.dp
                                         ),
                                         text = "Script path",

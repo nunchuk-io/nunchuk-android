@@ -362,7 +362,7 @@ fun TransactionDetailView(
                     }
                 }
 
-                if (state.scriptNode != null && state.signerMap.isNotEmpty()) {
+                if (!state.transaction.isReceive && state.scriptNode != null && state.signerMap.isNotEmpty()) {
                     item {
                         Column(
                             modifier = Modifier.padding(

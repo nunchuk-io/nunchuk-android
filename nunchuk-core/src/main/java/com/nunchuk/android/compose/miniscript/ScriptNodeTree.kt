@@ -510,8 +510,6 @@ fun TimelockItem(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {},
 ) {
-    val currentTimeSeconds = System.currentTimeMillis() / 1000
-
     val (title, description) = when (nodeType) {
         ScripNoteType.OLDER.name -> {
             if (k > 86400) { // k is timestamp in seconds
@@ -524,6 +522,7 @@ fun TimelockItem(
         }
 
         ScripNoteType.AFTER.name -> {
+            val currentTimeSeconds = System.currentTimeMillis() / 1000
             val diff = k - currentTimeSeconds
             if (diff > 0) { // k is timestamp in seconds
                 val targetDate = calculateDateFromSeconds(k.toLong())
@@ -730,6 +729,8 @@ private fun String.capitalize(): String {
 @Composable
 fun ConditionTreeUIPreview() {
     val sampleScriptNode = ScriptNode(
+        id = emptyList(),
+        data = byteArrayOf(),
         type = ScripNoteType.ANDOR.name,
         keys = listOf(),
         k = 0,
@@ -738,19 +739,25 @@ fun ConditionTreeUIPreview() {
                 type = ScripNoteType.AFTER.name,
                 keys = listOf(),
                 k = 7776000, // 90 days in seconds
-                subs = emptyList()
+                subs = emptyList(),
+                id = emptyList(),
+                data = byteArrayOf()
             ),
             ScriptNode(
                 type = ScripNoteType.THRESH.name,
                 keys = listOf("key_3", "key_4", "key_5"),
                 k = 3,
-                subs = emptyList()
+                subs = emptyList(),
+                id = emptyList(),
+                data = byteArrayOf()
             ),
             ScriptNode(
                 type = ScripNoteType.THRESH.name,
                 keys = listOf("key_0", "key_1", "key_2"),
                 k = 2,
-                subs = emptyList()
+                subs = emptyList(),
+                id = emptyList(),
+                data = byteArrayOf()
             )
         )
     )
