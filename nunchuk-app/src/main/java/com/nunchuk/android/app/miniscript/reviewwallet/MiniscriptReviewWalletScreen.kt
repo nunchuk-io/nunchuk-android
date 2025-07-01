@@ -94,12 +94,13 @@ fun MiniscriptReviewWalletScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    val hasDuplicateSigners = getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner).isNotEmpty()
                     NcPrimaryDarkButton(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = {
                             viewModel.createMiniscriptWallet()
                         },
-                        enabled = uiState.areAllKeysAssigned
+                        enabled = uiState.areAllKeysAssigned && !hasDuplicateSigners
                     ) {
                         Text(text = "Create wallet")
                     }
