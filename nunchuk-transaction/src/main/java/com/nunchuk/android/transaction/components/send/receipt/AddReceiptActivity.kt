@@ -120,6 +120,8 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                         } else {
                             transactionConfirmViewModel.handleConfirmEvent()
                         }
+                    } else if (it is TransactionConfirmEvent.EstimateFeeForSigningPathsSuccess) {
+                        navController.navigate(ReceiptNavigation.ChooseSigningPath)
                     }
                 }
             }
@@ -165,12 +167,25 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                         )
                     }
                 }
+                composable<ReceiptNavigation.ChooseSigningPath> {
+                    val state by viewModel.state.asFlow()
+                        .collectAsStateWithLifecycle(AddReceiptState())
+                    val scriptNode = state.scriptNode
+                    if (scriptNode != null) {
+                        ChooseSigningPathScreen(
+                            wallet = state.wallet,
+                            signers = state.signers,
+                            scriptNode = scriptNode,
+                            onContinue = { /* TODO: handle continue */ },
+                        )
+                    }
+                }
             }
         }
 
         observer()
     }
-    
+
     private fun observer() {
         flowObserver(estimateFeeViewModel.event, collector = ::handleEstimateFeeEvent)
         flowObserver(transactionConfirmViewModel.event, collector = ::handleCreateTransactionEvent)
@@ -207,7 +222,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                         )
                     )
                 } else {
-                   openTransactionDetailScreen(
+                    openTransactionDetailScreen(
                         event.transaction.txId,
                         args.walletId,
                         sessionHolder.getActiveRoomIdSafe(),
@@ -271,8 +286,9 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 claimInheritanceTxParam = args.claimInheritanceTxParam,
                 antiFeeSniping = viewModel.getAddReceiptState().antiFeeSniping
             )
-
-            if (state.addressType.isTaproot() && !state.isValueKeySetDisable) {
+            if (state.addressType.isTaproot() && state.scriptNode != null) {
+                transactionConfirmViewModel.estimateFeeForSigningPaths()
+            } else if (state.addressType.isTaproot()) {
                 transactionConfirmViewModel.checkShowTaprootDraftTransaction()
             } else {
                 transactionConfirmViewModel.handleConfirmEvent(true)

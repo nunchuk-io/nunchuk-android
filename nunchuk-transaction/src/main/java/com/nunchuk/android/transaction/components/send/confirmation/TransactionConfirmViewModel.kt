@@ -53,6 +53,7 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
+import com.nunchuk.android.usecase.EstimateFeeForSigningPathsUseCase
 import com.nunchuk.android.usecase.GetTaprootSelectionFeeSettingUseCase
 import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
@@ -91,6 +92,7 @@ class TransactionConfirmViewModel @Inject constructor(
     private val getTaprootSelectionFeeSettingUseCase: GetTaprootSelectionFeeSettingUseCase,
     private val saveTaprootKeySetSelectionUseCase: SaveTaprootKeySetSelectionUseCase,
     private val getSavedAddressListLocalUseCase: GetSavedAddressListLocalUseCase,
+    private val estimateFeeForSigningPathsUseCase: EstimateFeeForSigningPathsUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionConfirmUiState())
     val uiState = _state.asStateFlow()
@@ -285,6 +287,7 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
+
     fun checkShowTaprootDraftTransaction() {
         viewModelScope.launch {
             runCatching {
@@ -444,6 +447,24 @@ class TransactionConfirmViewModel @Inject constructor(
         }
 
     fun getSavedAddress() = _state.value.savedAddress
+
+    fun estimateFeeForSigningPaths() {
+        viewModelScope.launch {
+            estimateFeeForSigningPathsUseCase(
+                EstimateFeeForSigningPathsUseCase.Params(
+                    walletId = walletId,
+                    outputs = getOutputs(),
+                    subtractFeeFromAmount = subtractFeeFromAmount,
+                    feeRate = manualFeeRate.toManualFeeRate(),
+                    inputs = inputs.map { TxInput(it.txid, it.vout) },
+                )
+            ).onSuccess { result ->
+                _event.emit(TransactionConfirmEvent.EstimateFeeForSigningPathsSuccess(result))
+            }.onFailure {
+                _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
+            }
+        }
+    }
 
     companion object {
         private const val WAITING_FOR_CONSUME_EVENT_SECONDS = 5L

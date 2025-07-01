@@ -233,8 +233,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
 
             is TransactionConfirmEvent.AssignTagError,
             is TransactionConfirmEvent.AssignTagSuccess,
-            is TransactionConfirmEvent.DraftTaprootTransactionSuccess -> {
-            }
+            is TransactionConfirmEvent.DraftTaprootTransactionSuccess,
+            is TransactionConfirmEvent.EstimateFeeForSigningPathsSuccess -> {}
         }
     }
 

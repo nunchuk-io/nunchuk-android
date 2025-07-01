@@ -32,6 +32,7 @@ import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.S
 import com.nunchuk.android.transaction.components.utils.privateNote
 import com.nunchuk.android.usecase.CheckAddressValidUseCase
 import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
+import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -47,6 +48,7 @@ internal class AddReceiptViewModel @Inject constructor(
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val singleSignerMapper: SingleSignerMapper,
     private val getDefaultAntiFeeSnipingUseCase: GetDefaultAntiFeeSnipingUseCase,
+    private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
 ) : NunchukViewModel<AddReceiptState, AddReceiptEvent>() {
 
     override val initialState = AddReceiptState()
@@ -75,8 +77,18 @@ internal class AddReceiptViewModel @Inject constructor(
                     copy(
                         addressType = wallet.addressType,
                         isValueKeySetDisable = wallet.isValueKeySetDisable,
-                        signers = signers
+                        signers = signers,
+                        wallet = wallet
                     )
+                }
+                if (wallet.miniscript.isNotEmpty()) {
+                    getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
+                        updateState {
+                            copy(
+                                scriptNode = result.scriptNode
+                            )
+                        }
+                    }
                 }
             }.onFailure {
                 setEvent(ShowError(it.message.orUnknownError()))

@@ -17,37 +17,37 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.transaction.components.send.receipt
+package com.nunchuk.android.usecase
 
-import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SigningPath
-import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.model.TxInput
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-sealed class AddReceiptEvent {
-    data object InvalidAddressEvent : AddReceiptEvent()
-    data object AddressRequiredEvent : AddReceiptEvent()
-    data class ShowError(val message: String) : AddReceiptEvent()
-    data class AcceptedAddressEvent(
-        val address: String,
-        val privateNote: String,
-        val amount: Amount,
-        val isCreateTransaction: Boolean
-    ) : AddReceiptEvent()
-    data object ParseBtcUriEvent : AddReceiptEvent()
-    data object NoOp : AddReceiptEvent()
-}
+class EstimateFeeForSigningPathsUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : UseCase<EstimateFeeForSigningPathsUseCase.Params, List<Pair<SigningPath, Amount>>>(ioDispatcher) {
+    override suspend fun execute(parameters: Params): List<Pair<SigningPath, Amount>> {
+        return nativeSdk.estimateFeeForSigningPaths(
+            walletId = parameters.walletId,
+            outputs = parameters.outputs,
+            inputs = parameters.inputs,
+            feeRate = parameters.feeRate,
+            subtractFeeFromAmount = parameters.subtractFeeFromAmount,
+            replaceTxId = parameters.replaceTxId
+        )
+    }
 
-data class AddReceiptState(
-    val address: String = "",
-    val privateNote: String = "",
-    val amount: Amount = Amount(),
-    val addressType: AddressType = AddressType.ANY,
-    val isValueKeySetDisable: Boolean = false,
-    val signers : List<SignerModel> = emptyList(),
-    val antiFeeSniping: Boolean = false,
-    val scriptNode: ScriptNode? = null,
-    val wallet: Wallet = Wallet()
-)
+    data class Params(
+        val walletId: String,
+        val outputs: Map<String, Amount>,
+        val inputs: List<TxInput>,
+        val feeRate: Amount,
+        val subtractFeeFromAmount: Boolean,
+        val replaceTxId: String = "",
+    )
+} 

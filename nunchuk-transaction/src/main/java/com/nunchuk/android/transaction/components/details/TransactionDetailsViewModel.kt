@@ -34,7 +34,6 @@ import com.google.android.play.core.review.ReviewManagerFactory
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.ExportPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.GetRawTransactionUseCase
-import com.nunchuk.android.core.domain.HasSignerUseCase
 import com.nunchuk.android.core.domain.ImportTransactionFromMk4UseCase
 import com.nunchuk.android.core.domain.SignRoomTransactionByTapSignerUseCase
 import com.nunchuk.android.core.domain.SignTransactionByTapSignerUseCase
@@ -47,7 +46,6 @@ import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.isNoInternetException
@@ -124,7 +122,6 @@ import com.nunchuk.android.usecase.membership.SignServerTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
-import com.nunchuk.android.usecase.signer.GetSignerUseCase
 import com.nunchuk.android.usecase.transaction.GetTaprootKeySetSelectionUseCase
 import com.nunchuk.android.usecase.transaction.ImportPsbtUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
@@ -198,8 +195,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getSavedAddressListLocalUseCase: GetSavedAddressListLocalUseCase,
     private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
     private val parseSignerStringUseCase: ParseSignerStringUseCase,
-    private val hasSignerUseCase: HasSignerUseCase,
-    private val getSignerUseCase: GetSignerUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionDetailsState())
     val state = _state.asStateFlow()
@@ -470,9 +465,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         val signerMap = mutableMapOf<String, SignerModel>()
         node.keys.forEach { key ->
             parseSignerStringUseCase(key).getOrNull()?.let { signer ->
-                signerMap[key] = if (hasSignerUseCase(signer).getOrNull() == true) {
-                    singleSignerMapper(getSignerUseCase(signer).getOrThrow()).copy(isVisible = true)
-                } else signer.toModel()
+                signerMap[key] = singleSignerMapper(signer)
             }
         }
         node.subs.forEach { subNode ->
