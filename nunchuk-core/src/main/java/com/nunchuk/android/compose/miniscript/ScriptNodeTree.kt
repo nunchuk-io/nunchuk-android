@@ -171,7 +171,7 @@ private fun NodeKeys(
             modifier = modifier,
             drawLine = i != node.keys.size - 1 || node.subs.isNotEmpty(),
             indentationLevel = level + 1 // Keys are one level deeper than their parent node
-        ) {
+        ) { modifier, showThreadCurve ->
             val signer = data.signers[key]
             CreateKeyItem(
                 key = key,
@@ -179,7 +179,9 @@ private fun NodeKeys(
                 position = keyPosition,
                 onChangeBip32Path = onChangeBip32Path,
                 onActionKey = onActionKey,
-                data = data
+                data = data,
+                showThreadCurve = showThreadCurve,
+                modifier = modifier
             )
         }
     }
@@ -262,14 +264,18 @@ fun ScriptNodeTree(
     val highlightModifier = if (isHighlighted) Modifier else Modifier.alpha(0.4f)
     when (node.type) {
         ScripNoteType.ANDOR.name, ScripNoteType.AND.name, ScripNoteType.OR.name, ScripNoteType.OR_TAPROOT.name -> {
-            if (level == 0) {
+            TreeBranchContainer(
+                modifier = highlightModifier,
+                drawLine = isLastItem.not(),
+                indentationLevel = level
+            ) { modifier, showThreadCurve ->
                 AndOrView(
                     scripNoteTypeInfo = info,
-                    isShowCurve = false,
+                    isShowCurve = showThreadCurve,
                     padStart = 0,
                     isShowTapscriptBadge = ScripNoteType.OR_TAPROOT.name == node.type,
                     index = index,
-                    modifier = highlightModifier
+                    modifier = modifier
                 ) {
                     NodeContent(
                         node = node,
@@ -277,30 +283,9 @@ fun ScriptNodeTree(
                         onChangeBip32Path = onChangeBip32Path,
                         onActionKey = onActionKey,
                         data = data,
-                        level = level
-                    )
-                }
-            } else {
-                TreeBranchContainer(
-                    modifier = highlightModifier,
-                    drawLine = isLastItem.not(),
-                    indentationLevel = level
-                ) { modifier ->
-                    AndOrView(
-                        scripNoteTypeInfo = info,
-                        index = index,
+                        level = level,
                         modifier = modifier
-                    ) {
-                        NodeContent(
-                            node = node,
-                            index = index,
-                            onChangeBip32Path = onChangeBip32Path,
-                            onActionKey = onActionKey,
-                            data = data,
-                            level = level,
-                            modifier = modifier
-                        )
-                    }
+                    )
                 }
             }
             return
@@ -311,12 +296,13 @@ fun ScriptNodeTree(
                 modifier = highlightModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
-            ) { modifier ->
+            ) { modifier, showThreadCurve ->
                 TimelockItem(
                     index = index,
                     k = node.k,
                     currentBlockHeight = currentBlockHeight,
                     nodeType = node.type,
+                    showThreadCurve = showThreadCurve,
                     modifier = modifier
                 ) {
                     NodeContent(
@@ -338,7 +324,7 @@ fun ScriptNodeTree(
                 modifier = highlightModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
-            ) { modifier ->
+            ) { modifier, showThreadCurve ->
                 CreateKeyItem(
                     key = node.keys.firstOrNull() ?: "",
                     signer = data.signers[node.keys.firstOrNull().orEmpty()],
@@ -346,7 +332,7 @@ fun ScriptNodeTree(
                     onChangeBip32Path = onChangeBip32Path,
                     onActionKey = onActionKey,
                     data = data,
-                    showThreadCurve = true,
+                    showThreadCurve = showThreadCurve,
                     modifier = modifier
                 )
             }
@@ -358,12 +344,14 @@ fun ScriptNodeTree(
                 modifier = highlightModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
-            ) { modifier ->
+            ) { modifier, showThreadCurve ->
                 ThreadMultiItem(
                     index = index,
                     type = node.type,
                     threshold = node.k,
                     totalKeys = node.keys.size + node.subs.size,
+                    topPadding = if (showThreadCurve) 10 else 0,
+                    showThreadCurve = showThreadCurve,
                     modifier = modifier
                 ) {
                     NodeContent(
@@ -385,10 +373,11 @@ fun ScriptNodeTree(
                 modifier = highlightModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
-            ) { modifier ->
+            ) { modifier, showThreadCurve ->
                 HashlockItem(
                     index = index,
                     hashType = node.type,
+                    showThreadCurve = showThreadCurve,
                     modifier = modifier
                 ) {
                     NodeContent(
@@ -474,6 +463,7 @@ fun ThreadMultiItem(
     threshold: Int,
     totalKeys: Int,
     topPadding: Int = 10,
+    showThreadCurve: Boolean = true,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {},
 ) {
@@ -483,14 +473,16 @@ fun ThreadMultiItem(
                 .fillMaxWidth()
                 .padding(top = topPadding.dp, bottom = 4.dp)
         ) {
-            Image(
-                painter = painterResource(R.drawable.ic_thread_curve),
-                contentDescription = null,
-            )
+            if (showThreadCurve) {
+                Image(
+                    painter = painterResource(R.drawable.ic_thread_curve),
+                    contentDescription = null,
+                )
+            }
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = 8.dp)
+                    .padding(start = if (showThreadCurve) 8.dp else 0.dp)
             ) {
                 val text = when (type) {
                     ScripNoteType.THRESH.name -> "Thresh"
@@ -519,6 +511,7 @@ fun TimelockItem(
     k: Int,
     currentBlockHeight: Int = 0,
     nodeType: String,
+    showThreadCurve: Boolean = true,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {},
 ) {
@@ -562,10 +555,12 @@ fun TimelockItem(
                     top = 10.dp,
                 )
         ) {
-            Image(
-                painter = painterResource(R.drawable.ic_thread_curve),
-                contentDescription = null,
-            )
+            if (showThreadCurve) {
+                Image(
+                    painter = painterResource(R.drawable.ic_thread_curve),
+                    contentDescription = null,
+                )
+            }
             NcIcon(
                 painter = painterResource(R.drawable.ic_timer),
                 contentDescription = null,
@@ -596,6 +591,7 @@ fun TimelockItem(
 fun HashlockItem(
     index: String,
     hashType: String,
+    showThreadCurve: Boolean = true,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {},
 ) {
@@ -614,10 +610,12 @@ fun HashlockItem(
                 )
                 .fillMaxWidth()
         ) {
-            Image(
-                painter = painterResource(R.drawable.ic_thread_curve),
-                contentDescription = null,
-            )
+            if (showThreadCurve) {
+                Image(
+                    painter = painterResource(R.drawable.ic_thread_curve),
+                    contentDescription = null,
+                )
+            }
             NcIcon(
                 painter = painterResource(R.drawable.ic_hash),
                 contentDescription = null,
@@ -699,9 +697,11 @@ fun TreeBranchContainer(
     drawLine: Boolean = true,
     itemHeight: Float = 0f,
     indentationLevel: Int = 0,
-    content: @Composable (modifier: Modifier) -> Unit
+    content: @Composable (modifier: Modifier, showThreadCurve: Boolean) -> Unit
 ) {
-    val indentationPadding = (indentationLevel * 10).dp
+    val indentationPadding = if (indentationLevel > 0) (indentationLevel * 10).dp else 0.dp
+    val shouldDrawLine = drawLine && indentationLevel > 0
+    val showThreadCurve = indentationLevel > 0
     
     Box(
         modifier = modifier
@@ -710,7 +710,7 @@ fun TreeBranchContainer(
                 val stroke = Stroke(width = 3.5f)
                 val lineX = 2f
                 val color = Color(0xFF757575)
-                if (drawLine) {
+                if (shouldDrawLine) {
                     drawLine(
                         color = color,
                         start = Offset(lineX, 0f),
@@ -720,7 +720,7 @@ fun TreeBranchContainer(
                 }
             }
     ) {
-        content(Modifier)
+        content(Modifier, showThreadCurve)
     }
 }
 
