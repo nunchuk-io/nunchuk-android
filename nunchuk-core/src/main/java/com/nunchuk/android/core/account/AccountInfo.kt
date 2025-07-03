@@ -48,7 +48,9 @@ data class AccountInfo(
     @SerializedName("primary_key_info")
     val primaryKeyInfo: PrimaryKeyInfo? = null,
     @SerializedName("decoy_pin")
-    val decoyPin: String = "" // it mean user is using decoy pin space, not the real pin
+    val decoyPin: String = "", // it mean user is using decoy pin space, not the real pin
+    @SerializedName("login_type_original")
+val loginTypeOriginal: Int = SignInMode.UNKNOWN.value,
 )
 
 data class PrimaryKeyInfo(

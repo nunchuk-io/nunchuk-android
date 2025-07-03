@@ -51,10 +51,13 @@ import com.nunchuk.android.utils.consumeEdgeToEdge
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.widget.NCInfoDialog
-import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCVerticalInputDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
+import com.nunchuk.android.core.domain.membership.PasswordVerificationHelper
+import com.nunchuk.android.core.domain.membership.TargetAction
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
@@ -64,6 +67,9 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
 
     private lateinit var adapter: ServicesTabAdapter
     private var currentSelectedItem: ServiceTabRowItem? = null
+    
+    @Inject
+    lateinit var passwordVerificationHelper: PasswordVerificationHelper
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -99,7 +105,6 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 is ServicesTabEvent.GetServerKeySuccess -> openServerKeyDetail(event)
                 is ServicesTabEvent.ProcessFailure -> showError(message = event.message)
                 is ServicesTabEvent.Loading -> showOrHideLoading(loading = event.loading)
-                is ServicesTabEvent.CheckPasswordSuccess -> handleCheckPasswordSuccess(event)
                 is ServicesTabEvent.CreateSupportRoomSuccess -> navigator.openRoomDetailActivity(
                     requireContext(),
                     event.roomId
@@ -194,38 +199,6 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
             },
             onNegativeClicked = ::handleGoOurWebsite
         )
-    }
-
-    private fun handleCheckPasswordSuccess(event: ServicesTabEvent.CheckPasswordSuccess) {
-        when (event.item) {
-            ServiceTabRowItem.CoSigningPolicies -> {
-                viewModel.getServiceKey(event.token, event.walletId)
-            }
-
-            ServiceTabRowItem.EmergencyLockdown -> {
-                navigator.openEmergencyLockdownScreen(
-                    requireContext(),
-                    event.token,
-                    event.groupId,
-                    event.walletId
-                )
-            }
-
-            ServiceTabRowItem.ViewInheritancePlan -> viewModel.getInheritance(
-                event.walletId,
-                event.token,
-                event.groupId
-            )
-
-            ServiceTabRowItem.ReplaceKey -> navigator.openMembershipActivity(
-                activityContext = requireActivity(),
-                groupStep = MembershipStage.REPLACE_KEY,
-                walletId = event.walletId,
-                groupId = event.groupId,
-            )
-
-            else -> Unit
-        }
     }
 
     private fun setupViews() {
@@ -383,13 +356,63 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
     }
 
     private fun enterPasswordDialog(item: ServiceTabRowItem, walletId: String = "") {
-        NCInputDialog(requireContext()).showDialog(
-            title = getString(R.string.nc_re_enter_your_password),
-            descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
-            onConfirmed = {
-                viewModel.confirmPassword(walletId, it, item)
+        val targetAction = when (item) {
+            is ServiceTabRowItem.EmergencyLockdown -> TargetAction.EMERGENCY_LOCKDOWN
+            is ServiceTabRowItem.CoSigningPolicies -> TargetAction.UPDATE_SERVER_KEY
+            is ServiceTabRowItem.ViewInheritancePlan -> TargetAction.UPDATE_INHERITANCE_PLAN
+            is ServiceTabRowItem.ReplaceKey -> TargetAction.REPLACE_KEYS
+            else -> throw IllegalArgumentException("Unsupported item type: $item")
+        }
+        
+        passwordVerificationHelper.showPasswordVerificationDialog(
+            context = requireContext(),
+            targetAction = targetAction,
+            coroutineScope = lifecycleScope,
+            onSuccess = { token ->
+                handlePasswordVerificationSuccess(token, walletId, item)
+            },
+            onError = { errorMessage ->
+                showError(errorMessage)
             }
         )
+    }
+    
+    private fun handlePasswordVerificationSuccess(token: String, walletId: String, item: ServiceTabRowItem) {
+        val groupId = getGroupIdFromWalletId(walletId)
+        
+        when (item) {
+            ServiceTabRowItem.CoSigningPolicies -> {
+                viewModel.getServiceKey(token, walletId)
+            }
+
+            ServiceTabRowItem.EmergencyLockdown -> {
+                navigator.openEmergencyLockdownScreen(
+                    requireContext(),
+                    token,
+                    groupId,
+                    walletId
+                )
+            }
+
+            ServiceTabRowItem.ViewInheritancePlan -> viewModel.getInheritance(
+                walletId,
+                token,
+                groupId
+            )
+
+            ServiceTabRowItem.ReplaceKey -> navigator.openMembershipActivity(
+                activityContext = requireActivity(),
+                groupStep = MembershipStage.REPLACE_KEY,
+                walletId = walletId,
+                groupId = groupId,
+            )
+
+            else -> Unit
+        }
+    }
+    
+    private fun getGroupIdFromWalletId(walletId: String): String? {
+        return viewModel.state.value.assistedWallets.find { it.localId == walletId }?.groupId
     }
 
     private fun openServerKeyDetail(event: ServicesTabEvent.GetServerKeySuccess) {

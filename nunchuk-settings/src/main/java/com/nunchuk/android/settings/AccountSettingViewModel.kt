@@ -27,8 +27,6 @@ import com.nunchuk.android.core.domain.DeletePrimaryKeyUseCase
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetSyncSettingUseCase
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
-import com.nunchuk.android.core.domain.membership.TargetAction
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.profile.UserRepository
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -60,7 +58,6 @@ internal class AccountSettingViewModel @Inject constructor(
     private val primaryKeySignerInfoHolder: PrimaryKeySignerInfoHolder,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getSyncSettingUseCase: GetSyncSettingUseCase,
-    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
 ) : NunchukViewModel<AccountSettingState, AccountSettingEvent>() {
 
@@ -123,26 +120,6 @@ internal class AccountSettingViewModel @Inject constructor(
         viewModelScope.launch {
             val isNeeded = primaryKeySignerInfoHolder.isNeedPassphraseSent()
             setEvent(CheckNeedPassphraseSent(isNeeded))
-        }
-    }
-
-    fun confirmPassword(
-        password: String,
-    ) = viewModelScope.launch {
-        if (password.isBlank()) {
-            return@launch
-        }
-        setEvent(Loading(true))
-        val result = verifiedPasswordTokenUseCase(
-            VerifiedPasswordTokenUseCase.Param(
-                targetAction = TargetAction.CHANGE_EMAIL.name,
-                password = password
-            )
-        )
-        if (result.isSuccess) {
-            event(AccountSettingEvent.CheckPasswordSuccess(result.getOrThrow().orEmpty()))
-        } else {
-            setEvent(Error(result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 

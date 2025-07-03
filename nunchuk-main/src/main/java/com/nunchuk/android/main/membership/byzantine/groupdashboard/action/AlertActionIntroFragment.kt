@@ -37,6 +37,7 @@ import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
+import com.nunchuk.android.core.domain.membership.PasswordVerificationHelper
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.hideLoading
@@ -50,7 +51,6 @@ import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.transaction.AlertPayload
 import com.nunchuk.android.nav.NunchukNavigator
-import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -63,6 +63,9 @@ class AlertActionIntroFragment : Fragment() {
 
     @Inject
     lateinit var navigator: NunchukNavigator
+
+    @Inject
+    lateinit var passwordVerificationHelper: PasswordVerificationHelper
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -136,11 +139,21 @@ class AlertActionIntroFragment : Fragment() {
     }
 
     private fun enterPasswordDialog(targetAction: TargetAction) {
-        NCInputDialog(requireContext()).showDialog(
-            title = getString(R.string.nc_re_enter_your_password),
-            descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
-            onConfirmed = {
-                viewModel.confirmPassword(it, targetAction)
+        passwordVerificationHelper.showPasswordVerificationDialog(
+            context = requireContext(),
+            targetAction = targetAction,
+            coroutineScope = lifecycleScope,
+            onSuccess = { token ->
+                navigator.openMembershipActivity(
+                    activityContext = requireActivity(),
+                    groupStep = MembershipStage.REPLACE_KEY,
+                    walletId = args.walletId,
+                    groupId = args.groupId,
+                )
+                goBack()
+            },
+            onError = { errorMessage ->
+                showError(message = errorMessage)
             }
         )
     }
@@ -202,16 +215,6 @@ class AlertActionIntroFragment : Fragment() {
 
                         is AlertActionIntroEvent.Error -> showError(message = event.message)
                         AlertActionIntroEvent.SkipHealthReminderSuccess -> {
-                            goBack()
-                        }
-
-                        is AlertActionIntroEvent.VerifiedPasswordTokenSuccess -> {
-                            navigator.openMembershipActivity(
-                                activityContext = requireActivity(),
-                                groupStep = MembershipStage.REPLACE_KEY,
-                                walletId = args.walletId,
-                                groupId = args.groupId,
-                            )
                             goBack()
                         }
                     }

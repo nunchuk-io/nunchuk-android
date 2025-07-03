@@ -144,6 +144,7 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TransactionAdditional
 import com.nunchuk.android.model.VerifiedPKeyTokenRequest
 import com.nunchuk.android.model.VerifiedPasswordTokenRequest
+import com.nunchuk.android.model.VerifyFederatedTokenRequest
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletConfig
@@ -636,6 +637,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) {
             throw response.error
         }
+    }
+
+    override suspend fun verifyFederatedToken(targetAction: String, token: String): String? {
+        val response = membershipApi.verifyFederatedToken(
+            targetAction, VerifyFederatedTokenRequest(token)
+        )
+        val verificationToken = response.data.token
+        ncDataStore.setPasswordToken(verificationToken.orEmpty())
+        return verificationToken
     }
 
     override suspend fun verifiedPKeyToken(

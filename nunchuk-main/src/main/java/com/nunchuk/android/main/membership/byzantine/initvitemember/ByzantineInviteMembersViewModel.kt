@@ -8,8 +8,6 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesEditGroupMemberUseCase
 import com.nunchuk.android.core.domain.membership.EditGroupMemberUseCase
 import com.nunchuk.android.core.domain.membership.EditGroupMemberUserDataUseCase
-import com.nunchuk.android.core.domain.membership.TargetAction
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.util.orDefault
@@ -50,7 +48,6 @@ class ByzantineInviteMembersViewModel @Inject constructor(
     private val editGroupMemberUseCase: EditGroupMemberUseCase,
     private val calculateRequiredSignaturesEditGroupMemberUseCase: CalculateRequiredSignaturesEditGroupMemberUseCase,
     private val editGroupMemberUserDataUseCase: EditGroupMemberUserDataUseCase,
-    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val getWalletConstraintsUseCase: GetWalletConstraintsUseCase,
     private val getInheritanceUseCase: GetInheritanceUseCase,
 ) : ViewModel() {
@@ -322,24 +319,9 @@ class ByzantineInviteMembersViewModel @Inject constructor(
         }
     }
 
-    fun confirmPassword(password: String) = viewModelScope.launch {
-        if (password.isBlank()) {
-            return@launch
-        }
-        _event.emit(ByzantineInviteMembersEvent.Loading(true))
-        val result = verifiedPasswordTokenUseCase(
-            VerifiedPasswordTokenUseCase.Param(
-                targetAction = TargetAction.EDIT_GROUP_MEMBERS.name,
-                password = password
-            )
-        )
-        _event.emit(ByzantineInviteMembersEvent.Loading(false))
-        if (result.isSuccess) {
-            verifyToken = result.getOrThrow().orEmpty()
-            calculateRequiredSignatures()
-        } else {
-            _event.emit(ByzantineInviteMembersEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
-        }
+    fun handlePasswordVerificationSuccess(token: String) = viewModelScope.launch {
+        verifyToken = token
+        calculateRequiredSignatures()
     }
 
     fun editGroupMember(

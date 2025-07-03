@@ -26,10 +26,7 @@ import com.nunchuk.android.model.containsPersonalPlan
 
 sealed class KeyRecoveryEvent {
     data class Loading(val isLoading: Boolean) : KeyRecoveryEvent()
-    data class ProcessFailure(val message: String) : KeyRecoveryEvent()
     data class ItemClick(val item: KeyRecoveryActionItem) : KeyRecoveryEvent()
-    data class CheckPasswordSuccess(val item: KeyRecoveryActionItem, val verifyToken: String) :
-        KeyRecoveryEvent()
 }
 
 data class KeyRecoveryState(

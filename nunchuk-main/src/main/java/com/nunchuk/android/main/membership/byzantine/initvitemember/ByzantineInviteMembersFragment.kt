@@ -102,9 +102,11 @@ import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.widget.NCInfoDialog
-import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCWarningDialog
+import com.nunchuk.android.core.domain.membership.PasswordVerificationHelper
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -114,6 +116,9 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
     private val viewModel: ByzantineInviteMembersViewModel by viewModels()
     private val args: ByzantineInviteMembersFragmentArgs by navArgs()
     private val groupDashboardViewModel: GroupDashboardViewModel by activityViewModels()
+    
+    @Inject
+    lateinit var passwordVerificationHelper: PasswordVerificationHelper
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -242,11 +247,15 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
     }
 
     private fun enterPasswordDialog() {
-        NCInputDialog(requireContext()).showDialog(
-            title = getString(R.string.nc_re_enter_your_password),
-            descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
-            onConfirmed = {
-                viewModel.confirmPassword(it)
+        passwordVerificationHelper.showPasswordVerificationDialog(
+            context = requireContext(),
+            targetAction = TargetAction.EDIT_GROUP_MEMBERS,
+            coroutineScope = lifecycleScope,
+            onSuccess = { token ->
+                viewModel.handlePasswordVerificationSuccess(token)
+            },
+            onError = { errorMessage ->
+                showError(errorMessage)
             }
         )
     }

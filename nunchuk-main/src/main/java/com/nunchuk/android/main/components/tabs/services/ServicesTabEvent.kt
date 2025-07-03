@@ -45,13 +45,6 @@ sealed class ServicesTabEvent {
     ) : ServicesTabEvent()
 
     data class Loading(val loading: Boolean) : ServicesTabEvent()
-    data class CheckPasswordSuccess(
-        val token: String,
-        val walletId: String,
-        val item: ServiceTabRowItem,
-        val groupId: String?
-    ) : ServicesTabEvent()
-
     data class CreateSupportRoomSuccess(val roomId: String) : ServicesTabEvent()
     data class CheckInheritance(val inheritanceCheck: InheritanceCheck) : ServicesTabEvent()
     data object EmailInvalid : ServicesTabEvent()

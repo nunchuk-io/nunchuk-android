@@ -49,17 +49,23 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.domain.membership.PasswordVerificationHelper
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
-import com.nunchuk.android.widget.NCInputDialog
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.lifecycle.lifecycleScope
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class KeyRecoveryFragment : Fragment() {
 
     private val viewModel: KeyRecoveryViewModel by viewModels()
+    
+    @Inject
+    lateinit var passwordVerificationHelper: PasswordVerificationHelper
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -81,34 +87,41 @@ class KeyRecoveryFragment : Fragment() {
                     enterPasswordDialog(it.item)
                 }
                 is KeyRecoveryEvent.Loading -> showOrHideLoading(loading = it.isLoading)
-                is KeyRecoveryEvent.CheckPasswordSuccess -> {
-                    when(it.item) {
-                        is KeyRecoveryActionItem.StartKeyRecovery -> {
-                            findNavController().navigate(KeyRecoveryFragmentDirections.actionKeyRecoveryFragmentToKeyRecoveryIntroFragment(verifyToken = it.verifyToken))
-                        }
-                        is KeyRecoveryActionItem.UpdateRecoveryQuestion -> {
-                            findNavController().navigate(
-                                KeyRecoveryFragmentDirections.actionKeyRecoveryFragmentToRecoveryQuestionFragment(
-                                    isRecoveryFlow = true,
-                                    verifyToken = it.verifyToken
-                                )
-                            )
-                        }
-                    }
-                }
-                is KeyRecoveryEvent.ProcessFailure -> {
-                    showError(it.message)
-                }
             }
         }
     }
 
     private fun enterPasswordDialog(item: KeyRecoveryActionItem) {
-        NCInputDialog(requireContext()).showDialog(
-            title = getString(R.string.nc_re_enter_your_password),
-            descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
-            onConfirmed = {
-                viewModel.confirmPassword(it, item)
+        val targetAction = when (item) {
+            is KeyRecoveryActionItem.StartKeyRecovery -> TargetAction.DOWNLOAD_KEY_BACKUP
+            is KeyRecoveryActionItem.UpdateRecoveryQuestion -> TargetAction.UPDATE_SECURITY_QUESTIONS
+        }
+        
+        passwordVerificationHelper.showPasswordVerificationDialog(
+            context = requireContext(),
+            targetAction = targetAction,
+            coroutineScope = lifecycleScope,
+            onSuccess = { verifyToken ->
+                when (item) {
+                    is KeyRecoveryActionItem.StartKeyRecovery -> {
+                        findNavController().navigate(
+                            KeyRecoveryFragmentDirections.actionKeyRecoveryFragmentToKeyRecoveryIntroFragment(
+                                verifyToken = verifyToken
+                            )
+                        )
+                    }
+                    is KeyRecoveryActionItem.UpdateRecoveryQuestion -> {
+                        findNavController().navigate(
+                            KeyRecoveryFragmentDirections.actionKeyRecoveryFragmentToRecoveryQuestionFragment(
+                                isRecoveryFlow = true,
+                                verifyToken = verifyToken
+                            )
+                        )
+                    }
+                }
+            },
+            onError = { errorMessage ->
+                showError(errorMessage)
             }
         )
     }

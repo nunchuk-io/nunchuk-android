@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.profile
 
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -40,9 +41,20 @@ class GetUserProfileUseCase @Inject constructor(
                     name = user.name.orEmpty(),
                     email = user.email.orEmpty(),
                     avatarUrl = user.avatar.orEmpty(),
-                    id = user.id.orEmpty()
+                    id = user.id.orEmpty(),
+                    loginTypeOriginal = convertLoginTypeToInt(user.loginType)
                 )
         )
         return user.chatId.orEmpty()
+    }
+
+    private fun convertLoginTypeToInt(loginType: String?): Int {
+        return when (loginType?.lowercase()) {
+            "email" -> SignInMode.EMAIL.value
+            "primary_key" -> SignInMode.PRIMARY_KEY.value
+            "guest" -> SignInMode.GUEST_MODE.value
+            "openid" -> SignInMode.OPENID.value
+            else -> SignInMode.UNKNOWN.value
+        }
     }
 }

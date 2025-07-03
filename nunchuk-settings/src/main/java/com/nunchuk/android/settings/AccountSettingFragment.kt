@@ -38,6 +38,9 @@ import com.nunchuk.android.widget.NCDeleteConfirmationDialog
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
+import com.nunchuk.android.core.domain.membership.PasswordVerificationHelper
+import com.nunchuk.android.core.domain.membership.TargetAction
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -49,6 +52,9 @@ class AccountSettingFragment : BaseFragment<FragmentAccountSettingBinding>() {
 
     @Inject
     lateinit var accountManager: AccountManager
+    
+    @Inject
+    lateinit var passwordVerificationHelper: PasswordVerificationHelper
 
     private val viewModel: AccountSettingViewModel by viewModels()
 
@@ -90,15 +96,6 @@ class AccountSettingFragment : BaseFragment<FragmentAccountSettingBinding>() {
                 hideLoading()
                 showEnterPassphraseDialog(event.isNeeded)
             }
-
-            is CheckPasswordSuccess -> {
-                hideLoading()
-                findNavController().navigate(
-                    AccountSettingFragmentDirections.actionAccountSettingFragmentToChangeEmailFragment(verifyToken = event.token)
-                )
-                viewModel.resetEvent()
-            }
-
             else -> {}
         }
     }
@@ -177,11 +174,17 @@ class AccountSettingFragment : BaseFragment<FragmentAccountSettingBinding>() {
     }
 
     private fun enterPasswordDialog() {
-        NCInputDialog(requireContext()).showDialog(
-            title = getString(R.string.nc_re_enter_your_password),
-            descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
-            onConfirmed = {
-                viewModel.confirmPassword(it)
+        passwordVerificationHelper.showPasswordVerificationDialog(
+            context = requireContext(),
+            targetAction = TargetAction.CHANGE_EMAIL,
+            coroutineScope = lifecycleScope,
+            onSuccess = { token ->
+                findNavController().navigate(
+                    AccountSettingFragmentDirections.actionAccountSettingFragmentToChangeEmailFragment(verifyToken = token)
+                )
+            },
+            onError = { errorMessage ->
+                NCToastMessage(requireActivity()).showError(errorMessage)
             }
         )
     }

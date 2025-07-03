@@ -17,21 +17,11 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.settings
+package com.nunchuk.android.model
 
-import com.nunchuk.android.model.MembershipPlan
+import com.google.gson.annotations.SerializedName
 
-sealed class AccountSettingEvent {
-    data class Loading(val isLoading: Boolean) : AccountSettingEvent()
-    data object RequestDeleteSuccess : AccountSettingEvent()
-    data object DeletePrimaryKeySuccess : AccountSettingEvent()
-    data class Error(val message: String) : AccountSettingEvent()
-    data class CheckNeedPassphraseSent(val isNeeded: Boolean) : AccountSettingEvent()
-    data object None : AccountSettingEvent()
-}
-
-data class AccountSettingState(
-    val isSyncEnable: Boolean = false,
-    val hasAssistedWallets: Boolean = false,
-    val plans: List<MembershipPlan> = emptyList(),
+data class VerifyFederatedTokenRequest(
+    @SerializedName("token")
+    val token: String? = null
 )

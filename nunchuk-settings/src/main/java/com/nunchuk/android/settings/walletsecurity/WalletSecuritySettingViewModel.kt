@@ -30,7 +30,7 @@ import com.nunchuk.android.core.domain.GetWalletPinUseCase
 import com.nunchuk.android.core.domain.membership.RequestFederatedTokenUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.VerifiedPKeyTokenUseCase
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
+// VerifiedPasswordTokenUseCase removed - password verification now handled by PasswordVerificationHelper
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.util.orUnknownError
@@ -55,7 +55,6 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
     private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
     private val getWalletPinUseCase: GetWalletPinUseCase,
     private val checkWalletPinUseCase: CheckWalletPinUseCase,
-    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val requestFederatedTokenUseCase: RequestFederatedTokenUseCase,
     private val verifiedPKeyTokenUseCase: VerifiedPKeyTokenUseCase,
     private val createOrUpdateWalletPinUseCase: CreateOrUpdateWalletPinUseCase,
@@ -183,26 +182,6 @@ internal class WalletSecuritySettingViewModel @Inject constructor(
             val match = checkWalletPinUseCase(input).getOrDefault(false)
             if (match.not()) updateHideWalletDetail(true)
             event(WalletSecuritySettingEvent.CheckWalletPin(match, true))
-        }
-
-    fun confirmPassword(password: String) =
-        viewModelScope.launch {
-            if (password.isBlank()) {
-                updateProtectWalletPassword(true)
-                return@launch
-            }
-            val result = verifiedPasswordTokenUseCase(
-                VerifiedPasswordTokenUseCase.Param(
-                    password = password,
-                    targetAction = TargetAction.PROTECT_WALLET.name
-                )
-            )
-            if (result.isSuccess) {
-                updateProtectWalletPassword(false)
-            } else {
-                updateProtectWalletPassword(true)
-                event(WalletSecuritySettingEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
-            }
         }
 
     fun registerBiometric(password: String) {

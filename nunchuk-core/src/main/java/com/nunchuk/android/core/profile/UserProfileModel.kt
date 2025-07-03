@@ -41,7 +41,9 @@ data class UserProfileResponse(
     @SerializedName("status")
     val status: String? = null,
     @SerializedName("chat_id")
-    val chatId: String? = null
+    val chatId: String? = null,
+    @SerializedName("login_type")
+    val loginType: String? = null,
 ) : Serializable
 
 data class UpdateUserProfilePayload(

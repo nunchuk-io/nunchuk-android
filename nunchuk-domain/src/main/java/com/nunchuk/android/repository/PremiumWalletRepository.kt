@@ -137,6 +137,7 @@ interface PremiumWalletRepository {
 
     suspend fun verifiedPasswordToken(targetAction: String, password: String): String?
     suspend fun requestFederatedToken(targetAction: String)
+    suspend fun verifyFederatedToken(targetAction: String, token: String): String?
     suspend fun verifiedPKeyToken(targetAction: String, address: String, signature: String): String?
     suspend fun calculateRequiredSignaturesSecurityQuestions(
         walletId: String,

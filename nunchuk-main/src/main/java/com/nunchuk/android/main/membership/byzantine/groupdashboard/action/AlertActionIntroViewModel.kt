@@ -200,24 +200,6 @@ class AlertActionIntroViewModel @Inject constructor(
             }
         }
     }
-
-    fun confirmPassword(pass: String, targetAction: TargetAction) {
-        viewModelScope.launch {
-            _event.emit(AlertActionIntroEvent.Loading(true))
-            verifiedPasswordTokenUseCase(
-                VerifiedPasswordTokenUseCase.Param(
-                    targetAction = targetAction.name,
-                    password = pass
-                )
-            ).onSuccess {
-                _event.emit(AlertActionIntroEvent.Loading(false))
-                _event.emit(AlertActionIntroEvent.VerifiedPasswordTokenSuccess(it.orEmpty(), targetAction))
-            }.onFailure {
-                _event.emit(AlertActionIntroEvent.Loading(false))
-                _event.emit(AlertActionIntroEvent.Error(it.message.orUnknownError()))
-            }
-        }
-    }
 }
 
 sealed class AlertActionIntroEvent {
@@ -225,7 +207,6 @@ sealed class AlertActionIntroEvent {
     data object ApproveInheritanceRequestPlanningSuccess : AlertActionIntroEvent()
     data object DeleteDummyTransactionSuccess : AlertActionIntroEvent()
     data object SkipHealthReminderSuccess : AlertActionIntroEvent()
-    data class VerifiedPasswordTokenSuccess(val token: String, val action: TargetAction) : AlertActionIntroEvent()
     data class Loading(val isLoading: Boolean) : AlertActionIntroEvent()
     data class Error(val message: String) : AlertActionIntroEvent()
 }

@@ -24,6 +24,8 @@ import com.nunchuk.android.model.MembershipSubscriptions
 import com.nunchuk.android.model.VerifiedPKeyTokenRequest
 import com.nunchuk.android.model.VerifiedPasswordTokenRequest
 import com.nunchuk.android.model.VerifiedPasswordTokenResponse
+import com.nunchuk.android.model.VerifyFederatedTokenRequest
+import com.nunchuk.android.model.VerifyFederatedTokenResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -52,4 +54,10 @@ interface MembershipApi {
     suspend fun requestFederatedToken(
         @Path("target_action") targetAction: String,
     ): Data<Unit>
+
+    @POST("/v1.1/passport/request-federated-token/{target_action}/verify")
+    suspend fun verifyFederatedToken(
+        @Path("target_action") targetAction: String,
+        @Body payload: VerifyFederatedTokenRequest
+    ): Data<VerifyFederatedTokenResponse>
 }

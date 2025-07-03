@@ -26,8 +26,6 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
-import com.nunchuk.android.core.domain.membership.TargetAction
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.manager.AssistedWalletManager
@@ -81,7 +79,6 @@ class ServicesTabViewModel @Inject constructor(
     private val getWalletUseCase: GetWalletUseCase,
     private val getAssistedWalletIdsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
-    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val getOrCreateSupportRoomUseCase: GetOrCreateSupportRoomUseCase,
@@ -220,43 +217,6 @@ class ServicesTabViewModel @Inject constructor(
             }
         } else {
             _event.emit(ServicesTabEvent.ProcessFailure(pageResult.exceptionOrNull()?.message.orUnknownError()))
-        }
-    }
-
-    fun confirmPassword(
-        walletId: String,
-        password: String,
-        item: ServiceTabRowItem
-    ) = viewModelScope.launch {
-        if (password.isBlank()) {
-            return@launch
-        }
-        _event.emit(ServicesTabEvent.Loading(true))
-        val targetAction = when (item) {
-            is ServiceTabRowItem.EmergencyLockdown -> TargetAction.EMERGENCY_LOCKDOWN.name
-            is ServiceTabRowItem.CoSigningPolicies -> TargetAction.UPDATE_SERVER_KEY.name
-            is ServiceTabRowItem.ViewInheritancePlan -> TargetAction.UPDATE_INHERITANCE_PLAN.name
-            is ServiceTabRowItem.ReplaceKey -> TargetAction.REPLACE_KEYS.name
-            else -> throw IllegalArgumentException()
-        }
-        val result = verifiedPasswordTokenUseCase(
-            VerifiedPasswordTokenUseCase.Param(
-                targetAction = targetAction,
-                password = password
-            )
-        )
-        _event.emit(ServicesTabEvent.Loading(false))
-        if (result.isSuccess) {
-            _event.emit(
-                ServicesTabEvent.CheckPasswordSuccess(
-                    token = result.getOrThrow().orEmpty(),
-                    walletId = walletId,
-                    item = item,
-                    groupId = state.value.assistedWallets.find { it.localId == walletId }?.groupId
-                )
-            )
-        } else {
-            _event.emit(ServicesTabEvent.ProcessFailure(message = result.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 

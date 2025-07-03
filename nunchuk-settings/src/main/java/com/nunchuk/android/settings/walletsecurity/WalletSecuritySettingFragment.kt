@@ -32,6 +32,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.biometric.BiometricPromptManager
+import com.nunchuk.android.core.domain.membership.PasswordVerificationHelper
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.util.showOrHideLoading
@@ -51,6 +53,9 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
 
     @Inject
     lateinit var signInModeHolder: SignInModeHolder
+    
+    @Inject
+    lateinit var passwordVerificationHelper: PasswordVerificationHelper
 
     private val viewModel: WalletSecuritySettingViewModel by viewModels()
 
@@ -225,14 +230,21 @@ class WalletSecuritySettingFragment : BaseFragment<FragmentWalletSecuritySetting
         binding.toolbar.setNavigationOnClickListener { requireActivity().finish() }
         binding.passwordOption.setOptionChangeListener { it ->
             if (it.not()) {
-                NCInputDialog(requireContext()).showDialog(
-                    title = getString(R.string.nc_re_enter_your_password),
-                    descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
-                    onCanceled = {
-                        viewModel.updateProtectWalletPassword(true)
+                passwordVerificationHelper.showPasswordVerificationDialog(
+                    context = requireContext(),
+                    targetAction = TargetAction.PROTECT_WALLET,
+                    coroutineScope = lifecycleScope,
+                    onSuccess = { token ->
+                        // Handle success directly - disable password protection
+                        viewModel.updateProtectWalletPassword(false)
                     },
-                    onConfirmed = {
-                        viewModel.confirmPassword(it)
+                    onError = { errorMessage ->
+                        // Handle error - revert to password protection enabled
+                        viewModel.updateProtectWalletPassword(true)
+                        NCToastMessage(requireActivity()).showError(errorMessage)
+                    },
+                    onCancel = {
+                        viewModel.updateProtectWalletPassword(true)
                     }
                 )
             } else if (viewModel.isAppPinEnable()) {

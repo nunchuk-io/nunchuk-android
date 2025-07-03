@@ -80,7 +80,7 @@ class SignInModeHolder @Inject constructor(
 }
 
 enum class SignInMode(val value: Int) {
-    UNKNOWN(-1), EMAIL(0), PRIMARY_KEY(1), GUEST_MODE(2)
+    UNKNOWN(-1), EMAIL(0), PRIMARY_KEY(1), GUEST_MODE(2), OPENID(3);
 }
 
 fun SignInMode.isGuestMode() = this == SignInMode.GUEST_MODE

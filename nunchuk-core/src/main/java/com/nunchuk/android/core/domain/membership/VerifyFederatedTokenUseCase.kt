@@ -17,21 +17,24 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.settings
+package com.nunchuk.android.core.domain.membership
 
-import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-sealed class AccountSettingEvent {
-    data class Loading(val isLoading: Boolean) : AccountSettingEvent()
-    data object RequestDeleteSuccess : AccountSettingEvent()
-    data object DeletePrimaryKeySuccess : AccountSettingEvent()
-    data class Error(val message: String) : AccountSettingEvent()
-    data class CheckNeedPassphraseSent(val isNeeded: Boolean) : AccountSettingEvent()
-    data object None : AccountSettingEvent()
-}
+class VerifyFederatedTokenUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val userWalletsRepository: PremiumWalletRepository,
+) : UseCase<VerifyFederatedTokenUseCase.Param, String?>(dispatcher) {
+    override suspend fun execute(parameters: Param): String? {
+        return userWalletsRepository.verifyFederatedToken(
+            targetAction = parameters.targetAction,
+            token = parameters.token
+        )
+    }
 
-data class AccountSettingState(
-    val isSyncEnable: Boolean = false,
-    val hasAssistedWallets: Boolean = false,
-    val plans: List<MembershipPlan> = emptyList(),
-)
+    class Param(val targetAction: String, val token: String)
+} 
