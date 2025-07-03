@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -38,6 +39,7 @@ import com.nunchuk.android.core.miniscript.MiniscriptDataComponent
 import com.nunchuk.android.core.miniscript.ScripNoteType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ScriptNode
+import com.nunchuk.android.model.SigningPath
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -239,7 +241,8 @@ data class ScriptNodeData(
     val signers: Map<String, SignerModel?> = emptyMap(),
     val showBip32Path: Boolean = false,
     val signedSigners: Map<String, Boolean> = emptyMap(),
-    val duplicateSignerKeys: Set<String> = emptySet()
+    val duplicateSignerKeys: Set<String> = emptySet(),
+    val signingPath: SigningPath = SigningPath(path = emptyList())
 )
 
 @Composable
@@ -253,7 +256,10 @@ fun ScriptNodeTree(
     onActionKey: (String, SignerModel?) -> Unit = { _, _ -> },
     data: ScriptNodeData = ScriptNodeData()
 ) {
+    val isHighlighted = data.signingPath.path.isEmpty() || signingPathContainsNodeId(data.signingPath.path, node.id)
+
     val info = MiniscriptDataComponent.fromComponent(node.type)
+    val highlightModifier = if (isHighlighted) Modifier else Modifier.alpha(0.4f)
     when (node.type) {
         ScripNoteType.ANDOR.name, ScripNoteType.AND.name, ScripNoteType.OR.name, ScripNoteType.OR_TAPROOT.name -> {
             if (level == 0) {
@@ -262,7 +268,8 @@ fun ScriptNodeTree(
                     isShowCurve = false,
                     padStart = 0,
                     isShowTapscriptBadge = ScripNoteType.OR_TAPROOT.name == node.type,
-                    index = index
+                    index = index,
+                    modifier = highlightModifier
                 ) {
                     NodeContent(
                         node = node,
@@ -275,6 +282,7 @@ fun ScriptNodeTree(
                 }
             } else {
                 TreeBranchContainer(
+                    modifier = highlightModifier,
                     drawLine = isLastItem.not(),
                     indentationLevel = level
                 ) { modifier ->
@@ -300,6 +308,7 @@ fun ScriptNodeTree(
 
         ScripNoteType.AFTER.name, ScripNoteType.OLDER.name -> {
             TreeBranchContainer(
+                modifier = highlightModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier ->
@@ -326,6 +335,7 @@ fun ScriptNodeTree(
 
         ScripNoteType.PK.name -> {
             TreeBranchContainer(
+                modifier = highlightModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier ->
@@ -345,6 +355,7 @@ fun ScriptNodeTree(
 
         ScripNoteType.MULTI.name, ScripNoteType.THRESH.name -> {
             TreeBranchContainer(
+                modifier = highlightModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier ->
@@ -371,6 +382,7 @@ fun ScriptNodeTree(
 
         ScripNoteType.HASH160.name, ScripNoteType.HASH256.name, ScripNoteType.RIPEMD160.name, ScripNoteType.SHA256.name -> {
             TreeBranchContainer(
+                modifier = highlightModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier ->
@@ -886,5 +898,12 @@ fun SigningStatusCardPreview() {
             )
             SigningStatusCard(policyStatus = PolicyStatus.INACTIVE)
         }
+    }
+}
+
+private fun signingPathContainsNodeId(path: List<List<Int>>, nodeId: List<Int>): Boolean {
+    return path.any { idList ->
+        (nodeId.size <= idList.size && idList.take(nodeId.size) == nodeId) ||
+        (idList.size <= nodeId.size && nodeId.take(idList.size) == idList)
     }
 }

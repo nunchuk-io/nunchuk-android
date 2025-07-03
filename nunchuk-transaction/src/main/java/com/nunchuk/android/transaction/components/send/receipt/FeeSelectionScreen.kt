@@ -53,7 +53,7 @@ import com.nunchuk.android.type.TransactionStatus
 fun FeeSelectionScreen(
     isAutoFeeSelectionEnabled: Boolean,
     draftTx: TaprootDraftTransaction,
-    signers: List<SignerModel>,
+    signers: Map<String, SignerModel>,
     onContinue: (Int) -> Unit = {},
     onFeeSettingsClick: () -> Unit = {},
 ) {
@@ -134,7 +134,7 @@ fun FeeSelectionScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 keySetIndex = keySetIndex,
                                 keySet = keySet,
-                                signers = signers.associateBy { it.fingerPrint },
+                                signers = signers,
                                 isValueKeySetDisable = false,
                                 isSelected = keySetIndex == selectedIndex,
                                 fee = if (keySetIndex == 0) {
@@ -212,7 +212,7 @@ private fun FeeSelectionScreenPreview(
                 draftTxKeyPath = transaction,
                 draftTxScriptPath = transaction
             ),
-            signers = emptyList(),
+            signers = emptyMap(),
             isAutoFeeSelectionEnabled = true
         )
     }

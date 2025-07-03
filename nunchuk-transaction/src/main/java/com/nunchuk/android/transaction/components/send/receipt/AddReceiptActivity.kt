@@ -51,6 +51,7 @@ import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.nav.args.FeeSettingArgs
@@ -110,6 +111,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
         setContent {
             val navController = rememberNavController()
             var draftTx by remember { mutableStateOf<TaprootDraftTransaction?>(null) }
+            var dummySigningPaths by remember { mutableStateOf(emptyList<Pair<SigningPath, Amount>>()) }
 
             LaunchedEffect(Unit) {
                 transactionConfirmViewModel.event.collect {
@@ -120,8 +122,11 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                         } else {
                             transactionConfirmViewModel.handleConfirmEvent()
                         }
-                    } else if (it is TransactionConfirmEvent.EstimateFeeForSigningPathsSuccess) {
+                    } else if (it is TransactionConfirmEvent.ChooseSigningPathsSuccess) {
                         navController.navigate(ReceiptNavigation.ChooseSigningPath)
+                    } else if (it is TransactionConfirmEvent.ChooseSigningPolicy) {
+                        dummySigningPaths = it.result
+                        navController.navigate(ReceiptNavigation.ChooseSigningPolicy)
                     }
                 }
             }
@@ -176,7 +181,25 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                             wallet = state.wallet,
                             signers = state.signers,
                             scriptNode = scriptNode,
-                            onContinue = { /* TODO: handle continue */ },
+                            onContinue = { isKeyPathSelected ->
+                                if (isKeyPathSelected) {
+                                    transactionConfirmViewModel.handleConfirmEvent(true)
+                                } else {
+                                    transactionConfirmViewModel.checkMiniscriptSigningPolicy()
+                                }
+                            },
+                        )
+                    }
+                }
+                composable<ReceiptNavigation.ChooseSigningPolicy> {
+                    val state by viewModel.state.asFlow().collectAsStateWithLifecycle(AddReceiptState())
+                    val scriptNode = state.scriptNode
+                    if (scriptNode != null) {
+                        SelectScriptPathPolicyScreen(
+                            scriptNode = scriptNode,
+                            signers = state.signers,
+                            signingPaths = dummySigningPaths,
+                            onContinue = { /* handle continue */ }
                         )
                     }
                 }
@@ -287,7 +310,11 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 antiFeeSniping = viewModel.getAddReceiptState().antiFeeSniping
             )
             if (state.addressType.isTaproot() && state.scriptNode != null) {
-                transactionConfirmViewModel.estimateFeeForSigningPaths()
+                if (state.isValueKeySetDisable) {
+                    transactionConfirmViewModel.checkMiniscriptSigningPolicy()
+                } else {
+                    transactionConfirmViewModel.checkMiniscriptSigningPaths()
+                }
             } else if (state.addressType.isTaproot()) {
                 transactionConfirmViewModel.checkShowTaprootDraftTransaction()
             } else {

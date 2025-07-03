@@ -1,23 +1,36 @@
 package com.nunchuk.android.transaction.components.send.receipt
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcBadgePrimary
+import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.SelectableContainer
 import com.nunchuk.android.compose.miniscript.MiniscriptTaproot
 import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
+import com.nunchuk.android.compose.provider.SignersModelProvider
+import com.nunchuk.android.compose.provider.WalletExtendedProvider
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.model.ScriptNode
@@ -27,12 +40,17 @@ import com.nunchuk.android.transaction.R
 @Composable
 fun ChooseSigningPathScreen(
     wallet: Wallet,
-    signers: List<SignerModel>,
+    signers: Map<String, SignerModel>,
     scriptNode: ScriptNode,
-    onContinue: () -> Unit,
+    onContinue: (isKeyPathSelected: Boolean) -> Unit = {},
 ) {
+    var isKeyPathSelected by rememberSaveable { mutableStateOf(true) }
+
     NunchukTheme {
         Scaffold(
+            modifier = Modifier
+                .navigationBarsPadding()
+                .fillMaxSize(),
             topBar = {
                 NcTopAppBar(
                     title = stringResource(R.string.nc_choose_signing_path),
@@ -40,8 +58,8 @@ fun ChooseSigningPathScreen(
                 )
             },
             bottomBar = {
-                Button(
-                    onClick = onContinue,
+                NcPrimaryDarkButton(
+                    onClick = { onContinue(isKeyPathSelected) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
@@ -54,42 +72,95 @@ fun ChooseSigningPathScreen(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 0.dp),
             ) {
                 item {
                     val keyPath = wallet.signers.firstOrNull()?.name
-                    MiniscriptTaproot(
-                        keyPath = keyPath.orEmpty(),
-                        data = ScriptNodeData(
-                            mode = ScriptMode.VIEW,
-                            signers = signers.associateBy { it.fingerPrint },
-                            showBip32Path = true
+                    SelectableContainer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        paddingValues = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 16.dp,
+                            bottom = 4.dp
                         ),
-                        signer = wallet.signers.firstOrNull()?.toModel(),
-                        onChangeBip32Path = { _, _ -> },
-                        onActionKey = { _, _ -> }
-                    )
+                        isSelected = isKeyPathSelected,
+                        onClick = { isKeyPathSelected = true }
+                    ) {
+                        MiniscriptTaproot(
+                            keyPath = keyPath.orEmpty(),
+                            data = ScriptNodeData(
+                                mode = ScriptMode.VIEW,
+                                signers = signers,
+                                showBip32Path = true
+                            ),
+                            signer = wallet.signers.firstOrNull()?.toModel(),
+                            onChangeBip32Path = { _, _ -> },
+                            onActionKey = { _, _ -> },
+                            divider = {}
+                        )
+                    }
                 }
                 item {
-                    NcBadgePrimary(
-                        modifier = Modifier.padding(
+                    Spacer(modifier = Modifier.height(16.dp))
+                    SelectableContainer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        paddingValues = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
                             top = 16.dp,
-                            bottom = 8.dp,
-                            end = 16.dp
+                            bottom = 4.dp
                         ),
-                        text = "Script path",
-                        enabled = true
-                    )
-                    ScriptNodeTree(
-                        node = scriptNode,
-                        data = ScriptNodeData(
-                            mode = ScriptMode.VIEW,
-                            signers = signers.associateBy { it.fingerPrint },
-                            showBip32Path = true
-                        )
-                    )
+                        isSelected = !isKeyPathSelected,
+                        onClick = { isKeyPathSelected = false }
+                    ) {
+                        Column {
+                            NcBadgePrimary(
+                                modifier = Modifier.padding(
+                                    bottom = 8.dp,
+                                    end = 16.dp
+                                ),
+                                text = "Script path",
+                                enabled = true
+                            )
+                            ScriptNodeTree(
+                                node = scriptNode,
+                                data = ScriptNodeData(
+                                    mode = ScriptMode.VIEW,
+                                    signers = signers,
+                                    showBip32Path = true
+                                )
+                            )
+                        }
+                    }
                 }
             }
         }
     }
-} 
+}
+
+@Preview
+@Composable
+fun ChooseSigningPathScreenPreview() {
+    val wallet = WalletExtendedProvider().values.first().wallet
+    val signers = SignersModelProvider().values.first().associateBy { it.fingerPrint }
+    val scriptNode = ScriptNode(
+        id = listOf(1),
+        type = "ANDOR",
+        keys = emptyList(),
+        subs = emptyList(),
+        k = 0,
+        data = byteArrayOf()
+    )
+    ChooseSigningPathScreen(
+        wallet = wallet,
+        signers = signers,
+        scriptNode = scriptNode,
+        onContinue = {}
+    )
+}
+

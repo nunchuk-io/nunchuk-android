@@ -17,6 +17,7 @@ fun MiniscriptTaproot(
     signer: SignerModel?,
     onChangeBip32Path: (String, SignerModel) -> Unit,
     onActionKey: (String, SignerModel?) -> Unit,
+    divider: @Composable () -> Unit = { HorizontalDivider() }
 ) {
     Column(
         modifier = modifier
@@ -36,7 +37,7 @@ fun MiniscriptTaproot(
                 showThreadCurve = false
             )
 
-            HorizontalDivider()
+            divider()
         }
     }
 }

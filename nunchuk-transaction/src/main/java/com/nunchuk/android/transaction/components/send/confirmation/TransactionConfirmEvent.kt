@@ -21,9 +21,9 @@ package com.nunchuk.android.transaction.components.send.confirmation
 
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
-import com.nunchuk.android.model.SigningPath
 
 sealed class TransactionConfirmEvent {
     data class LoadingEvent(val isClaimInheritance: Boolean = false) : TransactionConfirmEvent()
@@ -47,5 +47,6 @@ sealed class TransactionConfirmEvent {
     data class AssignTagError(val message: String) : TransactionConfirmEvent()
     data class DraftTaprootTransactionSuccess(val draftTransaction: TaprootDraftTransaction?) :
         TransactionConfirmEvent()
-    data class EstimateFeeForSigningPathsSuccess(val result: List<Pair<SigningPath, Amount>>) : TransactionConfirmEvent()
+    data object ChooseSigningPathsSuccess: TransactionConfirmEvent()
+    data class ChooseSigningPolicy(val result: List<Pair<SigningPath, Amount>>) : TransactionConfirmEvent()
 }

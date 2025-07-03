@@ -22,7 +22,6 @@ package com.nunchuk.android.transaction.components.send.receipt
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.ScriptNode
-import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.AddressType
 
@@ -46,7 +45,7 @@ data class AddReceiptState(
     val amount: Amount = Amount(),
     val addressType: AddressType = AddressType.ANY,
     val isValueKeySetDisable: Boolean = false,
-    val signers : List<SignerModel> = emptyList(),
+    val signers : Map<String, SignerModel> = emptyMap(),
     val antiFeeSniping: Boolean = false,
     val scriptNode: ScriptNode? = null,
     val wallet: Wallet = Wallet()

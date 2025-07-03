@@ -448,7 +448,13 @@ class TransactionConfirmViewModel @Inject constructor(
 
     fun getSavedAddress() = _state.value.savedAddress
 
-    fun estimateFeeForSigningPaths() {
+    fun checkMiniscriptSigningPaths() {
+        viewModelScope.launch {
+            _event.emit(TransactionConfirmEvent.ChooseSigningPathsSuccess)
+        }
+    }
+
+    fun checkMiniscriptSigningPolicy() {
         viewModelScope.launch {
             estimateFeeForSigningPathsUseCase(
                 EstimateFeeForSigningPathsUseCase.Params(
@@ -459,7 +465,7 @@ class TransactionConfirmViewModel @Inject constructor(
                     inputs = inputs.map { TxInput(it.txid, it.vout) },
                 )
             ).onSuccess { result ->
-                _event.emit(TransactionConfirmEvent.EstimateFeeForSigningPathsSuccess(result))
+                _event.emit(TransactionConfirmEvent.ChooseSigningPolicy(result))
             }.onFailure {
                 _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
             }

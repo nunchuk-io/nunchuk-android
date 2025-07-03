@@ -10,4 +10,6 @@ sealed class ReceiptNavigation {
     data object TaprootFeeSelection : ReceiptNavigation()
     @Serializable
     data object ChooseSigningPath : ReceiptNavigation()
+    @Serializable
+    data object ChooseSigningPolicy : ReceiptNavigation()
 }
