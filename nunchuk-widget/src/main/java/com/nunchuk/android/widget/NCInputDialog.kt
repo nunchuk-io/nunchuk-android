@@ -25,6 +25,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.Window
 import android.view.WindowManager
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.nunchuk.android.widget.databinding.NcConfirmDialogBinding
 import javax.inject.Inject
@@ -76,6 +77,12 @@ class NCInputDialog @Inject constructor(private val context: Context) {
                     val clickableSpan = object : android.text.style.ClickableSpan() {
                         override fun onClick(widget: android.view.View) {
                             callback()
+                        }
+                        
+                        override fun updateDrawState(ds: android.text.TextPaint) {
+                            super.updateDrawState(ds)
+                            ds.color = ContextCompat.getColor(context, R.color.nc_text_primary)
+                            ds.isUnderlineText = true
                         }
                     }
                     spannable.setSpan(clickableSpan, start, end, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)

@@ -643,9 +643,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val response = membershipApi.verifyFederatedToken(
             targetAction, VerifyFederatedTokenRequest(token)
         )
-        val verificationToken = response.data.token
-        ncDataStore.setPasswordToken(verificationToken.orEmpty())
-        return verificationToken
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        ncDataStore.setPasswordToken(token)
+        return token
     }
 
     override suspend fun verifiedPKeyToken(
