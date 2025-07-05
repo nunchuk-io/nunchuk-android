@@ -3,7 +3,6 @@ package com.nunchuk.android.settings.walletsecurity.unlock
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.CheckWalletPinUseCase
 import com.nunchuk.android.core.domain.ClearInfoSessionUseCase
@@ -126,25 +125,16 @@ class UnlockPinViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
             if (walletPin.isNotEmpty()) {
                 if (decoyPinExistUseCase(pin).getOrElse { false }) {
-                    signInModeHolder.clear()
+                    accountManager.setLastDecoyPin(pin)
                     clearInfoSessionUseCase(Unit)
-                    sendSignOutUseCase(Unit)
                     repeat(3) {
                         initNunchukUseCase(
                             InitNunchukUseCase.Param(
                                 passphrase = "",
                                 accountId = "",
-                                decoyPin = pin
                             )
                         ).onSuccess { replaced ->
                             Timber.d("unlockPin: replaced $replaced")
-                            accountManager.storeAccount(
-                                AccountInfo(
-                                    decoyPin = pin,
-                                    loginType = SignInMode.GUEST_MODE.value
-                                )
-                            )
-                            signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
                             if (replaced) {
                                 _state.update { it.copy(event = UnlockPinEvent.GoToMain) }
                             } else {
@@ -162,21 +152,19 @@ class UnlockPinViewModel @Inject constructor(
                             _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
                             return@checkPin
                         }
+                        accountManager.restoreAccountFromBackup()
                         val account = accountManager.getAccount()
                         accountManager.storeAccount(
                             account.copy(decoyPin = "")
                         )
+                        accountManager.setLastDecoyPin("")
                         val accountId = if (account.loginType == SignInMode.PRIMARY_KEY.value) {
                             account.username
                         } else {
                             account.email
                         }
-                        val mode = SignInMode.entries.find { it.value == account.loginType }
-                            ?.takeIf { it != SignInMode.UNKNOWN }
-                            ?: SignInMode.GUEST_MODE
-                        signInModeHolder.setCurrentMode(mode)
                         initNunchukUseCase(InitNunchukUseCase.Param(accountId = accountId))
-                        if (_state.value.biometricConfig.enabled && args.isRemovePin.not() && mode == SignInMode.EMAIL
+                        if (_state.value.biometricConfig.enabled && args.isRemovePin.not() && account.loginType == SignInMode.EMAIL.value
                             && account.id.isNotEmpty() && account.id == _state.value.biometricConfig.userId){
                             _state.update { it.copy(showBiometricPrompt = true) }
                         } else {
@@ -193,7 +181,7 @@ class UnlockPinViewModel @Inject constructor(
         }
     }
 
-    suspend fun confirmPassword(password: String) =
+    fun confirmPassword(password: String) =
         viewModelScope.launch {
             if (password.isBlank()) {
                 return@launch
@@ -210,7 +198,7 @@ class UnlockPinViewModel @Inject constructor(
         }
 
 
-    private suspend fun confirmPassphrase(passphrase: String) =
+    private fun confirmPassphrase(passphrase: String) =
         viewModelScope.launch {
             if (passphrase.isBlank()) {
                 return@launch
@@ -223,7 +211,7 @@ class UnlockPinViewModel @Inject constructor(
                 }
         }
 
-    private suspend fun checkPin(pin: String, onSuccess: suspend () -> Unit) {
+    private fun checkPin(pin: String, onSuccess: suspend () -> Unit) {
         viewModelScope.launch {
             _state.update { it.copy(isFailed = false) }
             checkWalletPinUseCase(pin)

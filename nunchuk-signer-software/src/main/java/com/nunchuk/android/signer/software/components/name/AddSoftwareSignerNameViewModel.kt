@@ -24,7 +24,6 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.GetTurnOnNotificationStoreUseCase
 import com.nunchuk.android.core.domain.SignInImportPrimaryKeyUseCase
 import com.nunchuk.android.core.domain.UpdateTurnOnNotificationStoreUseCase
-import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.signer.KeyFlow.isSignInFlow
 import com.nunchuk.android.core.util.orUnknownError
@@ -85,7 +84,6 @@ internal class AddSoftwareSignerNameViewModel @AssistedInject constructor(
                 )
                 event(AddSoftwareSignerNameEvent.LoadingEvent(false))
                 if (result.isSuccess) {
-                    signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
                     event(SignerNameInputCompletedEvent(signerName))
                 } else if (result.isFailure) {
                     event(AddSoftwareSignerNameEvent.ImportPrimaryKeyErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))

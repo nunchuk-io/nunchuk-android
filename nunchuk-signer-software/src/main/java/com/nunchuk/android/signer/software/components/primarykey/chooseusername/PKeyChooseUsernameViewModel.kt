@@ -24,7 +24,6 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.GetTurnOnNotificationStoreUseCase
 import com.nunchuk.android.core.domain.SignUpPrimaryKeyUseCase
 import com.nunchuk.android.core.domain.UpdateTurnOnNotificationStoreUseCase
-import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.util.orUnknownError
@@ -43,7 +42,6 @@ internal class PKeyChooseUsernameViewModel @AssistedInject constructor(
     private val getPrimaryKeyAddressUseCase: GetPrimaryKeyAddressUseCase,
     private val signUpPrimaryKeyUseCase: SignUpPrimaryKeyUseCase,
     private val initNunchukUseCase: InitNunchukUseCase,
-    private val signInModeHolder: SignInModeHolder,
     private val getTurnOnNotificationStoreUseCase: GetTurnOnNotificationStoreUseCase,
     private val updateTurnOnNotificationStoreUseCase: UpdateTurnOnNotificationStoreUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
@@ -112,7 +110,6 @@ internal class PKeyChooseUsernameViewModel @AssistedInject constructor(
         )
         if (resultSignUp.isSuccess) {
             getUserProfileUseCase(Unit).onSuccess { chatId ->
-                signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
                 setFirstCreatedChatIdUseCase(
                     SetFirstCreatedChatIdUseCase.Params(
                         chatId = chatId,

@@ -286,7 +286,6 @@ class SignInAuthenticationViewModel @Inject constructor(
             }
             _event.emit(SignInAuthenticationEvent.Loading(false))
             if (result.isSuccess && resultInit.isSuccess) {
-                signInModeHolder.setCurrentMode(SignInMode.EMAIL)
                 _event.emit(
                     SignInAuthenticationEvent.SignInSuccess(
                         token = dummyTransactionUpdate.tokenId,

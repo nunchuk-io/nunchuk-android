@@ -48,7 +48,7 @@ data class AccountInfo(
     @SerializedName("primary_key_info")
     val primaryKeyInfo: PrimaryKeyInfo? = null,
     @SerializedName("decoy_pin")
-    val decoyPin: String = ""
+    val decoyPin: String = "" // it mean user is using decoy pin space, not the real pin
 )
 
 data class PrimaryKeyInfo(

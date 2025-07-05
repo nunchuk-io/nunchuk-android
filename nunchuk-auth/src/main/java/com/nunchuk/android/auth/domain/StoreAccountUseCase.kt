@@ -3,6 +3,7 @@ package com.nunchuk.android.auth.domain
 import com.nunchuk.android.auth.api.UserTokenResponse
 import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.usecase.UseCase
@@ -24,6 +25,7 @@ class StoreAccountUseCase @Inject constructor(
             activated = true,
             staySignedIn = parameters.staySignedIn,
             deviceId = parameters.response.deviceId,
+            loginType = parameters.loginType.value
         )
         accountManager.storeAccount(account)
 
@@ -43,6 +45,7 @@ class StoreAccountUseCase @Inject constructor(
         val email: String,
         val response: UserTokenResponse,
         val staySignedIn: Boolean,
-        val fetchUserInfo: Boolean
+        val fetchUserInfo: Boolean,
+        val loginType: SignInMode
     )
 }

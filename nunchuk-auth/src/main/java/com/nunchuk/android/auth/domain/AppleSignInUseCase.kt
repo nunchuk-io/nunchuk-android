@@ -3,6 +3,7 @@ package com.nunchuk.android.auth.domain
 import com.google.gson.Gson
 import com.nunchuk.android.auth.api.UserTokenResponse
 import com.nunchuk.android.core.account.AccountInfo
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.network.ErrorResponse
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.network.UNKNOWN_ERROR
@@ -45,7 +46,8 @@ class AppleSignInUseCase @Inject constructor(
                 "",
                 userResponse,
                 staySignedIn = true,
-                fetchUserInfo = true
+                fetchUserInfo = true,
+                loginType = SignInMode.EMAIL
             )
         ).getOrThrow()
     }

@@ -25,7 +25,6 @@ import com.nunchuk.android.core.domain.GetTurnOnNotificationStoreUseCase
 import com.nunchuk.android.core.domain.PostNoncePrimaryKeyUseCase
 import com.nunchuk.android.core.domain.SignInManuallyPrimaryKeyUseCase
 import com.nunchuk.android.core.domain.UpdateTurnOnNotificationStoreUseCase
-import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.util.orUnknownError
@@ -40,7 +39,6 @@ class PKeyManuallySignatureViewModel @AssistedInject constructor(
     private val initNunchukUseCase: InitNunchukUseCase,
     private val signInManuallyPrimaryKeyUseCase: SignInManuallyPrimaryKeyUseCase,
     private val postNoncePrimaryKeyUseCase: PostNoncePrimaryKeyUseCase,
-    private val signInModeHolder: SignInModeHolder,
     private val getTurnOnNotificationStoreUseCase: GetTurnOnNotificationStoreUseCase,
     private val updateTurnOnNotificationStoreUseCase: UpdateTurnOnNotificationStoreUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
@@ -68,7 +66,6 @@ class PKeyManuallySignatureViewModel @AssistedInject constructor(
             val initNunchukResult = initNunchukUseCase(InitNunchukUseCase.Param(accountId = args.username))
             if (initNunchukResult.isSuccess) {
                 getUserProfileUseCase(Unit).onSuccess {
-                    signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
                     setEvent(PKeyManuallySignatureEvent.SignInSuccess)
                 }
             } else {

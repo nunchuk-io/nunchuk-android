@@ -17,47 +17,22 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.auth.domain
+package com.nunchuk.android.usecase.wallet
 
-import com.nunchuk.android.auth.data.AuthRepository
-import com.nunchuk.android.core.account.AccountInfo
-import com.nunchuk.android.core.guestmode.SignInMode
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.GetOrCreateRootDirUseCase
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface VerifyNewDeviceUseCase {
-    fun execute(
-        email: String,
-        loginHalfToken: String,
-        pin: String,
-        deviceId: String,
-        staySignedIn: Boolean
-    ): Flow<AccountInfo>
-}
-
-internal class VerifyNewDeviceUseCaseImpl @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val storeAccountUseCase: StoreAccountUseCase
-) : VerifyNewDeviceUseCase {
-
-    override fun execute(
-        email: String,
-        loginHalfToken: String,
-        pin: String,
-        deviceId: String,
-        staySignedIn: Boolean
-    ) = authRepository.verify(
-        email = email, loginHalfToken = loginHalfToken, pin = pin, deviceId = deviceId
-    ).map {
-        storeAccountUseCase(
-            StoreAccountUseCase.Param(
-                email = email,
-                response = it,
-                staySignedIn = staySignedIn,
-                fetchUserInfo = true,
-                loginType = SignInMode.EMAIL
-            )
-        ).getOrThrow()
+class CreateDecoyPinUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    private val getOrCreateRootDirUseCase: GetOrCreateRootDirUseCase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<String, Unit>(ioDispatcher) {
+    override suspend fun execute(parameters: String) {
+        val path = getOrCreateRootDirUseCase(Unit).getOrThrow()
+        nativeSdk.createNewDecoyPin(storagePath = path, pin = parameters)
     }
 }
