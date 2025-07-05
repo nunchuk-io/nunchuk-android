@@ -21,15 +21,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -48,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcToastType
@@ -404,15 +406,16 @@ fun MiniscriptConfigTemplateScreen(
                     modifier = Modifier
                         .padding(start = 2.dp)
                 ) {
-                    Checkbox(
-                        checked = reuseSigner.value,
-                        onCheckedChange = {
-                            reuseSigner.value = it
-                        },
-                        enabled = true
-                    )
+                    CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
+                        NcCheckBox(
+                            checked = reuseSigner.value,
+                            onCheckedChange = {
+                                reuseSigner.value = it
+                            },
+                            enabled = true
+                        )
+                    }
                     Text(
-                        modifier = Modifier.padding(start = 4.dp),
                         text = "Reuse keys across multisig policies",
                         style = NunchukTheme.typography.body
                     )

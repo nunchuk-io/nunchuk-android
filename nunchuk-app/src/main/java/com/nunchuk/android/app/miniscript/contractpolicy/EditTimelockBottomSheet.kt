@@ -22,6 +22,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -132,7 +133,12 @@ fun EditTimelockContent(
                 // For relative timelock or absolute block height, the value is already in the correct unit
                 initialData.value.toString()
             } else {
-                "90"
+                // Set default values based on timeUnit and timelockType
+                when {
+                    timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK -> "4320"
+                    timeUnit == MiniscriptTimelockBased.TIME_LOCK && timelockType == MiniscriptTimelockType.RELATIVE -> "30"
+                    else -> "30"
+                }
             }
         )
     }
@@ -140,6 +146,19 @@ fun EditTimelockContent(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+    
+    // Update numericValue when timeUnit or timelockType changes (but not for initial data)
+    LaunchedEffect(timeUnit, timelockType) {
+        if (initialData == null || 
+            (initialData.timelockType == MiniscriptTimelockType.ABSOLUTE && 
+             initialData.timeUnit == MiniscriptTimelockBased.TIME_LOCK)) {
+            numericValue = when {
+                timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK -> "4320"
+                timeUnit == MiniscriptTimelockBased.TIME_LOCK && timelockType == MiniscriptTimelockType.RELATIVE -> "30"
+                else -> "30"
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -174,7 +193,7 @@ fun EditTimelockContent(
 
         Divider()
 
-        Text("Time unit", style = MaterialTheme.typography.labelMedium)
+        Text("Time unit", style = MaterialTheme.typography.titleSmall)
 
         RadioOption(
             title = "Timestamp",
@@ -298,12 +317,13 @@ fun DatePickerField(
             "Unlock after the target block number"
         }
     } else {
-        "Unlock after the target block number"
+        "Unlock after time period"
     }
 
     val datePickerTextDesc =
         if (timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK) {
-            "Current Bitcoin block height is $currentBlockHeight"
+            val numberFormatter = DecimalFormat("#,###")
+            "Current Bitcoin block height is ${numberFormatter.format(currentBlockHeight)}"
         } else {
             ""
         }

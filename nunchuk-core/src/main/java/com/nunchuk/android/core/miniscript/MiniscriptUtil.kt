@@ -114,7 +114,13 @@ object MiniscriptUtil {
             }
         }
         
-        return processedLines.joinToString("\n")
+        formatted = processedLines.joinToString("\n")
+        // 6. Add space after commas for better readability
+        formatted = formatted.replace(",", ", ")
+        formatted = formatted.replace(",  ", ", ") // Remove double spaces
+        formatted = formatted.replace(", \n", ",\n") // Keep line breaks after commas
+        
+        return formatted
     }
     
     /**

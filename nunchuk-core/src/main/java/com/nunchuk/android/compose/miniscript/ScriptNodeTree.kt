@@ -532,7 +532,8 @@ fun TimelockItem(
             if (diff > 0) { // k is timestamp in seconds
                 val targetDate = calculateDateFromSeconds(k.toLong())
                 val daysFromNow = ((diff / 86400).toInt())
-                Pair("After $targetDate", "$daysFromNow days from today.")
+                val dayText = if (daysFromNow > 1) "days" else "day"
+                Pair("After $targetDate", "$daysFromNow $dayText from today.")
             } else { // k is block height
                 val formattedBlocks = String.format("%,d", k)
                 val blockDiff = k - currentBlockHeight
