@@ -42,6 +42,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.wallet.GroupWalletUi
 import com.nunchuk.android.main.components.tabs.wallet.LoadingIndicator
@@ -267,6 +268,7 @@ internal fun WalletsScreen(
                                             isAssistedWallet = briefWallet?.status == WalletStatus.ACTIVE.name || it.isPendingPersonalWallet,
                                             hideWalletDetail = hideWalletDetail,
                                             badgeCount = it.badgeCount,
+                                            isLocked = it.group?.isLocked.orFalse(),
                                             primaryOwnerMember = it.primaryOwnerMember,
                                             role = it.role,
                                             status = it.keyStatus,
