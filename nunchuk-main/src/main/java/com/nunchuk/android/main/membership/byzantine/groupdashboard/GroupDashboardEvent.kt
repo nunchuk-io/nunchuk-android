@@ -19,7 +19,6 @@ sealed class GroupDashboardEvent {
     data class GetHistoryPeriodSuccess(val periods: List<HistoryPeriod>) : GroupDashboardEvent()
     class GetHealthCheckPayload(val payload: DummyTransactionPayload) : GroupDashboardEvent()
     data object RequestHealthCheckSuccess : GroupDashboardEvent()
-    data class OpenEmergencyLockdown(val token: String = "") : GroupDashboardEvent()
     data class GetInheritanceSuccess(
         val inheritance: Inheritance,
         val token: String = "",
@@ -27,9 +26,6 @@ sealed class GroupDashboardEvent {
     ) : GroupDashboardEvent()
 
     data class RegisterSignersSuccess(val totalAirgap: Int) : GroupDashboardEvent()
-    data class UpdateServerKey(val token: String, val signer: SignerModel, val groupId: String) :
-        GroupDashboardEvent()
-
     data class CalculateRequiredSignaturesSuccess(
         val type: String
     ) : GroupDashboardEvent()
@@ -38,7 +34,6 @@ sealed class GroupDashboardEvent {
     data class SyncTransactionSuccess(val txId: String) : GroupDashboardEvent()
     data class DownloadBackupKeySuccess(val backupKey: BackupKey) : GroupDashboardEvent()
     data object SignOutEvent : GroupDashboardEvent()
-    data object OpenReplaceKey : GroupDashboardEvent()
 }
 
 data class GroupDashboardState(

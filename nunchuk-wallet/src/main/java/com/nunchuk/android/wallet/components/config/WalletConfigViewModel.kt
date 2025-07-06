@@ -106,7 +106,6 @@ internal class WalletConfigViewModel @Inject constructor(
     private val deleteWalletUseCase: DeleteWalletUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase,
     private val accountManager: AccountManager,
-    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
     private val assistedWalletManager: AssistedWalletManager,
     private val getTapSignerStatusByIdUseCase: GetTapSignerStatusByIdUseCase,
     private val forceRefreshWalletUseCase: ForceRefreshWalletUseCase,
@@ -285,78 +284,26 @@ internal class WalletConfigViewModel @Inject constructor(
         }
     }
 
-    fun verifyPassword(password: String, signer: SignerModel) {
-        viewModelScope.launch {
-            _event.emit(WalletConfigEvent.Loading(true))
-            val result = verifiedPasswordTokenUseCase(
-                VerifiedPasswordTokenUseCase.Param(
-                    TargetAction.UPDATE_SERVER_KEY.name,
-                    password
-                )
-            )
-            _event.emit(WalletConfigEvent.Loading(false))
-            if (result.isSuccess) {
-                _event.emit(
-                    WalletConfigEvent.VerifyPasswordSuccess(
-                        result.getOrThrow().orEmpty(),
-                        signer,
-                        assistedWalletManager.getGroupId(walletId)
-                    )
-                )
-            } else {
-                _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
-            }
-        }
-    }
-
-    fun verifyPasswordToReplaceKey(password: String) {
-        viewModelScope.launch {
-            _event.emit(WalletConfigEvent.Loading(true))
-            val result = verifiedPasswordTokenUseCase(
-                VerifiedPasswordTokenUseCase.Param(
-                    TargetAction.REPLACE_KEYS.name,
-                    password
-                )
-            )
-            _event.emit(WalletConfigEvent.Loading(false))
-            if (result.isSuccess) {
-                _event.emit(WalletConfigEvent.OpenReplaceKey)
-            } else {
-                _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
-            }
-        }
-    }
-
-    fun verifyPasswordToDeleteAssistedWallet(password: String) = viewModelScope.launch {
+    fun calculateRequiredSignaturesForDelete(token: String) = viewModelScope.launch {
         _event.emit(WalletConfigEvent.Loading(true))
-        val result = verifiedPasswordTokenUseCase(
-            VerifiedPasswordTokenUseCase.Param(
-                TargetAction.DELETE_WALLET.name,
-                password
+        val resultCalculate = calculateRequiredSignaturesDeleteAssistedWalletUseCase(
+            CalculateRequiredSignaturesDeleteAssistedWalletUseCase.Param(
+                walletId = walletId,
+                groupId = assistedWalletManager.getGroupId(walletId)
             )
         )
         _event.emit(WalletConfigEvent.Loading(false))
-        if (result.isSuccess) {
-            val resultCalculate = calculateRequiredSignaturesDeleteAssistedWalletUseCase(
-                CalculateRequiredSignaturesDeleteAssistedWalletUseCase.Param(
+        if (resultCalculate.isSuccess) {
+            _state.update { it.copy(verifyToken = token) }
+            _event.emit(
+                WalletConfigEvent.CalculateRequiredSignaturesSuccess(
                     walletId = walletId,
-                    groupId = assistedWalletManager.getGroupId(walletId)
+                    requiredSignatures = resultCalculate.getOrThrow().requiredSignatures,
+                    type = resultCalculate.getOrThrow().type
                 )
             )
-            if (resultCalculate.isSuccess) {
-                _state.update { it.copy(verifyToken = result.getOrNull()) }
-                _event.emit(
-                    WalletConfigEvent.CalculateRequiredSignaturesSuccess(
-                        walletId = walletId,
-                        requiredSignatures = resultCalculate.getOrThrow().requiredSignatures,
-                        type = resultCalculate.getOrThrow().type
-                    )
-                )
-            } else {
-                _event.emit(WalletConfigEvent.WalletDetailsError(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
-            }
         } else {
-            _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+            _event.emit(WalletConfigEvent.WalletDetailsError(resultCalculate.exceptionOrNull()?.message.orUnknownError()))
         }
     }
 

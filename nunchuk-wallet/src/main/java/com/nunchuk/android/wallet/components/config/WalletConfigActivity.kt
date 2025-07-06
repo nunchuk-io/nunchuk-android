@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.domain.membership.PasswordVerificationHelper
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.portal.PortalDeviceArgs
@@ -73,11 +74,15 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBinding>() {
 
     private val viewModel: WalletConfigViewModel by viewModels()
+
+    @Inject
+    lateinit var passwordVerificationHelper: PasswordVerificationHelper
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -375,7 +380,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             is UpdateNameErrorEvent -> NCToastMessage(this).showWarning(event.message)
             WalletConfigEvent.DeleteWalletSuccess -> walletDeleted()
             is WalletConfigEvent.WalletDetailsError -> onGetWalletError(event)
-            is WalletConfigEvent.VerifyPasswordSuccess -> openServerKeyDetail(event)
+
             is WalletConfigEvent.Loading -> showOrHideLoading(event.isLoading)
             is WalletConfigEvent.Error -> NCToastMessage(this).showError(message = event.message)
             WalletConfigEvent.ForceRefreshWalletSuccess -> {
@@ -412,12 +417,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 )
             )
 
-            WalletConfigEvent.OpenReplaceKey -> navigator.openMembershipActivity(
-                activityContext = this,
-                groupStep = MembershipStage.REPLACE_KEY,
-                walletId = args.walletId,
-                groupId = viewModel.getGroupId().orEmpty(),
-            )
+
 
             is WalletConfigEvent.ExportInvoiceSuccess -> {
                 if (isCancelExportInvoice) {
@@ -447,21 +447,57 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         }
     }
 
-    private fun openServerKeyDetail(event: WalletConfigEvent.VerifyPasswordSuccess) {
-        if (!event.groupId.isNullOrEmpty()) {
+    private fun showReEnterPassword(
+        targetAction: TargetAction,
+        signer: SignerModel? = null,
+    ) {
+        passwordVerificationHelper.showPasswordVerificationDialog(
+            context = this,
+            targetAction = targetAction,
+            coroutineScope = lifecycleScope,
+            onSuccess = { token ->
+                when (targetAction) {
+                    TargetAction.DELETE_WALLET -> {
+                        viewModel.calculateRequiredSignaturesForDelete(token)
+                    }
+                    TargetAction.UPDATE_SERVER_KEY -> {
+                        if (signer != null) {
+                            openServerKeyDetail(token, signer)
+                        }
+                    }
+                    TargetAction.REPLACE_KEYS -> {
+                        navigator.openMembershipActivity(
+                            activityContext = this,
+                            groupStep = MembershipStage.REPLACE_KEY,
+                            walletId = args.walletId,
+                            groupId = viewModel.getGroupId().orEmpty(),
+                        )
+                    }
+                    else -> Unit
+                }
+            },
+            onError = { errorMessage ->
+                NCToastMessage(this).showError(errorMessage)
+            }
+        )
+    }
+
+    private fun openServerKeyDetail(token: String, signer: SignerModel) {
+        val groupId = viewModel.getGroupId()
+        if (!groupId.isNullOrEmpty()) {
             CosigningPolicyActivity.start(
                 activity = this,
-                signer = event.signer,
-                token = event.token,
+                signer = signer,
+                token = token,
                 walletId = args.walletId,
-                groupId = event.groupId,
+                groupId = groupId,
             )
         } else {
             CosigningPolicyActivity.start(
                 activity = this,
                 keyPolicy = args.keyPolicy,
-                signer = event.signer,
-                token = event.token,
+                signer = signer,
+                token = token,
                 walletId = args.walletId,
             )
         }
@@ -692,28 +728,6 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 putExtra(EXTRA_WALLET_ACTION, WalletConfigAction.UPDATE_NAME)
             })
         }
-    }
-
-    private fun showReEnterPassword(
-        targetAction: TargetAction,
-        signer: SignerModel? = null,
-    ) {
-        NCDeleteConfirmationDialog(this).showDialog(
-            title = getString(R.string.nc_re_enter_password),
-            isMaskInput = true,
-            message = getString(R.string.nc_enter_your_password_desc),
-            onConfirmed = { password ->
-                when (targetAction) {
-                    TargetAction.DELETE_WALLET -> viewModel.verifyPasswordToDeleteAssistedWallet(
-                        password
-                    )
-
-                    TargetAction.UPDATE_SERVER_KEY -> viewModel.verifyPassword(password, signer!!)
-                    TargetAction.REPLACE_KEYS -> viewModel.verifyPasswordToReplaceKey(password)
-                    else -> Unit
-                }
-            }
-        )
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {

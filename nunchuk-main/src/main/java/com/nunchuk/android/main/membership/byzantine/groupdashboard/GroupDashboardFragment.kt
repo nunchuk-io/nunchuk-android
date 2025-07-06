@@ -15,14 +15,17 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.domain.membership.PasswordVerificationHelper
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.groupchathistory.GroupChatHistoryArgs
+import com.nunchuk.android.core.groupchathistory.GroupChatHistoryFragment
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -42,7 +45,6 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessState
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
-import com.nunchuk.android.core.groupchathistory.GroupChatHistoryFragment
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentActivity
 import com.nunchuk.android.main.membership.model.toGroupWalletType
@@ -62,10 +64,10 @@ import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.isMasterOrAdminOrFacilitatorAdmin
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.network.IsNetworkConnectedUseCase
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
-import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -75,6 +77,9 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
 
     @Inject
     lateinit var isNetworkConnectedUseCase: IsNetworkConnectedUseCase
+
+    @Inject
+    lateinit var passwordVerificationHelper: PasswordVerificationHelper
 
     private val args: GroupDashboardFragmentArgs by navArgs()
 
@@ -382,22 +387,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                     )
                 }
 
-                is GroupDashboardEvent.UpdateServerKey -> CosigningPolicyActivity.start(
-                    activity = requireActivity(),
-                    signer = event.signer,
-                    token = event.token,
-                    walletId = args.walletId.orEmpty(),
-                    groupId = event.groupId,
-                )
 
-                is GroupDashboardEvent.OpenEmergencyLockdown -> {
-                    navigator.openEmergencyLockdownScreen(
-                        activityContext = requireActivity(),
-                        verifyToken = event.token,
-                        groupId = viewModel.getGroupId(),
-                        walletId = viewModel.getWalletId()
-                    )
-                }
 
                 is GroupDashboardEvent.CalculateRequiredSignaturesSuccess -> {
                     if (event.type == "NONE") {
@@ -438,14 +428,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                     navigator.restartApp(requireActivity())
                 }
 
-                GroupDashboardEvent.OpenReplaceKey -> {
-                    navigator.openMembershipActivity(
-                        activityContext = requireActivity(),
-                        groupStep = MembershipStage.REPLACE_KEY,
-                        walletId = viewModel.getWalletId(),
-                        groupId = viewModel.getGroupId(),
-                    )
-                }
+
             }
         }
     }
@@ -457,11 +440,45 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
     }
 
     private fun enterPasswordDialog(targetAction: TargetAction) {
-        NCInputDialog(requireContext()).showDialog(
-            title = getString(R.string.nc_re_enter_your_password),
-            descMessage = getString(R.string.nc_re_enter_your_password_dialog_desc),
-            onConfirmed = {
-                viewModel.confirmPassword(it, targetAction)
+        passwordVerificationHelper.showPasswordVerificationDialog(
+            context = requireContext(),
+            targetAction = targetAction,
+            coroutineScope = lifecycleScope,
+            onSuccess = { token ->
+                when (targetAction) {
+                    TargetAction.UPDATE_INHERITANCE_PLAN -> viewModel.getInheritance(token)
+                    TargetAction.UPDATE_SERVER_KEY -> {
+                        viewModel.state.value.signers.find { it.type == SignerType.SERVER }?.let { signer ->
+                            CosigningPolicyActivity.start(
+                                activity = requireActivity(),
+                                signer = signer,
+                                token = token,
+                                walletId = viewModel.getWalletId(),
+                                groupId = viewModel.getGroupId(),
+                            )
+                        }
+                    }
+                    TargetAction.EMERGENCY_LOCKDOWN -> {
+                        navigator.openEmergencyLockdownScreen(
+                            activityContext = requireActivity(),
+                            verifyToken = token,
+                            walletId = viewModel.getWalletId(),
+                            groupId = viewModel.getGroupId(),
+                        )
+                    }
+                    TargetAction.REPLACE_KEYS -> {
+                        navigator.openMembershipActivity(
+                            activityContext = requireActivity(),
+                            groupStep = MembershipStage.REPLACE_KEY,
+                            walletId = viewModel.getWalletId(),
+                            groupId = viewModel.getGroupId(),
+                        )
+                    }
+                    else -> {}
+                }
+            },
+            onError = { errorMessage ->
+                showError(errorMessage)
             }
         )
     }

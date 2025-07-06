@@ -13,7 +13,7 @@ import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInh
 import com.nunchuk.android.core.domain.membership.RecoverKeyUseCase
 import com.nunchuk.android.core.domain.membership.SetLocalMembershipPlanFlowUseCase
 import com.nunchuk.android.core.domain.membership.TargetAction
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
+
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.core.push.PushEvent
@@ -62,6 +62,7 @@ import com.nunchuk.android.usecase.membership.RestartWizardUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
+
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -105,7 +106,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val keyHealthCheckUseCase: KeyHealthCheckUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getInheritanceUseCase: GetInheritanceUseCase,
-    private val verifiedPasswordTokenUseCase: VerifiedPasswordTokenUseCase,
+
     private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase,
     private val calculateRequiredSignaturesInheritanceUseCase: CalculateRequiredSignaturesInheritanceUseCase,
     private val restartWizardUseCase: RestartWizardUseCase,
@@ -122,6 +123,7 @@ class GroupDashboardViewModel @Inject constructor(
     private val markShowHealthCheckReminderIntroUseCase: MarkShowHealthCheckReminderIntroUseCase,
     private val getPersonalMembershipStepUseCase: GetPersonalMembershipStepUseCase,
     private val setLocalMembershipPlanFlowUseCase: SetLocalMembershipPlanFlowUseCase,
+
 ) : ViewModel() {
 
     private val args = GroupDashboardFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -498,51 +500,7 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    fun confirmPassword(
-        password: String,
-        targetAction: TargetAction
-    ) = viewModelScope.launch {
-        if (password.isBlank()) {
-            return@launch
-        }
-        _event.emit(GroupDashboardEvent.Loading(true))
-        val result = verifiedPasswordTokenUseCase(
-            VerifiedPasswordTokenUseCase.Param(
-                targetAction = targetAction.name,
-                password = password
-            )
-        )
-        _event.emit(GroupDashboardEvent.Loading(false))
-        if (result.isSuccess) {
-            val token = result.getOrThrow().orEmpty()
-            when (targetAction) {
-                TargetAction.UPDATE_INHERITANCE_PLAN -> getInheritance(token)
-                TargetAction.UPDATE_SERVER_KEY -> {
-                    state.value.signers.find { it.type == SignerType.SERVER }?.let { signer ->
-                        _event.emit(
-                            GroupDashboardEvent.UpdateServerKey(
-                                token,
-                                signer,
-                                getGroupId()
-                            )
-                        )
-                    }
-                }
 
-                TargetAction.EMERGENCY_LOCKDOWN -> _event.emit(
-                    GroupDashboardEvent.OpenEmergencyLockdown(
-                        token
-                    )
-                )
-
-                TargetAction.REPLACE_KEYS -> _event.emit(GroupDashboardEvent.OpenReplaceKey)
-
-                else -> {}
-            }
-        } else {
-            _event.emit(GroupDashboardEvent.Error(message = result.exceptionOrNull()?.message.orUnknownError()))
-        }
-    }
 
     fun getInheritance(
         token: String = "",

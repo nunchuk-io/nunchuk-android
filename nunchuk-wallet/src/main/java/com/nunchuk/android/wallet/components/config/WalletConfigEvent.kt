@@ -35,12 +35,6 @@ sealed class WalletConfigEvent {
     data class ExportInvoiceSuccess(val filePath: String) : WalletConfigEvent()
     data object ImportTxCoinControlSuccess : WalletConfigEvent()
 
-    data class VerifyPasswordSuccess(
-        val token: String,
-        val signer: SignerModel,
-        val groupId: String?
-    ) : WalletConfigEvent()
-
     class Loading(val isLoading: Boolean) : WalletConfigEvent()
     class Error(val message: String) : WalletConfigEvent()
     data object ForceRefreshWalletSuccess : WalletConfigEvent()
@@ -52,6 +46,5 @@ sealed class WalletConfigEvent {
     ) : WalletConfigEvent()
 
     data class UploadWalletConfigEvent(val filePath: String) : WalletConfigEvent()
-    data object OpenReplaceKey : WalletConfigEvent()
     data class SaveLocalFile(val isSuccess: Boolean) : WalletConfigEvent()
 }
