@@ -61,8 +61,12 @@ import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.MiniscriptTimelockType
 import kotlinx.serialization.Serializable
+import java.text.DecimalFormat
 import java.util.Date
 import java.util.Locale
+
+private const val MAX_REQUIRED_KEYS = 20
+private const val MAX_TOTAL_KEYS = 20
 
 @Serializable
 data class MiniscriptConfigTemplate(
@@ -81,7 +85,7 @@ fun NavGraphBuilder.miniscriptConfigTemplateDestination(
             MultisignType.entries.find { it.ordinal == data.multisignType }
                 ?: MultisignType.FLEXIBLE
 
-        MiniscriptConfigTemplateScreen(
+        MiniscriptConfigTemplateContainer(
             addressType = addressType,
             multisignType = multisignType,
             onContinueClick = { template ->
@@ -91,14 +95,84 @@ fun NavGraphBuilder.miniscriptConfigTemplateDestination(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MiniscriptConfigTemplateScreen(
+fun MiniscriptConfigTemplateContainer(
     addressType: AddressType = AddressType.ANY,
     multisignType: MultisignType = MultisignType.FLEXIBLE,
     onContinueClick: (String) -> Unit = {}
 ) {
     val viewModel: MiniscriptConfigTemplateViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.event) {
+        when (val event = uiState.event) {
+            is MiniscriptConfigTemplateEvent.TemplateCreated -> {
+                onContinueClick(event.template)
+                viewModel.onEventHandled()
+            }
+
+            is MiniscriptConfigTemplateEvent.ShowError -> {
+                snackbarHostState.showSnackbar(
+                    NcSnackbarVisuals(
+                        message = event.message,
+                        type = NcToastType.ERROR
+                    )
+                )
+                viewModel.onEventHandled()
+            }
+
+            null -> {}
+        }
+    }
+
+    MiniscriptConfigTemplateScreen(
+        addressType = addressType,
+        multisignType = multisignType,
+        currentBlockHeight = uiState.currentBlockHeight,
+        snackbarHostState = snackbarHostState,
+        onContinueClick = { m, n, newM, newN, timelockData, reuseSigner ->
+            val time =
+                if ((timelockData.timelockType == MiniscriptTimelockType.ABSOLUTE
+                    && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK)
+                ) {
+                    timelockData.value / 1000 // Convert milliseconds to seconds
+                } else if (timelockData.timelockType == MiniscriptTimelockType.RELATIVE
+                    && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK
+                ) {
+                    timelockData.value * 24 * 60 * 60 // Convert days to seconds
+                } else {
+                    timelockData.value
+                }
+            viewModel.createMiniscriptTemplateBySelection(
+                multisignType = multisignType.ordinal,
+                newM = newM,
+                newN = newN,
+                n = n,
+                m = m,
+                timelockType = timelockData.timelockType.ordinal,
+                timeUnit = when (timelockData.timeUnit) {
+                    MiniscriptTimelockBased.TIME_LOCK -> 0
+                    MiniscriptTimelockBased.HEIGHT_LOCK -> 1
+                    else -> 0
+                },
+                time = time,
+                addressType = addressType,
+                reuseSigner = reuseSigner,
+            )
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MiniscriptConfigTemplateScreen(
+    addressType: AddressType = AddressType.ANY,
+    multisignType: MultisignType = MultisignType.FLEXIBLE,
+    currentBlockHeight: Int = 0,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    onContinueClick: (m: Int, n: Int, newM: Int, newN: Int, timelockData: TimelockData, reuseSigner: Boolean) -> Unit = { _, _, _, _, _, _ -> }
+) {
     var showEditPolicyBottomSheet by remember { mutableStateOf(false) }
     var showEditTimelockBottomSheet by remember { mutableStateOf(false) }
     var timelockData by remember {
@@ -112,18 +186,31 @@ fun MiniscriptConfigTemplateScreen(
     }
 
     val dateFormat = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()) }
+    val numberFormatter = remember { DecimalFormat("#,###") }
     val timeLockText by remember {
         derivedStateOf {
-            if (timelockData.timelockType == MiniscriptTimelockType.ABSOLUTE && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
-                dateFormat.format(Date(timelockData.value))
-            } else {
-                val suffixText =
-                    if (timelockData.timelockType == MiniscriptTimelockType.RELATIVE && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
-                        " days"
-                    } else {
-                        " blocks"
-                    }
-                "${timelockData.value}$suffixText"
+            when {
+                // Absolute time - show formatted date
+                timelockData.timelockType == MiniscriptTimelockType.ABSOLUTE && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK -> {
+                    dateFormat.format(Date(timelockData.value))
+                }
+                // Absolute block height - show "block {number}"
+                timelockData.timelockType == MiniscriptTimelockType.ABSOLUTE && timelockData.timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK -> {
+                    "block ${numberFormatter.format(timelockData.value)}"
+                }
+                // Relative time lock - show days
+                timelockData.timelockType == MiniscriptTimelockType.RELATIVE && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK -> {
+                    val formattedValue = numberFormatter.format(timelockData.value)
+                    if (timelockData.value <= 1) "$formattedValue day" else "$formattedValue days"
+                }
+                // Relative block height - show "{number} blocks"
+                timelockData.timelockType == MiniscriptTimelockType.RELATIVE && timelockData.timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK -> {
+                    "${numberFormatter.format(timelockData.value)} blocks"
+                }
+                // Default fallback
+                else -> {
+                    "${numberFormatter.format(timelockData.value)} blocks"
+                }
             }
         }
     }
@@ -163,30 +250,6 @@ fun MiniscriptConfigTemplateScreen(
         }
     }
 
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    LaunchedEffect(uiState.event) {
-        when (val event = uiState.event) {
-            is MiniscriptConfigTemplateEvent.TemplateCreated -> {
-                onContinueClick(event.template)
-                viewModel.onEventHandled()
-            }
-
-            is MiniscriptConfigTemplateEvent.ShowError -> {
-                snackbarHostState.showSnackbar(
-                    NcSnackbarVisuals(
-                        message = event.message,
-                        type = NcToastType.ERROR
-                    )
-                )
-                viewModel.onEventHandled()
-            }
-
-            null -> {}
-        }
-    }
-
     val title = when (multisignType) {
         MultisignType.FLEXIBLE -> "Flexible multisig"
         MultisignType.EXPANDING -> "Expanding multisig"
@@ -215,34 +278,7 @@ fun MiniscriptConfigTemplateScreen(
                     NcPrimaryDarkButton(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = {
-                            val time =
-                                if ((timelockData.timelockType == MiniscriptTimelockType.ABSOLUTE
-                                    && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK)
-                                ) {
-                                    timelockData.value / 1000 // Convert milliseconds to seconds
-                                } else if (timelockData.timelockType == MiniscriptTimelockType.RELATIVE
-                                    && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK
-                                ) {
-                                    timelockData.value * 24 * 60 * 60 // Convert days to seconds
-                                } else {
-                                    timelockData.value
-                                }
-                            viewModel.createMiniscriptTemplateBySelection(
-                                multisignType = multisignType.ordinal,
-                                newM = newM,
-                                newN = newN,
-                                n = n,
-                                m = m,
-                                timelockType = timelockData.timelockType.ordinal,
-                                timeUnit = when (timelockData.timeUnit) {
-                                    MiniscriptTimelockBased.TIME_LOCK -> 0
-                                    MiniscriptTimelockBased.HEIGHT_LOCK -> 1
-                                    else -> 0
-                                },
-                                time = time,
-                                addressType = addressType,
-                                reuseSigner = reuseSigner.value,
-                            )
+                            onContinueClick(m, n, newM, newN, timelockData, reuseSigner.value)
                         }
                     ) {
                         Text(text = "Continue")
@@ -431,9 +467,9 @@ fun MiniscriptConfigTemplateScreen(
                             showTotalKeys = true,
                             showRequiredKeys = true,
                             minM = if (multisignType == MultisignType.DECAYING) newM + 1 else 1,
-                            maxM = 5,
+                            maxM = MAX_REQUIRED_KEYS,
                             minN = 2,
-                            maxN = if (multisignType == MultisignType.EXPANDING) newN - 1 else 5
+                            maxN = if (multisignType == MultisignType.EXPANDING) MAX_TOTAL_KEYS - 1 else MAX_TOTAL_KEYS
                         )
                     }
 
@@ -444,9 +480,9 @@ fun MiniscriptConfigTemplateScreen(
                             showTotalKeys = true,
                             showRequiredKeys = true,
                             minM = 1,
-                            maxM = 5,
+                            maxM = MAX_REQUIRED_KEYS,
                             minN = 2,
-                            maxN = 5
+                            maxN = MAX_TOTAL_KEYS
                         )
                     }
 
@@ -456,7 +492,7 @@ fun MiniscriptConfigTemplateScreen(
                             showTotalKeys = true,
                             showRequiredKeys = false,
                             minN = n + 1,
-                            maxN = 5
+                            maxN = MAX_TOTAL_KEYS
                         )
                     }
 
@@ -466,7 +502,7 @@ fun MiniscriptConfigTemplateScreen(
                             showTotalKeys = false,
                             showRequiredKeys = true,
                             minM = 1,
-                            maxM = m - 1
+                            maxM = n - 1  // Enable "+" button while newM < n - 1
                         )
                     }
 
@@ -480,6 +516,18 @@ fun MiniscriptConfigTemplateScreen(
                         if (editingInitialPolicy) {
                             m = newMValue
                             n = newNValue
+                            
+                            // For EXPANDING multisig: if keyset 1 (n) >= keyset 2 (newN), 
+                            // automatically update keyset 2 to be keyset 1 + 1
+                            if (multisignType == MultisignType.EXPANDING && n >= newN) {
+                                newN = n + 1
+                            }
+                            
+                            // For DECAYING multisig: if keyset 1 (m) <= keyset 2 (newM),
+                            // automatically update keyset 2 to be keyset 1 - 1
+                            if (multisignType == MultisignType.DECAYING && m <= newM) {
+                                newM = m - 1
+                            }
                         } else {
                             when (multisignType) {
                                 MultisignType.FLEXIBLE -> {
@@ -493,6 +541,12 @@ fun MiniscriptConfigTemplateScreen(
 
                                 MultisignType.DECAYING -> {
                                     newM = newMValue
+                                    
+                                    // For DECAYING multisig: if keyset 2 (newM) >= keyset 1 (m),
+                                    // automatically update keyset 1 to be keyset 2 + 1
+                                    if (newM >= m) {
+                                        m = newM + 1
+                                    }
                                 }
 
                                 else -> {}
@@ -505,7 +559,7 @@ fun MiniscriptConfigTemplateScreen(
 
             if (showEditTimelockBottomSheet) {
                 EditTimelockBottomSheet(
-                    currentBlockHeight = uiState.currentBlockHeight.toLong(),
+                    currentBlockHeight = currentBlockHeight.toLong(),
                     initialData = timelockData,
                     snackbarHostState = snackbarHostState,
                     onDismiss = { showEditTimelockBottomSheet = false },
@@ -562,6 +616,9 @@ fun TextChip(text: String, modifier: Modifier = Modifier, onClick: () -> Unit = 
 @Composable
 private fun MiniscriptConfigTemplateScreenPreview() {
     NunchukTheme {
-        MiniscriptConfigTemplateScreen()
+        MiniscriptConfigTemplateScreen(
+            currentBlockHeight = 850000,
+            multisignType = MultisignType.FLEXIBLE
+        )
     }
 }

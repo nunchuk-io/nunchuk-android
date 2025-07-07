@@ -50,10 +50,12 @@ import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.core.miniscript.ScripNoteType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.model.ByzantineGroup
+import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.WalletExtended
@@ -388,6 +390,77 @@ private fun WalletConfigViewPreview(
                 )
             ),
             signers = signers,
+            group = ByzantineGroup(
+                id = "id",
+                members = emptyList(),
+                setupPreference = "setupPreference",
+                status = "status",
+                walletConfig = WalletConfig(
+                    n = 0,
+                    m = 0,
+                    requiredServerKey = true,
+                    allowInheritance = false,
+                ),
+                isViewPendingWallet = false,
+                isLocked = false,
+                slug = "slug",
+                createdTimeMillis = 0,
+            )
+        ),
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun WalletConfigViewMiniscriptPreview(
+    @PreviewParameter(SignersModelProvider::class) sampleSigners: List<SignerModel>,
+) {
+    // Create sample script node with miniscript structure
+    val sampleScriptNode = ScriptNode(
+        id = emptyList(),
+        data = byteArrayOf(),
+        type = ScripNoteType.ANDOR.name,
+        keys = listOf(),
+        k = 0,
+        subs = listOf(
+            ScriptNode(
+                type = ScripNoteType.THRESH.name,
+                keys = listOf("key_0_0", "key_1_0"),
+                subs = emptyList(),
+                k = 2,
+                id = emptyList(),
+                data = byteArrayOf()
+            ),
+            ScriptNode(
+                type = ScripNoteType.OLDER.name,
+                keys = listOf("key_0_1"),
+                subs = emptyList(),
+                k = 0,
+                id = emptyList(),
+                data = byteArrayOf()
+            )
+        )
+    )
+
+    // Create signer map that maps keys to signers
+    val sampleSignerMap = mapOf(
+        "key_0_0" to sampleSigners[0],
+        "key_1_0" to sampleSigners[1],
+        "key_0_1" to sampleSigners[2]
+    )
+
+    WalletConfigView(
+        state = WalletConfigState(
+            walletExtended = WalletExtended(
+                wallet = Wallet(
+                    name = "Miniscript Wallet",
+                    addressType = AddressType.TAPROOT,
+                    miniscript = "andor(thresh(2,pk(key_0_0),pk(key_1_0)),older(4320))"
+                )
+            ),
+            signers = sampleSigners,
+            scriptNode = sampleScriptNode,
+            signerMap = sampleSignerMap,
             group = ByzantineGroup(
                 id = "id",
                 members = emptyList(),

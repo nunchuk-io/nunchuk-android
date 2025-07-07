@@ -12,8 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -167,7 +167,7 @@ fun EditTimelockContent(
             .heightIn(max = 600.dp) // Set maximum height to prevent excessive expansion
             .verticalScroll(scrollState)
             .padding(vertical = 24.dp, horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text(
             modifier = Modifier.padding(top = 8.dp),
@@ -191,9 +191,9 @@ fun EditTimelockContent(
             onClick = { timelockType = MiniscriptTimelockType.RELATIVE }
         )
 
-        Divider()
+        HorizontalDivider()
 
-        Text("Time unit", style = MaterialTheme.typography.titleSmall)
+        Text("Time unit", style = NunchukTheme.typography.titleSmall)
 
         RadioOption(
             title = "Timestamp",
@@ -209,7 +209,7 @@ fun EditTimelockContent(
             onClick = { timeUnit = MiniscriptTimelockBased.HEIGHT_LOCK }
         )
 
-        Divider()
+        HorizontalDivider()
 
         DatePickerField(
             calendar = calendar,

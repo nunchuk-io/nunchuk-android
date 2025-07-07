@@ -347,8 +347,6 @@ fun ScriptNodeTree(
                 ThreadMultiItem(
                     index = index,
                     type = node.type,
-                    threshold = node.k,
-                    totalKeys = node.keys.size + node.subs.size,
                     topPadding = if (showThreadCurve) 10 else 0,
                     showThreadCurve = showThreadCurve,
                     modifier = modifier
@@ -459,8 +457,6 @@ fun AndOrView(
 fun ThreadMultiItem(
     index: String,
     type: String,
-    threshold: Int,
-    totalKeys: Int,
     topPadding: Int = 10,
     showThreadCurve: Boolean = true,
     modifier: Modifier = Modifier,
@@ -492,8 +488,13 @@ fun ThreadMultiItem(
                     text = "$index. $text",
                     style = NunchukTheme.typography.body
                 )
+                val keyText = when (type) {
+                    ScripNoteType.THRESH.name -> "Requires M of N sub‑conditions."
+                    ScripNoteType.MULTI.name -> "Requires M of N keys."
+                    else -> ""
+                }
                 Text(
-                    text = "Requires $threshold of $totalKeys sub-conditions.",
+                    text = keyText,
                     style = NunchukTheme.typography.bodySmall.copy(
                         color = MaterialTheme.colorScheme.textSecondary
                     )

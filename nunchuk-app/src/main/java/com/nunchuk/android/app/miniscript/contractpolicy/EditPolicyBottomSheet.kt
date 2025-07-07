@@ -32,6 +32,9 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.wallet.personal.components.add.KeyManagementSection
 import kotlinx.coroutines.launch
 
+private const val MAX_REQUIRED_KEYS = 20
+private const val MAX_TOTAL_KEYS = 20
+
 /**
  * Configuration for the EditPolicyBottomSheet
  */
@@ -41,9 +44,9 @@ data class EditPolicyConfig(
     val showTotalKeys: Boolean = true,
     val showRequiredKeys: Boolean = true,
     val minM: Int = 1,
-    val maxM: Int = 5,
+    val maxM: Int = MAX_REQUIRED_KEYS,
     val minN: Int = 2,
-    val maxN: Int = 5,
+    val maxN: Int = MAX_TOTAL_KEYS,
     val title: String = "Edit multisig policy"
 )
 

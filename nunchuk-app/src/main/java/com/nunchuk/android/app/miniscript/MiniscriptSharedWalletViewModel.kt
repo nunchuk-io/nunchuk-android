@@ -94,11 +94,8 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         }
         viewModelScope.launch {
             getChainTipUseCase(Unit).onSuccess { blockHeight ->
-                Timber.tag(TAG).d("MiniscriptSharedWalletViewModel - blockHeight: $blockHeight")
                 _uiState.update { it.copy(currentBlockHeight = blockHeight) }
-            }.onFailure { error ->
-                Timber.tag(TAG).e("MiniscriptSharedWalletViewModel - error: $error")
-            }
+            }.onFailure { error -> }
         }
         viewModelScope.launch {
             getChainSettingFlowUseCase(Unit)
