@@ -66,12 +66,12 @@ import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.P
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.ShowError
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
 import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
-import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import kotlin.math.abs
 
 @AndroidEntryPoint
@@ -160,7 +160,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         }
         args.btcUri?.let { binding.mainCurrency.setText(it.amount.getBTCAmount()) }
         flowObserver(
-            binding.mainCurrency.textChanges()
+            binding.mainCurrency.textFlow
         ) { text ->
             binding.tvMainCurrency.text = text
             viewModel.handleAmountChanged(text)

@@ -38,6 +38,9 @@ class NCFontCurrencyEditText : TextInputEditText {
     private var locale: Locale = Locale.US
     private var maxDP: Int = 0
 
+    val textFlow
+        get() = textWatcher.textFlow
+
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
         initializer.initTypeface(this, attrs)
         initData(attrs)
