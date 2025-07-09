@@ -21,6 +21,7 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.nativelib.NunchukNativeSdk
@@ -52,7 +53,8 @@ class CreateTransactionUseCase @Inject constructor(
             subtractFeeFromAmount = parameters.subtractFeeFromAmount,
             replaceTxId = parameters.replaceTxId,
             antiFeeSniping = parameters.antiFeeSniping,
-            useScriptPath = parameters.useScriptPath
+            useScriptPath = parameters.useScriptPath,
+            signingPath = parameters.signingPath
         )
         if (parameters.isAssistedWallet) {
             try {
@@ -81,5 +83,6 @@ class CreateTransactionUseCase @Inject constructor(
         val replaceTxId : String = "",
         val antiFeeSniping: Boolean,
         val useScriptPath: Boolean = false,
+        val signingPath: SigningPath? = null
     )
 }

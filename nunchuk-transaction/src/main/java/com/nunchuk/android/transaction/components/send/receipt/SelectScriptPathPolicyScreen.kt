@@ -50,7 +50,7 @@ fun SelectScriptPathPolicyScreen(
     scriptNode: ScriptNode,
     signers: Map<String, SignerModel>,
     signingPaths: List<Pair<SigningPath, Amount>>,
-    onContinue: (Int) -> Unit = {},
+    onContinue: (SigningPath) -> Unit = {},
 ) {
     var selectedIndex by remember { mutableIntStateOf(0) }
     NunchukTheme {
@@ -69,7 +69,7 @@ fun SelectScriptPathPolicyScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    onClick = { onContinue(selectedIndex) }
+                    onClick = { onContinue(signingPaths[selectedIndex].first) }
                 ) {
                     Text(stringResource(R.string.nc_text_continue))
                 }

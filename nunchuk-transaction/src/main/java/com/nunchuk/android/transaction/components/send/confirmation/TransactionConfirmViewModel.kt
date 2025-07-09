@@ -37,6 +37,7 @@ import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.model.TxOutput
@@ -329,7 +330,8 @@ class TransactionConfirmViewModel @Inject constructor(
      */
     fun handleConfirmEvent(
         isQuickCreateTransaction: Boolean = false,
-        keySetIndex: Int = 0
+        keySetIndex: Int = 0,
+        signingPath: SigningPath? = null
     ) {
         if (sessionHolder.hasActiveRoom()) {
             initRoomTransaction()
@@ -339,7 +341,8 @@ class TransactionConfirmViewModel @Inject constructor(
             } else {
                 createNewTransaction(
                     isQuickCreateTransaction = isQuickCreateTransaction,
-                    keySetIndex = keySetIndex
+                    keySetIndex = keySetIndex,
+                    signingPath = signingPath
                 )
             }
         }
@@ -347,7 +350,11 @@ class TransactionConfirmViewModel @Inject constructor(
 
     fun isInheritanceClaimingFlow() = claimInheritanceTxParam.isInheritanceClaimFlow()
 
-    private fun createNewTransaction(isQuickCreateTransaction: Boolean, keySetIndex: Int) {
+    private fun createNewTransaction(
+        isQuickCreateTransaction: Boolean,
+        keySetIndex: Int,
+        signingPath: SigningPath?
+    ) {
         viewModelScope.launch {
             _event.emit(LoadingEvent())
             val useScriptPath = keySetIndex > 0
@@ -363,16 +370,15 @@ class TransactionConfirmViewModel @Inject constructor(
                     isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
                     antiFeeSniping = antiFeeSniping,
                     useScriptPath = useScriptPath,
+                    signingPath = signingPath
                 )
             ).onSuccess { transaction ->
-                if (keySetIndex > 0) {
-                    saveTaprootKeySetSelectionUseCase(
-                        SaveTaprootKeySetSelectionUseCase.Param(
-                            transactionId = transaction.txId,
-                            keySetIndex = keySetIndex
-                        )
+                saveTaprootKeySetSelectionUseCase(
+                    SaveTaprootKeySetSelectionUseCase.Param(
+                        transactionId = transaction.txId,
+                        keySetIndex = keySetIndex
                     )
-                }
+                )
                 val commonTagMap = mutableMapOf<Int, Int>()
                 inputs.forEach { output ->
                     output.tags.forEach {

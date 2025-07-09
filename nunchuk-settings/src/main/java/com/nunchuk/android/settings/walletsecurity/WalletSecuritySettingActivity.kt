@@ -37,10 +37,11 @@ class WalletSecuritySettingActivity : BaseActivity<ActivityNavigationBinding>() 
         WalletSecurityArgs.fromBundle(intent.extras!!)
     }
 
-    override fun initializeBinding() = ActivityNavigationBinding.inflate(layoutInflater)
+    override fun initializeBinding() = ActivityNavigationBinding.inflate(layoutInflater).also {
+        enableEdgeToEdge()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         val navHostFragment =

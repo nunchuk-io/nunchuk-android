@@ -125,6 +125,7 @@ fun TransactionDetailView(
         transaction.keySetStatus.withIndex().associate { it.index to it.value }
     }
     val firstKeySet = if (!state.isValueKeySetDisable) keySetMap[state.defaultKeySetIndex] else null
+    val isMiniscriptTaprootKeyPathTransaction = state.addressType.isTaproot() && state.scriptNode != null && state.defaultKeySetIndex == 0
     NunchukTheme {
         NcScaffold(
             modifier = Modifier.systemBarsPadding(),
@@ -362,7 +363,7 @@ fun TransactionDetailView(
                     }
                 }
 
-                if (!state.transaction.isReceive && state.scriptNode != null && state.signerMap.isNotEmpty()) {
+                if (!state.transaction.isReceive && state.scriptNode != null && state.signerMap.isNotEmpty() && !isMiniscriptTaprootKeyPathTransaction) {
                     item {
                         Column(
                             modifier = Modifier.padding(
@@ -387,7 +388,7 @@ fun TransactionDetailView(
                     }
                 }
                 // taproot key set view
-                else if (transaction.keySetStatus.isNotEmpty()) {
+                else if (transaction.keySetStatus.isNotEmpty() && !isMiniscriptTaprootKeyPathTransaction) {
                     if (firstKeySet != null) {
                         item {
                             KeySetView(
@@ -462,7 +463,7 @@ fun TransactionDetailView(
                                 .padding(top = 16.dp)
                                 .padding(horizontal = 16.dp),
                             signer = signer,
-                            showValueKey = index < transaction.m && state.addressType.isTaproot() && !state.isValueKeySetDisable,
+                            showValueKey = index < transaction.m && state.addressType.isTaproot() && !state.isValueKeySetDisable && state.scriptNode == null,
                             isSigned = transaction.signers.isNotEmpty() && transaction.signers[signer.fingerPrint] ?: false,
                             canSign = !transaction.status.signDone(),
                             onSignClick = onSignClick,

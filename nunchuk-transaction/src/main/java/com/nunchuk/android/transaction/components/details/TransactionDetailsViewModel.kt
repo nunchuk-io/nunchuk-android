@@ -96,6 +96,7 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.UpdateTransactionMemoSuccess
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ViewBlockchainExplorer
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.WalletTemplate
@@ -109,6 +110,7 @@ import com.nunchuk.android.usecase.GetTransactionFromNetworkUseCase
 import com.nunchuk.android.usecase.GetTransactionUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
+import com.nunchuk.android.usecase.IsScriptNodeSatisfiableUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphrase
 import com.nunchuk.android.usecase.SignTransactionUseCase
@@ -195,6 +197,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getSavedAddressListLocalUseCase: GetSavedAddressListLocalUseCase,
     private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
     private val parseSignerStringUseCase: ParseSignerStringUseCase,
+    private val isScriptNodeSatisfiableUseCase: IsScriptNodeSatisfiableUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionDetailsState())
     val state = _state.asStateFlow()
@@ -218,6 +221,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private var reloadTransactionJob: Job? = null
     private var getTransactionJob: Job? = null
+
+    private val satisfiableMap: MutableMap<String, Boolean> = mutableMapOf()
 
     private fun getState() = state.value
 
@@ -429,11 +434,22 @@ internal class TransactionDetailsViewModel @Inject constructor(
                             ?: false,
                     )
                 }
-                if (wallet.wallet.walletTemplate != WalletTemplate.DISABLE_KEY_PATH && wallet.wallet.addressType.isTaproot()) {
-                    loadKeySetSelection()
+                val defaultKeySetIndex =
+                    if (wallet.wallet.walletTemplate != WalletTemplate.DISABLE_KEY_PATH && wallet.wallet.addressType.isTaproot()) {
+                        loadKeySetSelection()
+                    } else 0
+                _state.update {
+                    it.copy(
+                        defaultKeySetIndex = defaultKeySetIndex,
+                    )
                 }
                 if (wallet.wallet.miniscript.isNotEmpty()) {
-                    getMiniscriptInfo(wallet)
+                    getMiniscriptInfo(
+                        walletExtended = wallet,
+                        isValueKeySetDisable = wallet.wallet.isValueKeySetDisable,
+                        addressType = wallet.wallet.addressType,
+                        defaultKeySetIndex = defaultKeySetIndex
+                    )
                 } else {
                     val signers = wallet.wallet.signers.map { signer ->
                         singleSignerMapper(signer)
@@ -454,14 +470,39 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getMiniscriptInfo(walletExtended: WalletExtended) {
-        getScriptNodeFromMiniscriptTemplateUseCase(walletExtended.wallet.miniscript).onSuccess { result ->
-            val signerMap = parseSignersFromScriptNode(result.scriptNode)
-            _state.update { it.copy(signerMap = signerMap, scriptNode = result.scriptNode, signers = signerMap.values.toList()) }
+    private suspend fun getMiniscriptInfo(
+        walletExtended: WalletExtended,
+        isValueKeySetDisable: Boolean,
+        addressType: AddressType,
+        defaultKeySetIndex: Int
+    ) {
+        if (addressType.isTaproot() && !isValueKeySetDisable && defaultKeySetIndex == 0) {
+            val signers = walletExtended.wallet.signers.take(1).map { signer ->
+                singleSignerMapper(signer)
+            }
+            _state.update { it.copy(signers = signers) }
+        } else {
+            getScriptNodeFromMiniscriptTemplateUseCase(walletExtended.wallet.miniscript).onSuccess { result ->
+                val signerMap = parseSignersFromScriptNode(result.scriptNode)
+                _state.update {
+                    it.copy(
+                        signerMap = signerMap,
+                        scriptNode = result.scriptNode,
+                        signers = signerMap.values.toList()
+                    )
+                }
+            }
         }
     }
 
     private suspend fun parseSignersFromScriptNode(node: ScriptNode): Map<String, SignerModel> {
+        satisfiableMap[node.idString] = isScriptNodeSatisfiableUseCase(
+            IsScriptNodeSatisfiableUseCase.Params(
+                nodeId = node.id.toIntArray(),
+                walletId = walletId,
+                txId = txId
+            )
+        ).getOrDefault(false)
         val signerMap = mutableMapOf<String, SignerModel>()
         node.keys.forEach { key ->
             parseSignerStringUseCase(key).getOrNull()?.let { signer ->
@@ -474,14 +515,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
         return signerMap
     }
 
-    private fun loadKeySetSelection() {
-        viewModelScope.launch {
-            getTaprootKeySetSelectionUseCase(txId).onSuccess { keySet ->
-                if (keySet != null) {
-                    _state.update { it.copy(defaultKeySetIndex = keySet) }
-                }
-            }
-        }
+    private suspend fun loadKeySetSelection(): Int {
+        return getTaprootKeySetSelectionUseCase(txId).getOrElse { null } ?: 0
     }
 
     fun setCurrentSigner(signer: SignerModel) {

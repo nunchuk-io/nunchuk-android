@@ -183,7 +183,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                             scriptNode = scriptNode,
                             onContinue = { isKeyPathSelected ->
                                 if (isKeyPathSelected) {
-                                    transactionConfirmViewModel.handleConfirmEvent(true)
+                                    transactionConfirmViewModel.handleConfirmEvent(keySetIndex = 0)
                                 } else {
                                     transactionConfirmViewModel.checkMiniscriptSigningPolicy()
                                 }
@@ -199,7 +199,12 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                             scriptNode = scriptNode,
                             signers = state.signers,
                             signingPaths = dummySigningPaths,
-                            onContinue = { /* handle continue */ }
+                            onContinue = { signingPath ->
+                                transactionConfirmViewModel.handleConfirmEvent(
+                                    keySetIndex = 1,
+                                    signingPath = signingPath
+                                )
+                            }
                         )
                     }
                 }
