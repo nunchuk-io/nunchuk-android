@@ -61,6 +61,7 @@ import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.AcceptAmountEvent
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.InsufficientFundsEvent
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.InsufficientFundsLockedCoinEvent
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.InvalidAmountEvent
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.Loading
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.ParseBtcUriSuccess
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.ShowError
@@ -308,6 +309,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                     )
                 }
             }
+            is InvalidAmountEvent -> NCToastMessage(this).showError(getString(R.string.nc_amount_must_be_greater_than_0))
         }
     }
 
