@@ -28,7 +28,7 @@
         android:maxWidth="250dp"
         android:padding="@dimen/nc_padding_12"
         android:paddingHorizontal="@dimen/nc_padding_18"
-        android:textColorLink="@color/nc_primary_color"
+        android:textColorLink="@color/nc_text_primary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Sounds good Khoa, let’s get this bread: https://google.com.vn" />

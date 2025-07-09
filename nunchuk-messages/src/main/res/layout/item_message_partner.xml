@@ -51,7 +51,7 @@
         android:background="@drawable/message_partner_background"
         android:maxWidth="250dp"
         android:padding="@dimen/nc_padding_12"
-        android:textColorLink="@color/nc_primary_color"
+        android:textColorLink="@color/nc_text_primary"
         app:layout_constraintStart_toEndOf="@id/avatar"
         app:layout_constraintTop_toBottomOf="@id/sender"
         tools:text="Hey Tom, let’s create a wallet together shall we https://google.com.vn?" />
