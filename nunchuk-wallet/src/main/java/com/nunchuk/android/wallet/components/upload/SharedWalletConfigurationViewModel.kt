@@ -23,7 +23,9 @@ import android.nfc.tech.Ndef
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.ExportWalletToMk4UseCase
+import com.nunchuk.android.core.domain.RemoveWalletBannerStateUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.type.ExportFormat
@@ -35,6 +37,7 @@ import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.Exp
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.NfcLoading
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.ShowError
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -45,7 +48,9 @@ class SharedWalletConfigurationViewModel @Inject constructor(
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val exportWalletUseCase: ExportWalletUseCase,
     private val exportWalletToMk4UseCase: ExportWalletToMk4UseCase,
-    private val saveLocalFileUseCase: SaveLocalFileUseCase
+    private val saveLocalFileUseCase: SaveLocalFileUseCase,
+    private val removeWalletBannerStateUseCase: RemoveWalletBannerStateUseCase,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     lateinit var walletId: String
@@ -64,6 +69,7 @@ class SharedWalletConfigurationViewModel @Inject constructor(
             _event.emit(NfcLoading(false))
             if (result.isSuccess) {
                 _event.emit(ExportColdcardSuccess())
+                removeBannerState()
             } else {
                 _event.emit(ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
@@ -84,6 +90,7 @@ class SharedWalletConfigurationViewModel @Inject constructor(
     fun doneScanQr() {
         viewModelScope.launch {
             _event.emit(DoneScanQr)
+            removeBannerState()
         }
     }
 
@@ -93,7 +100,10 @@ class SharedWalletConfigurationViewModel @Inject constructor(
                 is Success -> {
                     if (isSaveFile) {
                         saveLocalFile(filePath)
-                    } else _event.emit(ExportColdcardSuccess(filePath))
+                    } else {
+                        _event.emit(ExportColdcardSuccess(filePath))
+                    }
+                    removeBannerState()
                 }
                 is Error -> showError(event.exception)
             }
@@ -104,6 +114,16 @@ class SharedWalletConfigurationViewModel @Inject constructor(
         viewModelScope.launch {
             val result = saveLocalFileUseCase(SaveLocalFileUseCase.Params(fileName = getFileName(), filePath = filePath))
             _event.emit(UploadConfigurationEvent.SaveLocalFile(result.isSuccess))
+        }
+    }
+
+    private fun removeBannerState() {
+        viewModelScope.launch(dispatcher) {
+            removeWalletBannerStateUseCase(walletId).onSuccess {
+                // Banner state successfully removed
+            }.onFailure {
+                // Handle error silently - banner state removal is not critical for user flow
+            }
         }
     }
 

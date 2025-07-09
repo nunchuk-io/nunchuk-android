@@ -43,7 +43,6 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_24"
-        android:gravity="center"
         android:paddingVertical="@dimen/nc_padding_8"
         android:text="@string/nc_wallet_upload_configuration_title"
         app:layout_constraintStart_toStartOf="parent"
@@ -56,11 +55,34 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_18"
-        android:gravity="center"
         android:paddingVertical="@dimen/nc_padding_8"
         android:text="@string/nc_wallet_upload_configuration"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/title" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/doLaterText"
+        style="@style/NCText.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_18"
+        android:paddingVertical="@dimen/nc_padding_8"
+        android:text="If you do this later:"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/description" />
+
+    <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/descriptionHint"
+        style="@style/NCText.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginBottom="@dimen/nc_padding_16"
+        android:background="@drawable/nc_rounded_whisper_background"
+        android:padding="@dimen/nc_padding_16"
+        android:text="Navigate to Wallet details → View wallet config → More menu → Export wallet configuration"
+        app:layout_constraintTop_toBottomOf="@+id/doLaterText" />
 
     <LinearLayout
         android:id="@+id/btnQRCode"
@@ -83,13 +105,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_6"
-            android:text="@string/nc_text_wallet_qr_code"
+            android:text="Export configuration as QR code"
             android:textColor="@color/nc_white_color" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/btnUpload"
-        style="@style/NCOutlineButton.Light"
+        style="@style/NCPrimaryButton.Light.Solid"
         android:layout_width="match_parent"
         android:layout_height="@dimen/nc_height_48"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
@@ -108,12 +130,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/nc_padding_6"
-            android:text="@string/nc_wallet_export_coldcard" />
+            android:text="Export configuration as a file" />
     </LinearLayout>
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/btnSkipUpload"
-        style="@style/NCPrimaryButton.Red"
+        style="@style/NCPrimaryButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/nc_padding_16"

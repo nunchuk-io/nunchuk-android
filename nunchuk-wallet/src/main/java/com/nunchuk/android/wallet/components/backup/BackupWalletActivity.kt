@@ -28,6 +28,7 @@ import com.nunchuk.android.core.base.BaseShareSaveFileActivity
 import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.core.wallet.WalletSecurityArgs
 import com.nunchuk.android.core.wallet.WalletSecurityType
+import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.BackUpWalletType
 import com.nunchuk.android.wallet.R
@@ -60,7 +61,7 @@ class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalle
         viewModel.init(args.wallet)
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                navigateToNextScreen()
+                navigateToNextScreen(isBackupSuccessful = false)
             }
         })
     }
@@ -68,7 +69,7 @@ class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalle
     override fun onResume() {
         super.onResume()
         if (isShared) {
-            navigateToNextScreen()
+            navigateToNextScreen(isBackupSuccessful = true)
             isShared = false
         }
     }
@@ -77,14 +78,14 @@ class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalle
         NCToastMessage(this).show(R.string.nc_wallet_has_been_created)
         binding.btnBackup.setOnClickListener { showSaveShareOption() }
         binding.btnSkipBackup.setOnClickListener {
-            navigateToNextScreen()
+            navigateToNextScreen(isBackupSuccessful = false)
         }
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
     }
 
-    private fun navigateToNextScreen() {
+    private fun navigateToNextScreen(isBackupSuccessful: Boolean = false) {
         if (args.backUpWalletType == BackUpWalletType.ASSISTED_CREATED) {
             setResult(RESULT_OK)
             finish()
@@ -101,6 +102,37 @@ class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalle
                 navigator = navigator,
                 quickWalletParam = args.quickWalletParam
             )
+        } else if (isBackupSuccessful) {
+            // Handle banner state logic based on backup success
+            val bannerState = viewModel.getBannerState()
+            val hasHardwareOrAirgapSigner = viewModel.hasHardwareOrAirgapSigner()
+            val walletId = viewModel.getWalletId() ?: args.wallet.id
+
+            when (bannerState) {
+                BannerState.BACKUP_AND_REGISTER -> {
+                    if (hasHardwareOrAirgapSigner) {
+                        // Update banner state to REGISTER_ONLY and open upload configuration screen
+                        viewModel.updateBannerState(BannerState.REGISTER_ONLY)
+                        navigator.openUploadConfigurationScreen(this, walletId)
+                    } else {
+                        // Remove banner state and go to wallet details
+                        viewModel.removeBannerState()
+                        navigator.returnToMainScreen(this)
+                        navigator.openWalletDetailsScreen(this, walletId)
+                    }
+                }
+                BannerState.BACKUP_ONLY -> {
+                    // Remove banner state and go to wallet details
+                    viewModel.removeBannerState()
+                    navigator.returnToMainScreen(this)
+                    navigator.openWalletDetailsScreen(this, walletId)
+                }
+                else -> {
+                    // No banner state, just proceed normally
+                    navigator.returnToMainScreen(this)
+                    navigator.openWalletDetailsScreen(this, walletId)
+                }
+            }
         } else {
             navigator.returnToMainScreen(this)
             navigator.openWalletDetailsScreen(this, args.wallet.id)
@@ -127,7 +159,7 @@ class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalle
                 showSaveFileState(event.isSuccess)
                 lifecycleScope.launch {
                     delay(1000L)
-                    navigateToNextScreen()
+                    navigateToNextScreen(isBackupSuccessful = event.isSuccess)
                 }
             }
         }

@@ -24,12 +24,14 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.usecase.wallet.AddWalletBannerStateUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
 class CreateWalletUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     private val getOrCreateRootDirUseCase: GetOrCreateRootDirUseCase,
+    private val addWalletBannerStateUseCase: AddWalletBannerStateUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : UseCase<CreateWalletUseCase.Params, Wallet>(ioDispatcher) {
     override suspend fun execute(parameters: Params): Wallet {
@@ -37,7 +39,7 @@ class CreateWalletUseCase @Inject constructor(
             val path = getOrCreateRootDirUseCase(Unit).getOrThrow()
             nativeSdk.createNewDecoyPin(storagePath = path, pin = parameters.decoyPin)
         }
-        return nativeSdk.createWallet(
+        val createdWallet = nativeSdk.createWallet(
             name = parameters.name,
             totalRequireSigns = parameters.totalRequireSigns,
             signers = parameters.signers,
@@ -47,6 +49,11 @@ class CreateWalletUseCase @Inject constructor(
             decoyPin = parameters.decoyPin,
             disableValueKeyset = parameters.addressType == AddressType.TAPROOT && parameters.disableValueKeyset
         )
+        
+        // Automatically set banner state based on wallet conditions
+        addWalletBannerStateUseCase(createdWallet.id)
+        
+        return createdWallet
     }
 
     data class Params(

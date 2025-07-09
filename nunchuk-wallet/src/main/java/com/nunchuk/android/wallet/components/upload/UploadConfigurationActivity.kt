@@ -66,7 +66,9 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
 
     override fun handleSharedEvent(event: UploadConfigurationEvent) {
         super.handleSharedEvent(event)
-        if (event is ExportColdcardSuccess) shareConfigurationFile(event.filePath)
+        if (event is ExportColdcardSuccess) {
+            shareConfigurationFile(event.filePath)
+        }
     }
 
     private fun shareConfigurationFile(filePath: String?) {

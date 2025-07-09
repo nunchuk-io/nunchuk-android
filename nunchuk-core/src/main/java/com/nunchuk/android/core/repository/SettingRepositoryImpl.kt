@@ -31,6 +31,8 @@ import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.TaprootFeeSelectionSetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.wallet.WalletOrder
+import com.nunchuk.android.model.BannerState
+import com.nunchuk.android.model.WalletBannerState
 import com.nunchuk.android.persistence.dao.WalletOrderDao
 import com.nunchuk.android.persistence.entity.toDomain
 import com.nunchuk.android.persistence.entity.toEntity
@@ -228,6 +230,26 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override suspend fun setHasWalletInGuestMode(hasWallet: Boolean) {
         ncDataStore.setHasWalletInGuestMode(hasWallet)
+    }
+
+    // Wallet Banner State implementations
+    override val walletBannerStatesFlow: Flow<List<WalletBannerState>>
+        get() = ncDataStore.walletBannerStatesFlow
+
+    override suspend fun addWalletBannerState(walletId: String, state: BannerState) {
+        ncDataStore.addWalletBannerState(walletId, state)
+    }
+
+    override suspend fun getWalletBannerState(walletId: String): BannerState? {
+        return ncDataStore.getWalletBannerState(walletId)
+    }
+
+    override suspend fun removeWalletBannerState(walletId: String) {
+        ncDataStore.removeWalletBannerState(walletId)
+    }
+
+    override suspend fun updateWalletBannerState(walletId: String, newState: BannerState) {
+        ncDataStore.updateWalletBannerState(walletId, newState)
     }
 
     override suspend fun setMiniscriptLocal(miniscript: String) {

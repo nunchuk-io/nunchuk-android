@@ -17,27 +17,34 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.domain
+package com.nunchuk.android.model
 
-import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.usecase.UseCase
-import com.nunchuk.android.usecase.wallet.AddWalletBannerStateUseCase
-import kotlinx.coroutines.CoroutineDispatcher
-import javax.inject.Inject
+/**
+ * Represents the state of a wallet banner warning.
+ * @param walletId The unique identifier of the wallet
+ * @param state The current banner state indicating what actions are needed
+ */
+data class WalletBannerState(
+    val walletId: String,
+    val state: BannerState
+)
 
-class CreateWallet2UseCase @Inject constructor(
-    @IoDispatcher private val dispatcher: CoroutineDispatcher,
-    private val nunchukNativeSdk: NunchukNativeSdk,
-    private val addWalletBannerStateUseCase: AddWalletBannerStateUseCase
-) : UseCase<Wallet, Wallet>(dispatcher) {
-    override suspend fun execute(parameters: Wallet): Wallet {
-        val createdWallet = nunchukNativeSdk.createWallet2(parameters)
-        
-        // Automatically set banner state based on wallet conditions
-        addWalletBannerStateUseCase(createdWallet.id)
-        
-        return createdWallet
-    }
-}
+/**
+ * Enum representing the different warning states for wallet banners.
+ */
+enum class BannerState {
+    /**
+     * Please back up your wallet configuration. You might also need to register the wallet on your hardware.
+     */
+    BACKUP_AND_REGISTER,
+    
+    /**
+     * Please back up your wallet configuration.
+     */
+    BACKUP_ONLY,
+    
+    /**
+     * You might need to register the wallet on your hardware device.
+     */
+    REGISTER_ONLY
+} 

@@ -20,24 +20,21 @@
 package com.nunchuk.android.core.domain
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.repository.SettingRepository
 import com.nunchuk.android.usecase.UseCase
-import com.nunchuk.android.usecase.wallet.AddWalletBannerStateUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class CreateWallet2UseCase @Inject constructor(
+/**
+ * Use case for removing a wallet banner state.
+ * If no banner state exists for the given wallet, this operation is a no-op.
+ */
+class RemoveWalletBannerStateUseCase @Inject constructor(
+    private val settingRepository: SettingRepository,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
-    private val nunchukNativeSdk: NunchukNativeSdk,
-    private val addWalletBannerStateUseCase: AddWalletBannerStateUseCase
-) : UseCase<Wallet, Wallet>(dispatcher) {
-    override suspend fun execute(parameters: Wallet): Wallet {
-        val createdWallet = nunchukNativeSdk.createWallet2(parameters)
-        
-        // Automatically set banner state based on wallet conditions
-        addWalletBannerStateUseCase(createdWallet.id)
-        
-        return createdWallet
+) : UseCase<String, Unit>(dispatcher) {
+
+    override suspend fun execute(parameters: String) {
+        settingRepository.removeWalletBannerState(parameters)
     }
-}
+} 

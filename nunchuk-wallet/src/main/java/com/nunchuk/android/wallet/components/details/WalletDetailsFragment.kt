@@ -73,9 +73,12 @@ import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.setUnderline
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showSuccess
+import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.wallet.WalletStatus
+import com.nunchuk.android.nav.args.BackUpWalletArgs
+import com.nunchuk.android.nav.args.BackUpWalletType
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.consumeEdgeToEdge
@@ -444,10 +447,23 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         binding.ivViewCoin.isEnabled = state.isHasCoin && viewModel.isFacilitatorAdmin().not()
         binding.ivViewCoin.alpha =
             if (state.isHasCoin && viewModel.isFacilitatorAdmin().not()) 1.0f else 0.7f
-        binding.tvWalletWarning.isVisible =
-            state.walletExtended.wallet.needBackup || (state.isNeedBackUpGroupWallet && state.isFreeGroupWallet && state.isDeprecatedGroupWallet.not())
+        // Handle wallet warnings with priority: backup warnings > banner state
+        val needsBackup = state.walletExtended.wallet.needBackup || (state.isNeedBackUpGroupWallet && state.isFreeGroupWallet && state.isDeprecatedGroupWallet.not())
+        val bannerState = state.bannerState
+
+        binding.tvWalletWarning.isVisible = needsBackup || bannerState != null
+        
         if (binding.tvWalletWarning.isVisible) {
-            handleNeedBackupWallet(state.isFreeGroupWallet)
+            when {
+                needsBackup -> {
+                    // Priority 1: Show backup warning (highest priority)
+                    handleNeedBackupWallet(state.isFreeGroupWallet)
+                }
+                bannerState != null -> {
+                    // Priority 2: Show banner state warning
+                    handleBannerStateWarning(bannerState)
+                }
+            }
         }
         if (state.hideWalletDetailLocal) {
             binding.chatView.isVisible = false
@@ -730,6 +746,50 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
 
     }
 
+    private fun handleBannerStateWarning(bannerState: BannerState) {
+        val (message, actionText, clickAction) = when (bannerState) {
+            BannerState.BACKUP_AND_REGISTER -> Triple(
+                "Please back up your wallet configuration. You might also need to register the wallet on your hardware. Do it now.",
+                "Do it now",
+                { onBannerBackupAndRegisterClick() }
+            )
+            BannerState.BACKUP_ONLY -> Triple(
+                "Please back up your wallet configuration. Do it now.",
+                "Do it now",
+                { onBannerBackupOnlyClick() }
+            )
+            BannerState.REGISTER_ONLY -> Triple(
+                "You might need to register the wallet on your hardware device. Do it now.",
+                "Do it now",
+                { onBannerRegisterOnlyClick() }
+            )
+        }
+
+        binding.tvWalletWarning.makeTextLink(
+            message,
+            ClickAbleText(content = actionText, onClick = clickAction)
+        )
+        binding.tvWalletWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
+            R.drawable.ic_warning_outline, 0, 0, 0
+        )
+        binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_wallet_warning_background)
+        binding.tvWalletWarning.setTextColor(
+            ContextCompat.getColor(
+                requireContext(),
+                R.color.cl_031F2B
+            )
+        )
+        binding.tvWalletWarning.setCompoundDrawableTintList(
+            ContextCompat.getColorStateList(
+                requireContext(),
+                R.color.cl_031F2B
+            )
+        )
+        binding.tvWalletWarning.setOnClickListener {
+            clickAction()
+        }
+    }
+
     private fun onWarningClick() {
         if (viewModel.isFreeGroupWallet()) {
             showSaveShareOption()
@@ -745,6 +805,33 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                     }
             }
         }
+    }
+
+    private fun onBannerBackupAndRegisterClick() {
+        // Open backup wallet screen for BACKUP_AND_REGISTER state
+        navigator.openBackupWalletScreen(
+            requireActivity(),
+            BackUpWalletArgs(
+                wallet = viewModel.getWallet(),
+                backUpWalletType = BackUpWalletType.NORMAL
+            )
+        )
+    }
+
+    private fun onBannerBackupOnlyClick() {
+        // Open backup wallet screen for BACKUP_ONLY state
+        navigator.openBackupWalletScreen(
+            requireActivity(),
+            BackUpWalletArgs(
+                wallet = viewModel.getWallet(),
+                backUpWalletType = BackUpWalletType.NORMAL
+            )
+        )
+    }
+
+    private fun onBannerRegisterOnlyClick() {
+        // Open upload configuration screen for REGISTER_ONLY state
+        navigator.openUploadConfigurationScreen(requireActivity(), args.walletId)
     }
 
     private fun showHotKeyDeleted() {

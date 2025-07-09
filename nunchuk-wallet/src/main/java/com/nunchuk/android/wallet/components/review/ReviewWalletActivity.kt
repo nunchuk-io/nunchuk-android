@@ -178,14 +178,18 @@ class ReviewWalletActivity : BaseComposeActivity() {
             quickWalletParam = args.quickWalletParam
         ) {
             navigator.returnToMainScreen(this)
-            navigator.openBackupWalletScreen(
-                activityContext = this,
-                args = BackUpWalletArgs(
-                    wallet = event.wallet,
-                    quickWalletParam = args.quickWalletParam,
-                    isDecoyWallet = args.decoyPin.isNotEmpty(),
+            if (args.quickWalletParam == null || args.decoyPin.isEmpty()) {
+                navigator.openWalletDetailsScreen(this, event.wallet.id)
+            } else {
+                navigator.openBackupWalletScreen(
+                    activityContext = this,
+                    args = BackUpWalletArgs(
+                        wallet = event.wallet,
+                        quickWalletParam = args.quickWalletParam,
+                        isDecoyWallet = args.decoyPin.isNotEmpty(),
+                    )
                 )
-            )
+            }
         }
     }
 

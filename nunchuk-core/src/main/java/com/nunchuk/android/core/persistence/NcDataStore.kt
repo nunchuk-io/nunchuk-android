@@ -41,6 +41,8 @@ import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.TaprootFeeSelectionSetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.toMembershipPlan
+import com.nunchuk.android.model.WalletBannerState
+import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.type.Chain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -86,6 +88,7 @@ class NcDataStore @Inject constructor(
     private val taprootFeeSelectionKey = stringPreferencesKey("taproot_fee_selection")
     private val firstChatIdKey = stringPreferencesKey("first_create_email")
     private val hasWalletInGuestModeKey = booleanPreferencesKey("has_wallet_in_guest_mode")
+    private val walletBannerStatesKey = stringPreferencesKey("wallet_banner_states")
     private val miniscriptLocalKey = stringPreferencesKey("miniscript_local")
 
     /**
@@ -542,6 +545,58 @@ class NcDataStore @Inject constructor(
         }
     }
 
+    // Wallet Banner States functionality
+    val walletBannerStatesFlow: Flow<List<WalletBannerState>>
+        get() = context.dataStore.data.map {
+            val jsonString = it[walletBannerStatesKey].orEmpty()
+            if (jsonString.isNotEmpty()) {
+                try {
+                    gson.fromJson(jsonString, Array<WalletBannerState>::class.java)?.toList() ?: emptyList()
+                } catch (e: Exception) {
+                    emptyList()
+                }
+            } else {
+                emptyList()
+            }
+        }
+
+    suspend fun setWalletBannerStates(states: List<WalletBannerState>) {
+        context.dataStore.edit {
+            it[walletBannerStatesKey] = gson.toJson(states)
+        }
+    }
+
+    suspend fun addWalletBannerState(walletId: String, state: BannerState) {
+        val currentStates = walletBannerStatesFlow.first().toMutableList()
+        // Remove existing state for this wallet if any
+        currentStates.removeAll { it.walletId == walletId }
+        // Add new state
+        currentStates.add(WalletBannerState(walletId, state))
+        setWalletBannerStates(currentStates)
+    }
+
+    suspend fun getWalletBannerState(walletId: String): BannerState? {
+        return walletBannerStatesFlow.first().find { it.walletId == walletId }?.state
+    }
+
+    suspend fun removeWalletBannerState(walletId: String) {
+        val currentStates = walletBannerStatesFlow.first().toMutableList()
+        currentStates.removeAll { it.walletId == walletId }
+        setWalletBannerStates(currentStates)
+    }
+
+    suspend fun updateWalletBannerState(walletId: String, newState: BannerState) {
+        val currentStates = walletBannerStatesFlow.first().toMutableList()
+        val existingIndex = currentStates.indexOfFirst { it.walletId == walletId }
+        if (existingIndex != -1) {
+            currentStates[existingIndex] = currentStates[existingIndex].copy(state = newState)
+            setWalletBannerStates(currentStates)
+        } else {
+            // If wallet doesn't exist, add it
+            addWalletBannerState(walletId, newState)
+        }
+    }
+
     val miniscriptLocal: Flow<String>
         get() = context.dataStore.data.map {
             it[miniscriptLocalKey].orEmpty()
@@ -571,6 +626,7 @@ class NcDataStore @Inject constructor(
             it.remove(groupIdKey)
             it.remove(groupAssistedKeysPreferenceKey)
             it.remove(membershipPlansKey)
+            it.remove(walletBannerStatesKey)
         }
     }
 }

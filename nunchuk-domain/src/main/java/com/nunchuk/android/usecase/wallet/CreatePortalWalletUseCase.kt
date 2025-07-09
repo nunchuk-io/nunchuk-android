@@ -1,5 +1,6 @@
 package com.nunchuk.android.usecase.wallet
 
+import com.nunchuk.android.usecase.wallet.AddWalletBannerStateUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
@@ -11,6 +12,7 @@ import javax.inject.Inject
 class CreatePortalWalletUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     private val getPortalSignerNameUseCase: GetPortalSignerNameUseCase,
+    private val addWalletBannerStateUseCase: AddWalletBannerStateUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UseCase<CreatePortalWalletUseCase.Params, Wallet>(ioDispatcher) {
     override suspend fun execute(parameters: Params): Wallet {
@@ -38,7 +40,12 @@ class CreatePortalWalletUseCase @Inject constructor(
         }
         val newSigners = wallet.signers - portalSigner + newPortalSigner
         val newWallet = wallet.copy(signers = newSigners)
-        return nativeSdk.createWallet2(newWallet)
+        val createdWallet = nativeSdk.createWallet2(newWallet)
+        
+        // Automatically set banner state based on wallet conditions
+        addWalletBannerStateUseCase(createdWallet.id)
+        
+        return createdWallet
     }
 
     data class Params(

@@ -40,6 +40,7 @@ import com.nunchuk.android.listener.GroupMessageListener
 import com.nunchuk.android.listener.GroupReplaceListener
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
+import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Result.Success
@@ -74,6 +75,10 @@ import com.nunchuk.android.usecase.free.groupwallet.GetDeprecatedGroupWalletsUse
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetReplaceGroupsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.SetBackUpBannerWalletIdsUseCase
+import com.nunchuk.android.core.domain.GetWalletBannerStateUseCase
+import com.nunchuk.android.usecase.wallet.AddWalletBannerStateUseCase
+import com.nunchuk.android.core.domain.RemoveWalletBannerStateUseCase
+import com.nunchuk.android.core.domain.UpdateWalletBannerStateUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.GroupChatManager
@@ -138,7 +143,11 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val exportWalletUseCase: ExportWalletUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
     private val getBackUpBannerWalletIdsUseCase: GetBackUpBannerWalletIdsUseCase,
-    private val setBackUpBannerWalletIdsUseCase: SetBackUpBannerWalletIdsUseCase
+    private val setBackUpBannerWalletIdsUseCase: SetBackUpBannerWalletIdsUseCase,
+    private val getWalletBannerStateUseCase: GetWalletBannerStateUseCase,
+    private val addWalletBannerStateUseCase: AddWalletBannerStateUseCase,
+    private val removeWalletBannerStateUseCase: RemoveWalletBannerStateUseCase,
+    private val updateWalletBannerStateUseCase: UpdateWalletBannerStateUseCase
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -259,6 +268,7 @@ internal class WalletDetailsViewModel @Inject constructor(
         }
         getGroupWalletMessageUnreadCount()
         listenGroupWalletReplace()
+        getWalletBannerState()
     }
 
     fun checkDeprecatedGroupWallet() {
@@ -422,6 +432,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                         event(Loading(false))
                     }
                     getFreeGroupWalletConfig()
+                    getWalletBannerState()
                 }
         }
     }
@@ -658,6 +669,75 @@ internal class WalletDetailsViewModel @Inject constructor(
     fun setChatBarState(state: ChatBarState) {
         updateState {
             copy(chatBarState = state)
+        }
+    }
+
+    /**
+     * Retrieve the wallet banner state and store it in the state
+     */
+    private fun getWalletBannerState() {
+        viewModelScope.launch {
+            getWalletBannerStateUseCase(args.walletId).onSuccess { bannerState ->
+                updateState {
+                    copy(bannerState = bannerState)
+                }
+            }.onFailure {
+                // Silently handle failure - banner state is optional
+                updateState {
+                    copy(bannerState = null)
+                }
+            }
+        }
+    }
+
+    /**
+     * Get the current banner state for the wallet
+     */
+    fun getBannerState(): BannerState? = getState().bannerState
+
+    /**
+     * Set a banner state for the wallet (based on wallet conditions)
+     */
+    fun setBannerState() {
+        viewModelScope.launch {
+            addWalletBannerStateUseCase(args.walletId).onSuccess {
+                // Refresh the banner state from the data store after adding it
+                getWalletBannerState()
+            }.onFailure {
+                // Handle error if needed - could emit event
+            }
+        }
+    }
+
+    /**
+     * Update the banner state for the wallet
+     */
+    fun updateBannerState(newBannerState: BannerState) {
+        viewModelScope.launch {
+            updateWalletBannerStateUseCase(
+                UpdateWalletBannerStateUseCase.Param(args.walletId, newBannerState)
+            ).onSuccess {
+                updateState {
+                    copy(bannerState = newBannerState)
+                }
+            }.onFailure {
+                // Handle error if needed - could emit event
+            }
+        }
+    }
+
+    /**
+     * Remove the banner state for the wallet
+     */
+    fun removeBannerState() {
+        viewModelScope.launch {
+            removeWalletBannerStateUseCase(args.walletId).onSuccess {
+                updateState {
+                    copy(bannerState = null)
+                }
+            }.onFailure {
+                // Handle error if needed - could emit event
+            }
         }
     }
 }

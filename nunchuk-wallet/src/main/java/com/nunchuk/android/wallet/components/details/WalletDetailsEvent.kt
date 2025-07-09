@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet.components.details
 
+import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.FreeGroupMessage
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Transaction
@@ -58,4 +59,5 @@ data class WalletDetailsState(
     val isDeprecatedGroupWallet: Boolean = false,
     val isNeedBackUpGroupWallet: Boolean = false,
     val chatBarState: ChatBarState = ChatBarState.EXPANDED,
+    val bannerState: BannerState? = null,
 )

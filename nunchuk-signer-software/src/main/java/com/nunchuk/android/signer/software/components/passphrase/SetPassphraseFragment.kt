@@ -33,7 +33,6 @@ import com.nunchuk.android.core.util.getHtmlText
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.ConfirmPassPhraseNotMatchedEvent
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.ConfirmPassPhraseRequiredEvent
@@ -100,12 +99,8 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
             is LoadingEvent -> showOrHideLoading(loading = event.loading)
             is CreateWalletErrorEvent -> showError(event.message)
             is CreateWalletSuccessEvent -> {
-                navigator.openBackupWalletScreen(
-                    activityContext = requireActivity(),
-                    args = BackUpWalletArgs(
-                        wallet = event.wallet
-                    )
-                )
+                navigator.returnToMainScreen(requireActivity())
+                navigator.openWalletDetailsScreen(requireActivity(), event.wallet.id)
                 requireActivity().apply {
                     setResult(Activity.RESULT_OK)
                     finish()

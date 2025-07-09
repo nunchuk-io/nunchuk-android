@@ -27,6 +27,8 @@ import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.TaprootFeeSelectionSetting
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.model.wallet.WalletOrder
+import com.nunchuk.android.model.BannerState
+import com.nunchuk.android.model.WalletBannerState
 import com.nunchuk.android.type.Chain
 import kotlinx.coroutines.flow.Flow
 
@@ -51,6 +53,7 @@ interface SettingRepository {
     val defaultFee: Flow<Int>
     val firstCreateEmail: Flow<String>
     val hasWalletInGuestMode: Flow<Boolean>
+    val walletBannerStatesFlow: Flow<List<WalletBannerState>>
     val miniscriptLocal: Flow<String>
     suspend fun setSyncEnable(isEnable: Boolean)
     suspend fun setQrDensity(density: Int)
@@ -79,6 +82,10 @@ interface SettingRepository {
     fun getTaprootFeeSelection(): Flow<TaprootFeeSelectionSetting>
     suspend fun setFirstChatId(chatId: String, isForce: Boolean)
     suspend fun setHasWalletInGuestMode(hasWallet: Boolean)
+    suspend fun addWalletBannerState(walletId: String, state: BannerState)
+    suspend fun getWalletBannerState(walletId: String): BannerState?
+    suspend fun removeWalletBannerState(walletId: String)
+    suspend fun updateWalletBannerState(walletId: String, newState: BannerState)
     suspend fun setMiniscriptLocal(miniscript: String)
     suspend fun clearMiniscriptLocal()
 }
