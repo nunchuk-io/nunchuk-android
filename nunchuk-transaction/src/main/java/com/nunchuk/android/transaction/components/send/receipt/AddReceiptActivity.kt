@@ -192,7 +192,8 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     }
                 }
                 composable<ReceiptNavigation.ChooseSigningPolicy> {
-                    val state by viewModel.state.asFlow().collectAsStateWithLifecycle(AddReceiptState())
+                    val state by viewModel.state.asFlow()
+                        .collectAsStateWithLifecycle(AddReceiptState())
                     val scriptNode = state.scriptNode
                     if (scriptNode != null) {
                         SelectScriptPathPolicyScreen(
@@ -314,11 +315,11 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 claimInheritanceTxParam = args.claimInheritanceTxParam,
                 antiFeeSniping = viewModel.getAddReceiptState().antiFeeSniping
             )
-            if (state.addressType.isTaproot() && state.scriptNode != null) {
-                if (state.isValueKeySetDisable) {
-                    transactionConfirmViewModel.checkMiniscriptSigningPolicy()
-                } else {
+            if (state.scriptNode != null) {
+                if (state.addressType.isTaproot() && !state.isValueKeySetDisable) {
                     transactionConfirmViewModel.checkMiniscriptSigningPaths()
+                } else {
+                    transactionConfirmViewModel.checkMiniscriptSigningPolicy()
                 }
             } else if (state.addressType.isTaproot()) {
                 transactionConfirmViewModel.checkShowTaprootDraftTransaction()

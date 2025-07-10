@@ -243,7 +243,8 @@ data class ScriptNodeData(
     val showBip32Path: Boolean = false,
     val signedSigners: Map<String, Boolean> = emptyMap(),
     val duplicateSignerKeys: Set<String> = emptySet(),
-    val signingPath: SigningPath = SigningPath(path = emptyList())
+    val signingPath: SigningPath = SigningPath(path = emptyList()),
+    val satisfiableMap: Map<String, Boolean> = emptyMap(),
 )
 
 @Composable
@@ -257,14 +258,21 @@ fun ScriptNodeTree(
     onActionKey: (String, SignerModel?) -> Unit = { _, _ -> },
     data: ScriptNodeData = ScriptNodeData()
 ) {
-    val isHighlighted = data.signingPath.path.isEmpty() || signingPathContainsNodeId(data.signingPath.path, node.id)
+    val isNormalNode =
+        data.signingPath.path.isEmpty() || signingPathContainsNodeId(data.signingPath.path, node.id)
+    val isSatisfiableNode = data.satisfiableMap[node.idString] == true
 
     val info = MiniscriptDataComponent.fromComponent(node.type)
-    val highlightModifier = if (isHighlighted) Modifier else Modifier.alpha(0.4f)
+    val nodeModifier = when {
+        data.mode == ScriptMode.CONFIG -> Modifier
+        data.mode == ScriptMode.SIGN && isSatisfiableNode -> Modifier
+        data.mode == ScriptMode.VIEW && isNormalNode -> Modifier
+        else -> Modifier.alpha(0.4f)
+    }
     when (node.type) {
         ScripNoteType.ANDOR.name, ScripNoteType.AND.name, ScripNoteType.OR.name, ScripNoteType.OR_TAPROOT.name -> {
             TreeBranchContainer(
-                modifier = highlightModifier,
+                modifier = nodeModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
@@ -292,7 +300,7 @@ fun ScriptNodeTree(
 
         ScripNoteType.AFTER.name, ScripNoteType.OLDER.name -> {
             TreeBranchContainer(
-                modifier = highlightModifier,
+                modifier = nodeModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
@@ -320,7 +328,7 @@ fun ScriptNodeTree(
 
         ScripNoteType.PK.name -> {
             TreeBranchContainer(
-                modifier = highlightModifier,
+                modifier = nodeModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
@@ -340,7 +348,7 @@ fun ScriptNodeTree(
 
         ScripNoteType.MULTI.name, ScripNoteType.THRESH.name -> {
             TreeBranchContainer(
-                modifier = highlightModifier,
+                modifier = nodeModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
@@ -367,7 +375,7 @@ fun ScriptNodeTree(
 
         ScripNoteType.HASH160.name, ScripNoteType.HASH256.name, ScripNoteType.RIPEMD160.name, ScripNoteType.SHA256.name -> {
             TreeBranchContainer(
-                modifier = highlightModifier,
+                modifier = nodeModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
@@ -703,7 +711,7 @@ fun TreeBranchContainer(
     val indentationPadding = if (indentationLevel > 0) (indentationLevel * 10).dp else 0.dp
     val shouldDrawLine = drawLine && indentationLevel > 0
     val showThreadCurve = indentationLevel > 0
-    
+
     Box(
         modifier = modifier
             .padding(start = indentationPadding)
@@ -797,6 +805,6 @@ fun ConditionTreeUIPreview() {
 private fun signingPathContainsNodeId(path: List<List<Int>>, nodeId: List<Int>): Boolean {
     return path.any { idList ->
         (nodeId.size <= idList.size && idList.take(nodeId.size) == nodeId) ||
-        (idList.size <= nodeId.size && nodeId.take(idList.size) == idList)
+                (idList.size <= nodeId.size && nodeId.take(idList.size) == idList)
     }
 }

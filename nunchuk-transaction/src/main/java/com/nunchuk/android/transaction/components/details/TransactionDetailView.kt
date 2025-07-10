@@ -377,7 +377,8 @@ fun TransactionDetailView(
                                     mode = ScriptMode.SIGN,
                                     signers = state.signerMap,
                                     showBip32Path = false,
-                                    signedSigners = transaction.signers
+                                    signedSigners = transaction.signers,
+                                    satisfiableMap = state.satisfiableMap,
                                 ),
                                 onChangeBip32Path = { _, _ -> },
                                 onActionKey = { _, signer ->

@@ -471,7 +471,14 @@ class TransactionConfirmViewModel @Inject constructor(
                     inputs = inputs.map { TxInput(it.txid, it.vout) },
                 )
             ).onSuccess { result ->
-                _event.emit(TransactionConfirmEvent.ChooseSigningPolicy(result))
+                if (result.size > 1) {
+                    _event.emit(TransactionConfirmEvent.ChooseSigningPolicy(result))
+                } else {
+                    handleConfirmEvent(
+                        keySetIndex = 1, // script path
+                        signingPath = result.firstOrNull()?.first
+                    )
+                }
             }.onFailure {
                 _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
             }

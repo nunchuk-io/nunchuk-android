@@ -45,4 +45,5 @@ data class TransactionDetailsState(
     val hideFiatCurrency: Boolean = false,
     val scriptNode: ScriptNode? = null,
     val signerMap: Map<String, SignerModel?> = emptyMap(),
+    val satisfiableMap: Map<String, Boolean> = emptyMap(),
 )

@@ -488,7 +488,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     it.copy(
                         signerMap = signerMap,
                         scriptNode = result.scriptNode,
-                        signers = signerMap.values.toList()
+                        signers = signerMap.values.toList(),
+                        satisfiableMap = satisfiableMap
                     )
                 }
             }
