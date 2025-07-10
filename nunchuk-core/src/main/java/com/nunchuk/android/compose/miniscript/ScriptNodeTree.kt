@@ -9,10 +9,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +30,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcBadgeOutline
+import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -355,6 +359,8 @@ fun ScriptNodeTree(
                 ThreadMultiItem(
                     index = index,
                     type = node.type,
+                    threshold = node.k,
+                    totalKeys = if (node.type == ScripNoteType.THRESH.name) node.subs.size else node.keys.size,
                     topPadding = if (showThreadCurve) 10 else 0,
                     showThreadCurve = showThreadCurve,
                     modifier = modifier
@@ -425,10 +431,7 @@ fun AndOrView(
                 .fillMaxWidth()
         ) {
             if (isShowCurve) {
-                Image(
-                    painter = painterResource(R.drawable.ic_thread_curve),
-                    contentDescription = null,
-                )
+                CurveView()
             }
             Column(
                 modifier = Modifier
@@ -466,6 +469,8 @@ fun ThreadMultiItem(
     modifier: Modifier = Modifier,
     index: String,
     type: String,
+    threshold: Int,
+    totalKeys: Int,
     topPadding: Int = 10,
     showThreadCurve: Boolean = true,
     content: @Composable () -> Unit = {},
@@ -474,22 +479,19 @@ fun ThreadMultiItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = topPadding.dp, bottom = 4.dp)
+                .padding(bottom = 4.dp)
         ) {
             if (showThreadCurve) {
-                Image(
-                    painter = painterResource(R.drawable.ic_thread_curve),
-                    contentDescription = null,
-                )
+                CurveView()
             }
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = if (showThreadCurve) 8.dp else 0.dp)
+                    .padding(start = if (showThreadCurve) 8.dp else 0.dp, top = topPadding.dp)
             ) {
                 val text = when (type) {
-                    ScripNoteType.THRESH.name -> "Thresh"
-                    ScripNoteType.MULTI.name -> "Multisig"
+                    ScripNoteType.THRESH.name -> "Thresh $threshold/$totalKeys"
+                    ScripNoteType.MULTI.name -> "Multisig $threshold/$totalKeys"
                     else -> ""
                 }
                 Text(
@@ -510,6 +512,25 @@ fun ThreadMultiItem(
             }
         }
         content()
+    }
+}
+
+@Preview
+@Composable
+fun CurveView() {
+    Column {
+        VerticalDivider(
+            modifier = Modifier
+                .padding(start = 0.5.dp)
+                .height(10.dp)
+                .width(1.dp),
+            color = NcColor.boulder
+        )
+
+        Image(
+            painter = painterResource(R.drawable.ic_thread_curve),
+            contentDescription = null,
+        )
     }
 }
 
@@ -560,37 +581,35 @@ fun TimelockItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    top = 10.dp,
-                )
         ) {
             if (showThreadCurve) {
-                Image(
-                    painter = painterResource(R.drawable.ic_thread_curve),
+                CurveView()
+            }
+
+            Row(modifier = Modifier.padding(top = 10.dp)) {
+                NcIcon(
+                    painter = painterResource(R.drawable.ic_timer),
                     contentDescription = null,
+                    modifier = Modifier.size(20.dp)
                 )
-            }
-            NcIcon(
-                painter = painterResource(R.drawable.ic_timer),
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp)
-            ) {
-                Text(
-                    text = "$index. $title",
-                    style = NunchukTheme.typography.body
-                )
-                Text(
-                    text = description,
-                    style = NunchukTheme.typography.bodySmall.copy(
-                        color = MaterialTheme.colorScheme.textSecondary
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp)
+                ) {
+                    Text(
+                        text = "$index. $title",
+                        style = NunchukTheme.typography.body
                     )
-                )
+                    Text(
+                        text = description,
+                        style = NunchukTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.textSecondary
+                        )
+                    )
+                }
             }
+
         }
         content()
     }
@@ -620,31 +639,30 @@ fun HashlockItem(
                 .fillMaxWidth()
         ) {
             if (showThreadCurve) {
-                Image(
-                    painter = painterResource(R.drawable.ic_thread_curve),
-                    contentDescription = null,
-                )
+                CurveView()
             }
-            NcIcon(
-                painter = painterResource(R.drawable.ic_hash),
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp)
-            ) {
-                Text(
-                    text = "$index. ${hashType.capitalize()}",
-                    style = NunchukTheme.typography.body
+            Row(modifier = Modifier.padding(top = 10.dp)) {
+                NcIcon(
+                    painter = painterResource(R.drawable.ic_hash),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
                 )
-                Text(
-                    text = description,
-                    style = NunchukTheme.typography.bodySmall.copy(
-                        color = MaterialTheme.colorScheme.textSecondary
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp)
+                ) {
+                    Text(
+                        text = "$index. ${hashType.capitalize()}",
+                        style = NunchukTheme.typography.body
                     )
-                )
+                    Text(
+                        text = description,
+                        style = NunchukTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.textSecondary
+                        )
+                    )
+                }
             }
         }
         content()
@@ -717,7 +735,7 @@ fun TreeBranchContainer(
             .padding(start = indentationPadding)
             .drawBehind {
                 val stroke = Stroke(width = 3.5f)
-                val lineX = 2f
+                val lineX = 2.5f
                 val color = Color(0xFF757575)
                 if (shouldDrawLine) {
                     drawLine(
