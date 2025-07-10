@@ -265,7 +265,7 @@ fun ScriptNodeTree(
     val info = MiniscriptDataComponent.fromComponent(node.type)
     val nodeModifier = when {
         data.mode == ScriptMode.CONFIG -> Modifier
-        data.mode == ScriptMode.SIGN && isSatisfiableNode -> Modifier
+        data.mode == ScriptMode.SIGN && (isSatisfiableNode || node.type != ScripNoteType.AFTER.name || node.type != ScripNoteType.OLDER.name) -> Modifier
         data.mode == ScriptMode.VIEW && isNormalNode -> Modifier
         else -> Modifier.alpha(0.4f)
     }
@@ -411,12 +411,12 @@ fun ScriptNodeTree(
 
 @Composable
 fun AndOrView(
+    modifier: Modifier = Modifier,
     scripNoteTypeInfo: ComponentInfo = MiniscriptDataComponent.fromComponent(ScripNoteType.ANDOR.name),
     isShowCurve: Boolean = true,
     isShowTapscriptBadge: Boolean = false,
     index: String = "",
     padStart: Int = 0,
-    modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {},
 ) {
     Column(modifier = modifier) {
@@ -463,11 +463,11 @@ fun AndOrView(
 
 @Composable
 fun ThreadMultiItem(
+    modifier: Modifier = Modifier,
     index: String,
     type: String,
     topPadding: Int = 10,
     showThreadCurve: Boolean = true,
-    modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {},
 ) {
     Column(modifier = modifier) {
@@ -515,12 +515,12 @@ fun ThreadMultiItem(
 
 @Composable
 fun TimelockItem(
+    modifier: Modifier = Modifier,
     index: String,
     k: Int,
     currentBlockHeight: Int = 0,
     nodeType: String,
     showThreadCurve: Boolean = true,
-    modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {},
 ) {
     val (title, description) = when (nodeType) {
@@ -598,10 +598,10 @@ fun TimelockItem(
 
 @Composable
 fun HashlockItem(
+    modifier: Modifier = Modifier,
     index: String,
     hashType: String,
     showThreadCurve: Boolean = true,
-    modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {},
 ) {
     val description = when (hashType) {
