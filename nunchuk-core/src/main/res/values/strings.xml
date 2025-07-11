@@ -908,4 +908,5 @@
     <string name="nc_enable_anti_fee_sniping_by_default">Enable Anti-Fee Sniping</string>
     <string name="nc_enable_anti_fee_sniping_by_default_desc">Adds the latest block height to the PSBT to prevent fee sniping attacks</string>
     <string name="nc_fee">Fee</string>
+    <string name="nc_unlocked">Unlocked</string>
 </resources>

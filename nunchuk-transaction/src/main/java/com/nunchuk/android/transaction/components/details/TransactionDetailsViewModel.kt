@@ -41,6 +41,8 @@ import com.nunchuk.android.core.domain.membership.CancelScheduleBroadcastTransac
 import com.nunchuk.android.core.domain.membership.RequestSignatureTransactionUseCase
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
+import com.nunchuk.android.core.miniscript.MiniscriptDataComponent
+import com.nunchuk.android.core.miniscript.ScripNoteType
 import com.nunchuk.android.core.network.ApiErrorCode
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.push.PushEvent
@@ -497,13 +499,34 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private suspend fun parseSignersFromScriptNode(node: ScriptNode): Map<String, SignerModel> {
-        satisfiableMap[node.idString] = isScriptNodeSatisfiableUseCase(
-            IsScriptNodeSatisfiableUseCase.Params(
-                nodeId = node.id.toIntArray(),
-                walletId = walletId,
-                txId = txId
-            )
-        ).getOrDefault(false)
+        if (!satisfiableMap.containsKey(node.idString)) {
+            satisfiableMap[node.idString] = isScriptNodeSatisfiableUseCase(
+                IsScriptNodeSatisfiableUseCase.Params(
+                    nodeId = node.id.toIntArray(),
+                    walletId = walletId,
+                    txId = txId
+                )
+            ).getOrDefault(false)
+        }
+        // special case for ANDOR node
+        if (MiniscriptDataComponent.getComponent(node.type) == ScripNoteType.ANDOR && node.subs.size == 3) {
+            val isSatisfiable = isScriptNodeSatisfiableUseCase(
+                IsScriptNodeSatisfiableUseCase.Params(
+                    nodeId = node.subs[0].id.toIntArray(),
+                    walletId = walletId,
+                    txId = txId
+                )
+            ).getOrDefault(false)
+            if (isSatisfiable) {
+                satisfiableMap[node.subs[0].idString] = true
+                satisfiableMap[node.subs[1].idString] = true
+                satisfiableMap[node.subs[2].idString] = false
+            } else {
+                satisfiableMap[node.subs[0].idString] = false
+                satisfiableMap[node.subs[1].idString] = false
+                satisfiableMap[node.subs[2].idString] = true
+            }
+        }
         val signerMap = mutableMapOf<String, SignerModel>()
         node.keys.forEach { key ->
             parseSignerStringUseCase(key).getOrNull()?.let { signer ->

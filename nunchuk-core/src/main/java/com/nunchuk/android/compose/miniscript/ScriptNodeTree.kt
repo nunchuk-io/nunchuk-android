@@ -55,14 +55,15 @@ enum class ScriptMode {
 
 @Composable
 internal fun CreateKeyItem(
+    modifier: Modifier = Modifier,
     key: String,
     signer: SignerModel?,
     position: String,
     showThreadCurve: Boolean = true,
     onChangeBip32Path: (String, SignerModel) -> Unit,
     onActionKey: (String, SignerModel?) -> Unit,
-    data: ScriptNodeData,
-    modifier: Modifier = Modifier
+    isSatisfiable: Boolean = true,
+    data: ScriptNodeData
 ) {
     KeyItem(
         title = signer?.name ?: key,
@@ -129,19 +130,9 @@ internal fun CreateKeyItem(
                     }
                 }
 
-                data.mode == ScriptMode.SIGN && signer != null && data.signedSigners[signer.fingerPrint] == true -> {
-                    Text(
+                data.mode == ScriptMode.SIGN && signer != null && isSatisfiable && data.signedSigners[signer.fingerPrint] == true -> {
+                    CheckedLabel(
                         text = stringResource(R.string.nc_transaction_signed),
-                        style = NunchukTheme.typography.captionTitle,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
-
-                    NcIcon(
-                        modifier = Modifier
-                            .align(Alignment.CenterVertically)
-                            .padding(start = 8.dp),
-                        painter = painterResource(R.drawable.ic_check_circle_24),
-                        contentDescription = "Signed",
                     )
                 }
 
@@ -149,6 +140,7 @@ internal fun CreateKeyItem(
                     NcPrimaryDarkButton(
                         height = 36.dp,
                         onClick = { onActionKey(key, signer) },
+                        enabled = isSatisfiable
                     ) {
                         Text(stringResource(R.string.nc_sign))
                     }
@@ -184,7 +176,8 @@ private fun NodeKeys(
                 onActionKey = onActionKey,
                 data = data,
                 showThreadCurve = showThreadCurve,
-                modifier = modifier
+                modifier = modifier,
+                isSatisfiable = data.satisfiableMap[node.idString] == true
             )
         }
     }
@@ -269,7 +262,7 @@ fun ScriptNodeTree(
     val info = MiniscriptDataComponent.fromComponent(node.type)
     val nodeModifier = when {
         data.mode == ScriptMode.CONFIG -> Modifier
-        data.mode == ScriptMode.SIGN && (isSatisfiableNode || node.type != ScripNoteType.AFTER.name || node.type != ScripNoteType.OLDER.name) -> Modifier
+        data.mode == ScriptMode.SIGN && isSatisfiableNode -> Modifier
         data.mode == ScriptMode.VIEW && isNormalNode -> Modifier
         else -> Modifier.alpha(0.4f)
     }
@@ -309,12 +302,12 @@ fun ScriptNodeTree(
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
                 TimelockItem(
+                    modifier = modifier,
                     index = index,
                     k = node.k,
                     currentBlockHeight = currentBlockHeight,
                     nodeType = node.type,
                     showThreadCurve = showThreadCurve,
-                    modifier = modifier
                 ) {
                     NodeContent(
                         node = node,
@@ -344,7 +337,8 @@ fun ScriptNodeTree(
                     onActionKey = onActionKey,
                     data = data,
                     showThreadCurve = showThreadCurve,
-                    modifier = modifier
+                    modifier = modifier,
+                    isSatisfiable = isSatisfiableNode
                 )
             }
             return
@@ -581,6 +575,10 @@ fun TimelockItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(
+                    top = 10.dp,
+                ),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             if (showThreadCurve) {
                 CurveView()
@@ -818,6 +816,25 @@ fun ConditionTreeUIPreview() {
             )
         }
     }
+}
+
+@Composable
+fun RowScope.CheckedLabel(
+    text: String = "",
+) {
+    Text(
+        text = text,
+        style = NunchukTheme.typography.captionTitle,
+        modifier = Modifier.align(Alignment.CenterVertically)
+    )
+
+    NcIcon(
+        modifier = Modifier
+            .align(Alignment.CenterVertically)
+            .padding(start = 8.dp),
+        painter = painterResource(R.drawable.ic_check_circle_24),
+        contentDescription = "Signed",
+    )
 }
 
 private fun signingPathContainsNodeId(path: List<List<Int>>, nodeId: List<Int>): Boolean {
