@@ -43,6 +43,7 @@ import com.nunchuk.android.compose.isLimitAccess
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.model.ByzantineGroup
@@ -76,7 +77,8 @@ internal fun WalletConfigView(
         state.walletExtended.wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH
     val totalRequireSigns = state.walletExtended.wallet.totalRequireSigns
     val isMultisig = state.walletExtended.wallet.signers.size > 1
-    val requiredSignInfo = if (isMultisig) "${wallet.totalRequireSigns}/${wallet.signers.size} " else ""
+    val requiredSignInfo =
+        if (isMultisig) "${wallet.totalRequireSigns}/${wallet.signers.size} " else ""
     val walletTypeString = if (isMultisig) {
         stringResource(id = R.string.nc_wallet_multisig)
     } else {
@@ -275,7 +277,16 @@ fun WalletSignerCard(
             item = signer,
             modifier = Modifier.weight(1f),
             showValueKey = isValueKey
-        )
+        ) {
+            Text(
+                text = stringResource(
+                    R.string.nc_bip32_path,
+                    signer.derivationPath
+                ),
+                style = NunchukTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.textSecondary
+            )
+        }
         if (signer.type == SignerType.SERVER && !state.isInactiveAssistedWallet && !state.role.toRole.isFacilitatorAdmin) {
             NcOutlineButton(
                 modifier = Modifier.height(36.dp),
