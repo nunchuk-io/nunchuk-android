@@ -448,7 +448,8 @@ class FreeGroupWalletViewModel @Inject constructor(
                     masterSignerId, newPath
                 )
             ).onSuccess {
-                addSignerToGroup(it)
+                val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: return@launch
+                addSignerToGroup(it, index)
             }.onFailure { error ->
                 if (error is NCNativeException && error.message.contains("-1009")) {
                     savedStateHandle[NEW_PATH] = newPath

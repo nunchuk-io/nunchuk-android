@@ -23,11 +23,13 @@ import android.annotation.SuppressLint
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.EditText
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.text.NumberFormat
 import java.text.ParseException
-import java.util.*
+import java.util.Locale
 import kotlin.math.min
 
 class CurrencyInputWatcher(
@@ -36,6 +38,7 @@ class CurrencyInputWatcher(
     locale: Locale,
     private val maxNumberOfDecimalPlaces: Int = 8
 ) : TextWatcher {
+    val textFlow = MutableStateFlow("")
 
     init {
         if (maxNumberOfDecimalPlaces < 1) {
@@ -127,6 +130,7 @@ class CurrencyInputWatcher(
         } catch (e: ParseException) {
             e.printStackTrace()
         }
+        textFlow.update { editText.text.toString() }
         editText.addTextChangedListener(this)
     }
 
@@ -136,7 +140,8 @@ class CurrencyInputWatcher(
      *  14.98 returns "00"
      */
     private fun getFormatSequenceAfterDecimalSeparator(number: String): String {
-        val noOfCharactersAfterDecimalPoint = number.length - number.indexOf(decimalFormatSymbols.decimalSeparator) - 1
+        val noOfCharactersAfterDecimalPoint =
+            number.length - number.indexOf(decimalFormatSymbols.decimalSeparator) - 1
         return "0".repeat(min(noOfCharactersAfterDecimalPoint, maxNumberOfDecimalPlaces))
     }
 }

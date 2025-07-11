@@ -95,7 +95,6 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
             initNunchukUseCase(
                 InitNunchukUseCase.Param(
                     accountId = accountId,
-                    decoyPin = account.decoyPin
                 )
             )
         }

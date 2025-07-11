@@ -72,7 +72,6 @@ internal class VerifyNewDeviceViewModel @Inject constructor(
                 .flowOn(Dispatchers.Main)
                 .onException { setEvent(VerifyNewDeviceEvent.ProcessErrorEvent(message = it.message.orUnknownError())) }
                 .collect {
-                    signInModeHolder.setCurrentMode(SignInMode.EMAIL)
                     event(SignInSuccessEvent)
                 }
         }

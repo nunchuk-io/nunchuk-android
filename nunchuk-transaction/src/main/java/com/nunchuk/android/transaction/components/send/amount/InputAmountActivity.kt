@@ -61,17 +61,18 @@ import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.AcceptAmountEvent
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.InsufficientFundsEvent
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.InsufficientFundsLockedCoinEvent
+import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.InvalidAmountEvent
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.Loading
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.ParseBtcUriSuccess
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.ShowError
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
 import com.nunchuk.android.transaction.databinding.ActivityTransactionInputAmountBinding
-import com.nunchuk.android.utils.textChanges
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import kotlin.math.abs
 
 @AndroidEntryPoint
@@ -160,7 +161,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         }
         args.btcUri?.let { binding.mainCurrency.setText(it.amount.getBTCAmount()) }
         flowObserver(
-            binding.mainCurrency.textChanges()
+            binding.mainCurrency.textFlow
         ) { text ->
             binding.tvMainCurrency.text = text
             viewModel.handleAmountChanged(text)
@@ -308,6 +309,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                     )
                 }
             }
+            is InvalidAmountEvent -> NCToastMessage(this).showError(getString(R.string.nc_amount_must_be_greater_than_0))
         }
     }
 

@@ -244,7 +244,6 @@ internal class SignInViewModel @Inject constructor(
                         it
                     }
                     .onEach {
-                        signInModeHolder.setCurrentMode(SignInMode.EMAIL)
                         if (it.name == it.email) {
                             _event.emit(ProcessingEvent(false))
                             setType(SignInType.NAME)
@@ -284,7 +283,6 @@ internal class SignInViewModel @Inject constructor(
             initNunchukUseCase(InitNunchukUseCase.Param(accountId = ""))
                 .onSuccess {
                     accountManager.storeAccount(AccountInfo().copy(loginType = SignInMode.GUEST_MODE.value))
-                    signInModeHolder.setCurrentMode(SignInMode.GUEST_MODE)
                     _event.emit(SignInSuccessEvent(askPin = pin.isNotEmpty()))
                 }.onFailure {
                     _event.emit(SignInErrorEvent(message = it.message.orUnknownError()))
@@ -292,11 +290,14 @@ internal class SignInViewModel @Inject constructor(
         }
     }
 
-    private suspend fun initNunchuk() = initNunchukUseCase(
-        InitNunchukUseCase.Param(
-            accountId = accountManager.getAccount().email
+    private suspend fun initNunchuk() {
+        val account = accountManager.getAccount()
+        initNunchukUseCase(
+            InitNunchukUseCase.Param(
+                accountId = account.email,
+            )
         )
-    )
+    }
 
     private suspend fun doAfterValidate(
         result: Boolean = true,
@@ -327,7 +328,6 @@ internal class SignInViewModel @Inject constructor(
                         fileLog(message = "start initNunchuk")
                         initNunchuk()
                         fileLog(message = "end initNunchuk")
-                        signInModeHolder.setCurrentMode(SignInMode.EMAIL)
                         _event.emit(SignInSuccessEvent(ignoreCheckBiometric = true))
                     }
                 }
@@ -363,7 +363,6 @@ internal class SignInViewModel @Inject constructor(
                 )
             )
             initNunchuk()
-            signInModeHolder.setCurrentMode(SignInMode.EMAIL)
             _event.emit(SignInSuccessEvent())
         }
         onFailure { exception ->

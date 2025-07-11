@@ -21,6 +21,7 @@ package com.nunchuk.android.auth.domain
 
 import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountInfo
+import com.nunchuk.android.core.guestmode.SignInMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -54,7 +55,8 @@ internal class VerifyNewDeviceUseCaseImpl @Inject constructor(
                 email = email,
                 response = it,
                 staySignedIn = staySignedIn,
-                fetchUserInfo = true
+                fetchUserInfo = true,
+                loginType = SignInMode.EMAIL
             )
         ).getOrThrow()
     }

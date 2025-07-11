@@ -20,45 +20,52 @@
 package com.nunchuk.android.core.guestmode
 
 import com.nunchuk.android.core.account.AccountManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SignInModeHolder @Inject constructor(private val accountManager: AccountManager) {
+class SignInModeHolder @Inject constructor(
+    private val accountManager: AccountManager,
+    applicationScope: CoroutineScope
+) {
 
     private var currentMode: SignInMode = SignInMode.UNKNOWN
 
     init {
-        val isAccountExist = accountManager.isAccountExisted()
-        val loginType = accountManager.loginType()
-        if (isAccountExist) {
-            when (loginType) {
-                SignInMode.UNKNOWN.value, SignInMode.EMAIL.value -> {
-                    setCurrentMode(SignInMode.EMAIL)
-                }
+        applicationScope.launch {
+            accountManager.accountInfoFlow.collectLatest { account ->
+                val isAccountExist = account != null && account.token.isNotEmpty()
+                val loginType = account?.loginType ?: SignInMode.UNKNOWN.value
+                if (isAccountExist) {
+                    when (loginType) {
+                        SignInMode.EMAIL.value -> {
+                            setCurrentMode(SignInMode.EMAIL)
+                        }
 
-                SignInMode.PRIMARY_KEY.value -> {
-                    setCurrentMode(SignInMode.PRIMARY_KEY)
-                }
+                        SignInMode.PRIMARY_KEY.value -> {
+                            setCurrentMode(SignInMode.PRIMARY_KEY)
+                        }
 
-                SignInMode.GUEST_MODE.value -> {
+                        SignInMode.GUEST_MODE.value -> {
+                            setCurrentMode(SignInMode.GUEST_MODE)
+                        }
+                    }
+                } else if (loginType == SignInMode.GUEST_MODE.value) {
                     setCurrentMode(SignInMode.GUEST_MODE)
                 }
             }
-        } else if (loginType == SignInMode.GUEST_MODE.value) {
-            setCurrentMode(SignInMode.GUEST_MODE)
         }
     }
 
     fun getCurrentMode(): SignInMode = currentMode
 
-    fun setCurrentMode(mode: SignInMode) {
+    private fun setCurrentMode(mode: SignInMode) {
+        Timber.d("setCurrentMode: $mode")
         currentMode = mode
-        val loginType = accountManager.loginType()
-        if (loginType != currentMode.value) {
-            val account = accountManager.getAccount()
-            accountManager.storeAccount(account.copy(loginType = currentMode.value))
-        }
     }
 
     fun clear() {

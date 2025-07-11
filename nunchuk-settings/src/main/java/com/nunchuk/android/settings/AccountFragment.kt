@@ -154,7 +154,7 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
 
         binding.localCurrency.text = getString(R.string.nc_local_currency_data, state.localCurrency)
 
-        binding.premiumBadge.isVisible = state.plans.isNotEmpty()
+        binding.premiumBadge.isVisible = state.plans.isNotEmpty() && !isGuestMode
         binding.premiumBadge.text = getPlanName(state.plans)
         binding.inviteFriendsView.isVisible = state.campaign?.isValid().orFalse() && (state.isHasWallet ||  state.campaign?.type == CampaignType.DOWNLOAD)
         binding.llCampaigns.isVisible = state.campaign?.cta.isNullOrEmpty().not() && state.campaign?.type != CampaignType.DOWNLOAD

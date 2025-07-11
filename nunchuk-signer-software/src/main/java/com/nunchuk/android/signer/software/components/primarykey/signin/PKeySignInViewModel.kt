@@ -24,7 +24,6 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
 import com.nunchuk.android.core.domain.SignInPrimaryKeyUseCase
 import com.nunchuk.android.core.domain.UpdateAppSettingUseCase
-import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.profile.GetUserProfileUseCase
 import com.nunchuk.android.core.util.orUnknownError
@@ -40,7 +39,6 @@ internal class PKeySignInViewModel @AssistedInject constructor(
     private val getAppSettingUseCase: GetAppSettingUseCase,
     private val updateAppSettingUseCase: UpdateAppSettingUseCase,
     private val signInPrimaryKeyUseCase: SignInPrimaryKeyUseCase,
-    private val signInModeHolder: SignInModeHolder,
     private val getUserProfileUseCase: GetUserProfileUseCase,
     ) : NunchukViewModel<PKeySignInState, PKeySignInEvent>() {
 
@@ -86,7 +84,6 @@ internal class PKeySignInViewModel @AssistedInject constructor(
                 updateAppSettingUseCase(appSettings).getOrThrow()
                 initNunchukUseCase(InitNunchukUseCase.Param(accountId = args.primaryKey.account)).getOrThrow()
                 getUserProfileUseCase(Unit).onSuccess {
-                    signInModeHolder.setCurrentMode(SignInMode.PRIMARY_KEY)
                     setEvent(PKeySignInEvent.SignInSuccessEvent)
                 }
             } catch (e: Exception) {

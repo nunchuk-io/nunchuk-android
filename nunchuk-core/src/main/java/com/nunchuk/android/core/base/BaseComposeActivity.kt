@@ -24,7 +24,6 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.network.UnauthorizedEventBus
 import com.nunchuk.android.core.network.UnauthorizedException
 import com.nunchuk.android.core.push.PushEvent
@@ -100,8 +99,7 @@ abstract class BaseComposeActivity : AppCompatActivity(), LoadingDialog {
     override fun onResume() {
         super.onResume()
         UnauthorizedEventBus.instance().subscribe {
-            val loginType = accountManager.loginType()
-            if (loginType == SignInMode.EMAIL.value || loginType == SignInMode.PRIMARY_KEY.value) {
+            if (accountManager.isAccountExisted()) {
                 accountManager.clearUserData()
                 navigator.openSignInScreen(this)
                 CrashlyticsReporter.recordException(UnauthorizedException())

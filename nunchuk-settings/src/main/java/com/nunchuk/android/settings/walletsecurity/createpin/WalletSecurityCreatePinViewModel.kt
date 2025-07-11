@@ -27,12 +27,10 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.CheckWalletPinUseCase
 import com.nunchuk.android.core.domain.CreateOrUpdateWalletPinUseCase
 import com.nunchuk.android.core.util.orUnknownError
-import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.settings.R
-import com.nunchuk.android.share.InitNunchukUseCase
-import com.nunchuk.android.usecase.pin.ChangeDecoyPinUseCase
 import com.nunchuk.android.usecase.pin.DecoyPinExistUseCase
 import com.nunchuk.android.usecase.pin.SetCustomPinConfigUseCase
+import com.nunchuk.android.usecase.wallet.CreateDecoyPinUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -48,10 +46,9 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
     private val createOrUpdateWalletPinUseCase: CreateOrUpdateWalletPinUseCase,
     private val checkWalletPinUseCase: CheckWalletPinUseCase,
     private val decoyPinExistUseCase: DecoyPinExistUseCase,
-    private val changeDecoyPinUseCase: ChangeDecoyPinUseCase,
-    private val accountManager: AccountManager,
+    private val createDecoyPinUseCase: CreateDecoyPinUseCase,
+    accountManager: AccountManager,
     private val setCustomPinConfigUseCase: SetCustomPinConfigUseCase,
-    private val initNunchukUseCase: InitNunchukUseCase,
     @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -83,7 +80,7 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
 
     fun createOrUpdateWalletPin() {
         if (decoyPin.isNotEmpty()) {
-            changeDecoyPin()
+            createDecoyPin()
         } else {
             createOrUpdateAppPin()
         }
@@ -92,12 +89,16 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
     /**
      * Flow decoy space
      */
-    private fun changeDecoyPin() {
+    private fun createDecoyPin() {
         viewModelScope.launch {
             val inputValue = _state.value.inputValue
+            val isMainPin = checkWalletPinUseCase(inputValue[0]!!.value).getOrDefault(false)
+            val decoyPinExist = decoyPinExistUseCase(inputValue[1]!!.value).getOrDefault(false)
             if (_state.value.createPinFlow) {
-                if (inputValue[0]?.value == inputValue[1]?.value) {
-                    changeDecoyPin(inputValue)
+                if (decoyPinExist || isMainPin) {
+                    createDecoyPinSuccess()
+                } else if (inputValue[0]?.value == inputValue[1]?.value) {
+                    createDecoyPin(inputValue)
                 } else {
                     updateInputValue(
                         1,
@@ -107,13 +108,8 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
                 }
             } else {
                 val matchPin = inputValue[0]!!.value == decoyPin
-                val decoyPinExist = decoyPinExistUseCase(inputValue[1]!!.value)
-                if (decoyPinExist.getOrDefault(false)) {
-                    updateInputValue(
-                        0,
-                        inputValue[0]?.value!!,
-                        errorMsg = context.getString(R.string.nc_pin_exist)
-                    )
+                if (decoyPinExist || isMainPin) {
+                    createDecoyPinSuccess()
                 } else if (matchPin.not()) {
                     updateInputValue(
                         0,
@@ -128,39 +124,31 @@ class WalletSecurityCreatePinViewModel @Inject constructor(
                         errorMsg = context.getString(R.string.nc_confirm_pin_does_not_match)
                     )
                 } else {
-                    changeDecoyPin(inputValue)
+                    createDecoyPin(inputValue)
                 }
             }
         }
     }
 
-    private suspend fun changeDecoyPin(inputValue: MutableMap<Int, InputValue>) {
+    private suspend fun createDecoyPin(inputValue: MutableMap<Int, InputValue>) {
         val newDecoyPin = inputValue[1]!!.value
-        changeDecoyPinUseCase(
-            ChangeDecoyPinUseCase.Params(
-                oldPin = decoyPin,
-                newPin = newDecoyPin
-            )
+        createDecoyPinUseCase(
+            newDecoyPin
         ).onSuccess {
-            if (it) {
-                accountManager.storeAccount(account.copy(decoyPin = newDecoyPin))
-                setCustomPinConfigUseCase(
-                    SetCustomPinConfigUseCase.Params(
-                        decoyPin = newDecoyPin,
-                        isEnable = true
-                    )
-                )
-                initNunchukUseCase(
-                    InitNunchukUseCase.Param(
-                        accountId = "",
-                        decoyPin = newDecoyPin
-                    )
-                )
-            }
-            _event.emit(WalletSecurityCreatePinEvent.CreateOrUpdateSuccess)
+            createDecoyPinSuccess()
         }.onFailure {
             updateInputValue(0, inputValue[0]?.value!!, errorMsg = it.message.orUnknownError())
         }
+    }
+
+    private suspend fun createDecoyPinSuccess() {
+        setCustomPinConfigUseCase(
+            SetCustomPinConfigUseCase.Params(
+                decoyPin = decoyPin,
+                isEnable = true
+            )
+        )
+        _event.emit(WalletSecurityCreatePinEvent.CreateOrUpdateSuccess)
     }
 
     private fun createOrUpdateAppPin() {
@@ -219,7 +207,6 @@ data class InputValue(
 )
 
 data class WalletSecurityCreatePinState(
-    val walletSecuritySetting: WalletSecuritySetting = WalletSecuritySetting.DEFAULT,
     val inputValue: MutableMap<Int, InputValue> = hashMapOf(),
     val createPinFlow: Boolean = false,
     val attemptCount: Int = 0

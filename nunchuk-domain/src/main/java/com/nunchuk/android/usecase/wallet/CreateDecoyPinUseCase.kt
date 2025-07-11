@@ -17,26 +17,22 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.transaction.components.send.amount
+package com.nunchuk.android.usecase.wallet
 
-import com.nunchuk.android.model.BtcUri
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.GetOrCreateRootDirUseCase
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-sealed class InputAmountEvent {
-    data class Loading(val isLoading: Boolean) : InputAmountEvent()
-    data class AcceptAmountEvent(val amount: Double) : InputAmountEvent()
-    data class SwapCurrencyEvent(val amount: Double) : InputAmountEvent()
-    data class ParseBtcUriSuccess(val btcUri: BtcUri) : InputAmountEvent()
-    data class ShowError(val message: String) : InputAmountEvent()
-    object InsufficientFundsEvent : InputAmountEvent()
-    object InsufficientFundsLockedCoinEvent : InputAmountEvent()
-    object InvalidAmountEvent : InputAmountEvent()
-    data class CheckHasWallet(val isHasWallet: Boolean) : InputAmountEvent()
+class CreateDecoyPinUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    private val getOrCreateRootDirUseCase: GetOrCreateRootDirUseCase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<String, Unit>(ioDispatcher) {
+    override suspend fun execute(parameters: String) {
+        val path = getOrCreateRootDirUseCase(Unit).getOrThrow()
+        nativeSdk.createNewDecoyPin(storagePath = path, pin = parameters)
+    }
 }
-
-data class InputAmountState(
-    val amountBTC: Double = 0.0,
-    val amountUSD: Double = 0.0,
-    val useBtc: Boolean = true,
-    val address: String = "",
-    val privateNote: String = "",
-)

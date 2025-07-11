@@ -22,6 +22,7 @@ package com.nunchuk.android.auth.domain
 import com.nunchuk.android.auth.api.UserTokenResponse
 import com.nunchuk.android.auth.data.AuthRepository
 import com.nunchuk.android.core.account.AccountInfo
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.domain.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -68,7 +69,8 @@ internal class SignInUseCaseImpl @Inject constructor(
                 email = email,
                 response = response,
                 staySignedIn = staySignedIn,
-                fetchUserInfo = fetchUserInfo
+                fetchUserInfo = fetchUserInfo,
+                loginType = SignInMode.EMAIL
             )
         ).getOrThrow()
     }

@@ -40,7 +40,7 @@
         android:layout_marginVertical="@dimen/nc_padding_8"
         android:layout_marginStart="@dimen/nc_padding_16"
         android:text="@string/nc_text_banner_new_chat_des"
-        android:textColorLink="@color/nc_primary_color"
+        android:textColorLink="@color/nc_text_primary"
         app:fontTextStyle="normal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/iconInfo"

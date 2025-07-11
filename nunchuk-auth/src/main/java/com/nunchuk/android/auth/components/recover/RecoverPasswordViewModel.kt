@@ -112,7 +112,6 @@ internal class RecoverPasswordViewModel @Inject constructor(
                 result
             }
             .onEach {
-                signInModeHolder.setCurrentMode(SignInMode.EMAIL)
                 event(
                     RecoverPasswordSuccessEvent(
                         token = token.orEmpty(),

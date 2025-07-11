@@ -19,7 +19,10 @@
 
 package com.nunchuk.android.share
 
+import com.nunchuk.android.core.account.AccountInfo
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAppSettingUseCase
+import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.util.toMatrixContent
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -52,17 +55,29 @@ class InitNunchukUseCase @Inject constructor(
     private val enableGroupWalletUseCase: EnableGroupWalletUseCase,
     private val startConsumeGroupWalletEventUseCase: StartConsumeGroupWalletEventUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val applicationScope: CoroutineScope
+    private val applicationScope: CoroutineScope,
+    private val accountManager: AccountManager
 ) : UseCase<InitNunchukUseCase.Param, Boolean>(ioDispatcher) {
     private var lastParam: Param? = null
     private var lastSettings: AppSettings? = null
     private var consumeJob: Job? = null
+    private var lastDecoyPin: String = ""
 
     override suspend fun execute(parameters: Param): Boolean {
         val settings = getAppSettingUseCase(Unit).getOrThrow()
-        if (parameters == lastParam && lastSettings == settings) return false
+        val decoyPin = accountManager.getLastDecoyPin()
+        if (decoyPin.isNotEmpty()) {
+            accountManager.storeAccount(
+                AccountInfo(
+                    decoyPin = decoyPin,
+                    loginType = SignInMode.GUEST_MODE.value
+                )
+            )
+        }
+        if (parameters == lastParam && lastSettings == settings && lastDecoyPin == decoyPin) return false
         lastSettings = settings
         lastParam = parameters
+        lastDecoyPin = decoyPin
         Timber.d("InitNunchukUseCase: $settings")
         consumeJob?.cancel()
         initNunchuk(
@@ -70,7 +85,7 @@ class InitNunchukUseCase @Inject constructor(
             passphrase = parameters.passphrase,
             accountId = parameters.accountId,
             deviceId = deviceManager.getDeviceId(),
-            decoyPin = parameters.decoyPin
+            decoyPin = decoyPin
         )
         fileLog(message = "start nativeSdk enableGroupWalletUseCase")
         Timber.d("Thread: ${Thread.currentThread().name}")
@@ -152,5 +167,5 @@ class InitNunchukUseCase @Inject constructor(
         }
     }
 
-    data class Param(val passphrase: String = "", val accountId: String, val decoyPin: String = "")
+    data class Param(val passphrase: String = "", val accountId: String)
 }

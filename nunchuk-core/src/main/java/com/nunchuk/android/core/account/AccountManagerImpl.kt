@@ -23,6 +23,9 @@ import com.nunchuk.android.core.guestmode.LastSignInModeHolder
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.util.AppUpdateStateHolder
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -52,6 +55,14 @@ interface AccountManager {
     fun shouldShowOnboard(): Boolean?
 
     fun setShouldShowOnboard(shouldShow: Boolean)
+
+    fun restoreAccountFromBackup()
+
+    val accountInfoFlow: StateFlow<AccountInfo?>
+
+    fun setLastDecoyPin(decoyPin: String)
+
+    fun getLastDecoyPin(): String
 }
 
 @Singleton
@@ -60,6 +71,9 @@ internal class AccountManagerImpl @Inject constructor(
     private val lastSignInModeHolder: LastSignInModeHolder
 ) : AccountManager {
     private val shouldShowOnBoard = MutableStateFlow<Boolean?>(null)
+    private val _accountInfoFlow = MutableStateFlow<AccountInfo?>(accountSharedPref.getAccountInfo())
+
+    override val accountInfoFlow = _accountInfoFlow.asStateFlow()
 
     override fun isHasAccountBefore(): Boolean = accountSharedPref.isHasAccountBefore()
 
@@ -78,6 +92,7 @@ internal class AccountManagerImpl @Inject constructor(
     }
 
     override fun storeAccount(accountInfo: AccountInfo) {
+        _accountInfoFlow.update { accountInfo }
         accountSharedPref.storeAccountInfo(accountInfo)
         lastSignInModeHolder.clear()
     }
@@ -95,6 +110,7 @@ internal class AccountManagerImpl @Inject constructor(
     }
 
     override fun clearUserData() {
+        _accountInfoFlow.update { null }
         AppUpdateStateHolder.reset()
         accountSharedPref.clearAccountInfo()
     }
@@ -105,5 +121,18 @@ internal class AccountManagerImpl @Inject constructor(
 
     override fun setShouldShowOnboard(shouldShow: Boolean) {
         shouldShowOnBoard.value = shouldShow
+    }
+
+    override fun restoreAccountFromBackup() {
+        accountSharedPref.restoreAccountFromBackup()
+        _accountInfoFlow.update { accountSharedPref.getAccountInfo() }
+    }
+
+    override fun setLastDecoyPin(decoyPin: String) {
+        accountSharedPref.setLastDecoyPin(decoyPin)
+    }
+
+    override fun getLastDecoyPin(): String {
+        return accountSharedPref.getLastDecoyPin()
     }
 }
