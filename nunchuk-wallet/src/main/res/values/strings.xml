@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="nc_wallet_review_wallet_title">Review Wallet</string>
+    <string name="nc_wallet_review_wallet_title">Review wallet</string>
     <string name="nc_wallet_has_been_created">Wallet has been created</string>
 
     <string name="nc_wallet_backup">Back up</string>

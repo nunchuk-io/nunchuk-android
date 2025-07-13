@@ -98,29 +98,20 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(onNext: (String, Address
             }
         }
 
-        if (showTaprootWarning) {
-            NcConfirmationDialog(
-                title = "Warning",
-                message = "To use a Taproot script, the wallet's address type must be Taproot. Would you like to change it now?",
-                onPositiveClick = {
-                    showTaprootWarning = false
-                    viewModel.changeToTaprootAndContinue(pendingTemplate)
-                },
-                onDismiss = {
-                    showTaprootWarning = false
-                    viewModel.continueWithCurrentAddressType(pendingTemplate)
-                },
-                positiveButtonText = "Continue",
-                negativeButtonText = "No"
-            )
-        }
-
         MiniscriptCustomTemplateScreen(
             template = data.template.formatMiniscript(),
             onContinue = { template ->
                 viewModel.createMiniscriptTemplate(MiniscriptUtil.revertFormattedMiniscript(template), data.addressType)
             },
-            snackbarHostState = snackbarHostState
+            snackbarHostState = snackbarHostState,
+            showTaprootWarning = showTaprootWarning,
+            onTaprootWarningDismiss = {
+                showTaprootWarning = false
+            },
+            onTaprootWarningConfirm = {
+                showTaprootWarning = false
+                viewModel.changeToTaprootAndContinue(pendingTemplate)
+            }
         )
     }
 }
@@ -130,7 +121,10 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(onNext: (String, Address
 fun MiniscriptCustomTemplateScreen(
     template: String = "",
     onContinue: (String) -> Unit = {},
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    showTaprootWarning: Boolean = false,
+    onTaprootWarningDismiss: () -> Unit = {},
+    onTaprootWarningConfirm: () -> Unit = {}
 ) {
     var miniscriptValue by remember { mutableStateOf(template) }
     var hasBeenEdited by remember { mutableStateOf(false) }
@@ -221,6 +215,17 @@ fun MiniscriptCustomTemplateScreen(
                     }
                 )
             }
+        }
+        
+        if (showTaprootWarning) {
+            NcConfirmationDialog(
+                title = "Warning",
+                message = "To use a Taproot script, the wallet's address type must be Taproot. Would you like to change it now?",
+                onPositiveClick = onTaprootWarningConfirm,
+                onDismiss = onTaprootWarningDismiss,
+                positiveButtonText = "Continue",
+                negativeButtonText = "No"
+            )
         }
     }
 }

@@ -57,6 +57,7 @@
     <color name="nc_popup_bg">#FFFFFF</color>
     <color name="nc_background">#FFFFFF</color>
     <color name="nc_control_state_activated">#031f2b</color>
+    <color name="nc_control_state_activated_40">#66031f2b</color>
     <color name="nc_control_state_default">#595959</color>
     <color name="nc_fill_beewax">#fdebd2</color>
     <color name="nc_fill_denim">#D0E2FF</color>

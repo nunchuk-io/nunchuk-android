@@ -440,7 +440,7 @@ fun AndOrView(
                     if (isShowTapscriptBadge) {
                         NcBadgeOutline(
                             modifier = Modifier.padding(start = 8.dp),
-                            text = "Tapscript"
+                            text = "Tapscripts"
                         )
                     }
                 }
@@ -509,25 +509,6 @@ fun ThreadMultiItem(
     }
 }
 
-@Preview
-@Composable
-fun CurveView() {
-    Column {
-        VerticalDivider(
-            modifier = Modifier
-                .padding(start = 0.5.dp)
-                .height(10.dp)
-                .width(1.dp),
-            color = NcColor.boulder
-        )
-
-        Image(
-            painter = painterResource(R.drawable.ic_thread_curve),
-            contentDescription = null,
-        )
-    }
-}
-
 @Composable
 fun TimelockItem(
     modifier: Modifier = Modifier,
@@ -573,12 +554,7 @@ fun TimelockItem(
 
     Column(modifier = modifier) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    top = 10.dp,
-                ),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth(),
         ) {
             if (showThreadCurve) {
                 CurveView()
@@ -630,11 +606,7 @@ fun HashlockItem(
     }
     Column(modifier = modifier) {
         Row(
-            modifier = Modifier
-                .padding(
-                    top = 10.dp,
-                )
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
             if (showThreadCurve) {
                 CurveView()
@@ -746,6 +718,25 @@ fun TreeBranchContainer(
             }
     ) {
         content(Modifier, showThreadCurve)
+    }
+}
+
+@Preview
+@Composable
+fun CurveView() {
+    Column {
+        VerticalDivider(
+            modifier = Modifier
+                .height(10.dp)
+                .width(2.dp)
+                .padding(start = 0.5.dp),
+            color = NcColor.boulder
+        )
+
+        Image(
+            painter = painterResource(R.drawable.ic_thread_curve),
+            contentDescription = null,
+        )
     }
 }
 

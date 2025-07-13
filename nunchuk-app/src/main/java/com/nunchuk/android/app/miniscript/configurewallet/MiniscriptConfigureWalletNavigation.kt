@@ -42,6 +42,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcConfirmationVerticalDialog
 import com.nunchuk.android.compose.miniscript.MiniscriptTaproot
 import com.nunchuk.android.compose.miniscript.PolicyHeader
@@ -197,6 +198,8 @@ fun MiniscriptConfigWalletScreen(
     var showDuplicateSignerWarning by rememberSaveable { mutableStateOf(false) }
     var duplicateSignerData by rememberSaveable { mutableStateOf<Pair<SignerModel, String>?>(null) }
     var isDuplicateBip32Update by rememberSaveable { mutableStateOf(false) }
+    var showRemoveConfirmation by rememberSaveable { mutableStateOf(false) }
+    var keyToRemove by rememberSaveable { mutableStateOf("") }
 
     // Handle duplicate signer warning events
     LaunchedEffect(uiState.event) {
@@ -285,7 +288,8 @@ fun MiniscriptConfigWalletScreen(
                         onChangeBip32Path = onChangeBip32Path,
                         onActionKey = { keyName, signer ->
                             if (signer != null) {
-                                onRemoveClicked(keyName)
+                                keyToRemove = keyName
+                                showRemoveConfirmation = true
                             } else {
                                 Timber.tag("miniscript-feature").e("Adding new key: $keyName")
                                 currentKeyToAssign = keyName
@@ -326,7 +330,8 @@ fun MiniscriptConfigWalletScreen(
                             onChangeBip32Path = onChangeBip32Path,
                             onActionKey = { keyName, signer ->
                                 if (signer != null) {
-                                    onRemoveClicked(keyName)
+                                    keyToRemove = keyName
+                                    showRemoveConfirmation = true
                                 } else {
                                     Timber.tag("miniscript-feature").e("Adding new key: $keyName")
                                     currentKeyToAssign = keyName
@@ -415,6 +420,22 @@ fun MiniscriptConfigWalletScreen(
                 },
                 positiveButtonText = "Show BIP32 path",
                 negativeButtonText = "Cancel"
+            )
+        }
+
+        if (showRemoveConfirmation) {
+            NcConfirmationDialog(
+                title = stringResource(id = R.string.nc_text_warning),
+                message = stringResource(id = R.string.nc_ask_for_delete_signer),
+                onPositiveClick = {
+                    showRemoveConfirmation = false
+                    onRemoveClicked(keyToRemove)
+                    keyToRemove = ""
+                },
+                onDismiss = {
+                    showRemoveConfirmation = false
+                    keyToRemove = ""
+                }
             )
         }
     }
