@@ -422,6 +422,7 @@ private fun WalletConfigViewMiniscriptPreview(
         type = ScripNoteType.ANDOR.name,
         keys = listOf(),
         k = 0,
+        timeLock = null,
         subs = listOf(
             ScriptNode(
                 type = ScripNoteType.THRESH.name,
@@ -429,7 +430,8 @@ private fun WalletConfigViewMiniscriptPreview(
                 subs = emptyList(),
                 k = 2,
                 id = emptyList(),
-                data = byteArrayOf()
+                data = byteArrayOf(),
+                timeLock = null
             ),
             ScriptNode(
                 type = ScripNoteType.OLDER.name,
@@ -437,7 +439,8 @@ private fun WalletConfigViewMiniscriptPreview(
                 subs = emptyList(),
                 k = 0,
                 id = emptyList(),
-                data = byteArrayOf()
+                data = byteArrayOf(),
+                timeLock = null
             )
         )
     )

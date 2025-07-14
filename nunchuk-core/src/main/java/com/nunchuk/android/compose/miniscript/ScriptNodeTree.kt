@@ -43,9 +43,12 @@ import com.nunchuk.android.core.miniscript.ScripNoteType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SigningPath
+import com.nunchuk.android.model.TimeLock
+import com.nunchuk.android.type.MiniscriptTimelockBased
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlin.math.ceil
 
 enum class ScriptMode {
     VIEW,
@@ -312,6 +315,7 @@ fun ScriptNodeTree(
                     modifier = modifier,
                     index = index,
                     k = node.k,
+                    timeLock = node.timeLock ?: TimeLock(),
                     currentBlockHeight = currentBlockHeight,
                     nodeType = node.type,
                     showThreadCurve = showThreadCurve,
@@ -521,6 +525,7 @@ fun ThreshMultiItem(
 fun TimelockItem(
     modifier: Modifier = Modifier,
     index: String,
+    timeLock: TimeLock,
     k: Int,
     currentBlockHeight: Int = 0,
     nodeType: String,
@@ -529,31 +534,45 @@ fun TimelockItem(
 ) {
     val (title, description) = when (nodeType) {
         ScripNoteType.OLDER.name -> {
-            if (k > 86400) { // k is timestamp in seconds
-                val days = k / 86400
-                Pair("Older $days days", "From the time the coins are received.")
-            } else { // k is block height
-                val formattedBlocks = String.format("%,d", k)
-                Pair("Older $formattedBlocks blocks", "From the time the coins are received.")
+            when {
+                timeLock.isTimestamp() -> {
+                    val days = ceil(timeLock.value / 86400.0).toInt()
+                    val titleText = if (days == 1) "Older 1 day" else "Older $days days"
+                    Pair(titleText, "From the time the coins are received.")
+                }
+
+                else -> { // block height
+                    val formattedBlocks = String.format("%,d", timeLock.value)
+                    val titleText =
+                        if (timeLock.value == 1L) "Older 1 block" else "Older $formattedBlocks blocks"
+                    Pair(titleText, "From the time the coins are received.")
+                }
             }
         }
 
         ScripNoteType.AFTER.name -> {
-            val currentTimeSeconds = System.currentTimeMillis() / 1000
-            val diff = k - currentTimeSeconds
-            if (diff > 0) { // k is timestamp in seconds
-                val targetDate = calculateDateFromSeconds(k.toLong())
-                val daysFromNow = ((diff / 86400).toInt())
-                val dayText = if (daysFromNow > 1) "days" else "day"
-                Pair("After $targetDate", "$daysFromNow $dayText from today.")
-            } else { // k is block height
-                val formattedBlocks = String.format("%,d", k)
-                val blockDiff = k - currentBlockHeight
-                val formattedBlockDiff = String.format("%,d", blockDiff)
-                Pair(
-                    "After block $formattedBlocks",
-                    "$formattedBlockDiff blocks from the current block."
-                )
+            when {
+                timeLock.isTimestamp() -> {
+                    val targetDate = calculateDateFromSeconds(timeLock.value)
+                    val currentTimeSeconds = System.currentTimeMillis() / 1000
+                    val diff = timeLock.value - currentTimeSeconds
+                    val daysFromNow = ceil(diff / 86400.0).toInt()
+                    val dayText = if (daysFromNow == 1) "day" else "days"
+                    val descriptionText =
+                        if (daysFromNow == 1) "1 $dayText from today." else "$daysFromNow $dayText from today."
+                    Pair("After $targetDate", descriptionText)
+                }
+
+                else -> { // block height
+                    val formattedBlocks = String.format("%,d", timeLock.value)
+                    val blockDiff = timeLock.value - currentBlockHeight
+                    val formattedBlockDiff = String.format("%,d", blockDiff)
+                    val titleText =
+                        if (timeLock.value == 1L) "After 1 block" else "After block $formattedBlocks"
+                    val descriptionText =
+                        if (blockDiff == 1L) "1 block from the current block." else "$formattedBlockDiff blocks from the current block."
+                    Pair(titleText, descriptionText)
+                }
             }
         }
 
@@ -672,7 +691,8 @@ fun KeyItem(
         ) {
             NcIcon(
                 modifier = Modifier
-                    .padding(bottom = 5.dp).size(20.dp),
+                    .padding(bottom = 5.dp)
+                    .size(20.dp),
                 painter = painterResource(R.drawable.ic_key),
                 contentDescription = null,
             )
@@ -759,6 +779,10 @@ private fun calculateDateFromSeconds(timestampSeconds: Long): String {
     return dateFormat.format(calendar.time)
 }
 
+private fun TimeLock.isTimestamp(): Boolean {
+    return this.based == MiniscriptTimelockBased.TIME_LOCK
+}
+
 private fun String.capitalize(): String {
     return this.lowercase().replaceFirstChar {
         if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
@@ -774,6 +798,7 @@ fun ConditionTreeUIPreview() {
         type = ScripNoteType.ANDOR.name,
         keys = listOf(),
         k = 0,
+        timeLock = null,
         subs = listOf(
             ScriptNode(
                 type = ScripNoteType.AFTER.name,
@@ -781,7 +806,8 @@ fun ConditionTreeUIPreview() {
                 k = 7776000, // 90 days in seconds
                 subs = emptyList(),
                 id = emptyList(),
-                data = byteArrayOf()
+                data = byteArrayOf(),
+                timeLock = null
             ),
             ScriptNode(
                 type = ScripNoteType.THRESH.name,
@@ -789,7 +815,8 @@ fun ConditionTreeUIPreview() {
                 k = 3,
                 subs = emptyList(),
                 id = emptyList(),
-                data = byteArrayOf()
+                data = byteArrayOf(),
+                timeLock = null
             ),
             ScriptNode(
                 type = ScripNoteType.THRESH.name,
@@ -797,7 +824,8 @@ fun ConditionTreeUIPreview() {
                 k = 2,
                 subs = emptyList(),
                 id = emptyList(),
-                data = byteArrayOf()
+                data = byteArrayOf(),
+                timeLock = null
             )
         )
     )

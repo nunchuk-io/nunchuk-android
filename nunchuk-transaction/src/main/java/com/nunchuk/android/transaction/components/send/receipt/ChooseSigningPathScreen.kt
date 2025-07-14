@@ -154,7 +154,8 @@ fun ChooseSigningPathScreenPreview() {
         keys = emptyList(),
         subs = emptyList(),
         k = 0,
-        data = byteArrayOf()
+        data = byteArrayOf(),
+        timeLock = null
     )
     ChooseSigningPathScreen(
         wallet = wallet,

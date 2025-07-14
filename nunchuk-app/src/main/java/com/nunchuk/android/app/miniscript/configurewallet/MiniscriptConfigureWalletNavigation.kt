@@ -475,6 +475,7 @@ fun MiniscriptConfigWalletScreenPreview() {
             type = ScripNoteType.ANDOR.name,
             keys = listOf(),
             k = 0,
+            timeLock = null,
             subs = listOf(
                 ScriptNode(
                     type = ScripNoteType.ANDOR.name,
@@ -486,12 +487,14 @@ fun MiniscriptConfigWalletScreenPreview() {
                             subs = emptyList(),
                             k = 0,
                             id = emptyList(),
-                            data = byteArrayOf()
+                            data = byteArrayOf(),
+                            timeLock = null
                         )
                     ),
                     k = 0,
                     id = emptyList(),
-                    data = byteArrayOf()
+                    data = byteArrayOf(),
+                    timeLock = null
                 ),
                 ScriptNode(
                     type = ScripNoteType.SHA256.name,
@@ -499,7 +502,8 @@ fun MiniscriptConfigWalletScreenPreview() {
                     subs = emptyList(),
                     k = 0,
                     id = emptyList(),
-                    data = byteArrayOf()
+                    data = byteArrayOf(),
+                    timeLock = null
                 )
             )
         ),
