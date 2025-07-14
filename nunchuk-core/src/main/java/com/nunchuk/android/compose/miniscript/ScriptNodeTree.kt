@@ -73,6 +73,8 @@ internal fun CreateKeyItem(
         showThreadCurve = showThreadCurve,
         bip32PathContent = {
             if (data.showBip32Path && signer != null) {
+                val isDuplicateSigner =
+                    data.duplicateSignerKeys.contains("${signer.fingerPrint}:${signer.derivationPath}")
                 Row(
                     modifier = if (data.mode == ScriptMode.CONFIG) Modifier.clickable(
                         onClick = {
@@ -94,7 +96,7 @@ internal fun CreateKeyItem(
                         } else {
                             NunchukTheme.typography.bodySmall
                         },
-                        color = if (data.duplicateSignerKeys.contains("${signer.fingerPrint}:${signer.derivationPath}")) {
+                        color = if (isDuplicateSigner) {
                             Color.Red
                         } else {
                             MaterialTheme.colorScheme.textSecondary
@@ -104,7 +106,12 @@ internal fun CreateKeyItem(
                         NcIcon(
                             modifier = Modifier.size(12.dp),
                             painter = painterResource(id = R.drawable.ic_edit_small),
-                            contentDescription = "Edit icon"
+                            contentDescription = "Edit icon",
+                            tint = if (isDuplicateSigner) {
+                                Color.Red
+                            } else {
+                                MaterialTheme.colorScheme.textSecondary
+                            }
                         )
                     }
                 }
@@ -350,7 +357,7 @@ fun ScriptNodeTree(
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
-                ThreadMultiItem(
+                ThreshMultiItem(
                     index = index,
                     type = node.type,
                     threshold = node.k,
@@ -430,6 +437,7 @@ fun AndOrView(
             Column(
                 modifier = Modifier
                     .weight(1f)
+                    .padding(top = if (isShowCurve) 10.dp else 0.dp)
                     .padding(start = padStart.dp)
             ) {
                 Row {
@@ -459,7 +467,7 @@ fun AndOrView(
 }
 
 @Composable
-fun ThreadMultiItem(
+fun ThreshMultiItem(
     modifier: Modifier = Modifier,
     index: String,
     type: String,
@@ -481,7 +489,7 @@ fun ThreadMultiItem(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = if (showThreadCurve) 8.dp else 0.dp, top = topPadding.dp)
+                    .padding(top = topPadding.dp)
             ) {
                 val text = when (type) {
                     ScripNoteType.THRESH.name -> "Thresh $threshold/$totalKeys"
@@ -655,36 +663,40 @@ fun KeyItem(
             .fillMaxWidth()
     ) {
         if (showThreadCurve) {
-            Image(
-                painter = painterResource(R.drawable.ic_thread_curve),
+            CurveView()
+        }
+        Row(
+            modifier = Modifier
+                .weight(1f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            NcIcon(
+                modifier = Modifier
+                    .padding(bottom = 5.dp).size(20.dp),
+                painter = painterResource(R.drawable.ic_key),
                 contentDescription = null,
             )
-        }
-        NcIcon(
-            modifier = Modifier.size(20.dp),
-            painter = painterResource(R.drawable.ic_key),
-            contentDescription = null,
-        )
-        Column(
-            modifier = Modifier
-                .padding(start = 8.dp)
-                .weight(1f),
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text(
-                text = if (position.isNotEmpty()) "$position. $title" else title,
-                style = NunchukTheme.typography.body,
+            Column(
                 modifier = Modifier
-            )
-            if (xfp.isNotEmpty()) {
+                    .padding(start = 8.dp)
+                    .weight(1f),
+                verticalArrangement = Arrangement.Center,
+            ) {
                 Text(
-                    text = xfp,
-                    style = NunchukTheme.typography.bodySmall,
+                    text = if (position.isNotEmpty()) "$position. $title" else title,
+                    style = NunchukTheme.typography.body,
+                    modifier = Modifier
                 )
+                if (xfp.isNotEmpty()) {
+                    Text(
+                        text = xfp,
+                        style = NunchukTheme.typography.bodySmall,
+                    )
+                }
+                bip32PathContent.invoke()
             }
-            bip32PathContent.invoke()
+            actionContent()
         }
-        actionContent()
     }
 }
 

@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,12 +32,16 @@ import androidx.navigation.compose.composable
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcSnackBarHost
+import com.nunchuk.android.compose.NcSnackbarVisuals
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.miniscript.MiniscriptUtil
 import com.nunchuk.android.core.miniscript.MultisignType
 import com.nunchuk.android.core.miniscript.SelectMultisignTypeBottomSheet
 import com.nunchuk.android.main.R
 import com.nunchuk.android.type.AddressType
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import timber.log.Timber
 import java.io.BufferedReader
@@ -52,6 +58,8 @@ fun NavGraphBuilder.miniscriptIntroDestination(
         val viewModel = hiltViewModel<MiniscriptIntroViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         val context = LocalContext.current
+        val snackbarHostState = remember { SnackbarHostState() }
+        val coroutineScope = rememberCoroutineScope()
 
         LaunchedEffect(uiState.event) {
             when (val event = uiState.event) {
@@ -60,11 +68,14 @@ fun NavGraphBuilder.miniscriptIntroDestination(
                 }
 
                 is MiniscriptIntroEvent.ShowError -> {
-                    Toast.makeText(
-                        context,
-                        event.message,
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            NcSnackbarVisuals(
+                                message = event.message,
+                                type = NcToastType.ERROR
+                            )
+                        )
+                    }
                 }
 
                 null -> {}
@@ -77,7 +88,8 @@ fun NavGraphBuilder.miniscriptIntroDestination(
             onSelect = onSelect,
             onFileContent = { content, addressType ->
                 viewModel.handleFileContent(content, addressType)
-            }
+            },
+            snackbarHostState = snackbarHostState
         )
     }
 }
@@ -87,7 +99,8 @@ fun NavGraphBuilder.miniscriptIntroDestination(
 fun MiniscriptIntroScreen(
     addressType: AddressType = AddressType.ANY,
     onSelect: (MultisignType) -> Unit = {},
-    onFileContent: (String, AddressType) -> Unit = { _, _ -> }
+    onFileContent: (String, AddressType) -> Unit = { _, _ -> },
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     var showSelectMultisignTypeBottomSheet by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -124,6 +137,9 @@ fun MiniscriptIntroScreen(
                     backgroundRes = R.drawable.miniscript_illustration,
                     title = "",
                 )
+            },
+            snackbarHost = {
+                NcSnackBarHost(snackbarHostState)
             },
             bottomBar = {
                 Column(
