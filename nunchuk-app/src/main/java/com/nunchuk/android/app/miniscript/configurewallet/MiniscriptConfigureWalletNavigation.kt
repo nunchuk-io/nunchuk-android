@@ -80,6 +80,8 @@ fun NavGraphBuilder.miniscriptConfigureWalletDestination(
         val data: MiniscriptConfigureWallet = navBackStackEntry.toRoute()
 
         LaunchedEffect(data) {
+            // Clear and reset state to create fresh instance effect
+            viewModel.clearAndResetState()
             viewModel.init(args = data)
         }
 

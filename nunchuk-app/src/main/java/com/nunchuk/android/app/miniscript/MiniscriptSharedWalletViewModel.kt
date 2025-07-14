@@ -964,6 +964,27 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         }
     }
 
+    fun clearAndResetState() {
+        // Clear all state to create a "fresh instance" effect
+        // This will be called when navigating to configure screen to ensure fresh state
+        singleSigners.clear()
+        masterSigners.clear()
+        keyPositionMap.clear()
+        currentKeyToAssign = ""
+        oldSigners = emptySet()
+        pendingAddSignerState = null
+        
+        // Preserve important values that should not be reset
+        val currentState = _uiState.value
+        _uiState.value = MiniscriptSharedWalletState(
+            currentBlockHeight = currentState.currentBlockHeight,
+            isTestNet = currentState.isTestNet
+        )
+        
+        // Reload basic info
+        loadInfo()
+    }
+
     companion object {
         private const val NEW_PATH = "new_path"
         private const val TAG = "miniscript-feature"
