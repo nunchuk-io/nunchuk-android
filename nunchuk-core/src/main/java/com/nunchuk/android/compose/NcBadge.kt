@@ -47,7 +47,7 @@ fun NcBadgePrimary(
                 color = if (enabled) {
                     MaterialTheme.colorScheme.controlFillPrimary
                 } else {
-                    colorResource(id = R.color.nc_control_state_activated_40)
+                    colorResource(id = R.color.nc_control_fill_primary_40)
                 },
                 shape = RoundedCornerShape(20.dp)
             )

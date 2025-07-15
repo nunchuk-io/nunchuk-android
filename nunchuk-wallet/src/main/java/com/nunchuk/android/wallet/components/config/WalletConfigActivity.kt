@@ -618,27 +618,24 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     private fun showSaveWalletConfigurationOption() {
+        val options = mutableListOf(
+            SheetOption(SheetOptionType.TYPE_EXPORT_BSMS, stringId = R.string.nc_bsms),
+            SheetOption(SheetOptionType.TYPE_EXPORT_TO_COLD_CARD, stringId = R.string.nc_coldcard),
+        )
+        
+        if (!isMiniscriptWallet()) {
+            options.add(SheetOption(SheetOptionType.TYPE_EXPORT_PORTAL, stringId = R.string.nc_portal))
+            options.add(SheetOption(SheetOptionType.TYPE_EXPORT_AS_QR, stringId = R.string.nc_text_wallet_qr_code))
+        }
+        
         BottomSheetOption.newInstance(
             title = getString(R.string.nc_select_export_format),
-            options = listOf(
-                SheetOption(
-                    type = SheetOptionType.TYPE_EXPORT_BSMS,
-                    stringId = R.string.nc_bsms
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_EXPORT_TO_COLD_CARD,
-                    stringId = R.string.nc_coldcard
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_EXPORT_PORTAL,
-                    stringId = R.string.nc_portal
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_EXPORT_AS_QR,
-                    stringId = R.string.nc_text_wallet_qr_code
-                ),
-            )
+            options = options
         ).show(supportFragmentManager, "BottomSheetOption")
+    }
+
+    private fun isMiniscriptWallet(): Boolean {
+        return viewModel.state.value.walletExtended.wallet.miniscript.isNotEmpty()
     }
 
     private fun showImportFormatOption() {

@@ -180,10 +180,10 @@ fun MiniscriptCustomTemplateScreen(
                     title = "Customize miniscript",
                     placeholder = {
                         Text(
-                            text = "Example: andor(\n" +
-                                    "  ln:older(12900),\n" +
-                                    "  thresh(2,pk(A), s:pk(B), s:pk(C)),\n" +
-                                    "  thresh(2,pk(A),s:pk(D),s:pk(E))\n" +
+                            text = "Example: \nandor(\n" +
+                                    "ln:older(12900),\n" +
+                                    "thresh(2,pk(A), s:pk(B), s:pk(C)),\n" +
+                                    "thresh(2,pk(A),s:pk(D),s:pk(E))\n" +
                                     ")",
                             style = NunchukTheme.typography.body.copy(
                                 color = colorResource(

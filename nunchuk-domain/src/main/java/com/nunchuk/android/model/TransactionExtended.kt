@@ -29,4 +29,8 @@ data class WalletExtended(
     val wallet: Wallet = Wallet(),
     val isShared: Boolean = true,
     val roomWallet: RoomWallet? = null,
-)
+) {
+    fun isMiniscriptWallet(): Boolean {
+        return wallet.miniscript.isNotEmpty()
+    }
+}

@@ -1,6 +1,6 @@
 package com.nunchuk.android.app.miniscript.intro
 
-import android.widget.Toast
+
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -57,7 +57,6 @@ fun NavGraphBuilder.miniscriptIntroDestination(
     composable<MiniscriptIntro> {
         val viewModel = hiltViewModel<MiniscriptIntroViewModel>()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        val context = LocalContext.current
         val snackbarHostState = remember { SnackbarHostState() }
         val coroutineScope = rememberCoroutineScope()
 
@@ -104,6 +103,7 @@ fun MiniscriptIntroScreen(
 ) {
     var showSelectMultisignTypeBottomSheet by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -119,11 +119,14 @@ fun MiniscriptIntroScreen(
                 }
             } catch (e: Exception) {
                 Timber.e("Error reading file: $e")
-                Toast.makeText(
-                    context,
-                    "Error reading file: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(
+                        NcSnackbarVisuals(
+                            message = "Failed to read data or script has invalid syntax",
+                            type = NcToastType.ERROR
+                        )
+                    )
+                }
             }
         }
     }
