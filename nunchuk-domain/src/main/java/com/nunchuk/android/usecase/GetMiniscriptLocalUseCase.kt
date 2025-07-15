@@ -17,37 +17,18 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.wallet.personal.components.add
+package com.nunchuk.android.usecase
 
-import com.nunchuk.android.model.GlobalGroupWalletConfig
-import com.nunchuk.android.model.GroupSandbox
-import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.FlowUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SettingRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class AddWalletState(
-    val freeGroupWalletConfig: GlobalGroupWalletConfig = GlobalGroupWalletConfig(
-        0,
-        0,
-        0,
-        emptySet()
-    ),
-    val groupSandbox: GroupSandbox? = null,
-    val addressTypeSelected: AddressType = AddressType.NATIVE_SEGWIT,
-    val isLoading: Boolean = false,
-    val miniscriptLocal: String = ""
-)
+class GetMiniscriptLocalUseCase @Inject constructor(
+    private val settingRepository: SettingRepository,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher
+) : FlowUseCase<Unit, String>(ioDispatcher) {
 
-sealed class AddWalletEvent {
-    data class UpdateGroupSandboxConfigSuccess(
-        val groupSandbox: GroupSandbox
-    ) : AddWalletEvent()
-
-    data class Error(
-        val message: String
-    ) : AddWalletEvent()
-
-    data class ShowError(
-        val message: String
-    ) : AddWalletEvent()
-
-    data object OnCreateWalletSuccess : AddWalletEvent()
-}
+    override fun execute(parameters: Unit) = settingRepository.miniscriptLocal
+} 

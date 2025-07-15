@@ -1,5 +1,7 @@
 package com.nunchuk.android.wallet.personal.components.add
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,6 +25,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,18 +44,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
-import com.nunchuk.android.compose.NcScaffold
+import com.nunchuk.android.compose.NcSnackBarHost
+import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcTextField
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
@@ -66,22 +75,31 @@ import com.nunchuk.android.core.data.model.WalletConfigType
 import com.nunchuk.android.core.data.model.getMN
 import com.nunchuk.android.core.data.model.getWalletConfigTypeBy
 import com.nunchuk.android.core.data.model.toOptionName
+import com.nunchuk.android.core.miniscript.MiniscriptUtil
+import com.nunchuk.android.core.miniscript.MultisignType
 import com.nunchuk.android.core.miniscript.SelectMultisignTypeBottomSheet
+import com.nunchuk.android.core.miniscript.formatMiniscript
 import com.nunchuk.android.model.GlobalGroupWalletConfig
+import com.nunchuk.android.nav.args.MiniscriptArgs
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.wallet.personal.R
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import java.io.BufferedReader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddWalletView(
     state: AddWalletState,
+    viewModel: AddWalletViewModel,
     isCreateMiniscriptWallet: Boolean = false,
     viewOnlyComposer: GroupWalletDataComposer? = null,
     isEditGroupWallet: Boolean,
     isViewConfigOnly: Boolean = true,
     onSelectAddressType: (AddressType) -> Unit = {},
-    onContinue: (String, AddressType, Int, Int) -> Unit = { _, _, _, _ -> }
+    onContinue: (String, AddressType, Int, Int) -> Unit = { _, _, _, _ -> },
+    onNavigateToMiniscript: (MiniscriptArgs) -> Unit = {}
 ) {
     var walletName by rememberSaveable { mutableStateOf("") }
     var viewAll by rememberSaveable { mutableStateOf(false) }
@@ -91,6 +109,48 @@ fun AddWalletView(
     var keys by remember { mutableIntStateOf(0) }
     var requiredKeys by remember { mutableIntStateOf(0) }
     var showMiniscriptBottomSheet by remember { mutableStateOf(false) }
+    
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    // Get miniscript data from state
+    val miniscriptLocal = state.miniscriptLocal
+
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        Timber.tag("miniscript-feature").d("File picked: $uri")
+        uri?.let {
+            try {
+                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    val content = BufferedReader(inputStream.reader()).use { reader ->
+                        reader.readText()
+                    }
+                    // Navigate to miniscript import flow with the file content
+                    onNavigateToMiniscript(
+                        MiniscriptArgs(
+                            walletName = walletName,
+                            addressType = state.addressTypeSelected,
+                            fromAddWallet = true,
+                            multisignType = MultisignType.IMPORT,
+                            template = MiniscriptUtil.revertFormattedMiniscript(content)
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                Timber.e("Error reading file: $e")
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(
+                        NcSnackbarVisuals(
+                            message = "Failed to read data or script has invalid syntax",
+                            type = NcToastType.ERROR
+                        )
+                    )
+                }
+            }
+        }
+    }
 
     if (state.isLoading) {
         NcLoadingDialog()
@@ -142,7 +202,7 @@ fun AddWalletView(
     }
 
     NunchukTheme {
-        NcScaffold(
+        Scaffold(
             modifier = Modifier
                 .systemBarsPadding()
                 .imePadding()
@@ -172,6 +232,9 @@ fun AddWalletView(
                         )
                     )
                 }
+            },
+            snackbarHost = {
+                NcSnackBarHost(snackbarHostState)
             }
         ) { paddingValues ->
             Column(
@@ -284,7 +347,29 @@ fun AddWalletView(
                 }
 
                 if (walletConfigType == WalletConfigType.MINISCRIPT) {
-                    MiniscriptSection(onAddMiniscript = { showMiniscriptBottomSheet = true })
+                    if (miniscriptLocal.isNotEmpty()) {
+                        MiniscriptSectionFilled(
+                            miniscriptContent = miniscriptLocal.formatMiniscript(),
+                            onEdit = {
+                                onNavigateToMiniscript(
+                                    MiniscriptArgs(
+                                        walletName = walletName,
+                                        addressType = state.addressTypeSelected,
+                                        fromAddWallet = true,
+                                        multisignType = MultisignType.CUSTOM,
+                                        template = miniscriptLocal
+                                    )
+                                )
+                            },
+                            onRemove = {
+                                coroutineScope.launch {
+                                    viewModel.clearMiniscriptLocal()
+                                }
+                            }
+                        )
+                    } else {
+                        MiniscriptSection(onAddMiniscript = { showMiniscriptBottomSheet = true })
+                    }
                 }
             }
         }
@@ -292,8 +377,32 @@ fun AddWalletView(
         if (showMiniscriptBottomSheet) {
             SelectMultisignTypeBottomSheet(
                 onSelect = { multisignType ->
-                    // Handle the selected multisign type
-                    // You can add logic here based on the selected type
+                    when (multisignType) {
+                        MultisignType.IMPORT -> {
+                            filePickerLauncher.launch("text/*")
+                        }
+                        MultisignType.CUSTOM -> {
+                            onNavigateToMiniscript(
+                                MiniscriptArgs(
+                                    walletName = walletName,
+                                    addressType = state.addressTypeSelected,
+                                    fromAddWallet = true,
+                                    multisignType = MultisignType.CUSTOM
+                                )
+                            )
+                        }
+                        else -> {
+                            // For other multisign types (FLEXIBLE, EXPANDING, DECAYING)
+                            onNavigateToMiniscript(
+                                MiniscriptArgs(
+                                    walletName = walletName,
+                                    addressType = state.addressTypeSelected,
+                                    fromAddWallet = true,
+                                    multisignType = multisignType
+                                )
+                            )
+                        }
+                    }
                     showMiniscriptBottomSheet = false
                 },
                 onDismiss = {
@@ -514,6 +623,7 @@ fun KeysAndRequiredKeysScreen(
     }
 }
 
+@Preview
 @Composable
 private fun MiniscriptSection(onAddMiniscript: () -> Unit = {}) {
     Column(
@@ -607,12 +717,151 @@ private fun MiniscriptSection(onAddMiniscript: () -> Unit = {}) {
     }
 }
 
+@Composable
+private fun MiniscriptSectionFilled(
+    miniscriptContent: String,
+    onEdit: () -> Unit = {},
+    onRemove: () -> Unit = {}
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = MaterialTheme.colorScheme.fillDenim2,
+                    shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                )
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Miniscript",
+                    style = NunchukTheme.typography.body
+                )
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.surface,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.border,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = "New",
+                        style = NunchukTheme.typography.caption
+                    )
+                }
+            }
+            
+            NcRadioButton(
+                selected = true,
+                onClick = { }
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+                )
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.border,
+                    shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+                )
+                .padding(16.dp)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = miniscriptContent,
+                    style = NunchukTheme.typography.body,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            modifier = Modifier.clickable { onEdit() },
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            NcIcon(
+                                modifier = Modifier.size(16.dp),
+                                painter = painterResource(id = R.drawable.ic_edit_small),
+                                contentDescription = "Edit"
+                            )
+                            Text(
+                                text = "Edit",
+                                style = NunchukTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.textPrimary
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.clickable { onRemove() },
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            NcIcon(
+                                modifier = Modifier.size(16.dp),
+                                painter = painterResource(id = R.drawable.ic_delete),
+                                contentDescription = "Remove"
+                            )
+                            Text(
+                                text = "Remove",
+                                style = NunchukTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.textPrimary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun MiniscriptSectionFilledPreview() {
+    NunchukTheme {
+        MiniscriptSectionFilled(
+            miniscriptContent = """andor(
+  after(12960),
+  thresh(3, pk(D), pk(E), pk(F)),
+  thresh(3, pk(A), pk(B), pk(C))
+)"""
+        )
+    }
+}
+
 @PreviewLightDark
 @Composable
 private fun AddWalletViewPreview() {
-    AddWalletView(
-        state = AddWalletState(),
-        isEditGroupWallet = true,
-        isCreateMiniscriptWallet = false
-    )
+    // Note: This preview won't work with real AddWalletViewModel in preview mode
+    // In actual usage, AddWalletViewModel should be injected via Hilt
 }

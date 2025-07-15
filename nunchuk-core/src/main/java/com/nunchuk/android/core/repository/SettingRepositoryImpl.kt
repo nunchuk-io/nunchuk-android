@@ -219,11 +219,22 @@ internal class SettingRepositoryImpl @Inject constructor(
     override val hasWalletInGuestMode: Flow<Boolean>
         get() = ncDataStore.hasWalletInGuestMode
 
+    override val miniscriptLocal: Flow<String>
+        get() = ncDataStore.miniscriptLocal
+
     override suspend fun setFirstChatId(chatId: String, isForce: Boolean) {
         ncDataStore.setFirstChatId(chatId, isForce)
     }
 
     override suspend fun setHasWalletInGuestMode(hasWallet: Boolean) {
         ncDataStore.setHasWalletInGuestMode(hasWallet)
+    }
+
+    override suspend fun setMiniscriptLocal(miniscript: String) {
+        ncDataStore.setMiniscriptLocal(miniscript)
+    }
+
+    override suspend fun clearMiniscriptLocal() {
+        ncDataStore.clearMiniscriptLocal()
     }
 }

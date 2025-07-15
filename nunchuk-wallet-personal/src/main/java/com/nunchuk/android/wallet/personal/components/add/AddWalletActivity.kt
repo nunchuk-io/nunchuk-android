@@ -62,6 +62,7 @@ class AddWalletActivity : BaseComposeActivity() {
             val state by viewModel.state.collectAsStateWithLifecycle()
             AddWalletView(
                 state = state,
+                viewModel = viewModel,
                 isCreateMiniscriptWallet = args.isCreateMiniscriptWallet,
                 viewOnlyComposer = args.groupWalletComposer,
                 isViewConfigOnly = args.groupWalletComposer != null || !state.groupSandbox?.replaceWalletId.isNullOrEmpty(),
@@ -69,7 +70,7 @@ class AddWalletActivity : BaseComposeActivity() {
                 onSelectAddressType = {
                     if (args.groupWalletId.isNotEmpty()) {
                         val action = {
-                            viewModel.updateAddressTypeSelected(it)
+                            viewModel.selectAddressType(it)
                             viewModel.getFreeGroupWalletConfig(it)
                         }
                         if (viewModel.state.value.groupSandbox?.addressType != it && args.hasGroupSigner && isAlreadyShowChangeAddressTypeDialog.not()) {
@@ -81,9 +82,10 @@ class AddWalletActivity : BaseComposeActivity() {
                             action()
                         }
                     } else {
-                        viewModel.updateAddressTypeSelected(it)
+                        viewModel.selectAddressType(it)
                     }
-                }, onContinue = { walletName, addressType, m, n ->
+                }, 
+                onContinue = { walletName, addressType, requiredKeys, totalKeys ->
                     if (args.groupWalletComposer != null) {
                         setResult(
                             RESULT_OK,
@@ -91,7 +93,7 @@ class AddWalletActivity : BaseComposeActivity() {
                         )
                         finish()
                     } else if (args.groupWalletId.isNotEmpty()) {
-                        viewModel.updateGroupSandboxConfig(walletName, m, n)
+                        viewModel.updateWalletConfig(walletName, addressType, totalKeys, requiredKeys)
                     } else if (args.isCreateMiniscriptWallet) {
                         navigator.openMiniscriptScreen(this,
                             args = MiniscriptArgs(
@@ -104,7 +106,11 @@ class AddWalletActivity : BaseComposeActivity() {
                             addressType = addressType
                         )
                     }
-                })
+                },
+                onNavigateToMiniscript = { miniscriptArgs ->
+                    navigator.openMiniscriptScreen(this, args = miniscriptArgs)
+                }
+            )
         }
 
         lifecycleScope.launch {
@@ -114,9 +120,14 @@ class AddWalletActivity : BaseComposeActivity() {
                         is AddWalletEvent.UpdateGroupSandboxConfigSuccess -> {
                             finish()
                         }
-
                         is AddWalletEvent.Error -> {
                             showToast(event.message)
+                        }
+                        is AddWalletEvent.ShowError -> {
+                            showToast(event.message)
+                        }
+                        is AddWalletEvent.OnCreateWalletSuccess -> {
+                            finish()
                         }
                     }
                 }

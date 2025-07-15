@@ -71,9 +71,24 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
                         }
                     }
 
+                    val startDestination = when {
+                        args.fromAddWallet && args.multisignType == MultisignType.CUSTOM -> MiniscriptCustomTemplate(
+                            template = args.template,
+                            addressType = args.addressType
+                        )
+                        args.fromAddWallet && args.multisignType == MultisignType.IMPORT -> MiniscriptCustomTemplate(
+                            template = args.template,
+                            addressType = args.addressType
+                        )
+                        args.fromAddWallet -> MiniscriptConfigTemplate(
+                            multisignType = args.multisignType.ordinal
+                        )
+                        else -> MiniscriptIntro
+                    }
+
                     NavHost(
                         navController = navHostController,
-                        startDestination = MiniscriptIntro
+                        startDestination = startDestination
                     ) {
                         miniscriptIntroDestination(
                             addressType = args.addressType,
@@ -135,15 +150,21 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
                             }
                         )
 
-                        miniscriptCustomTemplateDestination { template, addressType ->
-                            navHostController.navigate(
-                                route = MiniscriptConfigureWallet(
-                                    template = template,
-                                    addressType = addressType ?: args.addressType,
-                                    walletName = args.walletName,
+                        miniscriptCustomTemplateDestination(
+                            fromAddWallet = args.fromAddWallet,
+                            onNext = { template, addressType ->
+                                navHostController.navigate(
+                                    route = MiniscriptConfigureWallet(
+                                        template = template,
+                                        addressType = addressType ?: args.addressType,
+                                        walletName = args.walletName,
+                                    )
                                 )
-                            )
-                        }
+                            },
+                            onSaveAndBack = {
+                                finish()
+                            }
+                        )
 
                         miniscriptReviewWalletDestination(
                             viewModel = sharedWalletViewModel

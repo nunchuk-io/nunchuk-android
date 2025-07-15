@@ -48,7 +48,11 @@ data class MiniscriptCustomTemplate(
     val addressType: AddressType
 )
 
-fun NavGraphBuilder.miniscriptCustomTemplateDestination(onNext: (String, AddressType?) -> Unit = { _, _ -> }) {
+fun NavGraphBuilder.miniscriptCustomTemplateDestination(
+    fromAddWallet: Boolean = false,
+    onNext: (String, AddressType?) -> Unit = { _, _ -> },
+    onSaveAndBack: () -> Unit = {}
+) {
     composable<MiniscriptCustomTemplate> { navBackStackEntry ->
         val data: MiniscriptCustomTemplate = navBackStackEntry.toRoute()
         val viewModel: MiniscriptCustomTemplateViewModel = hiltViewModel()
@@ -94,15 +98,26 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(onNext: (String, Address
                     }
                     // Don't clear event here - let the Success event be processed
                 }
+                is MiniscriptCustomTemplateEvent.SavedToLocal -> {
+                    Timber.tag("miniscript-feature").d("Miniscript saved to local successfully")
+                    onSaveAndBack()
+                    viewModel.clearEvent()
+                }
                 null -> {}
             }
         }
 
         MiniscriptCustomTemplateScreen(
             template = data.template.formatMiniscript(),
+            fromAddWallet = fromAddWallet,
             onContinue = { template ->
-                viewModel.createMiniscriptTemplate(MiniscriptUtil.revertFormattedMiniscript(template), data.addressType)
+                if (fromAddWallet) {
+                    viewModel.saveMiniscriptToLocal(MiniscriptUtil.revertFormattedMiniscript(template))
+                } else {
+                    viewModel.createMiniscriptTemplate(MiniscriptUtil.revertFormattedMiniscript(template), data.addressType)
+                }
             },
+            onSaveAndBack = onSaveAndBack,
             snackbarHostState = snackbarHostState,
             showTaprootWarning = showTaprootWarning,
             onTaprootWarningDismiss = {
@@ -120,7 +135,9 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(onNext: (String, Address
 @Composable
 fun MiniscriptCustomTemplateScreen(
     template: String = "",
+    fromAddWallet: Boolean = false,
     onContinue: (String) -> Unit = {},
+    onSaveAndBack: () -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     showTaprootWarning: Boolean = false,
     onTaprootWarningDismiss: () -> Unit = {},
@@ -162,7 +179,7 @@ fun MiniscriptCustomTemplateScreen(
                         onClick = {
                             onContinue(miniscriptValue)
                         }) {
-                        Text(text = "Continue")
+                        Text(text = if (fromAddWallet) "Save" else "Continue")
                     }
                 }
             },

@@ -51,6 +51,7 @@ interface SettingRepository {
     val defaultFee: Flow<Int>
     val firstCreateEmail: Flow<String>
     val hasWalletInGuestMode: Flow<Boolean>
+    val miniscriptLocal: Flow<String>
     suspend fun setSyncEnable(isEnable: Boolean)
     suspend fun setQrDensity(density: Int)
     suspend fun markSyncRoomSuccess()
@@ -78,4 +79,6 @@ interface SettingRepository {
     fun getTaprootFeeSelection(): Flow<TaprootFeeSelectionSetting>
     suspend fun setFirstChatId(chatId: String, isForce: Boolean)
     suspend fun setHasWalletInGuestMode(hasWallet: Boolean)
+    suspend fun setMiniscriptLocal(miniscript: String)
+    suspend fun clearMiniscriptLocal()
 }
