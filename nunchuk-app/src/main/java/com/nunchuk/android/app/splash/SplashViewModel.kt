@@ -61,6 +61,7 @@ internal class SplashViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) {
             val mode = signInModeHolder.getCurrentMode()
             val account = accountManager.getAccount()
+            val isStaySignedIn = accountManager.isStaySignedIn()
             val info = application.packageManager.getPackageInfo(application.packageName, 0)
             val isFreshInstall = info.firstInstallTime == info.lastUpdateTime
             val isAccountExisted = accountManager.isAccountExisted()
@@ -75,14 +76,14 @@ internal class SplashViewModel @Inject constructor(
                 getBiometricConfigUseCase(Unit).first().getOrNull()?.enabled == true
             val shouldAskPin = pin.isNotEmpty()
                     || (settings.protectWalletPassphrase && mode == SignInMode.PRIMARY_KEY)
-                    || (settings.protectWalletPassword && mode == SignInMode.EMAIL)
+                    || (settings.protectWalletPassword && mode == SignInMode.EMAIL && isStaySignedIn)
             @Suppress("DEPRECATION")
             when {
-                shouldAskPin && (mode == SignInMode.UNKNOWN || (mode == SignInMode.PRIMARY_KEY && accountManager.isStaySignedIn().not())) -> {
+                shouldAskPin && (mode == SignInMode.UNKNOWN || (mode == SignInMode.PRIMARY_KEY && isStaySignedIn.not())) -> {
                     _event.emit(SplashEvent.NavUnlockPinScreenEvent)
                 }
 
-                isAccountExisted && accountManager.isStaySignedIn().not() -> {
+                isAccountExisted && isStaySignedIn.not() -> {
                     val askPin = shouldAskPin && isDecoyDisablePin
                     val askBiometric = isBiometricEnable && mode.isGuestMode().not() && mode.isPrimaryKey().not()
                     _event.emit(SplashEvent.NavSignInEvent(askPin = askPin, askBiometric = askBiometric))

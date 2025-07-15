@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.core.guestmode
 
+import com.nunchuk.android.core.account.AccountInfo
 import com.nunchuk.android.core.account.AccountManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
@@ -36,28 +37,33 @@ class SignInModeHolder @Inject constructor(
     private var currentMode: SignInMode = SignInMode.UNKNOWN
 
     init {
+        getMode(accountManager.getAccount())
         applicationScope.launch {
             accountManager.accountInfoFlow.collectLatest { account ->
-                val isAccountExist = account != null && account.token.isNotEmpty()
-                val loginType = account?.loginType ?: SignInMode.UNKNOWN.value
-                if (isAccountExist) {
-                    when (loginType) {
-                        SignInMode.EMAIL.value -> {
-                            setCurrentMode(SignInMode.EMAIL)
-                        }
+                getMode(account)
+            }
+        }
+    }
 
-                        SignInMode.PRIMARY_KEY.value -> {
-                            setCurrentMode(SignInMode.PRIMARY_KEY)
-                        }
+    private fun getMode(account: AccountInfo?) {
+        val isAccountExist = account != null && account.token.isNotEmpty()
+        val loginType = account?.loginType ?: SignInMode.UNKNOWN.value
+        if (isAccountExist) {
+            when (loginType) {
+                SignInMode.EMAIL.value -> {
+                    setCurrentMode(SignInMode.EMAIL)
+                }
 
-                        SignInMode.GUEST_MODE.value -> {
-                            setCurrentMode(SignInMode.GUEST_MODE)
-                        }
-                    }
-                } else if (loginType == SignInMode.GUEST_MODE.value) {
+                SignInMode.PRIMARY_KEY.value -> {
+                    setCurrentMode(SignInMode.PRIMARY_KEY)
+                }
+
+                SignInMode.GUEST_MODE.value -> {
                     setCurrentMode(SignInMode.GUEST_MODE)
                 }
             }
+        } else if (loginType == SignInMode.GUEST_MODE.value) {
+            setCurrentMode(SignInMode.GUEST_MODE)
         }
     }
 

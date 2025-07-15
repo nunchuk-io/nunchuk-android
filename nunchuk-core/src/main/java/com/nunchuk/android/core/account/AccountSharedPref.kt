@@ -44,7 +44,7 @@ internal class AccountSharedPref @Inject constructor(
     fun storeAccountInfo(accountInfo: AccountInfo) {
         sharedPreferences.edit(commit = true) {
             putString(ACCOUNT_KEY, gson.toJson(accountInfo))
-            if (accountInfo.token.isNotBlank()) {
+            if (accountInfo.decoyPin.isEmpty()) {
                 putString(ACCOUNT_BACKUP_KEY, gson.toJson(accountInfo))
             }
         }
