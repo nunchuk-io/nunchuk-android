@@ -63,6 +63,12 @@ internal class AccountSharedPref @Inject constructor(
         }
     }
 
+    fun removeAccountBackup() {
+        sharedPreferences.edit(commit = true) {
+            remove(ACCOUNT_BACKUP_KEY)
+        }
+    }
+
     fun setLastDecoyPin(decoyPin: String) {
         sharedPreferences.edit(commit = true) {
             putString(LAST_DECOY_PIN_KEY, decoyPin)

@@ -121,30 +121,27 @@ class UnlockPinViewModel @Inject constructor(
     }
 
     fun unlockPin(pin: String) {
+        Timber.d("Start unlockPin with pin: $pin")
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             if (walletPin.isNotEmpty()) {
                 if (decoyPinExistUseCase(pin).getOrElse { false }) {
                     accountManager.setLastDecoyPin(pin)
                     clearInfoSessionUseCase(Unit)
-                    repeat(3) {
+                    var count = 0
+                    while (count < 3) {
                         initNunchukUseCase(
                             InitNunchukUseCase.Param(
                                 passphrase = "",
                                 accountId = "",
                             )
-                        ).onSuccess { replaced ->
-                            Timber.d("unlockPin: replaced $replaced")
-                            if (replaced) {
-                                _state.update { it.copy(event = UnlockPinEvent.GoToMain) }
-                            } else {
-                                _state.update { it.copy(event = UnlockPinEvent.PinMatched) }
-                            }
-                            return@repeat
+                        ).onSuccess {
+                            _state.update { it.copy(event = UnlockPinEvent.GoToMain) }
+                            count = 3
                         }.onFailure {
-                            Timber.e("unlockPin failed: $it")
+                            count++
+                            delay(1000L)
                         }
-                        delay(1000L)
                     }
                 } else {
                     checkPin(pin) {
@@ -165,7 +162,8 @@ class UnlockPinViewModel @Inject constructor(
                         }
                         initNunchukUseCase(InitNunchukUseCase.Param(accountId = accountId))
                         if (_state.value.biometricConfig.enabled && args.isRemovePin.not() && account.loginType == SignInMode.EMAIL.value
-                            && account.id.isNotEmpty() && account.id == _state.value.biometricConfig.userId){
+                            && account.id.isNotEmpty() && account.id == _state.value.biometricConfig.userId
+                        ) {
                             _state.update { it.copy(showBiometricPrompt = true) }
                         } else {
                             _state.update { it.copy(event = UnlockPinEvent.PinMatched) }

@@ -63,6 +63,8 @@ interface AccountManager {
     fun setLastDecoyPin(decoyPin: String)
 
     fun getLastDecoyPin(): String
+
+    fun removeAccountBackup()
 }
 
 @Singleton
@@ -134,5 +136,9 @@ internal class AccountManagerImpl @Inject constructor(
 
     override fun getLastDecoyPin(): String {
         return accountSharedPref.getLastDecoyPin()
+    }
+
+    override fun removeAccountBackup() {
+        accountSharedPref.removeAccountBackup()
     }
 }

@@ -41,7 +41,6 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SyncFileEventHelper
 import com.nunchuk.android.usecase.GetLocalCurrencyUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
-import com.nunchuk.android.usecase.campaign.GetCurrentCampaignUseCase
 import com.nunchuk.android.usecase.campaign.GetLocalCurrentCampaignUseCase
 import com.nunchuk.android.usecase.campaign.GetLocalReferrerCodeUseCase
 import com.nunchuk.android.utils.onException
@@ -51,7 +50,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -203,6 +201,7 @@ internal class AccountViewModel @Inject constructor(
             signInModeHolder.clear()
             clearInfoSessionUseCase.invoke(Unit)
             sendSignOutUseCase(Unit)
+            accountManager.removeAccountBackup()
             event(AccountEvent.SignOutEvent)
         }
     }
