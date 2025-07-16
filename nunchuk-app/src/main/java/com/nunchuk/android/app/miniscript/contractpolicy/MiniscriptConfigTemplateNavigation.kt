@@ -40,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -55,6 +54,7 @@ import com.nunchuk.android.compose.NcSnackbarVisuals
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.fillBeewax
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.core.miniscript.MultisignType
 import com.nunchuk.android.type.AddressType
@@ -296,7 +296,7 @@ fun MiniscriptConfigTemplateScreen(
                 val spacing = 12.dp
                 val chipModifier = Modifier
                     .padding(end = 4.dp)
-                    .background(Color(0xFFFFF1CC), shape = RoundedCornerShape(8.dp))
+                    .background(color = MaterialTheme.colorScheme.fillBeewax, shape = RoundedCornerShape(8.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp)
 
                 Text(
