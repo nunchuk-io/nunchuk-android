@@ -144,7 +144,7 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
         handleColdcardExportToFile(true)
     }
 
-    private fun handleColdcardExportToFile(isSaveFile: Boolean) {
+    fun handleColdcardExportToFile(isSaveFile: Boolean) {
         sharedViewModel.handleColdcardExportToFile(isSaveFile)
     }
 }

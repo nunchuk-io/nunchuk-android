@@ -29,8 +29,8 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.domain.membership.PasswordVerificationHelper
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.portal.PortalDeviceArgs
@@ -128,6 +128,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     private var isCancelExportInvoice = false
+    private var isColdCardExportFlow = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -187,7 +188,10 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         when (option.type) {
             SheetOptionType.TYPE_EXPORT_AS_QR -> showExportQRTypeOption()
             SheetOptionType.TYPE_DELETE_WALLET -> handleDeleteWallet()
-            SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> showExportColdcardOptions()
+            SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> {
+                isColdCardExportFlow = true
+                showExportColdcardOptions()
+            }
             SheetOptionType.TYPE_FORCE_REFRESH_WALLET -> showForceRefreshWalletDialog()
             SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> showSaveWalletConfigurationOption()
             SheetOptionType.TYPE_EXPORT_BSMS -> viewModel.handleExportBSMS()
@@ -529,11 +533,21 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     override fun shareFile() {
-        shareConfigurationFile(viewModel.getFilePathInteracting())
+        if (isColdCardExportFlow) {
+            handleColdcardExportToFile(false)
+            isColdCardExportFlow = false
+        } else {
+            shareConfigurationFile(viewModel.getFilePathInteracting())
+        }
     }
 
     override fun saveFileToLocal() {
-        viewModel.saveToLocal()
+        if (isColdCardExportFlow) {
+            handleColdcardExportToFile(true)
+            isColdCardExportFlow = false
+        } else {
+            viewModel.saveToLocal()
+        }
     }
 
     private fun showMoreOptions() {
