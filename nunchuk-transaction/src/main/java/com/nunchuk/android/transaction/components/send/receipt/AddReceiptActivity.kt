@@ -112,6 +112,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             val navController = rememberNavController()
             var draftTx by remember { mutableStateOf<TaprootDraftTransaction?>(null) }
             var dummySigningPaths by remember { mutableStateOf(emptyList<Pair<SigningPath, Amount>>()) }
+            var timelockCoin by remember { mutableStateOf<TimelockCoin?>(null) }
 
             LaunchedEffect(Unit) {
                 transactionConfirmViewModel.event.collect {
@@ -127,6 +128,9 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     } else if (it is TransactionConfirmEvent.ChooseSigningPolicy) {
                         dummySigningPaths = it.result
                         navController.navigate(ReceiptNavigation.ChooseSigningPolicy)
+                    } else if (it is TransactionConfirmEvent.ShowTimeLockNotice) {
+                        timelockCoin = it.timeLockCoin
+                        navController.navigate(ReceiptNavigation.TimelockNotice)
                     }
                 }
             }
@@ -201,10 +205,25 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                             signers = state.signers,
                             signingPaths = dummySigningPaths,
                             onContinue = { signingPath ->
-                                transactionConfirmViewModel.handleConfirmEvent(
-                                    keySetIndex = 1,
+                                transactionConfirmViewModel.draftMiniscriptTransaction(
                                     signingPath = signingPath
                                 )
+                            }
+                        )
+                    }
+                }
+                composable<ReceiptNavigation.TimelockNotice> {
+                    timelockCoin?.let { timelockCoin ->
+                        TimelockNoticeScreen(
+                            timelockCoin = timelockCoin,
+                            onContinue = { coins ->
+                                transactionConfirmViewModel.run {
+                                    updateInputs(coins)
+                                    handleConfirmEvent(
+                                        keySetIndex = 1,
+                                        signingPath = timelockCoin.signingPath
+                                    )
+                                }
                             }
                         )
                     }

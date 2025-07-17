@@ -51,13 +51,16 @@ import com.nunchuk.android.transaction.components.send.confirmation.TransactionC
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.InitRoomTransactionSuccess
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.LoadingEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.UpdateChangeAddress
+import com.nunchuk.android.transaction.components.send.receipt.TimelockCoin
 import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeForSigningPathsUseCase
 import com.nunchuk.android.usecase.GetTaprootSelectionFeeSettingUseCase
+import com.nunchuk.android.usecase.GetTimelockedCoinsUseCase
 import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
+import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
 import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
@@ -94,6 +97,8 @@ class TransactionConfirmViewModel @Inject constructor(
     private val saveTaprootKeySetSelectionUseCase: SaveTaprootKeySetSelectionUseCase,
     private val getSavedAddressListLocalUseCase: GetSavedAddressListLocalUseCase,
     private val estimateFeeForSigningPathsUseCase: EstimateFeeForSigningPathsUseCase,
+    private val getTimelockedCoinsUseCase: GetTimelockedCoinsUseCase,
+    private val getCoinsFromTxInputsUseCase: GetCoinsFromTxInputsUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionConfirmUiState())
     val uiState = _state.asStateFlow()
@@ -159,6 +164,11 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
+    fun updateInputs(inputs: List<UnspentOutput>) {
+        this.inputs.clear()
+        this.inputs.addAll(inputs)
+    }
+
     private fun getOutputs(): Map<String, Amount> {
         val outputs = mutableMapOf<String, Amount>()
         txReceipts.forEach {
@@ -215,7 +225,10 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
-    private suspend fun draftNormalTransaction(useScriptPath: Boolean = false): Result<Transaction> {
+    private suspend fun draftNormalTransaction(
+        useScriptPath: Boolean = false,
+        signingPath: SigningPath? = null
+    ): Result<Transaction> {
         return draftTransactionUseCase(
             DraftTransactionUseCase.Params(
                 walletId = walletId,
@@ -223,7 +236,8 @@ class TransactionConfirmViewModel @Inject constructor(
                 subtractFeeFromAmount = subtractFeeFromAmount,
                 feeRate = manualFeeRate.toManualFeeRate(),
                 inputs = inputs.map { TxInput(it.txid, it.vout) },
-                useScriptPath = useScriptPath
+                useScriptPath = useScriptPath,
+                signingPath = signingPath
             )
         )
     }
@@ -288,6 +302,52 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
+    fun draftMiniscriptTransaction(signingPath: SigningPath) {
+        viewModelScope.launch {
+            _event.emit(LoadingEvent())
+            draftNormalTransaction(
+                signingPath = signingPath,
+                useScriptPath = true
+            ).onSuccess { transaction ->
+                val coins = getCoinsFromTxInputsUseCase(
+                    GetCoinsFromTxInputsUseCase.Params(
+                        walletId,
+                        transaction.inputs
+                    )
+                ).getOrDefault(emptyList())
+                if (coins.isEmpty()) {
+                    _event.emit(CreateTxErrorEvent("No coins found for the transaction inputs."))
+                    return@launch
+                }
+                getTimelockedCoinsUseCase(
+                    GetTimelockedCoinsUseCase.Params(
+                        walletId = walletId,
+                        inputs = transaction.inputs
+                    )
+                ).onSuccess { (maxLockValue, lockedCoins) ->
+                    if (lockedCoins.isNotEmpty() && lockedCoins.size < coins.size) {
+                        val timelockCoin = TimelockCoin(
+                            coins = coins,
+                            timelock = maxLockValue,
+                            lockedCoins = lockedCoins,
+                            signingPath = signingPath
+                        )
+                        _event.emit(TransactionConfirmEvent.ShowTimeLockNotice(timelockCoin))
+                    } else {
+                        // No locked coin or all coins are locked
+                        handleConfirmEvent(
+                            keySetIndex = 1,
+                            signingPath = signingPath
+                        )
+                    }
+                }.onFailure {
+                    _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
+                }
+            }.onFailure {
+                _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
+            }
+        }
+    }
 
     fun checkShowTaprootDraftTransaction() {
         viewModelScope.launch {

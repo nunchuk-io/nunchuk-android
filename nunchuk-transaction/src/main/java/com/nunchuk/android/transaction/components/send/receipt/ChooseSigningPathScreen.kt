@@ -94,7 +94,6 @@ fun ChooseSigningPathScreen(
                             data = ScriptNodeData(
                                 mode = ScriptMode.VIEW,
                                 signers = signers,
-                                showBip32Path = true
                             ),
                             signer = wallet.signers.firstOrNull()?.toModel(),
                             onChangeBip32Path = { _, _ -> },
@@ -132,7 +131,6 @@ fun ChooseSigningPathScreen(
                                 data = ScriptNodeData(
                                     mode = ScriptMode.VIEW,
                                     signers = signers,
-                                    showBip32Path = true
                                 )
                             )
                         }

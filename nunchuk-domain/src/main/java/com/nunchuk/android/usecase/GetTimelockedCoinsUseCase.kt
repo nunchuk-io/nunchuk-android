@@ -20,48 +20,25 @@
 package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.SigningPath
-import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxInput
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class DraftTransactionUseCase @Inject constructor(
+class GetTimelockedCoinsUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
-    private val validateTransactionNotConfirmedUseCase: ValidateTransactionNotConfirmedUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : UseCase<DraftTransactionUseCase.Params, Transaction>(ioDispatcher) {
-    override suspend fun execute(parameters: Params): Transaction {
-        // Validate that the transaction being replaced is not already confirmed
-        validateTransactionNotConfirmedUseCase(
-            ValidateTransactionNotConfirmedUseCase.Params(
-                walletId = parameters.walletId,
-                replaceTxId = parameters.replaceTxId
-            )
-        ).onFailure { exception -> throw exception }
-        
-        return nativeSdk.draftTransaction(
+) : UseCase<GetTimelockedCoinsUseCase.Params, Pair<Long, List<UnspentOutput>>>(ioDispatcher) {
+    override suspend fun execute(parameters: Params): Pair<Long, List<UnspentOutput>> {
+        return nativeSdk.getTimelockedCoins(
             walletId = parameters.walletId,
-            outputs = parameters.outputs,
-            inputs = parameters.inputs,
-            feeRate = parameters.feeRate,
-            subtractFeeFromAmount = parameters.subtractFeeFromAmount,
-            replaceTxId = parameters.replaceTxId,
-            useScriptPath = parameters.useScriptPath,
-            signingPath = parameters.signingPath
+            inputs = parameters.inputs
         )
     }
 
-    data class Params(
+    class Params(
         val walletId: String,
-        val outputs: Map<String, Amount>,
-        val inputs: List<TxInput> = emptyList(),
-        val feeRate: Amount = Amount(-1),
-        val subtractFeeFromAmount: Boolean = false,
-        val replaceTxId: String = "",
-        val useScriptPath: Boolean = false,
-        val signingPath: SigningPath? = null
+        val inputs: List<TxInput>,
     )
-}
+} 

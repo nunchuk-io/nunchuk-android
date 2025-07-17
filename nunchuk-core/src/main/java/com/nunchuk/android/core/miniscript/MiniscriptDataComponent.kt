@@ -61,97 +61,82 @@ object MiniscriptDataComponent {
 }
 
 sealed class ComponentInfo(
-    val scripNoteType: ScripNoteType,
     val icon: Int = 0,
     val name: String,
     val description: String,
 ) {
     class None : ComponentInfo(
-        scripNoteType = ScripNoteType.NONE,
         name = "None",
         description = "No component"
     )
 
     class PK : ComponentInfo(
-        scripNoteType = ScripNoteType.PK,
         name = "PK",
         description = "Public key"
     )
 
     class OLDER : ComponentInfo(
-        scripNoteType = ScripNoteType.OLDER,
         icon = R.drawable.ic_timer,
         name = "OLDER",
         description = "Older"
     )
 
     class AFTER : ComponentInfo(
-        scripNoteType = ScripNoteType.AFTER,
-        name = "AFTER",
         icon = R.drawable.ic_timer,
+        name = "AFTER",
         description = "After"
     )
 
     class HASH160 : ComponentInfo(
-        scripNoteType = ScripNoteType.HASH160,
         icon = R.drawable.ic_hash,
         name = "HASH160",
         description = "Hash160"
     )
 
     class HASH256 : ComponentInfo(
-        scripNoteType = ScripNoteType.HASH256,
         icon = R.drawable.ic_hash,
         name = "HASH256",
         description = "Hash256"
     )
 
     class RIPEMD160 : ComponentInfo(
-        scripNoteType = ScripNoteType.RIPEMD160,
         icon = R.drawable.ic_hash,
         name = "RIPEMD160",
         description = "RIPEMD160"
     )
 
     class SHA256 : ComponentInfo(
-        scripNoteType = ScripNoteType.SHA256,
         icon = R.drawable.ic_hash,
         name = "SHA256",
         description = "SHA256"
     )
 
     class AND : ComponentInfo(
-        scripNoteType = ScripNoteType.AND,
         name = "AND",
         description = "Both sub‑conditions must be satisfied."
     )
 
     class OR : ComponentInfo(
-        scripNoteType = ScripNoteType.OR,
         name = "OR",
         description = "Only one sub‑condition needs to be satisfied."
     )
 
     class ANDOR : ComponentInfo(
-        scripNoteType = ScripNoteType.ANDOR,
         name = "AND OR",
         description = "If the first sub‑condition is true, the second must also be satisfied. If the first one is false, the third must be satisfied."
     )
 
     class THRESH : ComponentInfo(
-        scripNoteType = ScripNoteType.THRESH,
-        name = "THRESH",
+        name = "Thresh",
         description = "THRESH"
     )
 
     class MULTI : ComponentInfo(
-        scripNoteType = ScripNoteType.MULTI,
-        name = "Multisig 3/4",
+        name = "Multisig",
         description = "Requires M of N keys."
     )
 
     class OR_TAPROOT : ComponentInfo(
-        scripNoteType = ScripNoteType.OR_TAPROOT,
         name = "OR",
         description = "Only one tapscript needs to be satisfied."
     )
@@ -174,4 +159,3 @@ enum class ScripNoteType {
     MULTI,
     OR_TAPROOT
 }
-

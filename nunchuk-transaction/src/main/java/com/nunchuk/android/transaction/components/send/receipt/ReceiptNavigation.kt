@@ -12,4 +12,6 @@ sealed class ReceiptNavigation {
     data object ChooseSigningPath : ReceiptNavigation()
     @Serializable
     data object ChooseSigningPolicy : ReceiptNavigation()
+    @Serializable
+    data object TimelockNotice : ReceiptNavigation()
 }

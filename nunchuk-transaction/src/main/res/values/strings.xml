@@ -115,4 +115,8 @@
     <string name="nc_re_broadcast_transaction">Re-broadcast transaction</string>
     <string name="nc_transaction_already_confirmed_error">Cannot replace transaction. The original transaction has already been confirmed</string>
     <string name="nc_choose_signing_path">Choose signing path</string>
+    <string name="nc_timelock_notice_title">Timelock notice</string>
+    <string name="nc_timelock_notice_description">Part of the amount you’re trying to send is currently under a timelock:\n • %1$d coins can be signed and broadcast immediately.\n • %2$d coins can be signed now but will only be available for broadcast after %3$s.</string>
+    <string name="nc_sign_and_broadcast_now">Sign and broadcast now</string>
+    <string name="nc_select_signing_policy_desc">Select the policy you\'ll use to sign this spend. After selection, only that policy can sign and broadcast the transaction.</string>
 </resources>

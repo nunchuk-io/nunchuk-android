@@ -235,7 +235,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             is TransactionConfirmEvent.AssignTagSuccess,
             is TransactionConfirmEvent.DraftTaprootTransactionSuccess,
             is TransactionConfirmEvent.ChooseSigningPolicy,
-            is TransactionConfirmEvent.ChooseSigningPathsSuccess -> {}
+            is TransactionConfirmEvent.ShowTimeLockNotice,
+            is TransactionConfirmEvent.ChooseSigningPathsSuccess -> Unit
         }
     }
 
