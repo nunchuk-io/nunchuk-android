@@ -320,7 +320,6 @@ fun MiniscriptConfigWalletScreen(
                     uiState.scriptNode?.let { scriptNode ->
                         ScriptNodeTree(
                             node = scriptNode,
-                            index = if (uiState.addressType == AddressType.TAPROOT && uiState.keyPath.isNotEmpty()) "2" else "1",
                             data = ScriptNodeData(
                                 mode = ScriptMode.CONFIG,
                                 signers = uiState.signers,

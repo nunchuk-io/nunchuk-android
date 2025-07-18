@@ -163,7 +163,6 @@ internal fun CreateKeyItem(
 @Composable
 private fun NodeKeys(
     node: ScriptNode,
-    index: String,
     onChangeBip32Path: (String, SignerModel) -> Unit,
     onActionKey: (String, SignerModel?) -> Unit,
     data: ScriptNodeData,
@@ -171,7 +170,7 @@ private fun NodeKeys(
     modifier: Modifier = Modifier
 ) {
     node.keys.forEachIndexed { i, key ->
-        val keyPosition = "$index.${i + 1}"
+        val keyPosition = "${node.idString}.${i + 1}"
         TreeBranchContainer(
             modifier = modifier,
             drawLine = i != node.keys.size - 1 || node.subs.isNotEmpty(),
@@ -196,7 +195,6 @@ private fun NodeKeys(
 @Composable
 private fun NodeSubs(
     node: ScriptNode,
-    index: String,
     onChangeBip32Path: (String, SignerModel) -> Unit,
     onActionKey: (String, SignerModel?) -> Unit,
     data: ScriptNodeData,
@@ -205,7 +203,7 @@ private fun NodeSubs(
     node.subs.forEachIndexed { i, sub ->
         ScriptNodeTree(
             node = sub,
-            index = "$index.${node.keys.size + i + 1}",
+            index = "${node.idString}.${node.keys.size + i + 1}",
             isLastItem = i == node.subs.size - 1,
             level = level + 1,
             onChangeBip32Path = onChangeBip32Path,
@@ -218,7 +216,6 @@ private fun NodeSubs(
 @Composable
 private fun NodeContent(
     node: ScriptNode,
-    index: String,
     onChangeBip32Path: (String, SignerModel) -> Unit,
     onActionKey: (String, SignerModel?) -> Unit,
     data: ScriptNodeData,
@@ -227,7 +224,6 @@ private fun NodeContent(
 ) {
     NodeKeys(
         node = node,
-        index = index,
         onChangeBip32Path = onChangeBip32Path,
         onActionKey = onActionKey,
         data = data,
@@ -236,7 +232,6 @@ private fun NodeContent(
     )
     NodeSubs(
         node = node,
-        index = index,
         onChangeBip32Path = onChangeBip32Path,
         onActionKey = onActionKey,
         data = data,
@@ -288,12 +283,11 @@ fun ScriptNodeTree(
                     isShowCurve = showThreadCurve,
                     padStart = 0,
                     isShowTapscriptBadge = ScripNoteType.OR_TAPROOT.name == node.type,
-                    index = index,
-                    modifier = modifier
+                    modifier = modifier,
+                    node = node
                 ) {
                     NodeContent(
                         node = node,
-                        index = index,
                         onChangeBip32Path = onChangeBip32Path,
                         onActionKey = onActionKey,
                         data = data,
@@ -313,16 +307,14 @@ fun ScriptNodeTree(
             ) { modifier, showThreadCurve ->
                 TimelockItem(
                     modifier = modifier,
-                    index = index,
-                    k = node.k,
                     timeLock = node.timeLock ?: TimeLock(),
                     currentBlockHeight = currentBlockHeight,
                     nodeType = node.type,
                     showThreadCurve = showThreadCurve,
+                    node = node
                 ) {
                     NodeContent(
                         node = node,
-                        index = index,
                         onChangeBip32Path = onChangeBip32Path,
                         onActionKey = onActionKey,
                         data = data,
@@ -362,17 +354,16 @@ fun ScriptNodeTree(
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
                 ThreshMultiItem(
-                    index = index,
                     type = node.type,
                     threshold = node.k,
                     totalKeys = if (node.type == ScripNoteType.THRESH.name) node.subs.size else node.keys.size,
                     topPadding = if (showThreadCurve) 10 else 0,
                     showThreadCurve = showThreadCurve,
-                    modifier = modifier
+                    modifier = modifier,
+                    node = node
                 ) {
                     NodeContent(
                         node = node,
-                        index = index,
                         onChangeBip32Path = onChangeBip32Path,
                         onActionKey = onActionKey,
                         data = data,
@@ -391,14 +382,13 @@ fun ScriptNodeTree(
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
                 HashlockItem(
-                    index = index,
                     hashType = node.type,
                     showThreadCurve = showThreadCurve,
-                    modifier = modifier
+                    modifier = modifier,
+                    node = node
                 ) {
                     NodeContent(
                         node = node,
-                        index = index,
                         onChangeBip32Path = onChangeBip32Path,
                         onActionKey = onActionKey,
                         data = data,
@@ -412,7 +402,6 @@ fun ScriptNodeTree(
     }
     NodeSubs(
         node = node,
-        index = index,
         onChangeBip32Path = onChangeBip32Path,
         onActionKey = onActionKey,
         data = data,
@@ -428,6 +417,7 @@ fun AndOrView(
     isShowTapscriptBadge: Boolean = false,
     index: String = "",
     padStart: Int = 0,
+    node: ScriptNode,
     content: @Composable () -> Unit = {},
 ) {
     Column(modifier = modifier) {
@@ -446,7 +436,7 @@ fun AndOrView(
             ) {
                 Row {
                     Text(
-                        text = if (index.isNotEmpty()) "$index. ${scripNoteTypeInfo.name}" else scripNoteTypeInfo.name,
+                        text = "${node.idString}. ${scripNoteTypeInfo.name}",
                         style = NunchukTheme.typography.body
                     )
                     if (isShowTapscriptBadge) {
@@ -473,12 +463,12 @@ fun AndOrView(
 @Composable
 fun ThreshMultiItem(
     modifier: Modifier = Modifier,
-    index: String,
     type: String,
     threshold: Int,
     totalKeys: Int,
     topPadding: Int = 10,
     showThreadCurve: Boolean = true,
+    node: ScriptNode,
     content: @Composable () -> Unit = {},
 ) {
     Column(modifier = modifier) {
@@ -501,7 +491,7 @@ fun ThreshMultiItem(
                     else -> ""
                 }
                 Text(
-                    text = "$index. $text",
+                    text = "${node.idString}. $text",
                     style = NunchukTheme.typography.body
                 )
                 val keyText = when (type) {
@@ -524,12 +514,11 @@ fun ThreshMultiItem(
 @Composable
 fun TimelockItem(
     modifier: Modifier = Modifier,
-    index: String,
     timeLock: TimeLock,
-    k: Int,
     currentBlockHeight: Int = 0,
     nodeType: String,
     showThreadCurve: Boolean = true,
+    node: ScriptNode,
     content: @Composable () -> Unit = {},
 ) {
     val (title, description) = when (nodeType) {
@@ -599,7 +588,7 @@ fun TimelockItem(
                         .padding(start = 8.dp)
                 ) {
                     Text(
-                        text = "$index. $title",
+                        text = "${node.idString}. $title",
                         style = NunchukTheme.typography.body
                     )
                     Text(
@@ -619,9 +608,9 @@ fun TimelockItem(
 @Composable
 fun HashlockItem(
     modifier: Modifier = Modifier,
-    index: String,
     hashType: String,
     showThreadCurve: Boolean = true,
+    node: ScriptNode,
     content: @Composable () -> Unit = {},
 ) {
     val description = when (hashType) {
@@ -650,7 +639,7 @@ fun HashlockItem(
                         .padding(start = 8.dp)
                 ) {
                     Text(
-                        text = "$index. ${hashType.capitalize()}",
+                        text = "${node.idString}. ${hashType.capitalize()}",
                         style = NunchukTheme.typography.body
                     )
                     Text(

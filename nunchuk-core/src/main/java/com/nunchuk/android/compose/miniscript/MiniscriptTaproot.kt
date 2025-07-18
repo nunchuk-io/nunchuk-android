@@ -30,7 +30,7 @@ fun MiniscriptTaproot(
             CreateKeyItem(
                 key = keyPath,
                 signer = signer,
-                position = "1",
+                position = "",
                 onChangeBip32Path = onChangeBip32Path,
                 onActionKey = onActionKey,
                 data = data,
