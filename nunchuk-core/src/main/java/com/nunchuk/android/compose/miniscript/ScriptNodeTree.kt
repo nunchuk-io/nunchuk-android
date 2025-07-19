@@ -307,9 +307,7 @@ fun ScriptNodeTree(
             ) { modifier, showThreadCurve ->
                 TimelockItem(
                     modifier = modifier,
-                    timeLock = node.timeLock ?: TimeLock(),
                     currentBlockHeight = currentBlockHeight,
-                    nodeType = node.type,
                     showThreadCurve = showThreadCurve,
                     node = node
                 ) {
@@ -354,9 +352,6 @@ fun ScriptNodeTree(
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
                 ThreshMultiItem(
-                    type = node.type,
-                    threshold = node.k,
-                    totalKeys = if (node.type == ScripNoteType.THRESH.name) node.subs.size else node.keys.size,
                     topPadding = if (showThreadCurve) 10 else 0,
                     showThreadCurve = showThreadCurve,
                     modifier = modifier,
@@ -382,9 +377,7 @@ fun ScriptNodeTree(
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
                 HashlockItem(
-                    hashType = node.type,
                     showThreadCurve = showThreadCurve,
-                    modifier = modifier,
                     node = node
                 ) {
                     NodeContent(
@@ -415,7 +408,6 @@ fun AndOrView(
     scripNoteTypeInfo: ComponentInfo = MiniscriptDataComponent.fromComponent(ScripNoteType.ANDOR.name),
     isShowCurve: Boolean = true,
     isShowTapscriptBadge: Boolean = false,
-    index: String = "",
     padStart: Int = 0,
     node: ScriptNode,
     content: @Composable () -> Unit = {},
@@ -463,9 +455,6 @@ fun AndOrView(
 @Composable
 fun ThreshMultiItem(
     modifier: Modifier = Modifier,
-    type: String,
-    threshold: Int,
-    totalKeys: Int,
     topPadding: Int = 10,
     showThreadCurve: Boolean = true,
     node: ScriptNode,
@@ -485,16 +474,16 @@ fun ThreshMultiItem(
                     .weight(1f)
                     .padding(top = topPadding.dp)
             ) {
-                val text = when (type) {
-                    ScripNoteType.THRESH.name -> "Thresh $threshold/$totalKeys"
-                    ScripNoteType.MULTI.name -> "Multisig $threshold/$totalKeys"
+                val text = when (node.type) {
+                    ScripNoteType.THRESH.name -> "Thresh ${node.k}/${node.subs.size}"
+                    ScripNoteType.MULTI.name -> "Multisig ${node.k}/${node.keys.size}"
                     else -> ""
                 }
                 Text(
                     text = "${node.idString}. $text",
                     style = NunchukTheme.typography.body
                 )
-                val keyText = when (type) {
+                val keyText = when (node.type) {
                     ScripNoteType.THRESH.name -> "Requires M of N sub‑conditions."
                     ScripNoteType.MULTI.name -> "Requires M of N keys."
                     else -> ""
@@ -514,14 +503,13 @@ fun ThreshMultiItem(
 @Composable
 fun TimelockItem(
     modifier: Modifier = Modifier,
-    timeLock: TimeLock,
     currentBlockHeight: Int = 0,
-    nodeType: String,
     showThreadCurve: Boolean = true,
     node: ScriptNode,
     content: @Composable () -> Unit = {},
 ) {
-    val (title, description) = when (nodeType) {
+    val timeLock = node.timeLock ?: TimeLock()
+    val (title, description) = when (node.type) {
         ScripNoteType.OLDER.name -> {
             when {
                 timeLock.isTimestamp() -> {
@@ -608,12 +596,11 @@ fun TimelockItem(
 @Composable
 fun HashlockItem(
     modifier: Modifier = Modifier,
-    hashType: String,
     showThreadCurve: Boolean = true,
     node: ScriptNode,
     content: @Composable () -> Unit = {},
 ) {
-    val description = when (hashType) {
+    val description = when (node.type) {
         ScripNoteType.HASH160.name -> "Requires a preimage that hashes to a given value with HASH160"
         ScripNoteType.HASH256.name -> "Requires a preimage that hashes to a given value with SHA256"
         ScripNoteType.RIPEMD160.name -> "Requires a preimage that hashes to a given value with RIPEMD160"
@@ -639,7 +626,7 @@ fun HashlockItem(
                         .padding(start = 8.dp)
                 ) {
                     Text(
-                        text = "${node.idString}. ${hashType.capitalize()}",
+                        text = "${node.idString}. ${node.type.capitalize()}",
                         style = NunchukTheme.typography.body
                     )
                     Text(
