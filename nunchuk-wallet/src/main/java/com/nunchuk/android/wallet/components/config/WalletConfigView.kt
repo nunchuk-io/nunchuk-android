@@ -50,7 +50,7 @@ import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
-import com.nunchuk.android.core.miniscript.ScripNoteType
+import com.nunchuk.android.core.miniscript.ScriptNoteType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isTaproot
@@ -419,13 +419,13 @@ private fun WalletConfigViewMiniscriptPreview(
     val sampleScriptNode = ScriptNode(
         id = emptyList(),
         data = byteArrayOf(),
-        type = ScripNoteType.ANDOR.name,
+        type = ScriptNoteType.ANDOR.name,
         keys = listOf(),
         k = 0,
         timeLock = null,
         subs = listOf(
             ScriptNode(
-                type = ScripNoteType.THRESH.name,
+                type = ScriptNoteType.THRESH.name,
                 keys = listOf("key_0_0", "key_1_0"),
                 subs = emptyList(),
                 k = 2,
@@ -434,7 +434,7 @@ private fun WalletConfigViewMiniscriptPreview(
                 timeLock = null
             ),
             ScriptNode(
-                type = ScripNoteType.OLDER.name,
+                type = ScriptNoteType.OLDER.name,
                 keys = listOf("key_0_1"),
                 subs = emptyList(),
                 k = 0,

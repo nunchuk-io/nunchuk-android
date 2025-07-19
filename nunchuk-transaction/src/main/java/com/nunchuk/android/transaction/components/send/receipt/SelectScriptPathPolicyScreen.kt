@@ -48,7 +48,7 @@ import com.nunchuk.android.compose.miniscript.info
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
-import com.nunchuk.android.core.miniscript.ScripNoteType
+import com.nunchuk.android.core.miniscript.ScriptNoteType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
@@ -68,12 +68,12 @@ fun SelectScriptPathPolicyScreen(
     var selectedFilter by remember { mutableStateOf<ScriptNode?>(null) }
     val options = mutableListOf<ScriptNode?>()
     when (scriptNode.type) {
-        ScripNoteType.ANDOR.name -> {
+        ScriptNoteType.ANDOR.name -> {
             options.add(scriptNode.subs.getOrNull(1))
             options.add(scriptNode.subs.getOrNull(2))
         }
 
-        ScripNoteType.OR_TAPROOT.name, ScripNoteType.OR.name -> {
+        ScriptNoteType.OR_TAPROOT.name, ScriptNoteType.OR.name -> {
             options.add(scriptNode.subs.getOrNull(0))
             options.add(scriptNode.subs.getOrNull(1))
         }
@@ -249,13 +249,13 @@ private fun WalletConfigViewMiniscriptPreview(
     val sampleScriptNode = ScriptNode(
         id = emptyList(),
         data = byteArrayOf(),
-        type = ScripNoteType.ANDOR.name,
+        type = ScriptNoteType.ANDOR.name,
         keys = listOf(),
         k = 0,
         timeLock = null,
         subs = listOf(
             ScriptNode(
-                type = ScripNoteType.THRESH.name,
+                type = ScriptNoteType.THRESH.name,
                 keys = listOf("key_0_0", "key_1_0"),
                 subs = emptyList(),
                 k = 2,
@@ -264,7 +264,7 @@ private fun WalletConfigViewMiniscriptPreview(
                 timeLock = null
             ),
             ScriptNode(
-                type = ScripNoteType.OLDER.name,
+                type = ScriptNoteType.OLDER.name,
                 keys = listOf("key_0_1"),
                 subs = emptyList(),
                 k = 0,

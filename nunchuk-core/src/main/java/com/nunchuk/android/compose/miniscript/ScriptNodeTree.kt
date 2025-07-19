@@ -39,7 +39,7 @@ import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.miniscript.ComponentInfo
 import com.nunchuk.android.core.miniscript.MiniscriptDataComponent
-import com.nunchuk.android.core.miniscript.ScripNoteType
+import com.nunchuk.android.core.miniscript.ScriptNoteType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SigningPath
@@ -266,23 +266,23 @@ fun ScriptNodeTree(
 
     val info = MiniscriptDataComponent.fromComponent(node.type)
     val nodeModifier = when {
-        data.mode == ScriptMode.CONFIG -> Modifier
+        data.mode == ScriptMode.CONFIG || node.type == ScriptNoteType.AFTER.name || node.type == ScriptNoteType.OLDER.name -> Modifier
         data.mode == ScriptMode.SIGN && isSatisfiableNode -> Modifier
         data.mode == ScriptMode.VIEW && isNormalNode -> Modifier
         else -> Modifier.alpha(0.4f)
     }
     when (node.type) {
-        ScripNoteType.ANDOR.name, ScripNoteType.AND.name, ScripNoteType.OR.name, ScripNoteType.OR_TAPROOT.name -> {
+        ScriptNoteType.ANDOR.name, ScriptNoteType.AND.name, ScriptNoteType.OR.name, ScriptNoteType.OR_TAPROOT.name -> {
             TreeBranchContainer(
                 modifier = nodeModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
                 AndOrView(
-                    scripNoteTypeInfo = info,
+                    scriptNoteTypeInfo = info,
                     isShowCurve = showThreadCurve,
                     padStart = 0,
-                    isShowTapscriptBadge = ScripNoteType.OR_TAPROOT.name == node.type,
+                    isShowTapscriptBadge = ScriptNoteType.OR_TAPROOT.name == node.type,
                     modifier = modifier,
                     node = node
                 ) {
@@ -299,16 +299,17 @@ fun ScriptNodeTree(
             return
         }
 
-        ScripNoteType.AFTER.name, ScripNoteType.OLDER.name -> {
+        ScriptNoteType.AFTER.name, ScriptNoteType.OLDER.name -> {
             TreeBranchContainer(
                 modifier = nodeModifier,
                 drawLine = isLastItem.not(),
-                indentationLevel = level
+                indentationLevel = level,
             ) { modifier, showThreadCurve ->
                 TimelockItem(
                     modifier = modifier,
                     currentBlockHeight = currentBlockHeight,
                     showThreadCurve = showThreadCurve,
+                    isSatisfiableNode = isSatisfiableNode,
                     node = node
                 ) {
                     NodeContent(
@@ -324,7 +325,7 @@ fun ScriptNodeTree(
             return
         }
 
-        ScripNoteType.PK.name -> {
+        ScriptNoteType.PK.name -> {
             TreeBranchContainer(
                 modifier = nodeModifier,
                 drawLine = isLastItem.not(),
@@ -345,7 +346,7 @@ fun ScriptNodeTree(
             return
         }
 
-        ScripNoteType.MULTI.name, ScripNoteType.THRESH.name -> {
+        ScriptNoteType.MULTI.name, ScriptNoteType.THRESH.name -> {
             TreeBranchContainer(
                 modifier = nodeModifier,
                 drawLine = isLastItem.not(),
@@ -370,7 +371,7 @@ fun ScriptNodeTree(
             return
         }
 
-        ScripNoteType.HASH160.name, ScripNoteType.HASH256.name, ScripNoteType.RIPEMD160.name, ScripNoteType.SHA256.name -> {
+        ScriptNoteType.HASH160.name, ScriptNoteType.HASH256.name, ScriptNoteType.RIPEMD160.name, ScriptNoteType.SHA256.name -> {
             TreeBranchContainer(
                 modifier = nodeModifier,
                 drawLine = isLastItem.not(),
@@ -405,7 +406,7 @@ fun ScriptNodeTree(
 @Composable
 fun AndOrView(
     modifier: Modifier = Modifier,
-    scripNoteTypeInfo: ComponentInfo = MiniscriptDataComponent.fromComponent(ScripNoteType.ANDOR.name),
+    scriptNoteTypeInfo: ComponentInfo = MiniscriptDataComponent.fromComponent(ScriptNoteType.ANDOR.name),
     isShowCurve: Boolean = true,
     isShowTapscriptBadge: Boolean = false,
     padStart: Int = 0,
@@ -428,7 +429,7 @@ fun AndOrView(
             ) {
                 Row {
                     Text(
-                        text = "${node.idString}. ${scripNoteTypeInfo.name}",
+                        text = "${node.idString}. ${scriptNoteTypeInfo.name}",
                         style = NunchukTheme.typography.body
                     )
                     if (isShowTapscriptBadge) {
@@ -440,7 +441,7 @@ fun AndOrView(
                 }
 
                 Text(
-                    scripNoteTypeInfo.description,
+                    scriptNoteTypeInfo.description,
                     style = NunchukTheme.typography.bodySmall.copy(
                         color = MaterialTheme.colorScheme.textSecondary
                     ),
@@ -475,8 +476,8 @@ fun ThreshMultiItem(
                     .padding(top = topPadding.dp)
             ) {
                 val text = when (node.type) {
-                    ScripNoteType.THRESH.name -> "Thresh ${node.k}/${node.subs.size}"
-                    ScripNoteType.MULTI.name -> "Multisig ${node.k}/${node.keys.size}"
+                    ScriptNoteType.THRESH.name -> "Thresh ${node.k}/${node.subs.size}"
+                    ScriptNoteType.MULTI.name -> "Multisig ${node.k}/${node.keys.size}"
                     else -> ""
                 }
                 Text(
@@ -484,8 +485,8 @@ fun ThreshMultiItem(
                     style = NunchukTheme.typography.body
                 )
                 val keyText = when (node.type) {
-                    ScripNoteType.THRESH.name -> "Requires M of N sub‑conditions."
-                    ScripNoteType.MULTI.name -> "Requires M of N keys."
+                    ScriptNoteType.THRESH.name -> "Requires M of N sub‑conditions."
+                    ScriptNoteType.MULTI.name -> "Requires M of N keys."
                     else -> ""
                 }
                 Text(
@@ -505,12 +506,13 @@ fun TimelockItem(
     modifier: Modifier = Modifier,
     currentBlockHeight: Int = 0,
     showThreadCurve: Boolean = true,
+    isSatisfiableNode: Boolean,
     node: ScriptNode,
     content: @Composable () -> Unit = {},
 ) {
     val timeLock = node.timeLock ?: TimeLock()
     val (title, description) = when (node.type) {
-        ScripNoteType.OLDER.name -> {
+        ScriptNoteType.OLDER.name -> {
             when {
                 timeLock.isTimestamp() -> {
                     val days = ceil(timeLock.value / 86400.0).toInt()
@@ -527,7 +529,7 @@ fun TimelockItem(
             }
         }
 
-        ScripNoteType.AFTER.name -> {
+        ScriptNoteType.AFTER.name -> {
             when {
                 timeLock.isTimestamp() -> {
                     val targetDate = calculateDateFromSeconds(timeLock.value)
@@ -601,10 +603,10 @@ fun HashlockItem(
     content: @Composable () -> Unit = {},
 ) {
     val description = when (node.type) {
-        ScripNoteType.HASH160.name -> "Requires a preimage that hashes to a given value with HASH160"
-        ScripNoteType.HASH256.name -> "Requires a preimage that hashes to a given value with SHA256"
-        ScripNoteType.RIPEMD160.name -> "Requires a preimage that hashes to a given value with RIPEMD160"
-        ScripNoteType.SHA256.name -> "Requires a preimage that hashes to a given value with SHA256"
+        ScriptNoteType.HASH160.name -> "Requires a preimage that hashes to a given value with HASH160"
+        ScriptNoteType.HASH256.name -> "Requires a preimage that hashes to a given value with SHA256"
+        ScriptNoteType.RIPEMD160.name -> "Requires a preimage that hashes to a given value with RIPEMD160"
+        ScriptNoteType.SHA256.name -> "Requires a preimage that hashes to a given value with SHA256"
         else -> "Requires a preimage that hashes to a given value"
     }
     Column(modifier = modifier) {
@@ -771,13 +773,13 @@ fun ConditionTreeUIPreview() {
     val sampleScriptNode = ScriptNode(
         id = emptyList(),
         data = byteArrayOf(),
-        type = ScripNoteType.ANDOR.name,
+        type = ScriptNoteType.ANDOR.name,
         keys = listOf(),
         k = 0,
         timeLock = null,
         subs = listOf(
             ScriptNode(
-                type = ScripNoteType.AFTER.name,
+                type = ScriptNoteType.AFTER.name,
                 keys = listOf(),
                 k = 7776000, // 90 days in seconds
                 subs = emptyList(),
@@ -786,7 +788,7 @@ fun ConditionTreeUIPreview() {
                 timeLock = null
             ),
             ScriptNode(
-                type = ScripNoteType.THRESH.name,
+                type = ScriptNoteType.THRESH.name,
                 keys = listOf("key_3", "key_4", "key_5"),
                 k = 3,
                 subs = emptyList(),
@@ -795,7 +797,7 @@ fun ConditionTreeUIPreview() {
                 timeLock = null
             ),
             ScriptNode(
-                type = ScripNoteType.THRESH.name,
+                type = ScriptNoteType.THRESH.name,
                 keys = listOf("key_0", "key_1", "key_2"),
                 k = 2,
                 subs = emptyList(),

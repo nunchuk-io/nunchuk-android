@@ -19,22 +19,22 @@ import com.nunchuk.android.core.miniscript.ComponentInfo.THRESH
 
 object MiniscriptDataComponent {
 
-    fun getComponent(name: String): ScripNoteType {
+    fun getComponent(name: String): ScriptNoteType {
         return when (name) {
-            "NONE" -> ScripNoteType.NONE
-            "PK" -> ScripNoteType.PK
-            "OLDER" -> ScripNoteType.OLDER
-            "AFTER" -> ScripNoteType.AFTER
-            "HASH160" -> ScripNoteType.HASH160
-            "HASH256" -> ScripNoteType.HASH256
-            "RIPEMD160" -> ScripNoteType.RIPEMD160
-            "SHA256" -> ScripNoteType.SHA256
-            "AND" -> ScripNoteType.AND
-            "OR" -> ScripNoteType.OR
-            "ANDOR" -> ScripNoteType.ANDOR
-            "THRESH" -> ScripNoteType.THRESH
-            "MULTI" -> ScripNoteType.MULTI
-            "OR_TAPROOT" -> ScripNoteType.OR_TAPROOT
+            "NONE" -> ScriptNoteType.NONE
+            "PK" -> ScriptNoteType.PK
+            "OLDER" -> ScriptNoteType.OLDER
+            "AFTER" -> ScriptNoteType.AFTER
+            "HASH160" -> ScriptNoteType.HASH160
+            "HASH256" -> ScriptNoteType.HASH256
+            "RIPEMD160" -> ScriptNoteType.RIPEMD160
+            "SHA256" -> ScriptNoteType.SHA256
+            "AND" -> ScriptNoteType.AND
+            "OR" -> ScriptNoteType.OR
+            "ANDOR" -> ScriptNoteType.ANDOR
+            "THRESH" -> ScriptNoteType.THRESH
+            "MULTI" -> ScriptNoteType.MULTI
+            "OR_TAPROOT" -> ScriptNoteType.OR_TAPROOT
             else -> throw IllegalArgumentException("Unknown component: $name")
         }
     }
@@ -42,20 +42,20 @@ object MiniscriptDataComponent {
     fun fromComponent(name: String): ComponentInfo {
         val component = getComponent(name)
         return when (component) {
-            ScripNoteType.NONE -> None()
-            ScripNoteType.PK -> PK()
-            ScripNoteType.OLDER -> OLDER()
-            ScripNoteType.AFTER -> AFTER()
-            ScripNoteType.HASH160 -> HASH160()
-            ScripNoteType.HASH256 -> HASH256()
-            ScripNoteType.RIPEMD160 -> RIPEMD160()
-            ScripNoteType.SHA256 -> SHA256()
-            ScripNoteType.AND -> AND()
-            ScripNoteType.OR -> OR()
-            ScripNoteType.ANDOR -> ANDOR()
-            ScripNoteType.THRESH -> THRESH()
-            ScripNoteType.MULTI -> MULTI()
-            ScripNoteType.OR_TAPROOT -> OR_TAPROOT()
+            ScriptNoteType.NONE -> None()
+            ScriptNoteType.PK -> PK()
+            ScriptNoteType.OLDER -> OLDER()
+            ScriptNoteType.AFTER -> AFTER()
+            ScriptNoteType.HASH160 -> HASH160()
+            ScriptNoteType.HASH256 -> HASH256()
+            ScriptNoteType.RIPEMD160 -> RIPEMD160()
+            ScriptNoteType.SHA256 -> SHA256()
+            ScriptNoteType.AND -> AND()
+            ScriptNoteType.OR -> OR()
+            ScriptNoteType.ANDOR -> ANDOR()
+            ScriptNoteType.THRESH -> THRESH()
+            ScriptNoteType.MULTI -> MULTI()
+            ScriptNoteType.OR_TAPROOT -> OR_TAPROOT()
         }
     }
 }
@@ -143,7 +143,7 @@ sealed class ComponentInfo(
 }
 
 @Keep
-enum class ScripNoteType {
+enum class ScriptNoteType {
     NONE,
     PK,
     OLDER,
