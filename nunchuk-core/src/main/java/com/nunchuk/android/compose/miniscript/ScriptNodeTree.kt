@@ -25,6 +25,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -310,6 +311,7 @@ fun ScriptNodeTree(
                     currentBlockHeight = currentBlockHeight,
                     showThreadCurve = showThreadCurve,
                     isSatisfiableNode = isSatisfiableNode,
+                    mode = data.mode,
                     node = node
                 ) {
                     NodeContent(
@@ -356,6 +358,8 @@ fun ScriptNodeTree(
                     topPadding = if (showThreadCurve) 10 else 0,
                     showThreadCurve = showThreadCurve,
                     modifier = modifier,
+                    isSatisfiable = isSatisfiableNode,
+                    data = data,
                     node = node
                 ) {
                     NodeContent(
@@ -458,9 +462,40 @@ fun ThreshMultiItem(
     modifier: Modifier = Modifier,
     topPadding: Int = 10,
     showThreadCurve: Boolean = true,
+    isSatisfiable: Boolean,
     node: ScriptNode,
+    data: ScriptNodeData = ScriptNodeData(),
     content: @Composable () -> Unit = {},
 ) {
+    // Only calculate signed signatures when in SIGN mode
+    val pendingSigners = if (data.mode == ScriptMode.SIGN && isSatisfiable) {
+        val signedCount = when (node.type) {
+            ScriptNoteType.THRESH.name -> {
+                node.subs.count { sub ->
+                    val firstKey = sub.keys.firstOrNull()
+                    if (firstKey != null) {
+                        val signer = data.signers[firstKey]
+                        val xfp = signer?.fingerPrint
+                        xfp != null && data.signedSigners[xfp] == true
+                    } else false
+                }
+            }
+
+            ScriptNoteType.MULTI.name -> {
+                node.keys.count { key ->
+                    val signer = data.signers[key]
+                    val xfp = signer?.fingerPrint
+                    xfp != null && data.signedSigners[xfp] == true
+                }
+            }
+
+            else -> 0
+        }
+        node.k - signedCount
+    } else {
+        0
+    }
+
     Column(modifier = modifier) {
         Row(
             modifier = Modifier
@@ -496,6 +531,42 @@ fun ThreshMultiItem(
                     )
                 )
             }
+
+            // Show pending conditions or enough conditions collected
+            if (data.mode == ScriptMode.SIGN && isSatisfiable) {
+                Row(
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .padding(top = topPadding.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (pendingSigners > 0) {
+                        NcIcon(
+                            painter = painterResource(id = R.drawable.ic_pending_signatures),
+                            contentDescription = "Warning",
+                        )
+                        Text(
+                            text = pluralStringResource(
+                                R.plurals.nc_transaction_pending_conditions,
+                                pendingSigners,
+                                pendingSigners
+                            ),
+                            style = NunchukTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    } else {
+                        NcIcon(
+                            painter = painterResource(id = R.drawable.ic_check_circle),
+                            contentDescription = "Check",
+                        )
+                        Text(
+                            text = stringResource(R.string.nc_transaction_enough_conditions),
+                            style = NunchukTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    }
+                }
+            }
         }
         content()
     }
@@ -507,6 +578,7 @@ fun TimelockItem(
     currentBlockHeight: Int = 0,
     showThreadCurve: Boolean = true,
     isSatisfiableNode: Boolean,
+    mode: ScriptMode,
     node: ScriptNode,
     content: @Composable () -> Unit = {},
 ) {
@@ -581,12 +653,40 @@ fun TimelockItem(
                         text = "${node.idString}. $title",
                         style = NunchukTheme.typography.body
                     )
-                    Text(
-                        text = description,
-                        style = NunchukTheme.typography.bodySmall.copy(
+
+                    // Hide description for timestamp timelocks in SIGN mode
+                    if (mode != ScriptMode.SIGN || !timeLock.isTimestamp()) {
+                        Text(
+                            text = description,
+                            style = NunchukTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.textSecondary
+                            )
+                        )
+                    }
+                }
+
+                // Show locked/unlocked status in SIGN mode
+                if (mode == ScriptMode.SIGN) {
+                    if (isSatisfiableNode) {
+                        CheckedLabel(text = "Unlocked")
+                    } else {
+                        Text(
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically),
+                            text = "Locked",
+                            style = NunchukTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.textSecondary
                         )
-                    )
+                        NcIcon(
+                            painter = painterResource(R.drawable.ic_lock),
+                            contentDescription = "Locked",
+                            modifier = Modifier
+                                .padding(start = 4.dp)
+                                .size(24.dp)
+                                .align(Alignment.CenterVertically),
+                            tint = MaterialTheme.colorScheme.textSecondary
+                        )
+                    }
                 }
             }
 
@@ -771,7 +871,7 @@ private fun String.capitalize(): String {
 @Composable
 fun ConditionTreeUIPreview() {
     val sampleScriptNode = ScriptNode(
-        id = emptyList(),
+        id = listOf(1),
         data = byteArrayOf(),
         type = ScriptNoteType.ANDOR.name,
         keys = listOf(),
@@ -783,7 +883,7 @@ fun ConditionTreeUIPreview() {
                 keys = listOf(),
                 k = 7776000, // 90 days in seconds
                 subs = emptyList(),
-                id = emptyList(),
+                id = listOf(1, 1),
                 data = byteArrayOf(),
                 timeLock = null
             ),
@@ -792,7 +892,7 @@ fun ConditionTreeUIPreview() {
                 keys = listOf("key_3", "key_4", "key_5"),
                 k = 3,
                 subs = emptyList(),
-                id = emptyList(),
+                id = listOf(1, 2),
                 data = byteArrayOf(),
                 timeLock = null
             ),
@@ -801,7 +901,7 @@ fun ConditionTreeUIPreview() {
                 keys = listOf("key_0", "key_1", "key_2"),
                 k = 2,
                 subs = emptyList(),
-                id = emptyList(),
+                id = listOf(1, 3),
                 data = byteArrayOf(),
                 timeLock = null
             )
@@ -840,7 +940,7 @@ fun RowScope.CheckedLabel(
     NcIcon(
         modifier = Modifier
             .align(Alignment.CenterVertically)
-            .padding(start = 8.dp),
+            .padding(start = 4.dp),
         painter = painterResource(R.drawable.ic_check_circle_24),
         contentDescription = "Signed",
     )
