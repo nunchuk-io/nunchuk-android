@@ -46,4 +46,5 @@ data class TransactionDetailsState(
     val scriptNode: ScriptNode? = null,
     val signerMap: Map<String, SignerModel?> = emptyMap(),
     val satisfiableMap: Map<String, Boolean> = emptyMap(),
+    val topLevelDisableNode: ScriptNode? = null
 )

@@ -17,6 +17,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -36,6 +40,7 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.miniscript.ComponentInfo
@@ -248,6 +253,7 @@ data class ScriptNodeData(
     val duplicateSignerKeys: Set<String> = emptySet(),
     val signingPath: SigningPath = SigningPath(path = emptyList()),
     val satisfiableMap: Map<String, Boolean> = emptyMap(),
+    val topLevelDisableNode: ScriptNode? = null
 )
 
 @Composable
@@ -468,6 +474,9 @@ fun ThreshMultiItem(
     content: @Composable () -> Unit = {},
 ) {
     // Only calculate signed signatures when in SIGN mode
+    var showDetail by remember(node.id) {
+        mutableStateOf(data.topLevelDisableNode?.id != node.id)
+    }
     val pendingSigners = if (data.mode == ScriptMode.SIGN && isSatisfiable) {
         val signedCount = when (node.type) {
             ScriptNoteType.THRESH.name -> {
@@ -566,9 +575,33 @@ fun ThreshMultiItem(
                         )
                     }
                 }
+            } else if (data.topLevelDisableNode?.id == node.id) {
+                Row(
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .padding(top = topPadding.dp)
+                        .clickable { showDetail = !showDetail },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (showDetail) stringResource(R.string.nc_view_less) else stringResource(R.string.nc_view_all),
+                        style = NunchukTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.textPrimary
+                    )
+                    NcIcon(
+                        painter = painterResource(id = if (showDetail) R.drawable.ic_collapse else R.drawable.ic_expand),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .size(16.dp),
+                        tint = MaterialTheme.colorScheme.textPrimary
+                    )
+                }
             }
         }
-        content()
+        if (showDetail) {
+            content()
+        }
     }
 }
 

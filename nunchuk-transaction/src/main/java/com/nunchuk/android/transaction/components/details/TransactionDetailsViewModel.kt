@@ -479,6 +479,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         defaultKeySetIndex: Int
     ) {
         if (addressType.isTaproot() && !isValueKeySetDisable && defaultKeySetIndex == 0) {
+            // Special case for Taproot wallet and select key path we only show the first signer
             val signers = walletExtended.wallet.signers.take(1).map { signer ->
                 singleSignerMapper(signer)
             }
@@ -486,16 +487,40 @@ internal class TransactionDetailsViewModel @Inject constructor(
         } else {
             getScriptNodeFromMiniscriptTemplateUseCase(walletExtended.wallet.miniscript).onSuccess { result ->
                 val signerMap = parseSignersFromScriptNode(result.scriptNode)
+                val topLevelDisableNode = topLevelDisableNode(result.scriptNode)
                 _state.update {
                     it.copy(
                         signerMap = signerMap,
                         scriptNode = result.scriptNode,
                         signers = signerMap.values.toList(),
-                        satisfiableMap = satisfiableMap
+                        satisfiableMap = satisfiableMap,
+                        topLevelDisableNode = topLevelDisableNode,
                     )
                 }
             }
         }
+    }
+
+    private fun topLevelDisableNode(
+        scriptNode: ScriptNode,
+    ): ScriptNode? {
+        val targetTypes = setOf(
+            ScriptNoteType.ANDOR.name,
+            ScriptNoteType.OR.name,
+            ScriptNoteType.OR_TAPROOT.name
+        )
+        val queue: ArrayDeque<ScriptNode> = ArrayDeque()
+        queue.add(scriptNode)
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+            if (current.type in targetTypes) {
+                return current.subs.drop(
+                    if (current.type == ScriptNoteType.ANDOR.name) 1 else 0
+                ).find { satisfiableMap[it.idString] == false }
+            }
+            current.subs.forEach { queue.add(it) }
+        }
+        return null
     }
 
     private suspend fun parseSignersFromScriptNode(node: ScriptNode): Map<String, SignerModel> {

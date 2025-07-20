@@ -59,6 +59,7 @@ import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
+import com.nunchuk.android.core.miniscript.ScriptNoteType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.getBTCAmount
@@ -74,6 +75,7 @@ import com.nunchuk.android.core.util.signDone
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxOutput
 import com.nunchuk.android.model.UnspentOutput
@@ -87,6 +89,7 @@ import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.formatByWeek
 import com.nunchuk.android.utils.simpleWeekDayYearFormat
+import java.util.ArrayDeque
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -126,6 +129,9 @@ fun TransactionDetailView(
     }
     val firstKeySet = if (!state.isValueKeySetDisable) keySetMap[state.defaultKeySetIndex] else null
     val isMiniscriptTaprootKeyPathTransaction = state.addressType.isTaproot() && state.scriptNode != null && state.defaultKeySetIndex == 0
+    val topAndOrNode = remember(state.scriptNode) {
+
+    }
     NunchukTheme {
         NcScaffold(
             modifier = Modifier.systemBarsPadding(),
@@ -379,6 +385,7 @@ fun TransactionDetailView(
                                     showBip32Path = false,
                                     signedSigners = transaction.signers,
                                     satisfiableMap = state.satisfiableMap,
+                                    topLevelDisableNode = state.topLevelDisableNode
                                 ),
                                 onChangeBip32Path = { _, _ -> },
                                 onActionKey = { _, signer ->
