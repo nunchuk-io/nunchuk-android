@@ -50,6 +50,7 @@
         android:background="@drawable/nc_wallet_warning_background"
         android:drawablePadding="@dimen/nc_padding_8"
         android:padding="@dimen/nc_padding_12"
+        android:gravity="center_vertical"
         android:text="@string/nc_assisted_wallet_downgrade_hint"
         android:visibility="gone"
         app:drawableStartCompat="@drawable/ic_info"

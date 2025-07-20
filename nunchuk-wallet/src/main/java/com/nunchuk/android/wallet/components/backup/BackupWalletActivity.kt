@@ -75,7 +75,9 @@ class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalle
     }
 
     private fun setupViews() {
-        NCToastMessage(this).show(R.string.nc_wallet_has_been_created)
+        if (args.isFromWalletDetails) {
+            NCToastMessage(this).show(R.string.nc_wallet_has_been_created)
+        }
         binding.btnBackup.setOnClickListener { showSaveShareOption() }
         binding.btnSkipBackup.setOnClickListener {
             navigateToNextScreen(isBackupSuccessful = false)
@@ -114,6 +116,7 @@ class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalle
                         // Update banner state to REGISTER_ONLY and open upload configuration screen
                         viewModel.updateBannerState(BannerState.REGISTER_ONLY)
                         navigator.openUploadConfigurationScreen(this, walletId)
+                        finish()
                     } else {
                         // Remove banner state and go to wallet details
                         viewModel.removeBannerState()

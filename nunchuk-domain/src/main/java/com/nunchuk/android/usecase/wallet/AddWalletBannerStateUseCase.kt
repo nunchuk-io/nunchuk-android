@@ -50,10 +50,10 @@ class AddWalletBannerStateUseCase @Inject constructor(
             // If wallet is multisig → BACKUP_AND_REGISTER
             wallet.signers.size > 1 -> BannerState.BACKUP_AND_REGISTER
             
-            // If wallet is singlesig and addressType == Native Segwit and derivationPath == "m/84h/0h/0h" → BACKUP_ONLY  
+            // If wallet is singlesig and addressType == Native Segwit and derivationPath != "m/84h/0h/0h" → BACKUP_ONLY
             wallet.signers.size == 1 && 
             wallet.addressType == AddressType.NATIVE_SEGWIT && 
-            wallet.signers.first().derivationPath == "m/84h/0h/0h" -> BannerState.BACKUP_ONLY
+            wallet.signers.first().derivationPath != "m/84h/0h/0h" -> BannerState.BACKUP_ONLY
             
             // If wallet is singlesig and conditions are not met → do not save anything
             else -> return // Exit early without saving anything

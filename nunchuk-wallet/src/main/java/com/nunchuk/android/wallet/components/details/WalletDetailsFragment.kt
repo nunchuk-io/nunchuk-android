@@ -426,7 +426,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         val wallet = state.walletExtended.wallet
         adapter.setHideWalletDetail(state.hideWalletDetailLocal)
         binding.toolbarTitle.text =
-            if (state.isDeprecatedGroupWallet) "[DEPRECATED] ${wallet.name}" else wallet.name
+            if (state.isDeprecatedGroupWallet) getString(R.string.nc_deprecated_prefix) + wallet.name else wallet.name
         configureToolbar(state)
         binding.configuration.bindWalletConfiguration(
             wallet,
@@ -708,7 +708,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
     private fun handleInactiveAssistedWallet() {
         binding.tvWalletWarning.makeTextLink(
             getString(R.string.nc_assisted_wallet_downgrade_hint),
-            ClickAbleText(content = "renew your subscription", onClick = {
+            ClickAbleText(content = getString(R.string.nc_renew_subscription), onClick = {
                 requireActivity().openExternalLink(RENEW_ACCOUNT_LINK)
             })
         )
@@ -749,20 +749,19 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
     private fun handleBannerStateWarning(bannerState: BannerState) {
         val (message, actionText, clickAction) = when (bannerState) {
             BannerState.BACKUP_AND_REGISTER -> Triple(
-                "Please back up your wallet configuration. You might also need to register the wallet on your hardware. Do it now.",
-                "Do it now",
-                { onBannerBackupAndRegisterClick() }
-            )
+                getString(R.string.nc_banner_backup_and_register),
+                getString(R.string.nc_do_it_now)
+            ) { onBannerBackupAndRegisterClick() }
+
             BannerState.BACKUP_ONLY -> Triple(
-                "Please back up your wallet configuration. Do it now.",
-                "Do it now",
-                { onBannerBackupOnlyClick() }
-            )
+                getString(R.string.nc_banner_backup_only),
+                getString(R.string.nc_do_it_now)
+            ) { onBannerBackupOnlyClick() }
+
             BannerState.REGISTER_ONLY -> Triple(
-                "You might need to register the wallet on your hardware device. Do it now.",
-                "Do it now",
-                { onBannerRegisterOnlyClick() }
-            )
+                getString(R.string.nc_banner_register_only),
+                getString(R.string.nc_do_it_now)
+            ) { onBannerRegisterOnlyClick() }
         }
 
         binding.tvWalletWarning.makeTextLink(

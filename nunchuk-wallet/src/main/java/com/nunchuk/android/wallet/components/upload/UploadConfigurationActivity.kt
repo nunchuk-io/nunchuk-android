@@ -25,6 +25,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
+import com.nunchuk.android.wallet.components.details.WalletDetailsActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.ExportColdcardSuccess
 import com.nunchuk.android.wallet.databinding.ActivityWalletUploadConfigurationBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -60,17 +61,23 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
         }
         binding.btnUpload.setOnDebounceClickListener { showExportColdcardOptions() }
         binding.btnSkipUpload.setOnDebounceClickListener {
-            goToWalletConfigScreen()
+            ActivityManager.popUntil(WalletDetailsActivity::class.java)
         }
         binding.toolbar.setNavigationOnClickListener {
-            ActivityManager.popUntilRoot()
+            finish()
         }
     }
 
     override fun handleSharedEvent(event: UploadConfigurationEvent) {
         super.handleSharedEvent(event)
-        if (event is ExportColdcardSuccess) {
-            shareConfigurationFile(event.filePath)
+        when (event) {
+            is ExportColdcardSuccess -> {
+                shareConfigurationFile(event.filePath)
+            }
+            is UploadConfigurationEvent.DoneScanQr -> {
+                finish()
+            }
+            else -> {}
         }
     }
 
