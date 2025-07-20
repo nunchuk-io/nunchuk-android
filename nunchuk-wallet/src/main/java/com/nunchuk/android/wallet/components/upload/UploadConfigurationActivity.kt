@@ -54,7 +54,10 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
     }
 
     private fun setupViews() {
-        binding.btnQRCode.setOnDebounceClickListener { showExportQRTypeOption() }
+        binding.btnQRCode.setOnDebounceClickListener { 
+            val isMiniscriptWallet = sharedViewModel.getIsMiniscriptWallet()
+            showExportQRTypeOption(isMiniscriptWallet)
+        }
         binding.btnUpload.setOnDebounceClickListener { showExportColdcardOptions() }
         binding.btnSkipUpload.setOnDebounceClickListener {
             goToWalletConfigScreen()

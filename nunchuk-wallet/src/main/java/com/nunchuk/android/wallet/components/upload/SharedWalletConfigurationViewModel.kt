@@ -31,6 +31,7 @@ import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
+import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.DoneScanQr
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.ExportColdcardSuccess
@@ -50,6 +51,7 @@ class SharedWalletConfigurationViewModel @Inject constructor(
     private val exportWalletToMk4UseCase: ExportWalletToMk4UseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
     private val removeWalletBannerStateUseCase: RemoveWalletBannerStateUseCase,
+    private val getWalletUseCase: GetWalletUseCase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
@@ -58,9 +60,22 @@ class SharedWalletConfigurationViewModel @Inject constructor(
     private val _event = MutableSharedFlow<UploadConfigurationEvent>()
     val event = _event.asSharedFlow()
 
+    private var isMiniscriptWallet: Boolean = false
+
     fun init(walletId: String) {
         this.walletId = walletId
+        loadWalletInfo()
     }
+
+    private fun loadWalletInfo() {
+        viewModelScope.launch {
+            getWalletUseCase.execute(walletId).collect { walletExtended ->
+                isMiniscriptWallet = walletExtended.wallet.miniscript.isNotEmpty()
+            }
+        }
+    }
+
+    fun getIsMiniscriptWallet(): Boolean = isMiniscriptWallet
 
     fun handleColdcardExportNfc(ndef: Ndef) {
         viewModelScope.launch {

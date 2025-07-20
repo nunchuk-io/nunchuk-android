@@ -53,7 +53,9 @@ fun NcConfirmationDialog(
                 style = NunchukTheme.typography.title
             )
             NcSpannedText(
-                modifier = Modifier.padding(top = 12.dp),
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    .fillMaxWidth(),
                 text = message,
                 baseStyle = NunchukTheme.typography.body,
                 textAlign = TextAlign.Center,

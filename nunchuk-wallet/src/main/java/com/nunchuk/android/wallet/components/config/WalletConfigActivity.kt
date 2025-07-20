@@ -186,7 +186,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     override fun onOptionClicked(option: SheetOption) {
         super.onOptionClicked(option)
         when (option.type) {
-            SheetOptionType.TYPE_EXPORT_AS_QR -> showExportQRTypeOption()
+            SheetOptionType.TYPE_EXPORT_AS_QR -> showExportQRTypeOption(isMiniscriptWallet())
             SheetOptionType.TYPE_DELETE_WALLET -> handleDeleteWallet()
             SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> {
                 isColdCardExportFlow = true
@@ -675,8 +675,8 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         
         if (!isMiniscriptWallet()) {
             options.add(SheetOption(SheetOptionType.TYPE_EXPORT_PORTAL, stringId = R.string.nc_portal))
-            options.add(SheetOption(SheetOptionType.TYPE_EXPORT_AS_QR, stringId = R.string.nc_text_wallet_qr_code))
         }
+        options.add(SheetOption(SheetOptionType.TYPE_EXPORT_AS_QR, stringId = R.string.nc_text_wallet_qr_code))
         
         BottomSheetOption.newInstance(
             title = getString(R.string.nc_select_export_format),

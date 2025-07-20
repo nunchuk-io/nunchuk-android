@@ -22,7 +22,6 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SpanIndicator
-import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.R
 
 @Composable
@@ -75,7 +74,7 @@ fun NcConfirmationVerticalDialog(
                         .padding(top = 8.dp),
                     onClick = onDismiss
                 ) {
-                    Text(text = negativeButtonText, color = MaterialTheme.colorScheme.textPrimary)
+                    Text(text = negativeButtonText, style = NunchukTheme.typography.title)
                 }
             }
         }

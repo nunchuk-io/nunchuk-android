@@ -107,20 +107,28 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
         ).show(supportFragmentManager, "BottomSheetOption")
     }
 
-    fun showExportQRTypeOption() {
-        BottomSheetOption.newInstance(
-            title = getString(R.string.nc_select_qr_type),
-            options = listOf(
-                SheetOption(
-                    type = SheetOptionType.TYPE_QR_BC_UR2_LEGACY,
-                    stringId = R.string.nc_bc_ur2_legacy,
-                    subStringId = R.string.nc_bc_ur2_legacy_desc
-                ),
+    fun showExportQRTypeOption(isMiniscriptWallet: Boolean = false) {
+        val options = mutableListOf(
+            SheetOption(
+                type = SheetOptionType.TYPE_QR_BC_UR2_LEGACY,
+                stringId = R.string.nc_bc_ur2_legacy,
+                subStringId = R.string.nc_bc_ur2_legacy_desc
+            )
+        )
+        
+        // Only show BC_UR2 option for non-miniscript wallets
+        if (!isMiniscriptWallet) {
+            options.add(
                 SheetOption(
                     type = SheetOptionType.TYPE_QR_BC_UR2,
                     stringId = R.string.nc_bc_ur2
-                ),
+                )
             )
+        }
+        
+        BottomSheetOption.newInstance(
+            title = getString(R.string.nc_select_qr_type),
+            options = options
         ).show(supportFragmentManager, "BottomSheetOption")
     }
 
