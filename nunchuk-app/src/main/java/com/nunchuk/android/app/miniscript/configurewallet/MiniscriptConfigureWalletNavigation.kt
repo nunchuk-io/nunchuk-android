@@ -250,10 +250,12 @@ fun MiniscriptConfigWalletScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     val hasDuplicateSigners = getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner).isNotEmpty()
+                    val isContinueEnabled = uiState.areAllKeysAssigned && !hasDuplicateSigners
+                    
                     NcPrimaryDarkButton(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = { onContinue() },
-                        enabled = uiState.areAllKeysAssigned && !hasDuplicateSigners
+                        enabled = isContinueEnabled
                     ) {
                         Text(text = "Continue")
                     }
@@ -447,21 +449,41 @@ private fun getDuplicateSignerKeys(
     taprootSigner: SignerModel?
 ): Set<String> {
     val signerKeyCounts = mutableMapOf<String, Int>()
+    val duplicateKeys = mutableSetOf<String>()
 
     // Create a unique key for each signer combining fingerprint and derivation path
     signers.values.filterNotNull().forEach { signer ->
         val signerKey = "${signer.fingerPrint}:${signer.derivationPath}"
-        signerKeyCounts[signerKey] = signerKeyCounts.getOrDefault(signerKey, 0) + 1
+        val currentCount = signerKeyCounts.getOrDefault(signerKey, 0)
+        signerKeyCounts[signerKey] = currentCount + 1
+        
+        Timber.tag("miniscript-feature").d("  - Regular signer: $signerKey (count: ${currentCount + 1})")
+        
+        if (currentCount > 0) {
+            duplicateKeys.add(signerKey)
+            Timber.tag("miniscript-feature").d("  - DUPLICATE FOUND: $signerKey")
+        }
     }
 
     // Count taproot signer
     taprootSigner?.let { signer ->
         val signerKey = "${signer.fingerPrint}:${signer.derivationPath}"
-        signerKeyCounts[signerKey] = signerKeyCounts.getOrDefault(signerKey, 0) + 1
+        val currentCount = signerKeyCounts.getOrDefault(signerKey, 0)
+        signerKeyCounts[signerKey] = currentCount + 1
+        
+        Timber.tag("miniscript-feature").d("  - Taproot signer: $signerKey (count: ${currentCount + 1})")
+        
+        if (currentCount > 0) {
+            duplicateKeys.add(signerKey)
+            Timber.tag("miniscript-feature").d("  - DUPLICATE FOUND in taproot: $signerKey")
+        }
     }
 
     // Return signer keys that appear more than once
-    return signerKeyCounts.filter { it.value > 1 }.keys.toSet()
+    val result = signerKeyCounts.filter { it.value > 1 }.keys.toSet()
+    Timber.tag("miniscript-feature").d("getDuplicateSignerKeys - Final result: $result")
+    
+    return result
 }
 
 @PreviewLightDark

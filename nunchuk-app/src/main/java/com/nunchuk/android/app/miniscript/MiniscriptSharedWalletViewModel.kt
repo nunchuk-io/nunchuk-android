@@ -192,7 +192,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     it.copy(
                         scriptNode = result.scriptNode,
                         keyPath = result.keyPath,
-                        areAllKeysAssigned = areAllKeysAssigned(result.scriptNode, it.signers)
+                        areAllKeysAssigned = areAllKeysAssigned(result.scriptNode, it.signers, it.taprootSigner)
                     )
                 }
                 mapKeyPositions(result.scriptNode, "")
@@ -358,7 +358,8 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     taprootSigner = signerModel,
-                    event = MiniscriptSharedWalletEvent.SignerAdded(keyName, signerModel)
+                    event = MiniscriptSharedWalletEvent.SignerAdded(keyName, signerModel),
+                    areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, it.signers, signerModel)
                 )
             }
             return
@@ -417,7 +418,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                                     _uiState.update { state ->
                                         state.copy(
                                             signers = currentSigners.toMap(),
-                                            areAllKeysAssigned = areAllKeysAssigned(state.scriptNode, currentSigners)
+                                            areAllKeysAssigned = areAllKeysAssigned(state.scriptNode, currentSigners, state.taprootSigner)
                                         )
                                     }
                                 } ?: run {
@@ -464,7 +465,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                         it.copy(
                             signers = currentSigners,
                             event = MiniscriptSharedWalletEvent.SignerAdded(keyName, signerModel),
-                            areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners)
+                            areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners, it.taprootSigner)
                         )
                     }
                     Timber.tag(TAG).d("Updated state with new signers: $currentSigners")
@@ -479,7 +480,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 it.copy(
                     signers = currentSigners,
                     event = MiniscriptSharedWalletEvent.SignerAdded(keyName, signerModel),
-                    areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners)
+                    areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners, it.taprootSigner)
                 )
             }
             Timber.tag(TAG).d("Updated state with new signer: $signerModel for key: $keyName")
@@ -547,13 +548,13 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
             it.copy(
                 signers = currentSigners,
                 event = MiniscriptSharedWalletEvent.SignerRemoved(keyName),
-                areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners)
+                areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners, it.taprootSigner)
             )
         }
         Timber.tag(TAG).d("Updated state after removing signer(s). Current signers: $currentSigners")
     }
 
-    private fun areAllKeysAssigned(scriptNode: ScriptNode?, signers: Map<String, SignerModel?>): Boolean {
+    private fun areAllKeysAssigned(scriptNode: ScriptNode?, signers: Map<String, SignerModel?>, taprootSigner: SignerModel? = null): Boolean {
         if (scriptNode == null) return false
         val allKeys = getAllKeysFromScriptNode(scriptNode)
         val areScriptKeysAssigned = allKeys.all { keyName -> signers[keyName] != null }
@@ -561,11 +562,12 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         // Also check if taproot signer is assigned when keyPath is present
         val keyPath = _uiState.value.keyPath
         val isTaprootKeyAssigned = if (keyPath.isNotEmpty()) {
-            _uiState.value.taprootSigner != null
+            // Use the provided taprootSigner parameter if available, otherwise fall back to current state
+            (taprootSigner ?: _uiState.value.taprootSigner) != null
         } else {
             true // No taproot key required
         }
-        
+
         return areScriptKeysAssigned && isTaprootKeyAssigned
     }
 
@@ -685,7 +687,8 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     signers = currentSigners,
                     event = MiniscriptSharedWalletEvent.Bip32PathChanged(newSignerModel),
                     currentKey = "",
-                    pendingBip32Update = null
+                    pendingBip32Update = null,
+                    areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners, it.taprootSigner)
                 )
             }
         }
@@ -913,7 +916,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                             _uiState.update { state ->
                                 state.copy(
                                     signers = currentSigners.toMap(),
-                                    areAllKeysAssigned = areAllKeysAssigned(state.scriptNode, currentSigners)
+                                    areAllKeysAssigned = areAllKeysAssigned(state.scriptNode, currentSigners, state.taprootSigner)
                                 )
                             }
                         } ?: run {
@@ -957,7 +960,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 it.copy(
                     signers = currentSigners,
                     event = MiniscriptSharedWalletEvent.SignerAdded(pendingState.keyName, signerModel),
-                    areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners)
+                    areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners, it.taprootSigner)
                 )
             }
             Timber.tag(TAG).d("Resumed - Updated state with signers: $currentSigners")
