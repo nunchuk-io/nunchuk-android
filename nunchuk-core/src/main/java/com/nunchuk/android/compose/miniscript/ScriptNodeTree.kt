@@ -584,7 +584,9 @@ fun ThreshMultiItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (showDetail) stringResource(R.string.nc_view_less) else stringResource(R.string.nc_view_all),
+                        text = if (showDetail) stringResource(R.string.nc_view_less) else stringResource(
+                            R.string.nc_view_all
+                        ),
                         style = NunchukTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.textPrimary
                     )
@@ -798,35 +800,42 @@ fun KeyItem(
         Row(
             modifier = Modifier
                 .weight(1f),
-            verticalAlignment = Alignment.CenterVertically
         ) {
             NcIcon(
                 modifier = Modifier
-                    .padding(bottom = 5.dp)
+                    .padding(top = 8.dp)
                     .size(20.dp),
                 painter = painterResource(R.drawable.ic_key),
                 contentDescription = null,
             )
-            Column(
+            Row(
                 modifier = Modifier
-                    .padding(start = 8.dp)
+                    .fillMaxWidth()
+                    .padding(start = 8.dp, top = if (xfp.isNotEmpty()) 8.dp else 0.dp)
                     .weight(1f),
-                verticalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = if (position.isNotEmpty()) "$position. $title" else title,
-                    style = NunchukTheme.typography.body,
+                Column(
                     modifier = Modifier
-                )
-                if (xfp.isNotEmpty()) {
+                        .weight(1f),
+                    verticalArrangement = Arrangement.Center,
+                ) {
                     Text(
-                        text = xfp,
-                        style = NunchukTheme.typography.bodySmall,
+                        text = if (position.isNotEmpty()) "$position. $title" else title,
+                        style = NunchukTheme.typography.body,
+                        modifier = Modifier
                     )
+                    if (xfp.isNotEmpty()) {
+                        Text(
+                            text = xfp,
+                            style = NunchukTheme.typography.bodySmall,
+                        )
+                    }
+                    bip32PathContent.invoke()
                 }
-                bip32PathContent.invoke()
+                actionContent()
             }
-            actionContent()
         }
     }
 }

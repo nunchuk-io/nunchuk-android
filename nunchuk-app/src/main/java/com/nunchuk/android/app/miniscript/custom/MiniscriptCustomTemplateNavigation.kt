@@ -19,6 +19,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -161,7 +162,7 @@ fun MiniscriptCustomTemplateScreen(
                 .navigationBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    title = "Enter miniscript",
+                    title = stringResource(id = R.string.nc_miniscript_enter_miniscript),
                     textStyle = NunchukTheme.typography.titleLarge,
                 )
             },
@@ -179,7 +180,7 @@ fun MiniscriptCustomTemplateScreen(
                         onClick = {
                             onContinue(miniscriptValue)
                         }) {
-                        Text(text = if (fromAddWallet) "Save" else "Continue")
+                        Text(text = if (fromAddWallet) stringResource(id = R.string.nc_miniscript_save) else stringResource(id = R.string.nc_miniscript_continue))
                     }
                 }
             },
@@ -194,14 +195,10 @@ fun MiniscriptCustomTemplateScreen(
                 NcTextField(
                     modifier = Modifier
                         .padding(top = 16.dp),
-                    title = "Customize miniscript",
+                    title = stringResource(id = R.string.nc_miniscript_customize_miniscript),
                     placeholder = {
                         Text(
-                            text = "Example: \nandor(\n" +
-                                    "ln:older(12900),\n" +
-                                    "thresh(2,pk(A), s:pk(B), s:pk(C)),\n" +
-                                    "thresh(2,pk(A),s:pk(D),s:pk(E))\n" +
-                                    ")",
+                            text = stringResource(id = R.string.nc_miniscript_example),
                             style = NunchukTheme.typography.body.copy(
                                 color = colorResource(
                                     id = R.color.nc_boulder_color
@@ -236,12 +233,12 @@ fun MiniscriptCustomTemplateScreen(
         
         if (showTaprootWarning) {
             NcConfirmationDialog(
-                title = "Warning",
-                message = "To use a Taproot script, the wallet's address type must be Taproot. Would you like to change it now?",
+                title = stringResource(id = R.string.nc_miniscript_warning),
+                message = stringResource(id = R.string.nc_miniscript_taproot_warning),
                 onPositiveClick = onTaprootWarningConfirm,
                 onDismiss = onTaprootWarningDismiss,
-                positiveButtonText = "Continue",
-                negativeButtonText = "No"
+                positiveButtonText = stringResource(id = R.string.nc_miniscript_continue),
+                negativeButtonText = stringResource(id = R.string.nc_miniscript_no)
             )
         }
     }

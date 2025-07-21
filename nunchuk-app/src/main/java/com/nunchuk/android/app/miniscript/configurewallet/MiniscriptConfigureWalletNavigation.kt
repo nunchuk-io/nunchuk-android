@@ -228,7 +228,7 @@ fun MiniscriptConfigWalletScreen(
                 .navigationBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    title = "Configure wallet",
+                    title = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_configure_wallet),
                     textStyle = NunchukTheme.typography.titleLarge,
                     actions = {
                         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.textPrimary) {
@@ -237,7 +237,7 @@ fun MiniscriptConfigWalletScreen(
                             }) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.ic_more),
-                                    contentDescription = "More icon"
+                                    contentDescription = null
                                 )
                             }
                         }
@@ -257,7 +257,7 @@ fun MiniscriptConfigWalletScreen(
                         onClick = { onContinue() },
                         enabled = isContinueEnabled
                     ) {
-                        Text(text = "Continue")
+                        Text(text = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_continue))
                     }
                 }
             },
@@ -311,7 +311,7 @@ fun MiniscriptConfigWalletScreen(
                             start = 16.dp,
                             end = 16.dp
                         ),
-                        text = "Script path",
+                        text = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_script_path),
                         enabled = true
                     )
                 }
@@ -395,8 +395,8 @@ fun MiniscriptConfigWalletScreen(
 
         if (showDuplicateSignerWarning && duplicateSignerData != null) {
             NcConfirmationVerticalDialog(
-                title = "Warning",
-                message = "This key is already used in this miniscript. Select a different BIP-32 path to derive a new child key, or add it in a separate miniscript instead.",
+                title = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_warning),
+                message = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_duplicate_signer_message),
                 onPositiveClick = {
                     showDuplicateSignerWarning = false
                     val (signer, keyName) = duplicateSignerData!!
@@ -421,8 +421,8 @@ fun MiniscriptConfigWalletScreen(
                     isDuplicateBip32Update = false
                     onClearEvent()
                 },
-                positiveButtonText = "Show BIP32 path",
-                negativeButtonText = "Cancel"
+                positiveButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_show_bip32_path),
+                negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_cancel)
             )
         }
 
