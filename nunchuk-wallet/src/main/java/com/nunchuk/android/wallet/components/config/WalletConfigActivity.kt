@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.wallet.components.config
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -56,6 +55,7 @@ import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.utils.toInvoiceInfo
@@ -87,7 +87,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val data = it.data?.extras
-            if (it.resultCode == Activity.RESULT_OK && data != null) {
+            if (it.resultCode == RESULT_OK && data != null) {
                 val signatureMap =
                     data.serializable<HashMap<String, String>>(GlobalResultKey.SIGNATURE_EXTRA)
                         ?: return@registerForActivityResult
@@ -100,7 +100,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     private val aliasLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val data = it.data?.extras
-            if (it.resultCode == Activity.RESULT_OK && data != null) {
+            if (it.resultCode == RESULT_OK && data != null) {
                 val alias = data.getString(AliasActivity.EXTRA_ALIAS).orEmpty()
                 if (alias.isNotEmpty()) {
                     NCToastMessage(this).showMessage(getString(R.string.nc_alias_has_been_set))
@@ -112,7 +112,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     private val exportWalletToPortalLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
+            if (it.resultCode == RESULT_OK) {
                 NCToastMessage(this).showMessage(getString(R.string.nc_export_to_portal_success))
             }
         }
@@ -186,7 +186,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     override fun onOptionClicked(option: SheetOption) {
         super.onOptionClicked(option)
         when (option.type) {
-            SheetOptionType.TYPE_EXPORT_AS_QR -> showExportQRTypeOption(isMiniscriptWallet())
+            SheetOptionType.TYPE_EXPORT_AS_QR -> showExportQRTypeOption(viewModel.state.value.walletExtended.wallet, isMiniscriptWallet())
             SheetOptionType.TYPE_DELETE_WALLET -> handleDeleteWallet()
             SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> {
                 isColdCardExportFlow = true
@@ -526,7 +526,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         } else {
             NCToastMessage(this).showMessage(getString(R.string.nc_wallet_delete_wallet_success))
         }
-        setResult(Activity.RESULT_OK, Intent().apply {
+        setResult(RESULT_OK, Intent().apply {
             putExtra(EXTRA_WALLET_ACTION, WalletConfigAction.DELETE)
         })
         ActivityManager.popUntilRoot()
@@ -668,16 +668,28 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     }
 
     private fun showSaveWalletConfigurationOption() {
-        val options = mutableListOf(
-            SheetOption(SheetOptionType.TYPE_EXPORT_BSMS, stringId = R.string.nc_bsms),
-            SheetOption(SheetOptionType.TYPE_EXPORT_TO_COLD_CARD, stringId = R.string.nc_coldcard),
-        )
-        
-        if (!isMiniscriptWallet()) {
+        val wallet = viewModel.state.value.walletExtended.wallet
+        val isMiniscript = isMiniscriptWallet()
+        val isMultisig = wallet.signers.size > 1
+        val addressType = wallet.addressType
+        val isSupportedType = addressType == AddressType.LEGACY ||
+                addressType == AddressType.NESTED_SEGWIT ||
+                addressType == AddressType.NATIVE_SEGWIT
+
+        val options = mutableListOf<SheetOption>()
+        options.add(SheetOption(SheetOptionType.TYPE_EXPORT_BSMS, stringId = R.string.nc_bsms))
+
+        // Show COLDCARD only for multisig and supported address types
+        if (isMultisig && isSupportedType) {
+            options.add(SheetOption(SheetOptionType.TYPE_EXPORT_TO_COLD_CARD, stringId = R.string.nc_coldcard))
+        }
+
+        if (!isMiniscript) {
             options.add(SheetOption(SheetOptionType.TYPE_EXPORT_PORTAL, stringId = R.string.nc_portal))
         }
+
         options.add(SheetOption(SheetOptionType.TYPE_EXPORT_AS_QR, stringId = R.string.nc_text_wallet_qr_code))
-        
+
         BottomSheetOption.newInstance(
             title = getString(R.string.nc_select_export_format),
             options = options
@@ -738,7 +750,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     private fun showEditWalletSuccess() {
         binding.root.post {
             NCToastMessage(this).show(R.string.nc_text_change_wallet_success)
-            setResult(Activity.RESULT_OK, Intent().apply {
+            setResult(RESULT_OK, Intent().apply {
                 putExtra(EXTRA_WALLET_ACTION, WalletConfigAction.UPDATE_NAME)
             })
         }
@@ -746,7 +758,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
-        if (resultCode == Activity.RESULT_OK) {
+        if (resultCode == RESULT_OK) {
             if (requestCode == IMPORT_NUNCHUK_REQ) {
                 intent?.data?.let {
                     getFileFromUri(contentResolver, it, cacheDir)

@@ -28,6 +28,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
@@ -61,6 +62,7 @@ class SharedWalletConfigurationViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     private var isMiniscriptWallet: Boolean = false
+    private var wallet: Wallet? = null
 
     fun init(walletId: String) {
         this.walletId = walletId
@@ -71,11 +73,14 @@ class SharedWalletConfigurationViewModel @Inject constructor(
         viewModelScope.launch {
             getWalletUseCase.execute(walletId).collect { walletExtended ->
                 isMiniscriptWallet = walletExtended.wallet.miniscript.isNotEmpty()
+                wallet = walletExtended.wallet
             }
         }
     }
 
     fun getIsMiniscriptWallet(): Boolean = isMiniscriptWallet
+
+    fun getWallet(): Wallet? = wallet
 
     fun handleColdcardExportNfc(ndef: Ndef) {
         viewModelScope.launch {

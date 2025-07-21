@@ -109,8 +109,12 @@ class RegisterWalletToAirgapFragment : MembershipFragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                 .collect {
+                    val activity = requireActivity() as? BaseWalletConfigActivity<*>
+                    val wallet = viewModel.wallet
                     val isMiniscriptWallet = viewModel.wallet?.miniscript?.isNotEmpty() == true
-                    (requireActivity() as BaseWalletConfigActivity<*>).showExportQRTypeOption(isMiniscriptWallet)
+                    if (activity != null && wallet != null) {
+                        activity.showExportQRTypeOption(wallet, isMiniscriptWallet)
+                    }
                 }
         }
 

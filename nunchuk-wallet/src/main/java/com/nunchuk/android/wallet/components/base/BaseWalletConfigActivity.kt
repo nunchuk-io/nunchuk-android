@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.wallet.components.base
 
-import android.app.Activity
 import android.nfc.tech.Ndef
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,6 +33,8 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.ExportWalletQRCodeType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showOrHideNfcLoading
+import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.upload.SharedWalletConfigurationViewModel
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent
@@ -46,7 +47,7 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
+            if (it.resultCode == RESULT_OK) {
                 sharedViewModel.doneScanQr()
             }
         }
@@ -107,17 +108,26 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
         ).show(supportFragmentManager, "BottomSheetOption")
     }
 
-    fun showExportQRTypeOption(isMiniscriptWallet: Boolean = false) {
-        val options = mutableListOf(
-            SheetOption(
-                type = SheetOptionType.TYPE_QR_BC_UR2_LEGACY,
-                stringId = R.string.nc_bc_ur2_legacy,
-                subStringId = R.string.nc_bc_ur2_legacy_desc
+    fun showExportQRTypeOption(wallet: Wallet, isMiniscriptWallet: Boolean = false) {
+        val isMultisig = wallet.signers.size > 1
+        val addressType = wallet.addressType
+        val isSupportedType = addressType == AddressType.LEGACY ||
+                addressType == AddressType.NESTED_SEGWIT ||
+                addressType == AddressType.NATIVE_SEGWIT
+
+        val options = mutableListOf<SheetOption>()
+        // QR > BC-UR2 (legacy) only for multisig and supported address types
+        if (isMultisig && isSupportedType) {
+            options.add(
+                SheetOption(
+                    type = SheetOptionType.TYPE_QR_BC_UR2_LEGACY,
+                    stringId = R.string.nc_bc_ur2_legacy,
+                    subStringId = R.string.nc_bc_ur2_legacy_desc
+                )
             )
-        )
-        
-        // Only show BC_UR2 option for non-miniscript wallets
-        if (!isMiniscriptWallet) {
+        }
+        // QR > BC-UR2 for both singlesig and multisig with supported address types, and not miniscript
+        if (!isMiniscriptWallet && isSupportedType) {
             options.add(
                 SheetOption(
                     type = SheetOptionType.TYPE_QR_BC_UR2,
@@ -125,11 +135,12 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
                 )
             )
         }
-        
-        BottomSheetOption.newInstance(
-            title = getString(R.string.nc_select_qr_type),
-            options = options
-        ).show(supportFragmentManager, "BottomSheetOption")
+        if (options.isNotEmpty()) {
+            BottomSheetOption.newInstance(
+                title = getString(R.string.nc_select_qr_type),
+                options = options
+            ).show(supportFragmentManager, "BottomSheetOption")
+        }
     }
 
     fun openDynamicQRScreen(walletId: String, qrCodeType: Int = ExportWalletQRCodeType.BC_UR2_LEGACY) {
