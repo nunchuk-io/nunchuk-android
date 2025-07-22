@@ -40,8 +40,10 @@ import androidx.core.view.ViewCompat
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcInfoDialog
+import com.nunchuk.android.core.util.BTC_CURRENCY_EXCHANGE_RATE
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
+import com.nunchuk.android.core.util.getDisplayCurrency
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.wallet.GroupWalletUi
@@ -61,6 +63,7 @@ import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.nav.NunchukNavigator
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import java.text.NumberFormat
 
 @Composable
 internal fun WalletsScreen(
@@ -152,10 +155,11 @@ internal fun WalletsScreen(
                 exit = slideOutVertically(targetOffsetY = { it })
             ) {
                 TotalBalanceView(
-                    state.homeDisplaySetting.useLargeFont,
-                    totalInBtc,
-                    totalInCurrency,
-                    state.walletSecuritySetting.hideWalletDetail
+                    isLargeFont = state.homeDisplaySetting.useLargeFont,
+                    balanceSatoshis = totalInBtc,
+                    balanceFiat = totalInCurrency,
+                    btcPrice = "${getDisplayCurrency()}${NumberFormat.getNumberInstance().apply { minimumFractionDigits = 2; maximumFractionDigits = 2 }.format(BTC_CURRENCY_EXCHANGE_RATE)}",
+                    isHideBalance = state.walletSecuritySetting.hideWalletDetail
                 )
             }
         },

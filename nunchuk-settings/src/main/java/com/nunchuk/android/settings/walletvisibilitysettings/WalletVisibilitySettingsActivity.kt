@@ -111,11 +111,6 @@ class WalletVisibilitySettingsActivity : BaseComposeActivity() {
                                 text = stringResource(id = R.string.nc_display_total_balance_home_screen),
                                 style = NunchukTheme.typography.body
                             )
-                            Text(
-                                modifier = Modifier.padding(top = 4.dp),
-                                text = stringResource(id = R.string.nc_applies_when_have_two_more_wallets),
-                                style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.greyDark)
-                            )
                         }
 
                         NcSwitch(
