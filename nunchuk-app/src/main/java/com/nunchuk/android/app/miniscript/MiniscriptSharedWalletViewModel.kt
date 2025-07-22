@@ -191,7 +191,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         scriptNode = result.scriptNode,
-                        keyPath = result.keyPath,
+                        keyPath = result.keyPath.firstOrNull() ?: "",
                         areAllKeysAssigned = areAllKeysAssigned(result.scriptNode, it.signers, it.taprootSigner)
                     )
                 }
