@@ -115,4 +115,7 @@ val ColorScheme.beeswaxDark: Color
 val ColorScheme.controlFillTertiary: Color
     get() = if (isDark) Color(0xFF5b5b5b) else Color(0xFFeaeaea)
 
+val ColorScheme.fillPink: Color
+    get() = if (isDark) Color(0xFFFFE9FC) else Color(0xFFFFE9FC)
+
 

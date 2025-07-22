@@ -23,7 +23,6 @@ import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
-import com.nunchuk.android.core.sheet.BottomSheetTooltip
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.sheet.input.InputBottomSheet
@@ -162,9 +161,11 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         enableEdgeToEdge()
         setContent {
             val state by viewModel.state.collectAsStateWithLifecycle()
+            val miniscriptUiState by viewModel.miniscriptState.collectAsStateWithLifecycle()
             TransactionDetailView(
                 args = args,
                 state = state,
+                miniscriptUiState = miniscriptUiState,
                 onShowMore = { handleMenuMore() },
                 onSignClick = { signer ->
                     viewModel.setCurrentSigner(signer)
@@ -216,10 +217,6 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                         title = getString(R.string.nc_transaction_note)
                     )
                 },
-                onShowFeeTooltip = {
-                    showEstimatedFeeTooltip()
-                },
-                onCopyText = { handleCopyContent(it) },
                 onEditChangeCoin = { coin ->
                     navigator.openCoinDetail(
                         launcher = coinLauncher,
@@ -227,7 +224,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                         walletId = args.walletId,
                         output = coin
                     )
-                }
+                },
+                onCopyText = { handleCopyContent(it) }
             )
         }
 
@@ -257,13 +255,6 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         if (event is PortalDeviceEvent.SignTransactionSuccess) {
             viewModel.handleSignPortalKey(event.psbt)
         }
-    }
-
-    private fun showEstimatedFeeTooltip() {
-        BottomSheetTooltip.newInstance(
-            title = getString(R.string.nc_text_info),
-            message = getString(R.string.nc_estimated_fee_tooltip),
-        ).show(supportFragmentManager, "BottomSheetTooltip")
     }
 
     private fun showInheritanceClaimingDialog() {

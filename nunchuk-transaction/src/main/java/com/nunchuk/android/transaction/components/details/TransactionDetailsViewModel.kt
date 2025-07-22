@@ -106,8 +106,10 @@ import com.nunchuk.android.usecase.BroadcastTransactionUseCase
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.DeleteTransactionUseCase
 import com.nunchuk.android.usecase.ExportTransactionUseCase
+import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
+import com.nunchuk.android.usecase.GetTimelockedUntilUseCase
 import com.nunchuk.android.usecase.GetTransactionFromNetworkUseCase
 import com.nunchuk.android.usecase.GetTransactionUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -200,9 +202,14 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
     private val parseSignerStringUseCase: ParseSignerStringUseCase,
     private val isScriptNodeSatisfiableUseCase: IsScriptNodeSatisfiableUseCase,
+    private val getTimelockedUntilUseCase: GetTimelockedUntilUseCase,
+    private val getChainTipUseCase: GetChainTipUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionDetailsState())
     val state = _state.asStateFlow()
+
+    private val _minscriptState = MutableStateFlow(TransactionMiniscriptUiState())
+    val miniscriptState = _minscriptState.asStateFlow()
 
     private val _event = MutableSharedFlow<TransactionDetailsEvent>()
     val event = _event.asSharedFlow()
@@ -485,19 +492,52 @@ internal class TransactionDetailsViewModel @Inject constructor(
             }
             _state.update { it.copy(signers = signers) }
         } else {
+            getTransactionTimeLock(walletExtended)
             getScriptNodeFromMiniscriptTemplateUseCase(walletExtended.wallet.miniscript).onSuccess { result ->
                 val signerMap = parseSignersFromScriptNode(result.scriptNode)
                 val topLevelDisableNode = topLevelDisableNode(result.scriptNode)
                 _state.update {
                     it.copy(
                         signerMap = signerMap,
-                        scriptNode = result.scriptNode,
                         signers = signerMap.values.toList(),
+                    )
+                }
+                _minscriptState.update {
+                    it.copy(
+                        scriptNode = result.scriptNode,
                         satisfiableMap = satisfiableMap,
                         topLevelDisableNode = topLevelDisableNode,
                     )
                 }
             }
+        }
+    }
+
+    private fun getTransactionTimeLock(walletExtended: WalletExtended) {
+        viewModelScope.launch {
+            getTimelockedUntilUseCase(
+                GetTimelockedUntilUseCase.Params(
+                    walletId = walletExtended.wallet.id,
+                    txId = txId
+                )
+            ).onSuccess { (lockedTime, lockedBase) ->
+                _minscriptState.update {
+                    it.copy(
+                        lockedTime = lockedTime,
+                        lockedBase = lockedBase
+                    )
+                }
+            }.onFailure {
+                Timber.e(it, "Failed to get timelocked until")
+            }
+        }
+        viewModelScope.launch {
+            getChainTipUseCase(Unit)
+                .onSuccess { chainTip ->
+                    _minscriptState.update { it.copy(chainTip = chainTip.toLong()) }
+                }.onFailure {
+                    Timber.e(it, "Failed to get chain tip")
+                }
         }
     }
 

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,15 +35,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.nunchuk.android.compose.CoinTagGroupView
 import com.nunchuk.android.compose.MODE_VIEW_ONLY
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcIcon
@@ -55,15 +51,14 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.PreviewCoinCard
 import com.nunchuk.android.compose.backgroundMidGray
+import com.nunchuk.android.compose.fillPink
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
-import com.nunchuk.android.core.miniscript.ScriptNoteType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.getFormatDate
 import com.nunchuk.android.core.util.getPendingSignatures
 import com.nunchuk.android.core.util.hadBroadcast
@@ -74,8 +69,6 @@ import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.signDone
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.CoinTag
-import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxOutput
 import com.nunchuk.android.model.UnspentOutput
@@ -85,11 +78,14 @@ import com.nunchuk.android.model.byzantine.isObserver
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.details.view.AmountView
+import com.nunchuk.android.transaction.components.details.view.ChangeAddressView
+import com.nunchuk.android.transaction.components.details.view.PendingSignatureStatusView
+import com.nunchuk.android.transaction.components.details.view.TimeLockUtilView
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.formatByWeek
 import com.nunchuk.android.utils.simpleWeekDayYearFormat
-import java.util.ArrayDeque
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,6 +93,7 @@ import java.util.Date
 fun TransactionDetailView(
     args: TransactionDetailsArgs,
     state: TransactionDetailsState = TransactionDetailsState(),
+    miniscriptUiState: TransactionMiniscriptUiState = TransactionMiniscriptUiState(),
     onShowMore: () -> Unit = {},
     onSignClick: (SignerModel) -> Unit = {},
     onBroadcastClick: () -> Unit = {},
@@ -105,7 +102,6 @@ fun TransactionDetailView(
     onEditNote: () -> Unit = {},
     onEditChangeCoin: (UnspentOutput) -> Unit = {},
     onCopyText: (String) -> Unit = {},
-    onShowFeeTooltip: () -> Unit,
 ) {
     var showDetail by rememberSaveable { mutableStateOf(false) }
     var showInputCoin by rememberSaveable { mutableStateOf(false) }
@@ -128,10 +124,9 @@ fun TransactionDetailView(
         transaction.keySetStatus.withIndex().associate { it.index to it.value }
     }
     val firstKeySet = if (!state.isValueKeySetDisable) keySetMap[state.defaultKeySetIndex] else null
-    val isMiniscriptTaprootKeyPathTransaction = state.addressType.isTaproot() && state.scriptNode != null && state.defaultKeySetIndex == 0
-    val topAndOrNode = remember(state.scriptNode) {
+    val isMiniscriptTaprootKeyPathTransaction =
+        state.addressType.isTaproot() && miniscriptUiState.scriptNode != null && state.defaultKeySetIndex == 0
 
-    }
     NunchukTheme {
         NcScaffold(
             modifier = Modifier.systemBarsPadding(),
@@ -158,6 +153,7 @@ fun TransactionDetailView(
                         modifier = Modifier
                             .padding(16.dp)
                             .fillMaxWidth(),
+                        enabled = !miniscriptUiState.isTimelockedActive,
                         onClick = onBroadcastClick
                     ) {
                         Text(
@@ -188,6 +184,7 @@ fun TransactionDetailView(
                 item {
                     TransactionHeader(
                         args = args,
+                        isTimelockedActive = miniscriptUiState.isTimelockedActive,
                         transaction = state.transaction,
                         serverTransaction = state.serverTransaction,
                         allTxCoins = state.coins,
@@ -214,7 +211,7 @@ fun TransactionDetailView(
                     }
 
                     itemsIndexed(outputs) { index, output ->
-                        TransactionOutputItem(
+                        com.nunchuk.android.transaction.components.details.view.TransactionOutputItem(
                             savedAddresses = state.savedAddress,
                             output = output,
                             onCopyText = onCopyText,
@@ -235,7 +232,6 @@ fun TransactionDetailView(
                             TransactionEstimateFee(
                                 modifier = Modifier.padding(top = 24.dp),
                                 fee = transaction.fee,
-                                onShowFeeTooltip = onShowFeeTooltip,
                                 hideFiatCurrency = state.hideFiatCurrency
                             )
                         }
@@ -369,7 +365,16 @@ fun TransactionDetailView(
                     }
                 }
 
-                if (!state.transaction.isReceive && state.scriptNode != null && state.signerMap.isNotEmpty() && !isMiniscriptTaprootKeyPathTransaction) {
+                if (miniscriptUiState.isTimelockedActive) {
+                    item {
+                        TimeLockUtilView(
+                            lockedTime = miniscriptUiState.lockedTime,
+                            lockedBase = miniscriptUiState.lockedBase
+                        )
+                    }
+                }
+
+                if (!state.transaction.isReceive && miniscriptUiState.scriptNode != null && state.signerMap.isNotEmpty() && !isMiniscriptTaprootKeyPathTransaction) {
                     item {
                         Column(
                             modifier = Modifier.padding(
@@ -378,14 +383,14 @@ fun TransactionDetailView(
                             )
                         ) {
                             ScriptNodeTree(
-                                node = state.scriptNode,
+                                node = miniscriptUiState.scriptNode,
                                 data = ScriptNodeData(
                                     mode = ScriptMode.SIGN,
                                     signers = state.signerMap,
                                     showBip32Path = false,
                                     signedSigners = transaction.signers,
-                                    satisfiableMap = state.satisfiableMap,
-                                    topLevelDisableNode = state.topLevelDisableNode
+                                    satisfiableMap = miniscriptUiState.satisfiableMap,
+                                    topLevelDisableNode = miniscriptUiState.topLevelDisableNode
                                 ),
                                 onChangeBip32Path = { _, _ -> },
                                 onActionKey = { _, signer ->
@@ -471,7 +476,7 @@ fun TransactionDetailView(
                                 .padding(top = 16.dp)
                                 .padding(horizontal = 16.dp),
                             signer = signer,
-                            showValueKey = index < transaction.m && state.addressType.isTaproot() && !state.isValueKeySetDisable && state.scriptNode == null,
+                            showValueKey = index < transaction.m && state.addressType.isTaproot() && !state.isValueKeySetDisable && miniscriptUiState.scriptNode == null,
                             isSigned = transaction.signers.isNotEmpty() && transaction.signers[signer.fingerPrint] ?: false,
                             canSign = !transaction.status.signDone(),
                             onSignClick = onSignClick,
@@ -516,55 +521,10 @@ fun TransactionDetailView(
     }
 }
 
-
-@Composable
-private fun PendingSignatureStatusView(pendingSigners: Int, status: TransactionStatus) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(top = 16.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.nc_transaction_member_signers),
-            style = NunchukTheme.typography.titleSmall,
-        )
-
-        if (!status.hadBroadcast()) {
-            if (pendingSigners > 0) {
-                NcIcon(
-                    painter = painterResource(id = R.drawable.ic_pending_signatures),
-                    contentDescription = "Warning",
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-                Text(
-                    text = pluralStringResource(
-                        R.plurals.nc_transaction_pending_signature,
-                        pendingSigners,
-                        pendingSigners
-                    ),
-                    style = NunchukTheme.typography.bodySmall,
-                    modifier = Modifier.padding(start = 4.dp),
-                )
-            } else {
-                NcIcon(
-                    painter = painterResource(id = R.drawable.ic_check_circle),
-                    contentDescription = "Check",
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-                Text(
-                    text = stringResource(R.string.nc_transaction_enough_signers),
-                    style = NunchukTheme.typography.bodySmall,
-                    modifier = Modifier.padding(start = 4.dp),
-                )
-            }
-        }
-    }
-}
-
 @Composable
 private fun TransactionHeader(
     args: TransactionDetailsArgs,
+    isTimelockedActive: Boolean,
     transaction: Transaction,
     serverTransaction: ServerTransaction?,
     allTxCoins: List<UnspentOutput>,
@@ -579,7 +539,9 @@ private fun TransactionHeader(
     } else {
         outputs.firstOrNull()?.first.orEmpty().truncatedAddress()
     }
-    val status = when (transaction.status) {
+    val status = if (isTimelockedActive) {
+        stringResource(R.string.nc_timelocked)
+    } else when (transaction.status) {
         TransactionStatus.PENDING_SIGNATURES -> stringResource(R.string.nc_transaction_pending_signatures)
         TransactionStatus.READY_TO_BROADCAST -> stringResource(R.string.nc_ready_to_broadcast)
         TransactionStatus.PENDING_CONFIRMATION -> stringResource(R.string.nc_transaction_pending_confirmation)
@@ -588,7 +550,9 @@ private fun TransactionHeader(
         TransactionStatus.REPLACED -> stringResource(R.string.nc_transaction_replaced)
         TransactionStatus.PENDING_NONCE -> ""
     }
-    val statusColor = when (transaction.status) {
+    val statusColor = if (isTimelockedActive) {
+        MaterialTheme.colorScheme.fillPink
+    } else when (transaction.status) {
         TransactionStatus.PENDING_SIGNATURES -> colorResource(R.color.nc_red_tint_color)
         TransactionStatus.READY_TO_BROADCAST -> colorResource(R.color.nc_beeswax_tint)
         TransactionStatus.PENDING_CONFIRMATION -> colorResource(R.color.nc_lavender_tint_color)
@@ -745,7 +709,6 @@ private fun TransactionHeader(
 private fun TransactionEstimateFee(
     modifier: Modifier = Modifier,
     fee: Amount,
-    onShowFeeTooltip: () -> Unit,
     hideFiatCurrency: Boolean = false
 ) {
     Row(
@@ -784,122 +747,6 @@ private fun TransactionTotalAmount(
         )
 
         AmountView(total, hideFiatCurrency)
-    }
-}
-
-@Composable
-private fun ChangeAddressView(
-    modifier: Modifier = Modifier,
-    txOutput: TxOutput,
-    output: UnspentOutput?,
-    tags: Map<Int, CoinTag>,
-    hideFiatCurrency: Boolean = false
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp)
-            .padding(horizontal = 16.dp),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = txOutput.first,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp),
-                style = NunchukTheme.typography.title,
-            )
-
-            AmountView(txOutput.second, hideFiatCurrency)
-        }
-
-        if (output != null && output.tags.isNotEmpty()) {
-            CoinTagGroupView(
-                modifier = Modifier.padding(top = 8.dp),
-                tagIds = output.tags, tags = tags
-            )
-        }
-    }
-}
-
-@Composable
-private fun TransactionOutputItem(
-    savedAddresses: Map<String, String>,
-    output: TxOutput,
-    onCopyText: (String) -> Unit,
-    hideFiatCurrency: Boolean = false
-) {
-    Column(
-        Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
-    ) {
-        if (savedAddresses.contains(output.first)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                NcIcon(
-                    painter = painterResource(id = R.drawable.ic_saved_address),
-                    contentDescription = "Saved Address",
-                    modifier = Modifier.size(16.dp),
-                )
-
-                Text(
-                    text = savedAddresses[output.first].orEmpty(),
-                    style = NunchukTheme.typography.bodySmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-        TransactionOutputItem(
-            output = output,
-            onCopyText = onCopyText,
-            hideFiatCurrency = hideFiatCurrency
-        )
-    }
-}
-
-@Composable
-private fun TransactionOutputItem(
-    output: TxOutput,
-    onCopyText: (String) -> Unit,
-    hideFiatCurrency: Boolean = false
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Text(
-            modifier = Modifier
-                .weight(1f)
-                .clickable(onClick = { onCopyText(output.first) }),
-            text = output.first,
-            style = NunchukTheme.typography.title,
-        )
-
-        AmountView(output.second, hideFiatCurrency)
-    }
-}
-
-@Composable
-private fun AmountView(amount: Amount, hideFiatCurrency: Boolean = false) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Text(
-            text = amount.getBTCAmount(),
-            style = NunchukTheme.typography.title,
-        )
-
-        if (!hideFiatCurrency) {
-            Text(
-                text = amount.getCurrencyAmount(),
-                style = NunchukTheme.typography.bodySmall,
-            )
-        }
     }
 }
 
@@ -945,6 +792,5 @@ private fun TransactionDetailViewPreview() {
                 )
             )
         ),
-        onShowFeeTooltip = {},
     )
 }

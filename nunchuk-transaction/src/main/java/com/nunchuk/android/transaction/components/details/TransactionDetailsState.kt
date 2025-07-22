@@ -28,6 +28,7 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.MiniscriptTimelockBased
 
 data class TransactionDetailsState(
     val transaction: Transaction = Transaction(),
@@ -43,8 +44,22 @@ data class TransactionDetailsState(
     val defaultKeySetIndex: Int = 0,
     val savedAddress: Map<String, String> = emptyMap(),
     val hideFiatCurrency: Boolean = false,
-    val scriptNode: ScriptNode? = null,
     val signerMap: Map<String, SignerModel?> = emptyMap(),
-    val satisfiableMap: Map<String, Boolean> = emptyMap(),
-    val topLevelDisableNode: ScriptNode? = null
 )
+
+data class TransactionMiniscriptUiState(
+    val scriptNode: ScriptNode? = null,
+    val satisfiableMap: Map<String, Boolean> = emptyMap(),
+    val topLevelDisableNode: ScriptNode? = null,
+    val lockedTime: Long = 0L,
+    val lockedBase: MiniscriptTimelockBased = MiniscriptTimelockBased.NONE,
+    val chainTip: Long = 0L,
+) {
+    val isTimelockedActive: Boolean =
+        lockedBase != MiniscriptTimelockBased.NONE && lockedTime > 0 && when (lockedBase) {
+            // compare with current time (seconds)
+            MiniscriptTimelockBased.TIME_LOCK -> System.currentTimeMillis() / 1000 < lockedTime
+            MiniscriptTimelockBased.HEIGHT_LOCK -> chainTip < lockedTime
+            else -> false
+        }
+}
