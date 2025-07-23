@@ -37,7 +37,6 @@ import com.nunchuk.android.messages.components.list.RoomsViewModel
 import com.nunchuk.android.messages.components.list.shouldShow
 import com.nunchuk.android.utils.consumeEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -74,17 +73,21 @@ internal class ChatFragment : BaseFragment<FragmentChatBinding>() {
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
     }
 
+    private fun updateContainerNotSignInVisibility(tabPosition: Int) {
+        binding.containerNotSignIn.isVisible = if (tabPosition == ChatFragmentTab.MESSAGES.position) {
+            isHasRoomChat.not() && signInModeHolder.getCurrentMode().isGuestMode()
+        } else {
+            signInModeHolder.getCurrentMode().isGuestMode()
+        }
+    }
+
     private fun handleState(state: RoomsState) {
         val visibleRooms = state.rooms.filter {
             it is RoomMessage.GroupWalletRoom ||
                     ((it as? RoomMessage.MatrixRoom)?.data?.shouldShow() == true)
         }
         isHasRoomChat = visibleRooms.isNotEmpty()
-        binding.containerNotSignIn.isVisible = if (binding.pagers.currentItem == ChatFragmentTab.MESSAGES.position) {
-            isHasRoomChat.not()
-        } else {
-            signInModeHolder.getCurrentMode().isGuestMode()
-        }
+        updateContainerNotSignInVisibility(binding.pagers.currentItem)
     }
 
     private fun setupViews() {
@@ -110,15 +113,7 @@ internal class ChatFragment : BaseFragment<FragmentChatBinding>() {
                 }
 
                 override fun onPageSelected(position: Int) {
-                    Timber.tag("group-wallet-chat").e("onPageSelected - position: $position")
-                    when (position) {
-                        ChatFragmentTab.MESSAGES.position -> {
-                            binding.containerNotSignIn.isVisible = isHasRoomChat.not()
-                        }
-                        ChatFragmentTab.CONTACTS.position -> {
-                            binding.containerNotSignIn.isVisible = signInModeHolder.getCurrentMode().isGuestMode()
-                        }
-                    }
+                    updateContainerNotSignInVisibility(position)
                 }
 
                 override fun onPageScrollStateChanged(state: Int) {
