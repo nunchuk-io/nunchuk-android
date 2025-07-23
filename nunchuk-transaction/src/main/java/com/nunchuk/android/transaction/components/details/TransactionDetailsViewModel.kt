@@ -41,7 +41,6 @@ import com.nunchuk.android.core.domain.membership.CancelScheduleBroadcastTransac
 import com.nunchuk.android.core.domain.membership.RequestSignatureTransactionUseCase
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
-import com.nunchuk.android.core.miniscript.MiniscriptDataComponent
 import com.nunchuk.android.core.miniscript.ScriptNoteType
 import com.nunchuk.android.core.network.ApiErrorCode
 import com.nunchuk.android.core.network.NunchukApiException
@@ -574,7 +573,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             ).getOrDefault(false)
         }
         // special case for ANDOR node
-        if (MiniscriptDataComponent.getComponent(node.type) == ScriptNoteType.ANDOR && node.subs.size == 3) {
+        if (node.type == ScriptNoteType.ANDOR.name && node.subs.size == 3) {
             val isSatisfiable = isScriptNodeSatisfiableUseCase(
                 IsScriptNodeSatisfiableUseCase.Params(
                     nodeId = node.subs[0].id.toIntArray(),

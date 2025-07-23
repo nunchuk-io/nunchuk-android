@@ -43,8 +43,6 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
-import com.nunchuk.android.core.miniscript.ComponentInfo
-import com.nunchuk.android.core.miniscript.MiniscriptDataComponent
 import com.nunchuk.android.core.miniscript.ScriptNoteType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ScriptNode
@@ -60,6 +58,160 @@ enum class ScriptMode {
     VIEW,
     CONFIG,
     SIGN
+}
+
+@Composable
+fun ScriptNodeTree(
+    node: ScriptNode,
+    index: String = "1",
+    isLastItem: Boolean = false,
+    level: Int = 0,
+    currentBlockHeight: Int = 0,
+    onChangeBip32Path: (String, SignerModel) -> Unit = { _, _ -> },
+    onActionKey: (String, SignerModel?) -> Unit = { _, _ -> },
+    data: ScriptNodeData = ScriptNodeData()
+) {
+    val isNormalNode =
+        data.signingPath.path.isEmpty() || signingPathContainsNodeId(data.signingPath.path, node.id)
+    val isSatisfiableNode = data.satisfiableMap[node.idString] == true
+
+    val nodeModifier = when {
+        data.mode == ScriptMode.CONFIG || node.type == ScriptNoteType.AFTER.name || node.type == ScriptNoteType.OLDER.name -> Modifier
+        data.mode == ScriptMode.SIGN && isSatisfiableNode -> Modifier
+        data.mode == ScriptMode.VIEW && isNormalNode -> Modifier
+        else -> Modifier.alpha(0.4f)
+    }
+    when (node.type) {
+        ScriptNoteType.ANDOR.name, ScriptNoteType.AND.name, ScriptNoteType.OR.name, ScriptNoteType.OR_TAPROOT.name -> {
+            TreeBranchContainer(
+                modifier = nodeModifier,
+                drawLine = isLastItem.not(),
+                indentationLevel = level
+            ) { modifier, showThreadCurve ->
+                AndOrView(
+                    isShowCurve = showThreadCurve,
+                    isShowTapscriptBadge = ScriptNoteType.OR_TAPROOT.name == node.type,
+                    padStart = 0,
+                    node = node
+                ) {
+                    NodeContent(
+                        node = node,
+                        onChangeBip32Path = onChangeBip32Path,
+                        onActionKey = onActionKey,
+                        data = data,
+                        level = level,
+                        modifier = modifier
+                    )
+                }
+            }
+            return
+        }
+
+        ScriptNoteType.AFTER.name, ScriptNoteType.OLDER.name -> {
+            TreeBranchContainer(
+                modifier = nodeModifier,
+                drawLine = isLastItem.not(),
+                indentationLevel = level,
+            ) { modifier, showThreadCurve ->
+                TimelockItem(
+                    modifier = modifier,
+                    currentBlockHeight = currentBlockHeight,
+                    showThreadCurve = showThreadCurve,
+                    isSatisfiableNode = isSatisfiableNode,
+                    mode = data.mode,
+                    node = node
+                ) {
+                    NodeContent(
+                        node = node,
+                        onChangeBip32Path = onChangeBip32Path,
+                        onActionKey = onActionKey,
+                        data = data,
+                        level = level,
+                        modifier = modifier
+                    )
+                }
+            }
+            return
+        }
+
+        ScriptNoteType.PK.name -> {
+            TreeBranchContainer(
+                modifier = nodeModifier,
+                drawLine = isLastItem.not(),
+                indentationLevel = level
+            ) { modifier, showThreadCurve ->
+                CreateKeyItem(
+                    key = node.keys.firstOrNull() ?: "",
+                    signer = data.signers[node.keys.firstOrNull().orEmpty()],
+                    position = index,
+                    onChangeBip32Path = onChangeBip32Path,
+                    onActionKey = onActionKey,
+                    data = data,
+                    showThreadCurve = showThreadCurve,
+                    modifier = modifier,
+                    isSatisfiable = isSatisfiableNode
+                )
+            }
+            return
+        }
+
+        ScriptNoteType.MULTI.name, ScriptNoteType.THRESH.name -> {
+            TreeBranchContainer(
+                modifier = nodeModifier,
+                drawLine = isLastItem.not(),
+                indentationLevel = level
+            ) { modifier, showThreadCurve ->
+                ThreshMultiItem(
+                    topPadding = if (showThreadCurve) 10 else 0,
+                    showThreadCurve = showThreadCurve,
+                    modifier = modifier,
+                    isSatisfiable = isSatisfiableNode,
+                    data = data,
+                    node = node
+                ) {
+                    NodeContent(
+                        node = node,
+                        onChangeBip32Path = onChangeBip32Path,
+                        onActionKey = onActionKey,
+                        data = data,
+                        level = level,
+                        modifier = modifier
+                    )
+                }
+            }
+            return
+        }
+
+        ScriptNoteType.HASH160.name, ScriptNoteType.HASH256.name, ScriptNoteType.RIPEMD160.name, ScriptNoteType.SHA256.name -> {
+            TreeBranchContainer(
+                modifier = nodeModifier,
+                drawLine = isLastItem.not(),
+                indentationLevel = level
+            ) { modifier, showThreadCurve ->
+                HashlockItem(
+                    showThreadCurve = showThreadCurve,
+                    node = node
+                ) {
+                    NodeContent(
+                        node = node,
+                        onChangeBip32Path = onChangeBip32Path,
+                        onActionKey = onActionKey,
+                        data = data,
+                        level = level,
+                        modifier = modifier
+                    )
+                }
+            }
+            return
+        }
+    }
+    NodeSubs(
+        node = node,
+        onChangeBip32Path = onChangeBip32Path,
+        onActionKey = onActionKey,
+        data = data,
+        level = level
+    )
 }
 
 @Composable
@@ -257,166 +409,8 @@ data class ScriptNodeData(
 )
 
 @Composable
-fun ScriptNodeTree(
-    node: ScriptNode,
-    index: String = "1",
-    isLastItem: Boolean = false,
-    level: Int = 0,
-    currentBlockHeight: Int = 0,
-    onChangeBip32Path: (String, SignerModel) -> Unit = { _, _ -> },
-    onActionKey: (String, SignerModel?) -> Unit = { _, _ -> },
-    data: ScriptNodeData = ScriptNodeData()
-) {
-    val isNormalNode =
-        data.signingPath.path.isEmpty() || signingPathContainsNodeId(data.signingPath.path, node.id)
-    val isSatisfiableNode = data.satisfiableMap[node.idString] == true
-
-    val info = MiniscriptDataComponent.fromComponent(node.type)
-    val nodeModifier = when {
-        data.mode == ScriptMode.CONFIG || node.type == ScriptNoteType.AFTER.name || node.type == ScriptNoteType.OLDER.name -> Modifier
-        data.mode == ScriptMode.SIGN && isSatisfiableNode -> Modifier
-        data.mode == ScriptMode.VIEW && isNormalNode -> Modifier
-        else -> Modifier.alpha(0.4f)
-    }
-    when (node.type) {
-        ScriptNoteType.ANDOR.name, ScriptNoteType.AND.name, ScriptNoteType.OR.name, ScriptNoteType.OR_TAPROOT.name -> {
-            TreeBranchContainer(
-                modifier = nodeModifier,
-                drawLine = isLastItem.not(),
-                indentationLevel = level
-            ) { modifier, showThreadCurve ->
-                AndOrView(
-                    scriptNoteTypeInfo = info,
-                    isShowCurve = showThreadCurve,
-                    padStart = 0,
-                    isShowTapscriptBadge = ScriptNoteType.OR_TAPROOT.name == node.type,
-                    modifier = modifier,
-                    node = node
-                ) {
-                    NodeContent(
-                        node = node,
-                        onChangeBip32Path = onChangeBip32Path,
-                        onActionKey = onActionKey,
-                        data = data,
-                        level = level,
-                        modifier = modifier
-                    )
-                }
-            }
-            return
-        }
-
-        ScriptNoteType.AFTER.name, ScriptNoteType.OLDER.name -> {
-            TreeBranchContainer(
-                modifier = nodeModifier,
-                drawLine = isLastItem.not(),
-                indentationLevel = level,
-            ) { modifier, showThreadCurve ->
-                TimelockItem(
-                    modifier = modifier,
-                    currentBlockHeight = currentBlockHeight,
-                    showThreadCurve = showThreadCurve,
-                    isSatisfiableNode = isSatisfiableNode,
-                    mode = data.mode,
-                    node = node
-                ) {
-                    NodeContent(
-                        node = node,
-                        onChangeBip32Path = onChangeBip32Path,
-                        onActionKey = onActionKey,
-                        data = data,
-                        level = level,
-                        modifier = modifier
-                    )
-                }
-            }
-            return
-        }
-
-        ScriptNoteType.PK.name -> {
-            TreeBranchContainer(
-                modifier = nodeModifier,
-                drawLine = isLastItem.not(),
-                indentationLevel = level
-            ) { modifier, showThreadCurve ->
-                CreateKeyItem(
-                    key = node.keys.firstOrNull() ?: "",
-                    signer = data.signers[node.keys.firstOrNull().orEmpty()],
-                    position = index,
-                    onChangeBip32Path = onChangeBip32Path,
-                    onActionKey = onActionKey,
-                    data = data,
-                    showThreadCurve = showThreadCurve,
-                    modifier = modifier,
-                    isSatisfiable = isSatisfiableNode
-                )
-            }
-            return
-        }
-
-        ScriptNoteType.MULTI.name, ScriptNoteType.THRESH.name -> {
-            TreeBranchContainer(
-                modifier = nodeModifier,
-                drawLine = isLastItem.not(),
-                indentationLevel = level
-            ) { modifier, showThreadCurve ->
-                ThreshMultiItem(
-                    topPadding = if (showThreadCurve) 10 else 0,
-                    showThreadCurve = showThreadCurve,
-                    modifier = modifier,
-                    isSatisfiable = isSatisfiableNode,
-                    data = data,
-                    node = node
-                ) {
-                    NodeContent(
-                        node = node,
-                        onChangeBip32Path = onChangeBip32Path,
-                        onActionKey = onActionKey,
-                        data = data,
-                        level = level,
-                        modifier = modifier
-                    )
-                }
-            }
-            return
-        }
-
-        ScriptNoteType.HASH160.name, ScriptNoteType.HASH256.name, ScriptNoteType.RIPEMD160.name, ScriptNoteType.SHA256.name -> {
-            TreeBranchContainer(
-                modifier = nodeModifier,
-                drawLine = isLastItem.not(),
-                indentationLevel = level
-            ) { modifier, showThreadCurve ->
-                HashlockItem(
-                    showThreadCurve = showThreadCurve,
-                    node = node
-                ) {
-                    NodeContent(
-                        node = node,
-                        onChangeBip32Path = onChangeBip32Path,
-                        onActionKey = onActionKey,
-                        data = data,
-                        level = level,
-                        modifier = modifier
-                    )
-                }
-            }
-            return
-        }
-    }
-    NodeSubs(
-        node = node,
-        onChangeBip32Path = onChangeBip32Path,
-        onActionKey = onActionKey,
-        data = data,
-        level = level
-    )
-}
-
-@Composable
 fun AndOrView(
     modifier: Modifier = Modifier,
-    scriptNoteTypeInfo: ComponentInfo = MiniscriptDataComponent.fromComponent(ScriptNoteType.ANDOR.name),
     isShowCurve: Boolean = true,
     isShowTapscriptBadge: Boolean = false,
     padStart: Int = 0,
@@ -439,7 +433,7 @@ fun AndOrView(
             ) {
                 Row {
                     Text(
-                        text = "${node.idString}. ${scriptNoteTypeInfo.name}",
+                        text = "${node.idString}. ${node.displayName}",
                         style = NunchukTheme.typography.body
                     )
                     if (isShowTapscriptBadge) {
@@ -451,7 +445,7 @@ fun AndOrView(
                 }
 
                 Text(
-                    scriptNoteTypeInfo.description,
+                    text = node.descriptionText,
                     style = NunchukTheme.typography.bodySmall.copy(
                         color = MaterialTheme.colorScheme.textSecondary
                     ),
@@ -519,22 +513,12 @@ fun ThreshMultiItem(
                     .weight(1f)
                     .padding(top = topPadding.dp)
             ) {
-                val text = when (node.type) {
-                    ScriptNoteType.THRESH.name -> "Thresh ${node.k}/${node.subs.size}"
-                    ScriptNoteType.MULTI.name -> "Multisig ${node.k}/${node.keys.size}"
-                    else -> ""
-                }
                 Text(
-                    text = "${node.idString}. $text",
+                    text = "${node.idString}. ${node.displayName}",
                     style = NunchukTheme.typography.body
                 )
-                val keyText = when (node.type) {
-                    ScriptNoteType.THRESH.name -> "Requires M of N sub‑conditions."
-                    ScriptNoteType.MULTI.name -> "Requires M of N keys."
-                    else -> ""
-                }
                 Text(
-                    text = keyText,
+                    text = node.descriptionText,
                     style = NunchukTheme.typography.bodySmall.copy(
                         color = MaterialTheme.colorScheme.textSecondary
                     )

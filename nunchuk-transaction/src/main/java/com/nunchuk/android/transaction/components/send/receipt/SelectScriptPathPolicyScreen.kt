@@ -29,9 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
@@ -44,7 +42,7 @@ import com.nunchuk.android.compose.fillDenim2
 import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
-import com.nunchuk.android.compose.miniscript.info
+import com.nunchuk.android.compose.miniscript.displayName
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
@@ -142,9 +140,7 @@ fun SelectScriptPathPolicyScreen(
                         )
                         finalOptions.forEach {
                             NcFilterChip(
-                                text = "${it.idString}. ${
-                                    it.type.lowercase().capitalize(Locale.current)
-                                } ${it.info}",
+                                text = "${it.idString}. ${it.displayName}",
                                 isSelected = selectedFilter == it,
                                 onClick = {
                                     selectedFilter = it
