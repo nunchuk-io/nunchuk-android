@@ -51,7 +51,6 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.PreviewCoinCard
 import com.nunchuk.android.compose.backgroundMidGray
-import com.nunchuk.android.compose.fillPink
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
@@ -551,7 +550,7 @@ private fun TransactionHeader(
         TransactionStatus.PENDING_NONCE -> ""
     }
     val statusColor = if (isTimelockedActive) {
-        MaterialTheme.colorScheme.fillPink
+        colorResource(R.color.nc_red_tint_color)
     } else when (transaction.status) {
         TransactionStatus.PENDING_SIGNATURES -> colorResource(R.color.nc_red_tint_color)
         TransactionStatus.READY_TO_BROADCAST -> colorResource(R.color.nc_beeswax_tint)

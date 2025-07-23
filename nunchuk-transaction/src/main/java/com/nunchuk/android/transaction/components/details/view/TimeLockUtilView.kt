@@ -12,13 +12,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.fillPink
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.utils.simpleDateFormat
@@ -45,7 +45,6 @@ fun TimeLockUtilView(
             painter = painterResource(id = R.drawable.ic_timer),
             contentDescription = null,
             modifier = Modifier.size(36.dp),
-            tint = colorResource(id = R.color.nc_grey_g7)
         )
 
         val lockText = if (lockedBase == MiniscriptTimelockBased.HEIGHT_LOCK) {
@@ -56,8 +55,8 @@ fun TimeLockUtilView(
         }
         Text(
             text = lockText,
-            style = NunchukTheme.typography.bodySmall,
-            color = colorResource(R.color.nc_grey_g7)
+            style = NunchukTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.textPrimary
         )
     }
 }
