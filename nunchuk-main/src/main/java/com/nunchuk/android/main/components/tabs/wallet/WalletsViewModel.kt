@@ -498,17 +498,35 @@ internal class WalletsViewModel @Inject constructor(
     private fun checkInheritance(wallets: List<AssistedWalletBrief>) = viewModelScope.launch {
         val walletsUnSetupInheritance =
             wallets.filter { it.status == WalletStatus.ACTIVE.name && it.plan.isAllowSetupInheritance() }
+        
+        if (walletsUnSetupInheritance.isEmpty()) {
+            _state.update { it.copy(inheritances = emptyMap()) }
+            return@launch
+        }
+        
         supervisorScope {
-            val inheritances = walletsUnSetupInheritance.map {
+            val inheritanceResults = walletsUnSetupInheritance.map { wallet ->
                 async {
                     getInheritanceUseCase(
                         GetInheritanceUseCase.Param(
-                            walletId = it.localId,
-                            groupId = it.groupId
+                            walletId = wallet.localId,
+                            groupId = wallet.groupId
                         )
-                    ).getOrNull()
+                    ).also { result ->
+                        if (result.isFailure) {
+                            walletsRequestKey = ""
+                        }
+                    }
                 }
-            }.awaitAll().filterNotNull()
+            }.awaitAll()
+            
+            // Check if any call failed and reset key if needed
+            val hasFailure = inheritanceResults.any { it.isFailure }
+            if (hasFailure) {
+                walletsRequestKey = ""
+            }
+            
+            val inheritances = inheritanceResults.mapNotNull { it.getOrNull() }
                 .associate { it.walletLocalId to it.status }
 
             _state.update { it.copy(inheritances = inheritances) }
@@ -890,8 +908,9 @@ internal class WalletsViewModel @Inject constructor(
     }
 
     private fun checkWalletsRequestKey(wallets: List<AssistedWalletBrief>, onConsumed: () -> Unit) {
-        val key = wallets.joinToString { "${it.localId}_${it.groupId}" }
+        val key = wallets.joinToString(separator = "|") { "${it.localId}_${it.groupId}" }
         if (walletsRequestKey == key) return
+        
         walletsRequestKey = key
         onConsumed()
     }
