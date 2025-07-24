@@ -48,11 +48,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.TimeLock
-import com.nunchuk.android.type.MiniscriptTimelockBased
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Locale
-import kotlin.math.ceil
 
 enum class ScriptMode {
     VIEW,
@@ -603,53 +599,8 @@ fun TimelockItem(
     node: ScriptNode,
     content: @Composable () -> Unit = {},
 ) {
-    val timeLock = node.timeLock ?: TimeLock()
-    val (title, description) = when (node.type) {
-        ScriptNoteType.OLDER.name -> {
-            when {
-                timeLock.isTimestamp() -> {
-                    val days = ceil(timeLock.value / 86400.0).toInt()
-                    val titleText = if (days == 1) "Older 1 day" else "Older $days days"
-                    Pair(titleText, "From the time the coins are received.")
-                }
-
-                else -> { // block height
-                    val formattedBlocks = String.format("%,d", timeLock.value)
-                    val titleText =
-                        if (timeLock.value == 1L) "Older 1 block" else "Older $formattedBlocks blocks"
-                    Pair(titleText, "From the time the coins are received.")
-                }
-            }
-        }
-
-        ScriptNoteType.AFTER.name -> {
-            when {
-                timeLock.isTimestamp() -> {
-                    val targetDate = calculateDateFromSeconds(timeLock.value)
-                    val currentTimeSeconds = System.currentTimeMillis() / 1000
-                    val diff = timeLock.value - currentTimeSeconds
-                    val daysFromNow = ceil(diff / 86400.0).toInt()
-                    val dayText = if (daysFromNow == 1) "day" else "days"
-                    val descriptionText =
-                        if (daysFromNow == 1) "1 $dayText from today." else "$daysFromNow $dayText from today."
-                    Pair("After $targetDate", descriptionText)
-                }
-
-                else -> { // block height
-                    val formattedBlocks = String.format("%,d", timeLock.value)
-                    val blockDiff = timeLock.value - currentBlockHeight
-                    val formattedBlockDiff = String.format("%,d", blockDiff)
-                    val titleText =
-                        if (timeLock.value == 1L) "After 1 block" else "After block $formattedBlocks"
-                    val descriptionText =
-                        if (blockDiff == 1L) "1 block from the current block." else "$formattedBlockDiff blocks from the current block."
-                    Pair(titleText, descriptionText)
-                }
-            }
-        }
-
-        else -> Pair("Unknown timelock", "")
-    }
+    val title = node.getTimelockDisplayName()
+    val description = node.getTimelockDescription(currentBlockHeight)
 
     Column(modifier = modifier) {
         Row(
@@ -676,7 +627,7 @@ fun TimelockItem(
                     )
 
                     // Hide description for timestamp timelocks in SIGN mode
-                    if (mode != ScriptMode.SIGN || !timeLock.isTimestamp()) {
+                    if (mode != ScriptMode.SIGN || node.timeLock?.isTimestamp() != true) {
                         Text(
                             text = description,
                             style = NunchukTheme.typography.bodySmall.copy(
@@ -724,13 +675,7 @@ fun HashlockItem(
     node: ScriptNode,
     content: @Composable () -> Unit = {},
 ) {
-    val description = if (data.showBip32Path) when (node.type) {
-        ScriptNoteType.HASH160.name -> "Requires a preimage that hashes to a given value with HASH160"
-        ScriptNoteType.HASH256.name -> "Requires a preimage that hashes to a given value with SHA256"
-        ScriptNoteType.RIPEMD160.name -> "Requires a preimage that hashes to a given value with RIPEMD160"
-        ScriptNoteType.SHA256.name -> "Requires a preimage that hashes to a given value with SHA256"
-        else -> "Requires a preimage that hashes to a given value"
-    } else ""
+    val description = node.getHashlockDescription(data.showBip32Path)
     Column(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth()
@@ -893,16 +838,7 @@ fun CurveView() {
     }
 }
 
-private fun calculateDateFromSeconds(timestampSeconds: Long): String {
-    val calendar = Calendar.getInstance()
-    calendar.timeInMillis = timestampSeconds * 1000
-    val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.US)
-    return dateFormat.format(calendar.time)
-}
 
-private fun TimeLock.isTimestamp(): Boolean {
-    return this.based == MiniscriptTimelockBased.TIME_LOCK
-}
 
 private fun String.capitalize(): String {
     return this.lowercase().replaceFirstChar {

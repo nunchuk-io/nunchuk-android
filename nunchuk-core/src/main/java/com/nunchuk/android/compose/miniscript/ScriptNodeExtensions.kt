@@ -2,6 +2,12 @@ package com.nunchuk.android.compose.miniscript
 
 import com.nunchuk.android.core.miniscript.ScriptNoteType
 import com.nunchuk.android.model.ScriptNode
+import com.nunchuk.android.model.TimeLock
+import com.nunchuk.android.type.MiniscriptTimelockBased
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import kotlin.math.ceil
 
 val ScriptNode.displayName: String
     get() = when (this.type) {
@@ -37,4 +43,84 @@ val ScriptNode.descriptionText: String
         ScriptNoteType.MULTI.name -> "Requires M of N keys."
         ScriptNoteType.OR_TAPROOT.name -> "Only one tapscript needs to be satisfied."
         else -> ""
-    } 
+    }
+
+fun ScriptNode.getTimelockDisplayName(): String {
+    val timeLock = this.timeLock ?: TimeLock()
+    return when (this.type) {
+        ScriptNoteType.OLDER.name -> {
+            when {
+                timeLock.isTimestamp() -> {
+                    val days = ceil(timeLock.value / 86400.0).toInt()
+                    if (days == 1) "Older 1 day" else "Older $days days"
+                }
+                else -> { // block height
+                    val formattedBlocks = String.format("%,d", timeLock.value)
+                    if (timeLock.value == 1L) "Older 1 block" else "Older $formattedBlocks blocks"
+                }
+            }
+        }
+        ScriptNoteType.AFTER.name -> {
+            when {
+                timeLock.isTimestamp() -> {
+                    val targetDate = calculateDateFromSeconds(timeLock.value)
+                    "After $targetDate"
+                }
+                else -> { // block height
+                    val formattedBlocks = String.format("%,d", timeLock.value)
+                    if (timeLock.value == 1L) "After 1 block" else "After block $formattedBlocks"
+                }
+            }
+        }
+        else -> this.displayName
+    }
+}
+
+fun ScriptNode.getTimelockDescription(currentBlockHeight: Int = 0): String {
+    val timeLock = this.timeLock ?: TimeLock()
+    return when (this.type) {
+        ScriptNoteType.OLDER.name -> "From the time the coins are received."
+        ScriptNoteType.AFTER.name -> {
+            when {
+                timeLock.isTimestamp() -> {
+                    val currentTimeSeconds = System.currentTimeMillis() / 1000
+                    val diff = timeLock.value - currentTimeSeconds
+                    val daysFromNow = ceil(diff / 86400.0).toInt()
+                    val dayText = if (daysFromNow == 1) "day" else "days"
+                    if (daysFromNow == 1) "1 $dayText from today." else "$daysFromNow $dayText from today."
+                }
+                else -> { // block height
+                    val blockDiff = timeLock.value - currentBlockHeight
+                    val formattedBlockDiff = String.format("%,d", blockDiff)
+                    if (blockDiff == 1L) "1 block from the current block." else "$formattedBlockDiff blocks from the current block."
+                }
+            }
+        }
+        else -> this.descriptionText
+    }
+}
+
+fun ScriptNode.getHashlockDescription(showBip32Path: Boolean = false): String {
+    return if (showBip32Path) {
+        when (this.type) {
+            ScriptNoteType.HASH160.name -> "Requires a preimage that hashes to a given value with HASH160"
+            ScriptNoteType.HASH256.name -> "Requires a preimage that hashes to a given value with SHA256"
+            ScriptNoteType.RIPEMD160.name -> "Requires a preimage that hashes to a given value with RIPEMD160"
+            ScriptNoteType.SHA256.name -> "Requires a preimage that hashes to a given value with SHA256"
+            else -> "Requires a preimage that hashes to a given value"
+        }
+    } else {
+        ""
+    }
+}
+
+private fun calculateDateFromSeconds(timestampSeconds: Long): String {
+    val calendar = Calendar.getInstance()
+    calendar.timeInMillis = timestampSeconds * 1000
+    val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.US)
+    return dateFormat.format(calendar.time)
+}
+
+fun TimeLock.isTimestamp(): Boolean {
+    return this.based == MiniscriptTimelockBased.TIME_LOCK
+} 
