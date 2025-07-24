@@ -91,6 +91,13 @@ class NcEncryptedPreferences @Inject constructor(
         }
     }
 
+    fun clearMatrixCredential(userId: String) {
+        prefs.edit {
+            remove(userId)
+            apply()
+        }
+    }
+
     fun getWalletPinFlow(): Flow<String> {
         walletPinFlow.value = getWalletPin()
         return walletPinFlow

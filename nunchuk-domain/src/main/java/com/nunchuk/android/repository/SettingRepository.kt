@@ -54,6 +54,7 @@ interface SettingRepository {
     suspend fun setSyncEnable(isEnable: Boolean)
     suspend fun setQrDensity(density: Int)
     suspend fun markSyncRoomSuccess()
+    suspend fun resetSyncRoomSuccess()
     suspend fun markIsShowNfcUniversal()
     suspend fun setWalletSecuritySetting(config: String)
     suspend fun setHomeDisplaySetting(config: String)

@@ -23,7 +23,9 @@ import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.persistence.NcEncryptedPreferences
+import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.WalletBannerState
 import com.nunchuk.android.model.campaigns.Campaign
 import com.nunchuk.android.model.campaigns.ReferrerCode
 import com.nunchuk.android.model.setting.BiometricConfig
@@ -105,6 +107,10 @@ internal class SettingRepositoryImpl @Inject constructor(
 
     override suspend fun markSyncRoomSuccess() {
         ncDataStore.markSyncRoomSuccess()
+    }
+
+    override suspend fun resetSyncRoomSuccess() {
+        ncDataStore.resetSyncRoomSuccess()
     }
 
     override suspend fun setSyncEnable(isEnable: Boolean) {

@@ -33,9 +33,11 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.util.USD_CURRENCY
+import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.FeeRate
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.WalletBannerState
 import com.nunchuk.android.model.setting.BiometricConfig
 import com.nunchuk.android.model.setting.HomeDisplaySetting
 import com.nunchuk.android.model.setting.TaprootFeeSelectionSetting
@@ -135,6 +137,12 @@ class NcDataStore @Inject constructor(
     suspend fun markSyncRoomSuccess() {
         context.dataStore.edit { settings ->
             settings[syncRoomSuccessKey] = true
+        }
+    }
+
+    suspend fun resetSyncRoomSuccess() {
+        context.dataStore.edit { settings ->
+            settings[syncRoomSuccessKey] = false
         }
     }
 

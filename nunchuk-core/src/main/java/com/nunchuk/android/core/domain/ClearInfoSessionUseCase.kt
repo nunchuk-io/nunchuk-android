@@ -24,8 +24,10 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.account.PrimaryKeySignerInfoHolder
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.persistence.NcDataStore
+import com.nunchuk.android.core.persistence.NcEncryptedPreferences
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.repository.SettingRepository
 import com.nunchuk.android.usecase.UseCase
 import com.nunchuk.android.usecase.free.groupwallet.NotificationDeviceUnregisterUseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -43,14 +45,21 @@ class ClearInfoSessionUseCase @Inject constructor(
     private val premiumWalletRepository: PremiumWalletRepository,
     private val notificationDeviceUnregisterUseCase: NotificationDeviceUnregisterUseCase,
     private val applicationScope: CoroutineScope,
+    private val settingRepository: SettingRepository,
+    private val encryptedPreferences: NcEncryptedPreferences,
 ) : UseCase<Unit, Unit>(dispatcher) {
 
     override suspend fun execute(parameters: Unit) {
         sessionHolder.clearActiveSession()
+        val currentChatId = accountManager.getAccount().chatId
+        if (currentChatId.isNotEmpty()) {
+            encryptedPreferences.clearMatrixCredential(currentChatId)
+        }
         accountManager.signOut()
         ncDataStore.clear()
         primaryKeySignerInfoHolder.clear()
         premiumWalletRepository.clearLocalData()
+        settingRepository.resetSyncRoomSuccess()
         applicationScope.launch {
             runCatching { FirebaseMessaging.getInstance().token.await() }.onSuccess { token ->
                 notificationDeviceUnregisterUseCase(NotificationDeviceUnregisterUseCase.Param(token))
