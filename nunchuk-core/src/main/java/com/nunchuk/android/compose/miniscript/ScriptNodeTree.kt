@@ -189,6 +189,7 @@ fun ScriptNodeTree(
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
                 HashlockItem(
+                    data = data,
                     showThreadCurve = showThreadCurve,
                     node = node
                 ) {
@@ -405,7 +406,8 @@ data class ScriptNodeData(
     val duplicateSignerKeys: Set<String> = emptySet(),
     val signingPath: SigningPath = SigningPath(path = emptyList()),
     val satisfiableMap: Map<String, Boolean> = emptyMap(),
-    val topLevelDisableNode: ScriptNode? = null
+    val topLevelDisableNode: ScriptNode? = null,
+    val onPreImageClick: (ScriptNode) -> Unit = {},
 )
 
 @Composable
@@ -716,18 +718,19 @@ fun TimelockItem(
 
 @Composable
 fun HashlockItem(
+    data: ScriptNodeData,
     modifier: Modifier = Modifier,
     showThreadCurve: Boolean = true,
     node: ScriptNode,
     content: @Composable () -> Unit = {},
 ) {
-    val description = when (node.type) {
+    val description = if (data.showBip32Path) when (node.type) {
         ScriptNoteType.HASH160.name -> "Requires a preimage that hashes to a given value with HASH160"
         ScriptNoteType.HASH256.name -> "Requires a preimage that hashes to a given value with SHA256"
         ScriptNoteType.RIPEMD160.name -> "Requires a preimage that hashes to a given value with RIPEMD160"
         ScriptNoteType.SHA256.name -> "Requires a preimage that hashes to a given value with SHA256"
         else -> "Requires a preimage that hashes to a given value"
-    }
+    } else ""
     Column(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth()
@@ -750,12 +753,26 @@ fun HashlockItem(
                         text = "${node.idString}. ${node.type.capitalize()}",
                         style = NunchukTheme.typography.body
                     )
-                    Text(
-                        text = description,
-                        style = NunchukTheme.typography.bodySmall.copy(
-                            color = MaterialTheme.colorScheme.textSecondary
+                    if (description.isNotEmpty()) {
+                        Text(
+                            text = description,
+                            style = NunchukTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.textSecondary
+                            )
                         )
-                    )
+                    }
+                }
+                if (data.mode == ScriptMode.SIGN) {
+                    if (data.satisfiableMap[node.idString] == true) {
+                        CheckedLabel(text = "Unlocked")
+                    } else {
+                        NcPrimaryDarkButton(
+                            height = 36.dp,
+                            onClick = { data.onPreImageClick(node) },
+                        ) {
+                            Text(stringResource(R.string.nc_sign))
+                        }
+                    }
                 }
             }
         }

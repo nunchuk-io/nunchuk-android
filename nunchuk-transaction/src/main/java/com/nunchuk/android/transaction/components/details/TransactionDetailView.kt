@@ -475,7 +475,7 @@ fun TransactionDetailView(
                                 .padding(top = 16.dp)
                                 .padding(horizontal = 16.dp),
                             signer = signer,
-                            showValueKey = index < transaction.m && state.addressType.isTaproot() && !state.isValueKeySetDisable && miniscriptUiState.scriptNode == null,
+                            showValueKey = index < transaction.m && state.addressType.isTaproot() && !state.isValueKeySetDisable && !miniscriptUiState.isMiniscriptWallet,
                             isSigned = transaction.signers.isNotEmpty() && transaction.signers[signer.fingerPrint] ?: false,
                             canSign = !transaction.status.signDone(),
                             onSignClick = onSignClick,

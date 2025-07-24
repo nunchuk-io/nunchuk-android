@@ -484,6 +484,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         addressType: AddressType,
         defaultKeySetIndex: Int
     ) {
+        _minscriptState.update { it.copy(isMiniscriptWallet = true) }
         if (addressType.isTaproot() && !isValueKeySetDisable && defaultKeySetIndex == 0) {
             // Special case for Taproot wallet and select key path we only show the first signer
             val signers = walletExtended.wallet.signers.take(1).map { signer ->

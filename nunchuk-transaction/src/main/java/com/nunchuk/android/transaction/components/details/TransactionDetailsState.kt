@@ -48,6 +48,7 @@ data class TransactionDetailsState(
 )
 
 data class TransactionMiniscriptUiState(
+    val isMiniscriptWallet: Boolean = false,
     val scriptNode: ScriptNode? = null,
     val satisfiableMap: Map<String, Boolean> = emptyMap(),
     val topLevelDisableNode: ScriptNode? = null,

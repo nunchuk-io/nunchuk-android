@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,11 +27,13 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.SelectableContainer
 import com.nunchuk.android.compose.miniscript.MiniscriptTaproot
+import com.nunchuk.android.compose.miniscript.PolicyHeader
 import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.provider.WalletExtendedProvider
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.model.ScriptNode
@@ -68,66 +71,78 @@ fun ChooseSigningPathScreen(
                 }
             }
         ) { innerPadding ->
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
-                    .padding(horizontal = 0.dp),
             ) {
-                item {
-                    val keyPath = wallet.signers.firstOrNull()?.name
-                    SelectableContainer(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        paddingValues = PaddingValues(
-                            start = 16.dp,
-                            end = 16.dp,
-                            top = 16.dp,
-                            bottom = 4.dp
-                        ),
-                        isSelected = isKeyPathSelected,
-                        onClick = { isKeyPathSelected = true }
-                    ) {
-                        MiniscriptTaproot(
-                            keyPath = keyPath.orEmpty(),
-                            data = ScriptNodeData(
-                                mode = ScriptMode.VIEW,
-                                signers = signers,
+                Text(
+                    text = stringResource(R.string.nc_select_signing_policy_desc),
+                    style = NunchukTheme.typography.body,
+                    color = MaterialTheme.colorScheme.textPrimary,
+                    modifier = Modifier.padding(16.dp)
+                )
+
+                PolicyHeader(modifier = Modifier.padding(horizontal = 16.dp,))
+
+                LazyColumn(
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    item {
+                        val keyPath = wallet.signers.firstOrNull()?.name
+                        SelectableContainer(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            paddingValues = PaddingValues(
+                                start = 16.dp,
+                                end = 16.dp,
+                                top = 16.dp,
+                                bottom = 4.dp
                             ),
-                            signer = wallet.signers.firstOrNull()?.toModel(),
-                            onChangeBip32Path = { _, _ -> },
-                            onActionKey = { _, _ -> },
-                            divider = {}
-                        )
-                    }
-                }
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    SelectableContainer(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        paddingValues = PaddingValues(16.dp),
-                        isSelected = !isKeyPathSelected,
-                        onClick = { isKeyPathSelected = false }
-                    ) {
-                        Column {
-                            NcBadgePrimary(
-                                modifier = Modifier.padding(
-                                    bottom = 8.dp,
-                                    end = 16.dp
-                                ),
-                                text = "Script path",
-                                enabled = true
-                            )
-                            ScriptNodeTree(
-                                node = scriptNode,
+                            isSelected = isKeyPathSelected,
+                            onClick = { isKeyPathSelected = true }
+                        ) {
+                            MiniscriptTaproot(
+                                keyPath = keyPath.orEmpty(),
                                 data = ScriptNodeData(
                                     mode = ScriptMode.VIEW,
                                     signers = signers,
-                                )
+                                ),
+                                signer = wallet.signers.firstOrNull()?.toModel(),
+                                onChangeBip32Path = { _, _ -> },
+                                onActionKey = { _, _ -> },
+                                divider = {}
                             )
+                        }
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        SelectableContainer(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            paddingValues = PaddingValues(16.dp),
+                            isSelected = !isKeyPathSelected,
+                            onClick = { isKeyPathSelected = false }
+                        ) {
+                            Column {
+                                NcBadgePrimary(
+                                    modifier = Modifier.padding(
+                                        bottom = 8.dp,
+                                        end = 16.dp
+                                    ),
+                                    text = "Script path",
+                                    enabled = true
+                                )
+                                ScriptNodeTree(
+                                    node = scriptNode,
+                                    data = ScriptNodeData(
+                                        mode = ScriptMode.VIEW,
+                                        signers = signers,
+                                    )
+                                )
+                            }
                         }
                     }
                 }
