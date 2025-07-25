@@ -47,7 +47,6 @@ import com.nunchuk.android.core.miniscript.ScriptNoteType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SigningPath
-import com.nunchuk.android.model.TimeLock
 import java.util.Locale
 
 enum class ScriptMode {
@@ -535,6 +534,7 @@ fun ThreshMultiItem(
                         NcIcon(
                             painter = painterResource(id = R.drawable.ic_pending_signatures),
                             contentDescription = "Warning",
+                            tint = MaterialTheme.colorScheme.textSecondary
                         )
                         Text(
                             text = pluralStringResource(
@@ -543,16 +543,19 @@ fun ThreshMultiItem(
                                 pendingSigners
                             ),
                             style = NunchukTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.textSecondary,
                             modifier = Modifier.padding(start = 4.dp),
                         )
                     } else {
                         NcIcon(
                             painter = painterResource(id = R.drawable.ic_check_circle),
                             contentDescription = "Check",
+                            tint = MaterialTheme.colorScheme.textSecondary
                         )
                         Text(
                             text = stringResource(R.string.nc_transaction_enough_conditions),
                             style = NunchukTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.textSecondary,
                             modifier = Modifier.padding(start = 4.dp),
                         )
                     }
