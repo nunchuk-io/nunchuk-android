@@ -25,7 +25,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcHighlightText
-import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcOptionItem
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
@@ -117,19 +116,6 @@ fun EnableValueKeysetScreen(
                         isSelected = !isEnabled,
                         onClick = { isEnabled = false }
                     )
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    NcHintMessage(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.nc_value_keyset_hit),
-                            style = NunchukTheme.typography.caption
-                        )
-                    }
                 }
             }
         )
