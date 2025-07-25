@@ -48,5 +48,6 @@ data class AddReceiptState(
     val signers : Map<String, SignerModel> = emptyMap(),
     val antiFeeSniping: Boolean = false,
     val scriptNode: ScriptNode? = null,
-    val wallet: Wallet = Wallet()
+    val wallet: Wallet = Wallet(),
+    val currentBlockHeight: Int = 0,
 )

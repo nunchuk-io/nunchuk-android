@@ -389,7 +389,8 @@ fun TransactionDetailView(
                                     showBip32Path = false,
                                     signedSigners = transaction.signers,
                                     satisfiableMap = miniscriptUiState.satisfiableMap,
-                                    topLevelDisableNode = miniscriptUiState.topLevelDisableNode
+                                    topLevelDisableNode = miniscriptUiState.topLevelDisableNode,
+                                    currentBlockHeight = miniscriptUiState.chainTip
                                 ),
                                 onChangeBip32Path = { _, _ -> },
                                 onActionKey = { _, signer ->

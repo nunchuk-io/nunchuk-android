@@ -29,8 +29,6 @@ import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesDeleteAssistedWalletUseCase
 import com.nunchuk.android.core.domain.membership.DeleteAssistedWalletUseCase
-import com.nunchuk.android.core.domain.membership.TargetAction
-import com.nunchuk.android.core.domain.membership.VerifiedPasswordTokenUseCase
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.signer.SignerModel
@@ -56,6 +54,7 @@ import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.DeleteWalletUseCase
 import com.nunchuk.android.usecase.ExportTransactionsHistoryUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
+import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -130,6 +129,7 @@ internal class WalletConfigViewModel @Inject constructor(
     private val exportTransactionsHistoryUseCase: ExportTransactionsHistoryUseCase,
     private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
     private val parseSignerStringUseCase: ParseSignerStringUseCase,
+    private val getChainTipUseCase: GetChainTipUseCase,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletConfigState())
@@ -177,6 +177,12 @@ internal class WalletConfigViewModel @Inject constructor(
         viewModelScope.launch {
             getDeprecatedGroupWalletsUseCase(Unit).onSuccess { deprecatedWallets ->
                 _state.update { it.copy(isDeprecatedGroupWallet = deprecatedWallets.any { it == walletId }) }
+            }
+        }
+
+        viewModelScope.launch {
+            getChainTipUseCase(Unit).onSuccess { chainTip ->
+                _state.update { it.copy(currentBlockHeight = chainTip) }
             }
         }
     }

@@ -289,7 +289,8 @@ internal fun WalletConfigView(
                                     data = ScriptNodeData(
                                         mode = ScriptMode.VIEW,
                                         signers = state.signerMap,
-                                        showBip32Path = true
+                                        showBip32Path = true,
+                                        currentBlockHeight = state.currentBlockHeight
                                     ),
                                     onChangeBip32Path = { _, _ -> },
                                     onActionKey = { _, _ -> }

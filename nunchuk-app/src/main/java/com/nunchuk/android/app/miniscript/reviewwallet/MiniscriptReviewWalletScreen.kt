@@ -216,6 +216,7 @@ fun MiniscriptReviewWalletScreen(
                                 mode = ScriptMode.VIEW,
                                 signers = uiState.signers,
                                 showBip32Path = true,
+                                currentBlockHeight = uiState.currentBlockHeight,
                                 duplicateSignerKeys = getDuplicateSignerKeys(
                                     uiState.signers,
                                     uiState.taprootSigner

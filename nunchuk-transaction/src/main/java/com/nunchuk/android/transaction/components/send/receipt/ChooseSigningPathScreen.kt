@@ -45,6 +45,7 @@ fun ChooseSigningPathScreen(
     wallet: Wallet,
     signers: Map<String, SignerModel>,
     scriptNode: ScriptNode,
+    currentBlockHeight: Int = 0,
     onContinue: (isKeyPathSelected: Boolean) -> Unit = {},
 ) {
     var isKeyPathSelected by rememberSaveable { mutableStateOf(true) }
@@ -140,6 +141,7 @@ fun ChooseSigningPathScreen(
                                     data = ScriptNodeData(
                                         mode = ScriptMode.VIEW,
                                         signers = signers,
+                                        currentBlockHeight = currentBlockHeight
                                     )
                                 )
                             }

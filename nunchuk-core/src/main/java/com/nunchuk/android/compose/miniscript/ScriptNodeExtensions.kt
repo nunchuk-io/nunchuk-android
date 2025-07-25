@@ -12,8 +12,32 @@ import kotlin.math.ceil
 val ScriptNode.displayName: String
     get() = when (this.type) {
         ScriptNoteType.PK.name -> "PK"
-        ScriptNoteType.OLDER.name -> "Older"
-        ScriptNoteType.AFTER.name -> "After"
+        ScriptNoteType.OLDER.name -> {
+            val timeLock = this.timeLock ?: TimeLock()
+            when {
+                timeLock.isTimestamp() -> {
+                    val days = ceil(timeLock.value / 86400.0).toInt()
+                    if (days == 1) "Older 1 day" else "Older $days days"
+                }
+                else -> { // block height
+                    val formattedBlocks = String.format("%,d", timeLock.value)
+                    if (timeLock.value == 1L) "Older 1 block" else "Older $formattedBlocks blocks"
+                }
+            }
+        }
+        ScriptNoteType.AFTER.name -> {
+            val timeLock = this.timeLock ?: TimeLock()
+            when {
+                timeLock.isTimestamp() -> {
+                    val targetDate = calculateDateFromSeconds(timeLock.value)
+                    "After $targetDate"
+                }
+                else -> { // block height
+                    val formattedBlocks = String.format("%,d", timeLock.value)
+                    if (timeLock.value == 1L) "After 1 block" else "After block $formattedBlocks"
+                }
+            }
+        }
         ScriptNoteType.HASH160.name -> "HASH160"
         ScriptNoteType.HASH256.name -> "HASH256"
         ScriptNoteType.RIPEMD160.name -> "RIPEMD160"
@@ -30,12 +54,26 @@ val ScriptNode.displayName: String
 val ScriptNode.descriptionText: String
     get() = when (this.type) {
         ScriptNoteType.PK.name -> "Public key"
-        ScriptNoteType.OLDER.name -> "Older"
-        ScriptNoteType.AFTER.name -> "After"
-        ScriptNoteType.HASH160.name -> "Requires HASH160 preimage."
-        ScriptNoteType.HASH256.name -> "Requires SHA256 preimage."
-        ScriptNoteType.RIPEMD160.name -> "Requires RIPEMD160 preimage."
-        ScriptNoteType.SHA256.name -> "Requires SHA256 preimage."
+        ScriptNoteType.OLDER.name -> "From the time the coins are received."
+        ScriptNoteType.AFTER.name -> {
+            val timeLock = this.timeLock ?: TimeLock()
+            when {
+                timeLock.isTimestamp() -> {
+                    val currentTimeSeconds = System.currentTimeMillis() / 1000
+                    val diff = timeLock.value - currentTimeSeconds
+                    val daysFromNow = ceil(diff / 86400.0).toInt()
+                    val dayText = if (daysFromNow == 1) "day" else "days"
+                    if (daysFromNow == 1) "1 $dayText from today." else "$daysFromNow $dayText from today."
+                }
+                else -> { // block height - provide a generic description since we don't have currentBlockHeight
+                    "When the specified block height is reached."
+                }
+            }
+        }
+        ScriptNoteType.HASH160.name -> "Requires a preimage that hashes to a given value with HASH160"
+        ScriptNoteType.HASH256.name -> "Requires a preimage that hashes to a given value with SHA256"
+        ScriptNoteType.RIPEMD160.name -> "Requires a preimage that hashes to a given value with RIPEMD160"
+        ScriptNoteType.SHA256.name -> "Requires a preimage that hashes to a given value with SHA256"
         ScriptNoteType.AND.name -> "Both sub-conditions must be satisfied."
         ScriptNoteType.OR.name -> "Only one sub-condition needs to be satisfied."
         ScriptNoteType.ANDOR.name -> "If the first sub-condition is true, the second must also be satisfied. If the first is false, the third must be satisfied."
@@ -45,72 +83,14 @@ val ScriptNode.descriptionText: String
         else -> ""
     }
 
-fun ScriptNode.getTimelockDisplayName(): String {
+fun ScriptNode.getAfterBlockDescription(currentBlockHeight: Int): String {
     val timeLock = this.timeLock ?: TimeLock()
-    return when (this.type) {
-        ScriptNoteType.OLDER.name -> {
-            when {
-                timeLock.isTimestamp() -> {
-                    val days = ceil(timeLock.value / 86400.0).toInt()
-                    if (days == 1) "Older 1 day" else "Older $days days"
-                }
-                else -> { // block height
-                    val formattedBlocks = String.format("%,d", timeLock.value)
-                    if (timeLock.value == 1L) "Older 1 block" else "Older $formattedBlocks blocks"
-                }
-            }
-        }
-        ScriptNoteType.AFTER.name -> {
-            when {
-                timeLock.isTimestamp() -> {
-                    val targetDate = calculateDateFromSeconds(timeLock.value)
-                    "After $targetDate"
-                }
-                else -> { // block height
-                    val formattedBlocks = String.format("%,d", timeLock.value)
-                    if (timeLock.value == 1L) "After 1 block" else "After block $formattedBlocks"
-                }
-            }
-        }
-        else -> this.displayName
-    }
-}
-
-fun ScriptNode.getTimelockDescription(currentBlockHeight: Int = 0): String {
-    val timeLock = this.timeLock ?: TimeLock()
-    return when (this.type) {
-        ScriptNoteType.OLDER.name -> "From the time the coins are received."
-        ScriptNoteType.AFTER.name -> {
-            when {
-                timeLock.isTimestamp() -> {
-                    val currentTimeSeconds = System.currentTimeMillis() / 1000
-                    val diff = timeLock.value - currentTimeSeconds
-                    val daysFromNow = ceil(diff / 86400.0).toInt()
-                    val dayText = if (daysFromNow == 1) "day" else "days"
-                    if (daysFromNow == 1) "1 $dayText from today." else "$daysFromNow $dayText from today."
-                }
-                else -> { // block height
-                    val blockDiff = timeLock.value - currentBlockHeight
-                    val formattedBlockDiff = String.format("%,d", blockDiff)
-                    if (blockDiff == 1L) "1 block from the current block." else "$formattedBlockDiff blocks from the current block."
-                }
-            }
-        }
-        else -> this.descriptionText
-    }
-}
-
-fun ScriptNode.getHashlockDescription(showBip32Path: Boolean = false): String {
-    return if (showBip32Path) {
-        when (this.type) {
-            ScriptNoteType.HASH160.name -> "Requires a preimage that hashes to a given value with HASH160"
-            ScriptNoteType.HASH256.name -> "Requires a preimage that hashes to a given value with SHA256"
-            ScriptNoteType.RIPEMD160.name -> "Requires a preimage that hashes to a given value with RIPEMD160"
-            ScriptNoteType.SHA256.name -> "Requires a preimage that hashes to a given value with SHA256"
-            else -> "Requires a preimage that hashes to a given value"
-        }
+    return if (this.type == ScriptNoteType.AFTER.name && !timeLock.isTimestamp()) {
+        val blockDiff = timeLock.value - currentBlockHeight
+        val formattedBlockDiff = String.format("%,d", blockDiff)
+        if (blockDiff == 1L) "1 block from the current block." else "$formattedBlockDiff blocks from the current block."
     } else {
-        ""
+        this.descriptionText
     }
 }
 

@@ -61,7 +61,6 @@ fun ScriptNodeTree(
     index: String = "1",
     isLastItem: Boolean = false,
     level: Int = 0,
-    currentBlockHeight: Int = 0,
     onChangeBip32Path: (String, SignerModel) -> Unit = { _, _ -> },
     onActionKey: (String, SignerModel?) -> Unit = { _, _ -> },
     data: ScriptNodeData = ScriptNodeData()
@@ -110,7 +109,7 @@ fun ScriptNodeTree(
             ) { modifier, showThreadCurve ->
                 TimelockItem(
                     modifier = modifier,
-                    currentBlockHeight = currentBlockHeight,
+                    currentBlockHeight = data.currentBlockHeight,
                     showThreadCurve = showThreadCurve,
                     isSatisfiableNode = isSatisfiableNode,
                     mode = data.mode,
@@ -403,6 +402,7 @@ data class ScriptNodeData(
     val satisfiableMap: Map<String, Boolean> = emptyMap(),
     val topLevelDisableNode: ScriptNode? = null,
     val onPreImageClick: (ScriptNode) -> Unit = {},
+    val currentBlockHeight: Int = 0,
 )
 
 @Composable
@@ -602,8 +602,12 @@ fun TimelockItem(
     node: ScriptNode,
     content: @Composable () -> Unit = {},
 ) {
-    val title = node.getTimelockDisplayName()
-    val description = node.getTimelockDescription(currentBlockHeight)
+    val title = node.displayName
+    val description = if (node.type == ScriptNoteType.AFTER.name && node.timeLock?.isTimestamp() != true) {
+        node.getAfterBlockDescription(currentBlockHeight)
+    } else {
+        node.descriptionText
+    }
 
     Column(modifier = modifier) {
         Row(
@@ -678,7 +682,7 @@ fun HashlockItem(
     node: ScriptNode,
     content: @Composable () -> Unit = {},
 ) {
-    val description = node.getHashlockDescription(data.showBip32Path)
+    val description = if (data.showBip32Path) node.descriptionText else ""
     Column(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth()

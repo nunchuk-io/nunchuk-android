@@ -34,6 +34,7 @@ import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.P
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.ShowError
 import com.nunchuk.android.transaction.components.utils.privateNote
 import com.nunchuk.android.usecase.CheckAddressValidUseCase
+import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
@@ -53,6 +54,7 @@ internal class AddReceiptViewModel @Inject constructor(
     private val getDefaultAntiFeeSnipingUseCase: GetDefaultAntiFeeSnipingUseCase,
     private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
     private val parseSignerStringUseCase: ParseSignerStringUseCase,
+    private val getChainTipUseCase: GetChainTipUseCase
 ) : NunchukViewModel<AddReceiptState, AddReceiptEvent>() {
 
     override val initialState = AddReceiptState()
@@ -68,6 +70,12 @@ internal class AddReceiptViewModel @Inject constructor(
                         updateState { copy(antiFeeSniping = result.getOrThrow()) }
                     }
                 }
+        }
+
+        viewModelScope.launch {
+            getChainTipUseCase(Unit).onSuccess { chainTip ->
+                updateState { copy(currentBlockHeight = chainTip) }
+            }
         }
     }
 

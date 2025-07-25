@@ -54,7 +54,7 @@ data class TransactionMiniscriptUiState(
     val topLevelDisableNode: ScriptNode? = null,
     val lockedTime: Long = 0L,
     val lockedBase: MiniscriptTimelockBased = MiniscriptTimelockBased.NONE,
-    val chainTip: Long = 0L,
+    val chainTip: Int = 0,
 ) {
     val isTimelockedActive: Boolean =
         lockedBase != MiniscriptTimelockBased.NONE && lockedTime > 0 && when (lockedBase) {

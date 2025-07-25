@@ -534,7 +534,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             getChainTipUseCase(Unit)
                 .onSuccess { chainTip ->
-                    _minscriptState.update { it.copy(chainTip = chainTip.toLong()) }
+                    _minscriptState.update { it.copy(chainTip = chainTip) }
                 }.onFailure {
                     Timber.e(it, "Failed to get chain tip")
                 }

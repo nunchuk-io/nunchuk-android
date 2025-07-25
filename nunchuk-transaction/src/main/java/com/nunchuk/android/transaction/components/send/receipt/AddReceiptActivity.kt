@@ -185,6 +185,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                             wallet = state.wallet,
                             signers = state.signers,
                             scriptNode = scriptNode,
+                            currentBlockHeight = state.currentBlockHeight,
                             onContinue = { isKeyPathSelected ->
                                 if (isKeyPathSelected) {
                                     transactionConfirmViewModel.handleConfirmEvent(keySetIndex = 0)
@@ -202,6 +203,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     if (scriptNode != null) {
                         SelectScriptPathPolicyScreen(
                             scriptNode = scriptNode,
+                            currentBlockHeight = state.currentBlockHeight,
                             signers = state.signers,
                             signingPaths = dummySigningPaths,
                             onContinue = { signingPath ->
