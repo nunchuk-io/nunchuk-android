@@ -33,6 +33,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcBadgeOutline
 import com.nunchuk.android.compose.NcColor
@@ -40,6 +41,7 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.provider.ScriptNodeProvider
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
@@ -604,12 +606,7 @@ fun TimelockItem(
     content: @Composable () -> Unit = {},
 ) {
     val title = node.displayName
-    val description =
-        if (node.type == ScriptNodeType.AFTER.name && node.timeLock?.isTimestamp() != true) {
-            node.getAfterBlockDescription(currentBlockHeight)
-        } else {
-            node.descriptionText
-        }
+    val description = node.getAfterBlockDescription(currentBlockHeight)
 
     Column(modifier = modifier) {
         Row(
@@ -830,7 +827,6 @@ fun TreeBranchContainer(
     }
 }
 
-@Preview
 @Composable
 fun CurveView() {
     Column {
@@ -858,44 +854,9 @@ private fun String.capitalize(): String {
 
 @Preview
 @Composable
-fun ConditionTreeUIPreview() {
-    val sampleScriptNode = ScriptNode(
-        id = listOf(1),
-        data = byteArrayOf(),
-        type = ScriptNodeType.ANDOR.name,
-        keys = listOf(),
-        k = 0,
-        timeLock = null,
-        subs = listOf(
-            ScriptNode(
-                type = ScriptNodeType.AFTER.name,
-                keys = listOf(),
-                k = 7776000, // 90 days in seconds
-                subs = emptyList(),
-                id = listOf(1, 1),
-                data = byteArrayOf(),
-                timeLock = null
-            ),
-            ScriptNode(
-                type = ScriptNodeType.THRESH.name,
-                keys = listOf("key_3", "key_4", "key_5"),
-                k = 3,
-                subs = emptyList(),
-                id = listOf(1, 2),
-                data = byteArrayOf(),
-                timeLock = null
-            ),
-            ScriptNode(
-                type = ScriptNodeType.THRESH.name,
-                keys = listOf("key_0", "key_1", "key_2"),
-                k = 2,
-                subs = emptyList(),
-                id = listOf(1, 3),
-                data = byteArrayOf(),
-                timeLock = null
-            )
-        )
-    )
+fun ConditionTreeUIPreview(
+    @PreviewParameter(ScriptNodeProvider::class) scriptNode: ScriptNode
+) {
     NunchukTheme {
         Column(
             Modifier
@@ -903,7 +864,7 @@ fun ConditionTreeUIPreview() {
                 .padding(16.dp)
         ) {
             ScriptNodeTree(
-                node = sampleScriptNode,
+                node = scriptNode,
                 data = ScriptNodeData(
                     mode = ScriptMode.CONFIG,
                     signers = emptyMap(),
