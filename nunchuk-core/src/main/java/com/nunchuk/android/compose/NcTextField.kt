@@ -83,6 +83,7 @@ fun NcTextField(
     onClick: () -> Unit = {},
     placeholder: @Composable (() -> Unit)? = null,
     minLines: Int = 1,
+    isTransparent: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
     keyboardActions: KeyboardActions = KeyboardActions(),
     enabled: Boolean = true,
@@ -147,7 +148,7 @@ fun NcTextField(
         BasicTextField(
             modifier = Modifier
                 .background(
-                    color = if (enabled.not()) disableBackgroundColor else MaterialTheme.colorScheme.fillInputText,
+                    color = if (enabled.not()) disableBackgroundColor else if (isTransparent) Color.Transparent else MaterialTheme.colorScheme.fillInputText,
                     shape = RoundedCornerShape(roundBoxRadius)
                 )
                 .defaultMinSize(
@@ -193,21 +194,27 @@ fun NcTextField(
                     isError = false,
                     interactionSource = interactionSource,
                     colors = colors,
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
+                    contentPadding = if (isTransparent) {
+                        PaddingValues()
+                    } else {
+                        PaddingValues(horizontal = 12.dp, vertical = 14.dp)
+                    },
                     container = {
-                        Box(
-                            Modifier.border(
-                                width = 1.dp,
-                                color = if (hasError) {
-                                    colorResource(R.color.nc_orange_color)
-                                } else if (isFocused) {
-                                    colorResource(R.color.nc_text_primary)
-                                } else {
-                                    colorResource(R.color.nc_stroke_primary)
-                                },
-                                shape = RoundedCornerShape(roundBoxRadius),
+                        if (!isTransparent) {
+                            Box(
+                                Modifier.border(
+                                    width = 1.dp,
+                                    color = if (hasError) {
+                                        colorResource(R.color.nc_orange_color)
+                                    } else if (isFocused) {
+                                        colorResource(R.color.nc_text_primary)
+                                    } else {
+                                        colorResource(R.color.nc_stroke_primary)
+                                    },
+                                    shape = RoundedCornerShape(roundBoxRadius),
+                                )
                             )
-                        )
+                        }
                     }
                 )
             },

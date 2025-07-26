@@ -225,7 +225,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                         output = coin
                     )
                 },
-                onCopyText = { handleCopyContent(it) }
+                onCopyText = { handleCopyContent(it) },
+                onPreimageSuccess = viewModel::handlePreimageSuccess
             )
         }
 

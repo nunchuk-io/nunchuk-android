@@ -51,6 +51,7 @@ data class TransactionMiniscriptUiState(
     val isMiniscriptWallet: Boolean = false,
     val scriptNode: ScriptNode? = null,
     val satisfiableMap: Map<String, Boolean> = emptyMap(),
+    val signedHash: Map<String, Boolean> = emptyMap(),
     val topLevelDisableNode: ScriptNode? = null,
     val lockedTime: Long = 0L,
     val lockedBase: MiniscriptTimelockBased = MiniscriptTimelockBased.NONE,

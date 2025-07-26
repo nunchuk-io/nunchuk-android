@@ -43,7 +43,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
-import com.nunchuk.android.core.miniscript.ScriptNoteType
+import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SigningPath
@@ -70,13 +70,13 @@ fun ScriptNodeTree(
     val isSatisfiableNode = data.satisfiableMap[node.idString] == true
 
     val nodeModifier = when {
-        data.mode == ScriptMode.CONFIG || node.type == ScriptNoteType.AFTER.name || node.type == ScriptNoteType.OLDER.name -> Modifier
+        data.mode == ScriptMode.CONFIG || node.type == ScriptNodeType.AFTER.name || node.type == ScriptNodeType.OLDER.name -> Modifier
         data.mode == ScriptMode.SIGN && isSatisfiableNode -> Modifier
         data.mode == ScriptMode.VIEW && isNormalNode -> Modifier
         else -> Modifier.alpha(0.4f)
     }
     when (node.type) {
-        ScriptNoteType.ANDOR.name, ScriptNoteType.AND.name, ScriptNoteType.OR.name, ScriptNoteType.OR_TAPROOT.name -> {
+        ScriptNodeType.ANDOR.name, ScriptNodeType.AND.name, ScriptNodeType.OR.name, ScriptNodeType.OR_TAPROOT.name -> {
             TreeBranchContainer(
                 modifier = nodeModifier,
                 drawLine = isLastItem.not(),
@@ -84,7 +84,7 @@ fun ScriptNodeTree(
             ) { modifier, showThreadCurve ->
                 AndOrView(
                     isShowCurve = showThreadCurve,
-                    isShowTapscriptBadge = ScriptNoteType.OR_TAPROOT.name == node.type,
+                    isShowTapscriptBadge = ScriptNodeType.OR_TAPROOT.name == node.type,
                     padStart = 0,
                     node = node
                 ) {
@@ -101,7 +101,7 @@ fun ScriptNodeTree(
             return
         }
 
-        ScriptNoteType.AFTER.name, ScriptNoteType.OLDER.name -> {
+        ScriptNodeType.AFTER.name, ScriptNodeType.OLDER.name -> {
             TreeBranchContainer(
                 modifier = nodeModifier,
                 drawLine = isLastItem.not(),
@@ -128,7 +128,7 @@ fun ScriptNodeTree(
             return
         }
 
-        ScriptNoteType.PK.name -> {
+        ScriptNodeType.PK.name -> {
             TreeBranchContainer(
                 modifier = nodeModifier,
                 drawLine = isLastItem.not(),
@@ -149,7 +149,7 @@ fun ScriptNodeTree(
             return
         }
 
-        ScriptNoteType.MULTI.name, ScriptNoteType.THRESH.name -> {
+        ScriptNodeType.MULTI.name, ScriptNodeType.THRESH.name -> {
             TreeBranchContainer(
                 modifier = nodeModifier,
                 drawLine = isLastItem.not(),
@@ -176,7 +176,7 @@ fun ScriptNodeTree(
             return
         }
 
-        ScriptNoteType.HASH160.name, ScriptNoteType.HASH256.name, ScriptNoteType.RIPEMD160.name, ScriptNoteType.SHA256.name -> {
+        ScriptNodeType.HASH160.name, ScriptNodeType.HASH256.name, ScriptNodeType.RIPEMD160.name, ScriptNodeType.SHA256.name -> {
             TreeBranchContainer(
                 modifier = nodeModifier,
                 drawLine = isLastItem.not(),
@@ -403,6 +403,7 @@ data class ScriptNodeData(
     val topLevelDisableNode: ScriptNode? = null,
     val onPreImageClick: (ScriptNode) -> Unit = {},
     val currentBlockHeight: Int = 0,
+    val signedHash: Map<String, Boolean> = emptyMap(),
 )
 
 @Composable
@@ -470,7 +471,7 @@ fun ThreshMultiItem(
     }
     val pendingSigners = if (data.mode == ScriptMode.SIGN && isSatisfiable) {
         val signedCount = when (node.type) {
-            ScriptNoteType.THRESH.name -> {
+            ScriptNodeType.THRESH.name -> {
                 node.subs.count { sub ->
                     val firstKey = sub.keys.firstOrNull()
                     if (firstKey != null) {
@@ -481,7 +482,7 @@ fun ThreshMultiItem(
                 }
             }
 
-            ScriptNoteType.MULTI.name -> {
+            ScriptNodeType.MULTI.name -> {
                 node.keys.count { key ->
                     val signer = data.signers[key]
                     val xfp = signer?.fingerPrint
@@ -603,11 +604,12 @@ fun TimelockItem(
     content: @Composable () -> Unit = {},
 ) {
     val title = node.displayName
-    val description = if (node.type == ScriptNoteType.AFTER.name && node.timeLock?.isTimestamp() != true) {
-        node.getAfterBlockDescription(currentBlockHeight)
-    } else {
-        node.descriptionText
-    }
+    val description =
+        if (node.type == ScriptNodeType.AFTER.name && node.timeLock?.isTimestamp() != true) {
+            node.getAfterBlockDescription(currentBlockHeight)
+        } else {
+            node.descriptionText
+        }
 
     Column(modifier = modifier) {
         Row(
@@ -685,45 +687,47 @@ fun HashlockItem(
     val description = if (data.showBip32Path) node.descriptionText else ""
     Column(modifier = modifier) {
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             if (showThreadCurve) {
                 CurveView()
             }
-            Row(modifier = Modifier.padding(top = 10.dp)) {
-                NcIcon(
-                    painter = painterResource(R.drawable.ic_hash),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
+            NcIcon(
+                painter = painterResource(R.drawable.ic_hash),
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(top = 10.dp)
+                    .size(20.dp)
+            )
+            Column(
+                modifier = Modifier
+                    .padding(top = 10.dp)
+                    .weight(1f)
+                    .padding(start = 8.dp)
+            ) {
+                Text(
+                    text = "${node.idString}. ${node.type.capitalize()}",
+                    style = NunchukTheme.typography.body
                 )
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp)
-                ) {
+                if (description.isNotEmpty()) {
                     Text(
-                        text = "${node.idString}. ${node.type.capitalize()}",
-                        style = NunchukTheme.typography.body
-                    )
-                    if (description.isNotEmpty()) {
-                        Text(
-                            text = description,
-                            style = NunchukTheme.typography.bodySmall.copy(
-                                color = MaterialTheme.colorScheme.textSecondary
-                            )
+                        text = description,
+                        style = NunchukTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.textSecondary
                         )
-                    }
+                    )
                 }
-                if (data.mode == ScriptMode.SIGN) {
-                    if (data.satisfiableMap[node.idString] == true) {
-                        CheckedLabel(text = "Unlocked")
-                    } else {
-                        NcPrimaryDarkButton(
-                            height = 36.dp,
-                            onClick = { data.onPreImageClick(node) },
-                        ) {
-                            Text(stringResource(R.string.nc_sign))
-                        }
+            }
+
+            if (data.mode == ScriptMode.SIGN) {
+                if (data.signedHash[node.idString] == true) {
+                    CheckedLabel(text = "Unlocked")
+                } else {
+                    NcPrimaryDarkButton(
+                        height = 36.dp,
+                        onClick = { data.onPreImageClick(node) },
+                    ) {
+                        Text(stringResource(R.string.nc_enter))
                     }
                 }
             }
@@ -846,7 +850,6 @@ fun CurveView() {
 }
 
 
-
 private fun String.capitalize(): String {
     return this.lowercase().replaceFirstChar {
         if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
@@ -859,13 +862,13 @@ fun ConditionTreeUIPreview() {
     val sampleScriptNode = ScriptNode(
         id = listOf(1),
         data = byteArrayOf(),
-        type = ScriptNoteType.ANDOR.name,
+        type = ScriptNodeType.ANDOR.name,
         keys = listOf(),
         k = 0,
         timeLock = null,
         subs = listOf(
             ScriptNode(
-                type = ScriptNoteType.AFTER.name,
+                type = ScriptNodeType.AFTER.name,
                 keys = listOf(),
                 k = 7776000, // 90 days in seconds
                 subs = emptyList(),
@@ -874,7 +877,7 @@ fun ConditionTreeUIPreview() {
                 timeLock = null
             ),
             ScriptNode(
-                type = ScriptNoteType.THRESH.name,
+                type = ScriptNodeType.THRESH.name,
                 keys = listOf("key_3", "key_4", "key_5"),
                 k = 3,
                 subs = emptyList(),
@@ -883,7 +886,7 @@ fun ConditionTreeUIPreview() {
                 timeLock = null
             ),
             ScriptNode(
-                type = ScriptNoteType.THRESH.name,
+                type = ScriptNodeType.THRESH.name,
                 keys = listOf("key_0", "key_1", "key_2"),
                 k = 2,
                 subs = emptyList(),

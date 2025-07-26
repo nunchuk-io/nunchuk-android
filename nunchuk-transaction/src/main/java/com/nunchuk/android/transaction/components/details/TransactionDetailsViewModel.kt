@@ -41,7 +41,8 @@ import com.nunchuk.android.core.domain.membership.CancelScheduleBroadcastTransac
 import com.nunchuk.android.core.domain.membership.RequestSignatureTransactionUseCase
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
-import com.nunchuk.android.core.miniscript.ScriptNoteType
+import com.nunchuk.android.core.miniscript.ScriptNodeType
+import com.nunchuk.android.core.miniscript.isPreImageNode
 import com.nunchuk.android.core.network.ApiErrorCode
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.push.PushEvent
@@ -113,6 +114,7 @@ import com.nunchuk.android.usecase.GetTransactionFromNetworkUseCase
 import com.nunchuk.android.usecase.GetTransactionUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.ImportTransactionUseCase
+import com.nunchuk.android.usecase.IsPreimageRevealedUseCase
 import com.nunchuk.android.usecase.IsScriptNodeSatisfiableUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphrase
@@ -203,6 +205,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val isScriptNodeSatisfiableUseCase: IsScriptNodeSatisfiableUseCase,
     private val getTimelockedUntilUseCase: GetTimelockedUntilUseCase,
     private val getChainTipUseCase: GetChainTipUseCase,
+    private val isPreimageRevealedUseCase: IsPreimageRevealedUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionDetailsState())
     val state = _state.asStateFlow()
@@ -231,6 +234,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private var getTransactionJob: Job? = null
 
     private val satisfiableMap: MutableMap<String, Boolean> = mutableMapOf()
+    private val signedHash: MutableMap<String, Boolean> = mutableMapOf()
 
     private fun getState() = state.value
 
@@ -484,6 +488,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
         addressType: AddressType,
         defaultKeySetIndex: Int
     ) {
+        satisfiableMap.clear()
+        signedHash.clear()
         _minscriptState.update { it.copy(isMiniscriptWallet = true) }
         if (addressType.isTaproot() && !isValueKeySetDisable && defaultKeySetIndex == 0) {
             // Special case for Taproot wallet and select key path we only show the first signer
@@ -506,6 +512,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     it.copy(
                         scriptNode = result.scriptNode,
                         satisfiableMap = satisfiableMap,
+                        signedHash = signedHash,
                         topLevelDisableNode = topLevelDisableNode,
                     )
                 }
@@ -545,9 +552,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
         scriptNode: ScriptNode,
     ): ScriptNode? {
         val targetTypes = setOf(
-            ScriptNoteType.ANDOR.name,
-            ScriptNoteType.OR.name,
-            ScriptNoteType.OR_TAPROOT.name
+            ScriptNodeType.ANDOR.name,
+            ScriptNodeType.OR.name,
+            ScriptNodeType.OR_TAPROOT.name
         )
         val queue: ArrayDeque<ScriptNode> = ArrayDeque()
         queue.add(scriptNode)
@@ -555,7 +562,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             val current = queue.removeFirst()
             if (current.type in targetTypes) {
                 return current.subs.drop(
-                    if (current.type == ScriptNoteType.ANDOR.name) 1 else 0
+                    if (current.type == ScriptNodeType.ANDOR.name) 1 else 0
                 ).find { satisfiableMap[it.idString] == false }
             }
             current.subs.forEach { queue.add(it) }
@@ -573,8 +580,20 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 )
             ).getOrDefault(false)
         }
+
+        if (node.isPreImageNode) {
+            val isRevealed = isPreimageRevealedUseCase(
+                IsPreimageRevealedUseCase.Params(
+                    walletId = walletId,
+                    txId = txId,
+                    hash = node.data
+                )
+            ).getOrDefault(false)
+            signedHash[node.idString] = isRevealed
+        }
+
         // special case for ANDOR node
-        if (node.type == ScriptNoteType.ANDOR.name && node.subs.size == 3) {
+        if (node.type == ScriptNodeType.ANDOR.name && node.subs.size == 3) {
             val isSatisfiable = isScriptNodeSatisfiableUseCase(
                 IsScriptNodeSatisfiableUseCase.Params(
                     nodeId = node.subs[0].id.toIntArray(),
@@ -1107,6 +1126,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 _event.emit(TransactionError(it.readableMessage()))
             }
         }
+    }
+
+    fun handlePreimageSuccess(scriptNodeId: String) {
+        signedHash[scriptNodeId] = true
+        _minscriptState.update { it.copy(signedHash = signedHash.toMap()) }
     }
 
     fun showReview(activity: Activity, reviewInfo: ReviewInfo, doneCallback: () -> Unit) {

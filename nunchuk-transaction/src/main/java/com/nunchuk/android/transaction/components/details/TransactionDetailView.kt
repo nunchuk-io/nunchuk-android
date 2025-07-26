@@ -23,6 +23,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
@@ -68,6 +69,7 @@ import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.signDone
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxOutput
 import com.nunchuk.android.model.UnspentOutput
@@ -101,10 +103,13 @@ fun TransactionDetailView(
     onEditNote: () -> Unit = {},
     onEditChangeCoin: (UnspentOutput) -> Unit = {},
     onCopyText: (String) -> Unit = {},
+    onPreimageSuccess: (String) -> Unit = {},
 ) {
     var showDetail by rememberSaveable { mutableStateOf(false) }
     var showInputCoin by rememberSaveable { mutableStateOf(false) }
     var isExpanded by rememberSaveable(state.isValueKeySetDisable) { mutableStateOf(state.isValueKeySetDisable) }
+    var preImageScriptMode by rememberSaveable { mutableStateOf<ScriptNode?>(null) }
+    val preimageBottomSheetState = rememberModalBottomSheetState()
     val transaction =
         if (args.inheritanceClaimTxDetailInfo != null) state.transaction.copy(changeIndex = args.inheritanceClaimTxDetailInfo.changePos) else state.transaction
     val outputs = if (transaction.isReceive) {
@@ -389,8 +394,12 @@ fun TransactionDetailView(
                                     showBip32Path = false,
                                     signedSigners = transaction.signers,
                                     satisfiableMap = miniscriptUiState.satisfiableMap,
+                                    signedHash = miniscriptUiState.signedHash,
                                     topLevelDisableNode = miniscriptUiState.topLevelDisableNode,
-                                    currentBlockHeight = miniscriptUiState.chainTip
+                                    currentBlockHeight = miniscriptUiState.chainTip,
+                                    onPreImageClick = { scriptNode ->
+                                        preImageScriptMode = scriptNode
+                                    }
                                 ),
                                 onChangeBip32Path = { _, _ -> },
                                 onActionKey = { _, signer ->
@@ -517,6 +526,22 @@ fun TransactionDetailView(
                     }
                 }
             }
+        }
+
+        if (preImageScriptMode != null) {
+            NcPreimageBottomSheet(
+                sheetState = preimageBottomSheetState,
+                walletId = args.walletId,
+                txId = args.txId,
+                node = preImageScriptMode!!,
+                onSuccess = { scriptNodeId ->
+                    onPreimageSuccess(scriptNodeId)
+                    preImageScriptMode = null
+                },
+                onDismiss = {
+                    preImageScriptMode = null
+                }
+            )
         }
     }
 }

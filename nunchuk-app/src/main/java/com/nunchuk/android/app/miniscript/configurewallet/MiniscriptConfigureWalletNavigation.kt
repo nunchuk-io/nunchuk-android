@@ -50,7 +50,7 @@ import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.compose.textPrimary
-import com.nunchuk.android.core.miniscript.ScriptNoteType
+import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.main.R
@@ -494,17 +494,17 @@ fun MiniscriptConfigWalletScreenPreview() {
         scriptNode = ScriptNode(
             id = emptyList(),
             data = byteArrayOf(),
-            type = ScriptNoteType.ANDOR.name,
+            type = ScriptNodeType.ANDOR.name,
             keys = listOf(),
             k = 0,
             timeLock = null,
             subs = listOf(
                 ScriptNode(
-                    type = ScriptNoteType.ANDOR.name,
+                    type = ScriptNodeType.ANDOR.name,
                     keys = listOf(),
                     subs = listOf(
                         ScriptNode(
-                            type = ScriptNoteType.ANDOR.name,
+                            type = ScriptNodeType.ANDOR.name,
                             keys = listOf("key_0_0", "key_1_0"),
                             subs = emptyList(),
                             k = 0,
@@ -519,7 +519,7 @@ fun MiniscriptConfigWalletScreenPreview() {
                     timeLock = null
                 ),
                 ScriptNode(
-                    type = ScriptNoteType.SHA256.name,
+                    type = ScriptNodeType.SHA256.name,
                     keys = listOf("key_0_1", "key_1_1"),
                     subs = emptyList(),
                     k = 0,
