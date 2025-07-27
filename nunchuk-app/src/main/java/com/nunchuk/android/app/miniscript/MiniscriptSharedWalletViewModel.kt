@@ -581,7 +581,8 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
 
     fun getSuggestedSigners(): List<SupportedSigner> {
         return _uiState.value.let { state ->
-            state.supportedTypes.takeIf { state.addressType.isTaproot() == true }.orEmpty()
+            state.supportedTypes.takeIf { state.addressType.isTaproot() == true }
+                ?.filter { it.walletType == WalletType.MULTI_SIG || it.walletType == null }.orEmpty()
         }
     }
 
