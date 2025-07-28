@@ -688,7 +688,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             options.add(SheetOption(SheetOptionType.TYPE_EXPORT_PORTAL, stringId = R.string.nc_portal))
         }
 
-        if (addressType != AddressType.TAPROOT) {
+        if (addressType != AddressType.TAPROOT && (!isMultisig && isMiniscript).not()) {
             options.add(
                 SheetOption(
                     SheetOptionType.TYPE_EXPORT_AS_QR,
