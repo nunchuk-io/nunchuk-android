@@ -117,6 +117,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             LaunchedEffect(Unit) {
                 transactionConfirmViewModel.event.collect {
                     if (it is TransactionConfirmEvent.DraftTaprootTransactionSuccess) {
+                        hideLoading()
                         if (it.draftTransaction != null) {
                             draftTx = it.draftTransaction
                             navController.navigate(ReceiptNavigation.TaprootFeeSelection)
@@ -124,11 +125,14 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                             transactionConfirmViewModel.handleConfirmEvent()
                         }
                     } else if (it is TransactionConfirmEvent.ChooseSigningPathsSuccess) {
+                        hideLoading()
                         navController.navigate(ReceiptNavigation.ChooseSigningPath)
                     } else if (it is TransactionConfirmEvent.ChooseSigningPolicy) {
+                        hideLoading()
                         dummySigningPaths = it.result
                         navController.navigate(ReceiptNavigation.ChooseSigningPolicy)
                     } else if (it is TransactionConfirmEvent.ShowTimeLockNotice) {
+                        hideLoading()
                         timelockCoin = it.timeLockCoin
                         navController.navigate(ReceiptNavigation.TimelockNotice)
                     }
@@ -218,9 +222,9 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     timelockCoin?.let { timelockCoin ->
                         TimelockNoticeScreen(
                             timelockCoin = timelockCoin,
-                            onContinue = { coins ->
+                            onContinue = { isSendAll, coins ->
                                 transactionConfirmViewModel.run {
-                                    updateInputs(coins)
+                                    updateInputs(isSendAll, coins)
                                     handleConfirmEvent(
                                         keySetIndex = 1,
                                         signingPath = timelockCoin.signingPath

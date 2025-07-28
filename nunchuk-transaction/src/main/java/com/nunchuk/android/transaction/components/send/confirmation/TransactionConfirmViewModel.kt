@@ -164,9 +164,25 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
-    fun updateInputs(inputs: List<UnspentOutput>) {
+    /**
+     * @param isSendAll indicates whether the transaction is sending all coins include locked coins in the timelock notice screen
+     * It doesn't mean all coins in the wallet.
+     */
+    fun updateInputs(isSendAll: Boolean, inputs: List<UnspentOutput>) {
         this.inputs.clear()
         this.inputs.addAll(inputs)
+        if (!isSendAll) {
+            if (txReceipts.size == 1) {
+                txReceipts = txReceipts.toMutableList().apply {
+                    this[0] = this[0].copy(
+                        amount = Amount(inputs.sumOf { it.amount.value }.toLong()).pureBTC()
+                    )
+                }
+                subtractFeeFromAmount = true
+            } else {
+                // TODO batch transaction
+            }
+        }
     }
 
     private fun getOutputs(): Map<String, Amount> {
@@ -533,10 +549,9 @@ class TransactionConfirmViewModel @Inject constructor(
             ).onSuccess { result ->
                 if (result.size > 1) {
                     _event.emit(TransactionConfirmEvent.ChooseSigningPolicy(result))
-                } else {
-                    handleConfirmEvent(
-                        keySetIndex = 1, // script path
-                        signingPath = result.firstOrNull()?.first
+                } else if (result.size == 1) {
+                    draftMiniscriptTransaction(
+                        signingPath = result.first().first
                     )
                 }
             }.onFailure {

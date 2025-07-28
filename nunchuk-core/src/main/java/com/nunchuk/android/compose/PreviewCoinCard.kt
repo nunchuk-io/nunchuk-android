@@ -208,7 +208,8 @@ fun PreviewCoinCardPreview() {
                 memo = "Send to Bob on Silk Road",
                 status = CoinStatus.OUTGOING_PENDING_CONFIRMATION
             ),
-            tags = emptyMap()
+            tags = emptyMap(),
+            mode = MODE_VIEW_ONLY
         )
     }
 }
