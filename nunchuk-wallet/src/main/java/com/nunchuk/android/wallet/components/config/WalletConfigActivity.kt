@@ -688,7 +688,14 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             options.add(SheetOption(SheetOptionType.TYPE_EXPORT_PORTAL, stringId = R.string.nc_portal))
         }
 
-        options.add(SheetOption(SheetOptionType.TYPE_EXPORT_AS_QR, stringId = R.string.nc_text_wallet_qr_code))
+        if (addressType != AddressType.TAPROOT) {
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_EXPORT_AS_QR,
+                    stringId = R.string.nc_text_wallet_qr_code
+                )
+            )
+        }
 
         BottomSheetOption.newInstance(
             title = getString(R.string.nc_select_export_format),
