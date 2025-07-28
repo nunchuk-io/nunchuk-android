@@ -222,6 +222,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                     timelockCoin?.let { timelockCoin ->
                         TimelockNoticeScreen(
                             timelockCoin = timelockCoin,
+                            walletId = args.walletId,
                             onContinue = { isSendAll, coins ->
                                 transactionConfirmViewModel.run {
                                     updateInputs(isSendAll, coins)

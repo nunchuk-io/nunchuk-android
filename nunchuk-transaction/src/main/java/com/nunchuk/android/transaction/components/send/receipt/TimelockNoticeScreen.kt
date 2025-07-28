@@ -20,6 +20,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.nunchuk.android.compose.MODE_VIEW_ONLY
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcIcon
@@ -49,6 +52,7 @@ import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.R
@@ -62,7 +66,30 @@ import com.nunchuk.android.core.R as CoreR
 fun TimelockNoticeScreen(
     modifier: Modifier = Modifier,
     timelockCoin: TimelockCoin,
+    walletId: String,
+    viewModel: TimelockNoticeViewModel = hiltViewModel(),
     onContinue: (Boolean, List<UnspentOutput>) -> Unit = { _, _ -> },
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    
+    LaunchedEffect(walletId) {
+        viewModel.init(walletId)
+    }
+
+    TimelockNoticeScreenContent(
+        modifier = modifier,
+        timelockCoin = timelockCoin,
+        tags = uiState.tags,
+        onContinue = onContinue
+    )
+}
+
+@Composable
+private fun TimelockNoticeScreenContent(
+    modifier: Modifier = Modifier,
+    timelockCoin: TimelockCoin,
+    tags: Map<Int, CoinTag>,
+    onContinue: (Boolean, List<UnspentOutput>) -> Unit
 ) {
     var isSelectNotLockCoin by remember { mutableStateOf(true) }
     var showDetails by remember { mutableStateOf(false) }
@@ -231,7 +258,7 @@ fun TimelockNoticeScreen(
                                             shape = RoundedCornerShape(12.dp)
                                         ),
                                     output = coin,
-                                    tags = emptyMap(),
+                                    tags = tags,
                                     mode = MODE_VIEW_ONLY
                                 )
                             }
@@ -276,7 +303,7 @@ fun TimelockNoticeScreen(
                                             shape = RoundedCornerShape(12.dp)
                                         ),
                                     output = coin,
-                                    tags = emptyMap(),
+                                    tags = tags,
                                     mode = MODE_VIEW_ONLY
                                 )
                             }
@@ -349,8 +376,10 @@ fun TimelockNoticeScreenPreview() {
         signingPath = SigningPath(path = listOf(listOf(1, 1)))
     )
 
-    TimelockNoticeScreen(
+    // Static preview without ViewModel for better performance
+    TimelockNoticeScreenContent(
         timelockCoin = dummyTimelockCoin,
+        tags = emptyMap(),
         onContinue = { isSendAll, coins ->
             // Preview callback
         }
