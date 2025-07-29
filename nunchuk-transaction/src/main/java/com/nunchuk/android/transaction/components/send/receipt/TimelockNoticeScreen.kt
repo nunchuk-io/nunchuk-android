@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -139,8 +140,8 @@ private fun TimelockNoticeScreenContent(
                 NcCircleImage(
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally),
-                    size = 120.dp,
-                    iconSize = 56.dp,
+                    size = 96.dp,
+                    iconSize = 60.dp,
                     resId = CoreR.drawable.ic_timer,
                 )
                 Spacer(modifier = Modifier.height(24.dp))
@@ -155,8 +156,8 @@ private fun TimelockNoticeScreenContent(
                 Text(
                     text = stringResource(
                         R.string.nc_timelock_notice_description,
-                        notLockCoins.size,
-                        timelockCoin.lockedCoins.size,
+                        pluralStringResource(R.plurals.nc_coins_with_count, notLockCoins.size, notLockCoins.size),
+                        pluralStringResource(R.plurals.nc_coins_with_count, timelockCoin.lockedCoins.size, timelockCoin.lockedCoins.size),
                         timelockDate
                     ),
                     style = NunchukTheme.typography.body,
@@ -285,7 +286,7 @@ private fun TimelockNoticeScreenContent(
                                         .padding(end = 4.dp)
                                         .size(20.dp)
                                         .align(Alignment.CenterVertically),
-                                    painter = painterResource(CoreR.drawable.ic_check_circle_24),
+                                    painter = painterResource(CoreR.drawable.ic_check_circle_2),
                                     contentDescription = "Checked",
                                 )
 
