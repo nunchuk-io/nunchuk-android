@@ -49,6 +49,7 @@ import com.nunchuk.android.compose.fillDenim
 import com.nunchuk.android.compose.fillPink
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.core.util.formatDecimalWithoutZero
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.toAmount
@@ -58,6 +59,7 @@ import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.type.CoinStatus
+import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.utils.dateTimeFormat
 import com.nunchuk.android.utils.simpleDateFormat
 import java.util.Date
@@ -100,10 +102,8 @@ private fun TimelockNoticeScreenContent(
     }
     val totalAmount = timelockCoin.coins.sumOf { it.amount.value }.toAmount()
     val notLockCoinAmount = notLockCoins.sumOf { it.amount.value }.toAmount()
-    // Determine if it's a time lock or block lock based on the timelock value
-    // If timelock is very large (like a timestamp), it's a time lock
-    // If timelock is smaller (like a block number), it's a block lock
-    val isTimeLock = timelockCoin.timelock > 1000000000L // Threshold to distinguish between timestamp and block number
+    val isTimeLock = timelockCoin.lockedCoins.firstOrNull()?.lockBased == MiniscriptTimelockBased.TIME_LOCK
+    val formatBlockHeight = timelockCoin.timelock.formatDecimalWithoutZero()
     val timelockDate = Date(timelockCoin.timelock * 1000L).simpleDateFormat()
     val timelockDateTime = Date(timelockCoin.timelock * 1000L).dateTimeFormat()
 
@@ -163,7 +163,7 @@ private fun TimelockNoticeScreenContent(
                         R.string.nc_timelock_notice_description,
                         pluralStringResource(R.plurals.nc_coins_with_count, notLockCoins.size, notLockCoins.size),
                         pluralStringResource(R.plurals.nc_coins_with_count, timelockCoin.lockedCoins.size, timelockCoin.lockedCoins.size),
-                        if (isTimeLock) timelockDate else "block ${timelockCoin.timelock}"
+                        if (isTimeLock) timelockDate else "block $formatBlockHeight"
                     ),
                     style = NunchukTheme.typography.body,
                     color = MaterialTheme.colorScheme.textPrimary,
@@ -199,7 +199,7 @@ private fun TimelockNoticeScreenContent(
                         text = if (isTimeLock) {
                             "Sign now, broadcast after $timelockDate"
                         } else {
-                            "Sign now, broadcast after block ${timelockCoin.timelock}"
+                            "Sign now, broadcast after block $formatBlockHeight"
                         },
                         style = NunchukTheme.typography.bodySmall
                     )
@@ -258,7 +258,7 @@ private fun TimelockNoticeScreenContent(
                                     text = if (isTimeLock) {
                                         "Ready to broadcast after $timelockDateTime"
                                     } else {
-                                        "Ready to broadcast after block ${timelockCoin.timelock}"
+                                        "Ready to broadcast after block $formatBlockHeight"
                                     },
                                     style = NunchukTheme.typography.titleSmall,
                                     modifier = Modifier.align(Alignment.CenterVertically)
@@ -348,6 +348,76 @@ fun TimelockNoticeScreenPreview() {
                 time = System.currentTimeMillis(),
                 tags = setOf(),
                 memo = "",
+                status = CoinStatus.CONFIRMED,
+                lockBased = MiniscriptTimelockBased.TIME_LOCK
+            ),
+            UnspentOutput(
+                txid = "tx2",
+                vout = 1,
+                amount = Amount(30000000), // 0.3 BTC
+                address = "bc1q...",
+                isLocked = true,
+                time = System.currentTimeMillis(),
+                tags = setOf(),
+                memo = "",
+                status = CoinStatus.CONFIRMED,
+                lockBased = MiniscriptTimelockBased.TIME_LOCK
+            ),
+            UnspentOutput(
+                txid = "tx3",
+                vout = 0,
+                amount = Amount(20000000), // 0.2 BTC
+                address = "bc1q...",
+                isLocked = false,
+                time = System.currentTimeMillis(),
+                tags = setOf(),
+                memo = "",
+                status = CoinStatus.CONFIRMED,
+                lockBased = MiniscriptTimelockBased.TIME_LOCK
+            )
+        ),
+        timelock = 1735689600L, // May 15, 2025 (Time lock)
+        lockedCoins = listOf(
+            UnspentOutput(
+                txid = "tx2",
+                vout = 1,
+                amount = Amount(30000000),
+                address = "bc1q...",
+                isLocked = true,
+                time = System.currentTimeMillis(),
+                tags = setOf(),
+                memo = "",
+                status = CoinStatus.CONFIRMED,
+                lockBased = MiniscriptTimelockBased.TIME_LOCK
+            )
+        ),
+        signingPath = SigningPath(path = listOf(listOf(1, 1)))
+    )
+
+    // Static preview without ViewModel for better performance
+    TimelockNoticeScreenContent(
+        timelockCoin = dummyTimelockCoin,
+        tags = emptyMap(),
+        onContinue = { isSendAll, coins ->
+            // Preview callback
+        }
+    )
+}
+
+@Preview
+@Composable
+fun TimelockNoticeScreenPreviewBlockLock() {
+    val dummyTimelockCoin = TimelockCoin(
+        coins = listOf(
+            UnspentOutput(
+                txid = "tx1",
+                vout = 0,
+                amount = Amount(50000000), // 0.5 BTC
+                address = "bc1q...",
+                isLocked = false,
+                time = System.currentTimeMillis(),
+                tags = setOf(),
+                memo = "",
                 status = CoinStatus.CONFIRMED
             ),
             UnspentOutput(
@@ -373,7 +443,7 @@ fun TimelockNoticeScreenPreview() {
                 status = CoinStatus.CONFIRMED
             )
         ),
-        timelock = 1735689600L, // May 15, 2025
+        timelock = 800000L, // Block number (Block lock)
         lockedCoins = listOf(
             UnspentOutput(
                 txid = "tx2",
