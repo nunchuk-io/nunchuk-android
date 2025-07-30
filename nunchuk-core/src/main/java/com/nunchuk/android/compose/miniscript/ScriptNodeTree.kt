@@ -153,14 +153,14 @@ fun ScriptNodeTree(
 
         ScriptNodeType.MULTI.name, ScriptNodeType.THRESH.name -> {
             TreeBranchContainer(
-                modifier = nodeModifier,
+                modifier = Modifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
                 ThreshMultiItem(
                     topPadding = if (showThreadCurve) 10 else 0,
                     showThreadCurve = showThreadCurve,
-                    modifier = modifier,
+                    modifier = modifier.then(nodeModifier),
                     isSatisfiable = isSatisfiableNode,
                     data = data,
                     node = node
@@ -171,7 +171,7 @@ fun ScriptNodeTree(
                         onActionKey = onActionKey,
                         data = data,
                         level = level,
-                        modifier = modifier
+                        modifier = modifier.then(nodeModifier)
                     )
                 }
             }
@@ -499,17 +499,18 @@ fun ThreshMultiItem(
         0
     }
 
-    Column(modifier = modifier) {
+    Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 4.dp)
         ) {
             if (showThreadCurve) {
-                CurveView()
+                CurveView(Modifier.then(modifier))
             }
             Column(
                 modifier = Modifier
+                    .then(modifier)
                     .weight(1f)
                     .padding(top = topPadding.dp)
             ) {
@@ -529,6 +530,7 @@ fun ThreshMultiItem(
             if (data.mode == ScriptMode.SIGN && isSatisfiable) {
                 Row(
                     modifier = Modifier
+                        .then(modifier)
                         .padding(start = 8.dp)
                         .padding(top = topPadding.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -572,9 +574,8 @@ fun ThreshMultiItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (showDetail) stringResource(R.string.nc_view_less) else stringResource(
-                            R.string.nc_view_all
-                        ),
+                        text = if (showDetail) stringResource(R.string.nc_collapse)
+                        else stringResource(R.string.nc_expand),
                         style = NunchukTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.textPrimary
                     )
@@ -828,10 +829,12 @@ fun TreeBranchContainer(
 }
 
 @Composable
-fun CurveView() {
+fun CurveView(
+    modifier: Modifier = Modifier
+) {
     Column {
         VerticalDivider(
-            modifier = Modifier
+            modifier = modifier
                 .height(10.dp)
                 .width(2.dp)
                 .padding(start = 0.5.dp),

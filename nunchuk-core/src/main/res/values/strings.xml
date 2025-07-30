@@ -974,4 +974,6 @@
     <string name="nc_miniscript_create_wallet">Create wallet</string>
     <string name="nc_enter">Enter</string>
     <string name="nc_enter_preimage_hex">Enter preimage in hex</string>
+    <string name="nc_collapse">Collapse</string>
+    <string name="nc_expand">Expand</string>
 </resources>

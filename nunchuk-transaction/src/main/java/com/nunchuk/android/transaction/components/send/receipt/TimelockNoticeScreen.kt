@@ -100,7 +100,12 @@ private fun TimelockNoticeScreenContent(
     }
     val totalAmount = timelockCoin.coins.sumOf { it.amount.value }.toAmount()
     val notLockCoinAmount = notLockCoins.sumOf { it.amount.value }.toAmount()
+    // Determine if it's a time lock or block lock based on the timelock value
+    // If timelock is very large (like a timestamp), it's a time lock
+    // If timelock is smaller (like a block number), it's a block lock
+    val isTimeLock = timelockCoin.timelock > 1000000000L // Threshold to distinguish between timestamp and block number
     val timelockDate = Date(timelockCoin.timelock * 1000L).simpleDateFormat()
+    val timelockDateTime = Date(timelockCoin.timelock * 1000L).dateTimeFormat()
 
     NunchukTheme {
         NcScaffold(
@@ -158,7 +163,7 @@ private fun TimelockNoticeScreenContent(
                         R.string.nc_timelock_notice_description,
                         pluralStringResource(R.plurals.nc_coins_with_count, notLockCoins.size, notLockCoins.size),
                         pluralStringResource(R.plurals.nc_coins_with_count, timelockCoin.lockedCoins.size, timelockCoin.lockedCoins.size),
-                        timelockDate
+                        if (isTimeLock) timelockDate else "block ${timelockCoin.timelock}"
                     ),
                     style = NunchukTheme.typography.body,
                     color = MaterialTheme.colorScheme.textPrimary,
@@ -191,7 +196,11 @@ private fun TimelockNoticeScreenContent(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Sign now, broadcast after $timelockDate",
+                        text = if (isTimeLock) {
+                            "Sign now, broadcast after $timelockDate"
+                        } else {
+                            "Sign now, broadcast after block ${timelockCoin.timelock}"
+                        },
                         style = NunchukTheme.typography.bodySmall
                     )
                 }
@@ -246,7 +255,11 @@ private fun TimelockNoticeScreenContent(
                                 )
 
                                 Text(
-                                    text = "Ready to broadcast after ${Date(timelockCoin.timelock * 1000L).dateTimeFormat()}",
+                                    text = if (isTimeLock) {
+                                        "Ready to broadcast after $timelockDateTime"
+                                    } else {
+                                        "Ready to broadcast after block ${timelockCoin.timelock}"
+                                    },
                                     style = NunchukTheme.typography.titleSmall,
                                     modifier = Modifier.align(Alignment.CenterVertically)
                                 )
