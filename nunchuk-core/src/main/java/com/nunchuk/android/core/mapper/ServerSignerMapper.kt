@@ -41,11 +41,12 @@ internal class ServerSignerMapper @Inject constructor(
             xpub = signer.xpub,
             pubkey = signer.publicKey,
             type = signer.type.name,
-            tags = signer.tags.map { it.name }.toMutableList().apply {
+            tags = signer.tags.map { it.name }.toHashSet().apply {
                 if (isInheritanceKey) {
                     add(SignerTag.INHERITANCE.name)
+                    add(SignerTag.COLDCARD.name)
                 }
-            },
+            }.toMutableList(),
         )
     }
 }

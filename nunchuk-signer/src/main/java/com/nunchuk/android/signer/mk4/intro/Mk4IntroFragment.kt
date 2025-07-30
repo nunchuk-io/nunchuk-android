@@ -290,11 +290,11 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
         val type = when (action) {
             ColdcardAction.RECOVER_MULTI_SIG_WALLET,
             ColdcardAction.PARSE_MULTISIG_WALLET,
-            -> BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4
+                -> BaseNfcActivity.REQUEST_IMPORT_MULTI_WALLET_FROM_MK4
 
             ColdcardAction.RECOVER_SINGLE_SIG_WALLET,
             ColdcardAction.PARSE_SINGLE_SIG_WALLET,
-            -> BaseNfcActivity.REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4
+                -> BaseNfcActivity.REQUEST_IMPORT_SINGLE_WALLET_FROM_MK4
 
             else -> BaseNfcActivity.REQUEST_MK4_ADD_KEY
         }

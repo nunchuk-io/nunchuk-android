@@ -62,7 +62,7 @@ class ColdCardBackingUpFragment : MembershipFragment() {
             filePath = args.filePath,
             signerType = mk4ViewModel.coldCardBackUpParam.keyType,
             keyName = mk4ViewModel.coldCardBackUpParam.keyName,
-            isRequestAddOrReplaceKey = false,
+            isRequestAddOrReplaceKey = if (replacedXfp.isNullOrEmpty()) false else mk4ViewModel.coldCardBackUpParam.isRequestAddOrReplaceKey,
             existingColdCard = mk4ViewModel.getColdCardExistingSigner()?.toSingleSigner()
         )
     }

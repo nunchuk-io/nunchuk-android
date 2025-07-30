@@ -483,14 +483,7 @@ class ReplaceKeysViewModel @Inject constructor(
     }
 
     fun isEnableContinueButton(): Boolean {
-        val coldCardInheritanceKeys = _uiState.value.replaceSigners.values.filter {
-            it.tags.contains(SignerTag.INHERITANCE) && it.type != SignerType.NFC
-        }
-        return _uiState.value.replaceSigners.isNotEmpty() && (coldCardInheritanceKeys.isEmpty() || coldCardInheritanceKeys.all {
-            _uiState.value.verifiedSigners.contains(
-                it.fingerPrint
-            )
-        })
+        return _uiState.value.replaceSigners.isNotEmpty()
     }
 
     fun onRemoveKey(xfp: String) {

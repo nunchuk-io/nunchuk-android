@@ -28,7 +28,6 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.VerifyType
-import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.usecase.UseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
@@ -37,7 +36,6 @@ import javax.inject.Inject
 
 class SaveMembershipExistingColdCardUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
-    private val nativeSdk: NunchukNativeSdk,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val syncKeyUseCase: SyncKeyUseCase
 ) : UseCase<SaveMembershipExistingColdCardUseCase.Params, Unit>(dispatcher) {

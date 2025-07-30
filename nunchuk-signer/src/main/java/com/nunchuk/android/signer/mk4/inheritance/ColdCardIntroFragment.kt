@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
@@ -26,19 +27,19 @@ import com.nunchuk.android.compose.ActionItem
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
+import com.nunchuk.android.signer.mk4.Mk4ViewModel
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private val isFromAddKey by lazy { (requireActivity() as Mk4Activity).isFromAddKey }
+    private val mk4ViewModel: Mk4ViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,

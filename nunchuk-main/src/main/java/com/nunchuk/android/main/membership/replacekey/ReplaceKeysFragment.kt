@@ -144,11 +144,14 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                             action = ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION,
                             groupId = (activity as MembershipActivity).groupId,
                             walletId = (activity as MembershipActivity).walletId,
-                            replacedXfp = viewModel.replacedXfp
+                            replacedXfp = viewModel.replacedXfp,
+                            xfp = signer.fingerPrint,
+                            keyName = signer.name,
+                            signerType = signer.type
                         )
+                        clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
+                        return@setFragmentResultListener
                     }
-                    clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
-                    return@setFragmentResultListener
                 }
                 when (signer.type) {
                     SignerType.AIRGAP -> {

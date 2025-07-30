@@ -32,8 +32,12 @@ import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlTextPrimary
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.mk4.Mk4Activity
+import com.nunchuk.android.signer.mk4.Mk4Event
 import com.nunchuk.android.signer.mk4.Mk4ViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -56,13 +60,34 @@ class ColdCardPassphraseQuestionFragment : MembershipFragment() {
                     ColdCardPassphraseQuestionFragmentDirections.actionColdCardPassphraseQuestionFragmentToColdCardPassphraseImportantNoticeFragment()
                 )
             } else if (mk4ViewModel.coldCardBackUpParam.xfp.isNotEmpty()) {
-                findNavController().navigate(
-                    ColdCardPassphraseQuestionFragmentDirections.actionColdCardPassphraseQuestionFragmentToColdCardPassphraseImportantNoticeFragment()
-                )
+                if ((activity as Mk4Activity).replacedXfp.isNullOrEmpty().not()) {
+                    findNavController().navigate(
+                        ColdCardPassphraseQuestionFragmentDirections.actionColdCardPassphraseQuestionFragmentToColdCardBackUpIntroFragment()
+                    )
+                } else {
+                    mk4ViewModel.saveMembershipExistingColdCard()
+                }
             } else {
                 findNavController().navigate(
                     ColdCardPassphraseQuestionFragmentDirections.actionColdCardPassphraseQuestionFragmentToColdCardIntroFragment()
                 )
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        flowObserver(mk4ViewModel.event) { event ->
+            when (event) {
+                is Mk4Event.Loading -> {
+                    showOrHideLoading(event.isLoading)
+                }
+
+                Mk4Event.Success -> {
+                    findNavController().navigate(
+                        ColdCardPassphraseQuestionFragmentDirections.actionColdCardPassphraseQuestionFragmentToColdCardBackUpIntroFragment()
+                    )
+                }
             }
         }
     }
