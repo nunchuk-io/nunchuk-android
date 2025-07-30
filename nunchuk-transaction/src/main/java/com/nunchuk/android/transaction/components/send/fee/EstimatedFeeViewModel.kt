@@ -250,9 +250,9 @@ class EstimatedFeeViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     estimatedFee = tx.fee,
-                    inputs = it.inputs,
-                    cpfpFee = it.cpfpFee,
-                    scriptPathFee = it.scriptPathFee,
+                    inputs = tx.inputs,
+                    cpfpFee = tx.cpfpFee,
+                    scriptPathFee = tx.scriptPathFee,
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     enableSubtractFeeFromAmount = enableSubtractFeeFromAmount,
                 )
