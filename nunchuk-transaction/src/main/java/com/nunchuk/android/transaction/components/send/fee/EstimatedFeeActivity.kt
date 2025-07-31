@@ -230,18 +230,13 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
 
         binding.manualFeeDetails.isVisible = state.manualFeeDetails
         bindEstimateFeeRates(state.estimateFeeRates)
-        if (args.inputs.isEmpty() && args.subtractFeeFromAmount) {
-            binding.composeCoinSelection.isVisible = false
-            binding.coinSelectionTitle.isVisible = false
-        } else {
-            val inputs =
-                state.allCoins.filter { coin -> state.inputs.any { input -> input.first == coin.txid && input.second == coin.vout } }
-            binding.coinSelectionTitle.isVisible = inputs.isNotEmpty()
-            binding.composeCoinSelection.isVisible = inputs.isNotEmpty()
-            if (inputs.isNotEmpty()) {
-                binding.composeCoinSelection.setContent {
-                    TransactionCoinSelection(inputs = inputs, allTags = state.allTags)
-                }
+        val inputs =
+            state.allCoins.filter { coin -> state.inputs.any { input -> input.first == coin.txid && input.second == coin.vout } }
+        binding.coinSelectionTitle.isVisible = inputs.isNotEmpty()
+        binding.composeCoinSelection.isVisible = inputs.isNotEmpty()
+        if (inputs.isNotEmpty()) {
+            binding.composeCoinSelection.setContent {
+                TransactionCoinSelection(inputs = inputs, allTags = state.allTags)
             }
         }
     }
