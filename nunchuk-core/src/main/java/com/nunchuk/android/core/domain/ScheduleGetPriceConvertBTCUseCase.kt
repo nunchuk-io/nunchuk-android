@@ -43,6 +43,6 @@ internal class ScheduleGetPriceConvertBTCUseCaseImpl @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     companion object {
-        private const val INTERVAL_TIME_GET_BTC_PRICE = 300000L
+        private const val INTERVAL_TIME_GET_BTC_PRICE = 60000L
     }
 }

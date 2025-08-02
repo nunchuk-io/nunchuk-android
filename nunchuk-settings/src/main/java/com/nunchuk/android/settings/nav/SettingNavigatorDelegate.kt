@@ -37,7 +37,6 @@ import com.nunchuk.android.settings.unit.DisplayUnitActivity
 import com.nunchuk.android.settings.walletsecurity.WalletSecuritySettingActivity
 import com.nunchuk.android.settings.walletsecurity.biometric.BiometricActivity
 import com.nunchuk.android.settings.walletsecurity.unlock.UnlockPinActivity
-import com.nunchuk.android.settings.walletvisibilitysettings.WalletVisibilitySettingsActivity
 
 interface SettingNavigatorDelegate : SettingNavigator {
 
@@ -71,10 +70,6 @@ interface SettingNavigatorDelegate : SettingNavigator {
 
     override fun openWalletSecuritySettingScreen(activityContext: Context, args: WalletSecurityArgs) {
         WalletSecuritySettingActivity.start(activityContext, args)
-    }
-
-    override fun openWalletVisibilitySettingsScreen(activityContext: Context) {
-        WalletVisibilitySettingsActivity.start(activityContext)
     }
 
     override fun openLocalCurrencyScreen(activityContext: Context) {

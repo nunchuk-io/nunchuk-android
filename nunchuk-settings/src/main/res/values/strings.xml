@@ -60,7 +60,7 @@
     <string name="nc_clear_log">Clear log</string>
     <string name="nc_share_log">Share log</string>
     <string name="nc_display_unit">Display unit</string>
-    <string name="nc_use_large_font_home_balances">Use large font for home balances</string>
+    <string name="nc_exchange_rate_unit">Exchange rate unit</string>
     <string name="nc_display_settings">Display settings</string>
     <string name="nc_fee_settings">Fee settings</string>
     <string name="nc_wallet_visibility_settings">Wallet visibility settings</string>
@@ -143,6 +143,7 @@
     <string name="nc_enter_your_password_to_continue_use_app">To continue using the app, please enter your password.</string>
     <string name="nc_enter_your_passphrase_to_continue_use_app">To continue using the app, please enter your passphrase.</string>
     <string name="nc_appearance">Appearance</string>
+    <string name="nc_theme">Theme</string>
     <string name="nc_light">Light</string>
     <string name="nc_dark">Dark</string>
     <string name="nc_automatic">Automatic</string>

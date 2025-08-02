@@ -36,7 +36,7 @@ class DisplaySettingsActivity : BaseComposeActivity() {
                             DisplaySettingsContent(
                                 uiState = state,
                                 onWalletVisibilityClick = {
-                                    navigator.openWalletVisibilitySettingsScreen(this@DisplaySettingsActivity)
+                                    navHostController.navigate("home_screen_settings")
                                 },
                                 onDisplayUnitClick = {
                                     navigator.openDisplayUnitScreen(this@DisplaySettingsActivity)
@@ -55,6 +55,33 @@ class DisplaySettingsActivity : BaseComposeActivity() {
                                 uiState = state,
                                 onThemeModeChange = { themeMode ->
                                     viewModel.setThemeMode(themeMode)
+                                }
+                            )
+                        }
+
+                        composable("home_screen_settings") {
+                            HomeScreenSettingsContent(
+                                uiState = state,
+                                onFontSizeChange = { largeFont ->
+                                    viewModel.onFontSizeChange(largeFont)
+                                },
+                                onDisplayTotalBalanceChange = { displayTotalBalance ->
+                                    viewModel.onDisplayTotalBalanceChange(displayTotalBalance)
+                                },
+                                onDisplayWalletShortcutChange = { displayWalletShortcuts ->
+                                    viewModel.onDisplayWalletShortcutsChange(displayWalletShortcuts)
+                                },
+                                onExchangeRateUnitClick = {
+                                    navHostController.navigate("exchange_rate_unit")
+                                }
+                            )
+                        }
+
+                        composable("exchange_rate_unit") {
+                            ExchangeRateUnitContent(
+                                currentUnit = state.homeDisplaySetting.exchangeRateUnit,
+                                onUnitSelected = { unit ->
+                                    viewModel.setExchangeRateUnit(unit)
                                 }
                             )
                         }

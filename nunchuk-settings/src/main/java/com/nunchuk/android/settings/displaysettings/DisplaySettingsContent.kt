@@ -94,7 +94,7 @@ fun DisplaySettingsContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = stringResource(R.string.nc_appearance),
+                        text = stringResource(R.string.nc_theme),
                         style = NunchukTheme.typography.body,
                         modifier = Modifier.weight(1f)
                     )

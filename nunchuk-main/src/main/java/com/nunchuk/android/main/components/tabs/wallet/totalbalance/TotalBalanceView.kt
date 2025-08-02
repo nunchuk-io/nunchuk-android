@@ -25,16 +25,20 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.domain.data.BTC
+import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.main.R
 import com.nunchuk.android.utils.Utils
+import java.text.DecimalFormat
 
 @Composable
 fun TotalBalanceView(
     isLargeFont: Boolean = false,
     balanceSatoshis: String = "",
     balanceFiat: String = "",
-    btcPrice: String = "",
-    isHideBalance: Boolean = false
+    btcPrice: Double = 0.0,
+    isHideBalance: Boolean = false,
+    exchangeRateUnit: Int = BTC
 ) {
     var showBalanceLocal by remember(isHideBalance) {
         mutableStateOf(isHideBalance)
@@ -82,7 +86,7 @@ fun TotalBalanceView(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 12.dp),
-                text = "1BTC = $btcPrice",
+                text = getExchangeRateText(exchangeRateUnit, btcPrice),
                 style = if (isLargeFont) NunchukTheme.typography.body else NunchukTheme.typography.bodySmall,
             )
             Text(
@@ -90,6 +94,20 @@ fun TotalBalanceView(
                 style = if (isLargeFont) NunchukTheme.typography.body else NunchukTheme.typography.bodySmall,
                 textAlign = TextAlign.End
             )
+        }
+    }
+}
+
+private fun getExchangeRateText(exchangeRateUnit: Int, btcPrice: Double): String {
+    return when (exchangeRateUnit) {
+        SAT -> {
+            val satPrice = btcPrice / 100_000_000
+            val decimalFormat = DecimalFormat("#,##0.0000")
+            "sat $${decimalFormat.format(satPrice)}"
+        }
+        else -> {
+            val decimalFormat = DecimalFormat("#,##0.00")
+            "1 BTC = $${decimalFormat.format(btcPrice)}"
         }
     }
 }
@@ -102,8 +120,24 @@ fun TotalBalanceViewPreview() {
             isLargeFont = true,
             balanceSatoshis = "21,134,277,620,930 sat",
             balanceFiat = "$5,540,000,000.00",
-            btcPrice = "106,778.50",
-            isHideBalance = false
+            btcPrice = 106778.50,
+            isHideBalance = false,
+            exchangeRateUnit = BTC
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+fun TotalBalanceViewSatPreview() {
+    NunchukTheme {
+        TotalBalanceView(
+            isLargeFont = true,
+            balanceSatoshis = "21,134,277,620,930 sat",
+            balanceFiat = "$5,540,000,000.00",
+            btcPrice = 106778.50,
+            isHideBalance = false,
+            exchangeRateUnit = SAT
         )
     }
 }
