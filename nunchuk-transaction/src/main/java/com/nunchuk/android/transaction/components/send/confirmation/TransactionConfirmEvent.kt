@@ -51,4 +51,7 @@ sealed class TransactionConfirmEvent {
     data object ChooseSigningPathsSuccess: TransactionConfirmEvent()
     data class ChooseSigningPolicy(val result: List<Pair<SigningPath, Amount>>) : TransactionConfirmEvent()
     data class ShowTimeLockNotice(val timeLockCoin: TimelockCoin) : TransactionConfirmEvent()
+    data class CustomizeTransaction(
+        val signingPath: SigningPath?
+    ) : TransactionConfirmEvent()
 }

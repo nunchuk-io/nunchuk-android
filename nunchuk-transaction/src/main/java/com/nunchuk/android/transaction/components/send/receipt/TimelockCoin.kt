@@ -7,5 +7,5 @@ data class TimelockCoin(
     val coins: List<UnspentOutput>,
     val timelock: Long,
     val lockedCoins: List<UnspentOutput>,
-    val signingPath: SigningPath
+    val signingPath: SigningPath?
 )

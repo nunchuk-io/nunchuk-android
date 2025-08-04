@@ -30,6 +30,7 @@ import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getDoubleValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
@@ -48,24 +49,27 @@ data class EstimatedFeeArgs(
     val isConsolidateFlow: Boolean = false,
     val title: String = "",
     val rollOverWalletParam: RollOverWalletParam? = null,
-    val confirmTxActionButtonText: String = ""
+    val confirmTxActionButtonText: String = "",
+    val signingPath: SigningPath? = null,
 ) : ActivityArgs {
 
-    override fun buildIntent(activityContext: Context) = Intent(activityContext, EstimatedFeeActivity::class.java).apply {
-        putExtra(EXTRA_WALLET_ID, walletId)
-        putExtra(EXTRA_AVAILABLE_AMOUNT, availableAmount)
-        putExtra(EXTRA_PRIVATE_NOTE, privateNote)
-        putExtra(EXTRA_SUBTRACT_FEE, subtractFeeFromAmount)
-        putExtra(EXTRA_SWEEP_TYPE, sweepType)
-        putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
-        putParcelableArrayListExtra(EXTRA_INPUT, ArrayList(inputs))
-        putParcelableArrayListExtra(EXTRA_TX_RECEIPTS, ArrayList(txReceipts))
-        putExtra(EXTRA_CLAIM_INHERITANCE_TX_PARAM, claimInheritanceTxParam)
-        putExtra(EXTRA_IS_CONSOLIDATE_FLOW, isConsolidateFlow)
-        putExtra(EXTRA_TITLE, title)
-        putExtra(EXTRA_ROLLOVER_WALLET, rollOverWalletParam)
-        putExtra(EXTRA_CONFIRM_TX_ACTION_BUTTON_TEXT, confirmTxActionButtonText)
-    }
+    override fun buildIntent(activityContext: Context) =
+        Intent(activityContext, EstimatedFeeActivity::class.java).apply {
+            putExtra(EXTRA_WALLET_ID, walletId)
+            putExtra(EXTRA_AVAILABLE_AMOUNT, availableAmount)
+            putExtra(EXTRA_PRIVATE_NOTE, privateNote)
+            putExtra(EXTRA_SUBTRACT_FEE, subtractFeeFromAmount)
+            putExtra(EXTRA_SWEEP_TYPE, sweepType)
+            putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
+            putParcelableArrayListExtra(EXTRA_INPUT, ArrayList(inputs))
+            putParcelableArrayListExtra(EXTRA_TX_RECEIPTS, ArrayList(txReceipts))
+            putExtra(EXTRA_CLAIM_INHERITANCE_TX_PARAM, claimInheritanceTxParam)
+            putExtra(EXTRA_IS_CONSOLIDATE_FLOW, isConsolidateFlow)
+            putExtra(EXTRA_TITLE, title)
+            putExtra(EXTRA_ROLLOVER_WALLET, rollOverWalletParam)
+            putExtra(EXTRA_CONFIRM_TX_ACTION_BUTTON_TEXT, confirmTxActionButtonText)
+            putExtra(EXTRA_SIGNING_PATH, signingPath)
+        }
 
     companion object {
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
@@ -80,7 +84,9 @@ data class EstimatedFeeArgs(
         private const val EXTRA_IS_CONSOLIDATE_FLOW = "EXTRA_IS_CONSOLIDATE_FLOW"
         private const val EXTRA_TITLE = "EXTRA_TITLE"
         private const val EXTRA_ROLLOVER_WALLET = "EXTRA_ROLLOVER_WALLET"
-        private const val EXTRA_CONFIRM_TX_ACTION_BUTTON_TEXT = "EXTRA_CONFIRM_TX_ACTION_BUTTON_TEXT"
+        private const val EXTRA_CONFIRM_TX_ACTION_BUTTON_TEXT =
+            "EXTRA_CONFIRM_TX_ACTION_BUTTON_TEXT"
+        private const val EXTRA_SIGNING_PATH = "EXTRA_SIGNING_PATH"
 
         fun deserializeFrom(intent: Intent) = EstimatedFeeArgs(
             walletId = intent.extras.getStringValue(EXTRA_WALLET_ID),
@@ -95,7 +101,10 @@ data class EstimatedFeeArgs(
             isConsolidateFlow = intent.extras.getBooleanValue(EXTRA_IS_CONSOLIDATE_FLOW),
             title = intent.extras.getStringValue(EXTRA_TITLE),
             rollOverWalletParam = intent.extras?.parcelable(EXTRA_ROLLOVER_WALLET),
-            confirmTxActionButtonText = intent.extras.getStringValue(EXTRA_CONFIRM_TX_ACTION_BUTTON_TEXT)
+            confirmTxActionButtonText = intent.extras.getStringValue(
+                EXTRA_CONFIRM_TX_ACTION_BUTTON_TEXT
+            ),
+            signingPath = intent.extras?.parcelable(EXTRA_SIGNING_PATH)
         )
     }
 }

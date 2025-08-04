@@ -45,6 +45,7 @@ import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.EstimateFeeRates
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
@@ -312,7 +313,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             inputs = viewModel.getSelectedCoins(),
             claimInheritanceTxParam = args.claimInheritanceTxParam,
             actionButtonText = args.confirmTxActionButtonText,
-            antiFeeSniping = viewModel.getAntiFeeSniping()
+            antiFeeSniping = viewModel.getAntiFeeSniping(),
+            signingPath = args.signingPath
         )
     }
 
@@ -332,7 +334,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
             isConsolidateFlow: Boolean = false,
             title: String = "",
             rollOverWalletParam: RollOverWalletParam? = null,
-            confirmTxActionButtonText: String = ""
+            confirmTxActionButtonText: String = "",
+            signingPath: SigningPath? = null
         ) {
             activityContext.startActivity(
                 EstimatedFeeArgs(
@@ -348,7 +351,8 @@ class EstimatedFeeActivity : BaseActivity<ActivityTransactionEstimateFeeBinding>
                     isConsolidateFlow = isConsolidateFlow,
                     title = title,
                     rollOverWalletParam = rollOverWalletParam,
-                    confirmTxActionButtonText = confirmTxActionButtonText
+                    confirmTxActionButtonText = confirmTxActionButtonText,
+                    signingPath = signingPath
                 ).buildIntent(activityContext)
             )
         }

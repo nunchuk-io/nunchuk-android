@@ -161,10 +161,11 @@ internal class AddReceiptViewModel @Inject constructor(
                     if (result.isSuccess && result.getOrThrow().isEmpty()) {
                         setEvent(
                             AcceptedAddressEvent(
-                                address,
-                                currentState.privateNote,
-                                currentState.amount,
-                                isCreateTransaction
+                                address = address,
+                                privateNote = currentState.privateNote,
+                                amount = currentState.amount,
+                                isCreateTransaction = isCreateTransaction,
+                                isMiniscript = currentState.scriptNode != null
                             )
                         )
                     } else {

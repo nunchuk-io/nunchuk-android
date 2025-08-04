@@ -30,6 +30,7 @@ import com.nunchuk.android.core.util.getDoubleValue
 import com.nunchuk.android.core.util.getIntValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
@@ -48,6 +49,7 @@ data class TransactionConfirmArgs(
     val inputs: List<UnspentOutput> = emptyList(),
     val actionButtonText: String = "",
     val antiFeeSniping: Boolean,
+    val signingPath: SigningPath?,
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) =
@@ -64,6 +66,7 @@ data class TransactionConfirmArgs(
             putParcelableArrayListExtra(EXTRA_INPUTS, ArrayList(inputs))
             putExtra(EXTRA_ACTION_BUTTON_TEXT, actionButtonText)
             putExtra(EXTRA_ANTI_FEE_SNIPING, antiFeeSniping)
+            putExtra(EXTRA_SIGNING_PATH, signingPath)
         }
 
     companion object {
@@ -79,6 +82,7 @@ data class TransactionConfirmArgs(
         private const val EXTRA_CLAIM_INHERITANCE_TX_PARAM = "EXTRA_CLAIM_INHERITANCE_TX_PARAM"
         private const val EXTRA_ACTION_BUTTON_TEXT = "EXTRA_ACTION_BUTTON_TEXT"
         private const val EXTRA_ANTI_FEE_SNIPING = "EXTRA_ANTI_FEE_SNIPING"
+        private const val EXTRA_SIGNING_PATH = "EXTRA_SIGNING_PATH"
 
         fun deserializeFrom(intent: Intent): TransactionConfirmArgs {
             val extras = intent.extras
@@ -95,6 +99,7 @@ data class TransactionConfirmArgs(
                 txReceipts = extras.parcelableArrayList<TxReceipt>(EXTRA_TX_RECEIPTS).orEmpty(),
                 actionButtonText = extras.getStringValue(EXTRA_ACTION_BUTTON_TEXT),
                 antiFeeSniping = extras.getBooleanValue(EXTRA_ANTI_FEE_SNIPING, false),
+                signingPath = extras.parcelable<SigningPath>(EXTRA_SIGNING_PATH)
             )
         }
     }

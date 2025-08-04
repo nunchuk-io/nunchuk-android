@@ -32,6 +32,7 @@ import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.model.BtcUri
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SavedAddress
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.TransactionNavigator
@@ -136,7 +137,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         isConsolidateFlow: Boolean,
         title: String,
         rollOverWalletParam: RollOverWalletParam?,
-        confirmTxActionButtonText: String
+        confirmTxActionButtonText: String,
+        signingPath: SigningPath?
     ) {
         EstimatedFeeActivity.start(
             activityContext = activityContext,
@@ -152,7 +154,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             isConsolidateFlow = isConsolidateFlow,
             title = title,
             rollOverWalletParam = rollOverWalletParam,
-            confirmTxActionButtonText = confirmTxActionButtonText
+            confirmTxActionButtonText = confirmTxActionButtonText,
+            signingPath = signingPath
         )
     }
 
@@ -169,6 +172,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         inputs: List<UnspentOutput>,
         claimInheritanceTxParam: ClaimInheritanceTxParam?,
         actionButtonText: String,
+        signingPath: SigningPath?,
         antiFeeSniping: Boolean
     ) {
         TransactionConfirmActivity.start(
@@ -184,7 +188,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             claimInheritanceTxParam = claimInheritanceTxParam,
             inputs = inputs,
             actionButtonText = actionButtonText,
-            antiFeeSniping = antiFeeSniping
+            antiFeeSniping = antiFeeSniping,
+            signingPath = signingPath
         )
     }
 

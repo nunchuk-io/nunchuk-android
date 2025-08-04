@@ -33,6 +33,7 @@ import com.nunchuk.android.core.util.SavedAddressFlow
 import com.nunchuk.android.model.BtcUri
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SavedAddress
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 
@@ -88,7 +89,8 @@ interface TransactionNavigator {
         isConsolidateFlow: Boolean = false,
         title: String = "",
         rollOverWalletParam: RollOverWalletParam? = null,
-        confirmTxActionButtonText: String = ""
+        confirmTxActionButtonText: String = "",
+        signingPath: SigningPath? = null
     )
 
     fun openTransactionConfirmScreen(
@@ -104,7 +106,8 @@ interface TransactionNavigator {
         inputs: List<UnspentOutput> = emptyList(),
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
         actionButtonText: String = "",
-        antiFeeSniping: Boolean,
+        signingPath: SigningPath? = null,
+        antiFeeSniping: Boolean
     )
 
     /**

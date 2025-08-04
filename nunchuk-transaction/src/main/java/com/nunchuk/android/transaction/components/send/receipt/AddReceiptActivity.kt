@@ -192,7 +192,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                             currentBlockHeight = state.currentBlockHeight,
                             onContinue = { isKeyPathSelected ->
                                 if (isKeyPathSelected) {
-                                    transactionConfirmViewModel.handleConfirmEvent(keySetIndex = 0)
+                                    transactionConfirmViewModel.draftMiniscriptTransaction()
                                 } else {
                                     transactionConfirmViewModel.checkMiniscriptSigningPolicy()
                                 }
@@ -227,7 +227,7 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                                 transactionConfirmViewModel.run {
                                     updateInputs(isSendAll, coins)
                                     handleConfirmEvent(
-                                        keySetIndex = 1,
+                                        keySetIndex = if (timelockCoin.signingPath != null) 0 else 1,
                                         signingPath = timelockCoin.signingPath
                                     )
                                 }
@@ -312,10 +312,42 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
                 )
             }
 
+            is TransactionConfirmEvent.CustomizeTransaction -> {
+                val state = viewModel.getAddReceiptState()
+                openEstimatedFeeScreen(
+                    address = state.address,
+                    privateNote = state.privateNote,
+                    amount = state.amount,
+                    signingPath = event.signingPath
+                )
+            }
+
             else -> {}
         }
     }
 
+    fun openEstimatedFeeScreen(
+        address: String,
+        privateNote: String,
+        amount: Amount,
+        signingPath: SigningPath? = null
+    ) {
+        val finalAmount = if (amount.value > 0) amount.pureBTC() else args.outputAmount
+        val subtractFeeFromAmount = if (amount.value > 0) false else args.subtractFeeFromAmount
+        navigator.openEstimatedFeeScreen(
+            activityContext = this,
+            walletId = args.walletId,
+            availableAmount = args.availableAmount,
+            txReceipts = listOf(TxReceipt(address, finalAmount)),
+            privateNote = privateNote,
+            subtractFeeFromAmount = subtractFeeFromAmount,
+            sweepType = args.sweepType,
+            slots = args.slots,
+            inputs = args.inputs,
+            claimInheritanceTxParam = args.claimInheritanceTxParam,
+            signingPath = signingPath
+        )
+    }
 
     private fun handleCreateTransaction(
         amount: Amount,
@@ -333,13 +365,13 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
             transactionConfirmViewModel.init(
                 walletId = args.walletId,
                 txReceipts = listOf(TxReceipt(address, finalAmount)),
-                privateNote = state.privateNote,
                 subtractFeeFromAmount = subtractFeeFromAmount,
+                privateNote = state.privateNote,
+                manualFeeRate = manualFeeRate,
                 slots = args.slots,
                 inputs = args.inputs,
-                manualFeeRate = manualFeeRate,
                 claimInheritanceTxParam = args.claimInheritanceTxParam,
-                antiFeeSniping = viewModel.getAddReceiptState().antiFeeSniping
+                antiFeeSniping = viewModel.getAddReceiptState().antiFeeSniping,
             )
             if (state.scriptNode != null) {
                 if (state.addressType.isTaproot() && !state.isValueKeySetDisable) {

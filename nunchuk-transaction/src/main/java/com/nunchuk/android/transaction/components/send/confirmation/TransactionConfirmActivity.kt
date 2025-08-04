@@ -42,6 +42,7 @@ import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
@@ -64,6 +65,7 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -72,7 +74,11 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
     @Inject
     lateinit var sessionHolder: SessionHolder
 
-    private val args: TransactionConfirmArgs by lazy { TransactionConfirmArgs.deserializeFrom(intent) }
+    private val args: TransactionConfirmArgs by lazy {
+        TransactionConfirmArgs.deserializeFrom(intent).also {
+            Timber.d("TransactionConfirmArgs: $it")
+        }
+    }
 
     private val viewModel: TransactionConfirmViewModel by viewModels()
 
@@ -97,7 +103,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             antiFeeSniping = args.antiFeeSniping
         )
         setupViews()
-        viewModel.draftTransaction()
+        viewModel.draftTransaction(args.signingPath)
     }
 
     private fun observeEvent() {
@@ -156,7 +162,10 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             if (args.slots.isNotEmpty()) {
                 startNfcFlow(REQUEST_SATSCARD_SWEEP_SLOT)
             } else {
-                viewModel.handleConfirmEvent()
+                viewModel.handleConfirmEvent(
+                    keySetIndex = if (args.signingPath != null) 1 else 0,
+                    signingPath = args.signingPath,
+                )
             }
         }
 
@@ -236,6 +245,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             is TransactionConfirmEvent.DraftTaprootTransactionSuccess,
             is TransactionConfirmEvent.ChooseSigningPolicy,
             is TransactionConfirmEvent.ShowTimeLockNotice,
+            is TransactionConfirmEvent.CustomizeTransaction,
             is TransactionConfirmEvent.ChooseSigningPathsSuccess -> Unit
         }
     }
@@ -280,6 +290,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             slots: List<SatsCardSlot> = emptyList(),
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
             inputs: List<UnspentOutput> = emptyList(),
+            signingPath: SigningPath? = null,
             actionButtonText: String,
             antiFeeSniping: Boolean
         ) {
@@ -296,7 +307,8 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                     claimInheritanceTxParam = claimInheritanceTxParam,
                     inputs = inputs,
                     actionButtonText = actionButtonText,
-                    antiFeeSniping = antiFeeSniping
+                    antiFeeSniping = antiFeeSniping,
+                    signingPath = signingPath
                 ).buildIntent(activityContext)
             )
         }

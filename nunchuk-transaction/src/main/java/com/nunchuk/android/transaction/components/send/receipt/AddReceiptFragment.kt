@@ -29,17 +29,16 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
 import com.nunchuk.android.core.base.BaseFragment
-import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.MAX_NOTE_LENGTH
-import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.wallet.WalletBottomSheetResult
 import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmViewModel
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeViewModel
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.AcceptedAddressEvent
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.AddressRequiredEvent
@@ -69,6 +68,7 @@ class AddReceiptFragment : BaseFragment<ActivityTransactionAddReceiptBinding>() 
 
     private val viewModel: AddReceiptViewModel by activityViewModels()
     private val estimateFeeViewModel: EstimatedFeeViewModel by activityViewModels()
+    private val transactionConfirmViewModel by activityViewModels<TransactionConfirmViewModel>()
 
     private val launcher = registerForActivityResult(ScanContract()) { result ->
         result.contents?.let { content ->
@@ -152,8 +152,10 @@ class AddReceiptFragment : BaseFragment<ActivityTransactionAddReceiptBinding>() 
         }
         binding.btnCreateTransaction.setOnDebounceClickListener {
             viewModel.handleContinueEvent(true)
+            transactionConfirmViewModel.setCustomizeTransaction(false)
         }
         binding.btnCustomFee.setOnDebounceClickListener {
+            transactionConfirmViewModel.setCustomizeTransaction(true)
             viewModel.handleContinueEvent(false)
         }
         binding.receiptInputDropdown.setOnDebounceClickListener {
@@ -223,7 +225,7 @@ class AddReceiptFragment : BaseFragment<ActivityTransactionAddReceiptBinding>() 
     private fun handleEvent(event: AddReceiptEvent) {
         when (event) {
             is AcceptedAddressEvent -> {
-                if (event.isCreateTransaction) {
+                if (event.isCreateTransaction || event.isMiniscript) {
                     handleCreateTransaction()
                 } else {
                     openEstimatedFeeScreen(event.address, event.privateNote, event.amount)
@@ -268,19 +270,10 @@ class AddReceiptFragment : BaseFragment<ActivityTransactionAddReceiptBinding>() 
 
     private fun openEstimatedFeeScreen(address: String, privateNote: String, amount: Amount) {
         hideError()
-        val finalAmount = if (amount.value > 0) amount.pureBTC() else args.outputAmount
-        val subtractFeeFromAmount = if (amount.value > 0) false else args.subtractFeeFromAmount
-        navigator.openEstimatedFeeScreen(
-            activityContext = requireActivity(),
-            walletId = args.walletId,
-            availableAmount = args.availableAmount,
-            txReceipts = listOf(TxReceipt(address, finalAmount)),
+        (activity as? AddReceiptActivity)?.openEstimatedFeeScreen(
+            address = address,
             privateNote = privateNote,
-            subtractFeeFromAmount = subtractFeeFromAmount,
-            sweepType = args.sweepType,
-            slots = args.slots,
-            inputs = args.inputs,
-            claimInheritanceTxParam = args.claimInheritanceTxParam
+            amount = amount,
         )
     }
 }

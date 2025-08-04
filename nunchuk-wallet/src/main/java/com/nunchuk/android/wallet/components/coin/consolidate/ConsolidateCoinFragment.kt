@@ -68,9 +68,8 @@ class ConsolidateCoinFragment : Fragment() {
                             args.selectedCoins.sumOf { it.amount.value }.toDouble().fromSATtoBTC()
                         navigator.openTransactionConfirmScreen(
                             activityContext = requireActivity(),
-                            availableAmount = availableAmount,
-                            inputs = args.selectedCoins.toList(),
                             walletId = args.walletId,
+                            availableAmount = availableAmount,
                             txReceipts = listOf(
                                 TxReceipt(
                                     address = state.address,
@@ -78,8 +77,9 @@ class ConsolidateCoinFragment : Fragment() {
                                 )
                             ),
                             privateNote = note,
-                            manualFeeRate = state.manualFeeRate,
                             subtractFeeFromAmount = true,
+                            manualFeeRate = state.manualFeeRate,
+                            inputs = args.selectedCoins.toList(),
                             antiFeeSniping = false
                         )
                     },

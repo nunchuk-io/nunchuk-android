@@ -33,7 +33,8 @@ sealed class AddReceiptEvent {
         val address: String,
         val privateNote: String,
         val amount: Amount,
-        val isCreateTransaction: Boolean
+        val isCreateTransaction: Boolean,
+        val isMiniscript: Boolean,
     ) : AddReceiptEvent()
     data object ParseBtcUriEvent : AddReceiptEvent()
     data object NoOp : AddReceiptEvent()

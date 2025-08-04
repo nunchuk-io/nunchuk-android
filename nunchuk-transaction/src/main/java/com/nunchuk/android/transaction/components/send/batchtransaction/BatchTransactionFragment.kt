@@ -271,7 +271,6 @@ class BatchTransactionFragment : Fragment() {
             privateNote = viewModel.getNote(),
             subtractFeeFromAmount = subtractFeeFromAmount,
             manualFeeRate = manualFeeRate,
-            slots = emptyList(),
             inputs = args.unspentOutputs.toList(),
             antiFeeSniping = false
         )

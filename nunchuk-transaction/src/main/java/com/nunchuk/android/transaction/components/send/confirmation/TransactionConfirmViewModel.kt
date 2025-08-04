@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.transaction.components.send.confirmation
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
@@ -98,7 +99,8 @@ class TransactionConfirmViewModel @Inject constructor(
     private val getSavedAddressListLocalUseCase: GetSavedAddressListLocalUseCase,
     private val estimateFeeForSigningPathsUseCase: EstimateFeeForSigningPathsUseCase,
     private val getTimelockedCoinsUseCase: GetTimelockedCoinsUseCase,
-    private val getCoinsFromTxInputsUseCase: GetCoinsFromTxInputsUseCase
+    private val getCoinsFromTxInputsUseCase: GetCoinsFromTxInputsUseCase,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionConfirmUiState())
     val uiState = _state.asStateFlow()
@@ -108,7 +110,7 @@ class TransactionConfirmViewModel @Inject constructor(
 
     private var manualFeeRate: Int = -1
     private lateinit var walletId: String
-    private lateinit var txReceipts: List<TxReceipt>
+    lateinit var txReceipts: List<TxReceipt>
     private var subtractFeeFromAmount: Boolean = false
     private val slots = mutableListOf<SatsCardSlot>()
     private val inputs = mutableListOf<UnspentOutput>()
@@ -220,20 +222,25 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
-    fun draftTransaction() {
+    fun draftTransaction(
+        signingPath: SigningPath?
+    ) {
         if (claimInheritanceTxParam.isInheritanceClaimFlow()) {
             draftInheritanceTransaction()
         } else if (slots.isNotEmpty()) {
             draftSatsCardTransaction()
         } else {
-            draftNormalTransaction()
+            draftNormalTransaction(signingPath)
         }
     }
 
-    private fun draftNormalTransaction() {
+    private fun draftNormalTransaction(signingPath: SigningPath? = null) {
         viewModelScope.launch {
             _event.emit(LoadingEvent())
-            draftNormalTransaction(false).onSuccess {
+            draftNormalTransaction(
+                useScriptPath = signingPath != null,
+                signingPath = signingPath
+            ).onSuccess {
                 onDraftTransactionSuccess(it)
             }.onFailure {
                 _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
@@ -318,12 +325,20 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
-    fun draftMiniscriptTransaction(signingPath: SigningPath) {
+    fun draftMiniscriptTransaction(signingPath: SigningPath? = null) {
         viewModelScope.launch {
+            if (savedStateHandle.get<Boolean>(CUSTOMIZE_TRANSACTION_KEY) == true) {
+                _event.emit(
+                    TransactionConfirmEvent.CustomizeTransaction(
+                        signingPath = signingPath
+                    )
+                )
+                return@launch
+            }
             _event.emit(LoadingEvent())
             draftNormalTransaction(
                 signingPath = signingPath,
-                useScriptPath = true
+                useScriptPath = signingPath != null
             ).onSuccess { transaction ->
                 val coins = getCoinsFromTxInputsUseCase(
                     GetCoinsFromTxInputsUseCase.Params(
@@ -560,8 +575,13 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
+    fun setCustomizeTransaction(isCustomize: Boolean) {
+        savedStateHandle[CUSTOMIZE_TRANSACTION_KEY] = isCustomize
+    }
+
     companion object {
         private const val WAITING_FOR_CONSUME_EVENT_SECONDS = 5L
+        private const val CUSTOMIZE_TRANSACTION_KEY = "customize_transaction"
     }
 }
 
