@@ -57,13 +57,16 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.fillBeewax
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.core.miniscript.MultisignType
+import com.nunchuk.android.transaction.components.schedule.timezone.toTimeZoneDetail
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.MiniscriptTimelockType
 import kotlinx.serialization.Serializable
 import java.text.DecimalFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 private const val MAX_REQUIRED_KEYS = 20
 private const val MAX_TOTAL_KEYS = 20
@@ -127,7 +130,6 @@ fun MiniscriptConfigTemplateContainer(
     }
 
     MiniscriptConfigTemplateScreen(
-        addressType = addressType,
         multisignType = multisignType,
         currentBlockHeight = uiState.currentBlockHeight,
         snackbarHostState = snackbarHostState,
@@ -136,11 +138,34 @@ fun MiniscriptConfigTemplateContainer(
                 if ((timelockData.timelockType == MiniscriptTimelockType.ABSOLUTE
                     && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK)
                 ) {
-                    timelockData.value / 1000 // Convert milliseconds to seconds
+                    // Convert to UTC based on the selected timezone
+                    if (timelockData.timezoneId.isNotEmpty()) {
+                        val calendar = Calendar.getInstance(TimeZone.getTimeZone(timelockData.timezoneId))
+                        calendar.timeInMillis = timelockData.value * 1000 // Convert seconds to milliseconds
+                        
+                        // Convert to UTC
+                        val utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+                        utcCalendar.set(Calendar.YEAR, calendar.get(Calendar.YEAR))
+                        utcCalendar.set(Calendar.MONTH, calendar.get(Calendar.MONTH))
+                        utcCalendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH))
+                        utcCalendar.set(Calendar.HOUR_OF_DAY, calendar.get(Calendar.HOUR_OF_DAY))
+                        utcCalendar.set(Calendar.MINUTE, calendar.get(Calendar.MINUTE))
+                        utcCalendar.set(Calendar.SECOND, 0)
+                        utcCalendar.set(Calendar.MILLISECOND, 0)
+                        
+                        utcCalendar.timeInMillis / 1000 // Convert back to seconds
+                    } else {
+                        timelockData.value // Fallback to original value if no timezone
+                    }
                 } else if (timelockData.timelockType == MiniscriptTimelockType.RELATIVE
                     && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK
                 ) {
-                    timelockData.value * 24 * 60 * 60 // Convert days to seconds
+                    // Use the new fields if available, otherwise fall back to value
+                    if (timelockData.days > 0 || timelockData.hours > 0 || timelockData.minutes > 0) {
+                        (timelockData.days * 24 * 60 * 60) + (timelockData.hours * 60 * 60) + (timelockData.minutes * 60)
+                    } else {
+                        timelockData.value // Fall back to legacy value
+                    }
                 } else {
                     timelockData.value
                 }
@@ -167,7 +192,6 @@ fun MiniscriptConfigTemplateContainer(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MiniscriptConfigTemplateScreen(
-    addressType: AddressType = AddressType.ANY,
     multisignType: MultisignType = MultisignType.FLEXIBLE,
     currentBlockHeight: Int = 0,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
@@ -180,28 +204,80 @@ fun MiniscriptConfigTemplateScreen(
             TimelockData(
                 timelockType = MiniscriptTimelockType.ABSOLUTE,
                 timeUnit = MiniscriptTimelockBased.TIME_LOCK,
-                value = System.currentTimeMillis() + (30L * 24 * 60 * 60 * 1000)
+                value = {
+                    // Set to midnight of 30 days from now
+                    val calendar = Calendar.getInstance()
+                    calendar.add(Calendar.DAY_OF_YEAR, 30)
+                    calendar.set(Calendar.HOUR_OF_DAY, 0)
+                    calendar.set(Calendar.MINUTE, 0)
+                    calendar.set(Calendar.SECOND, 0)
+                    calendar.set(Calendar.MILLISECOND, 0)
+                    calendar.timeInMillis / 1000 // Convert to Unix timestamp (seconds)
+                }(),
+                timezoneId = TimeZone.getDefault().id,
+                timezoneCity = TimeZone.getDefault().id.toTimeZoneDetail()?.city ?: "",
+                timezoneOffset = TimeZone.getDefault().id.toTimeZoneDetail()?.offset ?: ""
             )
         )
     }
 
     val dateFormat = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()) }
+    val dateTimeFormat = remember { SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.getDefault()) }
     val numberFormatter = remember { DecimalFormat("#,###") }
     val timeLockText by remember {
         derivedStateOf {
             when {
                 // Absolute time - show formatted date
                 timelockData.timelockType == MiniscriptTimelockType.ABSOLUTE && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK -> {
-                    dateFormat.format(Date(timelockData.value))
+                    val date = Date(timelockData.value * 1000) // Convert seconds to milliseconds
+                    val calendar = Calendar.getInstance().apply { time = date }
+                    
+                    // Check if time is midnight (00:00)
+                    if (calendar.get(Calendar.HOUR_OF_DAY) == 0 && calendar.get(Calendar.MINUTE) == 0) {
+                        dateFormat.format(date) // Show only date
+                    } else {
+                        dateTimeFormat.format(date) // Show date and time
+                    }
                 }
                 // Absolute block height - show "block {number}"
                 timelockData.timelockType == MiniscriptTimelockType.ABSOLUTE && timelockData.timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK -> {
                     "block ${numberFormatter.format(timelockData.value)}"
                 }
-                // Relative time lock - show days
+                // Relative time lock - show days, hours, minutes
                 timelockData.timelockType == MiniscriptTimelockType.RELATIVE && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK -> {
-                    val formattedValue = numberFormatter.format(timelockData.value)
-                    if (timelockData.value <= 1) "$formattedValue day" else "$formattedValue days"
+                    // Use new fields if available, otherwise fall back to legacy value
+                    val days = if (timelockData.days > 0 || timelockData.hours > 0 || timelockData.minutes > 0) {
+                        timelockData.days
+                    } else {
+                        timelockData.value / (24 * 60 * 60) // Convert from seconds to days
+                    }
+                    val hours = if (timelockData.hours > 0 || timelockData.days > 0) {
+                        timelockData.hours
+                    } else {
+                        (timelockData.value % (24 * 60 * 60)) / (60 * 60) // Convert from seconds to hours
+                    }
+                    val minutes = if (timelockData.minutes > 0 || timelockData.days > 0) {
+                        timelockData.minutes
+                    } else {
+                        (timelockData.value % (60 * 60)) / 60 // Convert from seconds to minutes
+                    }
+                    
+                    val parts = mutableListOf<String>()
+                    if (days > 0) {
+                        parts.add("${days}d")
+                    }
+                    if (hours > 0) {
+                        parts.add("${hours}h")
+                    }
+                    if (minutes > 0) {
+                        parts.add("${minutes}m")
+                    }
+                    
+                    if (parts.isEmpty()) {
+                        "0d"
+                    } else {
+                        parts.joinToString(" ")
+                    }
                 }
                 // Relative block height - show "{number} blocks"
                 timelockData.timelockType == MiniscriptTimelockType.RELATIVE && timelockData.timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK -> {
@@ -257,7 +333,7 @@ fun MiniscriptConfigTemplateScreen(
         else -> ""
     }
 
-    val reuseSigner = remember { mutableStateOf(true) }
+    val reuseSigner = remember { mutableStateOf(false) }
 
     NunchukTheme {
         Scaffold(
@@ -300,140 +376,39 @@ fun MiniscriptConfigTemplateScreen(
                     .padding(horizontal = 8.dp, vertical = 4.dp)
 
                 Text(
-                    text = "Contract policy:",
+                    text = "Spending rules",
                     style = NunchukTheme.typography.titleSmall,
                     modifier = Modifier.padding(bottom = spacing, start = 16.dp, end = 16.dp)
                 )
 
-                Card(
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.lightGray)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            TextChip("$m of $n", chipModifier) {
-                                editingInitialPolicy = true
-                                showEditPolicyBottomSheet = true
-                            }
-                            Text(
-                                text = "multisig",
-                                style = NunchukTheme.typography.body
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            "will automatically change to",
-                            style = NunchukTheme.typography.body
+                when {
+                    timelockData.timelockType == MiniscriptTimelockType.ABSOLUTE -> {
+                        AbsoluteCard(
+                            m = m,
+                            n = n,
+                            newM = newM,
+                            newN = newN,
+                            multisignType = multisignType,
+                            timeLockText = timeLockText,
+                            chipModifier = chipModifier,
+                            onEditingInitialPolicyChange = { editingInitialPolicy = it },
+                            onShowEditPolicyBottomSheetChange = { showEditPolicyBottomSheet = it },
+                            onShowEditTimelockBottomSheetChange = { showEditTimelockBottomSheet = it }
                         )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            when (multisignType) {
-                                MultisignType.FLEXIBLE -> {
-                                    TextChipLineContent(
-                                        contentBeginning = {
-                                            Text(
-                                                text = "a ",
-                                                style = NunchukTheme.typography.body
-                                            )
-                                        },
-                                        modifier = chipModifier,
-                                        text = "$newM of $newN",
-                                        contentEnd = {
-                                            Text(
-                                                text = " multisig",
-                                                style = NunchukTheme.typography.body
-                                            )
-                                        },
-                                        onClick = {
-                                            editingInitialPolicy = false
-                                            showEditPolicyBottomSheet = true
-                                        }
-                                    )
-                                }
-
-                                MultisignType.EXPANDING -> {
-                                    TextChipLineContent(
-                                        contentBeginning = {
-                                            Text(
-                                                text = "a $m of ",
-                                                style = NunchukTheme.typography.body
-                                            )
-                                        },
-                                        modifier = chipModifier,
-                                        text = "$newN",
-                                        contentEnd = {
-                                            Text(
-                                                text = " multisig",
-                                                style = NunchukTheme.typography.body
-                                            )
-                                        },
-                                        onClick = {
-                                            editingInitialPolicy = false
-                                            showEditPolicyBottomSheet = true
-                                        }
-                                    )
-                                }
-
-                                MultisignType.DECAYING -> {
-                                    TextChipLineContent(
-                                        contentBeginning = {
-                                            Text(
-                                                text = "a ",
-                                                style = NunchukTheme.typography.body
-                                            )
-                                        },
-                                        modifier = chipModifier,
-                                        text = "$newM",
-                                        contentEnd = {
-                                            Text(
-                                                text = " of $n multisig",
-                                                style = NunchukTheme.typography.body
-                                            )
-                                        },
-                                        onClick = {
-                                            editingInitialPolicy = false
-                                            showEditPolicyBottomSheet = true
-                                        }
-                                    )
-                                }
-
-                                else -> {}
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Column {
-                            TextChipLineContent(
-                                modifier = chipModifier,
-                                text = "after $timeLockText",
-                                contentEnd = {
-                                    if (timelockData.timelockType == MiniscriptTimelockType.RELATIVE) {
-                                        Text(
-                                            text = " from the time the coins",
-                                            style = NunchukTheme.typography.body
-                                        )
-                                    }
-                                },
-                                onClick = {
-                                    showEditTimelockBottomSheet = true
-                                }
-                            )
-
-                            if (timelockData.timelockType == MiniscriptTimelockType.RELATIVE) {
-                                Text(
-                                    text = " are received.",
-                                    style = NunchukTheme.typography.body,
-                                    modifier = Modifier.padding(top = 8.dp)
-                                )
-                            }
-                        }
+                    }
+                    timelockData.timelockType == MiniscriptTimelockType.RELATIVE && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK -> {
+                        RelativeCard(
+                            m = m,
+                            n = n,
+                            newM = newM,
+                            newN = newN,
+                            multisignType = multisignType,
+                            timeLockText = timeLockText,
+                            chipModifier = chipModifier,
+                            onEditingInitialPolicyChange = { editingInitialPolicy = it },
+                            onShowEditPolicyBottomSheetChange = { showEditPolicyBottomSheet = it },
+                            onShowEditTimelockBottomSheetChange = { showEditTimelockBottomSheet = it }
+                        )
                     }
                 }
 
@@ -612,13 +587,315 @@ fun TextChip(text: String, modifier: Modifier = Modifier, onClick: () -> Unit = 
     }
 }
 
+@Composable
+fun AbsoluteCard(
+    m: Int,
+    n: Int,
+    newM: Int,
+    newN: Int,
+    multisignType: MultisignType,
+    timeLockText: String,
+    chipModifier: Modifier,
+    onEditingInitialPolicyChange: (Boolean) -> Unit,
+    onShowEditPolicyBottomSheetChange: (Boolean) -> Unit,
+    onShowEditTimelockBottomSheetChange: (Boolean) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.lightGray)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            TextChipLineContent(
+                modifier = chipModifier,
+                contentBeginning = {
+                    Text(
+                        text = "Until ",
+                        style = NunchukTheme.typography.body
+                    )
+                },
+                text = timeLockText,
+                contentEnd = {
+                    Text(
+                        text = "spending requires",
+                        style = NunchukTheme.typography.body
+                    )
+                },
+                onClick = {
+                    onShowEditTimelockBottomSheetChange(true)
+                }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextChipLineContent(
+                modifier = chipModifier,
+                contentBeginning = {
+                    Text(
+                        text = "signatures from a ",
+                        style = NunchukTheme.typography.body
+                    )
+                },
+                text = "$m-of-$n",
+                contentEnd = {
+                    Text(
+                        text = "multisig.",
+                        style = NunchukTheme.typography.body
+                    )
+                },
+                onClick = {
+                    onEditingInitialPolicyChange(true)
+                    onShowEditPolicyBottomSheetChange(true)
+                }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                "After that, spending requires either the same",
+                style = NunchukTheme.typography.body
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                when (multisignType) {
+                    MultisignType.FLEXIBLE -> {
+                        TextChipLineContent(
+                            contentBeginning = {
+                                Text(
+                                    text = "$m‑of‑$n multisig OR a ",
+                                    style = NunchukTheme.typography.body
+                                )
+                            },
+                            modifier = chipModifier,
+                            text = "$newM-of-$newN",
+                            contentEnd = {
+                                Text(
+                                    text = " multisig.",
+                                    style = NunchukTheme.typography.body
+                                )
+                            },
+                            onClick = {
+                                onEditingInitialPolicyChange(false)
+                                onShowEditPolicyBottomSheetChange(true)
+                            }
+                        )
+                    }
+
+                    MultisignType.EXPANDING -> {
+                        TextChipLineContent(
+                            contentBeginning = {
+                                Text(
+                                    text = "$m‑of‑$n multisig OR a $m of ",
+                                    style = NunchukTheme.typography.body
+                                )
+                            },
+                            modifier = chipModifier,
+                            text = "$newN",
+                            contentEnd = {
+                                Text(
+                                    text = " multisig.",
+                                    style = NunchukTheme.typography.body
+                                )
+                            },
+                            onClick = {
+                                onEditingInitialPolicyChange(false)
+                                onShowEditPolicyBottomSheetChange(true)
+                            }
+                        )
+                    }
+
+                    MultisignType.DECAYING -> {
+                        TextChipLineContent(
+                            contentBeginning = {
+                                Text(
+                                    text = "$m‑of‑$n multisig OR a ",
+                                    style = NunchukTheme.typography.body
+                                )
+                            },
+                            modifier = chipModifier,
+                            text = "$newM",
+                            contentEnd = {
+                                Text(
+                                    text = " of-$n-multisig.",
+                                    style = NunchukTheme.typography.body
+                                )
+                            },
+                            onClick = {
+                                onEditingInitialPolicyChange(false)
+                                onShowEditPolicyBottomSheetChange(true)
+                            }
+                        )
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RelativeCard(
+    m: Int,
+    n: Int,
+    newM: Int,
+    newN: Int,
+    multisignType: MultisignType,
+    timeLockText: String,
+    chipModifier: Modifier,
+    onEditingInitialPolicyChange: (Boolean) -> Unit,
+    onShowEditPolicyBottomSheetChange: (Boolean) -> Unit,
+    onShowEditTimelockBottomSheetChange: (Boolean) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.lightGray)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            TextChipLineContent(
+                modifier = chipModifier,
+                contentBeginning = {
+                    Text(
+                        text = "First ",
+                        style = NunchukTheme.typography.body
+                    )
+                },
+                text = timeLockText,
+                contentEnd = {
+                    Text(
+                        text = " after a coin is received:",
+                        style = NunchukTheme.typography.body
+                    )
+                },
+                onClick = {
+                    onShowEditTimelockBottomSheetChange(true)
+                }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "spending that coin requires signatures",
+                style = NunchukTheme.typography.body
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextChipLineContent(
+                contentBeginning = {
+                    Text(
+                        text = "from a ",
+                        style = NunchukTheme.typography.body
+                    )
+                },
+                modifier = chipModifier,
+                text = "$m-of-$n",
+                contentEnd = {
+                    Text(
+                        text = " multisig.",
+                        style = NunchukTheme.typography.body
+                    )
+                },
+                onClick = {
+                    onEditingInitialPolicyChange(true)
+                    onShowEditPolicyBottomSheetChange(true)
+                }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                "After that, the same coin can be spent with",
+                style = NunchukTheme.typography.body
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                "either the same $m-of-$n multisig OR a ",
+                style = NunchukTheme.typography.body
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                when (multisignType) {
+                    MultisignType.FLEXIBLE -> {
+                        TextChipLineContent(
+                            modifier = chipModifier,
+                            text = "$newM-of-$newN",
+                            contentEnd = {
+                                Text(
+                                    text = " multisig.",
+                                    style = NunchukTheme.typography.body
+                                )
+                            },
+                            onClick = {
+                                onEditingInitialPolicyChange(false)
+                                onShowEditPolicyBottomSheetChange(true)
+                            }
+                        )
+                    }
+
+                    MultisignType.EXPANDING -> {
+                        TextChipLineContent(
+                            contentBeginning = {
+                                Text(
+                                    text = "$m of ",
+                                    style = NunchukTheme.typography.body
+                                )
+                            },
+                            modifier = chipModifier,
+                            text = "$newN",
+                            contentEnd = {
+                                Text(
+                                    text = " multisig.",
+                                    style = NunchukTheme.typography.body
+                                )
+                            },
+                            onClick = {
+                                onEditingInitialPolicyChange(false)
+                                onShowEditPolicyBottomSheetChange(true)
+                            }
+                        )
+                    }
+
+                    MultisignType.DECAYING -> {
+                        TextChipLineContent(
+                            modifier = chipModifier,
+                            text = "$newM",
+                            contentEnd = {
+                                Text(
+                                    text = " of-$n-multisig.",
+                                    style = NunchukTheme.typography.body
+                                )
+                            },
+                            onClick = {
+                                onEditingInitialPolicyChange(false)
+                                onShowEditPolicyBottomSheetChange(true)
+                            }
+                        )
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+    }
+}
+
 @PreviewLightDark
 @Composable
 private fun MiniscriptConfigTemplateScreenPreview() {
     NunchukTheme {
         MiniscriptConfigTemplateScreen(
             currentBlockHeight = 850000,
-            multisignType = MultisignType.FLEXIBLE
+            multisignType = MultisignType.DECAYING
         )
     }
 }

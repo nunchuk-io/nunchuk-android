@@ -109,13 +109,13 @@ class SelectTimeZoneFragment : Fragment() {
 }
 
 @Composable
-private fun SelectTimeZoneScreen(viewModel: SelectTimeZoneViewModel = viewModel()) {
+fun SelectTimeZoneScreen(viewModel: SelectTimeZoneViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     SelectTimeZoneContent(state.timezones, viewModel::onSearch, viewModel::onTimeZoneClicked)
 }
 
 @Composable
-private fun SelectTimeZoneContent(
+fun SelectTimeZoneContent(
     timezones: List<TimeZoneDetail> = emptyList(),
     onSearch: (value: String) -> Unit = {},
     onTimeZoneClicked: (zone: TimeZoneDetail) -> Unit = {}

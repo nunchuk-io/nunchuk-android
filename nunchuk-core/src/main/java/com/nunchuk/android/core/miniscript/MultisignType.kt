@@ -28,7 +28,7 @@ enum class MultisignType(
     ),
     IMPORT(
         "Import from file",
-        "Upload a file from your device",
+        "Import miniscript from a file",
         icon = R.drawable.ic_import
     ),
 }

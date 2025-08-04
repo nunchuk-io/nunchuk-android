@@ -16,6 +16,7 @@ import com.nunchuk.android.app.miniscript.configurewallet.MiniscriptConfigureWal
 import com.nunchuk.android.app.miniscript.configurewallet.miniscriptConfigureWalletDestination
 import com.nunchuk.android.app.miniscript.contractpolicy.MiniscriptConfigTemplate
 import com.nunchuk.android.app.miniscript.contractpolicy.miniscriptConfigTemplateDestination
+import com.nunchuk.android.app.miniscript.contractpolicy.miniscriptSelectTimeZoneDestination
 import com.nunchuk.android.app.miniscript.custom.MiniscriptCustomTemplate
 import com.nunchuk.android.app.miniscript.custom.miniscriptCustomTemplateDestination
 import com.nunchuk.android.app.miniscript.intro.MiniscriptIntro
@@ -76,13 +77,16 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
                             template = args.template,
                             addressType = args.addressType
                         )
+
                         args.fromAddWallet && args.multisignType == MultisignType.IMPORT -> MiniscriptCustomTemplate(
                             template = args.template,
                             addressType = args.addressType
                         )
+
                         args.fromAddWallet -> MiniscriptConfigTemplate(
                             multisignType = args.multisignType.ordinal
                         )
+
                         else -> MiniscriptIntro
                     }
 
@@ -117,7 +121,7 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
                             })
 
                         miniscriptConfigTemplateDestination(
-                            addressType = args.addressType
+                            addressType = args.addressType,
                         ) { template ->
                             navHostController.navigate(
                                 route = MiniscriptCustomTemplate(
@@ -178,6 +182,8 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
                             Timber.tag("miniscript-feature").d("Opening backup wallet screen")
                             finish()
                         }
+
+                        miniscriptSelectTimeZoneDestination(navController = navHostController)
                     }
                 }
             })
