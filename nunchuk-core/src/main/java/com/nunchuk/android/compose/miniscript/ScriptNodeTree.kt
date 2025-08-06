@@ -201,6 +201,33 @@ fun ScriptNodeTree(
             }
             return
         }
+
+        ScriptNodeType.MUSIG.name -> {
+            TreeBranchContainer(
+                modifier = Modifier,
+                drawLine = isLastItem.not(),
+                indentationLevel = level
+            ) { modifier, showThreadCurve ->
+                MusigItem(
+                    topPadding = if (showThreadCurve) 10 else 0,
+                    showThreadCurve = showThreadCurve,
+                    modifier = modifier.then(nodeModifier),
+                    isSatisfiable = isSatisfiableNode,
+                    data = data,
+                    node = node
+                ) {
+                    NodeContent(
+                        node = node,
+                        onChangeBip32Path = onChangeBip32Path,
+                        onActionKey = onActionKey,
+                        data = data,
+                        level = level,
+                        modifier = modifier.then(nodeModifier)
+                    )
+                }
+            }
+            return
+        }
     }
     NodeSubs(
         node = node,
@@ -454,6 +481,54 @@ fun AndOrView(
             }
         }
         content()
+    }
+}
+
+@Composable
+fun MusigItem(
+    modifier: Modifier = Modifier,
+    topPadding: Int = 10,
+    showThreadCurve: Boolean = true,
+    isSatisfiable: Boolean,
+    node: ScriptNode,
+    data: ScriptNodeData = ScriptNodeData(),
+    content: @Composable () -> Unit = {},
+) {
+    // Only calculate signed signatures when in SIGN mode
+    var showDetail by remember(node.id) {
+        mutableStateOf(data.topLevelDisableNode?.id != node.id)
+    }
+
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 4.dp)
+        ) {
+            if (showThreadCurve) {
+                CurveView(Modifier.then(modifier))
+            }
+            Column(
+                modifier = Modifier
+                    .then(modifier)
+                    .weight(1f)
+                    .padding(top = topPadding.dp)
+            ) {
+                Text(
+                    text = "${node.idString}. ${node.displayName}",
+                    style = NunchukTheme.typography.body
+                )
+                Text(
+                    text = node.descriptionText,
+                    style = NunchukTheme.typography.bodySmall.copy(
+                        color = MaterialTheme.colorScheme.textSecondary
+                    )
+                )
+            }
+        }
+        if (showDetail) {
+            content()
+        }
     }
 }
 

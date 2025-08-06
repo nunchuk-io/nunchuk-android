@@ -30,8 +30,10 @@ import com.nunchuk.android.model.membership.AssistedWalletBrief
 data class WalletConfigState(
     val walletExtended: WalletExtended = WalletExtended(),
     val scriptNode: ScriptNode? = null,
+    val scriptNodeMuSig: ScriptNode? = null,
     val signers: List<SignerModel> = emptyList(),
     val signerMap: Map<String, SignerModel?> = emptyMap(),
+    val muSigSignerMap: Map<String, SignerModel?> = emptyMap(),
     val isAssistedWallet: Boolean = false,
     val isInactiveAssistedWallet: Boolean = false,
     val verifyToken: String? = null,

@@ -31,6 +31,7 @@ import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesDel
 import com.nunchuk.android.core.domain.membership.DeleteAssistedWalletUseCase
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isPending
@@ -48,8 +49,10 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.joinKeys
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.share.GetContactsUseCase
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.ExportFormat
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletTemplate
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.DeleteWalletUseCase
 import com.nunchuk.android.usecase.ExportTransactionsHistoryUseCase
@@ -244,11 +247,38 @@ internal class WalletConfigViewModel @Inject constructor(
                 _state.update { it.copy(scriptNode = result.scriptNode) }
                 val signerMap = parseSignersFromScriptNode(result.scriptNode)
                 _state.update { it.copy(signerMap = signerMap) }
+                if (state.value.walletExtended.wallet.addressType == AddressType.TAPROOT && state.value.walletExtended.wallet.walletTemplate != WalletTemplate.DISABLE_KEY_PATH) {
+                        if (state.value.walletExtended.wallet.totalRequireSigns > 1) {
+                            val scriptNodeMuSig = ScriptNode(
+                                id = listOf(1),
+                                type = ScriptNodeType.MUSIG.name,
+                                keys = generateKeysForTotalRequireSigns(state.value.walletExtended.wallet.totalRequireSigns),
+                                subs = emptyList(),
+                                k = 0,
+                                data = byteArrayOf(),
+                                timeLock = null
+                            )
+                            // Create muSigSignerMap by mapping the first n signers to the scriptNodeMuSig keys
+                            val muSigSignerMap = scriptNodeMuSig.keys.mapIndexed { index, key ->
+                                key to state.value.walletExtended.wallet.signers.getOrNull(index)?.toModel()
+                            }.toMap()
+                            
+                            _state.update { it.copy(scriptNodeMuSig = scriptNodeMuSig,
+                                muSigSignerMap = muSigSignerMap) }
+                        }
+
+                }
             }.onFailure {
                 _event.emit(WalletConfigEvent.WalletDetailsError(it.message.orUnknownError()))
             }
         } else {
             _state.update { it.copy(scriptNode = null) }
+        }
+    }
+
+    private fun generateKeysForTotalRequireSigns(totalRequireSigns: Int): List<String> {
+        return (0 until totalRequireSigns).map { index ->
+            "key_musig_$index"
         }
     }
 

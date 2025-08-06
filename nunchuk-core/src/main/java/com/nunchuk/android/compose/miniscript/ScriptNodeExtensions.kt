@@ -68,6 +68,7 @@ val ScriptNode.displayName: String
         ScriptNodeType.THRESH.name -> "Thresh ${this.k}/${this.subs.size}"
         ScriptNodeType.MULTI.name -> "Multisig ${this.k}/${this.keys.size}"
         ScriptNodeType.OR_TAPROOT.name -> "OR"
+        ScriptNodeType.MUSIG.name -> "MuSig"
         else -> "Unknown"
     }
 
@@ -100,6 +101,7 @@ val ScriptNode.descriptionText: String
         ScriptNodeType.THRESH.name -> "Requires M of N conditions."
         ScriptNodeType.MULTI.name -> "Requires M of N keys."
         ScriptNodeType.OR_TAPROOT.name -> "Only one tapscript needs to be satisfied."
+        ScriptNodeType.MUSIG.name -> "Better privacy and lower fees. Requires all keys."
         else -> ""
     }
 

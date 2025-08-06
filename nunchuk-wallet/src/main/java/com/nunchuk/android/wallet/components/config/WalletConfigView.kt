@@ -254,23 +254,45 @@ internal fun WalletConfigView(
                                 // Add MiniscriptTaproot component if addressType is TAPROOT
                                 if (state.walletExtended.wallet.addressType == AddressType.TAPROOT) {
                                     // assuming that the keyPath is the name of the first signer
-                                    val keyPath =
-                                        if (state.walletExtended.wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH) {
-                                            ""
-                                        } else {
-                                            state.walletExtended.wallet.signers.firstOrNull()?.name
-                                        }
-                                    MiniscriptTaproot(
-                                        keyPath = keyPath.orEmpty(),
-                                        data = ScriptNodeData(
-                                            mode = ScriptMode.VIEW,
-                                            signers = state.signerMap,
-                                            showBip32Path = true
-                                        ),
-                                        signer = wallet.signers.firstOrNull()?.toModel(),
-                                        onChangeBip32Path = { _, _ -> },
-                                        onActionKey = { _, _ -> }
-                                    )
+                                    val scriptNodeMuSig = state.scriptNodeMuSig
+                                    if (scriptNodeMuSig != null) {
+                                        NcBadgePrimary(
+                                            modifier = Modifier.padding(
+                                                vertical = 8.dp
+                                            ),
+                                            text = "Key path",
+                                            enabled = true,
+                                        )
+
+                                        ScriptNodeTree(
+                                            node = scriptNodeMuSig,
+                                            data = ScriptNodeData(
+                                                mode = ScriptMode.VIEW,
+                                                signers = state.muSigSignerMap,
+                                                showBip32Path = true,
+                                            ),
+                                            onChangeBip32Path = { _, _ -> },
+                                            onActionKey = { _, _ -> }
+                                        )
+                                    } else {
+                                        val keyPath =
+                                            if (state.walletExtended.wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH) {
+                                                ""
+                                            } else {
+                                                state.walletExtended.wallet.signers.firstOrNull()?.name
+                                            }
+                                        MiniscriptTaproot(
+                                            keyPath = keyPath.orEmpty(),
+                                            data = ScriptNodeData(
+                                                mode = ScriptMode.VIEW,
+                                                signers = state.signerMap,
+                                                showBip32Path = true
+                                            ),
+                                            signer = wallet.signers.firstOrNull()?.toModel(),
+                                            onChangeBip32Path = { _, _ -> },
+                                            onActionKey = { _, _ -> }
+                                        )
+                                    }
 
                                     // Add Script path badge
                                     NcBadgePrimary(

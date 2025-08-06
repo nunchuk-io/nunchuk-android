@@ -18,7 +18,8 @@ enum class ScriptNodeType {
     ANDOR,
     THRESH,
     MULTI,
-    OR_TAPROOT
+    OR_TAPROOT,
+    MUSIG
 }
 
 val ScriptNode.isPreImageNode: Boolean

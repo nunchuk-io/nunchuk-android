@@ -94,7 +94,8 @@ fun MiniscriptReviewWalletScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    val hasDuplicateSigners = getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner).isNotEmpty()
+                    val hasDuplicateSigners =
+                        getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner).isNotEmpty()
                     NcPrimaryDarkButton(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = {
@@ -169,17 +170,20 @@ fun MiniscriptReviewWalletScreen(
                     .verticalScroll(rememberScrollState())
             ) {
                 Spacer(modifier = Modifier.size(8.dp))
+
+                val parentModifier = Modifier.padding(horizontal = 16.dp)
+
                 PolicyHeader(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 20.dp)
                 )
 
-                // Add MiniscriptTaproot component if addressType is TAPROOT
-                if (uiState.addressType == AddressType.TAPROOT) {
+                // Add MiniscriptTaproot component if addressType is TAPROOT and keyPath.size == 1
+                if (uiState.addressType == AddressType.TAPROOT && uiState.keyPath.size == 1) {
                     MiniscriptTaproot(
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                        keyPath = uiState.keyPath,
+                        keyPath = uiState.keyPath.first(),
                         data = ScriptNodeData(
                             mode = ScriptMode.VIEW,
                             signers = uiState.signers,
@@ -189,7 +193,7 @@ fun MiniscriptReviewWalletScreen(
                                 uiState.taprootSigner
                             )
                         ),
-                        signer = if (uiState.keyPath.isNotEmpty()) uiState.taprootSigner else null,
+                        signer = if (uiState.keyPath.isNotEmpty() && uiState.taprootSigner.isNotEmpty()) uiState.taprootSigner.first() else null,
                         onChangeBip32Path = { _, _ -> },
                         onActionKey = { _, _ -> }
                     )
@@ -207,7 +211,33 @@ fun MiniscriptReviewWalletScreen(
                     )
                 }
 
-                val parentModifier = Modifier.padding(horizontal = 16.dp)
+                // Add ScriptNodeTree for multi-key taproot (keyPath.size > 1)
+                val scriptNodeMuSig = uiState.scriptNodeMuSig
+                if (uiState.addressType == AddressType.TAPROOT && uiState.keyPath.size > 1 && scriptNodeMuSig != null) {
+                    NcBadgePrimary(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        text = "Key path",
+                        enabled = true,
+                    )
+
+                    Column(modifier = parentModifier) {
+                        ScriptNodeTree(
+                            node = scriptNodeMuSig,
+                            data = ScriptNodeData(
+                                mode = ScriptMode.VIEW,
+                                signers = uiState.signers,
+                                showBip32Path = true,
+                                duplicateSignerKeys = getDuplicateSignerKeys(
+                                    uiState.signers,
+                                    uiState.taprootSigner
+                                )
+                            ),
+                            onChangeBip32Path = { _, _ -> },
+                            onActionKey = { _, _ -> }
+                        )
+                    }
+                }
+
                 Column(modifier = parentModifier) {
                     uiState.scriptNode?.let { scriptNode ->
                         ScriptNodeTree(
@@ -244,7 +274,7 @@ fun MiniscriptReviewWalletScreenPreview() {
 
 private fun getDuplicateSignerKeys(
     signers: Map<String, SignerModel?>,
-    taprootSigner: SignerModel?
+    taprootSigners: List<SignerModel>
 ): Set<String> {
     val signerKeyCounts = mutableMapOf<String, Int>()
 
@@ -254,8 +284,8 @@ private fun getDuplicateSignerKeys(
         signerKeyCounts[signerKey] = signerKeyCounts.getOrDefault(signerKey, 0) + 1
     }
 
-    // Count taproot signer
-    taprootSigner?.let { signer ->
+    // Count taproot signers
+    taprootSigners.forEach { signer ->
         val signerKey = "${signer.fingerPrint}:${signer.derivationPath}"
         signerKeyCounts[signerKey] = signerKeyCounts.getOrDefault(signerKey, 0) + 1
     }
