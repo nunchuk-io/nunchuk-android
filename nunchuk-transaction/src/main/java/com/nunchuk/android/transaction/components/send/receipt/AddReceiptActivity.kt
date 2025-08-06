@@ -43,7 +43,8 @@ import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
+import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_SATSCARD_SWEEP_SLOT
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.flowObserver
@@ -67,7 +68,6 @@ import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeViewModel
 import com.nunchuk.android.transaction.components.utils.openTransactionDetailScreen
 import com.nunchuk.android.transaction.components.utils.returnActiveRoom
 import com.nunchuk.android.transaction.components.utils.showCreateTransactionError
-import com.nunchuk.android.transaction.databinding.ActivityTransactionAddReceiptBinding
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
@@ -75,7 +75,7 @@ import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>() {
+class AddReceiptActivity : BaseComposeNfcActivity() {
 
     @Inject
     lateinit var sessionHolder: SessionHolder
@@ -86,8 +86,6 @@ class AddReceiptActivity : BaseNfcActivity<ActivityTransactionAddReceiptBinding>
     private val estimateFeeViewModel: EstimatedFeeViewModel by viewModels()
     private val sweepSatscardViewModel: SweepSatscardViewModel by viewModels()
     private val transactionConfirmViewModel: TransactionConfirmViewModel by viewModels()
-
-    override fun initializeBinding() = ActivityTransactionAddReceiptBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

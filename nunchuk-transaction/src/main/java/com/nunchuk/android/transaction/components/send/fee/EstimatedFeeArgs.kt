@@ -21,6 +21,7 @@ package com.nunchuk.android.transaction.components.send.fee
 
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.RollOverWalletParam
@@ -71,6 +72,23 @@ data class EstimatedFeeArgs(
             putExtra(EXTRA_SIGNING_PATH, signingPath)
         }
 
+    fun toBundle(): Bundle = Bundle().apply {
+        putString(EXTRA_WALLET_ID, walletId)
+        putDouble(EXTRA_AVAILABLE_AMOUNT, availableAmount)
+        putString(EXTRA_PRIVATE_NOTE, privateNote)
+        putBoolean(EXTRA_SUBTRACT_FEE, subtractFeeFromAmount)
+        putSerializable(EXTRA_SWEEP_TYPE, sweepType)
+        putParcelableArrayList(EXTRA_SLOTS, ArrayList(slots))
+        putParcelableArrayList(EXTRA_INPUT, ArrayList(inputs))
+        putParcelableArrayList(EXTRA_TX_RECEIPTS, ArrayList(txReceipts))
+        putParcelable(EXTRA_CLAIM_INHERITANCE_TX_PARAM, claimInheritanceTxParam)
+        putBoolean(EXTRA_IS_CONSOLIDATE_FLOW, isConsolidateFlow)
+        putString(EXTRA_TITLE, title)
+        putParcelable(EXTRA_ROLLOVER_WALLET, rollOverWalletParam)
+        putString(EXTRA_CONFIRM_TX_ACTION_BUTTON_TEXT, confirmTxActionButtonText)
+        putParcelable(EXTRA_SIGNING_PATH, signingPath)
+    }
+
     companion object {
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
         private const val EXTRA_AVAILABLE_AMOUNT = "EXTRA_AVAILABLE_AMOUNT"
@@ -105,6 +123,25 @@ data class EstimatedFeeArgs(
                 EXTRA_CONFIRM_TX_ACTION_BUTTON_TEXT
             ),
             signingPath = intent.extras?.parcelable(EXTRA_SIGNING_PATH)
+        )
+
+        fun deserializeFromFragment(bundle: Bundle) = EstimatedFeeArgs(
+            walletId = bundle.getStringValue(EXTRA_WALLET_ID),
+            availableAmount = bundle.getDoubleValue(EXTRA_AVAILABLE_AMOUNT),
+            privateNote = bundle.getStringValue(EXTRA_PRIVATE_NOTE),
+            subtractFeeFromAmount = bundle.getBooleanValue(EXTRA_SUBTRACT_FEE),
+            sweepType = bundle.serializable(EXTRA_SWEEP_TYPE)!!,
+            slots = bundle.parcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
+            claimInheritanceTxParam = bundle.parcelable(EXTRA_CLAIM_INHERITANCE_TX_PARAM),
+            inputs = bundle.parcelableArrayList<UnspentOutput>(EXTRA_INPUT).orEmpty(),
+            txReceipts = bundle.parcelableArrayList<TxReceipt>(EXTRA_TX_RECEIPTS).orEmpty(),
+            isConsolidateFlow = bundle.getBooleanValue(EXTRA_IS_CONSOLIDATE_FLOW),
+            title = bundle.getStringValue(EXTRA_TITLE),
+            rollOverWalletParam = bundle.parcelable(EXTRA_ROLLOVER_WALLET),
+            confirmTxActionButtonText = bundle.getStringValue(
+                EXTRA_CONFIRM_TX_ACTION_BUTTON_TEXT
+            ),
+            signingPath = bundle.parcelable(EXTRA_SIGNING_PATH)
         )
     }
 }
