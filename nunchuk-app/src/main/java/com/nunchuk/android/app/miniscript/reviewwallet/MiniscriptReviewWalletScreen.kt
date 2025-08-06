@@ -179,64 +179,7 @@ fun MiniscriptReviewWalletScreen(
                         .padding(horizontal = 16.dp, vertical = 20.dp)
                 )
 
-                // Add MiniscriptTaproot component if addressType is TAPROOT and keyPath.size == 1
-                if (uiState.addressType == AddressType.TAPROOT && uiState.keyPath.size == 1) {
-                    MiniscriptTaproot(
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                        keyPath = uiState.keyPath.first(),
-                        data = ScriptNodeData(
-                            mode = ScriptMode.VIEW,
-                            signers = uiState.signers,
-                            showBip32Path = true,
-                            duplicateSignerKeys = getDuplicateSignerKeys(
-                                uiState.signers,
-                                uiState.taprootSigner
-                            )
-                        ),
-                        signer = if (uiState.keyPath.isNotEmpty() && uiState.taprootSigner.isNotEmpty()) uiState.taprootSigner.first() else null,
-                        onChangeBip32Path = { _, _ -> },
-                        onActionKey = { _, _ -> }
-                    )
-
-                    // Add Script path badge
-                    NcBadgePrimary(
-                        modifier = Modifier.padding(
-                            top = 16.dp,
-                            bottom = 8.dp,
-                            start = 16.dp,
-                            end = 16.dp
-                        ),
-                        text = "Script path",
-                        enabled = true
-                    )
-                }
-
-                // Add ScriptNodeTree for multi-key taproot (keyPath.size > 1)
-                val scriptNodeMuSig = uiState.scriptNodeMuSig
-                if (uiState.addressType == AddressType.TAPROOT && uiState.keyPath.size > 1 && scriptNodeMuSig != null) {
-                    NcBadgePrimary(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        text = "Key path",
-                        enabled = true,
-                    )
-
-                    Column(modifier = parentModifier) {
-                        ScriptNodeTree(
-                            node = scriptNodeMuSig,
-                            data = ScriptNodeData(
-                                mode = ScriptMode.VIEW,
-                                signers = uiState.signers,
-                                showBip32Path = true,
-                                duplicateSignerKeys = getDuplicateSignerKeys(
-                                    uiState.signers,
-                                    uiState.taprootSigner
-                                )
-                            ),
-                            onChangeBip32Path = { _, _ -> },
-                            onActionKey = { _, _ -> }
-                        )
-                    }
-                }
+                TaprootAddressContent(uiState = uiState, parentModifier = parentModifier)
 
                 Column(modifier = parentModifier) {
                     uiState.scriptNode?.let { scriptNode ->
@@ -259,6 +202,83 @@ fun MiniscriptReviewWalletScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TaprootAddressContent(
+    uiState: com.nunchuk.android.app.miniscript.MiniscriptSharedWalletState,
+    parentModifier: Modifier = Modifier
+) {
+    // Add MiniscriptTaproot component if addressType is TAPROOT and keyPath.size == 1
+    if (uiState.addressType == AddressType.TAPROOT && uiState.keyPath.size == 1) {
+        MiniscriptTaproot(
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+            keyPath = uiState.keyPath.first(),
+            data = ScriptNodeData(
+                mode = ScriptMode.VIEW,
+                signers = uiState.signers,
+                showBip32Path = true,
+                duplicateSignerKeys = getDuplicateSignerKeys(
+                    uiState.signers,
+                    uiState.taprootSigner
+                )
+            ),
+            signer = if (uiState.keyPath.isNotEmpty() && uiState.taprootSigner.isNotEmpty()) uiState.taprootSigner.first() else null,
+            onChangeBip32Path = { _, _ -> },
+            onActionKey = { _, _ -> }
+        )
+
+        // Add Script path badge
+        NcBadgePrimary(
+            modifier = Modifier.padding(
+                top = 16.dp,
+                bottom = 8.dp,
+                start = 16.dp,
+                end = 16.dp
+            ),
+            text = "Script path",
+            enabled = true
+        )
+    }
+
+    // Add ScriptNodeTree for multi-key taproot (keyPath.size > 1)
+    val scriptNodeMuSig = uiState.scriptNodeMuSig
+    if (uiState.addressType == AddressType.TAPROOT && uiState.keyPath.size > 1 && scriptNodeMuSig != null) {
+        NcBadgePrimary(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            text = "Key path",
+            enabled = true,
+        )
+
+        Column(modifier = parentModifier) {
+            ScriptNodeTree(
+                node = scriptNodeMuSig,
+                data = ScriptNodeData(
+                    mode = ScriptMode.VIEW,
+                    signers = uiState.signers,
+                    showBip32Path = true,
+                    duplicateSignerKeys = getDuplicateSignerKeys(
+                        uiState.signers,
+                        uiState.taprootSigner
+                    )
+                ),
+                onChangeBip32Path = { _, _ -> },
+                onActionKey = { _, _ -> }
+            )
+        }
+
+        // Add Script path badge
+        NcBadgePrimary(
+            modifier = Modifier.padding(
+                top = 16.dp,
+                bottom = 8.dp,
+                start = 16.dp,
+                end = 16.dp
+            ),
+            text = "Script path",
+            enabled = true
+        )
     }
 }
 

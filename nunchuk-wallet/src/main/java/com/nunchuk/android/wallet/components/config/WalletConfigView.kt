@@ -250,61 +250,8 @@ internal fun WalletConfigView(
                                         .fillMaxWidth()
                                         .padding(top = 8.dp, bottom = 20.dp)
                                 )
-
-                                // Add MiniscriptTaproot component if addressType is TAPROOT
-                                if (state.walletExtended.wallet.addressType == AddressType.TAPROOT) {
-                                    // assuming that the keyPath is the name of the first signer
-                                    val scriptNodeMuSig = state.scriptNodeMuSig
-                                    if (scriptNodeMuSig != null) {
-                                        NcBadgePrimary(
-                                            modifier = Modifier.padding(
-                                                vertical = 8.dp
-                                            ),
-                                            text = "Key path",
-                                            enabled = true,
-                                        )
-
-                                        ScriptNodeTree(
-                                            node = scriptNodeMuSig,
-                                            data = ScriptNodeData(
-                                                mode = ScriptMode.VIEW,
-                                                signers = state.muSigSignerMap,
-                                                showBip32Path = true,
-                                            ),
-                                            onChangeBip32Path = { _, _ -> },
-                                            onActionKey = { _, _ -> }
-                                        )
-                                    } else {
-                                        val keyPath =
-                                            if (state.walletExtended.wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH) {
-                                                ""
-                                            } else {
-                                                state.walletExtended.wallet.signers.firstOrNull()?.name
-                                            }
-                                        MiniscriptTaproot(
-                                            keyPath = keyPath.orEmpty(),
-                                            data = ScriptNodeData(
-                                                mode = ScriptMode.VIEW,
-                                                signers = state.signerMap,
-                                                showBip32Path = true
-                                            ),
-                                            signer = wallet.signers.firstOrNull()?.toModel(),
-                                            onChangeBip32Path = { _, _ -> },
-                                            onActionKey = { _, _ -> }
-                                        )
-                                    }
-
-                                    // Add Script path badge
-                                    NcBadgePrimary(
-                                        modifier = Modifier.padding(
-                                            top = 16.dp,
-                                            bottom = 8.dp,
-                                            end = 16.dp
-                                        ),
-                                        text = "Script path",
-                                        enabled = true
-                                    )
-                                }
+                                
+                                TaprootAddressContent(state, wallet)
 
                                 ScriptNodeTree(
                                     node = state.scriptNode,
@@ -357,6 +304,66 @@ internal fun WalletConfigView(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TaprootAddressContent(
+    state: WalletConfigState,
+    wallet: Wallet
+) {
+    if (state.walletExtended.wallet.addressType == AddressType.TAPROOT) {
+        // assuming that the keyPath is the name of the first signer
+        val scriptNodeMuSig = state.scriptNodeMuSig
+        if (scriptNodeMuSig != null) {
+            NcBadgePrimary(
+                modifier = Modifier.padding(
+                    vertical = 8.dp
+                ),
+                text = "Key path",
+                enabled = true,
+            )
+
+            ScriptNodeTree(
+                node = scriptNodeMuSig,
+                data = ScriptNodeData(
+                    mode = ScriptMode.VIEW,
+                    signers = state.muSigSignerMap,
+                    showBip32Path = true,
+                ),
+                onChangeBip32Path = { _, _ -> },
+                onActionKey = { _, _ -> }
+            )
+        } else {
+            val keyPath =
+                if (state.walletExtended.wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH) {
+                    ""
+                } else {
+                    state.walletExtended.wallet.signers.firstOrNull()?.name
+                }
+            MiniscriptTaproot(
+                keyPath = keyPath.orEmpty(),
+                data = ScriptNodeData(
+                    mode = ScriptMode.VIEW,
+                    signers = state.signerMap,
+                    showBip32Path = true
+                ),
+                signer = wallet.signers.firstOrNull()?.toModel(),
+                onChangeBip32Path = { _, _ -> },
+                onActionKey = { _, _ -> }
+            )
+        }
+
+        // Add Script path badge
+        NcBadgePrimary(
+            modifier = Modifier.padding(
+                top = 16.dp,
+                bottom = 8.dp,
+                end = 16.dp
+            ),
+            text = "Script path",
+            enabled = true
+        )
     }
 }
 
