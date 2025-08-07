@@ -40,6 +40,16 @@
         <item quantity="other">Pending %d nonces</item>
     </plurals>
 
+    <plurals name="nc_day">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+
+    <plurals name="nc_block">
+        <item quantity="one">%1$d block</item>
+        <item quantity="other">%1$d blocks</item>
+    </plurals>
+
     <string name="nc_currency_btc">BTC</string>
     <string name="nc_currency_usd">USD</string>
     <string name="nc_currency_sat">sat</string>

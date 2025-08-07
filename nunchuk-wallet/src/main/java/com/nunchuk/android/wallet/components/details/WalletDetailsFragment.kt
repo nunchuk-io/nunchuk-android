@@ -80,6 +80,7 @@ import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.BackUpWalletType
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
+import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.consumeEdgeToEdge
 import com.nunchuk.android.utils.parcelable
@@ -107,6 +108,7 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.ceil
 
 @AndroidEntryPoint
 class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBinding>(),
@@ -437,6 +439,18 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         binding.cashAmount.text =
             Utils.maskValue(wallet.getCurrencyAmount(), state.hideWalletDetailLocal)
 
+        val hasSpendableCoins = state.noTimelockCoinsAmount.value > 0
+        binding.spendableNowText.isVisible = hasSpendableCoins
+        if (hasSpendableCoins) {
+            binding.spendableNowText.text = getString(
+                R.string.nc_spendable_now,
+                Utils.maskValue(
+                    state.noTimelockCoinsAmount.getBTCAmount(),
+                    state.hideWalletDetailLocal
+                )
+            )
+        }
+
         binding.shareIcon.isVisible =
             state.walletExtended.isShared || state.isAssistedWallet
                     || state.walletStatus == WalletStatus.REPLACED.name || state.isDeprecatedGroupWallet
@@ -448,17 +462,19 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         binding.ivViewCoin.alpha =
             if (state.isHasCoin && viewModel.isFacilitatorAdmin().not()) 1.0f else 0.7f
         // Handle wallet warnings with priority: backup warnings > banner state
-        val needsBackup = state.walletExtended.wallet.needBackup || (state.isNeedBackUpGroupWallet && state.isFreeGroupWallet && state.isDeprecatedGroupWallet.not())
+        val needsBackup =
+            state.walletExtended.wallet.needBackup || (state.isNeedBackUpGroupWallet && state.isFreeGroupWallet && state.isDeprecatedGroupWallet.not())
         val bannerState = state.bannerState
 
         binding.tvWalletWarning.isVisible = needsBackup || bannerState != null
-        
+
         if (binding.tvWalletWarning.isVisible) {
             when {
                 needsBackup -> {
                     // Priority 1: Show backup warning (highest priority)
                     handleNeedBackupWallet(state.isFreeGroupWallet)
                 }
+
                 bannerState != null -> {
                     // Priority 2: Show banner state warning
                     handleBannerStateWarning(bannerState)
@@ -470,6 +486,72 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         } else {
             binding.chatView.isVisible = state.isFreeGroupWallet
         }
+        handleNearestTimeLock(state.nearestTimeLock, state.currentBlock)
+    }
+
+    private fun handleNearestTimeLock(
+        nearestTimeLock: Pair<MiniscriptTimelockBased, Long>?,
+        currentBlock: Int
+    ) {
+        binding.tvTimelockWarning.isVisible = nearestTimeLock != null
+        nearestTimeLock ?: return
+        val (lockBased, lockValue) = nearestTimeLock
+
+        // Calculate remaining time/blocks based on lock type
+        val (isWarningState, lockInfo) = when (lockBased) {
+            MiniscriptTimelockBased.TIME_LOCK -> {
+                val currentTime = System.currentTimeMillis() / 1000L
+                val remainingSeconds = lockValue - currentTime
+                val remainingDays = ceil(remainingSeconds / 86400.0).toInt()
+                val isWarning = remainingDays < 7
+                isWarning to getString(
+                    R.string.nc_timelock_expiring_info,
+                    resources.getQuantityString(
+                        R.plurals.nc_day, remainingDays, remainingDays
+                    )
+                )
+            }
+
+            MiniscriptTimelockBased.HEIGHT_LOCK -> {
+                val remainingBlocks = lockValue.toInt() - currentBlock
+                val isWarning = remainingBlocks < 1008
+                isWarning to getString(
+                    R.string.nc_timelock_expiring_info,
+                    resources.getQuantityString(
+                        R.plurals.nc_block, remainingBlocks, remainingBlocks
+                    )
+                )
+            }
+
+            else -> false to ""
+        }
+
+        binding.tvTimelockWarning.text = lockInfo
+
+        if (isWarningState) {
+            binding.tvTimelockWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                R.drawable.ic_warning_outline, 0, 0, 0
+            )
+            binding.tvTimelockWarning.setBackgroundResource(R.drawable.nc_wallet_warning_background)
+            binding.tvTimelockWarning.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.nc_grey_g7)
+            )
+        } else {
+            binding.tvTimelockWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                R.drawable.ic_info_36, 0, 0, 0
+            )
+            binding.tvTimelockWarning.setBackgroundResource(R.drawable.nc_rounded_whisper_background)
+            binding.tvTimelockWarning.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.nc_text_primary)
+            )
+        }
+
+        binding.tvTimelockWarning.makeTextLink(
+            binding.tvTimelockWarning.text.toString(),
+            ClickAbleText(content = getString(R.string.nc_view_coins), onClick = {
+                navigator.openCoinList(context = requireContext(), walletId = args.walletId)
+            })
+        )
     }
 
     private fun handleWalletBackground(state: WalletDetailsState) {
@@ -552,6 +634,12 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         binding.ivSendBtc.setOnClickListener { viewModel.handleSendMoneyEvent() }
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+        binding.spendableNowText.setOnDebounceClickListener {
+            navigator.openCoinList(
+                context = requireContext(),
+                walletId = args.walletId
+            )
         }
 
         binding.toolbar.setOnMenuItemClickListener { menu ->

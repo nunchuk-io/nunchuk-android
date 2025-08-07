@@ -27,6 +27,18 @@
                 app:visibilityMode="ignore" />
         </Constraint>
 
+        <Constraint android:id="@+id/tv_timelock_warning">
+            <PropertySet
+                app:applyMotionScene="false"
+                app:visibilityMode="ignore" />
+        </Constraint>
+
+        <Constraint android:id="@+id/spendableNowText">
+            <PropertySet
+                app:applyMotionScene="false"
+                app:visibilityMode="ignore" />
+        </Constraint>
+
         <Constraint
             android:id="@+id/configuration_container"
             android:layout_width="0dp"
@@ -92,6 +104,18 @@
     <ConstraintSet android:id="@+id/end">
 
         <Constraint android:id="@+id/chatView">
+            <PropertySet
+                app:applyMotionScene="false"
+                app:visibilityMode="ignore" />
+        </Constraint>
+
+        <Constraint android:id="@+id/tv_timelock_warning">
+            <PropertySet
+                app:applyMotionScene="false"
+                app:visibilityMode="ignore" />
+        </Constraint>
+
+        <Constraint android:id="@+id/spendableNowText">
             <PropertySet
                 app:applyMotionScene="false"
                 app:visibilityMode="ignore" />

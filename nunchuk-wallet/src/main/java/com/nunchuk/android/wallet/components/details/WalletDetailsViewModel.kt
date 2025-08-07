@@ -28,7 +28,10 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
 import com.nunchuk.android.core.domain.GetListMessageFreeGroupWalletUseCase
+import com.nunchuk.android.core.domain.GetWalletBannerStateUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
+import com.nunchuk.android.core.domain.RemoveWalletBannerStateUseCase
+import com.nunchuk.android.core.domain.UpdateWalletBannerStateUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
@@ -40,6 +43,7 @@ import com.nunchuk.android.listener.GroupMessageListener
 import com.nunchuk.android.listener.GroupReplaceListener
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Result
@@ -52,9 +56,11 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.ExportFormat
+import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
+import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.GetGlobalGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.GetGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.GetGroupWalletMessageUnreadCountUseCase
@@ -75,11 +81,8 @@ import com.nunchuk.android.usecase.free.groupwallet.GetDeprecatedGroupWalletsUse
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetReplaceGroupsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.SetBackUpBannerWalletIdsUseCase
-import com.nunchuk.android.core.domain.GetWalletBannerStateUseCase
-import com.nunchuk.android.usecase.wallet.AddWalletBannerStateUseCase
-import com.nunchuk.android.core.domain.RemoveWalletBannerStateUseCase
-import com.nunchuk.android.core.domain.UpdateWalletBannerStateUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
+import com.nunchuk.android.usecase.wallet.AddWalletBannerStateUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.GroupChatManager
 import com.nunchuk.android.utils.onException
@@ -97,9 +100,11 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -147,7 +152,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val getWalletBannerStateUseCase: GetWalletBannerStateUseCase,
     private val addWalletBannerStateUseCase: AddWalletBannerStateUseCase,
     private val removeWalletBannerStateUseCase: RemoveWalletBannerStateUseCase,
-    private val updateWalletBannerStateUseCase: UpdateWalletBannerStateUseCase
+    private val updateWalletBannerStateUseCase: UpdateWalletBannerStateUseCase,
+    private val getChainTipUseCase: GetChainTipUseCase
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -266,6 +272,20 @@ internal class WalletDetailsViewModel @Inject constructor(
                 }
 
         }
+        viewModelScope.launch {
+            while (isActive) {
+                if (getWallet().miniscript.isNotEmpty() && getState().nearestTimeLock != null) {
+                    getChainTipUseCase(Unit).onSuccess { blockHeight ->
+                        updateState {
+                            copy(
+                                currentBlock = blockHeight
+                            )
+                        }
+                    }
+                }
+                delay(60000)
+            }
+        }
         getGroupWalletMessageUnreadCount()
         listenGroupWalletReplace()
         getWalletBannerState()
@@ -376,7 +396,28 @@ internal class WalletDetailsViewModel @Inject constructor(
     private fun getCoins() {
         viewModelScope.launch {
             getAllCoinUseCase(args.walletId).onSuccess { coins ->
-                updateState { copy(isHasCoin = coins.isNotEmpty()) }
+                val currentTime = System.currentTimeMillis() / 1000L
+                val currentBlockHeight = getChainTipUseCase(Unit).getOrDefault(0)
+                var nearestTimeLock = Long.MAX_VALUE
+                var noTimelockCoinsAmount = Amount()
+                coins.forEach { coin ->
+                    val check =
+                        if (coin.lockBased == MiniscriptTimelockBased.TIME_LOCK) currentTime else currentBlockHeight.toLong()
+                    coin.timelocks.find { it > check }?.let { time ->
+                        nearestTimeLock = minOf(nearestTimeLock, time)
+                    } ?: run {
+                        noTimelockCoinsAmount = coin.amount + noTimelockCoinsAmount
+                    }
+                }
+                updateState {
+                    copy(
+                        isHasCoin = coins.isNotEmpty(),
+                        nearestTimeLock = coins.firstOrNull()
+                            ?.takeIf { nearestTimeLock != Long.MAX_VALUE }
+                            ?.let { it.lockBased to nearestTimeLock },
+                        noTimelockCoinsAmount = noTimelockCoinsAmount,
+                    )
+                }
             }
         }
     }
@@ -410,6 +451,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     fun getWalletDetails(shouldRefreshTransaction: Boolean = true, loadingSilent: Boolean = false) {
         syncWalletJob?.cancel()
         syncWalletJob = viewModelScope.launch {
+            val currentBlock = getChainTipUseCase(Unit).getOrDefault(0)
             getWalletUseCase.execute(args.walletId)
                 .onStart { if (loadingSilent.not()) event(Loading(true)) }
                 .flowOn(IO)
@@ -423,6 +465,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                             isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(args.walletId),
                             walletStatus = brief?.status,
                             groupId = assistedWalletManager.getGroupId(args.walletId),
+                            currentBlock = currentBlock
                         )
                     }
                     if (shouldRefreshTransaction) {

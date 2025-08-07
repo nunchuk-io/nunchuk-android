@@ -49,8 +49,8 @@
         android:layout_marginTop="@dimen/nc_padding_8"
         android:background="@drawable/nc_wallet_warning_background"
         android:drawablePadding="@dimen/nc_padding_8"
-        android:padding="@dimen/nc_padding_12"
         android:gravity="center_vertical"
+        android:padding="@dimen/nc_padding_12"
         android:text="@string/nc_assisted_wallet_downgrade_hint"
         android:visibility="gone"
         app:drawableStartCompat="@drawable/ic_info"
@@ -138,6 +138,28 @@
         tools:text="$45,200" />
 
     <com.nunchuk.android.widget.NCFontTextView
+        android:id="@+id/spendableNowText"
+        style="@style/NCText.Body.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/nc_padding_8"
+        android:background="@drawable/nc_background_rounded_12_white_alpha_20"
+        android:drawableEnd="@drawable/ic_chevron_right"
+        android:drawablePadding="@dimen/nc_padding_4"
+        android:drawableTint="@color/nc_white_color"
+        android:foreground="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="@dimen/nc_padding_8"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:paddingVertical="@dimen/nc_padding_4"
+        android:textColor="@color/nc_white_color"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cashAmount"
+        tools:text="Spendable now: 7,620,930 sat" />
+
+    <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/viewWalletConfig"
         style="@style/NCText.Body"
         android:layout_width="wrap_content"
@@ -149,7 +171,7 @@
         android:textColor="@color/nc_white_color"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cashAmount" />
+        app:layout_constraintTop_toBottomOf="@+id/spendableNowText" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline"
@@ -317,10 +339,10 @@
                         android:id="@+id/cvQR"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="@dimen/nc_padding_16"
                         android:layout_gravity="center_horizontal"
-                        app:cardBackgroundColor="?attr/colorSurface"
+                        android:layout_marginHorizontal="@dimen/nc_padding_16"
                         android:padding="@dimen/nc_padding_10"
+                        app:cardBackgroundColor="?attr/colorSurface"
                         app:cardCornerRadius="@dimen/nc_padding_8"
                         app:cardUseCompatPadding="true">
 
@@ -442,6 +464,24 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
+    <TextView
+        android:id="@+id/tv_timelock_warning"
+        style="@style/NCText.Title.Small"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/nc_padding_16"
+        android:layout_marginTop="@dimen/nc_padding_16"
+        android:background="@drawable/nc_wallet_warning_background"
+        android:drawablePadding="@dimen/nc_padding_8"
+        android:gravity="center_vertical"
+        android:padding="@dimen/nc_padding_12"
+        android:visibility="gone"
+        app:drawableStartCompat="@drawable/ic_info"
+        app:drawableTint="@color/nc_text_primary"
+        app:layout_constraintTop_toBottomOf="@+id/scrollViewWalletTransactions"
+        tools:text="@string/nc_assisted_wallet_downgrade_hint"
+        tools:visibility="visible" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/transactionList"
         android:layout_width="match_parent"
@@ -452,7 +492,7 @@
         android:scrollbars="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scrollViewWalletTransactions"
+        app:layout_constraintTop_toBottomOf="@+id/tv_timelock_warning"
         tools:listitem="@layout/item_transaction"
         tools:visibility="visible" />
 

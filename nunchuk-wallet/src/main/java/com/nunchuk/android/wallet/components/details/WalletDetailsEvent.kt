@@ -19,12 +19,14 @@
 
 package com.nunchuk.android.wallet.components.details
 
+import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.FreeGroupMessage
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.type.MiniscriptTimelockBased
 
 sealed class WalletDetailsEvent {
     data class Loading(val loading: Boolean) : WalletDetailsEvent()
@@ -43,7 +45,7 @@ data class WalletDetailsState(
     val transactions: List<Transaction> = emptyList(),
     val isLeaveRoom: Boolean = false,
     val isAssistedWallet: Boolean = false,
-    val walletStatus : String? = null,
+    val walletStatus: String? = null,
     val isForceRefreshProcessing: Boolean = false,
     val hideWalletDetailLocal: Boolean = false,
     val isHasCoin: Boolean = true,
@@ -60,4 +62,7 @@ data class WalletDetailsState(
     val isNeedBackUpGroupWallet: Boolean = false,
     val chatBarState: ChatBarState = ChatBarState.EXPANDED,
     val bannerState: BannerState? = null,
+    val nearestTimeLock: Pair<MiniscriptTimelockBased, Long>? = null,
+    val noTimelockCoinsAmount: Amount = Amount(),
+    val currentBlock: Int = 0,
 )
