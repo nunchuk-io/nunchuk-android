@@ -195,6 +195,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOptionType.TYPE_FORCE_REFRESH_WALLET -> showForceRefreshWalletDialog()
             SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> showSaveWalletConfigurationOption()
             SheetOptionType.TYPE_EXPORT_BSMS -> viewModel.handleExportBSMS()
+            SheetOptionType.TYPE_EXPORT_DESCRIPTOR -> viewModel.exportDescriptor()
             SheetOptionType.TYPE_EXPORT_PORTAL -> navigator.openPortalScreen(
                 launcher = exportWalletToPortalLauncher,
                 activity = this,
@@ -409,6 +410,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             WalletConfigEvent.DeleteAssistedWalletSuccess -> walletDeleted()
             is WalletConfigEvent.UploadWalletConfigEvent -> showSaveShareOption()
             is WalletConfigEvent.ExportTxCoinControlSuccess -> shareConfigurationFile(event.filePath)
+            is WalletConfigEvent.ExportDescriptorSuccess -> showSaveShareOption()
             WalletConfigEvent.ImportTxCoinControlSuccess -> NCToastMessage(this).showMessage(
                 message = getString(
                     R.string.nc_import_completed
@@ -678,6 +680,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
         val options = mutableListOf<SheetOption>()
         options.add(SheetOption(SheetOptionType.TYPE_EXPORT_BSMS, stringId = R.string.nc_bsms))
+        options.add(SheetOption(SheetOptionType.TYPE_EXPORT_DESCRIPTOR, stringId = R.string.nc_descriptor))
 
         // Show COLDCARD only for multisig and supported address types
         if (isMultisig && isSupportedType) {

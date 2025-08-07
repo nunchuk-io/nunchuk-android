@@ -166,4 +166,5 @@ object SheetOptionType {
     const val TYPE_ARCHIVE = 99
     const val TYPE_RECOVER_GROUP_WALLET_QR_CODE = 100
     const val TYPE_RECOVER_GROUP_WALLET_BSMS = 101
+    const val TYPE_EXPORT_DESCRIPTOR = 102
 }

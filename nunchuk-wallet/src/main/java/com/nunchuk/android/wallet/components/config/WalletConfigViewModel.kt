@@ -30,6 +30,7 @@ import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesDeleteAssistedWalletUseCase
 import com.nunchuk.android.core.domain.membership.DeleteAssistedWalletUseCase
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
+import com.nunchuk.android.core.domain.wallet.GetWalletDescriptorUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
@@ -133,6 +134,7 @@ internal class WalletConfigViewModel @Inject constructor(
     private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
     private val parseSignerStringUseCase: ParseSignerStringUseCase,
     private val getChainTipUseCase: GetChainTipUseCase,
+    private val getWalletDescriptorUseCase: GetWalletDescriptorUseCase,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletConfigState())
@@ -608,6 +610,27 @@ internal class WalletConfigViewModel @Inject constructor(
                 )
                 if (result.isSuccess) {
                     _event.emit(WalletConfigEvent.ExportTxCoinControlSuccess(event.data))
+                } else {
+                    _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
+                }
+            }
+
+            is Result.Error -> showError(event.exception)
+        }
+    }
+
+    fun exportDescriptor() = viewModelScope.launch {
+        when (val event = createShareFileUseCase.execute("${walletName()}_descriptor.txt")) {
+            is Result.Success -> {
+                val result = getWalletDescriptorUseCase(
+                    GetWalletDescriptorUseCase.Param(
+                        walletId = walletId,
+                        filePath = event.data
+                    )
+                )
+                if (result.isSuccess) {
+                    filePathInteracting = event.data
+                    _event.emit(WalletConfigEvent.ExportDescriptorSuccess(event.data))
                 } else {
                     _event.emit(WalletConfigEvent.WalletDetailsError(result.exceptionOrNull()?.message.orUnknownError()))
                 }

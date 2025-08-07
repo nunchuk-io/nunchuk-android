@@ -380,7 +380,6 @@
     <string name="nc_ask_for_cancel_group_wallet_recovery">Are you sure you want to cancel the group wallet recovery?</string>
     <string name="nc_failed_add_key_correct_key_from_config">The key you added doesn’t match any of the keys associated with this wallet. Please use the original key to restore access.</string>
     <string name="nc_ask_for_delete_signer">Are you sure you want to remove this key?</string>
-    <string name="nc_occupied">Occupied</string>
     <string name="nc_key_not_synced_desc">Almost there! Other devices in the group need to come online briefly to securely share their keys with this one. Once ready, tap “Create wallet” again to finish setting up.</string>
     <string name="nc_waiting_for_other_devices">Waiting for other devices</string>
     <string name="nc_has_been_recovered">%1$s has been successfully recovered</string>

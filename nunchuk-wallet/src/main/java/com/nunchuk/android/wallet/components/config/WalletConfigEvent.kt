@@ -33,6 +33,7 @@ sealed class WalletConfigEvent {
     data object DeleteWalletSuccess : WalletConfigEvent()
     data class ExportTxCoinControlSuccess(val filePath: String) : WalletConfigEvent()
     data class ExportInvoiceSuccess(val filePath: String) : WalletConfigEvent()
+    data class ExportDescriptorSuccess(val filePath: String) : WalletConfigEvent()
     data object ImportTxCoinControlSuccess : WalletConfigEvent()
 
     class Loading(val isLoading: Boolean) : WalletConfigEvent()
