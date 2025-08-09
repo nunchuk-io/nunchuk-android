@@ -396,7 +396,7 @@ fun MiniscriptConfigTemplateScreen(
                             onShowEditTimelockBottomSheetChange = { showEditTimelockBottomSheet = it }
                         )
                     }
-                    timelockData.timelockType == MiniscriptTimelockType.RELATIVE && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK -> {
+                    timelockData.timelockType == MiniscriptTimelockType.RELATIVE -> {
                         RelativeCard(
                             m = m,
                             n = n,
