@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -28,6 +29,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -41,14 +43,19 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.backgroundMidGray
+import com.nunchuk.android.compose.fillBeeswax
 import com.nunchuk.android.compose.provider.ScriptNodeProvider
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.signDone
+import com.nunchuk.android.model.KeySetStatus
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SigningPath
+import com.nunchuk.android.type.TransactionStatus
 import java.util.Locale
 
 enum class ScriptMode {
@@ -248,8 +255,15 @@ internal fun CreateKeyItem(
     onChangeBip32Path: (String, SignerModel) -> Unit,
     onActionKey: (String, SignerModel?) -> Unit,
     isSatisfiable: Boolean = true,
+    keySetStatus: KeySetStatus? = null,
     data: ScriptNodeData
 ) {
+    val isSigned: Boolean =
+        data.mode == ScriptMode.SIGN && signer != null && if (keySetStatus != null) {
+            keySetStatus.signerStatus[signer.fingerPrint] == true || keySetStatus.status.signDone()
+        } else {
+            data.signedSigners[signer.fingerPrint] == true
+        }
     KeyItem(
         title = signer?.name ?: key,
         xfp = signer?.getXfpOrCardIdLabel().orEmpty(),
@@ -322,10 +336,16 @@ internal fun CreateKeyItem(
                     }
                 }
 
-                data.mode == ScriptMode.SIGN && signer != null && isSatisfiable && data.signedSigners[signer.fingerPrint] == true -> {
-                    CheckedLabel(
-                        text = stringResource(R.string.nc_transaction_signed),
-                    )
+                isSigned && isSatisfiable -> {
+                    if (keySetStatus != null && keySetStatus.status == TransactionStatus.PENDING_NONCE) {
+                        CheckedLabel(
+                            text = stringResource(R.string.nc_committed),
+                        )
+                    } else {
+                        CheckedLabel(
+                            text = stringResource(R.string.nc_transaction_signed),
+                        )
+                    }
                 }
 
                 data.mode == ScriptMode.SIGN && signer != null -> {
@@ -334,7 +354,11 @@ internal fun CreateKeyItem(
                         onClick = { onActionKey(key, signer) },
                         enabled = isSatisfiable
                     ) {
-                        Text(stringResource(R.string.nc_sign))
+                        if (keySetStatus != null && keySetStatus.status == TransactionStatus.PENDING_NONCE) {
+                            Text(stringResource(R.string.nc_commit))
+                        } else {
+                            Text(stringResource(R.string.nc_sign))
+                        }
                     }
                 }
             }
@@ -368,6 +392,7 @@ private fun NodeKeys(
                 data = data,
                 showThreadCurve = showThreadCurve,
                 modifier = modifier,
+                keySetStatus = if (node.type == ScriptNodeType.MUSIG.name) data.keySetStatues[node.idString] else null,
                 isSatisfiable = data.satisfiableMap[node.idString] != false
             )
         }
@@ -429,6 +454,7 @@ data class ScriptNodeData(
     val duplicateSignerKeys: Set<String> = emptySet(),
     val signingPath: SigningPath = SigningPath(path = emptyList()),
     val satisfiableMap: Map<String, Boolean> = emptyMap(),
+    val keySetStatues: Map<String, KeySetStatus> = emptyMap(),
     val topLevelDisableNode: ScriptNode? = null,
     val onPreImageClick: (ScriptNode) -> Unit = {},
     val currentBlockHeight: Int = 0,
@@ -498,17 +524,12 @@ fun MusigItem(
         mutableStateOf(data.topLevelDisableNode?.id != node.id)
     }
 
-    // Only calculate signed signatures when in SIGN mode
-    val pendingSigners = if (data.mode == ScriptMode.SIGN && isSatisfiable) {
-        val signedCount = node.keys.count { key ->
-            val signer = data.signers[key]
-            val xfp = signer?.fingerPrint
-            xfp != null && data.signedSigners[xfp] == true
-        }
-        node.keys.size - signedCount
-    } else {
-        0
-    }
+    val keySet: KeySetStatus? = data.keySetStatues[node.idString]
+    val requiredSignatures = node.keys.size
+    val signedCountFromKeySet = keySet?.signerStatus?.count { it.value } ?: 0
+    val pendingFromKeySet = requiredSignatures - signedCountFromKeySet
+    val round = if (keySet?.status == TransactionStatus.PENDING_NONCE) 1 else 2
+    val isCompleted = keySet?.status?.signDone() == true
 
     Column {
         Row(
@@ -533,25 +554,19 @@ fun MusigItem(
                         text = "${node.idString}. ${node.displayName}",
                         style = NunchukTheme.typography.body
                     )
-
-                    if (data.mode == ScriptMode.SIGN && isSatisfiable) {
-                        if (pendingSigners > 0) {
-                            NcIcon(
-                                painter = painterResource(id = R.drawable.ic_pending_signatures),
-                                contentDescription = "Warning",
-                                tint = MaterialTheme.colorScheme.textSecondary
-                            )
-                            Text(
-                                text = pluralStringResource(
-                                    R.plurals.nc_transaction_pending_conditions,
-                                    pendingSigners,
-                                    pendingSigners
-                                ),
-                                style = NunchukTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.textSecondary,
-                                modifier = Modifier.padding(start = 4.dp),
-                            )
-                        }
+                    // Pending info: nonces in round 1, signatures in round 2
+                    if (data.mode == ScriptMode.SIGN && isSatisfiable && keySet != null && !isCompleted) {
+                        NcIcon(
+                            painter = painterResource(id = R.drawable.ic_pending_signatures),
+                            contentDescription = "Pending",
+                            tint = MaterialTheme.colorScheme.textSecondary
+                        )
+                        val pluralId = if (round == 1) R.plurals.nc_transaction_pending_nonce else R.plurals.nc_transaction_pending_signature
+                        Text(
+                            text = pluralStringResource(pluralId, pendingFromKeySet, pendingFromKeySet),
+                            style = NunchukTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.textSecondary,
+                        )
                     }
                 }
                 Text(
@@ -560,6 +575,29 @@ fun MusigItem(
                         color = MaterialTheme.colorScheme.textSecondary
                     )
                 )
+            }
+            // Badge on the right: Round or Completed
+            if (keySet != null) {
+                val badgeColor = when {
+                    isCompleted -> colorResource(R.color.nc_slime_dark)
+                    round == 1 && requiredSignatures == pendingFromKeySet -> MaterialTheme.colorScheme.backgroundMidGray
+                    round == 1 -> MaterialTheme.colorScheme.fillBeeswax
+                    else -> colorResource(R.color.nc_primary_y0)
+                }
+                val textColor = when {
+                    isCompleted -> Color.White
+                    round == 1 && requiredSignatures == pendingFromKeySet -> MaterialTheme.colorScheme.textSecondary
+                    else -> colorResource(R.color.nc_grey_g7)
+                }
+                Row(modifier = Modifier.align(Alignment.CenterVertically)) {
+                    Text(
+                        text = if (isCompleted) "Completed" else "Round ${round}/2",
+                        style = NunchukTheme.typography.titleSmall.copy(color = textColor),
+                        modifier = Modifier
+                            .background(color = badgeColor, shape = RoundedCornerShape(20.dp))
+                            .padding(horizontal = 8.dp)
+                    )
+                }
             }
 
             if (data.topLevelDisableNode?.id == node.id) {

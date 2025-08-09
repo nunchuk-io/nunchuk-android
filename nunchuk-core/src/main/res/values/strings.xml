@@ -989,4 +989,6 @@
     <string name="nc_expand">Expand</string>
     <string name="nc_occupied">Occupied</string>
     <string name="nc_key_path">Key path</string>
+    <string name="nc_commit">Commit</string>
+    <string name="nc_committed">Committed</string>
 </resources>

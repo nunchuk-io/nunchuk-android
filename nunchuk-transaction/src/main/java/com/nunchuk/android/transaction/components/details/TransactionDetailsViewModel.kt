@@ -68,6 +68,7 @@ import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.Device
+import com.nunchuk.android.model.KeySetStatus
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
@@ -108,6 +109,7 @@ import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.DeleteTransactionUseCase
 import com.nunchuk.android.usecase.ExportTransactionUseCase
 import com.nunchuk.android.usecase.GetChainTipUseCase
+import com.nunchuk.android.usecase.GetKeySetStatusUseCase
 import com.nunchuk.android.usecase.GetMasterSignersUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.GetTimelockedUntilUseCase
@@ -207,6 +209,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getTimelockedUntilUseCase: GetTimelockedUntilUseCase,
     private val getChainTipUseCase: GetChainTipUseCase,
     private val isPreimageRevealedUseCase: IsPreimageRevealedUseCase,
+    private val getKeySetStatusUseCase: GetKeySetStatusUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionDetailsState())
     val state = _state.asStateFlow()
@@ -236,6 +239,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private val satisfiableMap: MutableMap<String, Boolean> = mutableMapOf()
     private val signedHash: MutableMap<String, Boolean> = mutableMapOf()
+    private val keySetStatues: MutableMap<String, KeySetStatus> = mutableMapOf()
 
     private fun getState() = state.value
 
@@ -490,6 +494,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     ) {
         satisfiableMap.clear()
         signedHash.clear()
+        keySetStatues.clear()
         _minscriptState.update { it.copy(isMiniscriptWallet = true) }
         if (addressType.isTaproot() && !isValueKeySetDisable && defaultKeySetIndex == 0) {
             val signers = wallet.signers.take(wallet.totalRequireSigns).map { signer ->
@@ -499,7 +504,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 it.copy(
                     signers = signers,
                     signerMap = signers.mapIndexed { index, model -> "$MusigKeyPrefix$index" to model }
-                        .toMap()
+                        .toMap(),
                 )
             }
         } else {
@@ -518,6 +523,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                         scriptNode = result.scriptNode,
                         satisfiableMap = satisfiableMap,
                         signedHash = signedHash,
+                        keySetStatues = keySetStatues,
                         topLevelDisableNode = topLevelDisableNode,
                     )
                 }
@@ -595,6 +601,18 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 )
             ).getOrDefault(false)
             signedHash[node.idString] = isRevealed
+        }
+
+        if (node.type == ScriptNodeType.MUSIG.name) {
+            getKeySetStatusUseCase(
+                GetKeySetStatusUseCase.Params(
+                    walletId = walletId,
+                    nodeId = node.id.toIntArray(),
+                    txId = txId
+                )
+            ).onSuccess { status ->
+                keySetStatues[node.idString] = status
+            }
         }
 
         // special case for ANDOR node

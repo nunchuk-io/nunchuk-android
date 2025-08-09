@@ -22,6 +22,7 @@ package com.nunchuk.android.transaction.components.details
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.model.KeySetStatus
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
@@ -50,6 +51,7 @@ data class TransactionMiniscriptUiState(
     val isMiniscriptWallet: Boolean = false,
     val scriptNode: ScriptNode? = null,
     val satisfiableMap: Map<String, Boolean> = emptyMap(),
+    val keySetStatues: Map<String, KeySetStatus> = emptyMap(),
     val signedHash: Map<String, Boolean> = emptyMap(),
     val topLevelDisableNode: ScriptNode? = null,
     val lockedTime: Long = 0L,

@@ -393,6 +393,12 @@ fun TransactionDetailView(
                         ) {
                             val scriptNode = miniscriptUiState.scriptNode
                                 ?: MiniscriptUtil.buildMusigNode(state.wallet.totalRequireSigns)
+                            // TODO find better way to handle this
+                            val rootKeySetStatus = if (state.transaction.keySetStatus.isNotEmpty()) {
+                                mapOf("1" to state.transaction.keySetStatus[0])
+                            } else {
+                                emptyMap()
+                            }
                             ScriptNodeTree(
                                 node = scriptNode,
                                 data = ScriptNodeData(
@@ -406,7 +412,8 @@ fun TransactionDetailView(
                                     currentBlockHeight = miniscriptUiState.chainTip,
                                     onPreImageClick = { scriptNode ->
                                         preImageScriptMode = scriptNode
-                                    }
+                                    },
+                                    keySetStatues = miniscriptUiState.keySetStatues + rootKeySetStatus
                                 ),
                                 onChangeBip32Path = { _, _ -> },
                                 onActionKey = { _, signer ->
