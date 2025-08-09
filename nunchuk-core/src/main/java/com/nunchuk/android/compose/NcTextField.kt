@@ -110,7 +110,11 @@ fun NcTextField(
         onFocusEvent(isFocused)
     }
 
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier.then(
+            if (readOnly) Modifier.clickable(onClick = onClick) else Modifier
+        )
+    ) {
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             if (title.isNotEmpty()) {
                 if (titleHint.isNotEmpty()) {
@@ -148,13 +152,12 @@ fun NcTextField(
         BasicTextField(
             modifier = Modifier
                 .background(
-                    color = if (enabled.not()) disableBackgroundColor else if (isTransparent) Color.Transparent else MaterialTheme.colorScheme.fillInputText,
+                    color = if (enabled.not() && !readOnly) disableBackgroundColor else if (isTransparent) Color.Transparent else MaterialTheme.colorScheme.fillInputText,
                     shape = RoundedCornerShape(roundBoxRadius)
                 )
                 .defaultMinSize(
                     minWidth = TextFieldDefaults.MinWidth,
                 )
-                .clickable(onClick = onClick)
                 .height(inputBoxHeight)
                 .fillMaxWidth(),
             value = value,
@@ -162,7 +165,7 @@ fun NcTextField(
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
             maxLines = maxLines,
-            enabled = enabled,
+            enabled = if (readOnly) false else enabled,
             readOnly = readOnly,
             minLines = minLines,
             onValueChange = onValueChange,
@@ -253,6 +256,7 @@ fun NcTextField(
     colors: TextFieldColors = TextFieldDefaults.colors(),
     visualTransformation: VisualTransformation = VisualTransformation.None,
     onFocusEvent: (Boolean) -> Unit = {},
+    onClick: () -> Unit = {},
     onValueChange: (value: TextFieldValue) -> Unit,
 ) {
     val hasError = !error.isNullOrEmpty()
@@ -262,7 +266,11 @@ fun NcTextField(
     LaunchedEffect(isFocused) {
         onFocusEvent(isFocused)
     }
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier.then(
+            if (readOnly) Modifier.clickable(onClick = onClick) else Modifier
+        )
+    ) {
         if (title.isNotEmpty()) {
             Text(
                 modifier = Modifier.padding(bottom = 4.dp),
@@ -290,7 +298,7 @@ fun NcTextField(
                 keyboardOptions = keyboardOptions,
                 keyboardActions = keyboardActions,
                 maxLines = maxLines,
-                enabled = enabled,
+                enabled = if (readOnly) false else enabled,
                 readOnly = readOnly,
                 minLines = minLines,
                 onValueChange = onValueChange,
