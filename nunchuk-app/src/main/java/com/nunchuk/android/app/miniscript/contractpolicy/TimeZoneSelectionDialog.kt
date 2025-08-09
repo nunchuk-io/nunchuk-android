@@ -80,7 +80,7 @@ fun TimeZoneSelectionDialog(
             }
 
             NcTopAppBar(
-                title = "Select Timezone",
+                title = "Select Time zone",
                 textStyle = NunchukTheme.typography.title,
             )
 

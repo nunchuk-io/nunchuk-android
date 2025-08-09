@@ -548,11 +548,11 @@ fun DatePickerField(
         // Timezone field
         NcTextField(
             modifier = Modifier.padding(top = 10.dp),
-            title = "Timezone",
+            title = "Time zone",
             value = if (selectedTimeZone.city.isNotEmpty()) {
                 "${selectedTimeZone.city} (${selectedTimeZone.offset})"
             } else {
-                "Select Timezone"
+                "Select Time zone"
             },
             readOnly = true,
             onClick = {
@@ -565,7 +565,7 @@ fun DatePickerField(
                         Timber.tag("miniscript-feature").d("Show timezone selection dialog")
                         showTimeZoneDialog = true
                     },
-                    painter = painterResource(id = com.nunchuk.android.core.R.drawable.ic_arrow),
+                    painter = painterResource(id = com.nunchuk.android.core.R.drawable.ic_arrow_down),
                     contentDescription = ""
                 )
             },
