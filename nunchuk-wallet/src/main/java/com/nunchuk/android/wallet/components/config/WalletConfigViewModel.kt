@@ -32,9 +32,10 @@ import com.nunchuk.android.core.domain.membership.DeleteAssistedWalletUseCase
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.domain.wallet.GetWalletDescriptorUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
-import com.nunchuk.android.core.miniscript.ScriptNodeType
+import com.nunchuk.android.core.miniscript.MiniscriptUtil
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.MusigKeyPrefix
 import com.nunchuk.android.core.util.isPending
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.wallet.InvoiceInfo
@@ -244,31 +245,28 @@ internal class WalletConfigViewModel @Inject constructor(
     }
 
     private suspend fun getMiniscriptInfo() {
-        if (state.value.walletExtended.wallet.miniscript.isNotEmpty()) {
-            getScriptNodeFromMiniscriptTemplateUseCase(state.value.walletExtended.wallet.miniscript).onSuccess { result ->
+        val wallet = getState().walletExtended.wallet
+        if (wallet.miniscript.isNotEmpty()) {
+            getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
                 _state.update { it.copy(scriptNode = result.scriptNode) }
                 val signerMap = parseSignersFromScriptNode(result.scriptNode)
                 _state.update { it.copy(signerMap = signerMap) }
-                if (state.value.walletExtended.wallet.addressType == AddressType.TAPROOT && state.value.walletExtended.wallet.walletTemplate != WalletTemplate.DISABLE_KEY_PATH) {
-                        if (state.value.walletExtended.wallet.totalRequireSigns > 1) {
-                            val scriptNodeMuSig = ScriptNode(
-                                id = listOf(1),
-                                type = ScriptNodeType.MUSIG.name,
-                                keys = generateKeysForTotalRequireSigns(state.value.walletExtended.wallet.totalRequireSigns),
-                                subs = emptyList(),
-                                k = 0,
-                                data = byteArrayOf(),
-                                timeLock = null
-                            )
-                            // Create muSigSignerMap by mapping the first n signers to the scriptNodeMuSig keys
-                            val muSigSignerMap = scriptNodeMuSig.keys.mapIndexed { index, key ->
-                                key to state.value.walletExtended.wallet.signers.getOrNull(index)?.toModel()
-                            }.toMap()
-                            
-                            _state.update { it.copy(scriptNodeMuSig = scriptNodeMuSig,
-                                muSigSignerMap = muSigSignerMap) }
-                        }
+                if (wallet.addressType == AddressType.TAPROOT && wallet.walletTemplate != WalletTemplate.DISABLE_KEY_PATH) {
+                    if (wallet.totalRequireSigns > 1) {
+                        val scriptNodeMuSig = MiniscriptUtil.buildMusigNode(wallet.totalRequireSigns)
+                        // Create muSigSignerMap by mapping the first n signers to the scriptNodeMuSig keys
+                        val muSigSignerMap = scriptNodeMuSig.keys.mapIndexed { index, key ->
+                            key to wallet.signers.getOrNull(index)
+                                ?.toModel()
+                        }.toMap()
 
+                        _state.update {
+                            it.copy(
+                                scriptNodeMuSig = scriptNodeMuSig,
+                                muSigSignerMap = muSigSignerMap,
+                            )
+                        }
+                    }
                 }
             }.onFailure {
                 _event.emit(WalletConfigEvent.WalletDetailsError(it.message.orUnknownError()))
@@ -280,7 +278,7 @@ internal class WalletConfigViewModel @Inject constructor(
 
     private fun generateKeysForTotalRequireSigns(totalRequireSigns: Int): List<String> {
         return (0 until totalRequireSigns).map { index ->
-            "key_musig_$index"
+            "${MusigKeyPrefix}$index"
         }
     }
 

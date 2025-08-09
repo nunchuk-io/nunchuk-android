@@ -56,6 +56,7 @@ import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
+import com.nunchuk.android.core.miniscript.MiniscriptUtil
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.getBTCAmount
@@ -66,6 +67,7 @@ import com.nunchuk.android.core.util.hasChangeIndex
 import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.isRejected
 import com.nunchuk.android.core.util.isTaproot
+import com.nunchuk.android.core.util.isValueKeySetDisable
 import com.nunchuk.android.core.util.signDone
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Amount
@@ -83,6 +85,7 @@ import com.nunchuk.android.transaction.components.details.view.AmountView
 import com.nunchuk.android.transaction.components.details.view.ChangeAddressView
 import com.nunchuk.android.transaction.components.details.view.PendingSignatureStatusView
 import com.nunchuk.android.transaction.components.details.view.TimeLockUtilView
+import com.nunchuk.android.transaction.components.details.view.TransactionOutputItem
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.formatByWeek
@@ -107,7 +110,8 @@ fun TransactionDetailView(
 ) {
     var showDetail by rememberSaveable { mutableStateOf(false) }
     var showInputCoin by rememberSaveable { mutableStateOf(false) }
-    var isExpanded by rememberSaveable(state.isValueKeySetDisable) { mutableStateOf(state.isValueKeySetDisable) }
+    val isValueKeySetDisable = state.wallet.isValueKeySetDisable
+    var isExpanded by rememberSaveable(isValueKeySetDisable) { mutableStateOf(isValueKeySetDisable) }
     var preImageScriptMode by rememberSaveable { mutableStateOf<ScriptNode?>(null) }
     val preimageBottomSheetState = rememberModalBottomSheetState()
     val transaction =
@@ -127,9 +131,10 @@ fun TransactionDetailView(
     val keySetMap = remember(state.transaction, state.defaultKeySetIndex) {
         transaction.keySetStatus.withIndex().associate { it.index to it.value }
     }
-    val firstKeySet = if (!state.isValueKeySetDisable) keySetMap[state.defaultKeySetIndex] else null
-    val isMiniscriptTaprootKeyPathTransaction =
-        state.addressType.isTaproot() && miniscriptUiState.scriptNode != null && state.defaultKeySetIndex == 0
+    val addressType = state.wallet.addressType
+    val firstKeySet = if (!isValueKeySetDisable) keySetMap[state.defaultKeySetIndex] else null
+    val isMiniscriptTaprootSingleKeyPathTransaction =
+        addressType.isTaproot() && miniscriptUiState.isMiniscriptWallet && state.defaultKeySetIndex == 0 && state.wallet.totalRequireSigns == 1
 
     NunchukTheme {
         NcScaffold(
@@ -215,7 +220,7 @@ fun TransactionDetailView(
                     }
 
                     itemsIndexed(outputs) { index, output ->
-                        com.nunchuk.android.transaction.components.details.view.TransactionOutputItem(
+                        TransactionOutputItem(
                             savedAddresses = state.savedAddress,
                             output = output,
                             onCopyText = onCopyText,
@@ -378,7 +383,7 @@ fun TransactionDetailView(
                     }
                 }
 
-                if (!state.transaction.isReceive && miniscriptUiState.scriptNode != null && state.signerMap.isNotEmpty() && !isMiniscriptTaprootKeyPathTransaction) {
+                if (!state.transaction.isReceive && miniscriptUiState.isMiniscriptWallet && state.signerMap.isNotEmpty() && !isMiniscriptTaprootSingleKeyPathTransaction) {
                     item {
                         Column(
                             modifier = Modifier.padding(
@@ -386,8 +391,10 @@ fun TransactionDetailView(
                                 vertical = 24.dp
                             )
                         ) {
+                            val scriptNode = miniscriptUiState.scriptNode
+                                ?: MiniscriptUtil.buildMusigNode(state.wallet.totalRequireSigns)
                             ScriptNodeTree(
-                                node = miniscriptUiState.scriptNode,
+                                node = scriptNode,
                                 data = ScriptNodeData(
                                     mode = ScriptMode.SIGN,
                                     signers = state.signerMap,
@@ -410,7 +417,7 @@ fun TransactionDetailView(
                     }
                 }
                 // taproot key set view
-                else if (transaction.keySetStatus.isNotEmpty() && !isMiniscriptTaprootKeyPathTransaction) {
+                else if (transaction.keySetStatus.isNotEmpty() && !isMiniscriptTaprootSingleKeyPathTransaction) {
                     if (firstKeySet != null) {
                         item {
                             KeySetView(
@@ -423,7 +430,7 @@ fun TransactionDetailView(
                         }
                     }
 
-                    if (state.isValueKeySetDisable) {
+                    if (isValueKeySetDisable) {
                         item {
                             OtherKeySetView(
                                 toggleExpand = {
@@ -449,12 +456,12 @@ fun TransactionDetailView(
                     }
 
                     if (isExpanded) {
-                        val finalKeySet = if (state.isValueKeySetDisable) {
+                        val finalKeySet = if (isValueKeySetDisable) {
                             keySetMap.filter { it.key != state.defaultKeySetIndex }
                         } else {
                             keySetMap
                         }
-                        finalKeySet.filter { state.isValueKeySetDisable || it.key != state.defaultKeySetIndex }
+                        finalKeySet.filter { isValueKeySetDisable || it.key != state.defaultKeySetIndex }
                             .forEach { (index, keySetStatus) ->
                                 item {
                                     KeySetView(
@@ -464,7 +471,7 @@ fun TransactionDetailView(
                                         keySet = keySetStatus,
                                         onSignClick = onSignClick,
                                         showDivider = index < finalKeySet.size.dec(),
-                                        isValueKeySetDisable = state.isValueKeySetDisable
+                                        isValueKeySetDisable = isValueKeySetDisable
                                     )
                                 }
                             }
@@ -485,7 +492,7 @@ fun TransactionDetailView(
                                 .padding(top = 16.dp)
                                 .padding(horizontal = 16.dp),
                             signer = signer,
-                            showValueKey = index < transaction.m && state.addressType.isTaproot() && !state.isValueKeySetDisable && !miniscriptUiState.isMiniscriptWallet,
+                            showValueKey = index < transaction.m && addressType.isTaproot() && !isValueKeySetDisable && !miniscriptUiState.isMiniscriptWallet,
                             isSigned = transaction.signers.isNotEmpty() && transaction.signers[signer.fingerPrint] ?: false,
                             canSign = !transaction.status.signDone(),
                             onSignClick = onSignClick,

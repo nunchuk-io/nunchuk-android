@@ -184,9 +184,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                     val scriptNode = state.scriptNode
                     if (scriptNode != null) {
                         ChooseSigningPathScreen(
-                            wallet = state.wallet,
-                            signers = state.signers,
-                            scriptNode = scriptNode,
+                            state = state,
                             currentBlockHeight = state.currentBlockHeight,
                             onContinue = { isKeyPathSelected ->
                                 if (isKeyPathSelected) {

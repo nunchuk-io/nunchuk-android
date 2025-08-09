@@ -69,7 +69,7 @@ fun ScriptNodeTree(
 ) {
     val isNormalNode =
         data.signingPath.path.isEmpty() || signingPathContainsNodeId(data.signingPath.path, node.id)
-    val isSatisfiableNode = data.satisfiableMap[node.idString] == true
+    val isSatisfiableNode = data.satisfiableMap[node.idString] != false
 
     val nodeModifier = when {
         data.mode == ScriptMode.CONFIG || node.type == ScriptNodeType.AFTER.name || node.type == ScriptNodeType.OLDER.name -> Modifier
@@ -368,7 +368,7 @@ private fun NodeKeys(
                 data = data,
                 showThreadCurve = showThreadCurve,
                 modifier = modifier,
-                isSatisfiable = data.satisfiableMap[node.idString] == true
+                isSatisfiable = data.satisfiableMap[node.idString] != false
             )
         }
     }
@@ -494,9 +494,20 @@ fun MusigItem(
     data: ScriptNodeData = ScriptNodeData(),
     content: @Composable () -> Unit = {},
 ) {
-    // Only calculate signed signatures when in SIGN mode
     var showDetail by remember(node.id) {
         mutableStateOf(data.topLevelDisableNode?.id != node.id)
+    }
+
+    // Only calculate signed signatures when in SIGN mode
+    val pendingSigners = if (data.mode == ScriptMode.SIGN && isSatisfiable) {
+        val signedCount = node.keys.count { key ->
+            val signer = data.signers[key]
+            val xfp = signer?.fingerPrint
+            xfp != null && data.signedSigners[xfp] == true
+        }
+        node.keys.size - signedCount
+    } else {
+        0
     }
 
     Column {
@@ -514,16 +525,66 @@ fun MusigItem(
                     .weight(1f)
                     .padding(top = topPadding.dp)
             ) {
-                Text(
-                    text = "${node.idString}. ${node.displayName}",
-                    style = NunchukTheme.typography.body
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "${node.idString}. ${node.displayName}",
+                        style = NunchukTheme.typography.body
+                    )
+
+                    if (data.mode == ScriptMode.SIGN && isSatisfiable) {
+                        if (pendingSigners > 0) {
+                            NcIcon(
+                                painter = painterResource(id = R.drawable.ic_pending_signatures),
+                                contentDescription = "Warning",
+                                tint = MaterialTheme.colorScheme.textSecondary
+                            )
+                            Text(
+                                text = pluralStringResource(
+                                    R.plurals.nc_transaction_pending_conditions,
+                                    pendingSigners,
+                                    pendingSigners
+                                ),
+                                style = NunchukTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.textSecondary,
+                                modifier = Modifier.padding(start = 4.dp),
+                            )
+                        }
+                    }
+                }
                 Text(
                     text = node.descriptionText,
                     style = NunchukTheme.typography.bodySmall.copy(
                         color = MaterialTheme.colorScheme.textSecondary
                     )
                 )
+            }
+
+            if (data.topLevelDisableNode?.id == node.id) {
+                Row(
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .padding(top = topPadding.dp)
+                        .clickable { showDetail = !showDetail },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (showDetail) stringResource(R.string.nc_collapse)
+                        else stringResource(R.string.nc_expand),
+                        style = NunchukTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.textPrimary
+                    )
+                    NcIcon(
+                        painter = painterResource(id = if (showDetail) R.drawable.ic_collapse else R.drawable.ic_expand),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .size(16.dp),
+                        tint = MaterialTheme.colorScheme.textPrimary
+                    )
+                }
             }
         }
         if (showDetail) {

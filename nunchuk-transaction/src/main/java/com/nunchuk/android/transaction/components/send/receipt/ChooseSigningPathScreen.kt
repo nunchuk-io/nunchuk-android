@@ -34,6 +34,7 @@ import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.provider.WalletExtendedProvider
 import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.core.miniscript.MiniscriptUtil
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.model.ScriptNode
@@ -42,13 +43,14 @@ import com.nunchuk.android.transaction.R
 
 @Composable
 fun ChooseSigningPathScreen(
-    wallet: Wallet,
-    signers: Map<String, SignerModel>,
-    scriptNode: ScriptNode,
+    state: AddReceiptState,
     currentBlockHeight: Int = 0,
     onContinue: (isKeyPathSelected: Boolean) -> Unit = {},
 ) {
     var isKeyPathSelected by rememberSaveable { mutableStateOf(true) }
+    val wallet: Wallet = state.wallet
+    val signers: Map<String, SignerModel> = state.signers
+    val scriptNode: ScriptNode = state.scriptNode!!
 
     NunchukTheme {
         Scaffold(
@@ -104,17 +106,38 @@ fun ChooseSigningPathScreen(
                             isSelected = isKeyPathSelected,
                             onClick = { isKeyPathSelected = true }
                         ) {
-                            MiniscriptTaproot(
-                                keyPath = keyPath.orEmpty(),
-                                data = ScriptNodeData(
-                                    mode = ScriptMode.VIEW,
-                                    signers = signers,
-                                ),
-                                signer = wallet.signers.firstOrNull()?.toModel(),
-                                onChangeBip32Path = { _, _ -> },
-                                onActionKey = { _, _ -> },
-                                divider = {}
-                            )
+                            if (wallet.signers.size > 1) {
+                                Column {
+                                    NcBadgePrimary(
+                                        modifier = Modifier.padding(bottom = 8.dp),
+                                        text = stringResource(R.string.nc_key_path),
+                                        enabled = true,
+                                    )
+                                    ScriptNodeTree(
+                                        node = MiniscriptUtil.buildMusigNode(wallet.totalRequireSigns),
+                                        data = ScriptNodeData(
+                                            mode = ScriptMode.VIEW,
+                                            signers = state.signers,
+                                        ),
+                                        onChangeBip32Path = { _, _ -> },
+                                        onActionKey = { _, _ -> }
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                }
+
+                            } else {
+                                MiniscriptTaproot(
+                                    keyPath = keyPath.orEmpty(),
+                                    data = ScriptNodeData(
+                                        mode = ScriptMode.VIEW,
+                                        signers = signers,
+                                    ),
+                                    signer = wallet.signers.firstOrNull()?.toModel(),
+                                    onChangeBip32Path = { _, _ -> },
+                                    onActionKey = { _, _ -> },
+                                    divider = {}
+                                )
+                            }
                         }
                     }
                     item {
@@ -168,10 +191,13 @@ fun ChooseSigningPathScreenPreview() {
         timeLock = null
     )
     ChooseSigningPathScreen(
-        wallet = wallet,
-        signers = signers,
-        scriptNode = scriptNode,
-        onContinue = {}
+        state = AddReceiptState(
+            wallet = wallet,
+            signers = signers,
+            scriptNode = scriptNode,
+            currentBlockHeight = 0,
+            isValueKeySetDisable = false
+        )
     )
 }
 

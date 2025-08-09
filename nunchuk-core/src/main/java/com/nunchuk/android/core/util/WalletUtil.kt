@@ -100,3 +100,5 @@ fun Iterable<Amount>.sum(): Amount {
 
 val Wallet.isValueKeySetDisable: Boolean
     get() = walletTemplate == WalletTemplate.DISABLE_KEY_PATH || signers.size == 1
+
+const val MusigKeyPrefix = "key_musig_"

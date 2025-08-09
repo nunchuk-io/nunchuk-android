@@ -48,6 +48,7 @@ import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.MusigKeyPrefix
 import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.isNoInternetException
@@ -72,7 +73,7 @@ import com.nunchuk.android.model.Result.Error
 import com.nunchuk.android.model.Result.Success
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.model.WalletExtended
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.joinKeys
@@ -440,8 +441,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 val account = accountManager.getAccount()
                 _state.update {
                     it.copy(
-                        addressType = wallet.wallet.addressType,
-                        isValueKeySetDisable = wallet.wallet.isValueKeySetDisable,
+                        wallet = wallet.wallet,
                         hideFiatCurrency = assistedWalletManager.getBriefWallet(walletId)?.hideFiatCurrency
                             ?: false,
                     )
@@ -457,7 +457,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 }
                 if (wallet.wallet.miniscript.isNotEmpty()) {
                     getMiniscriptInfo(
-                        walletExtended = wallet,
+                        wallet = wallet.wallet,
                         isValueKeySetDisable = wallet.wallet.isValueKeySetDisable,
                         addressType = wallet.wallet.addressType,
                         defaultKeySetIndex = defaultKeySetIndex
@@ -483,7 +483,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private suspend fun getMiniscriptInfo(
-        walletExtended: WalletExtended,
+        wallet: Wallet,
         isValueKeySetDisable: Boolean,
         addressType: AddressType,
         defaultKeySetIndex: Int
@@ -492,14 +492,19 @@ internal class TransactionDetailsViewModel @Inject constructor(
         signedHash.clear()
         _minscriptState.update { it.copy(isMiniscriptWallet = true) }
         if (addressType.isTaproot() && !isValueKeySetDisable && defaultKeySetIndex == 0) {
-            // Special case for Taproot wallet and select key path we only show the first signer
-            val signers = walletExtended.wallet.signers.take(1).map { signer ->
+            val signers = wallet.signers.take(wallet.totalRequireSigns).map { signer ->
                 singleSignerMapper(signer)
             }
-            _state.update { it.copy(signers = signers) }
+            _state.update {
+                it.copy(
+                    signers = signers,
+                    signerMap = signers.mapIndexed { index, model -> "$MusigKeyPrefix$index" to model }
+                        .toMap()
+                )
+            }
         } else {
-            getTransactionTimeLock(walletExtended)
-            getScriptNodeFromMiniscriptTemplateUseCase(walletExtended.wallet.miniscript).onSuccess { result ->
+            getTransactionTimeLock(walletId)
+            getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
                 val signerMap = parseSignersFromScriptNode(result.scriptNode)
                 val topLevelDisableNode = topLevelDisableNode(result.scriptNode)
                 _state.update {
@@ -520,11 +525,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun getTransactionTimeLock(walletExtended: WalletExtended) {
+    private fun getTransactionTimeLock(walletId: String) {
         viewModelScope.launch {
             getTimelockedUntilUseCase(
                 GetTimelockedUntilUseCase.Params(
-                    walletId = walletExtended.wallet.id,
+                    walletId = walletId,
                     txId = txId
                 )
             ).onSuccess { (lockedTime, lockedBase) ->

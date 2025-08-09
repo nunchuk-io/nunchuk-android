@@ -514,7 +514,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
     private fun showSignTransactionSuccess(event: SignTransactionSuccess) {
         hideLoading()
         val state = viewModel.state.value
-        if (state.addressType.isTaproot()) {
+        if (state.wallet.addressType.isTaproot()) {
             val round1Completed =
                 state.transaction.keySetStatus.any { it.status != TransactionStatus.PENDING_NONCE && it.signerStatus.all { entry -> !entry.value } }
             val readyToBroadcast = state.transaction.status == READY_TO_BROADCAST

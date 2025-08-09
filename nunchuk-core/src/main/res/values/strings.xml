@@ -988,4 +988,5 @@
     <string name="nc_collapse">Collapse</string>
     <string name="nc_expand">Expand</string>
     <string name="nc_occupied">Occupied</string>
+    <string name="nc_key_path">Key path</string>
 </resources>

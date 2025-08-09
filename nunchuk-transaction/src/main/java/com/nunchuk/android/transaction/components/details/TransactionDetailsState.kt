@@ -25,9 +25,9 @@ import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.transaction.ServerTransaction
-import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.MiniscriptTimelockBased
 
 data class TransactionDetailsState(
@@ -39,8 +39,7 @@ data class TransactionDetailsState(
     val members: List<ByzantineMember> = emptyList(),
     val userRole: AssistedWalletRole = AssistedWalletRole.NONE,
     val txInputCoins: List<UnspentOutput> = emptyList(),
-    val addressType: AddressType = AddressType.NATIVE_SEGWIT,
-    val isValueKeySetDisable: Boolean = false,
+    val wallet: Wallet = Wallet(),
     val defaultKeySetIndex: Int = 0,
     val savedAddress: Map<String, String> = emptyMap(),
     val hideFiatCurrency: Boolean = false,

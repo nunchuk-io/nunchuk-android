@@ -367,7 +367,7 @@ class TransactionConfirmViewModel @Inject constructor(
                     } else {
                         // No locked coin or all coins are locked
                         handleConfirmEvent(
-                            keySetIndex = 1,
+                            keySetIndex = if (signingPath != null) 1 else 0,
                             signingPath = signingPath
                         )
                     }

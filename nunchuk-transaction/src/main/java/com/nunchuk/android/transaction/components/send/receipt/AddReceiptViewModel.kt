@@ -24,15 +24,19 @@ import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.MusigKeyPrefix
 import com.nunchuk.android.core.util.isValueKeySetDisable
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.ScriptNode
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.AcceptedAddressEvent
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.AddressRequiredEvent
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.InvalidAddressEvent
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.ParseBtcUriEvent
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.ShowError
 import com.nunchuk.android.transaction.components.utils.privateNote
+import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.WalletTemplate
 import com.nunchuk.android.usecase.CheckAddressValidUseCase
 import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
@@ -90,15 +94,7 @@ internal class AddReceiptViewModel @Inject constructor(
                     )
                 }
                 if (wallet.miniscript.isNotEmpty()) {
-                    getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
-                        val signers = parseSignersFromScriptNode(result.scriptNode)
-                        updateState {
-                            copy(
-                                scriptNode = result.scriptNode,
-                                signers = signers
-                            )
-                        }
-                    }
+                    getMiniscriptInfo(wallet)
                 } else {
                     val signers = wallet.signers.map { signer ->
                         singleSignerMapper(signer)
@@ -111,6 +107,25 @@ internal class AddReceiptViewModel @Inject constructor(
                 }
             }.onFailure {
                 setEvent(ShowError(it.message.orUnknownError()))
+            }
+        }
+    }
+
+    private suspend fun getMiniscriptInfo(wallet: Wallet) {
+        getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
+            val signers = parseSignersFromScriptNode(result.scriptNode)
+            if (wallet.addressType == AddressType.TAPROOT && wallet.walletTemplate != WalletTemplate.DISABLE_KEY_PATH && wallet.totalRequireSigns > 1) {
+                val muSigSignerMap = wallet.signers.take(wallet.totalRequireSigns).mapIndexed { index, signer ->
+                    "$MusigKeyPrefix$index" to singleSignerMapper(signer)
+                }.toMap()
+                updateState {
+                    copy(
+                        scriptNode = result.scriptNode,
+                        signers = signers + muSigSignerMap,
+                    )
+                }
+            } else {
+                updateState { copy(scriptNode = result.scriptNode, signers = signers) }
             }
         }
     }

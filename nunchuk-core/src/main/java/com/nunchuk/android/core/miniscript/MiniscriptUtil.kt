@@ -1,5 +1,8 @@
 package com.nunchuk.android.core.miniscript
 
+import com.nunchuk.android.core.util.MusigKeyPrefix
+import com.nunchuk.android.model.ScriptNode
+
 object MiniscriptUtil {
     
     /**
@@ -129,37 +132,21 @@ object MiniscriptUtil {
     fun String.unformatMiniscript(): String {
         return this.replace(Regex("\\s+"), "")
     }
-    
-    /**
-     * Legacy formatting method - kept for backward compatibility
-     */
-    fun formatMiniscriptCorrectly(input: String, indent: String = "  ", level: Int = 0): String {
-        return formatMiniscript(input)
-    }
-
-    fun splitArguments(args: String): List<String> {
-        val result = mutableListOf<String>()
-        var depth = 0
-        var start = 0
-        for (i in args.indices) {
-            when (args[i]) {
-                '(' -> depth++
-                ')' -> depth--
-                ',' -> if (depth == 0) {
-                    result.add(args.substring(start, i).trim())
-                    start = i + 1
-                }
-            }
-        }
-        result.add(args.substring(start).trim())
-        return result
-    }
 
     fun revertFormattedMiniscript(formatted: String): String {
         return formatted.replace(Regex("\\s+"), "")
     }
+
+    fun buildMusigNode(m: Int) : ScriptNode =
+        ScriptNode(
+            id = listOf(1),
+            type = ScriptNodeType.MUSIG.name,
+            keys = (0 until m).map { "$MusigKeyPrefix$it" },
+            subs = emptyList(),
+            k = 0,
+            data = byteArrayOf(),
+            timeLock = null
+        )
 }
 
-// Extension functions for String
 fun String.formatMiniscript(): String = MiniscriptUtil.formatMiniscript(this)
-fun String.unformatMiniscript(): String = MiniscriptUtil.run { this@unformatMiniscript.unformatMiniscript() }
