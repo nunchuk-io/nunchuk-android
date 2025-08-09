@@ -115,12 +115,6 @@
                 app:visibilityMode="ignore" />
         </Constraint>
 
-        <Constraint android:id="@+id/spendableNowText">
-            <PropertySet
-                app:applyMotionScene="false"
-                app:visibilityMode="ignore" />
-        </Constraint>
-
         <Constraint
             android:id="@+id/configuration_container"
             android:layout_width="wrap_content"
@@ -148,6 +142,10 @@
         </Constraint>
 
         <Constraint android:id="@+id/viewWalletConfig">
+            <PropertySet android:visibility="gone" />
+        </Constraint>
+
+        <Constraint android:id="@+id/spendableNowText">
             <PropertySet android:visibility="gone" />
         </Constraint>
 
