@@ -66,6 +66,7 @@ import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.listener.BlockListener
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
+import com.nunchuk.android.model.CoinsGroup
 import com.nunchuk.android.model.Contact
 import com.nunchuk.android.model.Device
 import com.nunchuk.android.model.KeySetStatus
@@ -129,6 +130,7 @@ import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.membership.SignServerTransactionUseCase
+import com.nunchuk.android.usecase.miniscript.GetCoinsGroupedBySubPoliciesUseCase
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
@@ -210,6 +212,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getChainTipUseCase: GetChainTipUseCase,
     private val isPreimageRevealedUseCase: IsPreimageRevealedUseCase,
     private val getKeySetStatusUseCase: GetKeySetStatusUseCase,
+    private val getCoinsGroupedBySubPoliciesUseCase: GetCoinsGroupedBySubPoliciesUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionDetailsState())
     val state = _state.asStateFlow()
@@ -240,6 +243,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val satisfiableMap: MutableMap<String, Boolean> = mutableMapOf()
     private val signedHash: MutableMap<String, Boolean> = mutableMapOf()
     private val keySetStatues: MutableMap<String, KeySetStatus> = mutableMapOf()
+    private val coinGroups: MutableList<CoinsGroup> = mutableListOf()
 
     private fun getState() = state.value
 
@@ -559,7 +563,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun topLevelDisableNode(
+    private suspend fun topLevelDisableNode(
         scriptNode: ScriptNode,
     ): ScriptNode? {
         val targetTypes = setOf(
@@ -572,6 +576,20 @@ internal class TransactionDetailsViewModel @Inject constructor(
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()
             if (current.type in targetTypes) {
+                runCatching {
+                    getCoinsGroupedBySubPoliciesUseCase(
+                        GetCoinsGroupedBySubPoliciesUseCase.Params(
+                            walletId = walletId,
+                            txId = txId,
+                            nodeId = current.id.toIntArray()
+                        )
+                    ).onSuccess {
+                        coinGroups.apply {
+                            clear()
+                            addAll(it)
+                        }
+                    }
+                }
                 return current.subs.drop(
                     if (current.type == ScriptNodeType.ANDOR.name) 1 else 0
                 ).find { satisfiableMap[it.idString] == false }

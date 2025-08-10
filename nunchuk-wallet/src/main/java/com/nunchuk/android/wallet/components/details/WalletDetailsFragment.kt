@@ -31,6 +31,7 @@ import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -536,6 +537,10 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
             binding.tvTimelockWarning.setTextColor(
                 ContextCompat.getColor(requireContext(), R.color.nc_grey_g7)
             )
+            TextViewCompat.setCompoundDrawableTintList(
+                binding.tvTimelockWarning,
+                ContextCompat.getColorStateList(requireContext(), R.color.nc_grey_g7)
+            )
         } else {
             binding.tvTimelockWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
                 R.drawable.ic_info_36, 0, 0, 0
@@ -543,6 +548,10 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
             binding.tvTimelockWarning.setBackgroundResource(R.drawable.nc_rounded_whisper_background)
             binding.tvTimelockWarning.setTextColor(
                 ContextCompat.getColor(requireContext(), R.color.nc_text_primary)
+            )
+            TextViewCompat.setCompoundDrawableTintList(
+                binding.tvTimelockWarning,
+                ContextCompat.getColorStateList(requireContext(), R.color.nc_text_primary)
             )
         }
 

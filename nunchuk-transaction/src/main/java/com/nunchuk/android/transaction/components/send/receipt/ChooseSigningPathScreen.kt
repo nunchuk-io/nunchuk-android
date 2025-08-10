@@ -106,7 +106,7 @@ fun ChooseSigningPathScreen(
                             isSelected = isKeyPathSelected,
                             onClick = { isKeyPathSelected = true }
                         ) {
-                            if (wallet.signers.size > 1) {
+                            if (wallet.totalRequireSigns > 1) {
                                 Column {
                                     NcBadgePrimary(
                                         modifier = Modifier.padding(bottom = 8.dp),

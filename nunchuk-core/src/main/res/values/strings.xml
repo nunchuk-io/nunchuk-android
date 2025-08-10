@@ -31,7 +31,7 @@
     </plurals>
 
     <plurals name="nc_transaction_pending_conditions">
-        <item quantity="one">%1$d conditions pending</item>
+        <item quantity="one">%1$d condition pending</item>
         <item quantity="other">%1$d conditions pending</item>
     </plurals>
 
