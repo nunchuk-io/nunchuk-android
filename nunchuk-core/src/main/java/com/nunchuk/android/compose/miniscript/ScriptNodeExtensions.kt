@@ -83,8 +83,13 @@ val ScriptNode.descriptionText: String
                     val currentTimeSeconds = System.currentTimeMillis() / 1000
                     val diff = timeLock.value - currentTimeSeconds
                     val daysFromNow = ceil(diff / 86400.0).toInt()
-                    val dayText = if (daysFromNow == 1) "day" else "days"
-                    if (daysFromNow == 1) "1 $dayText from today." else "$daysFromNow $dayText from today."
+                    // Don't display description if daysFromNow is less than 0
+                    if (daysFromNow < 0) {
+                        ""
+                    } else {
+                        val dayText = if (daysFromNow == 1) "day" else "days"
+                        if (daysFromNow == 1) "1 $dayText from today." else "$daysFromNow $dayText from today."
+                    }
                 }
                 else -> { // block height - provide a generic description since we don't have currentBlockHeight
                     "When the specified block height is reached."
@@ -109,8 +114,13 @@ fun ScriptNode.getAfterBlockDescription(currentBlockHeight: Int): String {
     val timeLock = this.timeLock ?: TimeLock()
     return if (this.type == ScriptNodeType.AFTER.name && !timeLock.isTimestamp()) {
         val blockDiff = timeLock.value - currentBlockHeight
-        val formattedBlockDiff = String.format("%,d", blockDiff)
-        if (blockDiff == 1L) "1 block from the current block." else "$formattedBlockDiff blocks from the current block."
+        // Don't display description if blockDiff is less than 0
+        if (blockDiff < 0) {
+            ""
+        } else {
+            val formattedBlockDiff = String.format("%,d", blockDiff)
+            if (blockDiff == 1L) "1 block from the current block." else "$formattedBlockDiff blocks from the current block."
+        }
     } else {
         this.descriptionText
     }

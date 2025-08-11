@@ -297,6 +297,17 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     _state.update { it.copy(savedAddress = savedAddresses.associate { saved -> saved.address to saved.label }) }
                 }
         }
+        viewModelScope.launch {
+            while (true) {
+                getChainTipUseCase(Unit)
+                    .onSuccess { chainTip ->
+                        _minscriptState.update { it.copy(chainTip = chainTip) }
+                    }.onFailure {
+                        Timber.e(it, "Failed to get chain tip")
+                    }
+                delay(60000) // Refresh every minute
+            }
+        }
     }
 
     fun init(

@@ -45,6 +45,7 @@ import com.nunchuk.android.usecase.ParseBtcUriUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -79,6 +80,15 @@ internal class AddReceiptViewModel @Inject constructor(
         viewModelScope.launch {
             getChainTipUseCase(Unit).onSuccess { chainTip ->
                 updateState { copy(currentBlockHeight = chainTip) }
+            }
+        }
+
+        viewModelScope.launch {
+            while (true) {
+                getChainTipUseCase(Unit).onSuccess { chainTip ->
+                    updateState { copy(currentBlockHeight = chainTip) }
+                }
+                delay(60000) // Refresh every minute
             }
         }
     }

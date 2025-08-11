@@ -191,6 +191,14 @@ internal class WalletConfigViewModel @Inject constructor(
                 _state.update { it.copy(currentBlockHeight = chainTip) }
             }
         }
+        viewModelScope.launch {
+            while (true) {
+                getChainTipUseCase(Unit).onSuccess { chainTip ->
+                    _state.update { it.copy(currentBlockHeight = chainTip) }
+                }
+                delay(60000) // Refresh every minute
+            }
+        }
     }
 
     private fun getWalletAlias() {

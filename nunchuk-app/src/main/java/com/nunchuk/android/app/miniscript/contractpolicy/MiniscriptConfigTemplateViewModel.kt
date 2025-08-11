@@ -7,6 +7,7 @@ import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.usecase.CreateMiniscriptTemplateBySelectionUseCase
 import com.nunchuk.android.usecase.GetChainTipUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -25,11 +26,14 @@ class MiniscriptConfigTemplateViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getChainTipUseCase(Unit).onSuccess { blockHeight ->
-                Timber.tag("miniscript-feature").d("MiniscriptConfigTemplateViewModel - blockHeight: $blockHeight")
-                _uiState.update { it.copy(currentBlockHeight = blockHeight) }
-            }.onFailure { error ->
-                Timber.tag("miniscript-feature").e("MiniscriptConfigTemplateViewModel - error: $error")
+            while (true) {
+                getChainTipUseCase(Unit).onSuccess { blockHeight ->
+                    Timber.tag("miniscript-feature").d("MiniscriptConfigTemplateViewModel - blockHeight: $blockHeight")
+                    _uiState.update { it.copy(currentBlockHeight = blockHeight) }
+                }.onFailure { error ->
+                    Timber.tag("miniscript-feature").e("MiniscriptConfigTemplateViewModel - error: $error")
+                }
+                delay(60000) // Refresh every minute
             }
         }
     }

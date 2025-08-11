@@ -497,13 +497,15 @@ fun AndOrView(
                     }
                 }
 
-                Text(
-                    text = node.descriptionText,
-                    style = NunchukTheme.typography.bodySmall.copy(
-                        color = MaterialTheme.colorScheme.textSecondary
-                    ),
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+                if (node.descriptionText.isNotEmpty()) {
+                    Text(
+                        text = node.descriptionText,
+                        style = NunchukTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.textSecondary
+                        ),
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                }
             }
         }
         content()
@@ -569,12 +571,14 @@ fun MusigItem(
                         )
                     }
                 }
-                Text(
-                    text = node.descriptionText,
-                    style = NunchukTheme.typography.bodySmall.copy(
-                        color = MaterialTheme.colorScheme.textSecondary
+                if (node.descriptionText.isNotEmpty()) {
+                    Text(
+                        text = node.descriptionText,
+                        style = NunchukTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.textSecondary
+                        )
                     )
-                )
+                }
             }
             // Badge on the right: Round or Completed
             if (keySet != null) {
@@ -692,12 +696,14 @@ fun ThreshMultiItem(
                     text = "${node.idString}. ${node.displayName}",
                     style = NunchukTheme.typography.body
                 )
-                Text(
-                    text = node.descriptionText,
-                    style = NunchukTheme.typography.bodySmall.copy(
-                        color = MaterialTheme.colorScheme.textSecondary
+                if (node.descriptionText.isNotEmpty()) {
+                    Text(
+                        text = node.descriptionText,
+                        style = NunchukTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.textSecondary
+                        )
                     )
-                )
+                }
             }
 
             // Show pending conditions or enough conditions collected
@@ -808,7 +814,7 @@ fun TimelockItem(
                     )
 
                     // Hide description for timestamp timelocks in SIGN mode
-                    if (mode != ScriptMode.SIGN || node.timeLock?.isTimestamp() != true) {
+                    if ((mode != ScriptMode.SIGN || node.timeLock?.isTimestamp() != true) && description.isNotEmpty()) {
                         Text(
                             text = description,
                             style = NunchukTheme.typography.bodySmall.copy(

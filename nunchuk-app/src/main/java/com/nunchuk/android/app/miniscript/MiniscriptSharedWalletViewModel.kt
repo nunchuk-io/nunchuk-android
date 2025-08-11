@@ -47,6 +47,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import kotlinx.coroutines.delay
 
 @HiltViewModel
 class MiniscriptSharedWalletViewModel @Inject constructor(
@@ -94,9 +95,12 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
-            getChainTipUseCase(Unit).onSuccess { blockHeight ->
-                _uiState.update { it.copy(currentBlockHeight = blockHeight) }
-            }.onFailure { error -> }
+            while (true) {
+                getChainTipUseCase(Unit).onSuccess { blockHeight ->
+                    _uiState.update { it.copy(currentBlockHeight = blockHeight) }
+                }.onFailure { error -> }
+                delay(60000) // Refresh every minute
+            }
         }
         viewModelScope.launch {
             getChainSettingFlowUseCase(Unit)
