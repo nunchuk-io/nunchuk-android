@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,17 +46,25 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.fillBeeswax
+import com.nunchuk.android.compose.fillDenim
+import com.nunchuk.android.compose.fillPink
 import com.nunchuk.android.compose.provider.ScriptNodeProvider
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.signDone
+import com.nunchuk.android.core.util.toAmount
+import com.nunchuk.android.model.CoinsGroup
 import com.nunchuk.android.model.KeySetStatus
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SigningPath
+import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.utils.dateTimeFormat
+import java.util.Date
 import java.util.Locale
 
 enum class ScriptMode {
@@ -97,6 +106,13 @@ fun ScriptNodeTree(
                     padStart = 0,
                     node = node
                 ) {
+                    ActivePolicyAfterView(
+                        isSatisfiableNode = isSatisfiableNode,
+                        id = node.idString,
+                        coinsGroup = data.coinGroups,
+                        lockBased = data.lockBased,
+                        numberOfInputCoin = data.numberOfInputCoin
+                    )
                     NodeContent(
                         node = node,
                         onChangeBip32Path = onChangeBip32Path,
@@ -107,7 +123,6 @@ fun ScriptNodeTree(
                     )
                 }
             }
-            return
         }
 
         ScriptNodeType.AFTER.name, ScriptNodeType.OLDER.name -> {
@@ -134,7 +149,6 @@ fun ScriptNodeTree(
                     )
                 }
             }
-            return
         }
 
         ScriptNodeType.PK.name -> {
@@ -155,7 +169,6 @@ fun ScriptNodeTree(
                     isSatisfiable = isSatisfiableNode
                 )
             }
-            return
         }
 
         ScriptNodeType.MULTI.name, ScriptNodeType.THRESH.name -> {
@@ -172,6 +185,13 @@ fun ScriptNodeTree(
                     data = data,
                     node = node
                 ) {
+                    ActivePolicyAfterView(
+                        lockBased = data.lockBased,
+                        id = node.idString,
+                        coinsGroup = data.coinGroups,
+                        isSatisfiableNode = isSatisfiableNode,
+                        numberOfInputCoin = data.numberOfInputCoin,
+                    )
                     NodeContent(
                         node = node,
                         onChangeBip32Path = onChangeBip32Path,
@@ -182,7 +202,6 @@ fun ScriptNodeTree(
                     )
                 }
             }
-            return
         }
 
         ScriptNodeType.HASH160.name, ScriptNodeType.HASH256.name, ScriptNodeType.RIPEMD160.name, ScriptNodeType.SHA256.name -> {
@@ -206,7 +225,6 @@ fun ScriptNodeTree(
                     )
                 }
             }
-            return
         }
 
         ScriptNodeType.MUSIG.name -> {
@@ -223,6 +241,13 @@ fun ScriptNodeTree(
                     data = data,
                     node = node
                 ) {
+                    ActivePolicyAfterView(
+                        lockBased = data.lockBased,
+                        id = node.idString,
+                        coinsGroup = data.coinGroups,
+                        isSatisfiableNode = isSatisfiableNode,
+                        numberOfInputCoin = data.numberOfInputCoin
+                    )
                     NodeContent(
                         node = node,
                         onChangeBip32Path = onChangeBip32Path,
@@ -233,16 +258,16 @@ fun ScriptNodeTree(
                     )
                 }
             }
-            return
         }
+
+        else -> NodeSubs(
+            node = node,
+            onChangeBip32Path = onChangeBip32Path,
+            onActionKey = onActionKey,
+            data = data,
+            level = level
+        )
     }
-    NodeSubs(
-        node = node,
-        onChangeBip32Path = onChangeBip32Path,
-        onActionKey = onActionKey,
-        data = data,
-        level = level
-    )
 }
 
 @Composable
@@ -455,10 +480,13 @@ data class ScriptNodeData(
     val signingPath: SigningPath = SigningPath(path = emptyList()),
     val satisfiableMap: Map<String, Boolean> = emptyMap(),
     val keySetStatues: Map<String, KeySetStatus> = emptyMap(),
+    val coinGroups: Map<String, CoinsGroup> = emptyMap(),
     val topLevelDisableNode: ScriptNode? = null,
     val onPreImageClick: (ScriptNode) -> Unit = {},
     val currentBlockHeight: Int = 0,
     val signedHash: Map<String, Boolean> = emptyMap(),
+    val lockBased: MiniscriptTimelockBased = MiniscriptTimelockBased.NONE,
+    val numberOfInputCoin: Int = 0
 )
 
 @Composable
@@ -468,7 +496,7 @@ fun AndOrView(
     isShowTapscriptBadge: Boolean = false,
     padStart: Int = 0,
     node: ScriptNode,
-    content: @Composable () -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit = {},
 ) {
     Column(modifier = modifier) {
         Row(
@@ -520,7 +548,7 @@ fun MusigItem(
     isSatisfiable: Boolean,
     node: ScriptNode,
     data: ScriptNodeData = ScriptNodeData(),
-    content: @Composable () -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit = {},
 ) {
     var showDetail by remember(node.id) {
         mutableStateOf(data.topLevelDisableNode?.id != node.id)
@@ -563,9 +591,14 @@ fun MusigItem(
                             contentDescription = "Pending",
                             tint = MaterialTheme.colorScheme.textSecondary
                         )
-                        val pluralId = if (round == 1) R.plurals.nc_transaction_pending_nonce else R.plurals.nc_transaction_pending_signature
+                        val pluralId =
+                            if (round == 1) R.plurals.nc_transaction_pending_nonce else R.plurals.nc_transaction_pending_signature
                         Text(
-                            text = pluralStringResource(pluralId, pendingFromKeySet, pendingFromKeySet),
+                            text = pluralStringResource(
+                                pluralId,
+                                pendingFromKeySet,
+                                pendingFromKeySet
+                            ),
                             style = NunchukTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.textSecondary,
                         )
@@ -643,7 +676,7 @@ fun ThreshMultiItem(
     isSatisfiable: Boolean,
     node: ScriptNode,
     data: ScriptNodeData = ScriptNodeData(),
-    content: @Composable () -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit = {},
 ) {
     // Only calculate signed signatures when in SIGN mode
     var showDetail by remember(node.id) {
@@ -1077,6 +1110,122 @@ fun RowScope.CheckedLabel(
         painter = painterResource(R.drawable.ic_check_circle_24),
         contentDescription = "Signed",
     )
+}
+
+@Composable
+fun ActivePolicyAfterView(
+    lockBased: MiniscriptTimelockBased,
+    id: String,
+    coinsGroup: Map<String, CoinsGroup>,
+    isSatisfiableNode: Boolean,
+    numberOfInputCoin: Int,
+) {
+    if (false) { // TODO open later
+        coinsGroup[id]?.let { group ->
+            val timestamp = group.start
+            val formattedText = when {
+                lockBased == MiniscriptTimelockBased.TIME_LOCK && timestamp > 0 -> {
+                    "Active policy after ${Date(timestamp * 1000L).dateTimeFormat()}"
+                }
+
+                lockBased == MiniscriptTimelockBased.HEIGHT_LOCK && timestamp > 0 -> {
+                    "Active policy after block $timestamp"
+                }
+
+                else -> ""
+            }
+
+            if (formattedText.isNotEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .padding(start = 12.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.fillPink,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(4.dp)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        NcIcon(
+                            painter = painterResource(R.drawable.ic_timer),
+                            contentDescription = "Lock icon",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.textPrimary
+                        )
+                        Text(
+                            text = formattedText,
+                            style = NunchukTheme.typography.bodySmall,
+                        )
+                    }
+
+                    if (group.coins.isNotEmpty()) {
+                        val amount = group.coins.sumOf { it.amount.value }.toAmount()
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            NcIcon(
+                                painter = painterResource(R.drawable.ic_btc),
+                                contentDescription = "Info icon",
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.textPrimary
+                            )
+                            Text(
+                                text = stringResource(
+                                    R.string.nc_signing_for_coins,
+                                    pluralStringResource(
+                                        R.plurals.nc_coins_with_count,
+                                        group.coins.size,
+                                        group.coins.size
+                                    ),
+                                    amount.getBTCAmount()
+                                ),
+                                style = NunchukTheme.typography.bodySmall,
+                            )
+                        }
+                    }
+                }
+            } else if (group.coins.isNotEmpty() && group.coins.size < numberOfInputCoin) {
+                val amount = group.coins.sumOf { it.amount.value }.toAmount()
+                Row(
+                    modifier = Modifier
+                        .padding(start = 12.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.fillDenim,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(4.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    NcIcon(
+                        painter = painterResource(R.drawable.ic_btc),
+                        contentDescription = "Info icon",
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.textPrimary
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.nc_signing_for_coins,
+                            pluralStringResource(
+                                R.plurals.nc_coins_with_count,
+                                group.coins.size,
+                                group.coins.size
+                            ),
+                            amount.getBTCAmount()
+                        ),
+                        style = NunchukTheme.typography.bodySmall,
+                    )
+                }
+            }
+        }
+    }
 }
 
 private fun signingPathContainsNodeId(path: List<List<Int>>, nodeId: List<Int>): Boolean {

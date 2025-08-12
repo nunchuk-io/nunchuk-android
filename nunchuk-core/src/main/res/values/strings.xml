@@ -991,4 +991,9 @@
     <string name="nc_key_path">Key path</string>
     <string name="nc_commit">Commit</string>
     <string name="nc_committed">Committed</string>
+    <string name="nc_signing_for_coins">Signing for %1$s (%2$s)</string>
+    <plurals name="nc_coins_with_count">
+        <item quantity="one">%1$d coin</item>
+        <item quantity="other">%1$d coins</item>
+    </plurals>
 </resources>

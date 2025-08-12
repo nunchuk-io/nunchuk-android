@@ -413,7 +413,10 @@ fun TransactionDetailView(
                                     onPreImageClick = { scriptNode ->
                                         preImageScriptMode = scriptNode
                                     },
-                                    keySetStatues = miniscriptUiState.keySetStatues + rootKeySetStatus
+                                    coinGroups = miniscriptUiState.coinGroups,
+                                    keySetStatues = miniscriptUiState.keySetStatues + rootKeySetStatus,
+                                    lockBased = miniscriptUiState.lockedBase,
+                                    numberOfInputCoin = transaction.inputs.size
                                 ),
                                 onChangeBip32Path = { _, _ -> },
                                 onActionKey = { _, signer ->

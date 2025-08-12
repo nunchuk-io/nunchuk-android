@@ -243,7 +243,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val satisfiableMap: MutableMap<String, Boolean> = mutableMapOf()
     private val signedHash: MutableMap<String, Boolean> = mutableMapOf()
     private val keySetStatues: MutableMap<String, KeySetStatus> = mutableMapOf()
-    private val coinGroups: MutableList<CoinsGroup> = mutableListOf()
+    private val coinIdsGroups: MutableMap<String, CoinsGroup> = mutableMapOf()
 
     private fun getState() = state.value
 
@@ -540,6 +540,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                         signedHash = signedHash,
                         keySetStatues = keySetStatues,
                         topLevelDisableNode = topLevelDisableNode,
+                        coinGroups = coinIdsGroups,
                     )
                 }
             }
@@ -594,10 +595,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
                             txId = txId,
                             nodeId = current.id.toIntArray()
                         )
-                    ).onSuccess {
-                        coinGroups.apply {
-                            clear()
-                            addAll(it)
+                    ).onSuccess { coinGroups ->
+                        val groups = current.subs.mapIndexed { index, sub -> sub.idString to coinGroups.getOrNull(index) }
+                            .toMap()
+                        groups.forEach {
+                            if (it.value != null) {
+                                coinIdsGroups[it.key] = it.value!!
+                            }
                         }
                     }
                 }

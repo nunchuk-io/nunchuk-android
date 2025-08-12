@@ -12,13 +12,6 @@
         <item quantity="one">Used address (%1$d)</item>
         <item quantity="other">Used addresses (%1$d)</item>
     </plurals>
-
-    <plurals name="nc_coins_with_count">
-        <item quantity="one">%1$d coin</item>
-        <item quantity="other">%1$d coins</item>
-    </plurals>
-
-
     <string name="nc_address_used_introduction">An address is marked as used as soon as money is deposited into it. For better privacy, reusing addresses is not recommended.</string>
     <string name="nc_address_generate_address">Generate a new address</string>
 
