@@ -88,12 +88,19 @@ fun NcPreimageBottomSheet(
 
                 TextButton(
                     onClick = {
-                        viewModel.validateAndRevealPreimage(
-                            walletId = walletId,
-                            txId = txId,
-                            node = node,
-                            preimage = text
-                        )
+                        val formattedText = text.trim()
+                            .removePrefix("0x")
+                            .removePrefix("0X")
+                        if (formattedText.length != 64) {
+                            viewModel.setInvalidPreimageLengthError()
+                        } else {
+                            viewModel.validateAndRevealPreimage(
+                                walletId = walletId,
+                                txId = txId,
+                                node = node,
+                                preimage = formattedText
+                            )
+                        }
                     },
                 ) {
                     Text(

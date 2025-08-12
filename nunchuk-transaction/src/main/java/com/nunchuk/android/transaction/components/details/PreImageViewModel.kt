@@ -19,6 +19,14 @@ class PreImageViewModel @Inject constructor(
     private val _state = MutableStateFlow(PreImageState())
     val state = _state.asStateFlow()
 
+    fun setInvalidPreimageLengthError() {
+        _state.update {
+            it.copy(
+                error = "Invalid preimage length"
+            )
+        }
+    }
+
     fun validateAndRevealPreimage(
         walletId: String,
         txId: String,
