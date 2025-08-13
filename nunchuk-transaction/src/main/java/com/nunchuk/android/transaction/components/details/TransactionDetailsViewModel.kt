@@ -1194,6 +1194,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 },
             )
         }
+        loadLocalTransaction()
     }
 
     fun showReview(activity: Activity, reviewInfo: ReviewInfo, doneCallback: () -> Unit) {
