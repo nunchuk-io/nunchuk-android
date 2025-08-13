@@ -33,9 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.nunchuk.android.compose.MODE_SELECT
+import com.nunchuk.android.compose.coin.MODE_SELECT
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.PreviewCoinCard
+import com.nunchuk.android.compose.coin.PreviewCoinCard
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.wallet.R

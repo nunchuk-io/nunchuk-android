@@ -42,7 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.nunchuk.android.compose.MODE_VIEW_ONLY
+import com.nunchuk.android.compose.coin.MODE_VIEW_ONLY
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -50,7 +50,7 @@ import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.PreviewCoinCard
+import com.nunchuk.android.compose.coin.PreviewCoinCard
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.miniscript.ScriptMode

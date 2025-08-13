@@ -74,7 +74,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.PreviewCoinCard
+import com.nunchuk.android.compose.coin.PreviewCoinCard
 import com.nunchuk.android.compose.fillBeeswax
 import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.manager.NcToastManager

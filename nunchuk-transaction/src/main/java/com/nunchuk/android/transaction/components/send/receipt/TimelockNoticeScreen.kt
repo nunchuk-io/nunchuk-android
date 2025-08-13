@@ -36,7 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.nunchuk.android.compose.MODE_VIEW_ONLY
+import com.nunchuk.android.compose.coin.MODE_VIEW_ONLY
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -44,7 +44,7 @@ import com.nunchuk.android.compose.NcRadioOption
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.PreviewCoinCard
+import com.nunchuk.android.compose.coin.PreviewCoinCard
 import com.nunchuk.android.compose.fillDenim
 import com.nunchuk.android.compose.fillPink
 import com.nunchuk.android.compose.strokePrimary

@@ -118,4 +118,7 @@ val ColorScheme.controlFillTertiary: Color
 val ColorScheme.fillPink: Color
     get() = if (isDark) Color(0xFF721650) else Color(0xFFFFEAF9)
 
+val ColorScheme.backgroundPrimary: Color
+    get() = if (isDark) Color(0xFF1C1C1E) else Color(0xFFFFFFFF)
+
 

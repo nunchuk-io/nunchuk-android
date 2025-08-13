@@ -35,6 +35,7 @@ import com.nunchuk.android.core.domain.UpdateWalletBannerStateUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.util.getNearestTimeLock
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
@@ -56,7 +57,6 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.ExportFormat
-import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
@@ -396,14 +396,11 @@ internal class WalletDetailsViewModel @Inject constructor(
     private fun getCoins() {
         viewModelScope.launch {
             getAllCoinUseCase(args.walletId).onSuccess { coins ->
-                val currentTime = System.currentTimeMillis() / 1000L
                 val currentBlockHeight = getChainTipUseCase(Unit).getOrDefault(0)
                 var nearestTimeLock = Long.MAX_VALUE
                 var noTimelockCoinsAmount = Amount()
                 coins.forEach { coin ->
-                    val check =
-                        if (coin.lockBased == MiniscriptTimelockBased.TIME_LOCK) currentTime else currentBlockHeight.toLong()
-                    coin.timelocks.find { it > check }?.let { time ->
+                    coin.getNearestTimeLock(currentBlockHeight)?.let { time ->
                         nearestTimeLock = minOf(nearestTimeLock, time)
                     } ?: run {
                         noTimelockCoinsAmount = coin.amount + noTimelockCoinsAmount

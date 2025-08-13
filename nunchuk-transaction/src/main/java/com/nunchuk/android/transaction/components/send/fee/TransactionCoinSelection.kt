@@ -30,9 +30,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.nunchuk.android.compose.MODE_VIEW_ONLY
+import com.nunchuk.android.compose.coin.MODE_VIEW_ONLY
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.PreviewCoinCard
+import com.nunchuk.android.compose.coin.PreviewCoinCard
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
 

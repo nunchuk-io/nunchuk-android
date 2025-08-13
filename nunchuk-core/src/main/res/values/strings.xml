@@ -961,6 +961,7 @@
     <string name="nc_miniscript_are_received">are received.</string>
     <string name="nc_miniscript_reuse_keys">Reuse keys across multisig policies</string>
     <string name="nc_miniscript_edit_timelock">Edit timelock</string>
+    <string name="nc_timelock_timeline">Timelock timeline:</string>
     <string name="nc_miniscript_timelock_type">Timelock type</string>
     <string name="nc_miniscript_absolute_time">Absolute time</string>
     <string name="nc_miniscript_absolute_time_desc">Unlock after a fixed point (specific date or block)</string>

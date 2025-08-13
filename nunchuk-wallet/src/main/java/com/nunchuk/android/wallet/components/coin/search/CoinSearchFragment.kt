@@ -63,10 +63,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.nunchuk.android.compose.MODE_SELECT
-import com.nunchuk.android.compose.MODE_VIEW_DETAIL
+import com.nunchuk.android.compose.coin.MODE_SELECT
+import com.nunchuk.android.compose.coin.MODE_VIEW_DETAIL
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.PreviewCoinCard
+import com.nunchuk.android.compose.coin.PreviewCoinCard
 import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.util.flowObserver
