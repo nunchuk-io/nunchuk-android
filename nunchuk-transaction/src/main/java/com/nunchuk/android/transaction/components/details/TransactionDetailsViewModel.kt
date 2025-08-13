@@ -596,7 +596,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
                             nodeId = current.id.toIntArray()
                         )
                     ).onSuccess { coinGroups ->
-                        val groups = current.subs.mapIndexed { index, sub -> sub.idString to coinGroups.getOrNull(index) }
+                        val groups = current.subs.mapIndexed { index, sub ->
+                            sub.idString to coinGroups.getOrNull(index)
+                        }
                             .toMap()
                         groups.forEach {
                             if (it.value != null) {
@@ -1185,8 +1187,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     fun handlePreimageSuccess(scriptNodeId: String) {
-        signedHash[scriptNodeId] = true
-        _minscriptState.update { it.copy(signedHash = signedHash.toMap()) }
+        _minscriptState.update {
+            it.copy(
+                signedHash = signedHash.toMutableMap().apply {
+                    put(scriptNodeId, true)
+                },
+            )
+        }
     }
 
     fun showReview(activity: Activity, reviewInfo: ReviewInfo, doneCallback: () -> Unit) {

@@ -25,6 +25,7 @@ import java.security.NoSuchAlgorithmException
 
 object ChecksumUtil {
     const val ALGORITHM = "SHA-256"
+
     @Throws(NoSuchAlgorithmException::class)
     fun getChecksum(bytes: ByteArray): String {
         val digest = MessageDigest.getInstance(ALGORITHM)
@@ -55,7 +56,7 @@ object ChecksumUtil {
     }
 
     @Throws(DecoderException::class)
-    private fun decodeHex(data: CharArray): ByteArray {
+    fun decodeHex(data: CharArray): ByteArray {
         val out = ByteArray(data.size shr 1)
         val outOffset = 0
         val len = data.size

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.usecase.RevealPreimageUseCase
+import com.nunchuk.android.utils.ChecksumUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,14 +35,12 @@ class PreImageViewModel @Inject constructor(
         preimage: String
     ) {
         viewModelScope.launch {
-            val preimageBytes = preimage.toByteArray()
-
             revealPreimageUseCase(
                 RevealPreimageUseCase.Params(
                     walletId = walletId,
                     txId = txId,
                     hash = node.data,
-                    preimage = preimageBytes
+                    preimage = ChecksumUtil.decodeHex(preimage.toCharArray())
                 )
             ).onSuccess {
                 _state.update { it.copy(isSuccess = true) }
