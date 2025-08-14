@@ -72,7 +72,6 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import kotlin.math.abs
 
 @AndroidEntryPoint
@@ -120,12 +119,9 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             if (it.itemId == R.id.menu_scan_qr) {
                 startQRCodeScan(launcher)
             } else if (it.itemId == R.id.menu_batch_transaction) {
-                navigator.openBatchTransactionScreen(
-                    this,
-                    roomId = args.roomId,
-                    walletId = args.walletId,
-                    availableAmount = args.availableAmount,
-                    inputs = args.inputs
+                openAddReceiptScreen(
+                    outputAmount = viewModel.getAmountBtc(),
+                    isBatchTransaction = true
                 )
             }
             true
@@ -204,7 +200,6 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             outputAmount = totalInBtc,
             availableAmount = totalInBtc,
             subtractFeeFromAmount = true,
-            slots = emptyList(),
             sweepType = sweepType,
             claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(
                 customAmount = amount,
@@ -218,7 +213,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             .showDialog(message = getString(R.string.nc_send_all_locked_coin_msg))
     }
 
-    private fun openAddReceiptScreen(outputAmount: Double) {
+    private fun openAddReceiptScreen(outputAmount: Double, isBatchTransaction: Boolean) {
         navigator.openAddReceiptScreen(
             this,
             walletId = args.walletId,
@@ -227,7 +222,8 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             address = viewModel.getAddress(),
             privateNote = viewModel.getPrivateNote(),
             subtractFeeFromAmount = abs(outputAmount - args.availableAmount).toAmount().value <= 0,
-            inputs = args.inputs
+            inputs = args.inputs,
+            isBatchTransaction = isBatchTransaction
         )
     }
 
@@ -262,7 +258,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                 if (isClaimInheritanceFlow()) {
                     showSweepOptions()
                 } else {
-                    openAddReceiptScreen(event.amount)
+                    openAddReceiptScreen(outputAmount = event.amount, isBatchTransaction = false)
                 }
             }
 
@@ -354,7 +350,6 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
 
         fun start(
             activityContext: Context,
-            roomId: String = "",
             walletId: String,
             availableAmount: Double,
             inputs: List<UnspentOutput> = emptyList(),
@@ -363,7 +358,6 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         ) {
             activityContext.startActivity(
                 InputAmountArgs(
-                    roomId = roomId,
                     walletId = walletId,
                     availableAmount = availableAmount,
                     inputs = inputs,

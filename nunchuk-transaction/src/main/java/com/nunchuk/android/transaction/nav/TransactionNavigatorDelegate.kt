@@ -77,7 +77,6 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
 
     override fun openInputAmountScreen(
         activityContext: Activity,
-        roomId: String,
         walletId: String,
         availableAmount: Double,
         inputs: List<UnspentOutput>,
@@ -86,7 +85,6 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
     ) {
         InputAmountActivity.start(
             activityContext = activityContext,
-            roomId = roomId,
             walletId = walletId,
             availableAmount = availableAmount,
             inputs = inputs,
@@ -107,6 +105,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         sweepType: SweepType,
         inputs: List<UnspentOutput>,
         claimInheritanceTxParam: ClaimInheritanceTxParam?,
+        isBatchTransaction: Boolean,
     ) {
         AddReceiptActivity.start(
             activityContext = activityContext,
@@ -119,7 +118,8 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             slots = slots,
             sweepType = sweepType,
             claimInheritanceTxParam = claimInheritanceTxParam,
-            inputs = inputs
+            inputs = inputs,
+            isBatchTransaction = isBatchTransaction
         )
     }
 
@@ -300,14 +300,13 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
 
     override fun openBatchTransactionScreen(
         activityContext: Activity,
-        roomId: String,
         walletId: String,
         availableAmount: Double,
         inputs: List<UnspentOutput>
     ) {
         activityContext.startActivity(
             BatchTransactionActivity.buildIntent(
-                activityContext, roomId = roomId,
+                activityContext,
                 walletId = walletId,
                 availableAmount = availableAmount,
                 inputs = inputs,

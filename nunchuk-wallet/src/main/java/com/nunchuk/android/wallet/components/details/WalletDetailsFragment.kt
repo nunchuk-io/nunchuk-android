@@ -388,7 +388,6 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                 sessionHolder.setActiveRoom(roomWallet.roomId, true)
                 navigator.openInputAmountScreen(
                     activityContext = requireActivity(),
-                    roomId = roomWallet.roomId,
                     walletId = roomWallet.walletId,
                     availableAmount = event.walletExtended.wallet.balance.pureBTC(),
                 )

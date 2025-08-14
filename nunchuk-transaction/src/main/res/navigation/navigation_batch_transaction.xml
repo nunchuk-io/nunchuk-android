@@ -8,19 +8,12 @@
         android:id="@+id/batchTransactionFragment"
         android:name="com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionFragment"
         android:label="BatchTransactionFragment">
-
-        <argument
-            android:name="room_id"
-            app:argType="string" />
         <argument
             android:name="wallet_id"
             app:argType="string" />
         <argument
-            android:name="available_amount"
-            app:argType="float" />
-        <argument
-            android:name="unspent_outputs"
-            app:argType="com.nunchuk.android.model.UnspentOutput[]" />
+            android:name="is_from_select_coin"
+            app:argType="boolean" />
     </fragment>
 
 </navigation>

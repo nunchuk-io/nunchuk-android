@@ -53,7 +53,6 @@ interface TransactionNavigator {
 
     fun openInputAmountScreen(
         activityContext: Activity,
-        roomId: String = "",
         walletId: String,
         availableAmount: Double,
         inputs: List<UnspentOutput> = emptyList(),
@@ -73,6 +72,7 @@ interface TransactionNavigator {
         sweepType: SweepType = SweepType.NONE,
         inputs: List<UnspentOutput> = emptyList(),
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
+        isBatchTransaction: Boolean = false
     )
 
     fun openEstimatedFeeScreen(
@@ -165,7 +165,7 @@ interface TransactionNavigator {
     )
 
     fun openBatchTransactionScreen(
-        activityContext: Activity, roomId: String,
+        activityContext: Activity,
         walletId: String,
         availableAmount: Double,
         inputs: List<UnspentOutput>

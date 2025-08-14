@@ -197,7 +197,6 @@ class InheritanceClaimWithdrawBitcoinFragment : MembershipFragment(), BottomShee
             outputAmount = totalInBtc,
             availableAmount = totalInBtc,
             subtractFeeFromAmount = true,
-            slots = emptyList(),
             sweepType = sweepType,
             claimInheritanceTxParam = ClaimInheritanceTxParam(
                 masterSignerIds = args.signers.map { it.id },

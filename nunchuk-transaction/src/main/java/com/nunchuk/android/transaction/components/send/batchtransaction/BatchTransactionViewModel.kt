@@ -32,12 +32,12 @@ import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.core.util.getBTCAmountWithoutSat
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
-import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.transaction.components.utils.privateNote
 import com.nunchuk.android.usecase.CheckAddressValidUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.toSafeDoubleAmount
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -54,7 +54,8 @@ class BatchTransactionViewModel @Inject constructor(
     private val parseBtcUriUseCase: ParseBtcUriUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
     private val checkAddressValidUseCase: CheckAddressValidUseCase,
-    private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase
+    private val getUnusedWalletAddressUseCase: GetUnusedWalletAddressUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase
 ) : ViewModel() {
 
     private val args = BatchTransactionFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -66,11 +67,17 @@ class BatchTransactionViewModel @Inject constructor(
 
     private var availableAmountWithoutUnlocked: Double = 0.0
     private var hasLockedCoin: Boolean = false
-    private val isFromSelectedCoin by lazy { args.unspentOutputs.isNotEmpty() }
+    private var isMiniscript: Boolean = false
 
     init {
-        if (isFromSelectedCoin.not()) {
+        if (!args.isFromSelectCoin) {
             checkLockedCoin(args.walletId)
+        }
+        viewModelScope.launch {
+            getWalletDetail2UseCase(args.walletId)
+                .onSuccess {
+                    isMiniscript = it.miniscript.isNotEmpty()
+                }
         }
     }
 
@@ -119,11 +126,11 @@ class BatchTransactionViewModel @Inject constructor(
         }
     }
 
-    fun createTransaction(isCustomTx: Boolean, subtractFeeFromAmount: Boolean) = viewModelScope.launch {
+    fun createTransaction(isCustomTx: Boolean, availableAmount: Double, subtractFeeFromAmount: Boolean) = viewModelScope.launch {
         val amount = getTotalAmount()
-        if (amount <= 0 || amount > args.availableAmount) {
+        if (amount <= 0 || amount > availableAmount) {
             _event.emit(BatchTransactionEvent.InsufficientFundsEvent)
-        } else if (amount > availableAmountWithoutUnlocked && !isFromSelectedCoin) {
+        } else if (amount > availableAmountWithoutUnlocked && !args.isFromSelectCoin) {
             _event.emit(BatchTransactionEvent.InsufficientFundsLockedCoinEvent)
         } else {
             var isAllValidAddress = true
@@ -140,7 +147,12 @@ class BatchTransactionViewModel @Inject constructor(
                     }
             }
             if (isAllValidAddress) {
-                _event.emit(BatchTransactionEvent.CheckAddressSuccess(isCustomTx, subtractFeeFromAmount))
+                _state.update { it.copy(subtractFeeFromAmount = subtractFeeFromAmount) }
+                _event.emit(BatchTransactionEvent.CheckAddressSuccess(
+                    isCustomTx = isCustomTx,
+                    subtractFeeFromAmount = subtractFeeFromAmount,
+                    isMiniscript = isMiniscript
+                ))
             }
         }
     }
@@ -230,6 +242,8 @@ class BatchTransactionViewModel @Inject constructor(
 
     fun getNote() = _state.value.note
 
+    fun getSubtractFeeFromAmount() = _state.value.subtractFeeFromAmount
+
     fun addRecipient() {
         val newRecipients = _state.value.recipients.toMutableList()
         newRecipients.add(BatchTransactionState.Recipient.DEFAULT)
@@ -257,10 +271,10 @@ class BatchTransactionViewModel @Inject constructor(
 
     fun getRecipients() = _state.value.recipients
 
-    fun sendAllRemaining(index: Int) = viewModelScope.launch {
-        val remainingAmount = args.availableAmount - getTotalAmount()
+    fun sendAllRemaining(availableAmount: Double, index: Int) = viewModelScope.launch {
+        val remainingAmount = availableAmount - getTotalAmount()
         if (remainingAmount <= 0) return@launch
-        if (remainingAmount > availableAmountWithoutUnlocked && !isFromSelectedCoin) {
+        if (remainingAmount > availableAmountWithoutUnlocked && !args.isFromSelectCoin) {
             _event.emit(BatchTransactionEvent.InsufficientFundsLockedCoinEvent)
             return@launch
         }

@@ -78,12 +78,6 @@ internal class AddReceiptViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            getChainTipUseCase(Unit).onSuccess { chainTip ->
-                updateState { copy(currentBlockHeight = chainTip) }
-            }
-        }
-
-        viewModelScope.launch {
             while (true) {
                 getChainTipUseCase(Unit).onSuccess { chainTip ->
                     updateState { copy(currentBlockHeight = chainTip) }
@@ -186,9 +180,6 @@ internal class AddReceiptViewModel @Inject constructor(
                     if (result.isSuccess && result.getOrThrow().isEmpty()) {
                         setEvent(
                             AcceptedAddressEvent(
-                                address = address,
-                                privateNote = currentState.privateNote,
-                                amount = currentState.amount,
                                 isCreateTransaction = isCreateTransaction,
                                 isMiniscript = currentState.scriptNode != null
                             )

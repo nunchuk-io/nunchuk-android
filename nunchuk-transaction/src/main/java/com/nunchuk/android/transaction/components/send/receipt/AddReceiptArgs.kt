@@ -23,7 +23,6 @@ import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
-import com.nunchuk.android.core.nfc.NfcViewModel.Companion.EXTRA_MASTER_SIGNER_ID
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getDoubleValue
@@ -44,7 +43,8 @@ data class AddReceiptArgs(
     val privateNote: String = "",
     val sweepType: SweepType,
     val inputs: List<UnspentOutput>,
-    val claimInheritanceTxParam: ClaimInheritanceTxParam? = null
+    val claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
+    val isBatchTransaction: Boolean = false,
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) =
@@ -59,31 +59,38 @@ data class AddReceiptArgs(
             putParcelableArrayListExtra(EXTRA_SLOTS, ArrayList(slots))
             putExtra(EXTRA_CLAIM_INHERITANCE_TX_PARAM, claimInheritanceTxParam)
             putParcelableArrayListExtra(EXTRA_INPUT, ArrayList(inputs))
+            putExtra(EXTRA_IS_BATCH_TRANSACTION, isBatchTransaction)
+            putExtra(EXTRA_IS_FROM_SELECTED_COIN, inputs.isNotEmpty())
         }
 
     companion object {
-        private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
+        private const val EXTRA_WALLET_ID = "wallet_id"
         private const val EXTRA_OUTPUT_AMOUNT = "EXTRA_OUTPUT_AMOUNT"
-        private const val EXTRA_AVAILABLE_AMOUNT = "EXTRA_AVAILABLE_AMOUNT"
+        private const val EXTRA_AVAILABLE_AMOUNT = "available_amount"
         private const val EXTRA_SUBTRACT_FEE = "EXTRA_SUBTRACT_FEE"
         private const val EXTRA_SLOTS = "EXTRA_SLOTS"
         private const val EXTRA_SWEEP_TYPE = "EXTRA_SWEEP_TYPE"
         private const val EXTRA_ADDRESS = "EXTRA_ADDRESS"
         private const val EXTRA_PRIVATE_NOTE = "EXTRA_PRIVATE_NOTE"
         private const val EXTRA_CLAIM_INHERITANCE_TX_PARAM = "EXTRA_CLAIM_INHERITANCE_TX_PARAM"
-        private const val EXTRA_INPUT = "EXTRA_INPUT"
+        private const val EXTRA_INPUT = "unspent_outputs"
+        private const val EXTRA_IS_BATCH_TRANSACTION = "EXTRA_IS_BATCH_TRANSACTION"
+        private const val EXTRA_IS_FROM_SELECTED_COIN = "is_from_select_coin"
 
         fun deserializeFrom(intent: Intent) = AddReceiptArgs(
-            intent.extras.getStringValue(EXTRA_WALLET_ID),
-            intent.extras.getDoubleValue(EXTRA_OUTPUT_AMOUNT),
-            intent.extras.getDoubleValue(EXTRA_AVAILABLE_AMOUNT),
-            intent.extras.getBooleanValue(EXTRA_SUBTRACT_FEE),
-            intent.extras?.parcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
-            intent.extras.getStringValue(EXTRA_ADDRESS),
-            intent.extras.getStringValue(EXTRA_PRIVATE_NOTE),
-            intent.extras?.serializable(EXTRA_SWEEP_TYPE)!!,
-            intent.extras?.parcelableArrayList<UnspentOutput>(EXTRA_INPUT).orEmpty(),
-            intent.extras?.parcelable<ClaimInheritanceTxParam>(EXTRA_CLAIM_INHERITANCE_TX_PARAM),
+            walletId = intent.extras.getStringValue(EXTRA_WALLET_ID),
+            outputAmount = intent.extras.getDoubleValue(EXTRA_OUTPUT_AMOUNT),
+            availableAmount = intent.extras.getDoubleValue(EXTRA_AVAILABLE_AMOUNT),
+            subtractFeeFromAmount = intent.extras.getBooleanValue(EXTRA_SUBTRACT_FEE),
+            slots = intent.extras?.parcelableArrayList<SatsCardSlot>(EXTRA_SLOTS).orEmpty(),
+            address = intent.extras.getStringValue(EXTRA_ADDRESS),
+            privateNote = intent.extras.getStringValue(EXTRA_PRIVATE_NOTE),
+            sweepType = intent.extras?.serializable(EXTRA_SWEEP_TYPE)!!,
+            inputs = intent.extras?.parcelableArrayList<UnspentOutput>(EXTRA_INPUT).orEmpty(),
+            claimInheritanceTxParam = intent.extras?.parcelable<ClaimInheritanceTxParam>(
+                EXTRA_CLAIM_INHERITANCE_TX_PARAM
+            ),
+            isBatchTransaction = intent.extras.getBooleanValue(EXTRA_IS_BATCH_TRANSACTION, false),
         )
     }
 }

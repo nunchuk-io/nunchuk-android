@@ -274,7 +274,6 @@ class RoomDetailFragment : BaseCameraFragment<FragmentRoomDetailBinding>(),
             CreateNewSharedWallet -> navigator.openCreateSharedWalletScreen(requireActivity())
             is CreateNewTransaction -> navigator.openInputAmountScreen(
                 activityContext = requireActivity(),
-                roomId = event.roomId,
                 walletId = event.walletId,
                 availableAmount = event.availableAmount,
             )

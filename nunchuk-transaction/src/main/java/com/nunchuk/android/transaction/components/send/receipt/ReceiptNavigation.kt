@@ -7,6 +7,8 @@ sealed class ReceiptNavigation {
     @Serializable
     data object Main : ReceiptNavigation()
     @Serializable
+    data object Batch : ReceiptNavigation()
+    @Serializable
     data object TaprootFeeSelection : ReceiptNavigation()
     @Serializable
     data object ChooseSigningPath : ReceiptNavigation()

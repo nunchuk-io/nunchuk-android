@@ -30,9 +30,6 @@ sealed class AddReceiptEvent {
     data object AddressRequiredEvent : AddReceiptEvent()
     data class ShowError(val message: String) : AddReceiptEvent()
     data class AcceptedAddressEvent(
-        val address: String,
-        val privateNote: String,
-        val amount: Amount,
         val isCreateTransaction: Boolean,
         val isMiniscript: Boolean,
     ) : AddReceiptEvent()

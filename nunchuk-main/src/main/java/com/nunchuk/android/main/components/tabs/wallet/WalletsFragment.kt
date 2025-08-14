@@ -422,7 +422,6 @@ internal class WalletsFragment : Fragment() {
                 sessionHolder.setActiveRoom(roomWallet.roomId, true)
                 navigator.openInputAmountScreen(
                     activityContext = requireActivity(),
-                    roomId = roomWallet.roomId,
                     walletId = roomWallet.walletId,
                     availableAmount = walletExtended.wallet.balance.pureBTC(),
                 )

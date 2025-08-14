@@ -36,7 +36,6 @@ import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.MAX_NOTE_LENGTH
 import com.nunchuk.android.core.wallet.WalletBottomSheetResult
 import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
-import com.nunchuk.android.model.Amount
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmViewModel
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeViewModel
@@ -89,7 +88,6 @@ class AddReceiptFragment : BaseFragment<ActivityTransactionAddReceiptBinding>() 
         super.onViewCreated(view, savedInstanceState)
         setupViews()
         observeEvent()
-        viewModel.init(args)
 
         childFragmentManager.setFragmentResultListener(
             WalletComposeBottomSheet.TAG,
@@ -151,8 +149,8 @@ class AddReceiptFragment : BaseFragment<ActivityTransactionAddReceiptBinding>() 
             requireActivity().finish()
         }
         binding.btnCreateTransaction.setOnDebounceClickListener {
-            viewModel.handleContinueEvent(true)
             transactionConfirmViewModel.setCustomizeTransaction(false)
+            viewModel.handleContinueEvent(true)
         }
         binding.btnCustomFee.setOnDebounceClickListener {
             transactionConfirmViewModel.setCustomizeTransaction(true)
@@ -228,7 +226,7 @@ class AddReceiptFragment : BaseFragment<ActivityTransactionAddReceiptBinding>() 
                 if (event.isCreateTransaction || event.isMiniscript) {
                     handleCreateTransaction()
                 } else {
-                    openEstimatedFeeScreen(event.address, event.privateNote, event.amount)
+                    openEstimatedFeeScreen()
                 }
             }
 
@@ -268,12 +266,8 @@ class AddReceiptFragment : BaseFragment<ActivityTransactionAddReceiptBinding>() 
         binding.errorText.isVisible = false
     }
 
-    private fun openEstimatedFeeScreen(address: String, privateNote: String, amount: Amount) {
+    private fun openEstimatedFeeScreen() {
         hideError()
-        (activity as? AddReceiptActivity)?.openEstimatedFeeScreen(
-            address = address,
-            privateNote = privateNote,
-            amount = amount,
-        )
+        (activity as? AddReceiptActivity)?.openEstimatedFeeScreen()
     }
 }

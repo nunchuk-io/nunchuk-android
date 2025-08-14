@@ -73,7 +73,6 @@ class ChatGroupInfoActivity : BaseActivity<ActivityGroupChatInfoBinding>() {
     private fun openInputAmountScreen(roomId: String, walletId: String, amount: Double) {
         navigator.openInputAmountScreen(
             activityContext = this,
-            roomId = roomId,
             walletId = walletId,
             availableAmount = amount,
         )

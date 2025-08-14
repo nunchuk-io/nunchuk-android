@@ -68,7 +68,6 @@ class ChatInfoActivity : BaseActivity<ActivityChatInfoBinding>() {
     private fun openInputAmountScreen(roomId: String, walletId: String, amount: Double) {
         navigator.openInputAmountScreen(
             activityContext = this,
-            roomId = roomId,
             walletId = walletId,
             availableAmount = amount,
         )

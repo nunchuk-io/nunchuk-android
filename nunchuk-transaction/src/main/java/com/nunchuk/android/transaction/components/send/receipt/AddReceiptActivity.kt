@@ -60,6 +60,9 @@ import com.nunchuk.android.nav.args.FeeSettingStartDestination
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
 import com.nunchuk.android.transaction.R
+import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionFragment
+import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionFragmentArgs
+import com.nunchuk.android.transaction.components.send.batchtransaction.BatchTransactionViewModel
 import com.nunchuk.android.transaction.components.send.confirmation.TaprootDraftTransaction
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmViewModel
@@ -86,10 +89,11 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
     private val estimateFeeViewModel: EstimatedFeeViewModel by viewModels()
     private val sweepSatscardViewModel: SweepSatscardViewModel by viewModels()
     private val transactionConfirmViewModel: TransactionConfirmViewModel by viewModels()
+    private val batchTransactionViewModel: BatchTransactionViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        viewModel.init(args)
         observerSweepSatscard(sweepSatscardViewModel, nfcViewModel) { args.walletId }
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_SATSCARD_SWEEP_SLOT }) {
             sweepSatscardViewModel.init(
@@ -139,15 +143,27 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
 
             NavHost(
                 navController = navController,
-                startDestination = ReceiptNavigation.Main
+                startDestination = if (args.isBatchTransaction) ReceiptNavigation.Batch else ReceiptNavigation.Main
             ) {
                 composable<ReceiptNavigation.Main> {
                     AndroidFragment(
-                        AddReceiptFragment::class.java,
+                        clazz = AddReceiptFragment::class.java,
                         modifier = Modifier
                             .systemBarsPadding()
                             .fillMaxSize(),
                         arguments = intent.extras!!
+                    )
+                }
+                composable<ReceiptNavigation.Batch> {
+                    AndroidFragment(
+                        clazz = BatchTransactionFragment::class.java,
+                        modifier = Modifier
+                            .systemBarsPadding()
+                            .fillMaxSize(),
+                        arguments = BatchTransactionFragmentArgs(
+                            walletId = args.walletId,
+                            isFromSelectCoin = args.inputs.isNotEmpty()
+                        ).toBundle()
                     )
                 }
                 composable<ReceiptNavigation.TaprootFeeSelection> {
@@ -245,10 +261,29 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
 
     private fun handleEstimateFeeEvent(event: EstimatedFeeEvent) {
         val state = viewModel.getAddReceiptState()
-        val amount = state.amount
-        val address = state.address
         if (event is EstimatedFeeEvent.GetFeeRateSuccess) {
-            handleCreateTransaction(amount, address, state, event)
+            if (args.isBatchTransaction) {
+                handleCreateTransaction(
+                    txReceipts = batchTransactionViewModel.getTxReceiptList(),
+                    subtractFeeFromAmount = batchTransactionViewModel.getSubtractFeeFromAmount(),
+                    note = batchTransactionViewModel.getNote(),
+                    state = state,
+                    event = event
+                )
+            } else {
+                val amount = state.amount
+                val address = state.address
+                val finalAmount = if (amount.value > 0) amount.pureBTC() else args.outputAmount
+                val subtractFeeFromAmount =
+                    if (amount.value > 0) false else args.subtractFeeFromAmount
+                handleCreateTransaction(
+                    txReceipts = listOf(TxReceipt(address, finalAmount)),
+                    subtractFeeFromAmount = subtractFeeFromAmount,
+                    note = state.privateNote,
+                    state = state,
+                    event = event
+                )
+            }
         } else if (event is EstimatedFeeEvent.EstimatedFeeErrorEvent) {
             showEventError(event.message)
         }
@@ -309,13 +344,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             }
 
             is TransactionConfirmEvent.CustomizeTransaction -> {
-                val state = viewModel.getAddReceiptState()
-                openEstimatedFeeScreen(
-                    address = state.address,
-                    privateNote = state.privateNote,
-                    amount = state.amount,
-                    signingPath = event.signingPath
-                )
+                openEstimatedFeeScreen(signingPath = event.signingPath)
             }
 
             else -> {}
@@ -323,46 +352,62 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
     }
 
     fun openEstimatedFeeScreen(
-        address: String,
-        privateNote: String,
-        amount: Amount,
         signingPath: SigningPath? = null
     ) {
-        val finalAmount = if (amount.value > 0) amount.pureBTC() else args.outputAmount
-        val subtractFeeFromAmount = if (amount.value > 0) false else args.subtractFeeFromAmount
-        navigator.openEstimatedFeeScreen(
-            activityContext = this,
-            walletId = args.walletId,
-            availableAmount = args.availableAmount,
-            txReceipts = listOf(TxReceipt(address, finalAmount)),
-            privateNote = privateNote,
-            subtractFeeFromAmount = subtractFeeFromAmount,
-            sweepType = args.sweepType,
-            slots = args.slots,
-            inputs = args.inputs,
-            claimInheritanceTxParam = args.claimInheritanceTxParam,
-            signingPath = signingPath
-        )
+        if (args.isBatchTransaction) {
+            navigator.openEstimatedFeeScreen(
+                activityContext = this,
+                walletId = args.walletId,
+                availableAmount = args.availableAmount,
+                txReceipts = batchTransactionViewModel.getTxReceiptList(),
+                privateNote = batchTransactionViewModel.getNote(),
+                subtractFeeFromAmount = batchTransactionViewModel.getSubtractFeeFromAmount(),
+                sweepType = args.sweepType,
+                slots = args.slots,
+                inputs = args.inputs,
+                claimInheritanceTxParam = args.claimInheritanceTxParam,
+                signingPath = signingPath
+            )
+        } else {
+            val state = viewModel.getAddReceiptState()
+            val amount = state.amount
+            val address = state.address
+            val privateNote = state.privateNote
+            val finalAmount = if (amount.value > 0) amount.pureBTC() else args.outputAmount
+            val subtractFeeFromAmount = if (amount.value > 0) false else args.subtractFeeFromAmount
+            navigator.openEstimatedFeeScreen(
+                activityContext = this,
+                walletId = args.walletId,
+                availableAmount = args.availableAmount,
+                txReceipts = listOf(TxReceipt(address, finalAmount)),
+                privateNote = privateNote,
+                subtractFeeFromAmount = subtractFeeFromAmount,
+                sweepType = args.sweepType,
+                slots = args.slots,
+                inputs = args.inputs,
+                claimInheritanceTxParam = args.claimInheritanceTxParam,
+                signingPath = signingPath
+            )
+        }
     }
 
     private fun handleCreateTransaction(
-        amount: Amount,
-        address: String,
+        txReceipts: List<TxReceipt>,
+        subtractFeeFromAmount: Boolean,
+        note: String,
         state: AddReceiptState,
         event: EstimatedFeeEvent.GetFeeRateSuccess
     ) {
         if (args.slots.isNotEmpty()) {
             startNfcFlow(REQUEST_SATSCARD_SWEEP_SLOT)
         } else {
-            val finalAmount = if (amount.value > 0) amount.pureBTC() else args.outputAmount
-            val subtractFeeFromAmount = if (amount.value > 0) false else args.subtractFeeFromAmount
             val manualFeeRate =
                 if (transactionConfirmViewModel.isInheritanceClaimingFlow()) event.estimateFeeRates.priorityRate else event.estimateFeeRates.defaultRate
             transactionConfirmViewModel.init(
                 walletId = args.walletId,
-                txReceipts = listOf(TxReceipt(address, finalAmount)),
+                txReceipts = txReceipts,
                 subtractFeeFromAmount = subtractFeeFromAmount,
-                privateNote = state.privateNote,
+                privateNote = note,
                 manualFeeRate = manualFeeRate,
                 slots = args.slots,
                 inputs = args.inputs,
@@ -387,6 +432,9 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
         NCToastMessage(this).showError(message)
     }
 
+    val availableAmount: Double
+        get() = args.availableAmount
+
     companion object {
 
         fun start(
@@ -401,6 +449,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             sweepType: SweepType = SweepType.NONE,
             inputs: List<UnspentOutput> = emptyList(),
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
+            isBatchTransaction: Boolean,
         ) {
             activityContext.startActivity(
                 AddReceiptArgs(
@@ -413,7 +462,8 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                     privateNote = privateNote,
                     sweepType = sweepType,
                     inputs = inputs,
-                    claimInheritanceTxParam = claimInheritanceTxParam
+                    claimInheritanceTxParam = claimInheritanceTxParam,
+                    isBatchTransaction = isBatchTransaction
                 ).buildIntent(activityContext)
             )
         }

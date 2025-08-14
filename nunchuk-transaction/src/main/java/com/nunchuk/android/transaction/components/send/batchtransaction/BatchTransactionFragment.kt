@@ -67,7 +67,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -89,16 +89,15 @@ import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.CurrencyFormatter
 import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
 import com.nunchuk.android.core.util.MAX_NOTE_LENGTH
-import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.wallet.WalletBottomSheetResult
 import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeArgs
-import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeEvent
+import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmViewModel
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeViewModel
+import com.nunchuk.android.transaction.components.send.receipt.AddReceiptActivity
 import com.nunchuk.android.utils.MaxLengthTransformation
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInfoDialog
@@ -117,8 +116,9 @@ class BatchTransactionFragment : Fragment() {
     @Inject
     lateinit var navigator: NunchukNavigator
 
-    private val viewModel: BatchTransactionViewModel by viewModels()
-    private val estimatedFeeViewModel: EstimatedFeeViewModel by viewModels()
+    private val viewModel: BatchTransactionViewModel by activityViewModels()
+    private val estimatedFeeViewModel: EstimatedFeeViewModel by activityViewModels()
+    private val transactionConfirmViewModel: TransactionConfirmViewModel by activityViewModels()
     private val args: BatchTransactionFragmentArgs by navArgs()
 
     private val launcher = registerForActivityResult(ScanContract()) { result ->
@@ -134,32 +134,37 @@ class BatchTransactionFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                BatchTransactionScreen(viewModel, onScanClick = {
-                    startQRCodeScan(launcher)
-                }, onDropdownClick = { index, selectAddressType ->
-                    if (selectAddressType == SelectAddressType.NONE.ordinal) {
-                        viewModel.setInteractingIndex(index)
-                        WalletComposeBottomSheet.show(
-                            childFragmentManager,
-                            exclusiveAssistedWalletIds = arrayListOf(args.walletId) + viewModel.getRecipients()
-                                .map { it.walletId },
-                            configArgs = WalletComposeBottomSheet.ConfigArgs(
-                                flags = WalletComposeBottomSheet.fromFlags(
-                                    WalletComposeBottomSheet.SHOW_ADDRESS,
-                                )
-                            ),
-                            exclusiveAddresses = viewModel.getRecipients().map { it.address }
-                        )
-                    } else {
-                        viewModel.updateRecipient(
-                            index = index,
-                            selectAddressType = SelectAddressType.NONE.ordinal,
-                            address = "",
-                            invalidAddress = false,
-                        )
-                        viewModel.setInteractingIndex(-1)
-                    }
-                })
+                BatchTransactionScreen(
+                    availableAmount = (activity as AddReceiptActivity).availableAmount,
+                    viewModel = viewModel,
+                    onScanClick = {
+                        startQRCodeScan(launcher)
+                    },
+                    onDropdownClick = { index, selectAddressType ->
+                        if (selectAddressType == SelectAddressType.NONE.ordinal) {
+                            viewModel.setInteractingIndex(index)
+                            WalletComposeBottomSheet.show(
+                                childFragmentManager,
+                                exclusiveAssistedWalletIds = arrayListOf(args.walletId) + viewModel.getRecipients()
+                                    .map { it.walletId },
+                                configArgs = WalletComposeBottomSheet.ConfigArgs(
+                                    flags = WalletComposeBottomSheet.fromFlags(
+                                        WalletComposeBottomSheet.SHOW_ADDRESS,
+                                    )
+                                ),
+                                exclusiveAddresses = viewModel.getRecipients().map { it.address }
+                            )
+                        } else {
+                            viewModel.updateRecipient(
+                                index = index,
+                                selectAddressType = SelectAddressType.NONE.ordinal,
+                                address = "",
+                                invalidAddress = false,
+                            )
+                            viewModel.setInteractingIndex(-1)
+                        }
+                    },
+                )
             }
         }
     }
@@ -172,7 +177,7 @@ class BatchTransactionFragment : Fragment() {
                     is BatchTransactionEvent.Error -> showError(message = event.message)
                     is BatchTransactionEvent.Loading -> showOrHideLoading(loading = event.loading)
                     BatchTransactionEvent.InsufficientFundsEvent -> {
-                        if (args.unspentOutputs.isNotEmpty()) {
+                        if (args.isFromSelectCoin) {
                             NCToastMessage(requireActivity()).showError(getString(R.string.nc_send_amount_too_large))
                         } else {
                             NCToastMessage(requireActivity()).showError(getString(R.string.nc_transaction_insufficient_funds))
@@ -181,39 +186,14 @@ class BatchTransactionFragment : Fragment() {
 
                     BatchTransactionEvent.InsufficientFundsLockedCoinEvent -> showUnlockCoinBeforeSend()
                     is BatchTransactionEvent.CheckAddressSuccess -> {
-                        if (event.isCustomTx) {
-                            openEstimatedFeeScreen(event.subtractFeeFromAmount)
+                        transactionConfirmViewModel.setCustomizeTransaction(event.isCustomTx)
+                        if (event.isCustomTx && !event.isMiniscript) {
+                            (activity as AddReceiptActivity).openEstimatedFeeScreen()
                         } else {
-                            estimatedFeeViewModel.init(
-                                EstimatedFeeArgs(
-                                    walletId = args.walletId,
-                                    txReceipts = viewModel.getTxReceiptList(),
-                                    availableAmount = args.availableAmount.toDouble(),
-                                    privateNote = viewModel.getNote(),
-                                    subtractFeeFromAmount = event.subtractFeeFromAmount,
-                                    slots = emptyList(),
-                                    inputs = args.unspentOutputs.toList()
-                                )
-                            )
+                            estimatedFeeViewModel.getEstimateFeeRates(false)
                         }
                     }
                 }
-            }
-        }
-        flowObserver(estimatedFeeViewModel.event) { event ->
-            when (event) {
-                is EstimatedFeeEvent.EstimatedFeeErrorEvent -> NCToastMessage(requireActivity()).showError(
-                    event.message
-                )
-
-                is EstimatedFeeEvent.EstimatedFeeCompletedEvent -> openTransactionConfirmScreen(
-                    subtractFeeFromAmount = event.subtractFeeFromAmount,
-                    manualFeeRate = event.manualFeeRate
-                )
-
-                is EstimatedFeeEvent.Loading -> showOrHideLoading(event.isLoading)
-                EstimatedFeeEvent.DraftTransactionSuccess -> estimatedFeeViewModel.handleContinueEvent()
-                else -> {}
             }
         }
         childFragmentManager.setFragmentResultListener(
@@ -245,36 +225,6 @@ class BatchTransactionFragment : Fragment() {
         NCInfoDialog(requireActivity())
             .showDialog(message = getString(R.string.nc_send_all_locked_coin_msg))
     }
-
-    private fun openEstimatedFeeScreen(subtractFeeFromAmount: Boolean) {
-        navigator.openEstimatedFeeScreen(
-            activityContext = requireActivity(),
-            walletId = args.walletId,
-            availableAmount = args.availableAmount.toDouble(),
-            txReceipts = viewModel.getTxReceiptList(),
-            privateNote = viewModel.getNote(),
-            subtractFeeFromAmount = subtractFeeFromAmount,
-            slots = emptyList(),
-            inputs = args.unspentOutputs.toList()
-        )
-    }
-
-    private fun openTransactionConfirmScreen(
-        subtractFeeFromAmount: Boolean,
-        manualFeeRate: Int
-    ) {
-        navigator.openTransactionConfirmScreen(
-            activityContext = requireActivity(),
-            walletId = args.walletId,
-            availableAmount = args.availableAmount.toDouble(),
-            txReceipts = viewModel.getTxReceiptList(),
-            privateNote = viewModel.getNote(),
-            subtractFeeFromAmount = subtractFeeFromAmount,
-            manualFeeRate = manualFeeRate,
-            inputs = args.unspentOutputs.toList(),
-            antiFeeSniping = false
-        )
-    }
 }
 
 @Composable
@@ -282,6 +232,7 @@ private fun BatchTransactionScreen(
     viewModel: BatchTransactionViewModel = viewModel(),
     onScanClick: () -> Unit = {},
     onDropdownClick: (Int, Int) -> Unit = { _, _ -> },
+    availableAmount: Double,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     BatchTransactionContent(
@@ -308,14 +259,14 @@ private fun BatchTransactionScreen(
         onAddRecipient = viewModel::addRecipient,
         onRemoveRecipient = viewModel::removeRecipient,
         onCreateTransactionClick = {
-            viewModel.createTransaction(false, it)
+            viewModel.createTransaction(false, availableAmount, it)
         },
         onDropdownClick = onDropdownClick,
         onCustomizeTransactionClick = {
-            viewModel.createTransaction(true, it)
+            viewModel.createTransaction(true, availableAmount, it)
         },
         onSendAllRemainingClick = {
-            viewModel.sendAllRemaining(it)
+            viewModel.sendAllRemaining(availableAmount, it)
         }
     )
 }

@@ -49,16 +49,14 @@ class BatchTransactionActivity : BaseActivity<ActivityNavigationBinding>() {
 
     companion object {
         fun buildIntent(
-            context: Context, roomId: String = "",
+            context: Context,
             walletId: String,
             availableAmount: Double,
             inputs: List<UnspentOutput> = emptyList()
-        ) =
-            Intent(context, BatchTransactionActivity::class.java).apply {
-                putExtra("room_id", roomId)
-                putExtra("wallet_id", walletId)
-                putExtra("available_amount", availableAmount.toFloat())
-                putExtra("unspent_outputs", inputs.toTypedArray())
-            }
+        ) = Intent(context, BatchTransactionActivity::class.java).apply {
+            putExtra("wallet_id", walletId)
+            putExtra("available_amount", availableAmount.toFloat())
+            putExtra("unspent_outputs", inputs.toTypedArray())
+        }
     }
 }

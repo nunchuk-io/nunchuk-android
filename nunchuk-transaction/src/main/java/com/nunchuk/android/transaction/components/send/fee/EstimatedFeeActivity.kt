@@ -23,6 +23,12 @@ import android.app.Activity
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.ui.Modifier
+import androidx.fragment.compose.AndroidFragment
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
@@ -44,20 +50,20 @@ class EstimatedFeeActivity : BaseComposeActivity() {
         setContent {
             val navController = rememberNavController()
 
-//            NavHost(
-//                navController = navController,
-//                startDestination = EstimatedFeeNavigation.Main
-//            ) {
-//                composable<EstimatedFeeNavigation.Main> {
-//                    AndroidFragment(
-//                        EstimatedFeeFragment::class.java,
-//                        modifier = Modifier
-//                            .systemBarsPadding()
-//                            .fillMaxSize(),
-//                        arguments = intent.extras!!
-//                    )
-//                }
-//            }
+            NavHost(
+                navController = navController,
+                startDestination = EstimatedFeeNavigation.Main
+            ) {
+                composable<EstimatedFeeNavigation.Main> {
+                    AndroidFragment(
+                        EstimatedFeeFragment::class.java,
+                        modifier = Modifier
+                            .systemBarsPadding()
+                            .fillMaxSize(),
+                        arguments = intent.extras!!
+                    )
+                }
+            }
         }
     }
 
