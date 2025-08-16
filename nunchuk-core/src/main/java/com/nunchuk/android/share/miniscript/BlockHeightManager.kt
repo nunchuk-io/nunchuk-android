@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,6 +33,7 @@ class BlockHeightManager @Inject constructor(
         coroutineScope.launch {
             while (true) {
                 val blockHeight = nativeSdk.getChainTip()
+                Timber.d("Current block height: $blockHeight")
                 _state.update { blockHeight }
                 delay(1.minutes)
             }

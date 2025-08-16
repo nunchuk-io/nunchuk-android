@@ -509,7 +509,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                     resources.getQuantityString(
                         R.plurals.nc_day, remainingDays, remainingDays
                     )
-                )
+                ).takeIf { remainingDays > 0 }
             }
 
             MiniscriptTimelockBased.HEIGHT_LOCK -> {
@@ -520,46 +520,50 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                     resources.getQuantityString(
                         R.plurals.nc_block, remainingBlocks, remainingBlocks
                     )
-                )
+                ).takeIf { remainingBlocks > 0 }
             }
 
             else -> false to ""
         }
 
-        binding.tvTimelockWarning.text = lockInfo
-
-        if (isWarningState) {
-            binding.tvTimelockWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                R.drawable.ic_warning_outline, 0, 0, 0
-            )
-            binding.tvTimelockWarning.setBackgroundResource(R.drawable.nc_wallet_warning_background)
-            binding.tvTimelockWarning.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.nc_grey_g7)
-            )
-            TextViewCompat.setCompoundDrawableTintList(
-                binding.tvTimelockWarning,
-                ContextCompat.getColorStateList(requireContext(), R.color.nc_grey_g7)
-            )
+        if (lockInfo.isNullOrEmpty()) {
+            binding.tvTimelockWarning.isVisible = false
         } else {
-            binding.tvTimelockWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                R.drawable.ic_info_36, 0, 0, 0
-            )
-            binding.tvTimelockWarning.setBackgroundResource(R.drawable.nc_rounded_whisper_background)
-            binding.tvTimelockWarning.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.nc_text_primary)
-            )
-            TextViewCompat.setCompoundDrawableTintList(
-                binding.tvTimelockWarning,
-                ContextCompat.getColorStateList(requireContext(), R.color.nc_text_primary)
+            binding.tvTimelockWarning.text = lockInfo
+
+            if (isWarningState) {
+                binding.tvTimelockWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                    R.drawable.ic_warning_outline, 0, 0, 0
+                )
+                binding.tvTimelockWarning.setBackgroundResource(R.drawable.nc_wallet_warning_background)
+                binding.tvTimelockWarning.setTextColor(
+                    ContextCompat.getColor(requireContext(), R.color.nc_grey_g7)
+                )
+                TextViewCompat.setCompoundDrawableTintList(
+                    binding.tvTimelockWarning,
+                    ContextCompat.getColorStateList(requireContext(), R.color.nc_grey_g7)
+                )
+            } else {
+                binding.tvTimelockWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                    R.drawable.ic_info_36, 0, 0, 0
+                )
+                binding.tvTimelockWarning.setBackgroundResource(R.drawable.nc_rounded_whisper_background)
+                binding.tvTimelockWarning.setTextColor(
+                    ContextCompat.getColor(requireContext(), R.color.nc_text_primary)
+                )
+                TextViewCompat.setCompoundDrawableTintList(
+                    binding.tvTimelockWarning,
+                    ContextCompat.getColorStateList(requireContext(), R.color.nc_text_primary)
+                )
+            }
+
+            binding.tvTimelockWarning.makeTextLink(
+                binding.tvTimelockWarning.text.toString(),
+                ClickAbleText(content = getString(R.string.nc_view_coins), onClick = {
+                    navigator.openCoinList(context = requireContext(), walletId = args.walletId)
+                })
             )
         }
-
-        binding.tvTimelockWarning.makeTextLink(
-            binding.tvTimelockWarning.text.toString(),
-            ClickAbleText(content = getString(R.string.nc_view_coins), onClick = {
-                navigator.openCoinList(context = requireContext(), walletId = args.walletId)
-            })
-        )
     }
 
     private fun handleWalletBackground(state: WalletDetailsState) {
