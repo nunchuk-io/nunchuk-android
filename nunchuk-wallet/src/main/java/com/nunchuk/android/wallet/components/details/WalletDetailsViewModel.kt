@@ -44,7 +44,6 @@ import com.nunchuk.android.listener.GroupMessageListener
 import com.nunchuk.android.listener.GroupReplaceListener
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
-import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Result
@@ -82,6 +81,7 @@ import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetReplaceGroupsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.SetBackUpBannerWalletIdsUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
+import com.nunchuk.android.usecase.miniscript.GetSpendableNowAmountUseCase
 import com.nunchuk.android.usecase.wallet.AddWalletBannerStateUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.GroupChatManager
@@ -153,7 +153,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val addWalletBannerStateUseCase: AddWalletBannerStateUseCase,
     private val removeWalletBannerStateUseCase: RemoveWalletBannerStateUseCase,
     private val updateWalletBannerStateUseCase: UpdateWalletBannerStateUseCase,
-    private val getChainTipUseCase: GetChainTipUseCase
+    private val getChainTipUseCase: GetChainTipUseCase,
+    private val getSpendableNowAmountUseCase: GetSpendableNowAmountUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -398,12 +399,9 @@ internal class WalletDetailsViewModel @Inject constructor(
             getAllCoinUseCase(args.walletId).onSuccess { coins ->
                 val currentBlockHeight = getChainTipUseCase(Unit).getOrDefault(0)
                 var nearestTimeLock = Long.MAX_VALUE
-                var noTimelockCoinsAmount = Amount()
                 coins.forEach { coin ->
                     coin.getNearestTimeLock(currentBlockHeight)?.let { time ->
                         nearestTimeLock = minOf(nearestTimeLock, time)
-                    } ?: run {
-                        noTimelockCoinsAmount = coin.amount + noTimelockCoinsAmount
                     }
                 }
                 updateState {
@@ -412,7 +410,13 @@ internal class WalletDetailsViewModel @Inject constructor(
                         nearestTimeLock = coins.firstOrNull()
                             ?.takeIf { nearestTimeLock != Long.MAX_VALUE }
                             ?.let { it.lockBased to nearestTimeLock },
-                        noTimelockCoinsAmount = noTimelockCoinsAmount,
+                    )
+                }
+            }
+            getSpendableNowAmountUseCase(args.walletId).onSuccess { amount ->
+                updateState {
+                    copy(
+                        noTimelockCoinsAmount = amount
                     )
                 }
             }

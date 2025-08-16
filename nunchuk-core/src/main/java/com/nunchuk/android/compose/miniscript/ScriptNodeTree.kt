@@ -61,6 +61,7 @@ import com.nunchuk.android.model.CoinsGroup
 import com.nunchuk.android.model.KeySetStatus
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SigningPath
+import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.dateTimeFormat
@@ -111,7 +112,7 @@ fun ScriptNodeTree(
                         id = node.idString,
                         coinsGroup = data.coinGroups,
                         lockBased = data.lockBased,
-                        numberOfInputCoin = data.numberOfInputCoin
+                        numberOfInputCoin = data.inputCoins.size
                     )
                     NodeContent(
                         node = node,
@@ -135,8 +136,7 @@ fun ScriptNodeTree(
                     modifier = modifier,
                     currentBlockHeight = data.currentBlockHeight,
                     showThreadCurve = showThreadCurve,
-                    isSatisfiableNode = isSatisfiableNode,
-                    mode = data.mode,
+                    data = data,
                     node = node
                 ) {
                     NodeContent(
@@ -190,7 +190,7 @@ fun ScriptNodeTree(
                         id = node.idString,
                         coinsGroup = data.coinGroups,
                         isSatisfiableNode = isSatisfiableNode,
-                        numberOfInputCoin = data.numberOfInputCoin,
+                        numberOfInputCoin = data.inputCoins.size,
                     )
                     NodeContent(
                         node = node,
@@ -246,7 +246,7 @@ fun ScriptNodeTree(
                         id = node.idString,
                         coinsGroup = data.coinGroups,
                         isSatisfiableNode = isSatisfiableNode,
-                        numberOfInputCoin = data.numberOfInputCoin
+                        numberOfInputCoin = data.inputCoins.size
                     )
                     NodeContent(
                         node = node,
@@ -486,7 +486,7 @@ data class ScriptNodeData(
     val currentBlockHeight: Int = 0,
     val signedHash: Map<String, Boolean> = emptyMap(),
     val lockBased: MiniscriptTimelockBased = MiniscriptTimelockBased.NONE,
-    val numberOfInputCoin: Int = 0
+    val inputCoins: List<UnspentOutput> = emptyList()
 )
 
 @Composable
@@ -814,13 +814,48 @@ fun TimelockItem(
     modifier: Modifier = Modifier,
     currentBlockHeight: Int = 0,
     showThreadCurve: Boolean = true,
-    isSatisfiableNode: Boolean,
-    mode: ScriptMode,
     node: ScriptNode,
+    data: ScriptNodeData,
     content: @Composable () -> Unit = {},
 ) {
+    val mode: ScriptMode = data.mode
     val title = node.displayName
     val description = node.getAfterBlockDescription(currentBlockHeight)
+    
+    // Calculate if timelock is unlocked based on type
+    val isUnlocked = if (mode == ScriptMode.SIGN) when (node.type) {
+        ScriptNodeType.AFTER.name -> {
+            // AFTER: Check if current time/block has passed the timelock value
+            val timelockValue = node.timeLock?.value ?: 0L
+            when (data.lockBased) {
+                MiniscriptTimelockBased.TIME_LOCK -> {
+                    val currentTime = System.currentTimeMillis() / 1000L
+                    currentTime >= timelockValue
+                }
+                MiniscriptTimelockBased.HEIGHT_LOCK -> {
+                    currentBlockHeight >= timelockValue
+                }
+                else -> false
+            }
+        }
+        ScriptNodeType.OLDER.name -> {
+            // OLDER: Check if all coins have passed the relative timelock
+            val timelockValue = node.timeLock?.value ?: 0L
+            data.inputCoins.all { coin ->
+                when (data.lockBased) {
+                    MiniscriptTimelockBased.TIME_LOCK -> {
+                        val currentTime = System.currentTimeMillis() / 1000L
+                        (coin.time + timelockValue) <= currentTime
+                    }
+                    MiniscriptTimelockBased.HEIGHT_LOCK -> {
+                        (coin.height + timelockValue) <= currentBlockHeight
+                    }
+                    else -> false
+                }
+            }
+        }
+        else -> false
+    } else false
 
     Column(modifier = modifier) {
         Row(
@@ -847,7 +882,7 @@ fun TimelockItem(
                     )
 
                     // Hide description for timestamp timelocks in SIGN mode
-                    if ((mode != ScriptMode.SIGN || node.timeLock?.isTimestamp() != true) && description.isNotEmpty()) {
+                    if (description.isNotEmpty()) {
                         Text(
                             text = description,
                             style = NunchukTheme.typography.bodySmall.copy(
@@ -859,7 +894,7 @@ fun TimelockItem(
 
                 // Show locked/unlocked status in SIGN mode
                 if (mode == ScriptMode.SIGN) {
-                    if (isSatisfiableNode) {
+                    if (isUnlocked) {
                         CheckedLabel(text = "Unlocked")
                     } else {
                         Text(

@@ -22,12 +22,15 @@ package com.nunchuk.android.wallet.components.coin.list
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
+import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllCollectionsUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
@@ -35,6 +38,8 @@ import com.nunchuk.android.usecase.coin.LockCoinUseCase
 import com.nunchuk.android.usecase.coin.RemoveCoinFromCollectionUseCase
 import com.nunchuk.android.usecase.coin.RemoveCoinFromTagUseCase
 import com.nunchuk.android.usecase.coin.UnLockCoinUseCase
+import com.nunchuk.android.usecase.miniscript.GetSpendableNowAmountUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,6 +64,9 @@ class CoinListViewModel @Inject constructor(
     private val getAllCollectionsUseCase: GetAllCollectionsUseCase,
     private val assistedWalletManager: AssistedWalletManager,
     private val pushEventManager: PushEventManager,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val getSpendableNowAmountUseCase: GetSpendableNowAmountUseCase,
+    private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase
 ) : ViewModel() {
     private val walletId = savedStateHandle.get<String>("wallet_id").orEmpty()
     private val _state = MutableStateFlow(CoinListUiState())
@@ -74,6 +82,7 @@ class CoinListViewModel @Inject constructor(
                     getAllCoins()
                     getAllTags()
                     getAllCollections()
+                    getSpendableAmount()
                 }
             }
         }
@@ -84,15 +93,18 @@ class CoinListViewModel @Inject constructor(
                     getAllCoins()
                     getAllTags()
                     getAllCollections()
+                    getSpendableAmount()
                 }
         }
         refresh()
+        getMiniscriptInfo()
     }
 
     fun refresh() {
         getAllCoins()
         getAllTags()
         getAllCollections()
+        getSpendableAmount()
         _state.update { it.copy(selectedCoins = emptySet(), mode = CoinListMode.NONE) }
     }
 
@@ -240,6 +252,65 @@ class CoinListViewModel @Inject constructor(
     fun getSelectedCoins() = _state.value.selectedCoins.toList()
 
     fun getLockedCoins() = _state.value.coins.filter { it.isLocked }
+
+    private fun getSpendableAmount() {
+        viewModelScope.launch {
+            getSpendableNowAmountUseCase(walletId).onSuccess { amount ->
+                _state.update { state ->
+                    state.copy(spendableAmount = amount)
+                }
+            }
+        }
+    }
+
+    private fun getMiniscriptInfo() {
+        viewModelScope.launch {
+            getWalletDetail2UseCase(walletId).onSuccess { wallet ->
+                if (wallet.miniscript.isNotEmpty()) {
+                    getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
+                        val warningInfo = analyzeMiniscriptForTimelocks(result.scriptNode)
+                        _state.update { state ->
+                            state.copy(warningInfo = warningInfo)
+                        }
+                    }
+                } else {
+                    _state.update { state ->
+                        state.copy(warningInfo = null)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun analyzeMiniscriptForTimelocks(scriptNode: ScriptNode): TimelockWarningInfo {
+        var hasRelativeTimelock = false
+        var hasAbsoluteTimelock = false
+
+        // Use stack instead of recursion
+        val stack = mutableListOf<ScriptNode>()
+        stack.add(scriptNode)
+
+        while (stack.isNotEmpty()) {
+            val node = stack.removeAt(stack.size - 1)
+            
+            when (node.type) {
+                ScriptNodeType.OLDER.name -> {
+                    hasRelativeTimelock = true
+                }
+                ScriptNodeType.AFTER.name -> {
+                    hasAbsoluteTimelock = true
+                }
+            }
+            
+            // Add sub-nodes to stack for processing
+            stack.addAll(node.subs)
+        }
+
+        return TimelockWarningInfo(
+            hasRelativeTimelock = hasRelativeTimelock,
+            hasAbsoluteTimelock = hasAbsoluteTimelock,
+        )
+    }
 }
 
 sealed class CoinListEvent {

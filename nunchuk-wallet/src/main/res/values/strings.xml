@@ -100,6 +100,7 @@
     <string name="nc_customize_transaction">Customize transaction</string>
     <string name="nc_timelock_expiring_info">Timelock expiring in %1$s. View coins.</string>
     <string name="nc_spendable_now">Spendable now: %1$s</string>
+    <string name="nc_spendable_now_title">Spendable now</string>
     <string name="nc_consolidate_generate_address_error_msg">A consolidating address cannot be generated at this time. Please try again later.</string>
     <string name="nc_export_via_qr">Export via QR</string>
     <string name="nc_export_via_bbqr">Export via BBQR</string>

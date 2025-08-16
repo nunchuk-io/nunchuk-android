@@ -17,24 +17,24 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.wallet.components.coin.list
+package com.nunchuk.android.usecase.miniscript
 
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.CoinCollection
-import com.nunchuk.android.model.CoinTag
-import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-data class CoinListUiState(
-    val mode: CoinListMode = CoinListMode.NONE,
-    val coins: List<UnspentOutput> = emptyList(),
-    val tags: Map<Int, CoinTag> = emptyMap(),
-    val collections: Map<Int, CoinCollection> = emptyMap(),
-    val selectedCoins: Set<UnspentOutput> = setOf(),
-    val spendableAmount: Amount = Amount(0L),
-    val warningInfo: TimelockWarningInfo? = null,
-)
+class GetSpendableNowAmountUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : UseCase<String, Amount>(ioDispatcher) {
+    override suspend fun execute(parameters: String): Amount {
+        return nativeSdk.getSpendableNowAmount(
+            walletId = parameters
+        )
+    }
+}
 
-data class TimelockWarningInfo(
-    val hasRelativeTimelock: Boolean = false,
-    val hasAbsoluteTimelock: Boolean = false,
-)
+

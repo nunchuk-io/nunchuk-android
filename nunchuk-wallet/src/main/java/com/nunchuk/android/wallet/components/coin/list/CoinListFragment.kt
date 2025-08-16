@@ -28,7 +28,11 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,28 +43,34 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.HighlightMessageType
+import com.nunchuk.android.compose.NcHintMessage
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.coin.MODE_SELECT
 import com.nunchuk.android.compose.coin.MODE_VIEW_DETAIL
-import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.coin.PreviewCoinCard
 import com.nunchuk.android.compose.controlFillPrimary
 import com.nunchuk.android.compose.controlTextPrimary
+import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -68,6 +78,7 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.fromSATtoBTC
+import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.UnspentOutput
@@ -116,7 +127,11 @@ class CoinListFragment : BaseCoinListFragment() {
                                     title = getString(R.string.nc_confirmation),
                                     message = getString(R.string.nc_locked_coin_can_not_used),
                                     onYesClick = {
-                                        coinListViewModel.onUnlockCoin(args.walletId, selectedCoins, true)
+                                        coinListViewModel.onUnlockCoin(
+                                            args.walletId,
+                                            selectedCoins,
+                                            true
+                                        )
                                     }
                                 )
                         } else {
@@ -323,6 +338,8 @@ private fun CoinListScreen(
         coins = filterCoins,
         tags = state.tags,
         selectedCoin = state.selectedCoins,
+        spendableAmount = state.spendableAmount,
+        warningInfo = state.warningInfo,
         onSelectCoin = viewModel::onCoinSelect,
         onSelectOrUnselectAll = viewModel::onSelectOrUnselectAll,
         onSelectDone = viewModel::onSelectDone,
@@ -343,6 +360,8 @@ private fun CoinListContent(
     coins: List<UnspentOutput> = emptyList(),
     tags: Map<Int, CoinTag> = emptyMap(),
     selectedCoin: Set<UnspentOutput> = emptySet(),
+    spendableAmount: Amount = Amount(0L),
+    warningInfo: TimelockWarningInfo? = null,
     enableSelectMode: () -> Unit = {},
     enableSearchMode: () -> Unit = {},
     onSelectOrUnselectAll: (isSelect: Boolean, coins: List<UnspentOutput>) -> Unit = { _, _ -> },
@@ -415,6 +434,15 @@ private fun CoinListContent(
                 }
             }) { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding)) {
+                // Spendable amount section
+                if (type == CoinListType.ALL && spendableAmount.value > 0) {
+                    SpendableAmountSection(spendableAmount = spendableAmount)
+                    // Warning info section
+                    warningInfo?.let { info ->
+                        TimelockWarningSection(warningInfo = info)
+                    }
+                }
+
                 LazyColumn(modifier = Modifier.weight(1f), state = listState) {
                     items(coins) { coin ->
                         PreviewCoinCard(
@@ -440,6 +468,64 @@ private fun CoinListContent(
     }
 }
 
+@Composable
+private fun SpendableAmountSection(spendableAmount: Amount) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = MaterialTheme.colorScheme.lightGray)
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.nc_spendable_now_title),
+                style = NunchukTheme.typography.titleSmall,
+            )
+            Text(
+                text = spendableAmount.getBTCAmount(),
+                style = NunchukTheme.typography.titleSmall,
+            )
+        }
+    }
+}
+
+@Composable
+private fun TimelockWarningSection(warningInfo: TimelockWarningInfo) {
+    val warningMessage = when {
+        warningInfo.hasRelativeTimelock && warningInfo.hasAbsoluteTimelock -> {
+            "Move coins to reset a soon-expiring relative timelock. Absolute timelocks can't be reset, so after expiry, move funds to a new wallet to reuse signing policies."
+        }
+
+        warningInfo.hasRelativeTimelock -> {
+            "Move coins with a soon-expiring timelock to another address in this wallet to reset the timelock."
+        }
+
+        warningInfo.hasAbsoluteTimelock -> {
+            "Absolute timelocks can't be reset. After expiry, consider moving funds to a new wallet with the same policies if you want to reuse them."
+        }
+
+        else -> null
+    }
+
+    if (warningMessage != null) {
+        NcHintMessage(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            type = HighlightMessageType.HINT
+        ) {
+            Text(
+                text = warningMessage,
+                style = NunchukTheme.typography.titleSmall,
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun CoinListScreenPreview() {
@@ -459,6 +545,10 @@ private fun CoinListScreenPreview() {
             coin.copy(vout = 3),
             coin.copy(vout = 4),
             coin.copy(vout = 5)
-        )
+        ),
+        spendableAmount = Amount(1000000L),
+        warningInfo = TimelockWarningInfo(
+            hasAbsoluteTimelock = true
+        ),
     )
 }
