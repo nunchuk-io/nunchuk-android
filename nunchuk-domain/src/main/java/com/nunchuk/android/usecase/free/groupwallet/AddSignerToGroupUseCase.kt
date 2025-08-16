@@ -16,13 +16,15 @@ class AddSignerToGroupUseCase @Inject constructor(
         return nativeSdk.addSignerToGroup(
             groupId = parameters.groupId,
             signer = parameters.signer,
-            index = parameters.index
+            index = parameters.index,
+            keyName = parameters.keyName.orEmpty()
         )
     }
 
     data class Params(
         val groupId: String,
         val signer: SingleSigner,
-        val index: Int
+        val index: Int,
+        val keyName: String? = null
     )
 }

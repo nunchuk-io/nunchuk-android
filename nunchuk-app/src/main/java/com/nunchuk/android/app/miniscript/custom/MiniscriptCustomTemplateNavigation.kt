@@ -52,7 +52,7 @@ data class MiniscriptCustomTemplate(
 fun NavGraphBuilder.miniscriptCustomTemplateDestination(
     fromAddWallet: Boolean = false,
     onNext: (String, AddressType?) -> Unit = { _, _ -> },
-    onSaveAndBack: () -> Unit = {}
+    onSaveAndBack: (String) -> Unit = {}
 ) {
     composable<MiniscriptCustomTemplate> { navBackStackEntry ->
         val data: MiniscriptCustomTemplate = navBackStackEntry.toRoute()
@@ -99,11 +99,7 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
                     }
                     // Don't clear event here - let the Success event be processed
                 }
-                is MiniscriptCustomTemplateEvent.SavedToLocal -> {
-                    Timber.tag("miniscript-feature").d("Miniscript saved to local successfully")
-                    onSaveAndBack()
-                    viewModel.clearEvent()
-                }
+
                 null -> {}
             }
         }
@@ -113,7 +109,8 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
             fromAddWallet = fromAddWallet,
             onContinue = { template ->
                 if (fromAddWallet) {
-                    viewModel.saveMiniscriptToLocal(MiniscriptUtil.revertFormattedMiniscript(template))
+                    // For AddWallet flow, directly call onSaveAndBack with the template
+                    onSaveAndBack(MiniscriptUtil.revertFormattedMiniscript(template))
                 } else {
                     viewModel.createMiniscriptTemplate(MiniscriptUtil.revertFormattedMiniscript(template), data.addressType)
                 }
@@ -138,7 +135,7 @@ fun MiniscriptCustomTemplateScreen(
     template: String = "",
     fromAddWallet: Boolean = false,
     onContinue: (String) -> Unit = {},
-    onSaveAndBack: () -> Unit = {},
+    onSaveAndBack: (String) -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     showTaprootWarning: Boolean = false,
     onTaprootWarningDismiss: () -> Unit = {},

@@ -22,6 +22,7 @@ package com.nunchuk.android.nav.args
 import android.content.Intent
 import android.os.Bundle
 import com.nunchuk.android.core.data.model.QuickWalletParam
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getStringValue
 import com.nunchuk.android.model.SingleSigner
@@ -30,6 +31,34 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.utils.serializable
+
+// Data class for named signers that can be properly serialized
+data class NamedSigner(
+    val keyName: String,
+    val signer: SignerModel?
+) : android.os.Parcelable {
+    constructor(parcel: android.os.Parcel) : this(
+        parcel.readString() ?: "",
+        parcel.readParcelable<SignerModel>(SignerModel::class.java.classLoader)
+    )
+
+    override fun writeToParcel(parcel: android.os.Parcel, flags: Int) {
+        parcel.writeString(keyName)
+        parcel.writeParcelable(signer, flags)
+    }
+
+    override fun describeContents(): Int = 0
+
+    companion object CREATOR : android.os.Parcelable.Creator<NamedSigner> {
+        override fun createFromParcel(parcel: android.os.Parcel): NamedSigner {
+            return NamedSigner(parcel)
+        }
+
+        override fun newArray(size: Int): Array<NamedSigner?> {
+            return arrayOfNulls(size)
+        }
+    }
+}
 
 data class ReviewWalletArgs(
     val walletName: String,
@@ -41,6 +70,12 @@ data class ReviewWalletArgs(
     val groupId: String = "",
     val isValueKeySetEnable: Boolean = false,
     val quickWalletParam: QuickWalletParam? = null,
+    // Miniscript-related fields
+    val scriptNode: com.nunchuk.android.model.ScriptNode? = null,
+    val scriptNodeMuSig: com.nunchuk.android.model.ScriptNode? = null,
+    val keyPath: List<String> = emptyList(),
+    val namedSigners: List<NamedSigner> = emptyList(),
+    val supportedTypes: List<com.nunchuk.android.model.signer.SupportedSigner> = emptyList(),
 ) {
 
     fun buildBundle() = Bundle().apply {
@@ -53,6 +88,12 @@ data class ReviewWalletArgs(
         putString(EXTRA_GROUP_ID, groupId)
         putBoolean(EXTRA_VALUE_KEY_SET_ENABLE, isValueKeySetEnable)
         putParcelable(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
+        // Miniscript fields
+        putParcelable(EXTRA_SCRIPT_NODE, scriptNode)
+        putParcelable(EXTRA_SCRIPT_NODE_MU_SIG, scriptNodeMuSig)
+        putStringArrayList(EXTRA_KEY_PATH, ArrayList(keyPath))
+        putParcelableArrayList(EXTRA_NAMED_SIGNERS, ArrayList(namedSigners))
+        putParcelableArrayList(EXTRA_SUPPORTED_TYPES, ArrayList(supportedTypes))
     }
 
     companion object {
@@ -65,6 +106,11 @@ data class ReviewWalletArgs(
         private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
         private const val EXTRA_VALUE_KEY_SET_ENABLE = "EXTRA_VALUE_KEY_SET_ENABLE"
         private const val EXTRA_QUICK_WALLET_PARAM = "EXTRA_QUICK_WALLET_PARAM"
+        private const val EXTRA_SCRIPT_NODE = "EXTRA_SCRIPT_NODE"
+        private const val EXTRA_SCRIPT_NODE_MU_SIG = "EXTRA_SCRIPT_NODE_MU_SIG"
+        private const val EXTRA_KEY_PATH = "EXTRA_KEY_PATH"
+        private const val EXTRA_NAMED_SIGNERS = "EXTRA_NAMED_SIGNERS"
+        private const val EXTRA_SUPPORTED_TYPES = "EXTRA_SUPPORTED_TYPES"
 
         fun deserializeFrom(intent: Intent): ReviewWalletArgs = ReviewWalletArgs(
             intent.extras.getStringValue(EXTRA_WALLET_NAME),
@@ -76,6 +122,12 @@ data class ReviewWalletArgs(
             intent.extras.getStringValue(EXTRA_GROUP_ID),
             intent.extras.getBooleanValue(EXTRA_VALUE_KEY_SET_ENABLE, false),
             intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM),
+            // Miniscript fields
+            intent.parcelable<com.nunchuk.android.model.ScriptNode>(EXTRA_SCRIPT_NODE),
+            intent.parcelable<com.nunchuk.android.model.ScriptNode>(EXTRA_SCRIPT_NODE_MU_SIG),
+            intent.getStringArrayListExtra(EXTRA_KEY_PATH)?.toList() ?: emptyList(),
+            intent.parcelableArrayList<NamedSigner>(EXTRA_NAMED_SIGNERS).orEmpty(),
+            intent.parcelableArrayList<com.nunchuk.android.model.signer.SupportedSigner>(EXTRA_SUPPORTED_TYPES) ?: emptyList(),
         )
     }
 

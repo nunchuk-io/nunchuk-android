@@ -54,7 +54,6 @@ interface SettingRepository {
     val firstCreateEmail: Flow<String>
     val hasWalletInGuestMode: Flow<Boolean>
     val walletBannerStatesFlow: Flow<List<WalletBannerState>>
-    val miniscriptLocal: Flow<String>
     suspend fun setSyncEnable(isEnable: Boolean)
     suspend fun setQrDensity(density: Int)
     suspend fun markSyncRoomSuccess()
@@ -86,6 +85,4 @@ interface SettingRepository {
     suspend fun getWalletBannerState(walletId: String): BannerState?
     suspend fun removeWalletBannerState(walletId: String)
     suspend fun updateWalletBannerState(walletId: String, newState: BannerState)
-    suspend fun setMiniscriptLocal(miniscript: String)
-    suspend fun clearMiniscriptLocal()
 }

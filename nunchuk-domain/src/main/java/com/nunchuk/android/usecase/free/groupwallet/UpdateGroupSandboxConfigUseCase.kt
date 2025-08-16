@@ -18,7 +18,8 @@ class UpdateGroupSandboxConfigUseCase @Inject constructor(
             name = parameters.name,
             m = parameters.m,
             n = parameters.n,
-            addressType = parameters.addressType.ordinal
+            addressType = parameters.addressType.ordinal,
+            scriptTmpl = parameters.scriptTmpl.orEmpty()
         )
     }
 
@@ -27,6 +28,7 @@ class UpdateGroupSandboxConfigUseCase @Inject constructor(
         val name: String,
         val m: Int,
         val n: Int,
-        val addressType: AddressType
+        val addressType: AddressType,
+        val scriptTmpl: String? = null,
     )
 }

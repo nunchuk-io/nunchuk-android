@@ -433,46 +433,11 @@ private fun TaprootAddressContent(
     getDuplicateSignerKeys: (Map<String, SignerModel?>, List<SignerModel>) -> Set<String>,
     parentModifier: Modifier = Modifier
 ) {
-    if (uiState.addressType == AddressType.TAPROOT && uiState.keyPath.size == 1) {
-        MiniscriptTaproot(
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-            keyPath = uiState.keyPath.first(),
-            data = ScriptNodeData(
-                mode = ScriptMode.CONFIG,
-                signers = uiState.signers,
-                showBip32Path = showBip32Path,
-                duplicateSignerKeys = if (uiState.showBip32PathForDuplicates) {
-                    getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner)
-                } else emptySet()
-            ),
-            signer = if (uiState.keyPath.isNotEmpty() && uiState.taprootSigner.isNotEmpty()) uiState.taprootSigner.first() else null,
-            onChangeBip32Path = onChangeBip32Path,
-            onActionKey = onActionKey
-        )
-
-        // Add Script path badge
-        NcBadgePrimary(
-            modifier = Modifier.padding(
-                top = 16.dp,
-                bottom = 8.dp,
-                start = 16.dp,
-                end = 16.dp
-            ),
-            text = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_script_path),
-            enabled = true
-        )
-    }
-
-    if (uiState.addressType == AddressType.TAPROOT && uiState.keyPath.size > 1 && uiState.scriptNodeMuSig != null) {
-        NcBadgePrimary(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            text = "Key path" ,
-            enabled = true,
-        )
-
-        Column(modifier = parentModifier) {
-            ScriptNodeTree(
-                node = uiState.scriptNodeMuSig,
+    if (uiState.addressType == AddressType.TAPROOT) {
+        if (uiState.keyPath.size <= 1) {
+            MiniscriptTaproot(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                keyPath = uiState.keyPath.firstOrNull().orEmpty(),
                 data = ScriptNodeData(
                     mode = ScriptMode.CONFIG,
                     signers = uiState.signers,
@@ -481,9 +446,32 @@ private fun TaprootAddressContent(
                         getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner)
                     } else emptySet()
                 ),
+                signer = if (uiState.keyPath.isNotEmpty() && uiState.taprootSigner.isNotEmpty()) uiState.taprootSigner.first() else null,
                 onChangeBip32Path = onChangeBip32Path,
                 onActionKey = onActionKey
             )
+        } else if (uiState.scriptNodeMuSig != null) {
+            NcBadgePrimary(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                text = "Key path",
+                enabled = true,
+            )
+
+            Column(modifier = parentModifier) {
+                ScriptNodeTree(
+                    node = uiState.scriptNodeMuSig,
+                    data = ScriptNodeData(
+                        mode = ScriptMode.CONFIG,
+                        signers = uiState.signers,
+                        showBip32Path = showBip32Path,
+                        duplicateSignerKeys = if (uiState.showBip32PathForDuplicates) {
+                            getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner)
+                        } else emptySet()
+                    ),
+                    onChangeBip32Path = onChangeBip32Path,
+                    onActionKey = onActionKey
+                )
+            }
         }
 
         // Add Script path badge

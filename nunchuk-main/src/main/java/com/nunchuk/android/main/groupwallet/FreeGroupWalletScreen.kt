@@ -44,6 +44,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.nunchuk.android.compose.NcBadgePrimary
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
@@ -52,12 +53,18 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
+import com.nunchuk.android.compose.miniscript.MiniscriptTaproot
+import com.nunchuk.android.compose.miniscript.PolicyHeader
+import com.nunchuk.android.compose.miniscript.ScriptMode
+import com.nunchuk.android.compose.miniscript.ScriptNodeData
+import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.pullrefresh.PullRefreshIndicator
 import com.nunchuk.android.compose.pullrefresh.pullRefresh
 import com.nunchuk.android.compose.pullrefresh.rememberPullRefreshState
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.main.R
@@ -67,7 +74,12 @@ import com.nunchuk.android.main.groupwallet.component.WalletInfo
 import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.model.GroupSandbox
+import com.nunchuk.android.model.ScriptNode
+import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
+import timber.log.Timber
 
 const val freeGroupWalletRoute = "free_group_wallet"
 val avatarColors = listOf(
@@ -83,7 +95,7 @@ val avatarColors = listOf(
 fun NavGraphBuilder.freeGroupWallet(
     viewModel: FreeGroupWalletViewModel,
     snackState: SnackbarHostState,
-    onEditClicked: (String, Boolean) -> Unit = { _, _ -> },
+    onEditClicked: (String, Boolean, String) -> Unit = { _, _, _ -> },
     onCopyLinkClicked: (String) -> Unit = {},
     onShowQRCodeClicked: (String) -> Unit = {},
     onAddNewKey: (Int) -> Unit = {},
@@ -95,6 +107,8 @@ fun NavGraphBuilder.freeGroupWallet(
     onChangeBip32Path: (Int, SignerModel) -> Unit = { _, _ -> },
     openWalletDetail: (String) -> Unit,
     refresh: () -> Unit,
+    onAddNewKeyForMiniscript: (List<SupportedSigner>) -> Unit = {},
+    onStartAddKeyForMiniscript: (String) -> Unit = {},
 ) {
     composable(
         route = freeGroupWalletRoute,
@@ -129,7 +143,7 @@ fun NavGraphBuilder.freeGroupWallet(
             onContinueClicked = onContinueClicked,
             onEditClicked = {
                 state.group?.let {
-                    onEditClicked(it.id, state.signers.any { it != null })
+                    onEditClicked(it.id, state.signers.any { it != null }, it.miniscriptTemplate)
                 }
             },
             onCopyLinkClicked = onCopyLinkClicked,
@@ -140,7 +154,21 @@ fun NavGraphBuilder.freeGroupWallet(
             returnToHome = returnToHome,
             onStartAddKey = onStartAddKey,
             onChangeBip32Path = onChangeBip32Path,
-            refresh = refresh
+            refresh = refresh,
+            onAddNewKeyForMiniscript = onAddNewKeyForMiniscript,
+            onAddExistingKeyForMiniscript = { signer, keyName ->
+                viewModel.addExistingSignerForKey(signer, keyName)
+            },
+            onSetCurrentKey = { keyName ->
+                viewModel.setCurrentKeyToAssign(keyName)
+            },
+            onStartAddKeyForMiniscript = onStartAddKeyForMiniscript,
+            onRemoveSignerForKey = { keyName ->
+                viewModel.removeSignerForKey(keyName)
+            },
+            onMarkEventHandled = {
+                viewModel.markEventHandled()
+            }
         )
     }
 }
@@ -162,6 +190,13 @@ fun FreeGroupWalletScreen(
     onStartAddKey: (Int) -> Unit = {},
     onChangeBip32Path: (Int, SignerModel) -> Unit = { _, _ -> },
     refresh: () -> Unit = {},
+    // New parameters for key actions
+    onAddNewKeyForMiniscript: (List<SupportedSigner>) -> Unit = {},
+    onAddExistingKeyForMiniscript: (SignerModel, String) -> Unit = { _, _ -> },
+    onSetCurrentKey: (String) -> Unit = {},
+    onStartAddKeyForMiniscript: (String) -> Unit = {}, // ← NEW: For Miniscript slot management
+    onRemoveSignerForKey: (String) -> Unit = {},
+    onMarkEventHandled: () -> Unit = {},
 ) {
     val pullRefreshState = rememberPullRefreshState(state.isRefreshing, refresh)
     var showSignerBottomSheet by rememberSaveable { mutableStateOf(false) }
@@ -171,12 +206,46 @@ fun FreeGroupWalletScreen(
     var showDeleteSignerDialog by rememberSaveable { mutableStateOf(false) }
     var showKeyNotSynced by rememberSaveable { mutableStateOf(false) }
     var showBip32Path by rememberSaveable { mutableStateOf(false) }
+    
+    // New state variables for key actions
+    var showRemoveConfirmation by rememberSaveable { mutableStateOf(false) }
+    var keyToRemove by rememberSaveable { mutableStateOf("") }
+    var showDuplicateSignerWarning by rememberSaveable { mutableStateOf(false) }
+    var duplicateSignerData by rememberSaveable { mutableStateOf<Pair<SignerModel, String>?>(null) }
+    
     val isInReplace = state.isInReplaceMode
     val isButtonEnabled = if (state.group != null) {
         val signers = if (isInReplace) state.replaceSigners else state.signers
         signers.count { it != null } == state.group.n && state.group.n > 0
     } else {
         false
+    }
+    
+    // Handle events from ViewModel
+    LaunchedEffect(state.event) {
+        when (val event = state.event) {
+            is FreeGroupWalletEvent.Loading -> {
+                // Handle loading state if needed
+            }
+            is FreeGroupWalletEvent.Error -> {
+                // Handle error state if needed
+                onMarkEventHandled()
+            }
+            is FreeGroupWalletEvent.SignerAdded -> {
+                // Handle signer added event if needed
+                onMarkEventHandled()
+            }
+            is FreeGroupWalletEvent.SignerRemoved -> {
+                // Handle signer removed event if needed
+                onMarkEventHandled()
+            }
+            is FreeGroupWalletEvent.ShowDuplicateSignerWarning -> {
+                duplicateSignerData = event.signer to event.keyName
+                showDuplicateSignerWarning = true
+                onMarkEventHandled()
+            }
+            null -> {}
+        }
     }
     NcScaffold(
         snackState = snackState,
@@ -282,6 +351,7 @@ fun FreeGroupWalletScreen(
                         requireSigns = state.group?.m ?: 0,
                         totalSigns = state.group?.n ?: 0,
                         addressType = state.group?.addressType,
+                        walletType = state.group?.walletType,
                         onEditClicked = onEditClicked,
                         onCopyLinkClicked = {
                             state.group?.let { onCopyLinkClicked(it.url) }
@@ -292,44 +362,126 @@ fun FreeGroupWalletScreen(
                     )
                 }
 
-                item {
-                    UserOnline(state.numberOfOnlineUsers)
-                }
+                if (state.group?.walletType == WalletType.MINISCRIPT) {
 
-                var colorIndex = 0
-                itemsIndexed(state.signers) { index, signer ->
-                    FreeAddKeyCard(
-                        index = index,
-                        isOccupied = state.occupiedSlotsIndex.contains(index),
-                        signer = signer,
-                        replacedSigner = state.replaceSigners.getOrNull(index),
-                        onAddClicked = {
-                            currentSignerIndex = index
-                            onStartAddKey(index)
-                            if (state.allSigners.isNotEmpty()) {
-                                showSignerBottomSheet = true
-                            } else {
-                                onAddNewKey(index)
+                    item {
+                        PolicyHeader(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 20.dp),
+                            showUserAvatars = true,
+                            numberOfOnlineUsers = state.numberOfOnlineUsers,
+                        )
+
+                        TaprootAddressContent(
+                            state = state,
+                            showBip32Path = showBip32Path,
+                            onChangeBip32Path = onChangeBip32Path,
+                            onActionKey = { keyPath, signer ->
+                                Timber.tag("miniscript-feature").d("TaprootAddressContent.onActionKey called: keyPath=$keyPath, signer=${signer?.name}, showSignerBottomSheet=$showSignerBottomSheet")
+                                // Handle key actions for Miniscript
+                                onSetCurrentKey(keyPath)
+                                if (signer != null) {
+                                    // If there's already a signer, show remove confirmation
+                                    keyToRemove = keyPath
+                                    showRemoveConfirmation = true
+                                    Timber.tag("miniscript-feature").d("TaprootAddressContent: Setting showRemoveConfirmation=true for keyPath=$keyPath")
+                                } else {
+                                    // If no signer, show add options
+                                    onStartAddKeyForMiniscript(keyPath)
+                                    if (state.allSigners.isNotEmpty()) {
+                                        showSignerBottomSheet = true
+                                        Timber.tag("miniscript-feature").d("TaprootAddressContent: Setting showSignerBottomSheet=true for keyPath=$keyPath")
+                                    } else {
+                                        onAddNewKeyForMiniscript(state.supportedTypes)
+                                        Timber.tag("miniscript-feature").d("TaprootAddressContent: Calling onAddNewKeyForMiniscript for keyPath=$keyPath")
+                                    }
+                                }
                             }
-                        },
-                        onRemoveOrReplaceClicked = { isReplace ->
-                            currentSignerIndex = index
-                            if (isReplace) {
+                        )
+
+                        state.scriptNode?.let { scriptNode ->
+                            // Calculate total number of keys to determine starting colorIndex
+                            val totalKeys = countTotalKeys(scriptNode)
+                            val startingColorIndex = 0
+                            Timber.tag("miniscript-feature").d("Main ScriptNodeTree: Total keys = $totalKeys, starting with colorIndex = $startingColorIndex")
+                            ScriptNodeTree(
+                                node = scriptNode,
+                                data = ScriptNodeData(
+                                    mode = ScriptMode.CONFIG,
+                                    signers = state.namedSigners,
+                                    showBip32Path = true,
+                                    isGroupWallet = true,
+                                    occupiedSlots = state.namedOccupied.also { 
+                                        Timber.tag("miniscript-feature").d("ScriptNodeTree: Passing occupiedSlots: $it")
+                                    }, // ← NEW: Pass occupied slots
+                                    colorIndex = startingColorIndex // ← NEW: Pass colorIndex for avatar colors
+                                ),
+                                onChangeBip32Path = { _, _ -> },
+                                onActionKey = { keyPath, signer ->
+                                    Timber.tag("miniscript-feature").d("ScriptNodeTree.onActionKey called: keyPath=$keyPath, signer=${signer?.name}, showSignerBottomSheet=$showSignerBottomSheet")
+                                    // Handle key actions for Miniscript
+                                    onSetCurrentKey(keyPath)
+                                    if (signer != null) {
+                                        // If there's already a signer, show remove confirmation
+                                        keyToRemove = keyPath
+                                        showRemoveConfirmation = true
+                                        Timber.tag("miniscript-feature").d("ScriptNodeTree: Setting showRemoveConfirmation=true for keyPath=$keyPath")
+                                    } else {
+                                        // If no signer, show add options
+                                        onStartAddKeyForMiniscript(keyPath) // ← NEW: Call slot management
+                                        if (state.allSigners.isNotEmpty()) {
+                                            showSignerBottomSheet = true
+                                            Timber.tag("miniscript-feature").d("ScriptNodeTree: Setting showSignerBottomSheet=true for keyPath=$keyPath")
+                                        } else {
+                                            onAddNewKeyForMiniscript(state.supportedTypes)
+                                            Timber.tag("miniscript-feature").d("ScriptNodeTree: Calling onAddNewKeyForMiniscript for keyPath=$keyPath")
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                    }
+                } else {
+                    item {
+                        UserOnline(state.numberOfOnlineUsers)
+                    }
+
+                    var colorIndex = 0
+                    itemsIndexed(state.signers) { index, signer ->
+                        FreeAddKeyCard(
+                            index = index,
+                            isOccupied = state.occupiedSlotsIndex.contains(index),
+                            signer = signer,
+                            replacedSigner = state.replaceSigners.getOrNull(index),
+                            onAddClicked = {
+                                currentSignerIndex = index
                                 onStartAddKey(index)
                                 if (state.allSigners.isNotEmpty()) {
                                     showSignerBottomSheet = true
                                 } else {
                                     onAddNewKey(index)
                                 }
-                            } else {
-                                showDeleteSignerDialog = true
-                            }
-                        },
-                        showBip32Path = showBip32Path,
-                        onChangeBip32Path = onChangeBip32Path,
-                        avatarColor = if (signer?.isVisible == false) avatarColors[colorIndex++ % avatarColors.size] else avatarColors[0],
-                        isInReplace = isInReplace,
-                    )
+                            },
+                            onRemoveOrReplaceClicked = { isReplace ->
+                                currentSignerIndex = index
+                                if (isReplace) {
+                                    onStartAddKey(index)
+                                    if (state.allSigners.isNotEmpty()) {
+                                        showSignerBottomSheet = true
+                                    } else {
+                                        onAddNewKey(index)
+                                    }
+                                } else {
+                                    showDeleteSignerDialog = true
+                                }
+                            },
+                            showBip32Path = showBip32Path,
+                            onChangeBip32Path = onChangeBip32Path,
+                            avatarColor = if (signer?.isVisible == false) avatarColors[colorIndex++ % avatarColors.size] else avatarColors[0],
+                            isInReplace = isInReplace,
+                        )
+                    }
                 }
             }
 
@@ -365,7 +517,8 @@ fun FreeGroupWalletScreen(
             )
         }
 
-        if (showSignerBottomSheet) {
+        // Legacy signer selection bottom sheet (only for non-Miniscript wallets or when no currentKeyToAssign)
+        if (showSignerBottomSheet && state.currentKeyToAssign.isEmpty()) {
             val addedSigners = state.signers.filterNotNull().map { it.fingerPrint }.toSet()
             val allSigners = state.allSigners.filter {
                 !addedSigners.contains(it.fingerPrint)
@@ -448,7 +601,150 @@ fun FreeGroupWalletScreen(
                 }
             )
         }
+        
+        // Key action UI components
+        if (showRemoveConfirmation) {
+            NcConfirmationDialog(
+                title = stringResource(id = R.string.nc_text_warning),
+                message = "Are you sure you want to remove the signer from this key?",
+                onPositiveClick = {
+                    onRemoveSignerForKey(keyToRemove)
+                    showRemoveConfirmation = false
+                    keyToRemove = ""
+                },
+                onDismiss = {
+                    showRemoveConfirmation = false
+                    keyToRemove = ""
+                }
+            )
+        }
+        
+        if (showDuplicateSignerWarning && duplicateSignerData != null) {
+            val (signer, keyName) = duplicateSignerData!!
+            NcInfoDialog(
+                title = stringResource(id = R.string.nc_text_warning),
+                message = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_duplicate_signer_message),
+                onPositiveClick = {
+                    showDuplicateSignerWarning = false
+                    duplicateSignerData = null
+                },
+                onDismiss = {
+                    showDuplicateSignerWarning = false
+                    duplicateSignerData = null
+                }
+            )
+        }
+        
+        // Miniscript signer selection bottom sheet
+        if (showSignerBottomSheet && state.currentKeyToAssign.isNotEmpty()) {
+            Timber.tag("miniscript-feature").d("Showing SelectSignerBottomSheet: currentKeyToAssign=${state.currentKeyToAssign}")
+            val allSigners = state.allSigners.filter {
+                !state.namedSigners.values.filterNotNull().contains(it)
+            }
+            if (allSigners.isNotEmpty()) {
+                SelectSignerBottomSheet(
+                    onDismiss = { showSignerBottomSheet = false },
+                    supportedSigners = state.supportedTypes.takeIf { state.group?.addressType?.isTaproot() == true }
+                        .orEmpty(),
+                    onAddExistKey = { signer ->
+                        showSignerBottomSheet = false
+                        onAddExistingKeyForMiniscript(signer, state.currentKeyToAssign)
+                        Timber.tag("miniscript-feature").d("SelectSignerBottomSheet: adding existing key ${signer.name} to ${state.currentKeyToAssign}")
+                    },
+                    onAddNewKey = {
+                        showSignerBottomSheet = false
+                        onAddNewKeyForMiniscript(state.supportedTypes)
+                        Timber.tag("miniscript-feature").d("SelectSignerBottomSheet: adding new key")
+                    },
+                    args = TapSignerListBottomSheetFragmentArgs(
+                        signers = allSigners.toTypedArray(),
+                        type = SignerType.UNKNOWN
+                    )
+                )
+            } else {
+                showSignerBottomSheet = false
+                onAddNewKeyForMiniscript(state.supportedTypes)
+                Timber.tag("miniscript-feature").d("No allSigners available, calling onAddNewKeyForMiniscript directly")
+            }
+        }
     }
+}
+
+@Composable
+private fun TaprootAddressContent(
+    state: FreeGroupWalletUiState,
+    showBip32Path: Boolean,
+    onChangeBip32Path: (Int, SignerModel) -> Unit,
+    onActionKey: (String, SignerModel?) -> Unit = { _, _ -> },
+    parentModifier: Modifier = Modifier
+) {
+    if (state.group?.addressType?.isTaproot() == true) {
+        if (state.keyPath.size <= 1) {
+            MiniscriptTaproot(
+                keyPath = state.keyPath.firstOrNull().orEmpty(),
+                data = ScriptNodeData(
+                    mode = ScriptMode.CONFIG,
+                    signers = state.namedSigners,
+                    showBip32Path = showBip32Path,
+                    occupiedSlots = state.namedOccupied
+                ),
+                signer = if (state.keyPath.isNotEmpty() && state.signers.isNotEmpty()) state.signers.first() else null,
+                onChangeBip32Path = { keyPath, signer ->
+                    val index = state.keyPath.indexOf(keyPath)
+                    if (index != -1) {
+                        onChangeBip32Path(index, signer)
+                    }
+                },
+                onActionKey = onActionKey
+            )
+        } else if (state.scriptNodeMuSig != null) {
+            NcBadgePrimary(
+                modifier = Modifier.padding(vertical = 8.dp),
+                text = "Key path",
+                enabled = true,
+            )
+
+            Column(modifier = parentModifier) {
+                val startingColorIndex = 100
+                ScriptNodeTree(
+                    node = state.scriptNodeMuSig,
+                    data = ScriptNodeData(
+                        mode = ScriptMode.CONFIG,
+                        signers = state.namedSigners,
+                        showBip32Path = showBip32Path,
+                        isGroupWallet = true,
+                        occupiedSlots = state.namedOccupied,
+                        colorIndex = startingColorIndex
+                    ),
+                    onChangeBip32Path = { keyPath, signer ->
+                        val index = state.keyPath.indexOf(keyPath)
+                        if (index != -1) {
+                            onChangeBip32Path(index, signer)
+                        }
+                    },
+                    onActionKey = onActionKey
+                )
+            }
+        }
+        // Add Script path badge
+        NcBadgePrimary(
+            modifier = Modifier.padding(
+                top = 16.dp,
+                bottom = 8.dp,
+            ),
+            text = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_script_path),
+            enabled = true
+        )
+    }
+}
+
+// Helper function to count total keys in a ScriptNode tree
+private fun countTotalKeys(node: ScriptNode): Int {
+    var count = node.keys.size
+    node.subs.forEach { subNode ->
+        count += countTotalKeys(subNode)
+    }
+    return count
 }
 
 @PreviewLightDark
@@ -461,7 +757,62 @@ private fun GroupWalletScreenPreview(
         FreeGroupWalletScreen(
             state = FreeGroupWalletUiState(
                 signers = signers + addedSigner + null,
-                numberOfOnlineUsers = 2
+                numberOfOnlineUsers = 2,
+                group = GroupSandbox(
+                    id = "group1",
+                    name = "Test Group Wallet",
+                    m = 2,
+                    n = 3,
+                    addressType = AddressType.TAPROOT,
+                    walletType = WalletType.MINISCRIPT,
+                    url = "https://example.com/group-wallet",
+                    replaceWalletId = "",
+                    miniscriptTemplate = "tr(A,{and_v(v:multi_a(2,B,C,D),older(6)),multi_a(2,B,E)})",
+                    namedSigners = emptyMap(),
+                    namedOccupied = emptyMap(),
+                    signers = emptyList(),
+                    finalized = false,
+                    walletId = "",
+                    occupiedSlots = emptyList()
+                ),
+                scriptNode = ScriptNode(
+                    id = emptyList(),
+                    data = byteArrayOf(),
+                    type = ScriptNodeType.ANDOR.name,
+                    keys = listOf(),
+                    k = 0,
+                    timeLock = null,
+                    subs = listOf(
+                        ScriptNode(
+                            type = ScriptNodeType.ANDOR.name,
+                            keys = listOf(),
+                            subs = listOf(
+                                ScriptNode(
+                                    type = ScriptNodeType.ANDOR.name,
+                                    keys = listOf("key_0_0", "key_1_0"),
+                                    subs = emptyList(),
+                                    k = 0,
+                                    id = emptyList(),
+                                    data = byteArrayOf(),
+                                    timeLock = null
+                                )
+                            ),
+                            k = 0,
+                            id = emptyList(),
+                            data = byteArrayOf(),
+                            timeLock = null
+                        ),
+                        ScriptNode(
+                            type = ScriptNodeType.SHA256.name,
+                            keys = listOf("key_0_1", "key_1_1"),
+                            subs = emptyList(),
+                            k = 0,
+                            id = emptyList(),
+                            data = byteArrayOf(),
+                            timeLock = null
+                        )
+                    )
+                ),
             )
         )
     }

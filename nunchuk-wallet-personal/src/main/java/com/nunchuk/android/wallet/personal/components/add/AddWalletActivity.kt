@@ -25,6 +25,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.Lifecycle
@@ -32,6 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.data.model.WalletConfigType
 import com.nunchuk.android.core.util.ADD_WALLET_RESULT
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.showToast
@@ -54,9 +56,22 @@ class AddWalletActivity : BaseComposeActivity() {
 
     private var isAlreadyShowChangeAddressTypeDialog = false
 
+    private val miniscriptLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val template = result.data?.getStringExtra("miniscript_template") ?: ""
+            if (template.isNotEmpty()) {
+                viewModel.setMiniscriptTemplate(template)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel.init(args.groupWalletId)
+        // Initialize miniscript template if provided
+        viewModel.initMiniscriptTemplate(args.miniscriptTemplate)
         enableEdgeToEdge()
         setContent {
             val state by viewModel.state.collectAsStateWithLifecycle()
@@ -84,8 +99,8 @@ class AddWalletActivity : BaseComposeActivity() {
                     } else {
                         viewModel.selectAddressType(it)
                     }
-                }, 
-                onContinue = { walletName, addressType, requiredKeys, totalKeys ->
+                },
+                onContinue = { walletName, addressType, requiredKeys, totalKeys, walletConfigType ->
                     if (args.groupWalletComposer != null) {
                         setResult(
                             RESULT_OK,
@@ -93,13 +108,24 @@ class AddWalletActivity : BaseComposeActivity() {
                         )
                         finish()
                     } else if (args.groupWalletId.isNotEmpty()) {
-                        viewModel.updateWalletConfig(walletName, addressType, totalKeys, requiredKeys)
+                        if (walletConfigType == WalletConfigType.MINISCRIPT && state.miniscriptTemplate.isEmpty()) {
+                            return@AddWalletView
+                        }
+                        viewModel.updateWalletConfig(
+                            walletName,
+                            addressType,
+                            totalKeys,
+                            requiredKeys,
+                            miniscriptTemplate = if (walletConfigType == WalletConfigType.MINISCRIPT) state.miniscriptTemplate else null
+                        )
                     } else if (args.isCreateMiniscriptWallet) {
-                        navigator.openMiniscriptScreen(this,
+                        navigator.openMiniscriptScreen(
+                            this,
                             args = MiniscriptArgs(
                                 walletName = walletName,
                                 addressType = addressType
-                            ))
+                            )
+                        )
                     } else {
                         openAssignSignerScreen(
                             walletName = walletName,
@@ -108,7 +134,10 @@ class AddWalletActivity : BaseComposeActivity() {
                     }
                 },
                 onNavigateToMiniscript = { miniscriptArgs ->
-                    navigator.openMiniscriptScreen(this, args = miniscriptArgs)
+                    // Use the launcher to get result back
+                    val intent = Intent(this, Class.forName("com.nunchuk.android.app.miniscript.MiniscriptActivity"))
+                    intent.putExtras(miniscriptArgs.buildBundle())
+                    miniscriptLauncher.launch(intent)
                 }
             )
         }
@@ -120,12 +149,15 @@ class AddWalletActivity : BaseComposeActivity() {
                         is AddWalletEvent.UpdateGroupSandboxConfigSuccess -> {
                             finish()
                         }
+
                         is AddWalletEvent.Error -> {
                             showToast(event.message)
                         }
+
                         is AddWalletEvent.ShowError -> {
                             showToast(event.message)
                         }
+
                         is AddWalletEvent.OnCreateWalletSuccess -> {
                             finish()
                         }

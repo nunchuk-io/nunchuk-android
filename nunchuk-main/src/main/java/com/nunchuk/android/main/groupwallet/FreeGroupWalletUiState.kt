@@ -2,6 +2,7 @@ package com.nunchuk.android.main.groupwallet
 
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.GroupSandbox
+import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.signer.SupportedSigner
 
 data class FreeGroupWalletUiState(
@@ -22,4 +23,21 @@ data class FreeGroupWalletUiState(
     val finalizeGroup: GroupSandbox? = null,
     val finalizedWalletId: String? = null,
     val isInReplaceMode: Boolean = false,
+    val miniscriptTemplate: String = "",
+    val scriptNode: ScriptNode? = null,
+    val keyPath: List<String> = emptyList(),
+    val scriptNodeMuSig: ScriptNode? = null,
+    val namedSigners: Map<String, SignerModel?> = emptyMap(),
+    val namedOccupied: Set<String> = emptySet(), // ← NEW: For Miniscript occupied slots
+    val currentKeyToAssign: String = "",
+    val event: FreeGroupWalletEvent? = null,
+    val isTestNet: Boolean = false,
 )
+
+sealed class FreeGroupWalletEvent {
+    data class Loading(val isLoading: Boolean) : FreeGroupWalletEvent()
+    data class Error(val message: String) : FreeGroupWalletEvent()
+    data class SignerAdded(val keyName: String, val signer: SignerModel) : FreeGroupWalletEvent()
+    data class SignerRemoved(val keyName: String) : FreeGroupWalletEvent()
+    data class ShowDuplicateSignerWarning(val signer: SignerModel, val keyName: String) : FreeGroupWalletEvent()
+}

@@ -33,6 +33,7 @@ import com.nunchuk.android.compose.provider.WalletExtendedProvider
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.util.toReadableString
 
 @Composable
@@ -41,6 +42,7 @@ internal fun WalletInfo(
     requireSigns: Int = 0,
     totalSigns: Int = 0,
     addressType: AddressType? = null,
+    walletType: WalletType? = null,
     copyLinkEnabled: Boolean = true,
     showQRCodeEnabled: Boolean = true,
     onEditClicked: () -> Unit = {},
@@ -80,7 +82,11 @@ internal fun WalletInfo(
                     ) {
                         Text(
                             modifier = Modifier.padding(end = 8.dp),
-                            text = "$requireSigns/$totalSigns ${stringResource(R.string.nc_wallet_multisig)}",
+                            text = if (walletType == WalletType.MINISCRIPT) {
+                                stringResource(R.string.nc_miniscript)
+                            } else {
+                                "$requireSigns/$totalSigns ${stringResource(R.string.nc_wallet_multisig)}"
+                            },
                             style = NunchukTheme.typography.bodySmall
                                 .copy(color = colorResource(id = R.color.nc_white_color))
                         )
@@ -186,6 +192,6 @@ private fun WalletInfoPreview(
     @PreviewParameter(WalletExtendedProvider::class) walletsExtended: WalletExtended,
 ) {
     NunchukTheme {
-        WalletInfo()
+        WalletInfo(walletType = null)
     }
 }

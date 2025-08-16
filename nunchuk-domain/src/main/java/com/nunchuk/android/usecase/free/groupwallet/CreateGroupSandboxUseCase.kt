@@ -18,6 +18,7 @@ class CreateGroupSandboxUseCase @Inject constructor(
             m = parameters.m,
             n = parameters.n,
             addressType = parameters.addressType,
+            scriptTmpl = parameters.scriptTemplate.orEmpty()
         )
     }
 
@@ -26,5 +27,6 @@ class CreateGroupSandboxUseCase @Inject constructor(
         val m: Int,
         val n: Int,
         val addressType: AddressType,
+        val scriptTemplate: String? = null,
     )
 }

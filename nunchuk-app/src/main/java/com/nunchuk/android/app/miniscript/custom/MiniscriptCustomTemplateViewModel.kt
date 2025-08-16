@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.usecase.CreateMiniscriptTemplateByCustomUseCase
-import com.nunchuk.android.usecase.SetMiniscriptLocalUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,13 +17,11 @@ sealed class MiniscriptCustomTemplateEvent {
     data class Error(val message: String) : MiniscriptCustomTemplateEvent()
     data class ShowTaprootWarning(val template: String) : MiniscriptCustomTemplateEvent()
     data object AddressTypeChangedToTaproot : MiniscriptCustomTemplateEvent()
-    data object SavedToLocal : MiniscriptCustomTemplateEvent()
 }
 
 @HiltViewModel
 class MiniscriptCustomTemplateViewModel @Inject constructor(
-    private val miniscriptTemplateByCustomUseCase: CreateMiniscriptTemplateByCustomUseCase,
-    private val setMiniscriptLocalUseCase: SetMiniscriptLocalUseCase
+    private val miniscriptTemplateByCustomUseCase: CreateMiniscriptTemplateByCustomUseCase
 ) : ViewModel() {
 
     private val _event = MutableStateFlow<MiniscriptCustomTemplateEvent?>(null)
@@ -68,16 +65,7 @@ class MiniscriptCustomTemplateViewModel @Inject constructor(
         _event.value = MiniscriptCustomTemplateEvent.Success(template, AddressType.TAPROOT)
     }
 
-    fun saveMiniscriptToLocal(template: String) {
-        viewModelScope.launch {
-            setMiniscriptLocalUseCase(template).onSuccess {
-                _event.value = MiniscriptCustomTemplateEvent.SavedToLocal
-            }.onFailure { e ->
-                Timber.e("Failed to save miniscript to local: $e")
-                _event.value = MiniscriptCustomTemplateEvent.Error(e.message.orUnknownError())
-            }
-        }
-    }
+
 
     fun clearEvent() {
         _event.value = null

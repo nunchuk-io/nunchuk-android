@@ -12,12 +12,18 @@ class SetSlotOccupiedUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk
 ) : UseCase<SetSlotOccupiedUseCase.Params, GroupSandbox?>(dispatcher) {
     override suspend fun execute(parameters: Params): GroupSandbox? {
-        return nativeSdk.setSlotOccupied(parameters.groupId, parameters.index, parameters.value)
+        return nativeSdk.setSlotOccupied(
+            parameters.groupId,
+            parameters.index,
+            parameters.value,
+            keyName = parameters.keyName.orEmpty()
+        )
     }
 
     data class Params(
         val groupId: String,
         val index: Int,
-        val value: Boolean
+        val value: Boolean,
+        val keyName: String? = null
     )
 }

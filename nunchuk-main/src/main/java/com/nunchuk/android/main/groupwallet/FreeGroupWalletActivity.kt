@@ -130,13 +130,14 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                             freeGroupWallet(
                                 viewModel = viewModel,
                                 snackState = snackState,
-                                onEditClicked = { groupId, hasGroupSigner ->
+                                onEditClicked = { groupId, hasGroupSigner, miniscriptTemplate ->
                                     navigator.openAddWalletScreen(
                                         activityContext = this@FreeGroupWalletActivity,
                                         args = AddWalletArgs(
                                             decoyPin = "",
                                             groupWalletId = groupId,
                                             hasGroupSigner = hasGroupSigner,
+                                            miniscriptTemplate = miniscriptTemplate
                                         )
                                     )
                                 },
@@ -161,6 +162,37 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                 onContinueClicked = { group ->
                                     if (group.replaceWalletId.isNotEmpty()) {
                                         viewModel.finalizeGroup(group)
+                                    } else if (group.walletType == WalletType.MINISCRIPT) {
+                                        // For MINISCRIPT wallets, always use openReviewWalletScreen
+                                        val signerMap = viewModel.getWalletSigners()
+                                            .associate { it.fingerPrint to it.name }
+                                        val state = viewModel.uiState.value
+                                        
+                                        // Convert namedSigners Map to list of NamedSigner objects
+                                        val namedSignersList = state.namedSigners.map { (keyName, signer) ->
+                                            com.nunchuk.android.nav.args.NamedSigner(keyName, signer)
+                                        }
+                                        
+                                        navigator.openReviewWalletScreen(
+                                            activityContext = this@FreeGroupWalletActivity,
+                                            args = ReviewWalletArgs(
+                                                walletName = group.name,
+                                                walletType = WalletType.MINISCRIPT,
+                                                addressType = group.addressType,
+                                                totalRequireSigns = group.m,
+                                                signers = group.signers.map {
+                                                    it.copy(name = signerMap[it.masterFingerprint].orEmpty())
+                                                },
+                                                groupId = group.id,
+                                                quickWalletParam = quickWalletParam,
+                                                // Miniscript data
+                                                scriptNode = state.scriptNode,
+                                                scriptNodeMuSig = state.scriptNodeMuSig,
+                                                keyPath = state.keyPath,
+                                                namedSigners = namedSignersList,
+                                                supportedTypes = state.supportedTypes
+                                            )
+                                        )
                                     } else if (group.addressType.isTaproot()) {
                                         navigator.openTaprootScreen(
                                             activityContext = this@FreeGroupWalletActivity,
@@ -213,7 +245,17 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                         walletId = it
                                     )
                                 },
-                                refresh = viewModel::getGroupSandbox
+                                refresh = viewModel::getGroupSandbox,
+                                onAddNewKeyForMiniscript = { supportedSigners ->
+                                    openSignerIntro(
+                                        groupId = viewModel.groupId,
+                                        supportedSigners = supportedSigners
+                                    )
+                                },
+                                onStartAddKeyForMiniscript = { keyName -> // ← NEW: For Miniscript slot management
+                                    viewModel.setCurrentKeyToAssign(keyName)
+                                    viewModel.setSlotOccupied(true)
+                                }
                             )
 
                             customKeyNavigation(

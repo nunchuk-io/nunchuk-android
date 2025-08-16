@@ -13,6 +13,7 @@ data class AddWalletArgs(
     val groupWalletComposer: GroupWalletDataComposer? = null,
     val quickWalletParam: QuickWalletParam? = null,
     val isCreateMiniscriptWallet: Boolean = false,
+    val miniscriptTemplate: String = "",
 ) {
 
     fun buildBundle() = Bundle().apply {
@@ -22,6 +23,7 @@ data class AddWalletArgs(
         putParcelable(GROUP_WALLET_COMPOSER, groupWalletComposer)
         putParcelable(QUICK_WALLET_PARAM, quickWalletParam)
         putBoolean(IS_CREATE_MINISCRIPT_WALLET, isCreateMiniscriptWallet)
+        putString(MINISCRIPT_TEMPLATE, miniscriptTemplate)
     }
 
     companion object {
@@ -31,6 +33,7 @@ data class AddWalletArgs(
         private const val GROUP_WALLET_COMPOSER = "view_only_composer"
         private const val QUICK_WALLET_PARAM = "quick_wallet_param"
         private const val IS_CREATE_MINISCRIPT_WALLET = "is_create_miniscript_wallet"
+        private const val MINISCRIPT_TEMPLATE = "miniscript_template"
 
         fun deserializeFrom(intent: Intent): AddWalletArgs = AddWalletArgs(
             decoyPin = intent.extras?.getString(DECOY_PIN, "").orEmpty(),
@@ -43,7 +46,8 @@ data class AddWalletArgs(
             isCreateMiniscriptWallet = intent.extras?.getBoolean(
                 IS_CREATE_MINISCRIPT_WALLET,
                 false
-            ) == true
+            ) == true,
+            miniscriptTemplate = intent.extras?.getString(MINISCRIPT_TEMPLATE, "").orEmpty()
         )
     }
 }

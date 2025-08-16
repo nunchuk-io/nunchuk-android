@@ -14,12 +14,14 @@ class RemoveSignerFromGroupUseCase @Inject constructor(
     override suspend fun execute(parameters: Params): GroupSandbox {
         return nativeSdk.removeSignerFromGroup(
             groupId = parameters.groupId,
-            index = parameters.index
+            index = parameters.index,
+            keyName = parameters.keyName.orEmpty()
         )
     }
 
     data class Params(
         val groupId: String,
-        val index: Int
+        val index: Int,
+        val keyName: String? = null
     )
 }

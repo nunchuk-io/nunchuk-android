@@ -988,7 +988,6 @@
     <string name="nc_enter_preimage_hex">Enter preimage in hex</string>
     <string name="nc_collapse">Collapse</string>
     <string name="nc_expand">Expand</string>
-    <string name="nc_occupied">Occupied</string>
     <string name="nc_key_path">Key path</string>
     <string name="nc_commit">Commit</string>
     <string name="nc_committed">Committed</string>
@@ -997,4 +996,5 @@
         <item quantity="one">%1$d coin</item>
         <item quantity="other">%1$d coins</item>
     </plurals>
+    <string name="nc_occupied">Occupied</string>
 </resources>

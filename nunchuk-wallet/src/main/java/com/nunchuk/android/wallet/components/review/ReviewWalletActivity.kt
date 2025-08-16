@@ -53,6 +53,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nunchuk.android.compose.NcBadgePrimary
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
@@ -61,6 +62,11 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
+import com.nunchuk.android.compose.miniscript.MiniscriptTaproot
+import com.nunchuk.android.compose.miniscript.PolicyHeader
+import com.nunchuk.android.compose.miniscript.ScriptMode
+import com.nunchuk.android.compose.miniscript.ScriptNodeData
+import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.signer.SignerCard
 import com.nunchuk.android.compose.textPrimary
@@ -68,6 +74,7 @@ import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.nav.args.BackUpWalletArgs
@@ -272,10 +279,14 @@ fun ReviewWalletContent(
                                     shape = RoundedCornerShape(20.dp)
                                 )
                                 .padding(horizontal = 10.dp, vertical = 4.dp),
-                            text = if (args.walletType == WalletType.SINGLE_SIG) {
-                                stringResource(id = R.string.nc_wallet_single_sig)
-                            } else {
-                                "${args.totalRequireSigns}/${args.signers.size} ${stringResource(id = R.string.nc_wallet_multisig)}"
+                            text = when (args.walletType) {
+                                WalletType.SINGLE_SIG -> stringResource(id = R.string.nc_wallet_single_sig)
+                                WalletType.MINISCRIPT -> stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript)
+                                else -> "${args.totalRequireSigns}/${args.signers.size} ${
+                                    stringResource(
+                                        id = R.string.nc_wallet_multisig
+                                    )
+                                }"
                             },
                             style = NunchukTheme.typography.caption
                         )
@@ -301,62 +312,105 @@ fun ReviewWalletContent(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item("key") {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        NcIcon(
-                            modifier = Modifier.size(24.dp),
-                            painter = painterResource(id = R.drawable.ic_mulitsig_dark),
-                            contentDescription = "Key",
-                            tint = MaterialTheme.colorScheme.textPrimary
-                        )
-
-                        Text(
-                            text = stringResource(id = R.string.nc_title_signers),
-                            style = NunchukTheme.typography.body
+                // Miniscript information display
+                if (args.walletType == WalletType.MINISCRIPT && args.scriptNode != null) {
+                    item("miniscript-header") {
+                        PolicyHeader(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 20.dp),
+                            showUserAvatars = false,
+                            numberOfOnlineUsers = 1,
                         )
                     }
-                }
 
-                itemsIndexed(signers) { index, signer ->
-                    if (signer.isVisible) {
-                        SignerCard(
-                            item = signer,
-                            showValueKey = args.addressType.isTaproot() && index < args.totalRequireSigns && args.isValueKeySetEnable
+                    item("miniscript-content") {
+                        // Convert NamedSigner list back to Map for miniscript components
+                        val namedSignersMap =
+                            args.namedSigners.associate { it.keyName to it.signer }
+
+                        TaprootAddressContent(
+                            args = args,
+                            namedSigners = namedSignersMap,
+                            showBip32Path = true,
+                            onChangeBip32Path = { index, signer ->
+
+                            },
+                            onActionKey = { key, signer ->
+
+                            },
+                            parentModifier = Modifier.padding(bottom = 16.dp)
+                        )
+
+                            ScriptNodeTree(
+                                node = args.scriptNode!!,
+                                data = ScriptNodeData(
+                                    mode = ScriptMode.VIEW,
+                                    signers = namedSignersMap,
+                                    showBip32Path = false
+                                ),
+                                onChangeBip32Path = { _, _ -> },
+                                onActionKey = { _, _ -> }
+                            )
+                    }
+                } else {
+                    item("key") {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            if (signer.derivationPath.isNotEmpty()) {
-                                Text(
-                                    modifier = Modifier
-                                        .padding(top = 4.dp),
-                                    text = stringResource(
-                                        com.nunchuk.android.core.R.string.nc_bip32_path,
-                                        signer.derivationPath
-                                    ),
-                                    style = NunchukTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.textSecondary
-                                )
-                            }
+                            NcIcon(
+                                modifier = Modifier.size(24.dp),
+                                painter = painterResource(id = R.drawable.ic_mulitsig_dark),
+                                contentDescription = "Key",
+                                tint = MaterialTheme.colorScheme.textPrimary
+                            )
+
+                            Text(
+                                text = stringResource(id = R.string.nc_title_signers),
+                                style = NunchukTheme.typography.body
+                            )
                         }
-                    } else {
-                        SignerCard(
-                            item = signer,
-                            signerIcon = R.drawable.ic_signer_empty_state,
-                            isShowKeyTypeBadge = false,
-                            showValueKey = args.addressType.isTaproot() && index < args.totalRequireSigns && args.isValueKeySetEnable
-                        ) {
-                            if (signer.derivationPath.isNotEmpty()) {
-                                Text(
-                                    modifier = Modifier
-                                        .padding(top = 4.dp),
-                                    text = stringResource(
-                                        com.nunchuk.android.core.R.string.nc_bip32_path,
-                                        signer.derivationPath
-                                    ),
-                                    style = NunchukTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.textSecondary
-                                )
+                    }
+
+                    itemsIndexed(signers) { index, signer ->
+                        if (signer.isVisible) {
+                            SignerCard(
+                                item = signer,
+                                showValueKey = args.addressType.isTaproot() && index < args.totalRequireSigns && args.isValueKeySetEnable
+                            ) {
+                                if (signer.derivationPath.isNotEmpty()) {
+                                    Text(
+                                        modifier = Modifier
+                                            .padding(top = 4.dp),
+                                        text = stringResource(
+                                            com.nunchuk.android.core.R.string.nc_bip32_path,
+                                            signer.derivationPath
+                                        ),
+                                        style = NunchukTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.textSecondary
+                                    )
+                                }
+                            }
+                        } else {
+                            SignerCard(
+                                item = signer,
+                                signerIcon = R.drawable.ic_signer_empty_state,
+                                isShowKeyTypeBadge = false,
+                                showValueKey = args.addressType.isTaproot() && index < args.totalRequireSigns && args.isValueKeySetEnable
+                            ) {
+                                if (signer.derivationPath.isNotEmpty()) {
+                                    Text(
+                                        modifier = Modifier
+                                            .padding(top = 4.dp),
+                                        text = stringResource(
+                                            com.nunchuk.android.core.R.string.nc_bip32_path,
+                                            signer.derivationPath
+                                        ),
+                                        style = NunchukTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.textSecondary
+                                    )
+                                }
                             }
                         }
                     }
@@ -380,6 +434,86 @@ fun ReviewWalletContent(
     }
 }
 
+@Composable
+private fun TaprootAddressContent(
+    args: ReviewWalletArgs,
+    namedSigners: Map<String, SignerModel?>,
+    showBip32Path: Boolean,
+    onChangeBip32Path: (Int, SignerModel) -> Unit,
+    onActionKey: (String, SignerModel?) -> Unit = { _, _ -> },
+    parentModifier: Modifier = Modifier
+) {
+    if (args.addressType.isTaproot() == true && args.keyPath.size == 1) {
+        MiniscriptTaproot(
+            keyPath = args.keyPath.first(),
+            data = ScriptNodeData(
+                mode = ScriptMode.VIEW,
+                signers = namedSigners,
+                showBip32Path = showBip32Path
+            ),
+            signer = if (args.keyPath.isNotEmpty() && args.signers.isNotEmpty()) {
+                args.signers.first().toModel()
+            } else null,
+            onChangeBip32Path = { keyPath, signer ->
+                // Convert the keyPath string to index for the onChangeBip32Path callback
+                val index = args.keyPath.indexOf(keyPath)
+                if (index != -1) {
+                    onChangeBip32Path(index, signer)
+                }
+            },
+            onActionKey = onActionKey
+        )
+
+        // Add Script path badge
+        NcBadgePrimary(
+            modifier = Modifier.padding(
+                top = 16.dp,
+                bottom = 8.dp,
+            ),
+            text = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_script_path),
+            enabled = true
+        )
+    }
+
+    if (args.addressType?.isTaproot() == true && args.keyPath.size > 1 && args.scriptNodeMuSig != null) {
+        NcBadgePrimary(
+            modifier = Modifier.padding(vertical = 8.dp),
+            text = "Key path",
+            enabled = true,
+        )
+
+        Column(modifier = parentModifier) {
+            ScriptNodeTree(
+                node = args.scriptNodeMuSig!!,
+                data = ScriptNodeData(
+                    mode = ScriptMode.CONFIG,
+                    signers = namedSigners,
+                    showBip32Path = showBip32Path
+                ),
+                onChangeBip32Path = { keyPath, signer ->
+                    // Convert the keyPath string to index for the onChangeBip32Path callback
+                    val index = args.keyPath.indexOf(keyPath)
+                    if (index != -1 && signer != null) {
+                        onChangeBip32Path(index, signer)
+                    }
+                },
+                onActionKey = onActionKey
+            )
+        }
+
+        // Add Script path badge
+        NcBadgePrimary(
+            modifier = Modifier.padding(
+                top = 16.dp,
+                bottom = 8.dp,
+            ),
+            text = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_script_path),
+            enabled = true
+        )
+    }
+}
+
+
 @PreviewLightDark
 @Composable
 private fun PreviewReviewWalletContent(
@@ -392,7 +526,12 @@ private fun PreviewReviewWalletContent(
             addressType = AddressType.LEGACY,
             totalRequireSigns = 1,
             signers = emptyList(),
-            groupId = "123"
+            groupId = "123",
+            scriptNode = null,
+            scriptNodeMuSig = null,
+            keyPath = emptyList(),
+            namedSigners = emptyList(),
+            supportedTypes = emptyList()
         ),
         signers = signers
     )

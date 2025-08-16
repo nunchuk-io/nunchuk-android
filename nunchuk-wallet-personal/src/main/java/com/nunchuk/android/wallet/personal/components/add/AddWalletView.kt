@@ -50,7 +50,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nunchuk.android.compose.NcIcon
@@ -98,7 +97,7 @@ fun AddWalletView(
     isEditGroupWallet: Boolean,
     isViewConfigOnly: Boolean = true,
     onSelectAddressType: (AddressType) -> Unit = {},
-    onContinue: (String, AddressType, Int, Int) -> Unit = { _, _, _, _ -> },
+    onContinue: (String, AddressType, Int, Int, WalletConfigType) -> Unit = { _, _, _, _, _ -> },
     onNavigateToMiniscript: (MiniscriptArgs) -> Unit = {}
 ) {
     var walletName by rememberSaveable { mutableStateOf("") }
@@ -109,13 +108,13 @@ fun AddWalletView(
     var keys by remember { mutableIntStateOf(0) }
     var requiredKeys by remember { mutableIntStateOf(0) }
     var showMiniscriptBottomSheet by remember { mutableStateOf(false) }
-    
+
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    
+
     // Get miniscript data from state
-    val miniscriptLocal = state.miniscriptLocal
+    val miniscriptTemplate = state.miniscriptTemplate
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -157,23 +156,31 @@ fun AddWalletView(
     }
 
     LaunchedEffect(state.groupSandbox?.name, viewOnlyComposer?.walletName) {
-        if (viewOnlyComposer != null) {
-            walletName = viewOnlyComposer.walletName
+        walletName = if (viewOnlyComposer != null) {
+            viewOnlyComposer.walletName
         } else {
-            walletName = state.groupSandbox?.name ?: ""
+            state.groupSandbox?.name ?: ""
         }
     }
 
-    LaunchedEffect(state.groupSandbox?.n ?: 3, state.groupSandbox?.m ?: 2) {
-        walletConfigType = getWalletConfigTypeBy(
-            n = state.groupSandbox?.n ?: 3,
-            m = state.groupSandbox?.m ?: 2
-        )
-        requiredKeys = walletConfigType.getMN().first
-        keys = walletConfigType.getMN().second
+    LaunchedEffect(state.groupSandbox?.n ?: 3, state.groupSandbox?.m ?: 2, miniscriptTemplate) {
+        if (miniscriptTemplate.isEmpty()) {
+            walletConfigType = getWalletConfigTypeBy(
+                n = state.groupSandbox?.n ?: 3,
+                m = state.groupSandbox?.m ?: 2
+            )
+            requiredKeys = walletConfigType.getMN().first
+            keys = walletConfigType.getMN().second
+        }
     }
 
-    val options = if (!viewAll && !isCreateMiniscriptWallet) listOf(
+    LaunchedEffect(miniscriptTemplate) {
+        if (miniscriptTemplate.isNotEmpty()) {
+            walletConfigType = WalletConfigType.MINISCRIPT
+        }
+    }
+
+    val options = if (!viewAll) listOf(
         AddressType.NATIVE_SEGWIT,
         AddressType.TAPROOT
     ) else if (isCreateMiniscriptWallet) listOf(
@@ -220,7 +227,13 @@ fun AddWalletView(
                         .padding(16.dp),
                     enabled = walletName.isNotBlank(),
                     onClick = {
-                        onContinue(walletName, state.addressTypeSelected, requiredKeys, keys)
+                        onContinue(
+                            walletName,
+                            state.addressTypeSelected,
+                            requiredKeys,
+                            keys,
+                            walletConfigType
+                        )
                     }
                 ) {
                     Text(
@@ -260,13 +273,19 @@ fun AddWalletView(
                 )
 
                 options.forEach { type ->
+                    val isDisabled = walletConfigType == WalletConfigType.MINISCRIPT && 
+                        (type == AddressType.NESTED_SEGWIT || type == AddressType.LEGACY)
+                    
                     TypeOption(
                         isViewOnly = isViewConfigOnly && type != viewOnlyComposer?.addressType,
                         selected = if (viewOnlyComposer != null) viewOnlyComposer.addressType == type else state.addressTypeSelected == type,
                         name = getAddressType(type),
                         badge = getBadge(type),
+                        disabled = isDisabled,
                         onClick = {
-                            onSelectAddressType(type)
+                            if (!isDisabled) {
+                                onSelectAddressType(type)
+                            }
                         }
                     )
                 }
@@ -322,10 +341,24 @@ fun AddWalletView(
                                 badge = if (option == WalletConfigType.MINISCRIPT) "New" else null,
                                 isEndItem = option == WalletConfigType.CUSTOM && walletConfigType != WalletConfigType.CUSTOM,
                                 onClick = {
+                                    val previousWalletType = walletConfigType
                                     walletConfigType = option
+                                    
                                     if (option != WalletConfigType.CUSTOM && option != WalletConfigType.MINISCRIPT) {
                                         requiredKeys = option.getMN().first
                                         keys = option.getMN().second
+                                    }
+                                    
+                                    // If switching to miniscript and current address type is incompatible, switch to TAPROOT
+                                    if (option == WalletConfigType.MINISCRIPT && 
+                                        (state.addressTypeSelected == AddressType.NESTED_SEGWIT || 
+                                         state.addressTypeSelected == AddressType.LEGACY)) {
+                                        onSelectAddressType(AddressType.TAPROOT)
+                                    }
+                                    
+                                    // Clear miniscript template if switching away from miniscript wallet type
+                                    if (previousWalletType == WalletConfigType.MINISCRIPT && option != WalletConfigType.MINISCRIPT) {
+                                        viewModel.clearMiniscriptTemplate()
                                     }
                                 }
                             )
@@ -347,9 +380,9 @@ fun AddWalletView(
                 }
 
                 if (walletConfigType == WalletConfigType.MINISCRIPT) {
-                    if (miniscriptLocal.isNotEmpty()) {
+                    if (miniscriptTemplate.isNotEmpty()) {
                         MiniscriptSectionFilled(
-                            miniscriptContent = miniscriptLocal.formatMiniscript(),
+                            miniscriptContent = miniscriptTemplate.formatMiniscript(),
                             onEdit = {
                                 onNavigateToMiniscript(
                                     MiniscriptArgs(
@@ -357,14 +390,12 @@ fun AddWalletView(
                                         addressType = state.addressTypeSelected,
                                         fromAddWallet = true,
                                         multisignType = MultisignType.CUSTOM,
-                                        template = miniscriptLocal
+                                        template = miniscriptTemplate
                                     )
                                 )
                             },
                             onRemove = {
-                                coroutineScope.launch {
-                                    viewModel.clearMiniscriptLocal()
-                                }
+                                viewModel.clearMiniscriptTemplate()
                             }
                         )
                     } else {
@@ -373,7 +404,7 @@ fun AddWalletView(
                 }
             }
         }
-        
+
         if (showMiniscriptBottomSheet) {
             SelectMultisignTypeBottomSheet(
                 onSelect = { multisignType ->
@@ -381,6 +412,7 @@ fun AddWalletView(
                         MultisignType.IMPORT -> {
                             filePickerLauncher.launch("text/*")
                         }
+
                         MultisignType.CUSTOM -> {
                             onNavigateToMiniscript(
                                 MiniscriptArgs(
@@ -391,6 +423,7 @@ fun AddWalletView(
                                 )
                             )
                         }
+
                         else -> {
                             // For other multisign types (FLEXIBLE, EXPANDING, DECAYING)
                             onNavigateToMiniscript(
@@ -440,11 +473,12 @@ private fun TypeOption(
     name: String,
     badge: String?,
     isEndItem: Boolean = false,
+    disabled: Boolean = false,
     onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
-            .alpha(if (isViewOnly && !selected) 0.4f else 1f)
+            .alpha(if ((isViewOnly && !selected) || disabled) 0.4f else 1f)
             .background(
                 color = if (selected) MaterialTheme.colorScheme.fillDenim2 else MaterialTheme.colorScheme.surface,
                 shape = if (isEndItem.not()) RoundedCornerShape(8.dp) else RoundedCornerShape(
@@ -453,7 +487,7 @@ private fun TypeOption(
                 )
             )
             .padding(horizontal = 12.dp)
-            .clickable(enabled = isViewOnly.not(), onClick = onClick),
+            .clickable(enabled = isViewOnly.not() && !disabled, onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -481,7 +515,7 @@ private fun TypeOption(
         Spacer(modifier = Modifier.weight(1f))
 
         NcRadioButton(selected = selected, onClick = {
-            if (!isViewOnly) {
+            if (!isViewOnly && !disabled) {
                 onClick()
             }
         })
@@ -648,7 +682,8 @@ private fun MiniscriptSection(onAddMiniscript: () -> Unit = {}) {
             ) {
                 Text(
                     text = "Miniscript",
-                    style = NunchukTheme.typography.body
+                    style = NunchukTheme.typography.body,
+                    color = MaterialTheme.colorScheme.textPrimary
                 )
                 Box(
                     modifier = Modifier
@@ -669,7 +704,7 @@ private fun MiniscriptSection(onAddMiniscript: () -> Unit = {}) {
                     )
                 }
             }
-            
+
             NcRadioButton(
                 selected = true,
                 onClick = { }
@@ -697,7 +732,7 @@ private fun MiniscriptSection(onAddMiniscript: () -> Unit = {}) {
                 Text(
                     text = "No miniscript added yet. Start creating your own spending rules.",
                     style = NunchukTheme.typography.body,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.textPrimary
                 )
 
                 NcPrimaryDarkButton(
@@ -766,7 +801,7 @@ private fun MiniscriptSectionFilled(
                     )
                 }
             }
-            
+
             NcRadioButton(
                 selected = true,
                 onClick = { }
@@ -793,7 +828,7 @@ private fun MiniscriptSectionFilled(
                 Text(
                     text = miniscriptContent,
                     style = NunchukTheme.typography.body,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.textPrimary
                 )
 
                 Row(
@@ -857,11 +892,4 @@ private fun MiniscriptSectionFilledPreview() {
 )"""
         )
     }
-}
-
-@PreviewLightDark
-@Composable
-private fun AddWalletViewPreview() {
-    // Note: This preview won't work with real AddWalletViewModel in preview mode
-    // In actual usage, AddWalletViewModel should be injected via Hilt
 }

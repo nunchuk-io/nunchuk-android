@@ -39,12 +39,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcBadgeOutline
+import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
+import com.nunchuk.android.compose.beeswaxDark
 import com.nunchuk.android.compose.fillBeeswax
 import com.nunchuk.android.compose.fillDenim
 import com.nunchuk.android.compose.fillPink
@@ -65,6 +67,7 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.dateTimeFormat
+import timber.log.Timber
 import java.util.Date
 import java.util.Locale
 
@@ -73,6 +76,16 @@ enum class ScriptMode {
     CONFIG,
     SIGN
 }
+
+val avatarColors = listOf(
+    Color(0xFF1C652D),
+    Color(0xFFA66800),
+    Color(0xFFCF4018),
+    Color(0xFF7E519B),
+    Color(0xFF2F466C),
+    Color(0xFFF1AE00),
+    Color(0xFF757575),
+)
 
 @Composable
 fun ScriptNodeTree(
@@ -157,16 +170,23 @@ fun ScriptNodeTree(
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
+                val signer = data.signers[node.keys.firstOrNull().orEmpty()]
+                val avatarColor = if (signer?.isVisible == false) {
+                    avatarColors[level % avatarColors.size]
+                } else {
+                    avatarColors[0]
+                }
                 CreateKeyItem(
                     key = node.keys.firstOrNull() ?: "",
-                    signer = data.signers[node.keys.firstOrNull().orEmpty()],
+                    signer = signer,
                     position = index,
                     onChangeBip32Path = onChangeBip32Path,
                     onActionKey = onActionKey,
                     data = data,
                     showThreadCurve = showThreadCurve,
                     modifier = modifier,
-                    isSatisfiable = isSatisfiableNode
+                    isSatisfiable = isSatisfiableNode,
+                    avatarColor = avatarColor
                 )
             }
         }
@@ -281,7 +301,8 @@ internal fun CreateKeyItem(
     onActionKey: (String, SignerModel?) -> Unit,
     isSatisfiable: Boolean = true,
     keySetStatus: KeySetStatus? = null,
-    data: ScriptNodeData
+    data: ScriptNodeData,
+    avatarColor: Color = avatarColors[0]
 ) {
     val isSigned: Boolean =
         data.mode == ScriptMode.SIGN && signer != null && if (keySetStatus != null) {
@@ -295,6 +316,9 @@ internal fun CreateKeyItem(
         position = position,
         modifier = modifier,
         showThreadCurve = showThreadCurve,
+        data = data,
+        avatarColor = avatarColor,
+        isOccupied = data.isSlotOccupied(signer?.name ?: key),
         bip32PathContent = {
             if (data.showBip32Path && signer != null) {
                 val isDuplicateSigner =
@@ -400,6 +424,8 @@ private fun NodeKeys(
     level: Int,
     modifier: Modifier = Modifier
 ) {
+    var localColorIndex = data.colorIndex
+    Timber.tag("miniscript-feature").d("NodeKeys: Starting with colorIndex = $localColorIndex for node ${node.idString}")
     node.keys.forEachIndexed { i, key ->
         val keyPosition = "${node.idString}.${i + 1}"
         TreeBranchContainer(
@@ -408,6 +434,12 @@ private fun NodeKeys(
             indentationLevel = level + 1 // Keys are one level deeper than their parent node
         ) { modifier, showThreadCurve ->
             val signer = data.signers[key]
+            val avatarColor = if (signer?.isVisible == false) {
+                val colorIndex = localColorIndex++ % avatarColors.size
+                avatarColors[colorIndex]
+            } else {
+                avatarColors[0]
+            }
             CreateKeyItem(
                 key = key,
                 signer = signer,
@@ -418,7 +450,8 @@ private fun NodeKeys(
                 showThreadCurve = showThreadCurve,
                 modifier = modifier,
                 keySetStatus = if (node.type == ScriptNodeType.MUSIG.name) data.keySetStatues[node.idString] else null,
-                isSatisfiable = data.satisfiableMap[node.idString] != false
+                isSatisfiable = data.satisfiableMap[node.idString] != false,
+                avatarColor = avatarColor
             )
         }
     }
@@ -432,7 +465,12 @@ private fun NodeSubs(
     data: ScriptNodeData,
     level: Int
 ) {
+    var localColorIndex = data.colorIndex
+    Timber.tag("miniscript-feature").d("NodeSubs: Starting with colorIndex = $localColorIndex for node ${node.idString}")
     node.subs.forEachIndexed { i, sub ->
+        // Create a new data object with incremented colorIndex for each child
+        val childData = data.copy(colorIndex = localColorIndex)
+        Timber.tag("miniscript-feature").d("NodeSubs: Child $i using colorIndex = $localColorIndex")
         ScriptNodeTree(
             node = sub,
             index = "${node.idString}.${node.keys.size + i + 1}",
@@ -440,8 +478,10 @@ private fun NodeSubs(
             level = level + 1,
             onChangeBip32Path = onChangeBip32Path,
             onActionKey = onActionKey,
-            data = data
+            data = childData
         )
+        // Increment the colorIndex for the next child
+        localColorIndex++
     }
 }
 
@@ -486,8 +526,15 @@ data class ScriptNodeData(
     val currentBlockHeight: Int = 0,
     val signedHash: Map<String, Boolean> = emptyMap(),
     val lockBased: MiniscriptTimelockBased = MiniscriptTimelockBased.NONE,
-    val inputCoins: List<UnspentOutput> = emptyList()
-)
+    val inputCoins: List<UnspentOutput> = emptyList(),
+    val isGroupWallet: Boolean = false,
+    val occupiedSlots: Set<String> = emptySet(),
+    val colorIndex: Int = 0,
+) {
+    fun isSlotOccupied(position: String): Boolean {
+        return occupiedSlots.contains(position)
+    }
+}
 
 @Composable
 fun AndOrView(
@@ -821,7 +868,7 @@ fun TimelockItem(
     val mode: ScriptMode = data.mode
     val title = node.displayName
     val description = node.getAfterBlockDescription(currentBlockHeight)
-    
+
     // Calculate if timelock is unlocked based on type
     val isUnlocked = if (mode == ScriptMode.SIGN) when (node.type) {
         ScriptNodeType.AFTER.name -> {
@@ -988,7 +1035,10 @@ fun KeyItem(
     title: String = "",
     xfp: String = "",
     position: String = "",
+    data: ScriptNodeData,
     showThreadCurve: Boolean = true,
+    avatarColor: Color = avatarColors[0],
+    isOccupied: Boolean = false,
     bip32PathContent: @Composable () -> Unit = {},
     actionContent: @Composable RowScope.() -> Unit = {}
 ) {
@@ -1004,13 +1054,24 @@ fun KeyItem(
             modifier = Modifier
                 .weight(1f),
         ) {
-            NcIcon(
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .size(20.dp),
-                painter = painterResource(R.drawable.ic_key),
-                contentDescription = null,
-            )
+            if (data.isGroupWallet && xfp.isNotEmpty()) {
+                NcCircleImage(
+                    modifier = Modifier.padding(top = 8.dp),
+                    iconSize = 16.dp,
+                    resId = R.drawable.ic_user,
+                    color = avatarColor,
+                    iconTintColor = Color.White,
+                    size = 20.dp
+                )
+            } else {
+                NcIcon(
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .size(20.dp),
+                    painter = painterResource(R.drawable.ic_key),
+                    contentDescription = null,
+                )
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1033,6 +1094,13 @@ fun KeyItem(
                         Text(
                             text = xfp,
                             style = NunchukTheme.typography.bodySmall,
+                        )
+                    }
+                    if (isOccupied) {
+                        Text(
+                            text = stringResource(id = R.string.nc_occupied),
+                            style = NunchukTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.beeswaxDark
                         )
                     }
                     bip32PathContent.invoke()

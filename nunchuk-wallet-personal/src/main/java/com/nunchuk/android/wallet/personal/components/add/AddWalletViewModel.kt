@@ -3,10 +3,7 @@ package com.nunchuk.android.wallet.personal.components.add
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.type.AddressType
-import com.nunchuk.android.usecase.ClearMiniscriptLocalUseCase
 import com.nunchuk.android.usecase.GetGlobalGroupWalletConfigUseCase
-import com.nunchuk.android.usecase.GetMiniscriptLocalUseCase
-import com.nunchuk.android.usecase.SetMiniscriptLocalUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
 import com.nunchuk.android.usecase.free.groupwallet.UpdateGroupSandboxConfigUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,9 +22,6 @@ class AddWalletViewModel @Inject constructor(
     private val getGlobalGroupWalletConfigUseCase: GetGlobalGroupWalletConfigUseCase,
     private val getGroupSandboxUseCase: GetGroupSandboxUseCase,
     private val updateGroupSandboxConfigUseCase: UpdateGroupSandboxConfigUseCase,
-    private val getMiniscriptLocalUseCase: GetMiniscriptLocalUseCase,
-    private val setMiniscriptLocalUseCase: SetMiniscriptLocalUseCase,
-    private val clearMiniscriptLocalUseCase: ClearMiniscriptLocalUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddWalletState())
@@ -37,15 +31,6 @@ class AddWalletViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     private var groupId = ""
-
-    init {
-        // Observe miniscriptLocal and update state
-        viewModelScope.launch {
-            getMiniscriptLocalUseCase(Unit).map { it.getOrDefault("") }.collect { miniscriptLocal ->
-                _state.update { it.copy(miniscriptLocal = miniscriptLocal) }
-            }
-        }
-    }
 
     fun init(groupId: String) {
         this.groupId = groupId
@@ -63,6 +48,12 @@ class AddWalletViewModel @Inject constructor(
                 }
                 _state.update { it.copy(isLoading = false) }
             }
+        }
+    }
+
+    fun initMiniscriptTemplate(template: String) {
+        if (template.isNotEmpty()) {
+            _state.update { it.copy(miniscriptTemplate = template) }
         }
     }
 
@@ -89,7 +80,8 @@ class AddWalletViewModel @Inject constructor(
         walletName: String,
         addressType: AddressType,
         totalSigns: Int,
-        requireSigns: Int
+        requireSigns: Int,
+        miniscriptTemplate: String? = null
     ) {
         if (groupId.isNotEmpty()) {
             viewModelScope.launch {
@@ -99,7 +91,8 @@ class AddWalletViewModel @Inject constructor(
                         name = walletName,
                         addressType = addressType,
                         m = requireSigns,
-                        n = totalSigns
+                        n = totalSigns,
+                        scriptTmpl = miniscriptTemplate
                     )
                 ).onSuccess {
                     _state.update { it.copy(groupSandbox = it.groupSandbox?.copy(name = walletName)) }
@@ -115,19 +108,11 @@ class AddWalletViewModel @Inject constructor(
         }
     }
 
-    fun setMiniscriptLocal(miniscript: String) {
-        viewModelScope.launch {
-            setMiniscriptLocalUseCase(miniscript).onFailure { error ->
-                _event.emit(AddWalletEvent.ShowError(error.message.orEmpty()))
-            }
-        }
+    fun setMiniscriptTemplate(miniscript: String) {
+        _state.update { it.copy(miniscriptTemplate = miniscript) }
     }
 
-    fun clearMiniscriptLocal() {
-        viewModelScope.launch {
-            clearMiniscriptLocalUseCase(Unit).onFailure { error ->
-                _event.emit(AddWalletEvent.ShowError(error.message.orEmpty()))
-            }
-        }
+    fun clearMiniscriptTemplate() {
+        _state.update { it.copy(miniscriptTemplate = "") }
     }
 }

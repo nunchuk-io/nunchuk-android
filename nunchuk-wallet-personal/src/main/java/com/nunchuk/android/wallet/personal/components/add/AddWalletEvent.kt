@@ -33,7 +33,7 @@ data class AddWalletState(
     val groupSandbox: GroupSandbox? = null,
     val addressTypeSelected: AddressType = AddressType.NATIVE_SEGWIT,
     val isLoading: Boolean = false,
-    val miniscriptLocal: String = ""
+    val miniscriptTemplate: String = ""
 )
 
 sealed class AddWalletEvent {

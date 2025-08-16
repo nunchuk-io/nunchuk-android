@@ -101,6 +101,7 @@ import com.nunchuk.android.usecase.campaign.GetLocalReferrerCodeUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetDeprecatedGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetPendingGroupsSandboxUseCase
+import com.nunchuk.android.usecase.free.groupwallet.UpdateGroupSandboxConfigUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
@@ -186,6 +187,7 @@ internal class WalletsViewModel @Inject constructor(
     private val insertWalletOrderListUseCase: InsertWalletOrderListUseCase,
     private val setHasWalletInGuestModeUseCase: SetHasWalletInGuestModeUseCase,
     private val signInModeHolder: SignInModeHolder,
+    private val updateGroupSandboxConfigUseCase: UpdateGroupSandboxConfigUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletsState())
@@ -409,6 +411,20 @@ internal class WalletsViewModel @Inject constructor(
                 }
             }
         }
+//        viewModelScope.launch {
+//            updateGroupSandboxConfigUseCase(
+//                UpdateGroupSandboxConfigUseCase.Params(
+//                    groupId = "024b8d2f-ce19-4e0f-a421-3c2291e75254",
+//                    name = "Group wallet",
+//                    m = 3,
+//                    n = 6,
+//                    addressType = AddressType.TAPROOT,
+//                    scriptTmpl = "tr(A,{and_v(v:multi_a(2,B,C,D),older(6)),multi_a(2,B,E)})"
+//                )
+//            ).onFailure {
+//                _event.emit(ShowErrorEvent(it))
+//            }
+//        }
     }
 
     private fun listenGroupSandbox() {

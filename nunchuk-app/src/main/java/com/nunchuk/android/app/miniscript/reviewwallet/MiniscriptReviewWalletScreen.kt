@@ -210,11 +210,10 @@ private fun TaprootAddressContent(
     uiState: com.nunchuk.android.app.miniscript.MiniscriptSharedWalletState,
     parentModifier: Modifier = Modifier
 ) {
-    // Add MiniscriptTaproot component if addressType is TAPROOT and keyPath.size == 1
-    if (uiState.addressType == AddressType.TAPROOT && uiState.keyPath.size == 1) {
+    if (uiState.addressType == AddressType.TAPROOT && uiState.keyPath.size <= 1) {
         MiniscriptTaproot(
             modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-            keyPath = uiState.keyPath.first(),
+            keyPath = uiState.keyPath.firstOrNull().orEmpty(),
             data = ScriptNodeData(
                 mode = ScriptMode.VIEW,
                 signers = uiState.signers,

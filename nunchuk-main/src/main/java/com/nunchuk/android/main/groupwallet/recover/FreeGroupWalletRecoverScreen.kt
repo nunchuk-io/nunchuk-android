@@ -314,6 +314,7 @@ fun FreeGroupWalletRecoverScreen(
                     totalSigns = totalSigns,
                     name = state.wallet?.name.orEmpty(),
                     addressType = state.wallet?.addressType,
+                    walletType = null,
                     copyLinkEnabled = false,
                     showQRCodeEnabled = false,
                     onEditClicked = onEditClicked
