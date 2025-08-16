@@ -435,10 +435,8 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun extractKeyNamesFromScriptNode(node: ScriptNode): List<String> {
         val keyNames = mutableListOf<String>()
         
-        // Add keys from current node
         keyNames.addAll(node.keys)
         
-        // Recursively add keys from sub-nodes
         node.subs.forEach { subNode ->
             keyNames.addAll(extractKeyNamesFromScriptNode(subNode))
         }

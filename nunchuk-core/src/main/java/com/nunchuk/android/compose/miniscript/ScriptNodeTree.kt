@@ -171,11 +171,7 @@ fun ScriptNodeTree(
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
                 val signer = data.signers[node.keys.firstOrNull().orEmpty()]
-                val avatarColor = if (signer?.isVisible == false) {
-                    avatarColors[level % avatarColors.size]
-                } else {
-                    avatarColors[0]
-                }
+                val avatarColor = avatarColors[level % avatarColors.size]
                 CreateKeyItem(
                     key = node.keys.firstOrNull() ?: "",
                     signer = signer,
@@ -466,11 +462,8 @@ private fun NodeSubs(
     level: Int
 ) {
     var localColorIndex = data.colorIndex
-    Timber.tag("miniscript-feature").d("NodeSubs: Starting with colorIndex = $localColorIndex for node ${node.idString}")
     node.subs.forEachIndexed { i, sub ->
-        // Create a new data object with incremented colorIndex for each child
         val childData = data.copy(colorIndex = localColorIndex)
-        Timber.tag("miniscript-feature").d("NodeSubs: Child $i using colorIndex = $localColorIndex")
         ScriptNodeTree(
             node = sub,
             index = "${node.idString}.${node.keys.size + i + 1}",

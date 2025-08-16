@@ -41,7 +41,6 @@ import com.nunchuk.android.core.miniscript.formatMiniscript
 import com.nunchuk.android.type.AddressType
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import timber.log.Timber
 
 @Serializable
 data class MiniscriptCustomTemplate(
@@ -67,7 +66,6 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
             when (event) {
                 is MiniscriptCustomTemplateEvent.Success -> {
                     val successEvent = event as MiniscriptCustomTemplateEvent.Success
-                    Timber.tag("miniscript-feature").d("Miniscript custom template created successfully: ${successEvent.template}")
                     onNext(successEvent.template, successEvent.addressType)
                     viewModel.clearEvent()
                 }
@@ -86,9 +84,7 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
                     viewModel.clearEvent()
                 }
                 is MiniscriptCustomTemplateEvent.AddressTypeChangedToTaproot -> {
-                    // Call proceedWithTaproot immediately, don't wait for snackbar
                     viewModel.proceedWithTaproot(pendingTemplate)
-                    // Show snackbar without awaiting it
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(
                             NcSnackbarVisuals(
@@ -97,7 +93,6 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
                             )
                         )
                     }
-                    // Don't clear event here - let the Success event be processed
                 }
 
                 null -> {}
@@ -109,7 +104,6 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
             fromAddWallet = fromAddWallet,
             onContinue = { template ->
                 if (fromAddWallet) {
-                    // For AddWallet flow, directly call onSaveAndBack with the template
                     onSaveAndBack(MiniscriptUtil.revertFormattedMiniscript(template))
                 } else {
                     viewModel.createMiniscriptTemplate(MiniscriptUtil.revertFormattedMiniscript(template), data.addressType)
