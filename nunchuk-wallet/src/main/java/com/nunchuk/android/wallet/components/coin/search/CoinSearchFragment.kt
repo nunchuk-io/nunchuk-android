@@ -63,9 +63,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.coin.MODE_SELECT
 import com.nunchuk.android.compose.coin.MODE_VIEW_DETAIL
-import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.coin.PreviewCoinCard
 import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.coin.TagFlow
@@ -91,6 +91,7 @@ import com.nunchuk.android.wallet.components.coin.filter.CoinFilterFragmentArgs
 import com.nunchuk.android.wallet.components.coin.list.CoinListEvent
 import com.nunchuk.android.wallet.components.coin.list.CoinListMode
 import com.nunchuk.android.wallet.components.coin.list.CoinListViewModel
+import com.nunchuk.android.wallet.components.coin.list.SpendableAmountSection
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -279,7 +280,8 @@ private fun CoinSearchFragmentScreen(
         onUseCoinClicked = onUseCoinClicked,
         amount = args.amount ?: Amount(),
         isFilteringOrSearch = viewModel.isFilteringOrSearch,
-        isFiltering = viewModel.isFiltering
+        isFiltering = viewModel.isFiltering,
+        spendableAmount = coinListUiState.spendableAmount,
     )
 }
 
@@ -297,6 +299,7 @@ private fun CoinSearchFragmentContent(
     coins: List<UnspentOutput> = emptyList(),
     mode: CoinListMode = CoinListMode.NONE,
     selectedCoins: Set<UnspentOutput> = emptySet(),
+    spendableAmount: Amount = Amount(),
     onViewCoinDetail: (output: UnspentOutput) -> Unit = {},
     onViewTagDetail: (tag: CoinTag) -> Unit = {},
     onSelectCoin: (output: UnspentOutput, isSelected: Boolean) -> Unit = { _, _ -> },
@@ -363,6 +366,9 @@ private fun CoinSearchFragmentContent(
                     Box(modifier = Modifier.weight(1f)) {
                         Column(modifier = Modifier.fillMaxWidth()) {
                             if (coins.isNotEmpty()) {
+                                if (spendableAmount.value > 0 && !isFilteringOrSearch) {
+                                    SpendableAmountSection(spendableAmount = spendableAmount)
+                                }
                                 if (mode != CoinListMode.SELECT && isFilteringOrSearch) {
                                     Text(
                                         modifier = Modifier.padding(

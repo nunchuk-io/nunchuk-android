@@ -106,7 +106,10 @@ fun SearchCoinTopAppBar(
                         modifier = Modifier
                             .padding(top = 8.dp, end = 8.dp)
                             .size(12.dp)
-                            .background(color = MaterialTheme.colorScheme.error, shape = CircleShape)
+                            .background(
+                                color = MaterialTheme.colorScheme.error,
+                                shape = CircleShape
+                            )
                             .align(Alignment.TopEnd)
                     )
                 }
@@ -131,6 +134,7 @@ fun SearchCoinTopAppBar(
                 },
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                    focusedContainerColor = MaterialTheme.colorScheme.background,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,

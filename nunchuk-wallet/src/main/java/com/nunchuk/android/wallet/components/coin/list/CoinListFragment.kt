@@ -469,7 +469,7 @@ private fun CoinListContent(
 }
 
 @Composable
-private fun SpendableAmountSection(spendableAmount: Amount) {
+fun SpendableAmountSection(spendableAmount: Amount) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
