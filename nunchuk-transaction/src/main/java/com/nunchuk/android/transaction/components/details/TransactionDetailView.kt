@@ -143,6 +143,7 @@ fun TransactionDetailView(
                 NcTopAppBar(
                     title = stringResource(R.string.nc_transaction_details),
                     textStyle = NunchukTheme.typography.titleLarge,
+                    isBack = false,
                     actions = {
                         IconButton(onClick = onShowMore) {
                             NcIcon(
