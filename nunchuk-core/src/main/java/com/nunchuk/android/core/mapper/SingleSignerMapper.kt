@@ -22,14 +22,17 @@ class SingleSignerMapper @Inject constructor(
     suspend operator fun invoke(from: SingleSigner): SignerModel {
         val isPrimaryKey =
             accountInfo.loginType == SignInMode.PRIMARY_KEY.value && accountInfo.primaryKeyInfo?.xfp == from.masterFingerprint
-        val cardId =
-            if (from.type == SignerType.NFC) cardIdManager.getCardId(from.masterSignerId) else ""
+
         return if ((from.name.isEmpty() || from.name == from.masterFingerprint)
             && hasSignerUseCase(from).getOrDefault(false)
         ) {
-            getSignerUseCase(from).map { it.copy(isVisible = true) }.getOrDefault(from)
-                .toModel(isPrimaryKey = isPrimaryKey).copy(cardId = cardId)
+            val signer = getSignerUseCase(from).map { it.copy(isVisible = true) }.getOrDefault(from)
+            val cardId =
+                if (signer.type == SignerType.NFC) cardIdManager.getCardId(signer.masterSignerId) else ""
+            signer.toModel(isPrimaryKey = isPrimaryKey).copy(cardId = cardId)
         } else {
+            val cardId =
+                if (from.type == SignerType.NFC) cardIdManager.getCardId(from.masterSignerId) else ""
             from.toModel(isPrimaryKey = isPrimaryKey).copy(cardId = cardId)
         }
     }

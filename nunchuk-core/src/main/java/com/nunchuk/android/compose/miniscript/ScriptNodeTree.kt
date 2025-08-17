@@ -425,6 +425,9 @@ private fun NodeKeys(
     modifier: Modifier = Modifier
 ) {
     var localColorIndex = data.colorIndex
+    val isInDisableBranch = data.topLevelDisableNode != null
+            && node.id.size >= data.topLevelDisableNode.id.size
+            && node.idString.startsWith(data.topLevelDisableNode.idString)
     node.keys.forEachIndexed { i, key ->
         val keyPosition = "${node.idString}.${i + 1}"
         TreeBranchContainer(
@@ -449,7 +452,7 @@ private fun NodeKeys(
                 showThreadCurve = showThreadCurve,
                 modifier = modifier,
                 keySetStatus = if (node.type == ScriptNodeType.MUSIG.name) data.keySetStatues[node.idString] else null,
-                isSatisfiable = data.satisfiableMap[node.idString] != false,
+                isSatisfiable = data.satisfiableMap[node.idString] != false && !isInDisableBranch,
                 avatarColor = avatarColor
             )
         }
