@@ -488,6 +488,7 @@ fun TransactionDetailView(
                 else if (!transaction.isReceive && args.inheritanceClaimTxDetailInfo == null && state.signers.isNotEmpty()) {
                     item {
                         PendingSignatureStatusView(
+                            isTaproot = addressType.isTaproot(),
                             pendingSigners = transaction.getPendingSignatures(),
                             status = transaction.status
                         )

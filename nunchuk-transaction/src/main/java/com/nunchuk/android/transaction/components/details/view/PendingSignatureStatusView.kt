@@ -17,7 +17,7 @@ import com.nunchuk.android.transaction.R
 import com.nunchuk.android.type.TransactionStatus
 
 @Composable
-fun PendingSignatureStatusView(pendingSigners: Int, status: TransactionStatus) {
+fun PendingSignatureStatusView(pendingSigners: Int, status: TransactionStatus, isTaproot: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -25,7 +25,8 @@ fun PendingSignatureStatusView(pendingSigners: Int, status: TransactionStatus) {
             .padding(top = 16.dp)
     ) {
         Text(
-            text = stringResource(R.string.nc_transaction_member_signers),
+            text = if (isTaproot) stringResource(R.string.nc_key_path) else
+                stringResource(R.string.nc_transaction_member_signers),
             style = NunchukTheme.typography.titleSmall,
         )
 
