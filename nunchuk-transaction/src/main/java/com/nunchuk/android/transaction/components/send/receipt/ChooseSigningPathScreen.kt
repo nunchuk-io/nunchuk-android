@@ -44,7 +44,6 @@ import com.nunchuk.android.transaction.R
 @Composable
 fun ChooseSigningPathScreen(
     state: AddReceiptState,
-    currentBlockHeight: Int = 0,
     onContinue: (isKeyPathSelected: Boolean) -> Unit = {},
 ) {
     var isKeyPathSelected by rememberSaveable { mutableStateOf(true) }
@@ -164,7 +163,6 @@ fun ChooseSigningPathScreen(
                                     data = ScriptNodeData(
                                         mode = ScriptMode.VIEW,
                                         signers = signers,
-                                        currentBlockHeight = currentBlockHeight
                                     )
                                 )
                             }
@@ -195,7 +193,6 @@ fun ChooseSigningPathScreenPreview() {
             wallet = wallet,
             signers = signers,
             scriptNode = scriptNode,
-            currentBlockHeight = 0,
             isValueKeySetDisable = false
         )
     )

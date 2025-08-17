@@ -47,7 +47,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
-import kotlinx.coroutines.delay
 
 @HiltViewModel
 class MiniscriptSharedWalletViewModel @Inject constructor(
@@ -93,14 +92,6 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                         loadInfo()
                     }
                 }
-        }
-        viewModelScope.launch {
-            while (true) {
-                getChainTipUseCase(Unit).onSuccess { blockHeight ->
-                    _uiState.update { it.copy(currentBlockHeight = blockHeight) }
-                }.onFailure { error -> }
-                delay(60000) // Refresh every minute
-            }
         }
         viewModelScope.launch {
             getChainSettingFlowUseCase(Unit)
@@ -1044,7 +1035,6 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         // Preserve important values that should not be reset
         val currentState = _uiState.value
         _uiState.value = MiniscriptSharedWalletState(
-            currentBlockHeight = currentState.currentBlockHeight,
             isTestNet = currentState.isTestNet
         )
         
@@ -1072,7 +1062,6 @@ data class MiniscriptSharedWalletState(
     val currentSigner: SignerModel? = null,
     val miniscriptTemplate: String = "",
     val walletName: String = "",
-    val currentBlockHeight: Int = 0,
     val requestCacheTapSignerXpubEvent: Boolean = false,
     val isTestNet: Boolean = false,
     val currentKeyToAssign: String = "",

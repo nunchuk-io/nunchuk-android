@@ -201,7 +201,6 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                     if (scriptNode != null) {
                         ChooseSigningPathScreen(
                             state = state,
-                            currentBlockHeight = state.currentBlockHeight,
                             onContinue = { isKeyPathSelected ->
                                 if (isKeyPathSelected) {
                                     transactionConfirmViewModel.draftMiniscriptTransaction()
@@ -219,7 +218,6 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                     if (scriptNode != null) {
                         SelectScriptPathPolicyScreen(
                             scriptNode = scriptNode,
-                            currentBlockHeight = state.currentBlockHeight,
                             signers = state.signers,
                             signingPaths = dummySigningPaths,
                             onContinue = { signingPath ->

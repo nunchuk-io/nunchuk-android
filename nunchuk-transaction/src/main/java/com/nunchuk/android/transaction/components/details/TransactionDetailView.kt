@@ -406,7 +406,6 @@ fun TransactionDetailView(
                                     satisfiableMap = miniscriptUiState.satisfiableMap,
                                     signedHash = miniscriptUiState.signedHash,
                                     topLevelDisableNode = miniscriptUiState.topLevelDisableNode,
-                                    currentBlockHeight = miniscriptUiState.chainTip,
                                     onPreImageClick = { scriptNode ->
                                         preImageScriptMode = scriptNode
                                     },

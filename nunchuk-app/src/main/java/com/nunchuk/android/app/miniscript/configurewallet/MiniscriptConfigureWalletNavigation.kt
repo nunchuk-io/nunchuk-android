@@ -305,7 +305,6 @@ fun MiniscriptConfigWalletScreen(
                                 mode = ScriptMode.CONFIG,
                                 signers = uiState.signers,
                                 showBip32Path = showBip32Path,
-                                currentBlockHeight = uiState.currentBlockHeight,
                                 duplicateSignerKeys = if (uiState.showBip32PathForDuplicates) {
                                     getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner)
                                 } else emptySet()

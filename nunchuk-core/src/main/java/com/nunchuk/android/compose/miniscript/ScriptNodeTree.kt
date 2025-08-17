@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcBadgeOutline
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcColor
@@ -64,6 +65,7 @@ import com.nunchuk.android.model.KeySetStatus
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.share.miniscript.rememberBlockHeightManager
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.dateTimeFormat
@@ -149,7 +151,6 @@ fun ScriptNodeTree(
             ) { modifier, showThreadCurve ->
                 TimelockItem(
                     modifier = modifier,
-                    currentBlockHeight = data.currentBlockHeight,
                     showThreadCurve = showThreadCurve,
                     data = data,
                     node = node
@@ -518,7 +519,6 @@ data class ScriptNodeData(
     val coinGroups: Map<String, CoinsGroup> = emptyMap(),
     val topLevelDisableNode: ScriptNode? = null,
     val onPreImageClick: (ScriptNode) -> Unit = {},
-    val currentBlockHeight: Int = 0,
     val signedHash: Map<String, Boolean> = emptyMap(),
     val lockBased: MiniscriptTimelockBased = MiniscriptTimelockBased.NONE,
     val inputCoins: List<UnspentOutput> = emptyList(),
@@ -854,12 +854,14 @@ fun ThreshMultiItem(
 @Composable
 fun TimelockItem(
     modifier: Modifier = Modifier,
-    currentBlockHeight: Int = 0,
     showThreadCurve: Boolean = true,
     node: ScriptNode,
     data: ScriptNodeData,
     content: @Composable () -> Unit = {},
 ) {
+    val blockHeightManager = rememberBlockHeightManager()
+    val currentBlockHeight by blockHeightManager.state.collectAsStateWithLifecycle()
+
     val mode: ScriptMode = data.mode
     val title = node.displayName
     val description = node.getAfterBlockDescription(currentBlockHeight)

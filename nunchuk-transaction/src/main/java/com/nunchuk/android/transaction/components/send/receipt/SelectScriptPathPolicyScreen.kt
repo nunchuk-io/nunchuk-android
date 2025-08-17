@@ -58,7 +58,6 @@ import com.nunchuk.android.transaction.R
 @Composable
 fun SelectScriptPathPolicyScreen(
     scriptNode: ScriptNode,
-    currentBlockHeight: Int = 0,
     signers: Map<String, SignerModel>,
     signingPaths: List<Pair<SigningPath, Amount>>,
     onContinue: (SigningPath) -> Unit = {},
@@ -187,7 +186,6 @@ fun SelectScriptPathPolicyScreen(
                                         signers = signers,
                                         duplicateSignerKeys = emptySet(),
                                         signingPath = signingPath,
-                                        currentBlockHeight = currentBlockHeight
                                     )
                                 )
                             }
