@@ -310,7 +310,7 @@ fun TimelockTimeline(
                         centerVerticallyTo(parent)
                     }
             )
-            
+
             // Right track segment (from lock to arrow)
             Box(
                 modifier = Modifier
@@ -412,16 +412,19 @@ fun TimelockTimeline(
                     getTimelockRemainingInfo(nearestTimelock, output.lockBased, currentBlockHeight)
                 Text(
                     text = remainingInfo,
-                    style = NunchukTheme.typography.caption.copy(
-                        color = Color.White,
-                        fontWeight = FontWeight.Medium
-                    ),
+                    style = NunchukTheme.typography.caption,
+                    color = MaterialTheme.colorScheme.textPrimary,
                     modifier = Modifier
-                        .background(
-                            color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(12.dp)
+                        .border(
+                            color = MaterialTheme.colorScheme.textPrimary,
+                            shape = RoundedCornerShape(20.dp),
+                            width = 1.dp
                         )
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.backgroundPrimary,
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
                         .constrainAs(remainingText) {
                             start.linkTo(dotIcon.end, margin = 8.dp)
                             end.linkTo(lockIcon.start, margin = 8.dp)

@@ -30,6 +30,8 @@ import com.nunchuk.android.core.network.NetworkRepositoryImpl
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.push.PushEventManagerImpl
 import com.nunchuk.android.repository.NetworkRepository
+import com.nunchuk.android.share.miniscript.BlockHeightManager
+import com.nunchuk.android.share.miniscript.BlockHeightManagerImpl
 import com.nunchuk.android.utils.DeviceManager
 import dagger.Binds
 import dagger.Module
@@ -64,4 +66,8 @@ internal interface CoreModule {
     @Binds
     @Singleton
     fun bindPushEventManager(impl: PushEventManagerImpl): PushEventManager
+
+    @Binds
+    @Singleton
+    fun bindBlockHeightManager(impl: BlockHeightManagerImpl): BlockHeightManager
 }
