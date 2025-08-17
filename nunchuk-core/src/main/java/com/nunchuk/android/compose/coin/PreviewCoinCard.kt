@@ -194,7 +194,7 @@ fun PreviewCoinCard(
             }
 
             // Timelock timeline
-            if (output.timelocks.isNotEmpty() && mode != MODE_VIEW_ONLY) {
+            if (output.timelocks.isNotEmpty()) {
                 TimelockTimeline(
                     modifier = Modifier.padding(top = 8.dp),
                     output = output

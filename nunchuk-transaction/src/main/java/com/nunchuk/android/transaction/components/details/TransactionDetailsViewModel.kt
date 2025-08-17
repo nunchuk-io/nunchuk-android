@@ -588,25 +588,26 @@ internal class TransactionDetailsViewModel @Inject constructor(
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()
             if (current.type in targetTypes) {
-                runCatching {
-                    getCoinsGroupedBySubPoliciesUseCase(
-                        GetCoinsGroupedBySubPoliciesUseCase.Params(
-                            walletId = walletId,
-                            txId = txId,
-                            nodeId = current.id.toIntArray()
-                        )
-                    ).onSuccess { coinGroups ->
-                        val groups = current.subs.mapIndexed { index, sub ->
-                            sub.idString to coinGroups.getOrNull(index)
-                        }
-                            .toMap()
-                        groups.forEach {
-                            if (it.value != null) {
-                                coinIdsGroups[it.key] = it.value!!
-                            }
-                        }
-                    }
-                }
+                // TODO : Uncomment this block when GetCoinsGroupedBySubPoliciesUseCase is ready
+//                runCatching {
+//                    getCoinsGroupedBySubPoliciesUseCase(
+//                        GetCoinsGroupedBySubPoliciesUseCase.Params(
+//                            walletId = walletId,
+//                            txId = txId,
+//                            nodeId = current.id.toIntArray()
+//                        )
+//                    ).onSuccess { coinGroups ->
+//                        val groups = current.subs.mapIndexed { index, sub ->
+//                            sub.idString to coinGroups.getOrNull(index)
+//                        }
+//                            .toMap()
+//                        groups.forEach {
+//                            if (it.value != null) {
+//                                coinIdsGroups[it.key] = it.value!!
+//                            }
+//                        }
+//                    }
+//                }
                 return current.subs.drop(
                     if (current.type == ScriptNodeType.ANDOR.name) 1 else 0
                 ).find { satisfiableMap[it.idString] == false }

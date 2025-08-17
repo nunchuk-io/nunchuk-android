@@ -59,6 +59,7 @@ data class TransactionMiniscriptUiState(
     val lockedTime: Long = 0L,
     val lockedBase: MiniscriptTimelockBased = MiniscriptTimelockBased.NONE,
     val chainTip: Int = 0,
+    val signedSigners: Map<String, Boolean> = emptyMap(),
 ) {
     val isTimelockedActive: Boolean =
         lockedBase != MiniscriptTimelockBased.NONE && lockedTime > 0 && when (lockedBase) {

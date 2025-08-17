@@ -67,7 +67,6 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.dateTimeFormat
-import timber.log.Timber
 import java.util.Date
 import java.util.Locale
 
@@ -99,6 +98,9 @@ fun ScriptNodeTree(
 ) {
     val isNormalNode =
         data.signingPath.path.isEmpty() || signingPathContainsNodeId(data.signingPath.path, node.id)
+    val isInDisableBranch = data.topLevelDisableNode != null
+            && node.id.size >= data.topLevelDisableNode.id.size
+            && node.idString.startsWith(data.topLevelDisableNode.idString)
     val isSatisfiableNode = data.satisfiableMap[node.idString] != false
 
     val nodeModifier = when {
@@ -181,7 +183,7 @@ fun ScriptNodeTree(
                     data = data,
                     showThreadCurve = showThreadCurve,
                     modifier = modifier,
-                    isSatisfiable = isSatisfiableNode,
+                    isSatisfiable = isSatisfiableNode && !isInDisableBranch,
                     avatarColor = avatarColor
                 )
             }
@@ -197,7 +199,7 @@ fun ScriptNodeTree(
                     topPadding = if (showThreadCurve) 10 else 0,
                     showThreadCurve = showThreadCurve,
                     modifier = modifier.then(nodeModifier),
-                    isSatisfiable = isSatisfiableNode,
+                    isSatisfiable = isSatisfiableNode && !isInDisableBranch,
                     data = data,
                     node = node
                 ) {
@@ -229,7 +231,8 @@ fun ScriptNodeTree(
                 HashlockItem(
                     data = data,
                     showThreadCurve = showThreadCurve,
-                    node = node
+                    node = node,
+                    isSatisfiable = isSatisfiableNode && !isInDisableBranch,
                 ) {
                     NodeContent(
                         node = node,
@@ -253,7 +256,7 @@ fun ScriptNodeTree(
                     topPadding = if (showThreadCurve) 10 else 0,
                     showThreadCurve = showThreadCurve,
                     modifier = modifier.then(nodeModifier),
-                    isSatisfiable = isSatisfiableNode,
+                    isSatisfiable = isSatisfiableNode && !isInDisableBranch,
                     data = data,
                     node = node
                 ) {
@@ -421,7 +424,6 @@ private fun NodeKeys(
     modifier: Modifier = Modifier
 ) {
     var localColorIndex = data.colorIndex
-    Timber.tag("miniscript-feature").d("NodeKeys: Starting with colorIndex = $localColorIndex for node ${node.idString}")
     node.keys.forEachIndexed { i, key ->
         val keyPosition = "${node.idString}.${i + 1}"
         TreeBranchContainer(
@@ -872,12 +874,15 @@ fun TimelockItem(
                     val currentTime = System.currentTimeMillis() / 1000L
                     currentTime >= timelockValue
                 }
+
                 MiniscriptTimelockBased.HEIGHT_LOCK -> {
                     currentBlockHeight >= timelockValue
                 }
+
                 else -> false
             }
         }
+
         ScriptNodeType.OLDER.name -> {
             // OLDER: Check if all coins have passed the relative timelock
             val timelockValue = node.timeLock?.value ?: 0L
@@ -887,13 +892,16 @@ fun TimelockItem(
                         val currentTime = System.currentTimeMillis() / 1000L
                         (coin.time + timelockValue) <= currentTime
                     }
+
                     MiniscriptTimelockBased.HEIGHT_LOCK -> {
                         (coin.height + timelockValue) <= currentBlockHeight
                     }
+
                     else -> false
                 }
             }
         }
+
         else -> false
     } else false
 
@@ -965,6 +973,7 @@ fun TimelockItem(
 @Composable
 fun HashlockItem(
     data: ScriptNodeData,
+    isSatisfiable: Boolean,
     modifier: Modifier = Modifier,
     showThreadCurve: Boolean = true,
     node: ScriptNode,
@@ -1012,6 +1021,7 @@ fun HashlockItem(
                     NcPrimaryDarkButton(
                         height = 36.dp,
                         onClick = { data.onPreImageClick(node) },
+                        enabled = isSatisfiable
                     ) {
                         Text(stringResource(R.string.nc_enter))
                     }
