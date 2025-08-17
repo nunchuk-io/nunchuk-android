@@ -126,6 +126,7 @@ fun NcPreimageBottomSheet(
                 isTransparent = true
             ) {
                 text = it
+                viewModel.reset()
             }
 
             Spacer(modifier = Modifier.height(40.dp))

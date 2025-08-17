@@ -34,7 +34,11 @@ class RevealPreimageUseCase @Inject constructor(
             txId = parameters.txId,
             hash = parameters.hash,
             preimage = parameters.preimage
-        )
+        ).also {
+            if (!it) {
+                throw IllegalArgumentException("Failed to reveal preimage")
+            }
+        }
     }
 
     class Params(

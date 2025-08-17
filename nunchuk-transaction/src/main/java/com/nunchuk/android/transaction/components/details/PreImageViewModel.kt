@@ -35,15 +35,17 @@ class PreImageViewModel @Inject constructor(
         preimage: String
     ) {
         viewModelScope.launch {
-            revealPreimageUseCase(
-                RevealPreimageUseCase.Params(
-                    walletId = walletId,
-                    txId = txId,
-                    hash = node.data,
-                    preimage = ChecksumUtil.decodeHex(preimage.toCharArray())
-                )
-            ).onSuccess {
-                _state.update { it.copy(isSuccess = true) }
+            runCatching {
+                revealPreimageUseCase(
+                    RevealPreimageUseCase.Params(
+                        walletId = walletId,
+                        txId = txId,
+                        hash = node.data,
+                        preimage = ChecksumUtil.decodeHex(preimage.toCharArray())
+                    )
+                ).getOrThrow()
+            }.onSuccess { isSuccess ->
+                _state.update { it.copy(isSuccess = isSuccess) }
             }.onFailure {
                 _state.update {
                     it.copy(
