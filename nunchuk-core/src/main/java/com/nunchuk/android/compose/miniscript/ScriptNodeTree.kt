@@ -801,7 +801,7 @@ fun ThreshMultiItem(
                         )
                         Text(
                             text = pluralStringResource(
-                                R.plurals.nc_transaction_pending_conditions,
+                                if (node.type == ScriptNodeType.MULTI.name) R.plurals.nc_transaction_pending_signature else R.plurals.nc_transaction_pending_conditions,
                                 pendingSigners,
                                 pendingSigners
                             ),
@@ -816,7 +816,7 @@ fun ThreshMultiItem(
                             tint = MaterialTheme.colorScheme.textSecondary
                         )
                         Text(
-                            text = stringResource(R.string.nc_transaction_enough_conditions),
+                            text = if (node.type == ScriptNodeType.MULTI.name) stringResource(R.string.nc_transaction_enough_signers) else  stringResource(R.string.nc_transaction_enough_conditions),
                             style = NunchukTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.textSecondary,
                             modifier = Modifier.padding(start = 4.dp),
