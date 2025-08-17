@@ -136,12 +136,11 @@ fun MiniscriptCustomTemplateScreen(
     onTaprootWarningConfirm: () -> Unit = {}
 ) {
     var miniscriptValue by remember { mutableStateOf(template) }
-    var hasBeenEdited by remember { mutableStateOf(false) }
     var initialValue by remember { mutableStateOf(template) }
 
     // Format the initial template if it's provided and not empty
     LaunchedEffect(template) {
-        if (template.isNotBlank() && !hasBeenEdited) {
+        if (template.isNotBlank()) {
             miniscriptValue = template.formatMiniscript()
             initialValue = template.formatMiniscript()
         }
@@ -200,7 +199,7 @@ fun MiniscriptCustomTemplateScreen(
                     value = miniscriptValue,
                     minLines = 4,
                     onValueChange = { newValue ->
-                        if (!hasBeenEdited && newValue != initialValue && newValue.isNotBlank()) {
+                        if (newValue != initialValue && newValue.isNotBlank()) {
                             // First time entering/pasting content - apply formatting
                             // Check if the input looks like unformatted miniscript (no line breaks)
                             if (!newValue.contains('\n') && newValue.length > 20) {
@@ -209,13 +208,8 @@ fun MiniscriptCustomTemplateScreen(
                             } else {
                                 miniscriptValue = newValue
                             }
-                            hasBeenEdited = true
                         } else {
-                            // Subsequent edits - no formatting
                             miniscriptValue = newValue
-                            if (!hasBeenEdited) {
-                                hasBeenEdited = true
-                            }
                         }
                     }
                 )
