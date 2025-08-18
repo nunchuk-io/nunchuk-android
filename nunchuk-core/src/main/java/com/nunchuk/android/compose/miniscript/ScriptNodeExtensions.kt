@@ -84,7 +84,7 @@ val ScriptNode.descriptionText: String
                     val diff = timeLock.value - currentTimeSeconds
                     val daysFromNow = ceil(diff / 86400.0).toInt()
                     // Don't display description if daysFromNow is less than 0
-                    if (daysFromNow < 0) {
+                    if (daysFromNow <= 0) {
                         ""
                     } else {
                         val dayText = if (daysFromNow == 1) "day" else "days"

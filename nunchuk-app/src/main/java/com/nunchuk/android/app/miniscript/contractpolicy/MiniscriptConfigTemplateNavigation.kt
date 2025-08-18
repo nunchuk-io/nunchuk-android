@@ -208,10 +208,6 @@ fun MiniscriptConfigTemplateScreen(
                     // Set to midnight of 30 days from now
                     val calendar = Calendar.getInstance()
                     calendar.add(Calendar.DAY_OF_YEAR, 30)
-                    calendar.set(Calendar.HOUR_OF_DAY, 0)
-                    calendar.set(Calendar.MINUTE, 0)
-                    calendar.set(Calendar.SECOND, 0)
-                    calendar.set(Calendar.MILLISECOND, 0)
                     calendar.timeInMillis / 1000 // Convert to Unix timestamp (seconds)
                 }(),
                 timezoneId = TimeZone.getDefault().id,
