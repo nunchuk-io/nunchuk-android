@@ -526,7 +526,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
             getTransactionTimeLock(walletId)
             getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
                 val signerMap = parseSignersFromScriptNode(result.scriptNode)
-                val topLevelDisableNode = topLevelDisableNode(result.scriptNode)
                 _state.update {
                     it.copy(
                         signerMap = signerMap,
@@ -539,7 +538,8 @@ internal class TransactionDetailsViewModel @Inject constructor(
                         satisfiableMap = satisfiableMap,
                         signedHash = signedHash,
                         keySetStatues = keySetStatues,
-                        topLevelDisableNode = topLevelDisableNode,
+                        collapsedNode = getCollapsedNode(result.scriptNode),
+                        topLevelDisableNode = getTopLevelDisabledNode(result.scriptNode),
                         coinGroups = coinIdsGroups,
                     )
                 }
@@ -575,7 +575,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private suspend fun topLevelDisableNode(
+    private fun getCollapsedNode(
         scriptNode: ScriptNode,
     ): ScriptNode? {
         val targetTypes = setOf(
@@ -588,30 +588,24 @@ internal class TransactionDetailsViewModel @Inject constructor(
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()
             if (current.type in targetTypes) {
-                // TODO : Uncomment this block when GetCoinsGroupedBySubPoliciesUseCase is ready
-//                runCatching {
-//                    getCoinsGroupedBySubPoliciesUseCase(
-//                        GetCoinsGroupedBySubPoliciesUseCase.Params(
-//                            walletId = walletId,
-//                            txId = txId,
-//                            nodeId = current.id.toIntArray()
-//                        )
-//                    ).onSuccess { coinGroups ->
-//                        val groups = current.subs.mapIndexed { index, sub ->
-//                            sub.idString to coinGroups.getOrNull(index)
-//                        }
-//                            .toMap()
-//                        groups.forEach {
-//                            if (it.value != null) {
-//                                coinIdsGroups[it.key] = it.value!!
-//                            }
-//                        }
-//                    }
-//                }
+                // TODO GetCoinsGroupedBySubPoliciesUseCase
                 return current.subs.drop(
                     if (current.type == ScriptNodeType.ANDOR.name) 1 else 0
                 ).find { satisfiableMap[it.idString] == false }
             }
+            current.subs.forEach { queue.add(it) }
+        }
+        return null
+    }
+
+    private fun getTopLevelDisabledNode(
+        scriptNode: ScriptNode,
+    ): ScriptNode? {
+        val queue: ArrayDeque<ScriptNode> = ArrayDeque()
+        queue.add(scriptNode)
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+            if (satisfiableMap[current.idString] == false) return current
             current.subs.forEach { queue.add(it) }
         }
         return null
@@ -1203,6 +1197,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
         flow.addOnCompleteListener {
             doneCallback()
         }
+    }
+
+    fun isTimelockedActive(): Boolean {
+        return _minscriptState.value.isTimelockedActive
     }
 
     companion object {

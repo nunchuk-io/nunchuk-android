@@ -137,6 +137,7 @@ fun ScriptNodeTree(
                         onActionKey = onActionKey,
                         data = data,
                         level = level,
+                        isInDisableBranch = isInDisableBranch,
                         modifier = modifier
                     )
                 }
@@ -161,6 +162,7 @@ fun ScriptNodeTree(
                         onActionKey = onActionKey,
                         data = data,
                         level = level,
+                        isInDisableBranch = isInDisableBranch,
                         modifier = modifier
                     )
                 }
@@ -217,6 +219,7 @@ fun ScriptNodeTree(
                         onActionKey = onActionKey,
                         data = data,
                         level = level,
+                        isInDisableBranch = isInDisableBranch,
                         modifier = modifier.then(nodeModifier)
                     )
                 }
@@ -241,6 +244,7 @@ fun ScriptNodeTree(
                         onActionKey = onActionKey,
                         data = data,
                         level = level,
+                        isInDisableBranch = isInDisableBranch,
                         modifier = modifier
                     )
                 }
@@ -274,6 +278,7 @@ fun ScriptNodeTree(
                         onActionKey = onActionKey,
                         data = data,
                         level = level,
+                        isInDisableBranch = isInDisableBranch,
                         modifier = modifier.then(nodeModifier)
                     )
                 }
@@ -422,12 +427,10 @@ private fun NodeKeys(
     onActionKey: (String, SignerModel?) -> Unit,
     data: ScriptNodeData,
     level: Int,
+    isInDisableBranch: Boolean,
     modifier: Modifier = Modifier
 ) {
     var localColorIndex = data.colorIndex
-    val isInDisableBranch = data.topLevelDisableNode != null
-            && node.id.size >= data.topLevelDisableNode.id.size
-            && node.idString.startsWith(data.topLevelDisableNode.idString)
     node.keys.forEachIndexed { i, key ->
         val keyPosition = "${node.idString}.${i + 1}"
         TreeBranchContainer(
@@ -491,6 +494,7 @@ private fun NodeContent(
     onActionKey: (String, SignerModel?) -> Unit,
     data: ScriptNodeData,
     level: Int,
+    isInDisableBranch: Boolean,
     modifier: Modifier = Modifier
 ) {
     NodeKeys(
@@ -499,6 +503,7 @@ private fun NodeContent(
         onActionKey = onActionKey,
         data = data,
         level = level,
+        isInDisableBranch = isInDisableBranch,
         modifier = modifier
     )
     NodeSubs(
@@ -520,6 +525,7 @@ data class ScriptNodeData(
     val satisfiableMap: Map<String, Boolean> = emptyMap(),
     val keySetStatues: Map<String, KeySetStatus> = emptyMap(),
     val coinGroups: Map<String, CoinsGroup> = emptyMap(),
+    val collapsedNode: ScriptNode? = null,
     val topLevelDisableNode: ScriptNode? = null,
     val onPreImageClick: (ScriptNode) -> Unit = {},
     val signedHash: Map<String, Boolean> = emptyMap(),
@@ -596,7 +602,7 @@ fun MusigItem(
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
     var showDetail by remember(node.id) {
-        mutableStateOf(data.topLevelDisableNode?.id != node.id)
+        mutableStateOf(data.collapsedNode?.id != node.id)
     }
 
     val keySet: KeySetStatus? = data.keySetStatues[node.idString]
@@ -682,7 +688,7 @@ fun MusigItem(
                 }
             }
 
-            if (data.topLevelDisableNode?.id == node.id) {
+            if (data.collapsedNode?.id == node.id) {
                 Row(
                     modifier = Modifier
                         .padding(start = 8.dp)
@@ -725,7 +731,7 @@ fun ThreshMultiItem(
 ) {
     // Only calculate signed signatures when in SIGN mode
     var showDetail by remember(node.id) {
-        mutableStateOf(data.topLevelDisableNode?.id != node.id)
+        mutableStateOf(data.collapsedNode?.id != node.id)
     }
     val pendingSigners = if (data.mode == ScriptMode.SIGN && isSatisfiable) {
         val signedCount = when (node.type) {
@@ -823,7 +829,7 @@ fun ThreshMultiItem(
                         )
                     }
                 }
-            } else if (data.topLevelDisableNode?.id == node.id) {
+            } else if (data.collapsedNode?.id == node.id) {
                 Row(
                     modifier = Modifier
                         .padding(start = 8.dp)

@@ -27,7 +27,6 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.sheet.input.InputBottomSheet
 import com.nunchuk.android.core.sheet.input.InputBottomSheetListener
-import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isConfirmed
@@ -36,9 +35,6 @@ import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.wallet.InvoiceInfo
-import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.model.transaction.ServerTransaction
-import com.nunchuk.android.model.transaction.ServerTransactionType
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.CANCEL
 import com.nunchuk.android.share.model.TransactionOption.COPY_RAW_TRANSACTION_HEX
@@ -322,13 +318,6 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         viewModel.handleMenuMoreEvent()
     }
 
-    private fun isServerBroadcastTime(
-        transaction: Transaction,
-        serverTransaction: ServerTransaction?
-    ): Boolean {
-        return serverTransaction != null && transaction.status.canBroadCast() && serverTransaction.type == ServerTransactionType.SCHEDULED && serverTransaction.broadcastTimeInMilis > 0L
-    }
-
     private fun handleEvent(event: TransactionDetailsEvent) {
         when (event) {
             is SignTransactionSuccess -> showSignTransactionSuccess(event)
@@ -518,7 +507,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             val round1Completed =
                 state.transaction.keySetStatus.any { it.status != TransactionStatus.PENDING_NONCE && it.signerStatus.all { entry -> !entry.value } }
             val readyToBroadcast = state.transaction.status == READY_TO_BROADCAST
-            if (readyToBroadcast) {
+            if (readyToBroadcast && !viewModel.isTimelockedActive()) {
                 NCToastMessage(this).show(getString(R.string.nc_transaction_ready_to_broadcast))
             } else if (round1Completed) {
                 NCToastMessage(this).show(getString(R.string.nc_round_1_completed))

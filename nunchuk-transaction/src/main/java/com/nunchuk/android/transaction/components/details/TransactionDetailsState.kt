@@ -55,6 +55,7 @@ data class TransactionMiniscriptUiState(
     val keySetStatues: Map<String, KeySetStatus> = emptyMap(),
     val signedHash: Map<String, Boolean> = emptyMap(),
     val coinGroups: Map<String, CoinsGroup> = emptyMap(),
+    val collapsedNode: ScriptNode? = null,
     val topLevelDisableNode: ScriptNode? = null,
     val lockedTime: Long = 0L,
     val lockedBase: MiniscriptTimelockBased = MiniscriptTimelockBased.NONE,

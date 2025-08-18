@@ -406,6 +406,7 @@ fun TransactionDetailView(
                                     signedSigners = transaction.signers,
                                     satisfiableMap = miniscriptUiState.satisfiableMap,
                                     signedHash = miniscriptUiState.signedHash,
+                                    collapsedNode = miniscriptUiState.collapsedNode,
                                     topLevelDisableNode = miniscriptUiState.topLevelDisableNode,
                                     onPreImageClick = { scriptNode ->
                                         preImageScriptMode = scriptNode
