@@ -880,7 +880,7 @@ fun TimelockItem(
         ScriptNodeType.AFTER.name -> {
             // AFTER: Check if current time/block has passed the timelock value
             val timelockValue = node.timeLock?.value ?: 0L
-            when (data.lockBased) {
+            when (node.timeLock?.based) {
                 MiniscriptTimelockBased.TIME_LOCK -> {
                     val currentTime = System.currentTimeMillis() / 1000L
                     currentTime >= timelockValue
@@ -898,7 +898,7 @@ fun TimelockItem(
             // OLDER: Check if all coins have passed the relative timelock
             val timelockValue = node.timeLock?.value ?: 0L
             data.inputCoins.all { coin ->
-                when (data.lockBased) {
+                when (node.timeLock?.based) {
                     MiniscriptTimelockBased.TIME_LOCK -> {
                         val currentTime = System.currentTimeMillis() / 1000L
                         (coin.time + timelockValue) <= currentTime
