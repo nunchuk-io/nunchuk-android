@@ -80,14 +80,19 @@ fun HomeScreenSettingsContent(
                             .padding(end = 12.dp),
                     ) {
                         Text(
-                            text = stringResource(id = R.string.nc_display_total_balance_home_screen),
+                            text = stringResource(id = R.string.nc_display_wallet_shortcut),
                             style = NunchukTheme.typography.body
+                        )
+                        Text(
+                            modifier = Modifier.padding(top = 4.dp),
+                            text = stringResource(id = R.string.nc_display_wallet_shortcut_desc),
+                            style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.greyDark)
                         )
                     }
 
                     NcSwitch(
-                        checked = uiState.homeDisplaySetting.showTotalBalance,
-                        onCheckedChange = onDisplayTotalBalanceChange,
+                        checked = uiState.homeDisplaySetting.showWalletShortcuts,
+                        onCheckedChange = onDisplayWalletShortcutChange,
                     )
                 }
 
@@ -102,19 +107,14 @@ fun HomeScreenSettingsContent(
                             .padding(end = 12.dp),
                     ) {
                         Text(
-                            text = stringResource(id = R.string.nc_display_wallet_shortcut),
+                            text = stringResource(id = R.string.nc_display_total_balance_home_screen),
                             style = NunchukTheme.typography.body
-                        )
-                        Text(
-                            modifier = Modifier.padding(top = 4.dp),
-                            text = stringResource(id = R.string.nc_display_wallet_shortcut_desc),
-                            style = NunchukTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.greyDark)
                         )
                     }
 
                     NcSwitch(
-                        checked = uiState.homeDisplaySetting.showWalletShortcuts,
-                        onCheckedChange = onDisplayWalletShortcutChange,
+                        checked = uiState.homeDisplaySetting.showTotalBalance,
+                        onCheckedChange = onDisplayTotalBalanceChange,
                     )
                 }
 
