@@ -66,6 +66,7 @@ import com.nunchuk.android.core.util.TextUtils
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.getFileFromUri
+import com.nunchuk.android.core.util.hideKeyboard
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.makeTextLink
 import com.nunchuk.android.core.util.openExternalLink
@@ -184,6 +185,8 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        view.hideKeyboard()
         setupViews()
         observeEvent()
 
