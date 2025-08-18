@@ -98,13 +98,12 @@
             style="@style/NCPrimaryButton.Dark"
             android:layout_width="match_parent"
             android:layout_height="@dimen/nc_height_48"
-            android:layout_marginHorizontal="@dimen/nc_padding_16"
-            android:layout_marginBottom="@dimen/nc_padding_16">
+            android:layout_marginHorizontal="@dimen/nc_padding_16">
 
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_qr"
+                android:src="@drawable/ic_share"
                 app:tint="@color/nc_control_text_primary" />
 
             <com.nunchuk.android.widget.NCFontTextView
@@ -112,29 +111,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/nc_padding_6"
-                android:text="Export configuration as QR code"
+                android:text="Export configuration"
                 android:textColor="@color/nc_white_color" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/btnUpload"
-            style="@style/NCPrimaryButton.Light.Solid"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/nc_height_48"
-            android:layout_marginHorizontal="@dimen/nc_padding_16">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_share"
-                app:tint="@color/nc_primary_color" />
-
-            <com.nunchuk.android.widget.NCFontTextView
-                style="@style/NCOutlineButton.Text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/nc_padding_6"
-                android:text="Export configuration as a file" />
         </LinearLayout>
 
         <com.nunchuk.android.widget.NCFontTextView

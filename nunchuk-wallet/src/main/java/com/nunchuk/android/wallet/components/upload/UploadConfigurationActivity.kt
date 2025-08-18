@@ -24,6 +24,10 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.share.IntentSharingController
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.wallet.components.details.WalletDetailsActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.ExportColdcardSuccess
@@ -55,14 +59,9 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
     }
 
     private fun setupViews() {
-        binding.btnQRCode.setOnDebounceClickListener { 
-            val isMiniscriptWallet = sharedViewModel.getIsMiniscriptWallet()
-            val wallet = sharedViewModel.getWallet()
-            if (wallet != null) {
-                showExportQRTypeOption(wallet, isMiniscriptWallet)
-            }
+        binding.btnQRCode.setOnDebounceClickListener {
+            showExportOptions()
         }
-        binding.btnUpload.setOnDebounceClickListener { showExportColdcardOptions() }
         binding.btnSkipUpload.setOnDebounceClickListener {
             ActivityManager.popUntil(WalletDetailsActivity::class.java)
         }
@@ -83,6 +82,40 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
             else -> {}
         }
     }
+
+    override fun onOptionClicked(option: SheetOption) {
+        super.onOptionClicked(option)
+        when (option.type) {
+            SheetOptionType.TYPE_EXPORT_QR -> {
+                val isMiniscriptWallet = sharedViewModel.getIsMiniscriptWallet()
+                val wallet = sharedViewModel.getWallet()
+                if (wallet != null) {
+                    showExportQRTypeOption(wallet, isMiniscriptWallet)
+                }
+            }
+            SheetOptionType.TYPE_EXPORT_FILE -> {
+                showSaveShareOption()
+            }
+        }
+    }
+
+    fun showExportOptions() {
+        BottomSheetOption.newInstance(
+            listOf(
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_QR,
+                    resId = R.drawable.ic_qr,
+                    stringId = R.string.nc_export_configuration_qr_code
+                ),
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_FILE,
+                    resId = R.drawable.ic_share,
+                    stringId = R.string.nc_wallet_save_configuration
+                ),
+            )
+        ).show(supportFragmentManager, "BottomSheetOption")
+    }
+
 
     private fun shareConfigurationFile(filePath: String?) {
         if (filePath.isNullOrEmpty().not()) {
