@@ -377,24 +377,24 @@ fun FreeGroupWalletScreen(
                             state = state,
                             showBip32Path = showBip32Path,
                             onChangeBip32Path = onChangeBip32Path,
-                            onActionKey = { keyPath, signer ->
-                                Timber.tag("miniscript-feature").d("TaprootAddressContent.onActionKey called: keyPath=$keyPath, signer=${signer?.name}, showSignerBottomSheet=$showSignerBottomSheet")
+                            onActionKey = { keyName, signer ->
+                                Timber.tag("miniscript-feature").d("TaprootAddressContent.onActionKey called: keyPath=$keyName, signer=${signer?.name}, showSignerBottomSheet=$showSignerBottomSheet")
                                 // Handle key actions for Miniscript
-                                onSetCurrentKey(keyPath)
+                                onSetCurrentKey(keyName)
                                 if (signer != null) {
                                     // If there's already a signer, show remove confirmation
-                                    keyToRemove = keyPath
+                                    keyToRemove = keyName
                                     showRemoveConfirmation = true
-                                    Timber.tag("miniscript-feature").d("TaprootAddressContent: Setting showRemoveConfirmation=true for keyPath=$keyPath")
+                                    Timber.tag("miniscript-feature").d("TaprootAddressContent: Setting showRemoveConfirmation=true for keyPath=$keyName")
                                 } else {
                                     // If no signer, show add options
-                                    onStartAddKeyForMiniscript(keyPath)
+                                    onStartAddKeyForMiniscript(keyName)
                                     if (state.allSigners.isNotEmpty()) {
                                         showSignerBottomSheet = true
-                                        Timber.tag("miniscript-feature").d("TaprootAddressContent: Setting showSignerBottomSheet=true for keyPath=$keyPath")
+                                        Timber.tag("miniscript-feature").d("TaprootAddressContent: Setting showSignerBottomSheet=true for keyPath=$keyName")
                                     } else {
                                         onAddNewKeyForMiniscript(state.supportedTypes)
-                                        Timber.tag("miniscript-feature").d("TaprootAddressContent: Calling onAddNewKeyForMiniscript for keyPath=$keyPath")
+                                        Timber.tag("miniscript-feature").d("TaprootAddressContent: Calling onAddNewKeyForMiniscript for keyPath=$keyName")
                                     }
                                 }
                             }
@@ -593,59 +593,49 @@ fun FreeGroupWalletScreen(
             )
         }
         
-        // Miniscript signer selection bottom sheet
         if (showSignerBottomSheet) {
-            if (state.currentKeyToAssign.isNotEmpty()) {
-                val allSigners = state.allSigners.filter {
-                    !state.namedSigners.values.filterNotNull().contains(it)
-                }
-                if (allSigners.isNotEmpty()) {
-                    SelectSignerBottomSheet(
-                        onDismiss = { showSignerBottomSheet = false },
-                        supportedSigners = state.supportedTypes.takeIf { state.group?.addressType?.isTaproot() == true }
-                            .orEmpty(),
-                        onAddExistKey = { signer ->
-                            showSignerBottomSheet = false
-                            onAddExistingKeyForMiniscript(signer, state.currentKeyToAssign)
-                        },
-                        onAddNewKey = {
-                            showSignerBottomSheet = false
-                            onAddNewKeyForMiniscript(state.supportedTypes)
-                        },
-                        args = TapSignerListBottomSheetFragmentArgs(
-                            signers = allSigners.toTypedArray(),
-                            type = SignerType.UNKNOWN
-                        )
-                    )
-                } else {
-                    showSignerBottomSheet = false
-                    onAddNewKeyForMiniscript(state.supportedTypes)
-                }
+            val isMiniscriptMode = state.currentKeyToAssign.isNotEmpty()
+            val addedSigners = if (isMiniscriptMode) {
+                state.namedSigners.values.filterNotNull().map { it.fingerPrint }.toSet()
             } else {
-                val addedSigners = state.signers.filterNotNull().map { it.fingerPrint }.toSet()
-                val allSigners = state.allSigners.filter {
-                    !addedSigners.contains(it.fingerPrint)
-                }
-                if (allSigners.isNotEmpty()) {
-                    SelectSignerBottomSheet(
-                        onDismiss = { showSignerBottomSheet = false },
-                        supportedSigners = state.supportedTypes.takeIf { state.group?.addressType?.isTaproot() == true }
-                            .orEmpty(),
-                        onAddExistKey = {
-                            showSignerBottomSheet = false
-                            onAddExistingKey(it, currentSignerIndex)
-                        },
-                        onAddNewKey = {
-                            showSignerBottomSheet = false
+                state.signers.filterNotNull().map { it.fingerPrint }.toSet()
+            }
+            
+            val allSigners = state.allSigners.filter {
+                !addedSigners.contains(it.fingerPrint)
+            }
+            
+            if (allSigners.isNotEmpty()) {
+                SelectSignerBottomSheet(
+                    onDismiss = { showSignerBottomSheet = false },
+                    supportedSigners = state.supportedTypes.takeIf { state.group?.addressType?.isTaproot() == true }
+                        .orEmpty(),
+                    onAddExistKey = { signer ->
+                        showSignerBottomSheet = false
+                        if (isMiniscriptMode) {
+                            onAddExistingKeyForMiniscript(signer, state.currentKeyToAssign)
+                        } else {
+                            onAddExistingKey(signer, currentSignerIndex)
+                        }
+                    },
+                    onAddNewKey = {
+                        showSignerBottomSheet = false
+                        if (isMiniscriptMode) {
+                            onAddNewKeyForMiniscript(state.supportedTypes)
+                        } else {
                             onAddNewKey(currentSignerIndex)
-                        },
-                        args = TapSignerListBottomSheetFragmentArgs(
-                            signers = allSigners.toTypedArray(),
-                            type = SignerType.UNKNOWN
-                        )
+                        }
+                    },
+                    args = TapSignerListBottomSheetFragmentArgs(
+                        signers = allSigners.toTypedArray(),
+                        type = SignerType.UNKNOWN
                     )
+                )
+            } else {
+                showSignerBottomSheet = false
+                if (isMiniscriptMode) {
+                    onAddNewKeyForMiniscript(state.supportedTypes)
                 } else {
-                    showSignerBottomSheet = false
                     onAddNewKey(currentSignerIndex)
                 }
             }

@@ -312,20 +312,17 @@ fun ReviewWalletContent(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Miniscript information display
                 if (args.walletType == WalletType.MINISCRIPT && args.scriptNode != null) {
                     item("miniscript-header") {
                         PolicyHeader(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 20.dp),
+                                .fillMaxWidth(),
                             showUserAvatars = false,
                             numberOfOnlineUsers = 1,
                         )
                     }
 
                     item("miniscript-content") {
-                        // Convert NamedSigner list back to Map for miniscript components
                         val namedSignersMap =
                             args.namedSigners.associate { it.keyName to it.signer }
 
@@ -333,12 +330,8 @@ fun ReviewWalletContent(
                             args = args,
                             namedSigners = namedSignersMap,
                             showBip32Path = true,
-                            onChangeBip32Path = { index, signer ->
-
-                            },
-                            onActionKey = { key, signer ->
-
-                            },
+                            onChangeBip32Path = { index, signer -> },
+                            onActionKey = { key, signer -> },
                             parentModifier = Modifier.padding(bottom = 16.dp)
                         )
 
@@ -443,9 +436,9 @@ private fun TaprootAddressContent(
     onActionKey: (String, SignerModel?) -> Unit = { _, _ -> },
     parentModifier: Modifier = Modifier
 ) {
-    if (args.addressType.isTaproot() == true && args.keyPath.size == 1) {
+    if (args.addressType.isTaproot() == true && args.keyPath.size <= 1) {
         MiniscriptTaproot(
-            keyPath = args.keyPath.first(),
+            keyPath = args.keyPath.firstOrNull().orEmpty(),
             data = ScriptNodeData(
                 mode = ScriptMode.VIEW,
                 signers = namedSigners,
@@ -475,7 +468,7 @@ private fun TaprootAddressContent(
         )
     }
 
-    if (args.addressType?.isTaproot() == true && args.keyPath.size > 1 && args.scriptNodeMuSig != null) {
+    if (args.addressType.isTaproot() == true && args.keyPath.size > 1 && args.scriptNodeMuSig != null) {
         NcBadgePrimary(
             modifier = Modifier.padding(vertical = 8.dp),
             text = "Key path",

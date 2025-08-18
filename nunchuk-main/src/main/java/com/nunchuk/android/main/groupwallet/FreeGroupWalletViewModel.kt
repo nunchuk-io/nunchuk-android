@@ -463,10 +463,9 @@ class FreeGroupWalletViewModel @Inject constructor(
         val timeout = 5.minutes.inWholeSeconds
         
         if (isMiniscriptWallet()) {
-            // For Miniscript wallets, handle namedOccupied data
             val namedOccupiedKeys = groupSandbox.namedOccupied.mapNotNull { (keyName, occupiedData) ->
                 // occupiedData is a tuple (deviceId, timestamp) - we need to check if it's from another device and not expired
-                val deviceId = occupiedData.first.toString() // Convert Long to String for comparison
+                val deviceId = occupiedData.first.toString()
                 val timestamp = occupiedData.second.toLongOrDefault(0)
                 if (deviceId != deviceUID && timestamp + timeout > currentTimeInSeconds) {
                     keyName
@@ -477,9 +476,8 @@ class FreeGroupWalletViewModel @Inject constructor(
             
             Timber.tag("miniscript-feature").d("updateOccupiedSlots: Miniscript wallet - namedOccupied keys: $namedOccupiedKeys")
             
-            // Update both occupiedSlotsIndex (for backward compatibility) and namedOccupied
             _uiState.update { it.copy(
-                occupiedSlotsIndex = emptySet(), // Clear regular occupied slots for Miniscript
+                occupiedSlotsIndex = emptySet(),
                 namedOccupied = namedOccupiedKeys
             ) }
         } else {
@@ -497,7 +495,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             
             _uiState.update { it.copy(
                 occupiedSlotsIndex = occupiedSlots,
-                namedOccupied = emptySet() // Clear namedOccupied for regular wallets
+                namedOccupied = emptySet()
             ) }
         }
     }

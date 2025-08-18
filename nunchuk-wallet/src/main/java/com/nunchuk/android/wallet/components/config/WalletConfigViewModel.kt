@@ -36,7 +36,6 @@ import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.miniscript.MiniscriptUtil
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.MusigKeyPrefix
 import com.nunchuk.android.core.util.isPending
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.wallet.InvoiceInfo
@@ -269,12 +268,6 @@ internal class WalletConfigViewModel @Inject constructor(
             }
         } else {
             _state.update { it.copy(scriptNode = null) }
-        }
-    }
-
-    private fun generateKeysForTotalRequireSigns(totalRequireSigns: Int): List<String> {
-        return (0 until totalRequireSigns).map { index ->
-            "${MusigKeyPrefix}$index"
         }
     }
 
