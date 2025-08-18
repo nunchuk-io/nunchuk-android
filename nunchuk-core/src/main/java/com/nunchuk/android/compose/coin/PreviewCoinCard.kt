@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.pluralStringResource
 import com.nunchuk.android.compose.CoinStatusBadge
 import com.nunchuk.android.compose.CoinTagGroupView
 import com.nunchuk.android.compose.NcCheckBox
@@ -439,6 +440,7 @@ fun TimelockTimeline(
 /**
  * Gets remaining time or blocks info as a formatted string
  */
+@Composable
 private fun getTimelockRemainingInfo(
     nearestTimelock: Long,
     lockBased: MiniscriptTimelockBased,
@@ -451,17 +453,29 @@ private fun getTimelockRemainingInfo(
             val remainingDays = ceil(remainingSeconds / 86400.0).toInt()
 
             when {
-                remainingDays > 0 -> "$remainingDays days left"
+                remainingDays > 0 -> pluralStringResource(
+                    R.plurals.nc_days_left,
+                    remainingDays,
+                    remainingDays
+                )
                 else -> {
                     val remainingHours = (remainingSeconds / 3600).toInt()
-                    if (remainingHours > 0) "$remainingHours hours left" else "Less than 1 hour left"
+                    if (remainingHours > 0) pluralStringResource(
+                        R.plurals.nc_plural_hour,
+                        remainingHours,
+                        remainingHours
+                    ) else "Less than 1 hour left"
                 }
             }
         }
 
         MiniscriptTimelockBased.HEIGHT_LOCK -> {
             val remainingBlocks = nearestTimelock.toInt() - currentBlockHeight
-            "${remainingBlocks.formatDecimalWithoutZero()} blocks left"
+            pluralStringResource(
+                R.plurals.nc_blocks_left,
+                remainingBlocks,
+                remainingBlocks
+            )
         }
 
         else -> ""

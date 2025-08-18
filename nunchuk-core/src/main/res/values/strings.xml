@@ -996,5 +996,15 @@
         <item quantity="one">%1$d coin</item>
         <item quantity="other">%1$d coins</item>
     </plurals>
+
+    <plurals name="nc_days_left">
+        <item quantity="one">%1$d day left</item>
+        <item quantity="other">%1$d days left</item>
+    </plurals>
+
+    <plurals name="nc_blocks_left">
+        <item quantity="one">%1$d block left</item>
+        <item quantity="other">%1$d blocks left</item>
+    </plurals>
     <string name="nc_occupied">Occupied</string>
 </resources>
