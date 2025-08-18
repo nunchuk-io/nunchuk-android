@@ -32,6 +32,7 @@ import com.nunchuk.android.core.domain.membership.DeleteAssistedWalletUseCase
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.domain.wallet.GetWalletDescriptorUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.miniscript.MiniscriptUtil
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -136,6 +137,7 @@ internal class WalletConfigViewModel @Inject constructor(
     private val parseSignerStringUseCase: ParseSignerStringUseCase,
     private val getChainTipUseCase: GetChainTipUseCase,
     private val getWalletDescriptorUseCase: GetWalletDescriptorUseCase,
+    private val singleSignerMapper: SingleSignerMapper,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletConfigState())
@@ -280,9 +282,9 @@ internal class WalletConfigViewModel @Inject constructor(
         val signerMap = mutableMapOf<String, SignerModel?>()
         node.keys.forEach { key ->
             val signer = parseSignerStringUseCase(key).getOrNull()
-            val existingSigner =
-                _state.value.signers.find { it.fingerPrint == signer?.masterFingerprint }
-            signerMap[key] = signer?.toModel()?.copy(name = existingSigner?.name ?: signer.name)
+           signer?.let {
+               signerMap[key] =  singleSignerMapper(signer)
+           }
         }
         node.subs.forEach { subNode ->
             signerMap.putAll(parseSignersFromScriptNode(subNode))
