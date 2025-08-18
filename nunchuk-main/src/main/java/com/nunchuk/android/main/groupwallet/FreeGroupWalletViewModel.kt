@@ -317,8 +317,6 @@ class FreeGroupWalletViewModel @Inject constructor(
     }
 
     private suspend fun updateGroupSandbox(groupSandbox: GroupSandbox) {
-        Timber.tag("miniscript-feature").d("Update group sandbox: $groupSandbox")
-        
         getSignerOldWallet(groupSandbox.replaceWalletId)
         val signers = mapSigners(groupSandbox.signers)
         
@@ -330,7 +328,6 @@ class FreeGroupWalletViewModel @Inject constructor(
         // Extract namedOccupied key names for Miniscript wallets
         val namedOccupiedKeys = if (groupSandbox.walletType == WalletType.MINISCRIPT) {
             val keys = groupSandbox.namedOccupied.keys.toSet()
-            Timber.tag("miniscript-feature").d("Extracted namedOccupied keys: $keys from data: ${groupSandbox.namedOccupied}")
             keys
         } else {
             emptySet()
@@ -408,12 +405,9 @@ class FreeGroupWalletViewModel @Inject constructor(
                     }
                     
                     signerMap[keyName] = signerModel
-                    
-                    Timber.tag("miniscript-feature").d("createSignerMapFromNamedSigners: key=$keyName, path=${signerModel.derivationPath}, name=${signerModel.name}")
                 } else {
                     // This key doesn't have a signer assigned yet, set to null
                     signerMap[keyName] = null
-                    Timber.tag("miniscript-feature").d("createSignerMapFromNamedSigners: key=$keyName has no signer assigned")
                 }
             }
         } else {
@@ -428,7 +422,6 @@ class FreeGroupWalletViewModel @Inject constructor(
             }
         }
         
-        Timber.tag("miniscript-feature").d("Created signer map: $signerMap")
         return signerMap
     }
 
@@ -474,8 +467,6 @@ class FreeGroupWalletViewModel @Inject constructor(
                 }
             }.toSet()
             
-            Timber.tag("miniscript-feature").d("updateOccupiedSlots: Miniscript wallet - namedOccupied keys: $namedOccupiedKeys")
-            
             _uiState.update { it.copy(
                 occupiedSlotsIndex = emptySet(),
                 namedOccupied = namedOccupiedKeys
@@ -490,8 +481,6 @@ class FreeGroupWalletViewModel @Inject constructor(
                         null
                     }
                 }.toSet()
-            
-            Timber.tag("miniscript-feature").d("updateOccupiedSlots: Regular wallet - occupied slots: $occupiedSlots")
             
             _uiState.update { it.copy(
                 occupiedSlotsIndex = occupiedSlots,
@@ -631,12 +620,10 @@ class FreeGroupWalletViewModel @Inject constructor(
                                 keyName = currentKey
                             )
                         ).onSuccess {
-                            Timber.tag("miniscript-feature").d("Miniscript slot for key '$currentKey' is occupied: $value")
+                            // Slot occupied successfully
                         }.onFailure {
                             Timber.tag("miniscript-feature").e("Failed to set Miniscript slot occupied for key '$currentKey': $it")
                         }
-                    } else {
-                        Timber.tag("miniscript-feature").d("No current key to assign, skipping slot occupied setting")
                     }
                 } else {
                     // Clearing slot occupied - only clear if we have a current key or if we're in a state where we need to clear
@@ -651,12 +638,10 @@ class FreeGroupWalletViewModel @Inject constructor(
                                 keyName = currentKey
                             )
                         ).onSuccess {
-                            Timber.tag("miniscript-feature").d("Cleared slot occupied for Miniscript key: $currentKey")
+                            // Slot cleared successfully
                         }.onFailure {
                             Timber.tag("miniscript-feature").e("Failed to clear slot occupied for Miniscript key '$currentKey': $it")
                         }
-                    } else {
-                        Timber.tag("miniscript-feature").d("No current key to clear, skipping slot occupied clearing")
                     }
                 }
             } else {
@@ -841,8 +826,6 @@ class FreeGroupWalletViewModel @Inject constructor(
     }
 
     fun addExistingSignerForKey(signer: SignerModel, keyName: String) {
-        Timber.tag("miniscript-feature").d("addExistingSignerForKey called: signer=${signer.name}(${signer.fingerPrint}), keyName=$keyName")
-        
         val addressType = _uiState.value.group?.addressType
         if (addressType == null) {
             return
@@ -859,23 +842,19 @@ class FreeGroupWalletViewModel @Inject constructor(
             return
         }
 
-        Timber.tag("miniscript-feature").d("addExistingSignerForKey: Proceeding with adding signer")
         proceedWithAddingSignerForKey(signer, keyName)
     }
     
         private fun proceedWithAddingSignerForKey(signer: SignerModel, keyName: String) {
-        Timber.tag("miniscript-feature").d("proceedWithAddingSignerForKey called: signer=${signer.name}(${signer.fingerPrint}), keyName=$keyName, isMasterSigner=${signer.isMasterSigner}")
-        
         val addressType = _uiState.value.group?.addressType
         if (addressType == null) {
             Timber.tag("miniscript-feature").e("proceedWithAddingSignerForKey: addressType is null, returning")
             return
         }
         
-        _uiState.update { it.copy(event = FreeGroupWalletEvent.Loading(true)) }
+        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             if (signer.isMasterSigner) {
-                Timber.tag("miniscript-feature").d("proceedWithAddingSignerForKey: Processing master signer")
                 val masterSigner = masterSigners.find { it.id == signer.fingerPrint }
                 if (masterSigner == null) {
                     Timber.tag("miniscript-feature").e("proceedWithAddingSignerForKey: Master signer not found with id=${signer.fingerPrint}")
@@ -883,7 +862,6 @@ class FreeGroupWalletViewModel @Inject constructor(
                     return@launch
                 }
                 
-                Timber.tag("miniscript-feature").d("proceedWithAddingSignerForKey: Found master signer: ${masterSigner.name}")
                 getUnusedSignerFromMasterSignerV2UseCase(
                     GetUnusedSignerFromMasterSignerV2UseCase.Params(
                         masterSigner,
@@ -891,7 +869,6 @@ class FreeGroupWalletViewModel @Inject constructor(
                         addressType
                     )
                 ).onSuccess { singleSigner ->
-                    Timber.tag("miniscript-feature").d("proceedWithAddingSignerForKey: Got unused signer $singleSigner")
                     // For Miniscript wallets, check if signer already exists in group
                     if (isMiniscriptWallet()) {
                         val existingSignerInGroup = _uiState.value.group?.signers?.find { 
@@ -899,27 +876,21 @@ class FreeGroupWalletViewModel @Inject constructor(
                         }
                         
                         if (existingSignerInGroup != null) {
-                            Timber.tag("miniscript-feature").d("proceedWithAddingSignerForKey: Signer already exists in group")
                             // Check if this is key_x_y pattern with master signer
                             if (isKeyPatternXY(keyName) && singleSigner.toModel().isMasterSigner) {
-                                Timber.tag("miniscript-feature").d("proceedWithAddingSignerForKey: Handling key_x_y pattern for existing signer")
                                 addMasterSignerToRelatedKeysInGroup(singleSigner.toModel(), keyName)
                             } else {
-                                Timber.tag("miniscript-feature").d("proceedWithAddingSignerForKey: Updating local state only for existing signer")
                                 addSignerToStateForKey(singleSigner.toModel(), keyName)
                             }
                         } else {
                             // Check if this is key_x_y pattern with master signer
                             if (isKeyPatternXY(keyName) && singleSigner.toModel().isMasterSigner) {
-                                Timber.tag("miniscript-feature").d("proceedWithAddingSignerForKey: Handling key_x_y pattern for new signer")
                                 addMasterSignerToRelatedKeysInGroup(singleSigner.toModel(), keyName)
                             } else {
-                                Timber.tag("miniscript-feature").d("proceedWithAddingSignerForKey: Calling addSignerToGroupWithKeyName for new signer")
                                 addSignerToGroupWithKeyName(singleSigner, keyName)
                             }
                         }
                     } else {
-                        Timber.tag("miniscript-feature").d("proceedWithAddingSignerForKey: Calling addSignerToStateForKey for non-Miniscript wallet")
                         addSignerToStateForKey(singleSigner.toModel(), keyName)
                     }
                 }.onFailure { error ->
@@ -927,7 +898,6 @@ class FreeGroupWalletViewModel @Inject constructor(
                     _uiState.update { it.copy(event = FreeGroupWalletEvent.Error(error.message.orUnknownError())) }
                 }
             } else {
-                Timber.tag("miniscript-feature").d("proceedWithAddingSignerForKey: Processing single signer")
                 val singleSigner = singleSigners.find {
                     it.masterFingerprint == signer.fingerPrint &&
                             it.derivationPath == signer.derivationPath
@@ -938,7 +908,6 @@ class FreeGroupWalletViewModel @Inject constructor(
                     return@launch
                 }
                 
-                Timber.tag("miniscript-feature").d("proceedWithAddingSignerForKey: Found single signer: ${singleSigner.name}")
                 // For Miniscript wallets, check if signer already exists in group
                 if (isMiniscriptWallet()) {
                     val existingSignerInGroup = _uiState.value.group?.signers?.find { 
@@ -946,19 +915,16 @@ class FreeGroupWalletViewModel @Inject constructor(
                     }
                     
                     if (existingSignerInGroup != null) {
-                        Timber.tag("miniscript-feature").d("proceedWithAddingSignerForKey: Single signer already exists in group, updating local state only")
                         addSignerToStateForKey(singleSigner.toModel(), keyName)
                     } else {
-                        Timber.tag("miniscript-feature").d("proceedWithAddingSignerForKey: Calling addSignerToGroupWithKeyName for new single signer")
                         addSignerToGroupWithKeyName(singleSigner, keyName)
                     }
                 } else {
-                    Timber.tag("miniscript-feature").d("proceedWithAddingSignerForKey: Calling addSignerToStateForKey for non-Miniscript wallet")
                     addSignerToStateForKey(singleSigner.toModel(), keyName)
                 }
             }
         }
-        _uiState.update { it.copy(event = FreeGroupWalletEvent.Loading(false)) }
+        _uiState.update { it.copy(isLoading = false) }
     }
     
     private fun checkIfSignerAlreadyUsed(fingerPrint: String, excludeKeyName: String, isMasterSigner: Boolean): Boolean {
@@ -992,7 +958,6 @@ class FreeGroupWalletViewModel @Inject constructor(
         val isPattern = components.size >= 3 && components[0] == "key" && 
                components[1].toIntOrNull() != null && components[2].toIntOrNull() != null
         
-        Timber.tag("miniscript-feature").d("isKeyPatternXY: keyName=$keyName, components=$components, isPattern=$isPattern")
         return isPattern
     }
     
@@ -1000,14 +965,11 @@ class FreeGroupWalletViewModel @Inject constructor(
         val components = keyName.split("_")
         val prefix = if (components.size >= 3 && components[0] == "key") "${components[0]}_${components[1]}" else keyName
         
-        Timber.tag("miniscript-feature").d("getKeyPrefix: keyName=$keyName, components=$components, prefix=$prefix")
         return prefix
     }
     
     private fun getAllKeysFromScriptNode(node: ScriptNode): Set<String> {
         val keys = mutableSetOf<String>()
-        
-        Timber.tag("miniscript-feature").d("getAllKeysFromScriptNode: Processing node with keys: ${node.keys}")
         
         // Add keys from current node
         keys.addAll(node.keys)
@@ -1020,15 +982,10 @@ class FreeGroupWalletViewModel @Inject constructor(
     }
     
     private fun addSignerToStateForKey(signerModel: SignerModel, keyName: String) {
-        Timber.tag("miniscript-feature").d("addSignerToStateForKey called: signer=${signerModel.name}(${signerModel.fingerPrint}), keyName=$keyName, isMasterSigner=${signerModel.isMasterSigner}")
-        
         val currentSigners = _uiState.value.namedSigners.toMutableMap()
-        
-        Timber.tag("miniscript-feature").d("addSignerToStateForKey: Current signers before change: $currentSigners")
         
         // Check if keyName matches the pattern key_x_y (e.g., key_0_0, key_0_1)
         if (isKeyPatternXY(keyName) && signerModel.isMasterSigner) {
-            Timber.tag("miniscript-feature").d("addSignerToStateForKey: Handling master signer with key_x_y pattern for keyName=$keyName")
             // For key_x_y pattern with master signers, we need to handle it differently in group wallets
             // This should be called from a separate method, not here
             Timber.tag("miniscript-feature").w("addSignerToStateForKey: key_x_y pattern should use addMasterSignerToRelatedKeys method instead")
@@ -1036,15 +993,11 @@ class FreeGroupWalletViewModel @Inject constructor(
             // Fallback to simple assignment for now
             val previousSigner = currentSigners[keyName]
             currentSigners[keyName] = signerModel
-            Timber.tag("miniscript-feature").d("addSignerToStateForKey: Added master signer to single key: $keyName (previous: ${previousSigner?.name})")
         } else {
             // Handle simple key names (A, B, C, D, E, etc.) or non-master signers
             val previousSigner = currentSigners[keyName]
             currentSigners[keyName] = signerModel
-            Timber.tag("miniscript-feature").d("addSignerToStateForKey: Added signer to key: $keyName (previous: ${previousSigner?.name})")
         }
-        
-        Timber.tag("miniscript-feature").d("addSignerToStateForKey: Current signers after change: $currentSigners")
         
         _uiState.update { 
             it.copy(
@@ -1052,12 +1005,9 @@ class FreeGroupWalletViewModel @Inject constructor(
                 event = FreeGroupWalletEvent.SignerAdded(keyName, signerModel)
             )
         }
-        Timber.tag("miniscript-feature").d("addSignerToStateForKey: Updated state after adding signer(s). Current signers: $currentSigners")
     }
     
     fun removeSignerForKey(keyName: String) {
-        Timber.tag("miniscript-feature").d("Removing signer for key: $keyName")
-        
         viewModelScope.launch {
             // For Miniscript wallets, call removeSignerFromGroup with keyName
             if (isMiniscriptWallet()) {
@@ -1066,11 +1016,9 @@ class FreeGroupWalletViewModel @Inject constructor(
                 val signerToRemove = currentSigners[keyName]
                 
                 if (isKeyPatternXY(keyName) && signerToRemove?.fingerPrint?.isNotEmpty() == true) {
-                    Timber.tag("miniscript-feature").d("removeSignerForKey: Handling key_x_y pattern for master signer removal")
                     // signerToRemove is already a SignerModel, use it directly
                     removeMasterSignerFromRelatedKeysInGroup(signerToRemove, keyName)
                 } else {
-                    Timber.tag("miniscript-feature").d("removeSignerForKey: Calling removeSignerFromGroupWithKeyName for single key")
                     removeSignerFromGroupWithKeyName(keyName)
                 }
             } else {
@@ -1101,45 +1049,35 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun removeSignerFromStateForKey(keyName: String) {
         val currentSigners = _uiState.value.namedSigners.toMutableMap()
 
-        Timber.tag("miniscript-feature").d("removeSignerFromStateForKey: Removing signer for keyName=$keyName")
-
         // Check if keyName matches the pattern key_x_y (e.g., key_0_0, key_0_1)
         if (isKeyPatternXY(keyName)) {
-            Timber.tag("miniscript-feature").d("removeSignerFromStateForKey: Handling key with pattern key_x_y")
             // Extract the prefix (key_x)
             val prefix = getKeyPrefix(keyName)
 
             // Get the signer to remove
             val signerToRemove = currentSigners[keyName]
-            Timber.tag("miniscript-feature").d("removeSignerFromStateForKey: Signer to remove: $signerToRemove")
 
             // If it's a master signer, remove all related keys with the same master fingerprint
             if (signerToRemove?.isMasterSigner == true) {
                 val masterFingerprintToRemove = signerToRemove.fingerPrint
-                Timber.tag("miniscript-feature").d("removeSignerFromStateForKey: Removing all related keys with master fingerprint: $masterFingerprintToRemove")
 
                 // Find all keys in scriptNode that share the same prefix (key_x_*)
                 val relatedKeys = getAllKeysFromScriptNode(_uiState.value.scriptNode!!)
                     .filter { it.startsWith("${prefix}_") }
 
-                Timber.tag("miniscript-feature").d("removeSignerFromStateForKey: Found related keys to remove: $relatedKeys")
-
                 // Remove signers for all related keys with the same master fingerprint
                 relatedKeys.forEach { key ->
                     if (currentSigners[key]?.fingerPrint == masterFingerprintToRemove) {
                         currentSigners[key] = null
-                        Timber.tag("miniscript-feature").d("removeSignerFromStateForKey: Removed signer for key: $key")
                     }
                 }
             } else {
                 // For non-master signers, just remove the specific key
                 currentSigners[keyName] = null
-                Timber.tag("miniscript-feature").d("removeSignerFromStateForKey: Removed non-master signer for key: $keyName")
             }
         } else {
             // Handle simple key names (A, B, C, D, E, etc.)
             currentSigners[keyName] = null
-            Timber.tag("miniscript-feature").d("removeSignerFromStateForKey: Removed signer for simple key: $keyName")
         }
 
         _uiState.update {
@@ -1148,7 +1086,6 @@ class FreeGroupWalletViewModel @Inject constructor(
                 event = FreeGroupWalletEvent.SignerRemoved(keyName)
             )
         }
-        Timber.tag("miniscript-feature").d("removeSignerFromStateForKey: Updated state after removing signer(s). Current signers: $currentSigners")
     }
     
     fun markEventHandled() {
@@ -1158,19 +1095,13 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun isMiniscriptWallet(): Boolean {
         return _uiState.value.group?.walletType == WalletType.MINISCRIPT
     }
-    
 
-    
     private suspend fun addMasterSignerToRelatedKeysInGroup(signerModel: SignerModel, keyName: String) {
-        Timber.tag("miniscript-feature").d("addMasterSignerToRelatedKeysInGroup called: signer=${signerModel.name}(${signerModel.fingerPrint}), keyName=$keyName")
-        
         val prefix = getKeyPrefix(keyName)
         val relatedKeys = getAllKeysFromScriptNode(_uiState.value.scriptNode!!)
             .filter { it.startsWith("${prefix}_") }
             .sorted() // Sort to ensure consistent order
             
-        Timber.tag("miniscript-feature").d("addMasterSignerToRelatedKeysInGroup: Found related keys: $relatedKeys")
-        
         // Get the current index from master signer
         getCurrentIndexFromMasterSignerUseCase(
             GetCurrentIndexFromMasterSignerUseCase.Param(
@@ -1180,7 +1111,6 @@ class FreeGroupWalletViewModel @Inject constructor(
             )
         ).onSuccess { startIndex ->
             val actualStartIndex = if (startIndex == -1) 0 else startIndex
-            Timber.tag("miniscript-feature").d("addMasterSignerToRelatedKeysInGroup: Got start index: $actualStartIndex")
             
             // For each related key, get a signer with increasing index using GetSignerFromMasterSignerByIndexUseCase
             var currentIndex = actualStartIndex
@@ -1188,8 +1118,6 @@ class FreeGroupWalletViewModel @Inject constructor(
             
             for (key in relatedKeys) {
                 if (shouldReturn) break
-                
-                Timber.tag("miniscript-feature").d("addMasterSignerToRelatedKeysInGroup: Processing key=$key with index=$currentIndex")
                 
                 try {
                     val singleSigner = getSignerFromMasterSignerByIndexUseCase(
@@ -1202,8 +1130,6 @@ class FreeGroupWalletViewModel @Inject constructor(
                     ).getOrThrow()
                     
                     singleSigner?.let {
-                        Timber.tag("miniscript-feature").d("addMasterSignerToRelatedKeysInGroup: Got signer for key=$key: ${it.name}")
-                        
                         // Add this signer to the group with the specific key name
                         addSignerToGroupWithKeyName(it, key)
                     } ?: run {
@@ -1214,8 +1140,6 @@ class FreeGroupWalletViewModel @Inject constructor(
                     
                     // Handle TapSigner caching case
                     if (error is NCNativeException && error.message.contains("-1009")) {
-                        Timber.tag("miniscript-feature").d("Handling TapSigner caching for key=$key at index=$currentIndex")
-                        
                         val isMultisig = isMultisigDerivationPath(signerModel.derivationPath)
                         val newPath = getPath(currentIndex, _uiState.value.isTestNet, isMultisig)
                         
@@ -1235,7 +1159,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                         _uiState.update { 
                             it.copy(
                                 requestCacheTapSignerXpubEvent = true,
-                                event = FreeGroupWalletEvent.Loading(false)
+                                isLoading = false
                             ) 
                         }
                         
@@ -1253,15 +1177,11 @@ class FreeGroupWalletViewModel @Inject constructor(
     }
 
     private suspend fun removeMasterSignerFromRelatedKeysInGroup(signerModel: SignerModel, keyName: String) {
-        Timber.tag("miniscript-feature").d("removeMasterSignerFromRelatedKeysInGroup called: signer=${signerModel.name}(${signerModel.fingerPrint}), keyName=$keyName")
-        
         val prefix = getKeyPrefix(keyName)
         val relatedKeys = getAllKeysFromScriptNode(_uiState.value.scriptNode!!)
             .filter { it.startsWith("${prefix}_") }
             .sorted() // Sort to ensure consistent order
             
-        Timber.tag("miniscript-feature").d("removeMasterSignerFromRelatedKeysInGroup: Found related keys: $relatedKeys")
-        
         // For each related key, remove the signer from the group
         relatedKeys.forEach { key ->
             removeSignerFromGroupWithKeyName(key)
@@ -1269,8 +1189,8 @@ class FreeGroupWalletViewModel @Inject constructor(
     }
 
     private suspend fun addSignerToGroupWithKeyName(signer: SingleSigner, keyName: String) {
-        Timber.tag("miniscript-feature").d("addSignerToGroupWithKeyName called: signer=${signer.name}(${signer.masterFingerprint}), keyName=$keyName, groupId=$groupId")
-        
+        _uiState.update { it.copy(isLoading = true) }
+
         val params = AddSignerToGroupUseCase.Params(
             groupId = groupId,
             signer = signer,
@@ -1278,15 +1198,22 @@ class FreeGroupWalletViewModel @Inject constructor(
             keyName = keyName
         )
         
-        Timber.tag("miniscript-feature").d("addSignerToGroupWithKeyName: Calling addSignerToGroupUseCase with params: $params")
-        
         addSignerToGroupUseCase(params).onSuccess { groupSandbox ->
-            Timber.tag("miniscript-feature").d("addSignerToGroupWithKeyName: Updated namedSigners: ${groupSandbox.namedSigners}")
             updateGroupSandbox(groupSandbox)
-            _uiState.update { state -> state.copy(event = FreeGroupWalletEvent.SignerAdded(keyName, signer.toModel())) }
+            _uiState.update { state -> 
+                state.copy(
+                    isLoading = false,
+                    event = FreeGroupWalletEvent.SignerAdded(keyName, signer.toModel())
+                ) 
+            }
         }.onFailure { error ->
             Timber.tag("miniscript-feature").e("addSignerToGroupWithKeyName: Failed to add signer to group: $error")
-            _uiState.update { it.copy(event = FreeGroupWalletEvent.Error(error.message.orUnknownError())) }
+            _uiState.update { 
+                it.copy(
+                    isLoading = false,
+                    event = FreeGroupWalletEvent.Error(error.message.orUnknownError())
+                ) 
+            }
         }
     }
     
@@ -1304,8 +1231,6 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun resumeAddSignerProcess() {
         val pendingState = pendingAddSignerState ?: return
         pendingAddSignerState = null
-
-        Timber.tag("miniscript-feature").d("Resuming addMasterSignerToRelatedKeysInGroup process for key: ${pendingState.keyName}")
 
         // Resume the process from where it left off
         viewModelScope.launch {

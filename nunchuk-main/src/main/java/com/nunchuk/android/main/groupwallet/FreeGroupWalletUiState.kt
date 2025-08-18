@@ -28,14 +28,13 @@ data class FreeGroupWalletUiState(
     val keyPath: List<String> = emptyList(),
     val scriptNodeMuSig: ScriptNode? = null,
     val namedSigners: Map<String, SignerModel?> = emptyMap(),
-    val namedOccupied: Set<String> = emptySet(), // ← NEW: For Miniscript occupied slots
+    val namedOccupied: Set<String> = emptySet(),
     val currentKeyToAssign: String = "",
     val event: FreeGroupWalletEvent? = null,
     val isTestNet: Boolean = false,
 )
 
 sealed class FreeGroupWalletEvent {
-    data class Loading(val isLoading: Boolean) : FreeGroupWalletEvent()
     data class Error(val message: String) : FreeGroupWalletEvent()
     data class SignerAdded(val keyName: String, val signer: SignerModel) : FreeGroupWalletEvent()
     data class SignerRemoved(val keyName: String) : FreeGroupWalletEvent()
