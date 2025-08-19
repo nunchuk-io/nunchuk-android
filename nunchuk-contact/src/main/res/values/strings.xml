@@ -2,7 +2,7 @@
 <resources>
     <string name="nc_contact_request">Request</string>
     <string name="nc_contact_view_all">View All</string>
-    <string name="nc_contact_no_contact">You have no contacts yet.</string>
+    <string name="nc_contact_no_contact">You have no contacts.</string>
     <string name="nc_contact_pending">Pending</string>
     <string name="nc_contact_received">Received</string>
     <string name="nc_contact_sent">Sent</string>
