@@ -383,14 +383,16 @@ fun WalletSignerCard(
             modifier = Modifier.weight(1f),
             showValueKey = isValueKey
         ) {
-            Text(
-                text = stringResource(
-                    R.string.nc_bip32_path,
-                    signer.derivationPath
-                ),
-                style = NunchukTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.textSecondary
-            )
+            if (signer.type != SignerType.SERVER) {
+                Text(
+                    text = stringResource(
+                        R.string.nc_bip32_path,
+                        signer.derivationPath
+                    ),
+                    style = NunchukTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.textSecondary
+                )
+            }
         }
         if (signer.type == SignerType.SERVER && !state.isInactiveAssistedWallet && !state.role.toRole.isFacilitatorAdmin) {
             NcOutlineButton(
