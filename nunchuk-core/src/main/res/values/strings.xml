@@ -1007,4 +1007,5 @@
         <item quantity="other">%1$d blocks left</item>
     </plurals>
     <string name="nc_occupied">Occupied</string>
+    <string name="nc_key_with_index">Key %1$s</string>
 </resources>

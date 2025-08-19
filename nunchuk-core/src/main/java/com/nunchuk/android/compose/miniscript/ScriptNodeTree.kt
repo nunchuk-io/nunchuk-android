@@ -178,6 +178,7 @@ fun ScriptNodeTree(
                 val signer = data.signers[node.keys.firstOrNull().orEmpty()]
                 val avatarColor = avatarColors[level % avatarColors.size]
                 CreateKeyItem(
+                    index = 0,
                     key = node.keys.firstOrNull() ?: "",
                     signer = signer,
                     position = index,
@@ -298,6 +299,7 @@ fun ScriptNodeTree(
 @Composable
 internal fun CreateKeyItem(
     modifier: Modifier = Modifier,
+    index: Int,
     key: String,
     signer: SignerModel?,
     position: String,
@@ -315,8 +317,13 @@ internal fun CreateKeyItem(
         } else {
             data.signedSigners[signer.fingerPrint] == true
         }
+    val title = when {
+        signer?.name.isNullOrEmpty() -> key
+        !signer.isVisible -> stringResource(R.string.nc_key_with_index, index + 1)
+        else -> signer.name
+    }
     KeyItem(
-        title = signer?.name ?: key,
+        title = title,
         xfp = signer?.getXfpOrCardIdLabel().orEmpty(),
         position = position,
         modifier = modifier,
@@ -402,7 +409,7 @@ internal fun CreateKeyItem(
                     }
                 }
 
-                data.mode == ScriptMode.SIGN && signer != null -> {
+                data.mode == ScriptMode.SIGN && signer != null && signer.isVisible -> {
                     NcPrimaryDarkButton(
                         height = 36.dp,
                         onClick = { onActionKey(key, signer) },
@@ -446,6 +453,7 @@ private fun NodeKeys(
                 avatarColors[0]
             }
             CreateKeyItem(
+                index = i,
                 key = key,
                 signer = signer,
                 position = keyPosition,
