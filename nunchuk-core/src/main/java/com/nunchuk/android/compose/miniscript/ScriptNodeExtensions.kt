@@ -133,14 +133,14 @@ private fun calculateDateFromSeconds(timestampSeconds: Long): String {
     val hour = calendar.get(Calendar.HOUR_OF_DAY)
     val minute = calendar.get(Calendar.MINUTE)
     
-    val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.US)
+    val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
     val dateString = dateFormat.format(calendar.time)
     
     // Only show time if hour and minute are not both 0
     return if (hour == 0 && minute == 0) {
         dateString
     } else {
-        val timeFormat = SimpleDateFormat("HH:mm", Locale.US)
+        val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
         val timeString = timeFormat.format(calendar.time)
         "$dateString $timeString"
     }

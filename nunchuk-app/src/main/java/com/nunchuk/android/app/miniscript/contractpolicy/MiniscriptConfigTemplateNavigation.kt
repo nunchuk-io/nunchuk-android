@@ -138,25 +138,20 @@ fun MiniscriptConfigTemplateContainer(
                 if ((timelockData.timelockType == MiniscriptTimelockType.ABSOLUTE
                     && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK)
                 ) {
-                    // Convert to UTC based on the selected timezone
-                    if (timelockData.timezoneId.isNotEmpty()) {
-                        val calendar = Calendar.getInstance(TimeZone.getTimeZone(timelockData.timezoneId))
-                        calendar.timeInMillis = timelockData.value * 1000 // Convert seconds to milliseconds
-                        
-                        // Convert to UTC
-                        val utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-                        utcCalendar.set(Calendar.YEAR, calendar.get(Calendar.YEAR))
-                        utcCalendar.set(Calendar.MONTH, calendar.get(Calendar.MONTH))
-                        utcCalendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH))
-                        utcCalendar.set(Calendar.HOUR_OF_DAY, calendar.get(Calendar.HOUR_OF_DAY))
-                        utcCalendar.set(Calendar.MINUTE, calendar.get(Calendar.MINUTE))
-                        utcCalendar.set(Calendar.SECOND, 0)
-                        utcCalendar.set(Calendar.MILLISECOND, 0)
-                        
-                        utcCalendar.timeInMillis / 1000 // Convert back to seconds
-                    } else {
-                        timelockData.value // Fallback to original value if no timezone
-                    }
+                    val localCalendar = Calendar.getInstance()
+                    localCalendar.timeInMillis = timelockData.value * 1000
+                    // Create a calendar in the selected timezone and set the same date/time components
+                    val targetTimezoneCalendar = Calendar.getInstance(TimeZone.getTimeZone(timelockData.timezoneId))
+                    targetTimezoneCalendar.set(Calendar.YEAR, localCalendar.get(Calendar.YEAR))
+                    targetTimezoneCalendar.set(Calendar.MONTH, localCalendar.get(Calendar.MONTH))
+                    targetTimezoneCalendar.set(Calendar.DAY_OF_MONTH, localCalendar.get(Calendar.DAY_OF_MONTH))
+                    targetTimezoneCalendar.set(Calendar.HOUR_OF_DAY, localCalendar.get(Calendar.HOUR_OF_DAY))
+                    targetTimezoneCalendar.set(Calendar.MINUTE, localCalendar.get(Calendar.MINUTE))
+                    targetTimezoneCalendar.set(Calendar.SECOND, 0)
+                    targetTimezoneCalendar.set(Calendar.MILLISECOND, 0)
+
+                    // This gives us the UTC timestamp for the selected date/time in the selected timezone
+                    targetTimezoneCalendar.timeInMillis / 1000
                 } else if (timelockData.timelockType == MiniscriptTimelockType.RELATIVE
                     && timelockData.timeUnit == MiniscriptTimelockBased.TIME_LOCK
                 ) {
