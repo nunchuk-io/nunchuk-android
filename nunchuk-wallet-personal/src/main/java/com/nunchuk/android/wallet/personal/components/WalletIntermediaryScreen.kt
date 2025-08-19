@@ -41,6 +41,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.border
 import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.wallet.personal.R
@@ -290,6 +291,7 @@ fun Bottom() {
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.border),
                 shape = RoundedCornerShape(8.dp),
             )
+            .background(MaterialTheme.colorScheme.lightGray)
             .fillMaxWidth()
             .clickable {
                 context.openExternalLink("https://nunchuk.io/individuals")
