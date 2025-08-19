@@ -20,14 +20,16 @@
 package com.nunchuk.android.utils
 
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 private val SIMPLE_DATE = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
 private val SIMPLE_GLOBAL_DATE = SimpleDateFormat("MM/dd/yyyy", Locale.ENGLISH)
 private val SIMPLE_WEEK_DAY_YEAR = SimpleDateFormat("MMM dd, yyyy", Locale.ENGLISH)
 private val SIMPLE_HOUR_MINUTE = SimpleDateFormat("hh:mm a", Locale.ENGLISH)
 private val WEEK_DAY_YEAR = SimpleDateFormat("MMM dd yyyy", Locale.ENGLISH)
-private val DATE_TIME_FORMAT = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ENGLISH)
+private val DATE_TIME_FORMAT = SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.ENGLISH)
 
 fun Date.formatMessageDate(showToday: Boolean = false): String {
     val messageDate: Calendar = Calendar.getInstance()

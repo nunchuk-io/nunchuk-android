@@ -21,7 +21,7 @@ import com.nunchuk.android.compose.fillPink
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.type.MiniscriptTimelockBased
-import com.nunchuk.android.utils.simpleDateFormat
+import com.nunchuk.android.utils.dateTimeFormat
 import java.util.Date
 
 @Composable
@@ -51,7 +51,7 @@ fun TimeLockUtilView(
             stringResource(id = R.string.nc_timelocked_until_block, lockedTime)
         } else {
             val date = Date(lockedTime * 1000L)
-            stringResource(id = R.string.nc_timelocked_until_date, date.simpleDateFormat())
+            stringResource(id = R.string.nc_timelocked_until_date, date.dateTimeFormat())
         }
         Text(
             text = lockText,
