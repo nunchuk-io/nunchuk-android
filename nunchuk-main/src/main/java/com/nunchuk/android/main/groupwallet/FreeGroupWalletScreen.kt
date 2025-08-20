@@ -190,11 +190,10 @@ fun FreeGroupWalletScreen(
     onStartAddKey: (Int) -> Unit = {},
     onChangeBip32Path: (Int, SignerModel) -> Unit = { _, _ -> },
     refresh: () -> Unit = {},
-    // New parameters for key actions
     onAddNewKeyForMiniscript: (List<SupportedSigner>) -> Unit = {},
     onAddExistingKeyForMiniscript: (SignerModel, String) -> Unit = { _, _ -> },
     onSetCurrentKey: (String) -> Unit = {},
-    onStartAddKeyForMiniscript: (String) -> Unit = {}, // ← NEW: For Miniscript slot management
+    onStartAddKeyForMiniscript: (String) -> Unit = {},
     onRemoveSignerForKey: (String) -> Unit = {},
     onMarkEventHandled: () -> Unit = {},
 ) {

@@ -185,7 +185,6 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                                 },
                                                 groupId = group.id,
                                                 quickWalletParam = quickWalletParam,
-                                                // Miniscript data
                                                 scriptNode = state.scriptNode,
                                                 scriptNodeMuSig = state.scriptNodeMuSig,
                                                 keyPath = state.keyPath,

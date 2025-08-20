@@ -53,6 +53,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.nunchuk.android.compose.NcBadgePrimary
 import com.nunchuk.android.compose.NcDashLineBox
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
@@ -65,6 +66,11 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
+import com.nunchuk.android.compose.miniscript.MiniscriptTaproot
+import com.nunchuk.android.compose.miniscript.PolicyHeader
+import com.nunchuk.android.compose.miniscript.ScriptMode
+import com.nunchuk.android.compose.miniscript.ScriptNodeData
+import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.compose.provider.SignersModelProvider
 import com.nunchuk.android.compose.provider.WalletExtendedProvider
 import com.nunchuk.android.compose.signer.SignerCard
@@ -75,6 +81,7 @@ import com.nunchuk.android.core.data.model.GroupWalletDataComposer
 import com.nunchuk.android.core.data.model.getWalletConfigTypeBy
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.ADD_WALLET_RESULT
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
@@ -82,7 +89,10 @@ import com.nunchuk.android.main.groupwallet.component.WalletInfo
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.AddWalletArgs
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletTemplate
+import com.nunchuk.android.type.WalletType
 
 const val freeGroupWalletRecoverRoute = "free_group_wallet_recover/{wallet_id}/{file_path}/{qr_list}"
 
@@ -314,23 +324,50 @@ fun FreeGroupWalletRecoverScreen(
                     totalSigns = totalSigns,
                     name = state.wallet?.name.orEmpty(),
                     addressType = state.wallet?.addressType,
-                    walletType = null,
+                    walletType = if (state.scriptNode != null) WalletType.MINISCRIPT else null,
                     copyLinkEnabled = false,
                     showQRCodeEnabled = false,
                     onEditClicked = onEditClicked
                 )
             }
 
-            itemsIndexed(state.signerUis) { index, ui ->
-                FreeAddKeyRecoverCard(
-                    index = index,
-                    signer = ui.signer,
-                    isInDevice = ui.isInDevice,
-                    onAddClicked = {
-                        currentSignerIndex = ui.index
-                        onAddNewKey(ui.index)
-                    },
-                )
+            if (state.scriptNode != null && state.signerMap.isNotEmpty()) {
+                item {
+                    Column(
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    ) {
+                        PolicyHeader(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp, bottom = 20.dp)
+                        )
+                        
+                        TaprootAddressContent(state = state, wallet = state.wallet)
+
+                        ScriptNodeTree(
+                            node = state.scriptNode,
+                            data = ScriptNodeData(
+                                mode = ScriptMode.VIEW,
+                                signers = state.signerMap,
+                                showBip32Path = true,
+                            ),
+                            onChangeBip32Path = { _, _ -> },
+                            onActionKey = { _, _ -> }
+                        )
+                    }
+                }
+            } else {
+                itemsIndexed(state.signerUis) { index, ui ->
+                    FreeAddKeyRecoverCard(
+                        index = index,
+                        signer = ui.signer,
+                        isInDevice = ui.isInDevice,
+                        onAddClicked = {
+                            currentSignerIndex = ui.index
+                            onAddNewKey(ui.index)
+                        },
+                    )
+                }
             }
         }
 
@@ -425,6 +462,66 @@ fun FreeAddKeyRecoverCard(
                     }
                 }
             }
+        )
+    }
+}
+
+@Composable
+private fun TaprootAddressContent(
+    state: FreeGroupWalletRecoverUiState,
+    wallet: com.nunchuk.android.model.Wallet?
+) {
+    if (wallet?.addressType == AddressType.TAPROOT) {
+        // assuming that the keyPath is the name of the first signer
+        val scriptNodeMuSig = state.scriptNodeMuSig
+        if (scriptNodeMuSig != null) {
+            NcBadgePrimary(
+                modifier = Modifier.padding(
+                    vertical = 8.dp
+                ),
+                text = "Key path",
+                enabled = true,
+            )
+
+            ScriptNodeTree(
+                node = scriptNodeMuSig,
+                data = ScriptNodeData(
+                    mode = ScriptMode.VIEW,
+                    signers = state.muSigSignerMap,
+                    showBip32Path = true,
+                ),
+                onChangeBip32Path = { _, _ -> },
+                onActionKey = { _, _ -> }
+            )
+        } else {
+            val keyPath =
+                if (wallet.walletTemplate == WalletTemplate.DISABLE_KEY_PATH) {
+                    ""
+                } else {
+                    wallet.signers.firstOrNull()?.name
+                }
+            MiniscriptTaproot(
+                keyPath = keyPath.orEmpty(),
+                data = ScriptNodeData(
+                    mode = ScriptMode.VIEW,
+                    signers = state.signerMap,
+                    showBip32Path = true
+                ),
+                signer = wallet.signers.firstOrNull()?.toModel(),
+                onChangeBip32Path = { _, _ -> },
+                onActionKey = { _, _ -> }
+            )
+        }
+
+        // Add Script path badge
+        NcBadgePrimary(
+            modifier = Modifier.padding(
+                top = 16.dp,
+                bottom = 8.dp,
+                end = 16.dp
+            ),
+            text = "Script path",
+            enabled = true
         )
     }
 }

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
+import com.nunchuk.android.core.miniscript.MiniscriptUtil
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
@@ -13,15 +14,20 @@ import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.readableMessage
 import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
 import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletTemplate
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.DeleteWalletUseCase
+import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.free.groupwallet.RecoverGroupWalletUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.signer.GetSupportedSignersUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
+import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,6 +53,8 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
     private val recoverGroupWalletUseCase: RecoverGroupWalletUseCase,
     private val deleteWalletUseCase: DeleteWalletUseCase,
     private val pushEventManager: PushEventManager,
+    private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
+    private val parseSignerStringUseCase: ParseSignerStringUseCase,
 ) : ViewModel() {
     val walletId: String
         get() = savedStateHandle.get<String>(FreeGroupWalletActivity.EXTRA_WALLET_ID).orEmpty()
@@ -103,6 +111,7 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
             val newWalletDetail = getWalletDetail.await().getOrNull() ?: return@launch
             newWalletSigners = newWalletDetail.signers.map { signer -> singleSignerMapper(signer) }
             _uiState.update { it.copy(wallet = newWalletDetail) }
+            getMiniscriptInfo()
             deleteWallet()
         } else {
             newWalletSigners = curWallet.signers.map { signer -> singleSignerMapper(signer) }
@@ -250,6 +259,52 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
     fun getWallet() = _uiState.value.wallet
     fun updateWalletName(updatedWalletName: String) {
         _uiState.update { it.copy(wallet = _uiState.value.wallet?.copy(name = updatedWalletName)) }
+    }
+
+    private suspend fun getMiniscriptInfo() {
+        val wallet = _uiState.value.wallet ?: return
+        if (wallet.miniscript.isNotEmpty()) {
+            getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
+                _uiState.update { it.copy(scriptNode = result.scriptNode) }
+                val signerMap = parseSignersFromScriptNode(result.scriptNode)
+                _uiState.update { it.copy(signerMap = signerMap) }
+                if (wallet.addressType == AddressType.TAPROOT && wallet.walletTemplate != WalletTemplate.DISABLE_KEY_PATH) {
+                    if (wallet.totalRequireSigns > 1) {
+                        val scriptNodeMuSig = MiniscriptUtil.buildMusigNode(wallet.totalRequireSigns)
+                        // Create muSigSignerMap by mapping the first n signers to the scriptNodeMuSig keys
+                        val muSigSignerMap = scriptNodeMuSig.keys.mapIndexed { index, key ->
+                            key to wallet.signers.getOrNull(index)
+                                ?.toModel()
+                        }.toMap()
+
+                        _uiState.update {
+                            it.copy(
+                                scriptNodeMuSig = scriptNodeMuSig,
+                                muSigSignerMap = muSigSignerMap,
+                            )
+                        }
+                    }
+                }
+            }.onFailure {
+                Timber.tag(TAG).e("Failed to get miniscript info: ${it.message}")
+            }
+        } else {
+            _uiState.update { it.copy(scriptNode = null) }
+        }
+    }
+
+    private suspend fun parseSignersFromScriptNode(node: ScriptNode): Map<String, SignerModel?> {
+        val signerMap = mutableMapOf<String, SignerModel?>()
+        node.keys.forEach { key ->
+            val signer = parseSignerStringUseCase(key).getOrNull()
+           signer?.let {
+               signerMap[key] =  singleSignerMapper(signer)
+           }
+        }
+        node.subs.forEach { subNode ->
+            signerMap.putAll(parseSignersFromScriptNode(subNode))
+        }
+        return signerMap
     }
 
     companion object {
