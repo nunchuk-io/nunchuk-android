@@ -339,7 +339,7 @@ private fun CoinListScreen(
         tags = state.tags,
         selectedCoin = state.selectedCoins,
         spendableAmount = state.spendableAmount,
-        warningInfo = state.warningInfo,
+        warningInfo = state.miniscriptWarningInfo,
         onSelectCoin = viewModel::onCoinSelect,
         onSelectOrUnselectAll = viewModel::onSelectOrUnselectAll,
         onSelectDone = viewModel::onSelectDone,
@@ -435,12 +435,13 @@ private fun CoinListContent(
             }) { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding)) {
                 // Spendable amount section
-                if (type == CoinListType.ALL && spendableAmount.value > 0) {
+                if (type == CoinListType.ALL && spendableAmount.value >= 0) {
                     SpendableAmountSection(spendableAmount = spendableAmount)
-                    // Warning info section
-                    warningInfo?.let { info ->
-                        TimelockWarningSection(warningInfo = info)
-                    }
+                }
+
+                if (warningInfo != null && (warningInfo.hasAbsoluteTimelock || warningInfo.hasRelativeTimelock)) {
+                    // Show warning info section only if there is a timelock warning
+                    TimelockWarningSection(warningInfo = warningInfo)
                 }
 
                 LazyColumn(modifier = Modifier.weight(1f), state = listState) {

@@ -31,7 +31,7 @@ data class CoinListUiState(
     val collections: Map<Int, CoinCollection> = emptyMap(),
     val selectedCoins: Set<UnspentOutput> = setOf(),
     val spendableAmount: Amount = Amount(0L),
-    val warningInfo: TimelockWarningInfo? = null,
+    val miniscriptWarningInfo: TimelockWarningInfo? = null,
 )
 
 data class TimelockWarningInfo(

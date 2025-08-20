@@ -270,12 +270,12 @@ class CoinListViewModel @Inject constructor(
                     getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
                         val warningInfo = analyzeMiniscriptForTimelocks(result.scriptNode)
                         _state.update { state ->
-                            state.copy(warningInfo = warningInfo)
+                            state.copy(miniscriptWarningInfo = warningInfo)
                         }
                     }
                 } else {
                     _state.update { state ->
-                        state.copy(warningInfo = null)
+                        state.copy(miniscriptWarningInfo = null)
                     }
                 }
             }
@@ -311,6 +311,8 @@ class CoinListViewModel @Inject constructor(
             hasAbsoluteTimelock = hasAbsoluteTimelock,
         )
     }
+
+    fun isMiniscript() = _state.value.miniscriptWarningInfo != null
 }
 
 sealed class CoinListEvent {

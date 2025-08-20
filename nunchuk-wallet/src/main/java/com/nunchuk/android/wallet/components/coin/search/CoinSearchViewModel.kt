@@ -34,7 +34,11 @@ import com.nunchuk.android.wallet.components.coin.filter.CoinFilterUiState
 import com.nunchuk.android.wallet.components.coin.list.CoinListMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -62,7 +66,7 @@ class CoinSearchViewModel @Inject constructor(
 
     private val mutex = Mutex()
 
-    private val defaultFilter = CoinFilterUiState(showLockedCoin = isCustomizeCoinFlow.not())
+    private val defaultFilter = CoinFilterUiState(showLockedCoin = isCustomizeCoinFlow.not(), sortByCoinAge = false)
     val filter = savedStateHandle.getStateFlow(KEY_FILTER, defaultFilter)
 
     fun updateFilter(filter: CoinFilterUiState) {
@@ -113,9 +117,15 @@ class CoinSearchViewModel @Inject constructor(
                 val startTimeInSeconds = filter.startTime / 1000L
                 val lowCaseQuery = query.lowercase().trim()
 
-                val comparator = if (filter.isDescending)
-                    compareByDescending<UnspentOutput> { it.amount.value }.thenBy { it.time }
-                else compareBy<UnspentOutput> { it.amount.value }.thenBy { it.time }
+                val comparator = if (filter.sortByCoinAge) {
+                    if (filter.isDescending)
+                        compareByDescending { it.time }
+                    else compareBy { it.time }
+                } else {
+                    if (filter.isDescending)
+                        compareByDescending<UnspentOutput> { it.amount.value }.thenBy { it.time }
+                    else compareBy<UnspentOutput> { it.amount.value }.thenBy { it.time }
+                }
 
                 val minValue = filter.min.toDoubleOrNull() ?: 0.0
                 val minSat =

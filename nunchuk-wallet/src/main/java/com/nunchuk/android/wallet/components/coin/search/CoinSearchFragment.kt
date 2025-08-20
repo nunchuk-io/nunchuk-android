@@ -118,7 +118,8 @@ class CoinSearchFragment : BaseCoinListFragment() {
                     onFilterClicked = {
                         findNavController().navigate(
                             CoinSearchFragmentDirections.actionCoinSearchFragmentFragmentToCoinFilterFragment(
-                                viewModel.filter.value
+                                filter = viewModel.filter.value,
+                                isMiniscript = coinListViewModel.isMiniscript()
                             )
                         )
                     },
@@ -443,5 +444,5 @@ private fun CoinSearchFragmentContent(
 @Preview
 @Composable
 private fun CoinSearchFragmentScreenPreview() {
-    CoinSearchFragmentContent(isFiltering = true)
+    CoinSearchFragmentContent(isFiltering = true,)
 }

@@ -22,6 +22,7 @@ package com.nunchuk.android.usecase.coin
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -31,6 +32,11 @@ class GetAllCoinUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
 ) : UseCase<String, List<UnspentOutput>>(ioDispatcher) {
     override suspend fun execute(parameters: String): List<UnspentOutput> {
-        return nunchukNativeSdk.getUnspentOutputs(parameters).sortedWith(compareByDescending<UnspentOutput> { it.amount.value }.thenBy { it.time })
+        val coins = nunchukNativeSdk.getUnspentOutputs(parameters)
+        return if (coins.isNotEmpty() && coins.first().lockBased != MiniscriptTimelockBased.NONE) {
+            coins.sortedByDescending { it.time }
+        } else {
+            coins.sortedWith(compareByDescending<UnspentOutput> { it.amount.value }.thenBy { it.time })
+        }
     }
 }

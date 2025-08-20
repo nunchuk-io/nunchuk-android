@@ -27,7 +27,7 @@ class SingleSignerMapper @Inject constructor(
             val signer = getSignerUseCase(from).map { it.copy(isVisible = true) }.getOrDefault(from)
             val cardId =
                 if (signer.type == SignerType.NFC) cardIdManager.getCardId(signer.masterSignerId) else ""
-            signer.toModel(isPrimaryKey = isPrimaryKey).copy(cardId = cardId, isVisible = hasSigner)
+            signer.toModel(isPrimaryKey = isPrimaryKey).copy(cardId = cardId)
         } else {
             val cardId =
                 if (from.type == SignerType.NFC) cardIdManager.getCardId(from.masterSignerId) else ""

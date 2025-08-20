@@ -68,4 +68,5 @@ data class CoinFilterUiState(
     val showLockedCoin: Boolean = true,
     val showUnlockedCoin: Boolean = true,
     val isDescending: Boolean = true,
+    val sortByCoinAge: Boolean = true,
 ) : Parcelable

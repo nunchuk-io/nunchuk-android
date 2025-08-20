@@ -69,6 +69,7 @@ import com.nunchuk.android.compose.InputSwitchCurrencyView
 import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
+import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.strokePrimary
@@ -99,9 +100,10 @@ class CoinFilterFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 CoinFilterScreen(
-                    args.isSearchTransaction,
-                    args.filter,
-                    viewModel,
+                    isMiniscript = args.isMiniscript,
+                    isSearchTransaction = args.isSearchTransaction,
+                    initValue = args.filter,
+                    viewModel = viewModel,
                     onOpenSelectTagScreen = {
                         findNavController().navigate(
                             CoinFilterFragmentDirections.actionCoinFilterFragmentToFilterByTagFragment(
@@ -133,7 +135,7 @@ class CoinFilterFragment : Fragment() {
                         }
                         materialDatePicker.show(childFragmentManager, "MaterialDatePicker")
                     },
-                    onApplyFilter = { min, isMinBtc, max, isMaxBtc, showLockedCoin, showUnlockedCoin, isDescending ->
+                    onApplyFilter = { min, isMinBtc, max, isMaxBtc, showLockedCoin, showUnlockedCoin, isDescending, sortByCoinAge ->
                         setFragmentResult(
                             REQUEST_KEY, CoinFilterFragmentArgs(
                                 CoinFilterUiState(
@@ -147,7 +149,8 @@ class CoinFilterFragment : Fragment() {
                                     isMaxBtc = isMaxBtc,
                                     showLockedCoin = showLockedCoin,
                                     showUnlockedCoin = showUnlockedCoin,
-                                    isDescending = isDescending
+                                    isDescending = isDescending,
+                                    sortByCoinAge = sortByCoinAge
                                 )
                             ).toBundle()
                         )
@@ -178,15 +181,17 @@ class CoinFilterFragment : Fragment() {
 
 @Composable
 private fun CoinFilterScreen(
+    isMiniscript: Boolean,
     isSearchTransaction: Boolean,
     initValue: CoinFilterUiState,
     viewModel: CoinFilterViewModel = viewModel(),
     onOpenSelectTagScreen: () -> Unit,
     onOpenSelectCollectionScreen: () -> Unit,
-    onApplyFilter: (min: String, isMinBtc: Boolean, max: String, isMaxBtc: Boolean, showLockedCoin: Boolean, showUnlockedCoin: Boolean, isDescending: Boolean) -> Unit,
+    onApplyFilter: (min: String, isMinBtc: Boolean, max: String, isMaxBtc: Boolean, showLockedCoin: Boolean, showUnlockedCoin: Boolean, isDescending: Boolean, sortByCoinAge: Boolean) -> Unit,
     onSelectDate: (isStart: Boolean) -> Unit = {},
 ) {
     CoinFilterContent(
+        isMiniscript = isMiniscript,
         isSearchTransaction = isSearchTransaction,
         initValue = initValue,
         selectTags = viewModel.selectTags.value,
@@ -208,16 +213,14 @@ private fun CoinFilterScreen(
 
 @Composable
 private fun CoinFilterContent(
+    isMiniscript: Boolean = false,
     isSearchTransaction: Boolean = false,
     initValue: CoinFilterUiState = CoinFilterUiState(),
     selectTags: Set<Int> = emptySet(),
     selectCollections: Set<Int> = emptySet(),
     startTime: Long = -1,
     endTime: Long = -1,
-    onApplyFilter: (min: String, isMinBtc: Boolean, max: String, isMaxBtc: Boolean, showLockedCoin: Boolean, showUnlockedCoin: Boolean, isDescending: Boolean) -> Unit
-    = { _, _, _, _, _, _, _ ->
-
-    },
+    onApplyFilter: (min: String, isMinBtc: Boolean, max: String, isMaxBtc: Boolean, showLockedCoin: Boolean, showUnlockedCoin: Boolean, isDescending: Boolean, sortByCoinAge: Boolean) -> Unit = { _, _, _, _, _, _, _, _ -> },
     onOpenSelectTagScreen: () -> Unit = {},
     onOpenSelectCollectionScreen: () -> Unit = {},
     onSelectDate: (isStart: Boolean) -> Unit = {},
@@ -244,6 +247,9 @@ private fun CoinFilterContent(
     var isDescending by rememberSaveable {
         mutableStateOf(initValue.isDescending)
     }
+    var sortByCoinAge by rememberSaveable {
+        mutableStateOf(initValue.sortByCoinAge)
+    }
     NunchukTheme {
         Scaffold(
             modifier = Modifier
@@ -266,6 +272,7 @@ private fun CoinFilterContent(
                                     showLockedCoin = true
                                     showUnlockedCoin = true
                                     isDescending = true
+                                    sortByCoinAge = false
                                     onClearAll()
                                 },
                             text = stringResource(R.string.nc_clear_all),
@@ -363,7 +370,8 @@ private fun CoinFilterContent(
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 title = stringResource(id = R.string.nc_amount),
                             ) {
-                                InputSwitchCurrencyView(title = stringResource(R.string.nc_minimum_amount),
+                                InputSwitchCurrencyView(
+                                    title = stringResource(R.string.nc_minimum_amount),
                                     isBtc = isMinBtc,
                                     currencyValue = min,
                                     onValueChange = {
@@ -373,7 +381,8 @@ private fun CoinFilterContent(
                                         isMinBtc = it
                                     }
                                 )
-                                InputSwitchCurrencyView(title = stringResource(R.string.nc_maximum_amount),
+                                InputSwitchCurrencyView(
+                                    title = stringResource(R.string.nc_maximum_amount),
                                     isBtc = isMaxBtc,
                                     currencyValue = max,
                                     onValueChange = {
@@ -444,7 +453,8 @@ private fun CoinFilterContent(
                                             text = stringResource(R.string.nc_show_locked_coins),
                                             style = NunchukTheme.typography.body
                                         )
-                                        NcCheckBox(modifier = Modifier.align(alignment = Alignment.CenterEnd),
+                                        NcCheckBox(
+                                            modifier = Modifier.align(alignment = Alignment.CenterEnd),
                                             checked = showLockedCoin,
                                             onCheckedChange = {
                                                 showLockedCoin = it
@@ -459,7 +469,8 @@ private fun CoinFilterContent(
                                             text = stringResource(R.string.nc_show_unlocked_coins),
                                             style = NunchukTheme.typography.body
                                         )
-                                        NcCheckBox(modifier = Modifier.align(alignment = Alignment.CenterEnd),
+                                        NcCheckBox(
+                                            modifier = Modifier.align(alignment = Alignment.CenterEnd),
                                             checked = showUnlockedCoin,
                                             onCheckedChange = {
                                                 showUnlockedCoin = it
@@ -481,9 +492,11 @@ private fun CoinFilterContent(
                                         text = stringResource(R.string.nc_sort_in_descending_order),
                                         style = NunchukTheme.typography.body
                                     )
-                                    NcRadioButton(modifier = Modifier.align(alignment = Alignment.CenterEnd),
+                                    NcRadioButton(
+                                        modifier = Modifier.align(alignment = Alignment.CenterEnd),
                                         selected = isDescending,
-                                        onClick = { isDescending = true })
+                                        onClick = { isDescending = true },
+                                    )
                                 }
 
                                 Box(modifier = Modifier.padding(top = 16.dp)) {
@@ -494,9 +507,29 @@ private fun CoinFilterContent(
                                         text = stringResource(R.string.nc_sort_in_ascending_order),
                                         style = NunchukTheme.typography.body
                                     )
-                                    NcRadioButton(modifier = Modifier.align(alignment = Alignment.CenterEnd),
+                                    NcRadioButton(
+                                        modifier = Modifier.align(alignment = Alignment.CenterEnd),
                                         selected = isDescending.not(),
-                                        onClick = { isDescending = false })
+                                        onClick = { isDescending = false },
+                                    )
+                                }
+                                if (isMiniscript) {
+                                    Box(modifier = Modifier.padding(top = 16.dp)) {
+                                        Text(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .align(alignment = Alignment.CenterStart),
+                                            text = stringResource(R.string.nc_sort_by_coin_age),
+                                            style = NunchukTheme.typography.body
+                                        )
+                                        NcSwitch(
+                                            modifier = Modifier.align(alignment = Alignment.CenterEnd),
+                                            checked = sortByCoinAge,
+                                            onCheckedChange = {
+                                                sortByCoinAge = it
+                                            },
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -513,7 +546,8 @@ private fun CoinFilterContent(
                                 isMaxBtc,
                                 showLockedCoin,
                                 showUnlockedCoin,
-                                isDescending
+                                isDescending,
+                                sortByCoinAge
                             )
                         },
                     ) {

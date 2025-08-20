@@ -401,6 +401,10 @@
             android:name="is_search_transaction"
             android:defaultValue="false"
             app:argType="boolean" />
+        <argument
+            android:name="is_miniscript"
+            android:defaultValue="false"
+            app:argType="boolean" />
     </fragment>
     <fragment
         android:id="@+id/filterByTagFragment"
