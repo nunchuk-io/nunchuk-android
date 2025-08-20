@@ -34,6 +34,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.data.model.WalletConfigType
+import com.nunchuk.android.core.data.model.getWalletConfigTypeBy
 import com.nunchuk.android.core.util.ADD_WALLET_RESULT
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.showToast
@@ -55,6 +56,8 @@ class AddWalletActivity : BaseComposeActivity() {
     private val args: AddWalletArgs by lazy { AddWalletArgs.deserializeFrom(intent) }
 
     private var isAlreadyShowChangeAddressTypeDialog = false
+    private var isAlreadyShowMiniscriptWarningDialog = false
+    private var originalWalletConfigType: WalletConfigType? = null
 
     private val miniscriptLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -70,7 +73,6 @@ class AddWalletActivity : BaseComposeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel.init(args.groupWalletId)
-        // Initialize miniscript template if provided
         viewModel.initMiniscriptTemplate(args.miniscriptTemplate)
         enableEdgeToEdge()
         setContent {
@@ -111,13 +113,31 @@ class AddWalletActivity : BaseComposeActivity() {
                         if (walletConfigType == WalletConfigType.MINISCRIPT && state.miniscriptTemplate.isEmpty()) {
                             return@AddWalletView
                         }
-                        viewModel.updateWalletConfig(
-                            walletName,
-                            addressType,
-                            totalKeys,
-                            requiredKeys,
-                            miniscriptTemplate = if (walletConfigType == WalletConfigType.MINISCRIPT) state.miniscriptTemplate else null
-                        )
+
+                        // Check if switching to miniscript with group signers
+                        val isSwitchingToMiniscript = walletConfigType == WalletConfigType.MINISCRIPT && 
+                            originalWalletConfigType != WalletConfigType.MINISCRIPT &&
+                            args.hasGroupSigner &&
+                            !isAlreadyShowMiniscriptWarningDialog
+
+                        val updateWalletConfig = {
+                            viewModel.updateWalletConfig(
+                                walletName,
+                                addressType,
+                                totalKeys,
+                                requiredKeys,
+                                miniscriptTemplate = if (walletConfigType == WalletConfigType.MINISCRIPT) state.miniscriptTemplate else null
+                            )
+                        }
+
+                        if (isSwitchingToMiniscript) {
+                            showMiniscriptConfigWarningDialog {
+                                isAlreadyShowMiniscriptWarningDialog = true
+                                updateWalletConfig()
+                            }
+                        } else {
+                            updateWalletConfig()
+                        }
                     } else if (args.isCreateMiniscriptWallet) {
                         navigator.openMiniscriptScreen(
                             this,
@@ -165,6 +185,25 @@ class AddWalletActivity : BaseComposeActivity() {
                 }
             }
         }
+
+        // Track original wallet config type for detecting changes to miniscript
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    if (originalWalletConfigType == null && state.groupSandbox != null) {
+                        // Initialize original wallet config type based on current configuration
+                        originalWalletConfigType = if (state.miniscriptTemplate.isNotEmpty()) {
+                            WalletConfigType.MINISCRIPT
+                        } else {
+                            getWalletConfigTypeBy(
+                                n = state.groupSandbox.n ?: 3,
+                                m = state.groupSandbox.m ?: 2
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun openAssignSignerScreen(
@@ -200,6 +239,16 @@ class AddWalletActivity : BaseComposeActivity() {
             btnYes = getString(R.string.nc_text_continue),
             onYesClick = {
                 onAction()
+            }
+        )
+    }
+
+    private fun showMiniscriptConfigWarningDialog(onContinue: () -> Unit) {
+        NCWarningDialog(this).showDialog(
+            message = getString(R.string.nc_change_wallet_config_to_miniscript),
+            btnYes = getString(R.string.nc_text_continue),
+            onYesClick = {
+                onContinue()
             }
         )
     }

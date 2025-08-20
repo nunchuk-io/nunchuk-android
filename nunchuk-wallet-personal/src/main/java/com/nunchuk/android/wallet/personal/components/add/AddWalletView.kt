@@ -156,11 +156,7 @@ fun AddWalletView(
     }
 
     LaunchedEffect(state.groupSandbox?.name, viewOnlyComposer?.walletName) {
-        walletName = if (viewOnlyComposer != null) {
-            viewOnlyComposer.walletName
-        } else {
-            state.groupSandbox?.name ?: ""
-        }
+        walletName = viewOnlyComposer?.walletName ?: (state.groupSandbox?.name ?: "")
     }
 
     LaunchedEffect(state.groupSandbox?.n ?: 3, state.groupSandbox?.m ?: 2, miniscriptTemplate) {
