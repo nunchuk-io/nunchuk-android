@@ -179,7 +179,12 @@ fun ScriptNodeTree(
                 indentationLevel = level
             ) { modifier, showThreadCurve ->
                 val signer = data.signers[node.keys.firstOrNull().orEmpty()]
-                val avatarColor = avatarColors[level % avatarColors.size]
+                val avatarColor = if (signer?.isVisible == false) {
+                    val colorIndex = data.colorIndex % avatarColors.size
+                    avatarColors[colorIndex]
+                } else {
+                    avatarColors[0]
+                }
                 CreateKeyItem(
                     index = 0,
                     key = node.keys.firstOrNull() ?: "",

@@ -160,7 +160,7 @@ fun AddWalletView(
     }
 
     LaunchedEffect(state.groupSandbox?.n ?: 3, state.groupSandbox?.m ?: 2, miniscriptTemplate) {
-        if (miniscriptTemplate.isEmpty()) {
+        if (miniscriptTemplate.isEmpty() && walletConfigType != WalletConfigType.MINISCRIPT) {
             walletConfigType = getWalletConfigTypeBy(
                 n = state.groupSandbox?.n ?: 3,
                 m = state.groupSandbox?.m ?: 2
@@ -848,7 +848,7 @@ private fun MiniscriptSectionFilled(
                             )
                             Text(
                                 text = "Edit",
-                                style = NunchukTheme.typography.bodySmall,
+                                style = NunchukTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.textPrimary
                             )
                         }
@@ -865,7 +865,7 @@ private fun MiniscriptSectionFilled(
                             )
                             Text(
                                 text = "Remove",
-                                style = NunchukTheme.typography.bodySmall,
+                                style = NunchukTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.textPrimary
                             )
                         }
