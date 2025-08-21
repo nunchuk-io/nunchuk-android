@@ -196,6 +196,7 @@ fun MiniscriptReviewWalletScreen(
                             ),
                             onChangeBip32Path = { _, _ -> },
                             onActionKey = { _, _ -> }
+                            // Using default behavior, no custom action button needed
                         )
                     }
                 }
@@ -249,6 +250,7 @@ private fun TaprootAddressContent(
                     ),
                     onChangeBip32Path = { _, _ -> },
                     onActionKey = { _, _ -> }
+                    // Using default behavior, no custom action button needed
                 )
             }
         }

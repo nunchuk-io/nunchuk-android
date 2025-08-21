@@ -389,29 +389,22 @@ class FreeGroupWalletViewModel @Inject constructor(
         val signerMap = mutableMapOf<String, SignerModel?>()
         
         if (groupSandbox.walletType == WalletType.MINISCRIPT && groupSandbox.namedSigners.isNotEmpty()) {
-            // Use the namedSigners from GroupSandbox directly and convert them to SignerModel
-            // This preserves the correct BIP32 path for each specific key
             groupSandbox.namedSigners.forEach { (keyName, singleSigner) ->
-                // Check if the SingleSigner actually has meaningful data (not empty/null)
                 if (singleSigner.masterFingerprint.isNotEmpty() && singleSigner.xpub.isNotEmpty()) {
-                    // Find the corresponding signer in the signers list to get the correct name
                     val existingSigner = signers.find { it?.fingerPrint == singleSigner.masterFingerprint }
                     
-                    // Convert SingleSigner to SignerModel, but use the correct name from existing signer if available
                     val signerModel = if (existingSigner != null && existingSigner.name.isNotEmpty()) {
-                        singleSigner.toModel().copy(name = existingSigner.name)
+                        singleSigner.toModel().copy(name = existingSigner.name, isVisible = existingSigner.isVisible)
                     } else {
                         singleSigner.toModel()
                     }
                     
                     signerMap[keyName] = signerModel
                 } else {
-                    // This key doesn't have a signer assigned yet, set to null
                     signerMap[keyName] = null
                 }
             }
         } else {
-            // Fallback: Extract key names from the script node and map by index
             val keyNames = extractKeyNamesFromScriptNode(scriptNode)
             keyNames.forEachIndexed { index, keyName ->
                 if (index < signers.size) {

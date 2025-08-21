@@ -279,6 +279,12 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                                         supportedSigners = supportedSigners
                                     )
                                 },
+                                openSignerIntro = { walletId, supportedSigners ->
+                                    openSignerIntro(
+                                        groupId = walletId,
+                                        supportedSigners = supportedSigners
+                                    )
+                                },
                                 finishScreen = ::finish,
                                 onOpenWalletDetail = {
                                     navigateToSelectWallet(

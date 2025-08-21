@@ -96,7 +96,8 @@ fun ScriptNodeTree(
     level: Int = 0,
     onChangeBip32Path: (String, SignerModel) -> Unit = { _, _ -> },
     onActionKey: (String, SignerModel?) -> Unit = { _, _ -> },
-    data: ScriptNodeData = ScriptNodeData()
+    data: ScriptNodeData = ScriptNodeData(),
+    customActionButton: (@Composable ColumnScope.(key: String, signer: SignerModel?) -> Unit)? = null
 ) {
     val isNormalNode =
         data.signingPath.path.isEmpty() || signingPathContainsNodeId(data.signingPath.path, node.id)
@@ -138,7 +139,8 @@ fun ScriptNodeTree(
                         data = data,
                         level = level,
                         isInDisableBranch = isInDisableBranch,
-                        modifier = modifier
+                        modifier = modifier,
+                        customActionButton = customActionButton
                     )
                 }
             }
@@ -163,7 +165,8 @@ fun ScriptNodeTree(
                         data = data,
                         level = level,
                         isInDisableBranch = isInDisableBranch,
-                        modifier = modifier
+                        modifier = modifier,
+                        customActionButton = customActionButton
                     )
                 }
             }
@@ -188,7 +191,8 @@ fun ScriptNodeTree(
                     showThreadCurve = showThreadCurve,
                     modifier = modifier,
                     isSatisfiable = isSatisfiableNode && !isInDisableBranch,
-                    avatarColor = avatarColor
+                    avatarColor = avatarColor,
+                    customActionButton = customActionButton
                 )
             }
         }
@@ -221,7 +225,8 @@ fun ScriptNodeTree(
                         data = data,
                         level = level,
                         isInDisableBranch = isInDisableBranch,
-                        modifier = modifier.then(nodeModifier)
+                        modifier = modifier.then(nodeModifier),
+                        customActionButton = customActionButton
                     )
                 }
             }
@@ -246,7 +251,8 @@ fun ScriptNodeTree(
                         data = data,
                         level = level,
                         isInDisableBranch = isInDisableBranch,
-                        modifier = modifier
+                        modifier = modifier,
+                        customActionButton = customActionButton
                     )
                 }
             }
@@ -280,7 +286,8 @@ fun ScriptNodeTree(
                         data = data,
                         level = level,
                         isInDisableBranch = isInDisableBranch,
-                        modifier = modifier.then(nodeModifier)
+                        modifier = modifier.then(nodeModifier),
+                        customActionButton = customActionButton
                     )
                 }
             }
@@ -291,7 +298,8 @@ fun ScriptNodeTree(
             onChangeBip32Path = onChangeBip32Path,
             onActionKey = onActionKey,
             data = data,
-            level = level
+            level = level,
+            customActionButton = customActionButton
         )
     }
 }
@@ -309,7 +317,8 @@ internal fun CreateKeyItem(
     isSatisfiable: Boolean = true,
     keySetStatus: KeySetStatus? = null,
     data: ScriptNodeData,
-    avatarColor: Color = avatarColors[0]
+    avatarColor: Color = avatarColors[0],
+    customActionButton: (@Composable ColumnScope.(key: String, signer: SignerModel?) -> Unit)? = null
 ) {
     val isSigned: Boolean =
         data.mode == ScriptMode.SIGN && signer != null && if (keySetStatus != null) {
@@ -379,21 +388,30 @@ internal fun CreateKeyItem(
         },
         actionContent = {
             when {
-                data.mode == ScriptMode.CONFIG && signer == null -> {
-                    NcOutlineButton(
-                        height = 36.dp,
-                        onClick = { onActionKey(key, null) },
-                    ) {
-                        Text(stringResource(R.string.nc_add))
-                    }
-                }
-
-                data.mode == ScriptMode.CONFIG && signer != null -> {
-                    NcOutlineButton(
-                        height = 36.dp,
-                        onClick = { onActionKey(key, signer) },
-                    ) {
-                        Text(stringResource(R.string.nc_remove))
+                data.mode == ScriptMode.CONFIG -> {
+                    if (customActionButton != null) {
+                        Column {
+                            customActionButton(key, signer)
+                        }
+                    } else {
+                        when {
+                            signer == null -> {
+                                NcOutlineButton(
+                                    height = 36.dp,
+                                    onClick = { onActionKey(key, null) },
+                                ) {
+                                    Text(stringResource(R.string.nc_add))
+                                }
+                            }
+                            signer != null -> {
+                                NcOutlineButton(
+                                    height = 36.dp,
+                                    onClick = { onActionKey(key, signer) },
+                                ) {
+                                    Text(stringResource(R.string.nc_remove))
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -435,7 +453,8 @@ private fun NodeKeys(
     data: ScriptNodeData,
     level: Int,
     isInDisableBranch: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    customActionButton: (@Composable ColumnScope.(key: String, signer: SignerModel?) -> Unit)? = null
 ) {
     var localColorIndex = data.colorIndex
     node.keys.forEachIndexed { i, key ->
@@ -464,7 +483,8 @@ private fun NodeKeys(
                 modifier = modifier,
                 keySetStatus = if (node.type == ScriptNodeType.MUSIG.name) data.keySetStatues[node.idString] else null,
                 isSatisfiable = data.satisfiableMap[node.idString] != false && !isInDisableBranch,
-                avatarColor = avatarColor
+                avatarColor = avatarColor,
+                customActionButton = customActionButton
             )
         }
     }
@@ -476,7 +496,8 @@ private fun NodeSubs(
     onChangeBip32Path: (String, SignerModel) -> Unit,
     onActionKey: (String, SignerModel?) -> Unit,
     data: ScriptNodeData,
-    level: Int
+    level: Int,
+    customActionButton: (@Composable ColumnScope.(key: String, signer: SignerModel?) -> Unit)? = null
 ) {
     var localColorIndex = data.colorIndex
     node.subs.forEachIndexed { i, sub ->
@@ -488,7 +509,8 @@ private fun NodeSubs(
             level = level + 1,
             onChangeBip32Path = onChangeBip32Path,
             onActionKey = onActionKey,
-            data = childData
+            data = childData,
+            customActionButton = customActionButton
         )
         // Increment the colorIndex for the next child
         localColorIndex++
@@ -503,7 +525,8 @@ private fun NodeContent(
     data: ScriptNodeData,
     level: Int,
     isInDisableBranch: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    customActionButton: (@Composable ColumnScope.(key: String, signer: SignerModel?) -> Unit)? = null
 ) {
     NodeKeys(
         node = node,
@@ -512,14 +535,16 @@ private fun NodeContent(
         data = data,
         level = level,
         isInDisableBranch = isInDisableBranch,
-        modifier = modifier
+        modifier = modifier,
+        customActionButton = customActionButton
     )
     NodeSubs(
         node = node,
         onChangeBip32Path = onChangeBip32Path,
         onActionKey = onActionKey,
         data = data,
-        level = level
+        level = level,
+        customActionButton = customActionButton
     )
 }
 

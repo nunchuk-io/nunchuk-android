@@ -3,6 +3,7 @@ package com.nunchuk.android.main.groupwallet.recover
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.miniscript.MiniscriptUtil
@@ -27,7 +28,6 @@ import com.nunchuk.android.usecase.free.groupwallet.RecoverGroupWalletUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.signer.GetSupportedSignersUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
-import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -103,6 +103,12 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
         }
     }
 
+    fun getSuggestedSignersForMiniscript(): List<SupportedSigner> {
+        return _uiState.value.supportedTypes.filter { 
+            it.walletType == WalletType.MULTI_SIG || it.walletType == null 
+        }
+    }
+
     fun loadInfo() = viewModelScope.launch {
         val curWallet = _uiState.value.wallet
         val newWalletSigners: List<SignerModel>
@@ -120,10 +126,21 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
         val allSigners = getNewAllSigner()
         val oldAllSigners = _uiState.value.allSigners
         val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: -1
+        val currentKey = savedStateHandle.get<String>(CURRENT_SIGNER_KEY) ?: ""
         Timber.tag(TAG)
             .e("Old all signers: ${oldAllSigners.size} - New all signers: ${allSigners.size}")
-        if (index == -1) {
-            Timber.tag(TAG).e("All signers size is the same")
+        
+        // Only check for miniscript approach if wallet is loaded
+        val isWaitingForSigner = if (_uiState.value.wallet != null && isMiniscriptWallet()) {
+            currentKey.isNotEmpty()
+        } else {
+            index != -1
+        }
+        
+        Timber.tag(TAG).e("loadInfo - isMiniscript: ${isMiniscriptWallet()}, isWaitingForSigner: $isWaitingForSigner, currentKey: $currentKey, index: $index")
+        
+        if (!isWaitingForSigner) {
+            Timber.tag(TAG).e("Initial setup - no signer being added")
 
             val existingSigners = newWalletSigners.filter { signer ->
                 allSigners.any { it.fingerPrint == signer.fingerPrint }
@@ -148,7 +165,7 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
             loadSupportedSigners()
         } else {
             if ((allSigners.isEmpty() && oldAllSigners.isEmpty()).not() && oldAllSigners.size != allSigners.size) {
-                Timber.tag(TAG).e("All signers size is different")
+                Timber.tag(TAG).e("All signers size is different - handling added signer")
                 val newSigner = allSigners.find { signer ->
                     oldAllSigners.none { it.fingerPrint == signer.fingerPrint }
                 }
@@ -161,9 +178,20 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
     private fun newSignerAdded(addedSigner: SingleSigner) = viewModelScope.launch {
         val oldAllSigners = _uiState.value.allSigners
         val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: -1
+        val currentKey = savedStateHandle.get<String>(CURRENT_SIGNER_KEY) ?: ""
         val allSigners = getNewAllSigner()
-        if ((allSigners.isEmpty() && oldAllSigners.isEmpty()).not() && index != -1 && oldAllSigners.size == allSigners.size) { // handle case add existing signer
-            Timber.tag(TAG).e("All signers size is the same")
+        
+        // Only check for miniscript approach if wallet is loaded
+        val isWaitingForSigner = if (_uiState.value.wallet != null && isMiniscriptWallet()) {
+            currentKey.isNotEmpty()
+        } else {
+            index != -1
+        }
+        
+        Timber.tag(TAG).e("newSignerAdded - isMiniscript: ${isMiniscriptWallet()}, isWaitingForSigner: $isWaitingForSigner, currentKey: $currentKey, index: $index")
+        
+        if ((allSigners.isEmpty() && oldAllSigners.isEmpty()).not() && isWaitingForSigner && oldAllSigners.size == allSigners.size) { // handle case add existing signer
+            Timber.tag(TAG).e("All signers size is the same - handling existing signer addition")
             val newSigner = addedSigner.toModel()
             handleAddedSigner(newSigner, index)
         }
@@ -171,20 +199,59 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
 
     private fun handleAddedSigner(newSigner: SignerModel?, index: Int) {
         newSigner?.let {
-            val selectSigner = _uiState.value.signerUis.find { it.index == index }?.signer
-            Timber.tag(TAG).e("New signer found: $it")
-            if (selectSigner?.fingerPrint == newSigner.fingerPrint) {
-                Timber.tag(TAG).e("New signer is selected")
-                val signerUi =
-                    SignerModelRecoverUi(signer = newSigner, index = index, isInDevice = true)
-                val signers = _uiState.value.signerUis.toMutableList()
-                signers[index] = signerUi
-                _uiState.update { state -> state.copy(signerUis = signers) }
+            if (isMiniscriptWallet()) {
+                handleMiniscriptSignerAdded(newSigner)
             } else {
-                _uiState.update { state -> state.copy(showAddKeyErrorDialog = true) }
+                val selectSigner = _uiState.value.signerUis.find { it.index == index }?.signer
+                Timber.tag(TAG).e("New signer found: $it")
+                if (selectSigner?.fingerPrint == newSigner.fingerPrint) {
+                    Timber.tag(TAG).e("New signer is selected")
+                    val signerUi =
+                        SignerModelRecoverUi(signer = newSigner, index = index, isInDevice = true)
+                    val signers = _uiState.value.signerUis.toMutableList()
+                    signers[index] = signerUi
+                    _uiState.update { state -> state.copy(signerUis = signers) }
+                } else {
+                    _uiState.update { state -> state.copy(showAddKeyErrorDialog = true) }
+                }
             }
         }
-        setCurrentSignerIndex(-1)
+        if (isMiniscriptWallet()) {
+            setCurrentSignerKey("")
+        } else {
+            setCurrentSignerIndex(-1)
+        }
+    }
+
+    private fun handleMiniscriptSignerAdded(newSigner: SignerModel) {
+        val currentKey = savedStateHandle.get<String>(CURRENT_SIGNER_KEY) ?: ""
+        if (currentKey.isEmpty()) return
+        
+        Timber.tag(TAG).e("Handling miniscript signer added for key: $currentKey")
+        
+        // Check signerMap
+        val selectSigner = _uiState.value.signerMap[currentKey]
+        if (selectSigner?.fingerPrint == newSigner.fingerPrint) {
+            Timber.tag(TAG).e("New signer matches selected signer in signerMap")
+            // Update signerMap with visible signer
+            val updatedSignerMap = _uiState.value.signerMap.toMutableMap()
+            updatedSignerMap[currentKey] = newSigner.copy(isVisible = true)
+            
+            // Update muSigSignerMap if it contains the key
+            val updatedMuSigSignerMap = _uiState.value.muSigSignerMap.toMutableMap()
+            if (updatedMuSigSignerMap.containsKey(currentKey)) {
+                updatedMuSigSignerMap[currentKey] = newSigner.copy(isVisible = true)
+            }
+            
+            _uiState.update { state -> 
+                state.copy(
+                    signerMap = updatedSignerMap,
+                    muSigSignerMap = updatedMuSigSignerMap
+                )
+            }
+        } else {
+            _uiState.update { state -> state.copy(showAddKeyErrorDialog = true) }
+        }
     }
 
     private suspend fun getNewAllSigner(): List<SignerModel> {
@@ -250,6 +317,11 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
         savedStateHandle[CURRENT_SIGNER_INDEX] = index
     }
 
+    fun setCurrentSignerKey(key: String) {
+        Timber.tag(TAG).e("Set current signer key $key")
+        savedStateHandle[CURRENT_SIGNER_KEY] = key
+    }
+
     private fun deleteWallet() {
         viewModelScope.launch {
             deleteWalletUseCase.execute(walletId)
@@ -307,8 +379,13 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
         return signerMap
     }
 
+    fun isMiniscriptWallet(): Boolean {
+        return _uiState.value.wallet?.miniscript?.isNotEmpty() == true
+    }
+
     companion object {
         private const val TAG = "recover-group-wallet"
         private const val CURRENT_SIGNER_INDEX = "current_signer_index"
+        private const val CURRENT_SIGNER_KEY = "current_signer_key"
     }
 }

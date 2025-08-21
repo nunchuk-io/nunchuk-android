@@ -46,6 +46,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.nunchuk.android.compose.NcBadgePrimary
 import com.nunchuk.android.compose.NcIcon
+import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSelectableBottomSheet
@@ -419,6 +420,46 @@ fun FreeGroupWalletScreen(
                                             onAddNewKeyForMiniscript(state.supportedTypes)
                                         }
                                     }
+                                },
+                                customActionButton = { key, signer ->
+                                    Timber.tag("miniscript-feature").d("CustomActionButton called: key=$key, signer=${signer?.name}, isVisible=${signer?.isVisible}")
+                                    when {
+                                        signer == null -> {
+                                            Timber.tag("miniscript-feature").d("Showing Add button")
+                                            NcOutlineButton(
+                                                height = 36.dp,
+                                                onClick = { 
+                                                    onSetCurrentKey(key)
+                                                    onStartAddKeyForMiniscript(key)
+                                                    if (state.allSigners.isNotEmpty()) {
+                                                        showSignerBottomSheet = true
+                                                    } else {
+                                                        onAddNewKeyForMiniscript(state.supportedTypes)
+                                                    }
+                                                },
+                                            ) {
+                                                Text(stringResource(R.string.nc_add))
+                                            }
+                                        }
+                                        
+                                        signer.isVisible -> {
+                                            Timber.tag("miniscript-feature").d("Showing Remove button")
+                                            NcOutlineButton(
+                                                height = 36.dp,
+                                                onClick = { 
+                                                    onSetCurrentKey(key)
+                                                    keyToRemove = key
+                                                    showRemoveConfirmation = true
+                                                },
+                                            ) {
+                                                Text(stringResource(R.string.nc_remove))
+                                            }
+                                        }
+                                        
+                                        else -> {
+                                            Timber.tag("miniscript-feature").d("No button rendered - signer=${signer?.name}, isVisible=${signer?.isVisible}")
+                                        }
+                                    }
                                 }
                             )
                         }
@@ -688,7 +729,35 @@ private fun TaprootAddressContent(
                             onChangeBip32Path(index, signer)
                         }
                     },
-                    onActionKey = onActionKey
+                    onActionKey = onActionKey,
+                    customActionButton = { key, signer ->
+                        Timber.tag("miniscript-feature").d("CustomActionButton (MuSig) called: key=$key, signer=${signer?.name}, isVisible=${signer?.isVisible}")
+                        when {
+                            signer == null -> {
+                                Timber.tag("miniscript-feature").d("Showing Add button (MuSig)")
+                                NcOutlineButton(
+                                    height = 36.dp,
+                                    onClick = { onActionKey(key, null) },
+                                ) {
+                                    Text(stringResource(R.string.nc_add))
+                                }
+                            }
+                            
+                            signer.isVisible -> {
+                                Timber.tag("miniscript-feature").d("Showing Remove button (MuSig)")
+                                NcOutlineButton(
+                                    height = 36.dp,
+                                    onClick = { onActionKey(key, signer) },
+                                ) {
+                                    Text(stringResource(R.string.nc_remove))
+                                }
+                            }
+                            
+                            else -> {
+                                Timber.tag("miniscript-feature").d("No button rendered (MuSig) - signer=${signer?.name}, isVisible=${signer?.isVisible}")
+                            }
+                        }
+                    }
                 )
             }
         }

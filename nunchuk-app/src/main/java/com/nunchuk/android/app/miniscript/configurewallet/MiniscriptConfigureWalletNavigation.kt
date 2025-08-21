@@ -321,6 +321,7 @@ fun MiniscriptConfigWalletScreen(
                                     showSignerBottomSheet = true
                                 }
                             }
+                            // Using default behavior for this screen, no custom action button needed
                         )
                     }
                 }

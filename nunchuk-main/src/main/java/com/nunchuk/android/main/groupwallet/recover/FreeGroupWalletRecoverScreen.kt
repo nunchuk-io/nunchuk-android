@@ -102,6 +102,7 @@ fun NavGraphBuilder.freeGroupWalletRecover(
     filePath: String,
     qrList: List<String>,
     onAddNewKey: (String, List<SupportedSigner>) -> Unit = { _, _ -> },
+    openSignerIntro: (String, List<SupportedSigner>) -> Unit = { _, _ -> },
     finishScreen: () -> Unit,
     onOpenWalletDetail: (String) -> Unit = {},
 ) {
@@ -195,6 +196,10 @@ fun NavGraphBuilder.freeGroupWalletRecover(
                 viewModel.setCurrentSignerIndex(it)
                 onAddNewKey(viewModel.walletId, viewModel.getSuggestedSigners())
             },
+            openSignerIntro = { key ->
+                viewModel.setCurrentSignerKey(key)
+                openSignerIntro(viewModel.walletId, viewModel.getSuggestedSignersForMiniscript())
+            },
             onContinueClicked = {
                 viewModel.recoverGroupWallet()
             },
@@ -235,6 +240,7 @@ fun FreeGroupWalletRecoverScreen(
     state: FreeGroupWalletRecoverUiState = FreeGroupWalletRecoverUiState(),
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     onAddNewKey: (Int) -> Unit = {},
+    openSignerIntro: (String) -> Unit = {},
     onContinueClicked: () -> Unit = {},
     onGotItClick: () -> Unit = {},
     onEditClicked: () -> Unit = {},
@@ -342,17 +348,30 @@ fun FreeGroupWalletRecoverScreen(
                                 .padding(top = 8.dp, bottom = 20.dp)
                         )
                         
-                        TaprootAddressContent(state = state, wallet = state.wallet)
+                        TaprootAddressContent(
+                            state = state, 
+                            wallet = state.wallet,
+                            openSignerIntro = openSignerIntro
+                        )
 
                         ScriptNodeTree(
                             node = state.scriptNode,
                             data = ScriptNodeData(
-                                mode = ScriptMode.VIEW,
+                                mode = ScriptMode.CONFIG,
                                 signers = state.signerMap,
-                                showBip32Path = true,
                             ),
                             onChangeBip32Path = { _, _ -> },
-                            onActionKey = { _, _ -> }
+                            onActionKey = { _, _ -> },
+                            customActionButton = { key, signer ->
+                                if (signer != null && !signer.isVisible) {
+                                    NcOutlineButton(
+                                        height = 36.dp,
+                                        onClick = { openSignerIntro(key) },
+                                    ) {
+                                        Text(stringResource(com.nunchuk.android.core.R.string.nc_add))
+                                    }
+                                }
+                            }
                         )
                     }
                 }
@@ -469,7 +488,8 @@ fun FreeAddKeyRecoverCard(
 @Composable
 private fun TaprootAddressContent(
     state: FreeGroupWalletRecoverUiState,
-    wallet: com.nunchuk.android.model.Wallet?
+    wallet: com.nunchuk.android.model.Wallet?,
+    openSignerIntro: (String) -> Unit = {}
 ) {
     if (wallet?.addressType == AddressType.TAPROOT) {
         // assuming that the keyPath is the name of the first signer
@@ -486,12 +506,21 @@ private fun TaprootAddressContent(
             ScriptNodeTree(
                 node = scriptNodeMuSig,
                 data = ScriptNodeData(
-                    mode = ScriptMode.VIEW,
+                    mode = ScriptMode.CONFIG,
                     signers = state.muSigSignerMap,
-                    showBip32Path = true,
                 ),
                 onChangeBip32Path = { _, _ -> },
-                onActionKey = { _, _ -> }
+                onActionKey = { _, _ -> },
+                customActionButton = { key, signer ->
+                    if (signer != null && !signer.isVisible) {
+                        NcOutlineButton(
+                            height = 36.dp,
+                            onClick = { openSignerIntro(key) },
+                        ) {
+                            Text(stringResource(com.nunchuk.android.core.R.string.nc_add))
+                        }
+                    }
+                }
             )
         } else {
             val keyPath =
