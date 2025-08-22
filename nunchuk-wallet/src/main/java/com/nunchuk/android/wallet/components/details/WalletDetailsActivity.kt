@@ -23,6 +23,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.wallet.R
@@ -37,6 +39,26 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        // Handle WindowInsets properly to ensure keyboard doesn't overlap content
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+            
+            // Apply system bar insets as padding
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, 
+                if (ime.bottom > 0) 0 else systemBars.bottom)
+            
+            // When keyboard is shown, adjust bottom padding to account for it
+            if (ime.bottom > 0) {
+                val extraPadding = (32 * resources.displayMetrics.density).toInt()
+                val imeHeight = ime.bottom - systemBars.bottom + extraPadding
+                view.setPadding(systemBars.left, systemBars.top, systemBars.right, imeHeight)
+            }
+            
+            insets
+        }
+        
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
         navHostFragment.navController.setGraph(R.navigation.wallet_detail_navigation, intent.extras)
