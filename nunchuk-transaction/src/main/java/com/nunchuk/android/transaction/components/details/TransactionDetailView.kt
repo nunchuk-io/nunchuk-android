@@ -403,7 +403,7 @@ fun TransactionDetailView(
                                     mode = ScriptMode.SIGN,
                                     signers = state.signerMap,
                                     showBip32Path = false,
-                                    signedSigners = transaction.signers,
+                                    signedSigners = miniscriptUiState.signedSigners.ifEmpty { transaction.signers },
                                     satisfiableMap = miniscriptUiState.satisfiableMap,
                                     signedHash = miniscriptUiState.signedHash,
                                     collapsedNode = miniscriptUiState.collapsedNode,
@@ -414,7 +414,8 @@ fun TransactionDetailView(
                                     coinGroups = miniscriptUiState.coinGroups,
                                     keySetStatues = miniscriptUiState.keySetStatues + rootKeySetStatus,
                                     lockBased = miniscriptUiState.lockedBase,
-                                    inputCoins = state.txInputCoins
+                                    inputCoins = state.txInputCoins,
+                                    transactionStatus = state.transaction.status,
                                 ),
                                 onChangeBip32Path = { _, _ -> },
                                 onActionKey = { _, signer ->

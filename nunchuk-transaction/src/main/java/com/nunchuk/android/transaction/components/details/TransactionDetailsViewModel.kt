@@ -130,11 +130,11 @@ import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.membership.SignServerTransactionUseCase
-import com.nunchuk.android.usecase.miniscript.GetCoinsGroupedBySubPoliciesUseCase
 import com.nunchuk.android.usecase.room.transaction.BroadcastRoomTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.GetPendingTransactionUseCase
 import com.nunchuk.android.usecase.room.transaction.SignRoomTransactionUseCase
 import com.nunchuk.android.usecase.transaction.GetTaprootKeySetSelectionUseCase
+import com.nunchuk.android.usecase.transaction.GetTransactionSignersUseCase
 import com.nunchuk.android.usecase.transaction.ImportPsbtUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.CrashlyticsReporter
@@ -212,7 +212,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getChainTipUseCase: GetChainTipUseCase,
     private val isPreimageRevealedUseCase: IsPreimageRevealedUseCase,
     private val getKeySetStatusUseCase: GetKeySetStatusUseCase,
-    private val getCoinsGroupedBySubPoliciesUseCase: GetCoinsGroupedBySubPoliciesUseCase
+    private val getTransactionSignersUseCase: GetTransactionSignersUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionDetailsState())
     val state = _state.asStateFlow()
@@ -435,6 +435,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
                         serverTransaction = extendedTransaction.serverTransaction
                     )
                 }
+                if (isMiniscriptWallet()) {
+                    getSignedSigners()
+                }
             }.onFailure {
                 if (it.isNoInternetException) {
                     _event.emit(NoInternetConnection)
@@ -457,6 +460,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         if (walletId.isEmpty() || initTransaction != null) return
         viewModelScope.launch {
             getWalletUseCase.execute(walletId).collect { wallet ->
+                _minscriptState.update { it.copy(isMiniscriptWallet = wallet.isMiniscriptWallet()) }
                 val account = accountManager.getAccount()
                 _state.update {
                     it.copy(
@@ -510,7 +514,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
         satisfiableMap.clear()
         signedHash.clear()
         keySetStatues.clear()
-        _minscriptState.update { it.copy(isMiniscriptWallet = true) }
         if (addressType.isTaproot() && !isValueKeySetDisable && defaultKeySetIndex == 0) {
             val signers = wallet.signers.take(wallet.totalRequireSigns).map { signer ->
                 singleSignerMapper(signer)
@@ -772,6 +775,27 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     transaction = it.transaction,
                     serverTransaction = it.serverTransaction,
                 )
+                if (it.transaction.raw.isNotEmpty()) {
+                    getSignedSigners()
+                }
+            }
+        }
+    }
+
+    private fun getSignedSigners() {
+        viewModelScope.launch {
+            getTransactionSignersUseCase(
+                GetTransactionSignersUseCase.Params(
+                    walletId = walletId,
+                    txId = txId
+                )
+            ).onSuccess { signers ->
+                val signedSignersMap = signers.associate { signer ->
+                    signer.masterFingerprint to true
+                }
+                _minscriptState.update { it.copy(signedSigners = signedSignersMap) }
+            }.onFailure {
+                Timber.e(it, "Failed to get transaction signers")
             }
         }
     }
@@ -968,7 +992,12 @@ internal class TransactionDetailsViewModel @Inject constructor(
             signRoomTransactionUseCase.execute(initEventId = initEventId, device = device, signerId)
                 .flowOn(IO).onException {
                     fireSignError(it)
-                }.collect { _event.emit(SignTransactionSuccess(roomId)) }
+                }.collect { 
+                    if (isMiniscriptWallet()) {
+                        getSignedSigners()
+                    }
+                    _event.emit(SignTransactionSuccess(roomId)) 
+                }
         }
     }
 
@@ -988,6 +1017,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 updateTransaction(
                     transaction = result.getOrThrow(),
                 )
+                if (isMiniscriptWallet()) {
+                    getSignedSigners()
+                }
                 _event.emit(SignTransactionSuccess())
             } else {
                 fireSignError(result.exceptionOrNull())
@@ -1028,6 +1060,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
             val transaction = result.getOrNull()
             if (result.isSuccess && transaction != null) {
                 _state.update { it.copy(transaction = transaction) }
+                if (isMiniscriptWallet()) {
+                    getSignedSigners()
+                }
                 _event.emit(ImportTransactionFromMk4Success)
             } else {
                 fireSignError(result.exceptionOrNull())
@@ -1044,6 +1079,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
+                if (isMiniscriptWallet()) {
+                    getSignedSigners()
+                }
                 _event.emit(SignTransactionSuccess(roomId))
             } else {
                 fireSignError(result.exceptionOrNull())
@@ -1068,6 +1106,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 updateTransaction(
                     transaction = result.getOrThrow(),
                 )
+                if (isMiniscriptWallet()) {
+                    getSignedSigners()
+                }
                 _event.emit(SignTransactionSuccess())
             } else {
                 fireSignError(result.exceptionOrNull())
@@ -1107,6 +1148,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 )
             ).onSuccess {
                 getTransactionInfo()
+                if (isMiniscriptWallet()) {
+                    getSignedSigners()
+                }
                 _event.emit(ImportTransactionSuccess)
             }.onFailure {
                 _event.emit(TransactionError(it.readableMessage()))
@@ -1173,6 +1217,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     _event.emit(TransactionError("Wallet has not registered to Portal yet"))
                 } else {
                     updateTransaction(transaction = it)
+                    if (isMiniscriptWallet()) {
+                        getSignedSigners()
+                    }
                     _event.emit(SignTransactionSuccess())
                 }
             }.onFailure {

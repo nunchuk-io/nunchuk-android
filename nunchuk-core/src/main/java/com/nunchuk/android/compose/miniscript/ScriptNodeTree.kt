@@ -58,6 +58,7 @@ import com.nunchuk.android.core.R
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.signDone
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.CoinsGroup
@@ -430,7 +431,7 @@ internal fun CreateKeyItem(
                     }
                 }
 
-                data.mode == ScriptMode.SIGN && signer != null && signer.isVisible -> {
+                data.transactionStatus.isPendingSignatures() && data.mode == ScriptMode.SIGN && signer != null && signer.isVisible -> {
                     NcPrimaryDarkButton(
                         height = 36.dp,
                         onClick = { onActionKey(key, signer) },
@@ -570,6 +571,7 @@ data class ScriptNodeData(
     val isGroupWallet: Boolean = false,
     val occupiedSlots: Set<String> = emptySet(),
     val colorIndex: Int = 0,
+    val transactionStatus: TransactionStatus = TransactionStatus.PENDING_SIGNATURES
 ) {
     fun isSlotOccupied(position: String): Boolean {
         return occupiedSlots.contains(position)
