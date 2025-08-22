@@ -116,7 +116,7 @@ fun ChatHeader(
             style = NunchukTheme.typography.titleSmall,
         )
         Spacer(modifier = Modifier.width(8.dp))
-        if ( unreadCount > 0) {
+        if (unreadCount > 0) {
             Box(
                 modifier = Modifier
                     .border(

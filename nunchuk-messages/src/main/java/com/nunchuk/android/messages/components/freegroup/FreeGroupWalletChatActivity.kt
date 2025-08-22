@@ -220,13 +220,20 @@ fun FreeGroupWalletChatScreen(
                     .navigationBarsPadding()
                     .fillMaxHeight()
             ) {
-                ChatHeader(
-                    btc = state.wallet?.getBTCAmount().orEmpty(),
-                    multisign = "${state.wallet?.totalRequireSigns ?: 0}/${state.wallet?.signers?.size ?: 0} ${
+                val headerDesc = if (state.wallet?.miniscript?.isEmpty() == true) {
+                    "${state.wallet.totalRequireSigns}/${state.wallet.signers.size} ${
                         stringResource(
                             R.string.nc_wallet_multisig
                         )
-                    }",
+                    }"
+                } else {
+                    stringResource(
+                        R.string.nc_miniscript
+                    )
+                }
+                ChatHeader(
+                    btc = state.wallet?.getBTCAmount().orEmpty(),
+                    multisign = headerDesc,
                     onClick = { onWalletInfoClick(state.wallet?.id.orEmpty()) }
                 )
 
