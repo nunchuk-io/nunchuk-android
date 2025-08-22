@@ -35,6 +35,7 @@ import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.wallet.InvoiceInfo
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.model.TransactionOption.CANCEL
 import com.nunchuk.android.share.model.TransactionOption.COPY_RAW_TRANSACTION_HEX
@@ -45,6 +46,7 @@ import com.nunchuk.android.share.model.TransactionOption.REMOVE_TRANSACTION
 import com.nunchuk.android.share.model.TransactionOption.REPLACE_BY_FEE
 import com.nunchuk.android.share.model.TransactionOption.SCHEDULE_BROADCAST
 import com.nunchuk.android.share.model.TransactionOption.SHOW_INVOICE
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.details.RequestSignatureMemberFragment.Companion.EXTRA_MEMBER_ID
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.BroadcastTransactionSuccess
@@ -109,7 +111,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
     private val replaceByFeeLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val data = it.data
-            if (it.resultCode == Activity.RESULT_OK && data != null) {
+            if (it.resultCode == RESULT_OK && data != null) {
                 val result = ReplaceFeeArgs.deserializeFrom(data)
                 navigator.openTransactionDetailsScreen(
                     activityContext = this,
@@ -118,6 +120,23 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                 )
                 NcToastManager.scheduleShowMessage(getString(R.string.nc_the_transaction_has_been_replaced))
                 finish()
+            }
+        }
+
+    private val selectSigningPathLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data
+            if (it.resultCode == RESULT_OK && data != null) {
+                val signingPath = data.parcelable<SigningPath>(GlobalResultKey.SIGNING_PATH)
+                navigator.openReplaceTransactionFee(
+                    launcher = replaceByFeeLauncher,
+                    context = this,
+                    walletId = args.walletId,
+                    transaction = viewModel.getTransaction(),
+                    type = RbfType.ReplaceFee,
+                    signingPath = signingPath,
+                    isUseScriptPath = signingPath != null
+                )
             }
         }
 
@@ -462,13 +481,22 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
     }
 
     private fun handleOpenEditFee() {
-        navigator.openReplaceTransactionFee(
-            replaceByFeeLauncher,
-            this,
-            walletId = args.walletId,
-            transaction = viewModel.getTransaction(),
-            type = RbfType.ReplaceFee
-        )
+        if (viewModel.isMiniscriptWallet()) {
+            navigator.selectMiniscriptSigningPath(
+                launcher = selectSigningPathLauncher,
+                activityContext = this,
+                walletId = args.walletId,
+                txId = args.txId
+            )
+        } else {
+            navigator.openReplaceTransactionFee(
+                replaceByFeeLauncher,
+                this,
+                walletId = args.walletId,
+                transaction = viewModel.getTransaction(),
+                type = RbfType.ReplaceFee
+            )
+        }
     }
 
     private fun openExportTransactionScreen(isBBQR: Boolean) {

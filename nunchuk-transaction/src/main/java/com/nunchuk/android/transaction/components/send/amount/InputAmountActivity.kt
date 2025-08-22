@@ -57,6 +57,7 @@ import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.BtcUri
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.nav.args.AddReceiptType
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.AcceptAmountEvent
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.InsufficientFundsEvent
@@ -121,7 +122,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             } else if (it.itemId == R.id.menu_batch_transaction) {
                 openAddReceiptScreen(
                     outputAmount = viewModel.getAmountBtc(),
-                    isBatchTransaction = true
+                    type = AddReceiptType.BATCH
                 )
             }
             true
@@ -213,7 +214,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             .showDialog(message = getString(R.string.nc_send_all_locked_coin_msg))
     }
 
-    private fun openAddReceiptScreen(outputAmount: Double, isBatchTransaction: Boolean) {
+    private fun openAddReceiptScreen(outputAmount: Double, type: AddReceiptType = AddReceiptType.ADD_RECEIPT) {
         navigator.openAddReceiptScreen(
             this,
             walletId = args.walletId,
@@ -223,7 +224,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
             privateNote = viewModel.getPrivateNote(),
             subtractFeeFromAmount = abs(outputAmount - args.availableAmount).toAmount().value <= 0,
             inputs = args.inputs,
-            isBatchTransaction = isBatchTransaction
+            type = type
         )
     }
 
@@ -258,7 +259,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                 if (isClaimInheritanceFlow()) {
                     showSweepOptions()
                 } else {
-                    openAddReceiptScreen(outputAmount = event.amount, isBatchTransaction = false)
+                    openAddReceiptScreen(outputAmount = event.amount, type = AddReceiptType.ADD_RECEIPT)
                 }
             }
 

@@ -25,6 +25,7 @@ import com.nunchuk.android.ReplaceTransactionUseCase
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.model.UnspentOutput
@@ -98,7 +99,13 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
         }
     }
 
-    fun draftTransaction(walletId: String, oldTx: Transaction, newFee: Int) {
+    fun draftTransaction(
+        walletId: String,
+        oldTx: Transaction,
+        newFee: Int,
+        signingPath: SigningPath?,
+        useSciptPath: Boolean
+    ) {
         viewModelScope.launch {
             delay(150) // work around shared flow not show loading
             _event.emit(ReplaceFeeEvent.Loading(true))
@@ -108,7 +115,9 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                     walletId = walletId,
                     feeRate = newFee.toManualFeeRate(),
                     replaceTxId = oldTx.txId,
-                    isValidateTransactionNotConfirmed = true
+                    isValidateTransactionNotConfirmed = true,
+                    useScriptPath = useSciptPath,
+                    signingPath = signingPath
                 )
             ).onSuccess { transaction ->
                 _state.update { it.copy(transaction = transaction) }
@@ -150,7 +159,7 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
         }
     }
 
-    fun replaceTransaction(walletId: String, txId: String, newFee: Int) {
+    fun replaceTransaction(walletId: String, txId: String, newFee: Int, isUseScriptPath: Boolean, signingPath: SigningPath?) {
         viewModelScope.launch {
             _event.emit(ReplaceFeeEvent.Loading(true))
             val result = replaceTransactionUseCase(
@@ -159,7 +168,9 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                     walletId = walletId,
                     txId = txId,
                     newFee = newFee,
-                    antiFeeSniping = antiFeeSniping
+                    antiFeeSniping = antiFeeSniping,
+                    useScriptPath = isUseScriptPath,
+                    signingPath = signingPath
                 )
             ).onFailure {
                 if (it is TransactionAlreadyConfirmedException) {

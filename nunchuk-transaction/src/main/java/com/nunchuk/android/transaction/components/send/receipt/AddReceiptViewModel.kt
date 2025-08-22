@@ -29,6 +29,7 @@ import com.nunchuk.android.core.util.isValueKeySetDisable
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.nav.args.AddReceiptArgs
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.AcceptedAddressEvent
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.AddressRequiredEvent
 import com.nunchuk.android.transaction.components.send.receipt.AddReceiptEvent.InvalidAddressEvent
@@ -38,7 +39,6 @@ import com.nunchuk.android.transaction.components.utils.privateNote
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletTemplate
 import com.nunchuk.android.usecase.CheckAddressValidUseCase
-import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.ParseBtcUriUseCase
@@ -58,7 +58,6 @@ internal class AddReceiptViewModel @Inject constructor(
     private val getDefaultAntiFeeSnipingUseCase: GetDefaultAntiFeeSnipingUseCase,
     private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
     private val parseSignerStringUseCase: ParseSignerStringUseCase,
-    private val getChainTipUseCase: GetChainTipUseCase
 ) : NunchukViewModel<AddReceiptState, AddReceiptEvent>() {
 
     override val initialState = AddReceiptState()

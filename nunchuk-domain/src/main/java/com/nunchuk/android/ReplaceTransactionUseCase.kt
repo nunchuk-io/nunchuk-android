@@ -21,11 +21,13 @@ package com.nunchuk.android
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.usecase.UseCase
 import com.nunchuk.android.usecase.ValidateTransactionNotConfirmedUseCase
 import kotlinx.coroutines.CoroutineDispatcher
+import timber.log.Timber
 import javax.inject.Inject
 
 class ReplaceTransactionUseCase @Inject constructor(
@@ -35,6 +37,7 @@ class ReplaceTransactionUseCase @Inject constructor(
 ) : UseCase<ReplaceTransactionUseCase.Data, Transaction>(dispatcher) {
 
     override suspend fun execute(parameters: Data): Transaction {
+        Timber.d("CongHai parameters: $parameters")
         // Validate that the transaction being replaced is not already confirmed
         validateTransactionNotConfirmedUseCase(
             ValidateTransactionNotConfirmedUseCase.Params(
@@ -43,15 +46,21 @@ class ReplaceTransactionUseCase @Inject constructor(
             )
         ).onFailure { exception -> throw exception }
         return nativeSdk.replaceTransaction(
-            parameters.walletId,
-            parameters.txId,
-            Amount(value = parameters.newFee.toLong()),
-            antiFeeSniping = parameters.antiFeeSniping
+            walletId = parameters.walletId,
+            txId = parameters.txId,
+            newFeeRate = Amount(value = parameters.newFee.toLong()),
+            antiFeeSniping = parameters.antiFeeSniping,
+            useScriptPath = parameters.useScriptPath,
+            signingPath = parameters.signingPath
         )
     }
 
     data class Data(
-        val groupId: String?, val walletId: String, val txId: String, val newFee: Int,
+        val groupId: String?,
+        val walletId: String,
+        val txId: String, val newFee: Int,
         val antiFeeSniping: Boolean,
+        val useScriptPath: Boolean = false,
+        val signingPath: SigningPath? = null,
     )
 }

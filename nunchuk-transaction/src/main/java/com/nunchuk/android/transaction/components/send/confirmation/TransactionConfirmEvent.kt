@@ -54,4 +54,7 @@ sealed class TransactionConfirmEvent {
     data class CustomizeTransaction(
         val signingPath: SigningPath?
     ) : TransactionConfirmEvent()
+    data class AutoSelectSigningPath(
+        val signingPath: SigningPath
+    ) : TransactionConfirmEvent()
 }

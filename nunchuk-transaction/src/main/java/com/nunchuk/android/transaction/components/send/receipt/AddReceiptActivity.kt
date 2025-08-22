@@ -20,10 +20,12 @@
 package com.nunchuk.android.transaction.components.send.receipt
 
 import android.content.Context
+import android.content.Intent
 import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -55,8 +57,11 @@ import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.defaultRate
+import com.nunchuk.android.nav.args.AddReceiptArgs
+import com.nunchuk.android.nav.args.AddReceiptType
 import com.nunchuk.android.nav.args.FeeSettingArgs
 import com.nunchuk.android.nav.args.FeeSettingStartDestination
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
 import com.nunchuk.android.transaction.R
@@ -83,7 +88,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
     @Inject
     lateinit var sessionHolder: SessionHolder
 
-    private val args: AddReceiptArgs by lazy { AddReceiptArgs.deserializeFrom(intent) }
+    private val args: AddReceiptArgs by lazy { AddReceiptArgs.fromBundle(intent.extras!!) }
 
     private val viewModel: AddReceiptViewModel by viewModels()
     private val estimateFeeViewModel: EstimatedFeeViewModel by viewModels()
@@ -94,6 +99,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel.init(args)
+        transactionConfirmViewModel.init(args.walletId)
         observerSweepSatscard(sweepSatscardViewModel, nfcViewModel) { args.walletId }
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_SATSCARD_SWEEP_SLOT }) {
             sweepSatscardViewModel.init(
@@ -115,6 +121,8 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             var draftTx by remember { mutableStateOf<TaprootDraftTransaction?>(null) }
             var dummySigningPaths by remember { mutableStateOf(emptyList<Pair<SigningPath, Amount>>()) }
             var timelockCoin by remember { mutableStateOf<TimelockCoin?>(null) }
+            val state by viewModel.state.asFlow()
+                .collectAsStateWithLifecycle(AddReceiptState())
 
             LaunchedEffect(Unit) {
                 transactionConfirmViewModel.event.collect {
@@ -132,7 +140,11 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                     } else if (it is TransactionConfirmEvent.ChooseSigningPolicy) {
                         hideLoading()
                         dummySigningPaths = it.result
-                        navController.navigate(ReceiptNavigation.ChooseSigningPolicy)
+                        navController.navigate(ReceiptNavigation.ChooseSigningPolicy) {
+                            popUpTo(ReceiptNavigation.ChooseSigningPolicy) {
+                                inclusive = true
+                            }
+                        }
                     } else if (it is TransactionConfirmEvent.ShowTimeLockNotice) {
                         hideLoading()
                         timelockCoin = it.timeLockCoin
@@ -141,9 +153,33 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 }
             }
 
+            // miniscript signing policy check
+            if (args.type == AddReceiptType.SELECT_PATH) {
+                LaunchedEffect(state.wallet) {
+                    val wallet = state.wallet
+                    if (wallet.id.isNotEmpty()) {
+                        if (wallet.addressType.isTaproot() && !state.isValueKeySetDisable) {
+                            navController.navigate(ReceiptNavigation.ChooseSigningPath) {
+                                popUpTo(ReceiptNavigation.ChooseSigningPolicy) {
+                                    inclusive = true
+                                }
+                            }
+                        } else {
+                            transactionConfirmViewModel.checkMiniscriptSigningPolicyTransaction(args.txId.orEmpty())
+                        }
+                    }
+                }
+            }
+
+            val startDestination = when (args.type) {
+                AddReceiptType.BATCH -> ReceiptNavigation.Batch
+                AddReceiptType.ADD_RECEIPT -> ReceiptNavigation.Main
+                AddReceiptType.SELECT_PATH -> ReceiptNavigation.ChooseSigningPolicy
+            }
+
             NavHost(
                 navController = navController,
-                startDestination = if (args.isBatchTransaction) ReceiptNavigation.Batch else ReceiptNavigation.Main
+                startDestination = startDestination
             ) {
                 composable<ReceiptNavigation.Main> {
                     AndroidFragment(
@@ -167,8 +203,6 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                     )
                 }
                 composable<ReceiptNavigation.TaprootFeeSelection> {
-                    val state by viewModel.state.asFlow()
-                        .collectAsStateWithLifecycle(AddReceiptState())
                     val confirmTransactionUiState by transactionConfirmViewModel.uiState.collectAsStateWithLifecycle()
                     val tx = draftTx
                     LaunchedEffect(tx) {
@@ -195,25 +229,31 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                     }
                 }
                 composable<ReceiptNavigation.ChooseSigningPath> {
-                    val state by viewModel.state.asFlow()
-                        .collectAsStateWithLifecycle(AddReceiptState())
                     val scriptNode = state.scriptNode
                     if (scriptNode != null) {
                         ChooseSigningPathScreen(
                             state = state,
                             onContinue = { isKeyPathSelected ->
-                                if (isKeyPathSelected) {
-                                    transactionConfirmViewModel.draftMiniscriptTransaction()
+                                if (args.type == AddReceiptType.SELECT_PATH) {
+                                    if (isKeyPathSelected) {
+                                        signingPathSelected(null)
+                                    } else {
+                                        transactionConfirmViewModel.checkMiniscriptSigningPolicyTransaction(
+                                            args.txId.orEmpty()
+                                        )
+                                    }
                                 } else {
-                                    transactionConfirmViewModel.checkMiniscriptSigningPolicy()
+                                    if (isKeyPathSelected) {
+                                        transactionConfirmViewModel.draftMiniscriptTransaction()
+                                    } else {
+                                        transactionConfirmViewModel.checkMiniscriptSigningPolicy()
+                                    }
                                 }
                             },
                         )
                     }
                 }
                 composable<ReceiptNavigation.ChooseSigningPolicy> {
-                    val state by viewModel.state.asFlow()
-                        .collectAsStateWithLifecycle(AddReceiptState())
                     val scriptNode = state.scriptNode
                     if (scriptNode != null) {
                         SelectScriptPathPolicyScreen(
@@ -221,9 +261,13 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                             signers = state.signers,
                             signingPaths = dummySigningPaths,
                             onContinue = { signingPath ->
-                                transactionConfirmViewModel.draftMiniscriptTransaction(
-                                    signingPath = signingPath
-                                )
+                                if (args.type == AddReceiptType.SELECT_PATH) {
+                                    signingPathSelected(signingPath)
+                                } else {
+                                    transactionConfirmViewModel.draftMiniscriptTransaction(
+                                        signingPath = signingPath
+                                    )
+                                }
                             }
                         )
                     }
@@ -256,11 +300,20 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
         flowObserver(transactionConfirmViewModel.event, collector = ::handleCreateTransactionEvent)
     }
 
+    private fun signingPathSelected(signingPath: SigningPath?) {
+        setResult(RESULT_OK, Intent().apply {
+            putExtra(
+                GlobalResultKey.SIGNING_PATH,
+                signingPath
+            )
+        })
+        finish()
+    }
 
     private fun handleEstimateFeeEvent(event: EstimatedFeeEvent) {
         val state = viewModel.getAddReceiptState()
         if (event is EstimatedFeeEvent.GetFeeRateSuccess) {
-            if (args.isBatchTransaction) {
+            if (args.type == AddReceiptType.BATCH) {
                 handleCreateTransaction(
                     txReceipts = batchTransactionViewModel.getTxReceiptList(),
                     subtractFeeFromAmount = batchTransactionViewModel.getSubtractFeeFromAmount(),
@@ -345,6 +398,8 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 openEstimatedFeeScreen(signingPath = event.signingPath)
             }
 
+            is TransactionConfirmEvent.AutoSelectSigningPath -> signingPathSelected(event.signingPath)
+
             else -> {}
         }
     }
@@ -352,7 +407,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
     fun openEstimatedFeeScreen(
         signingPath: SigningPath? = null
     ) {
-        if (args.isBatchTransaction) {
+        if (args.type == AddReceiptType.BATCH) {
             navigator.openEstimatedFeeScreen(
                 activityContext = this,
                 walletId = args.walletId,
@@ -435,6 +490,25 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
 
     companion object {
 
+        fun selectMiniscriptSigningPath(
+            activityContext: Context,
+            launcher: ActivityResultLauncher<Intent>,
+            walletId: String,
+            txId: String?,
+        ) {
+            launcher.launch(
+                Intent(activityContext, AddReceiptActivity::class.java).apply {
+                    putExtras(
+                        AddReceiptArgs(
+                            walletId = walletId,
+                            type = AddReceiptType.SELECT_PATH,
+                            txId = txId
+                        ).buildBundle()
+                    )
+                }
+            )
+        }
+
         fun start(
             activityContext: Context,
             walletId: String,
@@ -447,25 +521,26 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             sweepType: SweepType = SweepType.NONE,
             inputs: List<UnspentOutput> = emptyList(),
             claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
-            isBatchTransaction: Boolean,
+            receiptType: AddReceiptType = AddReceiptType.ADD_RECEIPT,
         ) {
-            activityContext.startActivity(
-                AddReceiptArgs(
-                    walletId = walletId,
-                    outputAmount = outputAmount,
-                    availableAmount = availableAmount,
-                    subtractFeeFromAmount = subtractFeeFromAmount,
-                    slots = slots,
-                    address = address,
-                    privateNote = privateNote,
-                    sweepType = sweepType,
-                    inputs = inputs,
-                    claimInheritanceTxParam = claimInheritanceTxParam,
-                    isBatchTransaction = isBatchTransaction
-                ).buildIntent(activityContext)
-            )
+            val intent = Intent(activityContext, AddReceiptActivity::class.java).apply {
+                putExtras(
+                    AddReceiptArgs(
+                        walletId = walletId,
+                        outputAmount = outputAmount,
+                        availableAmount = availableAmount,
+                        subtractFeeFromAmount = subtractFeeFromAmount,
+                        slots = slots,
+                        address = address,
+                        privateNote = privateNote,
+                        sweepType = sweepType,
+                        inputs = inputs,
+                        claimInheritanceTxParam = claimInheritanceTxParam,
+                        type = receiptType
+                    ).buildBundle()
+                )
+            }
+            activityContext.startActivity(intent)
         }
-
     }
-
 }

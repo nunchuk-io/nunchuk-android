@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.transaction.components.send.receipt
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -36,6 +35,7 @@ import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.MAX_NOTE_LENGTH
 import com.nunchuk.android.core.wallet.WalletBottomSheetResult
 import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
+import com.nunchuk.android.nav.args.AddReceiptArgs
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmViewModel
 import com.nunchuk.android.transaction.components.send.fee.EstimatedFeeViewModel
@@ -63,7 +63,7 @@ class AddReceiptFragment : BaseFragment<ActivityTransactionAddReceiptBinding>() 
     @Inject
     lateinit var sessionHolder: SessionHolder
 
-    private val args: AddReceiptArgs by lazy { AddReceiptArgs.deserializeFrom(Intent().putExtras(requireArguments())) }
+    private val args: AddReceiptArgs by lazy { AddReceiptArgs.fromBundle(requireArguments()) }
 
     private val viewModel: AddReceiptViewModel by activityViewModels()
     private val estimateFeeViewModel: EstimatedFeeViewModel by activityViewModels()

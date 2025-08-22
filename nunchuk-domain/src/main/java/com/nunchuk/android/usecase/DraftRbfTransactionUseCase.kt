@@ -21,9 +21,11 @@ package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import kotlinx.coroutines.CoroutineDispatcher
+import timber.log.Timber
 import javax.inject.Inject
 
 class DraftRbfTransactionUseCase @Inject constructor(
@@ -32,6 +34,7 @@ class DraftRbfTransactionUseCase @Inject constructor(
     private val validateTransactionNotConfirmedUseCase: ValidateTransactionNotConfirmedUseCase,
 ) : UseCase<DraftRbfTransactionUseCase.Params, Transaction>(ioDispatcher) {
     override suspend fun execute(parameters: Params): Transaction {
+        Timber.d("CongHai parameters: $parameters")
         if (parameters.isValidateTransactionNotConfirmed) {
             // Validate that the transaction being replaced is not already confirmed
             validateTransactionNotConfirmedUseCase(
@@ -44,7 +47,9 @@ class DraftRbfTransactionUseCase @Inject constructor(
         return nativeSdk.draftRbfTransaction(
             walletId = parameters.walletId,
             feeRate = parameters.feeRate,
-            replaceTxId = parameters.replaceTxId
+            replaceTxId = parameters.replaceTxId,
+            useScriptPath = parameters.useScriptPath,
+            signingPath = parameters.signingPath
         )
     }
 
@@ -52,6 +57,8 @@ class DraftRbfTransactionUseCase @Inject constructor(
         val walletId: String,
         val feeRate: Amount,
         val replaceTxId: String,
-        val isValidateTransactionNotConfirmed: Boolean = true,
+        val isValidateTransactionNotConfirmed: Boolean = false,
+        val useScriptPath: Boolean = false,
+        val signingPath: SigningPath? = null,
     )
 } 

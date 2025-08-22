@@ -27,6 +27,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.nfc.RbfType
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.databinding.ActivityReplaceByFeeBinding
@@ -54,8 +55,24 @@ class ReplaceFeeActivity : BaseActivity<ActivityReplaceByFeeBinding>() {
     }
 
     companion object {
-        fun start(launcher: ActivityResultLauncher<Intent>, context: Context, walletId: String, transaction: Transaction, type: RbfType) {
-            launcher.launch(ReplaceFeeArgs(walletId, transaction, type).buildIntent(context))
+        fun start(
+            launcher: ActivityResultLauncher<Intent>,
+            context: Context,
+            walletId: String,
+            transaction: Transaction,
+            type: RbfType,
+            signingPath: SigningPath? = null,
+            isUseScriptPath: Boolean = false
+        ) {
+            launcher.launch(
+                ReplaceFeeArgs(
+                    walletId = walletId,
+                    transaction = transaction,
+                    rbfType = type,
+                    signingPath = signingPath,
+                    isUseSciptPath = isUseScriptPath,
+                ).buildIntent(context)
+            )
         }
     }
 }

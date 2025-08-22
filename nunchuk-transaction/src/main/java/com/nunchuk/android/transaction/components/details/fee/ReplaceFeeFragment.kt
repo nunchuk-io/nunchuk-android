@@ -96,15 +96,13 @@ class ReplaceFeeFragment : Fragment() {
                     viewModel = viewModel,
                     onContinueClick = { newFeeRate ->
                         viewModel.draftTransaction(
-                            oldTx = args.transaction,
-                            walletId = args.walletId,
+                            args = args,
                             newFee = newFeeRate
                         )
                     },
                     onFeeChange = { newFeeRate ->
                         viewModel.onFeeChange(
-                            oldTx = args.transaction,
-                            walletId = args.walletId,
+                            args = args,
                             newFee = newFeeRate
                         )
                     }
@@ -124,7 +122,7 @@ class ReplaceFeeFragment : Fragment() {
                     findNavController().navigate(
                         ReplaceFeeFragmentDirections.actionReplaceFeeFragmentToConfirmReplaceTransactionFragment(
                             it.newFee,
-                            antiFeeSniping = viewModel.state.value.antiFeeSniping
+                            antiFeeSniping = viewModel.state.value.antiFeeSniping,
                         )
                     )
                 }

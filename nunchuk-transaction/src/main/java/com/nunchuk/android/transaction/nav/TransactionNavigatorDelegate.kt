@@ -36,6 +36,7 @@ import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.TransactionNavigator
+import com.nunchuk.android.nav.args.AddReceiptType
 import com.nunchuk.android.transaction.components.address.SavedAddressActivity
 import com.nunchuk.android.transaction.components.details.TransactionDetailsArgs
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeActivity
@@ -105,7 +106,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         sweepType: SweepType,
         inputs: List<UnspentOutput>,
         claimInheritanceTxParam: ClaimInheritanceTxParam?,
-        isBatchTransaction: Boolean,
+        type: AddReceiptType,
     ) {
         AddReceiptActivity.start(
             activityContext = activityContext,
@@ -119,7 +120,7 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             sweepType = sweepType,
             claimInheritanceTxParam = claimInheritanceTxParam,
             inputs = inputs,
-            isBatchTransaction = isBatchTransaction
+            receiptType = type
         )
     }
 
@@ -294,8 +295,18 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         walletId: String,
         transaction: Transaction,
         type: RbfType,
+        signingPath: SigningPath?,
+        isUseScriptPath: Boolean,
     ) {
-        ReplaceFeeActivity.start(launcher, context, walletId, transaction, type)
+        ReplaceFeeActivity.start(
+            launcher = launcher,
+            context = context,
+            walletId = walletId,
+            transaction = transaction,
+            type = type,
+            signingPath = signingPath,
+            isUseScriptPath = isUseScriptPath
+        )
     }
 
     override fun openBatchTransactionScreen(
@@ -325,6 +336,20 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
             activity = activityContext,
             address = address,
             flow = flow
+        )
+    }
+
+    override fun selectMiniscriptSigningPath(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity,
+        walletId: String,
+        txId: String?
+    ) {
+        AddReceiptActivity.selectMiniscriptSigningPath(
+            activityContext = activityContext,
+            launcher = launcher,
+            walletId = walletId,
+            txId = txId
         )
     }
 }

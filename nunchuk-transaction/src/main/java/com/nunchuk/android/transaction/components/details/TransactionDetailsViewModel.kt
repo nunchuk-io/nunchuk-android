@@ -1203,6 +1203,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
         return _minscriptState.value.isTimelockedActive
     }
 
+    fun isMiniscriptWallet(): Boolean {
+        return _minscriptState.value.isMiniscriptWallet
+    }
+
     companion object {
         private const val INVALID_NUMBER_OF_SIGNED = -1
         private const val KEY_CURRENT_SIGNER = "current_signer"

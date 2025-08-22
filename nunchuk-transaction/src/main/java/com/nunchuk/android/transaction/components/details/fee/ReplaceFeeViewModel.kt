@@ -22,7 +22,6 @@ package com.nunchuk.android.transaction.components.details.fee
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.isValueKeySetDisable
-import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.transaction.components.send.confirmation.toManualFeeRate
 import com.nunchuk.android.usecase.DraftRbfTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
@@ -83,13 +82,17 @@ internal class ReplaceFeeViewModel @Inject constructor(
         }
     }
 
-    fun onFeeChange(oldTx: Transaction, walletId: String, newFee: Int) {
+    fun onFeeChange(args: ReplaceFeeArgs, newFee: Int) {
         viewModelScope.launch {
+            val oldTx = args.transaction
+            val walletId = args.walletId
             draftRbfTransactionUseCase(
                 DraftRbfTransactionUseCase.Params(
                     walletId = walletId,
                     feeRate = newFee.toManualFeeRate(),
-                    replaceTxId = oldTx.txId
+                    replaceTxId = oldTx.txId,
+                    useScriptPath = args.isUseSciptPath,
+                    signingPath = args.signingPath,
                 )
             ).onSuccess { transaction ->
                 _state.update {
@@ -104,8 +107,10 @@ internal class ReplaceFeeViewModel @Inject constructor(
         }
     }
 
-    fun draftTransaction(oldTx: Transaction, walletId: String, newFee: Int) {
+    fun draftTransaction(args: ReplaceFeeArgs, newFee: Int) {
         viewModelScope.launch {
+            val oldTx = args.transaction
+            val walletId = args.walletId
             _event.emit(ReplaceFeeEvent.Loading(true))
 
             draftRbfTransactionUseCase(
@@ -114,6 +119,8 @@ internal class ReplaceFeeViewModel @Inject constructor(
                     feeRate = newFee.toManualFeeRate(),
                     replaceTxId = oldTx.txId,
                     isValidateTransactionNotConfirmed = true,
+                    useScriptPath = args.isUseSciptPath,
+                    signingPath = args.signingPath,
                 )
             ).onSuccess { transaction ->
                 _event.emit(ReplaceFeeEvent.DraftTransactionSuccess(transaction, newFee))

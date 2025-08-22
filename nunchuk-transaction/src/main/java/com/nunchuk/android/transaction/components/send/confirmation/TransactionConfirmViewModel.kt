@@ -65,6 +65,7 @@ import com.nunchuk.android.usecase.coin.GetCoinsFromTxInputsUseCase
 import com.nunchuk.android.usecase.coin.IsMyCoinUseCase
 import com.nunchuk.android.usecase.membership.GetSavedAddressListLocalUseCase
 import com.nunchuk.android.usecase.room.transaction.InitRoomTransactionUseCase
+import com.nunchuk.android.usecase.transaction.GetTransaction2UseCase
 import com.nunchuk.android.usecase.transaction.SaveTaprootKeySetSelectionUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -100,6 +101,7 @@ class TransactionConfirmViewModel @Inject constructor(
     private val estimateFeeForSigningPathsUseCase: EstimateFeeForSigningPathsUseCase,
     private val getTimelockedCoinsUseCase: GetTimelockedCoinsUseCase,
     private val getCoinsFromTxInputsUseCase: GetCoinsFromTxInputsUseCase,
+    private val getTransaction2UseCase: GetTransaction2UseCase,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionConfirmUiState())
@@ -137,11 +139,11 @@ class TransactionConfirmViewModel @Inject constructor(
 
     fun init(
         walletId: String,
-        txReceipts: List<TxReceipt>,
-        subtractFeeFromAmount: Boolean,
-        privateNote: String,
-        manualFeeRate: Int,
-        slots: List<SatsCardSlot>,
+        txReceipts: List<TxReceipt> = emptyList(),
+        subtractFeeFromAmount: Boolean = false,
+        privateNote: String = "",
+        manualFeeRate: Int = -1,
+        slots: List<SatsCardSlot> = emptyList(),
         inputs: List<UnspentOutput> = emptyList(),
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
         antiFeeSniping: Boolean = false,
@@ -548,6 +550,42 @@ class TransactionConfirmViewModel @Inject constructor(
     fun checkMiniscriptSigningPaths() {
         viewModelScope.launch {
             _event.emit(TransactionConfirmEvent.ChooseSigningPathsSuccess)
+        }
+    }
+
+    fun checkMiniscriptSigningPolicyTransaction(txId: String) {
+        viewModelScope.launch {
+            getTransaction2UseCase(
+                GetTransaction2UseCase.Params(
+                    walletId = walletId,
+                    txId = txId
+                )
+            ).onSuccess { transaction ->
+                estimateFeeForSigningPathsUseCase(
+                    EstimateFeeForSigningPathsUseCase.Params(
+                        walletId = walletId,
+                        outputs = transaction.outputs.filterIndexed { index, _ -> index != transaction.changeIndex }
+                            .associate { it.first to it.second },
+                        subtractFeeFromAmount = transaction.subtractFeeFromAmount,
+                        feeRate = transaction.feeRate,
+                        inputs = transaction.inputs,
+                    )
+                ).onSuccess { result ->
+                    if (result.size > 1) {
+                        _event.emit(TransactionConfirmEvent.ChooseSigningPolicy(result))
+                    } else if (result.size == 1) {
+                        _event.emit(
+                            TransactionConfirmEvent.AutoSelectSigningPath(
+                                signingPath = result.first().first
+                            )
+                        )
+                    }
+                }.onFailure {
+                    _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
+                }
+            }.onFailure {
+                _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
+            }
         }
     }
 

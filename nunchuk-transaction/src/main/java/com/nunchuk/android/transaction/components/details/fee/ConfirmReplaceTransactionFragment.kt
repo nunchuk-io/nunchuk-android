@@ -42,7 +42,6 @@ import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.TxReceiptViewBinder
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmCoinList
 import com.nunchuk.android.transaction.databinding.FragmentTransactionConfirmBinding
-import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
@@ -72,9 +71,11 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
         registerEvents()
         if (args.address.isNullOrEmpty()) {
             viewModel.draftTransaction(
-                activityArgs.walletId,
-                activityArgs.transaction,
-                args.newFee,
+                walletId = activityArgs.walletId,
+                oldTx = activityArgs.transaction,
+                newFee = args.newFee,
+                signingPath = activityArgs.signingPath,
+                useSciptPath = activityArgs.isUseSciptPath
             )
         } else {
             viewModel.draftCancelTransaction(
@@ -101,7 +102,9 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
                 viewModel.replaceTransaction(
                     walletId = activityArgs.walletId,
                     txId = activityArgs.transaction.txId,
-                    newFee = args.newFee
+                    newFee = args.newFee,
+                    signingPath = activityArgs.signingPath,
+                    isUseScriptPath = activityArgs.isUseSciptPath,
                 )
             } else {
                 viewModel.createTransaction(

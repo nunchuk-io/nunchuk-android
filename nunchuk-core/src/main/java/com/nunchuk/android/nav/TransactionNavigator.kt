@@ -36,6 +36,7 @@ import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.nav.args.AddReceiptType
 
 interface TransactionNavigator {
 
@@ -72,7 +73,7 @@ interface TransactionNavigator {
         sweepType: SweepType = SweepType.NONE,
         inputs: List<UnspentOutput> = emptyList(),
         claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
-        isBatchTransaction: Boolean = false
+        type: AddReceiptType = AddReceiptType.ADD_RECEIPT
     )
 
     fun openEstimatedFeeScreen(
@@ -161,7 +162,9 @@ interface TransactionNavigator {
         context: Context,
         walletId: String,
         transaction: Transaction,
-        type: RbfType
+        type: RbfType,
+        signingPath: SigningPath? = null,
+        isUseScriptPath: Boolean = false
     )
 
     fun openBatchTransactionScreen(
@@ -176,5 +179,12 @@ interface TransactionNavigator {
         activityContext: Activity,
         @SavedAddressFlow.SavedAddressFlowInfo flow: Int = SavedAddressFlow.NONE,
         address: SavedAddress? = null,
+    )
+
+    fun selectMiniscriptSigningPath(
+        launcher: ActivityResultLauncher<Intent>,
+        activityContext: Activity,
+        walletId: String,
+        txId: String? = null
     )
 }

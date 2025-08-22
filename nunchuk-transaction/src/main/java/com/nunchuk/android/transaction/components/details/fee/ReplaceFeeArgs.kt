@@ -24,32 +24,41 @@ import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.nfc.RbfType
 import com.nunchuk.android.core.util.getStringValue
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.utils.parcelable
 
 data class ReplaceFeeArgs(
     val walletId: String,
     val transaction: Transaction,
-    val rbfType: RbfType
+    val rbfType: RbfType,
+    val isUseSciptPath: Boolean,
+    val signingPath: SigningPath?
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, ReplaceFeeActivity::class.java).apply {
         putExtra(EXTRA_WALLET_ID, walletId)
         putExtra(EXTRA_TRANSACTION, transaction)
         putExtra(EXTRA_TYPE, rbfType.value)
+        putExtra(EXTRA_SIGNING_PATH, signingPath)
+        putExtra(EXTRA_IS_USE_SCRIPT_PATH, isUseSciptPath)
     }
 
     companion object {
         const val EXTRA_WALLET_ID = "a"
         const val EXTRA_TRANSACTION = "b"
         private const val EXTRA_TYPE = "c"
+        private const val EXTRA_SIGNING_PATH = "d"
+        private const val EXTRA_IS_USE_SCRIPT_PATH = "e"
 
         fun deserializeFrom(intent: Intent): ReplaceFeeArgs {
             val extras = intent.extras
             return ReplaceFeeArgs(
                 walletId = extras.getStringValue(EXTRA_WALLET_ID),
                 transaction = extras?.parcelable(EXTRA_TRANSACTION)!!,
-                rbfType = RbfType.fromValue(extras.getInt(EXTRA_TYPE))
+                rbfType = RbfType.fromValue(extras.getInt(EXTRA_TYPE)),
+                signingPath = extras.parcelable(EXTRA_SIGNING_PATH),
+                isUseSciptPath = extras.getBoolean(EXTRA_IS_USE_SCRIPT_PATH, false)
             )
         }
     }
