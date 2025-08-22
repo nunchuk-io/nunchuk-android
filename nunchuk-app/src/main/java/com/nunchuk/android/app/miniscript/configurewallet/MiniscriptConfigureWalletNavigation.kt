@@ -228,7 +228,7 @@ fun MiniscriptConfigWalletScreen(
                 .navigationBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    title = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_configure_wallet),
+                    title = stringResource(id = R.string.nc_miniscript_configure_wallet),
                     textStyle = NunchukTheme.typography.titleLarge,
                     actions = {
                         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.textPrimary) {
@@ -258,7 +258,7 @@ fun MiniscriptConfigWalletScreen(
                         onClick = { onContinue() },
                         enabled = isContinueEnabled
                     ) {
-                        Text(text = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_continue))
+                        Text(text = stringResource(id = R.string.nc_miniscript_continue))
                     }
                 }
             },
@@ -375,18 +375,15 @@ fun MiniscriptConfigWalletScreen(
 
         if (showDuplicateSignerWarning && duplicateSignerData != null) {
             NcConfirmationVerticalDialog(
-                title = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_warning),
-                message = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_duplicate_signer_message),
+                title = stringResource(id = R.string.nc_miniscript_warning),
+                message = stringResource(id = R.string.nc_miniscript_duplicate_signer_message),
                 onPositiveClick = {
                     showDuplicateSignerWarning = false
                     val (signer, keyName) = duplicateSignerData!!
 
-                    // Check if this is a BIP32 update warning or a regular duplicate signer warning
                     if (isDuplicateBip32Update) {
-                        // For BIP32 path update duplicates, call the new function
                         onProceedWithDuplicateBip32Update()
                     } else {
-                        // For regular duplicate signer warnings, use the existing function
                         onProceedWithDuplicateSigner(signer, keyName)
                     }
 
@@ -401,8 +398,8 @@ fun MiniscriptConfigWalletScreen(
                     isDuplicateBip32Update = false
                     onClearEvent()
                 },
-                positiveButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_show_bip32_path),
-                negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_cancel)
+                positiveButtonText = stringResource(id = R.string.nc_miniscript_show_bip32_path),
+                negativeButtonText = stringResource(id = R.string.nc_miniscript_cancel)
             )
         }
 
@@ -482,7 +479,7 @@ private fun TaprootAddressContent(
                 start = 16.dp,
                 end = 16.dp
             ),
-            text = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_script_path),
+            text = stringResource(id = R.string.nc_miniscript_script_path),
             enabled = true
         )
     }

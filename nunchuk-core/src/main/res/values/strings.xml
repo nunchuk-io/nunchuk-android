@@ -941,7 +941,7 @@
     <string name="nc_miniscript_address_type_changed">Address type changed to Taproot</string>
     <string name="nc_miniscript_configure_wallet">Configure wallet</string>
     <string name="nc_miniscript_script_path">Script path</string>
-    <string name="nc_miniscript_duplicate_signer_message">This key is already used in this miniscript. Select a different BIP-32 path to derive a new child key, or add it in a separate miniscript instead.</string>
+    <string name="nc_miniscript_duplicate_signer_message">This key is already in use. If you still want to use it, select a different BIP32 path to derive a new child key.</string>
     <string name="nc_miniscript_show_bip32_path">Show BIP32 path</string>
     <string name="nc_miniscript_cancel">Cancel</string>
     <string name="nc_miniscript_bip32_path_updated">BIP32 path updated successfully</string>
@@ -959,7 +959,7 @@
     <string name="nc_miniscript_after">after</string>
     <string name="nc_miniscript_from_time_coins">from the time the coins</string>
     <string name="nc_miniscript_are_received">are received.</string>
-    <string name="nc_miniscript_reuse_keys">Reuse keys across multisig policies</string>
+    <string name="nc_miniscript_reuse_keys">Reuse keys across multisig policies (extra XPUBs might be required)</string>
     <string name="nc_miniscript_edit_timelock">Edit timelock</string>
     <string name="nc_timelock_timeline">Timelock timeline:</string>
     <string name="nc_miniscript_timelock_type">Timelock type</string>

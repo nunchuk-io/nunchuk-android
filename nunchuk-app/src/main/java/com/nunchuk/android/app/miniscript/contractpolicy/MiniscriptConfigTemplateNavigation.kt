@@ -407,6 +407,9 @@ fun MiniscriptConfigTemplateScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .padding(start = 2.dp)
+                        .clickable {
+                            reuseSigner.value = !reuseSigner.value
+                        }
                 ) {
                     CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
                         NcCheckBox(

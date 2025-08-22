@@ -372,23 +372,16 @@ fun FreeGroupWalletScreen(
                             showBip32Path = showBip32Path,
                             onChangeBip32Path = onChangeBip32Path,
                             onActionKey = { keyName, signer ->
-                                Timber.tag("miniscript-feature").d("TaprootAddressContent.onActionKey called: keyPath=$keyName, signer=${signer?.name}, showSignerBottomSheet=$showSignerBottomSheet")
-                                // Handle key actions for Miniscript
                                 onSetCurrentKey(keyName)
                                 if (signer != null) {
-                                    // If there's already a signer, show remove confirmation
                                     keyToRemove = keyName
                                     showRemoveConfirmation = true
-                                    Timber.tag("miniscript-feature").d("TaprootAddressContent: Setting showRemoveConfirmation=true for keyPath=$keyName")
                                 } else {
-                                    // If no signer, show add options
                                     onStartAddKeyForMiniscript(keyName)
                                     if (state.allSigners.isNotEmpty()) {
                                         showSignerBottomSheet = true
-                                        Timber.tag("miniscript-feature").d("TaprootAddressContent: Setting showSignerBottomSheet=true for keyPath=$keyName")
                                     } else {
                                         onAddNewKeyForMiniscript(state.supportedTypes)
-                                        Timber.tag("miniscript-feature").d("TaprootAddressContent: Calling onAddNewKeyForMiniscript for keyPath=$keyName")
                                     }
                                 }
                             }
@@ -422,10 +415,8 @@ fun FreeGroupWalletScreen(
                                     }
                                 },
                                 customActionButton = { key, signer ->
-                                    Timber.tag("miniscript-feature").d("CustomActionButton called: key=$key, signer=${signer?.name}, isVisible=${signer?.isVisible}")
                                     when {
                                         signer == null -> {
-                                            Timber.tag("miniscript-feature").d("Showing Add button")
                                             NcOutlineButton(
                                                 height = 36.dp,
                                                 onClick = { 
@@ -443,7 +434,6 @@ fun FreeGroupWalletScreen(
                                         }
                                         
                                         signer.isVisible -> {
-                                            Timber.tag("miniscript-feature").d("Showing Remove button")
                                             NcOutlineButton(
                                                 height = 36.dp,
                                                 onClick = { 
@@ -457,7 +447,7 @@ fun FreeGroupWalletScreen(
                                         }
                                         
                                         else -> {
-                                            Timber.tag("miniscript-feature").d("No button rendered - signer=${signer?.name}, isVisible=${signer?.isVisible}")
+
                                         }
                                     }
                                 }
