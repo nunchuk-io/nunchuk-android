@@ -20,9 +20,12 @@
 package com.nunchuk.android.model.transaction
 
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.type.MiniscriptTimelockBased
 
 data class ExtendedTransaction(
     val serverTransaction: ServerTransaction? = null,
     val transaction: Transaction,
     val hideFiatCurrency: Boolean = false,
+    val lockedTime: Long = 0L,
+    val lockedBase: MiniscriptTimelockBased = MiniscriptTimelockBased.NONE,
 )

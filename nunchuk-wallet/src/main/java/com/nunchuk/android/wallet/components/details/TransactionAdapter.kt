@@ -51,6 +51,8 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.transaction.ServerTransactionType
+import com.nunchuk.android.share.miniscript.currentBlock
+import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.weekDayYearFormat
@@ -105,6 +107,8 @@ internal class TransactionAdapter(
         }
 
         override fun bind(data: ExtendedTransaction) {
+            val isTimelockedActive = calculateIsTimelockedActive(data.lockedTime, data.lockedBase)
+            
             binding.amountUSD.isInvisible = data.hideFiatCurrency
             if (data.transaction.isReceive) {
                 binding.sendTo.text = context.getString(R.string.nc_transaction_receive_at)
@@ -146,7 +150,10 @@ internal class TransactionAdapter(
                         )
                 }
             }
-            binding.status.bindTransactionStatus(data.transaction)
+            binding.status.bindTransactionStatus(
+                transaction = data.transaction,
+                isTimelockedActive = isTimelockedActive
+            )
             binding.date.text = data.transaction.getFormatDate()
             binding.tvRbfTag.isVisible = data.transaction.replacedTxid.isNotEmpty()
 
@@ -192,6 +199,24 @@ internal class TransactionAdapter(
                 binding.status.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
             }
         }
+        
+        /**
+         * Calculates if a transaction is currently timelocked active
+         */
+        private fun calculateIsTimelockedActive(
+            lockedTime: Long,
+            lockedBase: MiniscriptTimelockBased
+        ): Boolean {
+            return lockedBase != MiniscriptTimelockBased.NONE && lockedTime > 0 && when (lockedBase) {
+                // compare with current time (seconds)
+                MiniscriptTimelockBased.TIME_LOCK -> System.currentTimeMillis() / 1000 < lockedTime
+                MiniscriptTimelockBased.HEIGHT_LOCK -> {
+                    val currentBlock = context.currentBlock
+                    currentBlock > 0 && currentBlock < lockedTime
+                }
+                else -> false
+            }
+        }
     }
 
     internal object TransactionDiffCallback : DiffUtil.ItemCallback<ExtendedTransaction>() {
@@ -200,7 +225,9 @@ internal class TransactionAdapter(
             item1.transaction.txId == item2.transaction.txId
 
         override fun areContentsTheSame(item1: ExtendedTransaction, item2: ExtendedTransaction) =
-            item1.transaction.status == item2.transaction.status
+            item1.transaction.status == item2.transaction.status &&
+            item1.lockedTime == item2.lockedTime &&
+            item1.lockedBase == item2.lockedBase
 
     }
 }

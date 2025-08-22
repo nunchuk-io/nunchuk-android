@@ -28,6 +28,7 @@ import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.isActiveWallet
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
+import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.utils.CrashlyticsReporter
 
 internal const val STARTING_PAGE = 1
@@ -37,6 +38,8 @@ class TransactionPagingSource(
     private val transactions: List<Transaction>,
     private val brief: AssistedWalletBrief?,
     private val serverTransactionCache: LruCache<String, ServerTransaction>,
+    private val lockedTimeTransactionCache: LruCache<String, Long>,
+    private val lockedBase: MiniscriptTimelockBased,
 ) : PagingSource<Int, ExtendedTransaction>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ExtendedTransaction> {
@@ -46,14 +49,23 @@ class TransactionPagingSource(
             val toIndex = (position * PAGE_SIZE).coerceAtMost(transactions.size)
             val subTransactions = transactions.subList(fromIndex, toIndex)
             val data = subTransactions.map { transaction ->
+                val lockedTime = lockedTimeTransactionCache.get(transaction.txId) ?: 0L
+                
                 if (brief?.isActiveWallet == true && transaction.status.canBroadCast()) {
                     return@map ExtendedTransaction(
                         transaction = transaction,
                         serverTransaction = serverTransactionCache[transaction.txId],
-                        hideFiatCurrency = brief.hideFiatCurrency
+                        hideFiatCurrency = brief.hideFiatCurrency,
+                        lockedTime = lockedTime,
+                        lockedBase = lockedBase
                     )
                 }
-                return@map ExtendedTransaction(transaction = transaction, hideFiatCurrency = brief?.hideFiatCurrency == true)
+                return@map ExtendedTransaction(
+                    transaction = transaction, 
+                    hideFiatCurrency = brief?.hideFiatCurrency == true,
+                    lockedTime = lockedTime,
+                    lockedBase = lockedBase
+                )
             }
             val hasNextPage = ((position * PAGE_SIZE) < transactions.size)
             LoadResult.Page(

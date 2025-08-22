@@ -107,7 +107,8 @@ fun ScriptNodeTree(
     val isSatisfiableNode = data.satisfiableMap[node.idString] != false
 
     val nodeModifier = when {
-        data.mode == ScriptMode.CONFIG || node.type == ScriptNodeType.AFTER.name || node.type == ScriptNodeType.OLDER.name -> Modifier
+        data.mode == ScriptMode.CONFIG -> Modifier
+        data.mode == ScriptMode.SIGN && (node.type == ScriptNodeType.AFTER.name || node.type == ScriptNodeType.OLDER.name) -> Modifier
         data.mode == ScriptMode.SIGN && isSatisfiableNode -> Modifier
         data.mode == ScriptMode.VIEW && isNormalNode -> Modifier
         else -> Modifier.alpha(0.4f)
@@ -399,22 +400,19 @@ internal fun CreateKeyItem(
                             customActionButton(key, signer)
                         }
                     } else {
-                        when {
-                            signer == null -> {
-                                NcOutlineButton(
-                                    height = 36.dp,
-                                    onClick = { onActionKey(key, null) },
-                                ) {
-                                    Text(stringResource(R.string.nc_add))
-                                }
+                        if (signer == null) {
+                            NcOutlineButton(
+                                height = 36.dp,
+                                onClick = { onActionKey(key, null) },
+                            ) {
+                                Text(stringResource(R.string.nc_add))
                             }
-                            signer != null -> {
-                                NcOutlineButton(
-                                    height = 36.dp,
-                                    onClick = { onActionKey(key, signer) },
-                                ) {
-                                    Text(stringResource(R.string.nc_remove))
-                                }
+                        } else {
+                            NcOutlineButton(
+                                height = 36.dp,
+                                onClick = { onActionKey(key, signer) },
+                            ) {
+                                Text(stringResource(R.string.nc_remove))
                             }
                         }
                     }
@@ -860,7 +858,9 @@ fun ThreshMultiItem(
                             tint = MaterialTheme.colorScheme.textSecondary
                         )
                         Text(
-                            text = if (node.type == ScriptNodeType.MULTI.name) stringResource(R.string.nc_transaction_enough_signers) else  stringResource(R.string.nc_transaction_enough_conditions),
+                            text = if (node.type == ScriptNodeType.MULTI.name) stringResource(R.string.nc_transaction_enough_signers) else stringResource(
+                                R.string.nc_transaction_enough_conditions
+                            ),
                             style = NunchukTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.textSecondary,
                             modifier = Modifier.padding(start = 4.dp),

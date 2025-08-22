@@ -58,9 +58,14 @@ fun TextView.setUnderline() {
     paintFlags = paintFlags or Paint.UNDERLINE_TEXT_FLAG
 }
 
-fun TextView.bindTransactionStatus(transaction: Transaction) {
+fun TextView.bindTransactionStatus(transaction: Transaction, isTimelockedActive: Boolean = false) {
     val status = transaction.status
     background = AppCompatResources.getDrawable(context, R.drawable.nc_rounded_tag_fill_background)
+    if (isTimelockedActive) {
+        text = context.getString(R.string.nc_timelocked)
+        backgroundTintList = ContextCompat.getColorStateList(context, R.color.nc_red_tint_color)
+        return
+    }
     when (status) {
         PENDING_SIGNATURES -> {
             text = context.getString(R.string.nc_transaction_pending_signatures)

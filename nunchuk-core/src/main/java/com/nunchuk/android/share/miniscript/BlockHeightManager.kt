@@ -25,6 +25,8 @@ import kotlin.time.Duration.Companion.minutes
 
 interface BlockHeightManager {
     val state: StateFlow<Int>
+    val currentBlock: Int
+        get() = state.value
 }
 
 @Singleton
@@ -68,6 +70,9 @@ internal object MegaNavigatorProvider {
         }
     }
 }
+
+val Context.currentBlock: Int
+    get() = MegaNavigatorProvider.get(this).currentBlock
 
 @Composable
 fun rememberBlockHeightManager(): BlockHeightManager {

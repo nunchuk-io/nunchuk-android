@@ -23,7 +23,6 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.FreeGroupMessage
 import com.nunchuk.android.model.HistoryPeriod
-import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.type.MiniscriptTimelockBased
@@ -42,7 +41,6 @@ sealed class WalletDetailsEvent {
 
 data class WalletDetailsState(
     val walletExtended: WalletExtended = WalletExtended(),
-    val transactions: List<Transaction> = emptyList(),
     val isLeaveRoom: Boolean = false,
     val isAssistedWallet: Boolean = false,
     val walletStatus: String? = null,

@@ -15,5 +15,9 @@ abstract class CacheComponent {
         @Provides
         @Singleton
         fun provideServerTransactionCache() = LruCache<String, ServerTransaction>(100)
+        
+        @Provides
+        @Singleton
+        fun provideTimelockTransactionCache() = LruCache<String, Long>(1000)
     }
 }

@@ -36,6 +36,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.getNearestTimeLock
+import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.readableMessage
@@ -44,7 +45,6 @@ import com.nunchuk.android.listener.GroupMessageListener
 import com.nunchuk.android.listener.GroupReplaceListener
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
-import com.nunchuk.android.model.BannerState
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.Result.Success
@@ -56,6 +56,7 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.type.ExportFormat
+import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
@@ -63,6 +64,7 @@ import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.GetGlobalGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.GetGroupWalletConfigUseCase
 import com.nunchuk.android.usecase.GetGroupWalletMessageUnreadCountUseCase
+import com.nunchuk.android.usecase.GetTimelockedUntilUseCase
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetWalletSecuritySettingUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -129,6 +131,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val getAllCoinUseCase: GetAllCoinUseCase,
     private val pushEventManager: PushEventManager,
     private val serverTransactionCache: LruCache<String, ServerTransaction>,
+    private val timelockTransactionCache: LruCache<String, Long>,
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val getGroupUseCase: GetGroupUseCase,
     private val hasSignerUseCase: HasSignerUseCase,
@@ -155,7 +158,11 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val updateWalletBannerStateUseCase: UpdateWalletBannerStateUseCase,
     private val getChainTipUseCase: GetChainTipUseCase,
     private val getSpendableNowAmountUseCase: GetSpendableNowAmountUseCase,
+    private val getTimelockedUntilUseCase: GetTimelockedUntilUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
+
+    // Shared locked base for all transactions in the wallet
+    private var lockedBase: MiniscriptTimelockBased = MiniscriptTimelockBased.NONE
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
@@ -514,7 +521,31 @@ internal class WalletDetailsViewModel @Inject constructor(
                             )
                         )
                     )
+                    updateLockedTimeCache()
                     onRetrievedTransactionHistory()
+                }
+        }
+    }
+
+    /**
+     * Updates the locked time cache for all transactions in the wallet
+     */
+    private suspend fun updateLockedTimeCache() {
+        val wallet = getWallet()
+        if (wallet.miniscript.isNotEmpty()) {
+            transactions.filter { tx -> !tx.status.hadBroadcast() && timelockTransactionCache[tx.txId] == null }
+                .forEach { transaction ->
+                    getTimelockedUntilUseCase(
+                        GetTimelockedUntilUseCase.Params(
+                            walletId = args.walletId,
+                            txId = transaction.txId
+                        )
+                    ).onSuccess { (lockedTime, lockedBaseType) ->
+                        timelockTransactionCache.put(transaction.txId, lockedTime)
+                        if (lockedBase == MiniscriptTimelockBased.NONE) {
+                            lockedBase = lockedBaseType
+                        }
+                    }
                 }
         }
     }
@@ -527,6 +558,8 @@ internal class WalletDetailsViewModel @Inject constructor(
                     transactions = transactions.toList(),
                     brief = assistedWalletManager.getBriefWallet(args.walletId),
                     serverTransactionCache = serverTransactionCache,
+                    lockedTimeTransactionCache = timelockTransactionCache,
+                    lockedBase = lockedBase,
                 )
             }).flow.flowOn(ioDispatcher)
 
@@ -730,57 +763,6 @@ internal class WalletDetailsViewModel @Inject constructor(
                 updateState {
                     copy(bannerState = null)
                 }
-            }
-        }
-    }
-
-    /**
-     * Get the current banner state for the wallet
-     */
-    fun getBannerState(): BannerState? = getState().bannerState
-
-    /**
-     * Set a banner state for the wallet (based on wallet conditions)
-     */
-    fun setBannerState() {
-        viewModelScope.launch {
-            addWalletBannerStateUseCase(args.walletId).onSuccess {
-                // Refresh the banner state from the data store after adding it
-                getWalletBannerState()
-            }.onFailure {
-                // Handle error if needed - could emit event
-            }
-        }
-    }
-
-    /**
-     * Update the banner state for the wallet
-     */
-    fun updateBannerState(newBannerState: BannerState) {
-        viewModelScope.launch {
-            updateWalletBannerStateUseCase(
-                UpdateWalletBannerStateUseCase.Param(args.walletId, newBannerState)
-            ).onSuccess {
-                updateState {
-                    copy(bannerState = newBannerState)
-                }
-            }.onFailure {
-                // Handle error if needed - could emit event
-            }
-        }
-    }
-
-    /**
-     * Remove the banner state for the wallet
-     */
-    fun removeBannerState() {
-        viewModelScope.launch {
-            removeWalletBannerStateUseCase(args.walletId).onSuccess {
-                updateState {
-                    copy(bannerState = null)
-                }
-            }.onFailure {
-                // Handle error if needed - could emit event
             }
         }
     }

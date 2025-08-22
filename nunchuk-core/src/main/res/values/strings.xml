@@ -1009,4 +1009,5 @@
     <string name="nc_occupied">Occupied</string>
     <string name="nc_key_with_index">Key %1$s</string>
     <string name="nc_sort_by_coin_age">Sort by coin age</string>
+    <string name="nc_timelocked">Timelocked</string>
 </resources>
