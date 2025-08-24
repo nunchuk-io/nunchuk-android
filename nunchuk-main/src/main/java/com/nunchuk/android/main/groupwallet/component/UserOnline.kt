@@ -49,7 +49,7 @@ fun UserOnline(numberOfOnlineUsers: Int) {
         Spacer(modifier = Modifier.weight(1.0f))
 
         Box {
-            repeat(numberOfOnlineUsers.coerceAtMost(2)) { index ->
+            repeat(numberOfOnlineUsers.coerceAtMost(3)) { index ->
                 NcCircleImage(
                     modifier = Modifier
                         .padding(start = (24 * index).dp)
@@ -65,7 +65,7 @@ fun UserOnline(numberOfOnlineUsers: Int) {
                     color = avatarColors[index % avatarColors.size]
                 )
             }
-            if (numberOfOnlineUsers > 2) {
+            if (numberOfOnlineUsers > 3) {
                 Box(
                     Modifier
                         .padding(start = 48.dp)

@@ -50,7 +50,7 @@ fun PolicyHeader(
 
         if (showUserAvatars) {
             Box {
-                repeat(numberOfOnlineUsers.coerceAtMost(2)) { index: Int ->
+                repeat(numberOfOnlineUsers.coerceAtMost(3)) { index: Int ->
                     NcCircleImage(
                         modifier = Modifier
                             .padding(start = (24 * index).dp)
@@ -66,7 +66,7 @@ fun PolicyHeader(
                         color = avatarColors[index % avatarColors.size]
                     )
                 }
-                if (numberOfOnlineUsers > 2) {
+                if (numberOfOnlineUsers > 3) {
                     Box(
                         Modifier
                             .padding(start = 48.dp)
