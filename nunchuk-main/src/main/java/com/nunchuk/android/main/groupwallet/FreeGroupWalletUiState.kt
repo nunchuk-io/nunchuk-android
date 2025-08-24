@@ -32,6 +32,7 @@ data class FreeGroupWalletUiState(
     val currentKeyToAssign: String = "",
     val event: FreeGroupWalletEvent? = null,
     val isTestNet: Boolean = false,
+    val pendingAddSignerState: PendingAddSignerState? = null,
 )
 
 sealed class FreeGroupWalletEvent {

@@ -76,7 +76,11 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
 
                     LaunchedEffect(state.requestCacheTapSignerXpubEvent) {
                         if (state.requestCacheTapSignerXpubEvent) {
-                            handleCacheXpub()
+                            if (state.pendingAddSignerState != null) {
+                                startNfcFlow(REQUEST_NFC_TOPUP_XPUBS)
+                            } else {
+                                handleCacheXpub()
+                            }
                             viewModel.resetRequestCacheTapSignerXpub()
                         }
                     }

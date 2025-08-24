@@ -620,13 +620,17 @@ fun FreeGroupWalletScreen(
         if (showSignerBottomSheet) {
             val isMiniscriptMode = state.currentKeyToAssign.isNotEmpty()
             val addedSigners = if (isMiniscriptMode) {
-                state.namedSigners.values.filterNotNull().map { it.fingerPrint }.toSet()
+                state.namedSigners.values.filterNotNull().map { it.fingerPrint to it.derivationPath }.toSet()
             } else {
                 state.signers.filterNotNull().map { it.fingerPrint }.toSet()
             }
             
             val allSigners = state.allSigners.filter {
-                !addedSigners.contains(it.fingerPrint)
+                if (isMiniscriptMode) {
+                    !addedSigners.contains(it.fingerPrint to it.derivationPath)
+                } else {
+                    !addedSigners.contains(it.fingerPrint)
+                }
             }
             
             if (allSigners.isNotEmpty()) {

@@ -750,7 +750,8 @@ class FreeGroupWalletViewModel @Inject constructor(
                     it.copy(
                         errorMessage = error.message.orUnknownError(),
                         isLoading = false,
-                        requestCacheTapSignerXpubEvent = false
+                        requestCacheTapSignerXpubEvent = false,
+                        pendingAddSignerState = null
                     )
                 }
                 pendingAddSignerState = null
@@ -824,15 +825,18 @@ class FreeGroupWalletViewModel @Inject constructor(
             return
         }
 
-        // Check if this signer fingerprint is already used in other keys
-        val isSignerAlreadyUsed = checkIfSignerAlreadyUsed(signer.fingerPrint, keyName, signer.isMasterSigner)
-        if (isSignerAlreadyUsed) {
-        _uiState.update {
-                it.copy(
-                    event = FreeGroupWalletEvent.ShowDuplicateSignerWarning(signer, keyName)
-                ) 
+        // For master signers, we don't need to check for existing keys since they can be used across multiple positions
+        if (!signer.isMasterSigner) {
+            // Check if this signer fingerprint is already used in other keys (only for single signers)
+            val isSignerAlreadyUsed = checkIfSignerAlreadyUsed(signer.fingerPrint, keyName, signer.isMasterSigner)
+            if (isSignerAlreadyUsed) {
+                _uiState.update {
+                    it.copy(
+                        event = FreeGroupWalletEvent.ShowDuplicateSignerWarning(signer, keyName)
+                    ) 
+                }
+                return
             }
-            return
         }
 
         proceedWithAddingSignerForKey(signer, keyName)
@@ -869,14 +873,14 @@ class FreeGroupWalletViewModel @Inject constructor(
                         }
                         
                         if (existingSignerInGroup != null) {
-                            // Check if this is key_x_y pattern with master signer
+                            // Signer already exists in group, just assign to key position
                             if (isKeyPatternXY(keyName) && singleSigner.toModel().isMasterSigner) {
                                 addMasterSignerToRelatedKeysInGroup(singleSigner.toModel(), keyName)
                             } else {
-                                addSignerToStateForKey(singleSigner.toModel(), keyName)
+                                assignExistingSignerToKeyPosition(singleSigner.toModel(), keyName)
                             }
                         } else {
-                            // Check if this is key_x_y pattern with master signer
+                            // Signer doesn't exist in group, need to add it
                             if (isKeyPatternXY(keyName) && singleSigner.toModel().isMasterSigner) {
                                 addMasterSignerToRelatedKeysInGroup(singleSigner.toModel(), keyName)
                             } else {
@@ -884,7 +888,8 @@ class FreeGroupWalletViewModel @Inject constructor(
                             }
                         }
                     } else {
-                        addSignerToStateForKey(singleSigner.toModel(), keyName)
+                        // For non-Miniscript wallets, always add signer to group
+                        addSignerToGroupWithKeyName(singleSigner, keyName)
                     }
                 }.onFailure { error ->
                     Timber.tag("miniscript-feature").e("proceedWithAddingSignerForKey: Failed to get unused signer: $error")
@@ -908,12 +913,15 @@ class FreeGroupWalletViewModel @Inject constructor(
                     }
                     
                     if (existingSignerInGroup != null) {
-                        addSignerToStateForKey(singleSigner.toModel(), keyName)
+                        // Signer already exists in group, just assign to key position
+                        assignExistingSignerToKeyPosition(singleSigner.toModel(), keyName)
                     } else {
+                        // Signer doesn't exist in group, need to add it
                         addSignerToGroupWithKeyName(singleSigner, keyName)
                     }
                 } else {
-                    addSignerToStateForKey(singleSigner.toModel(), keyName)
+                    // For non-Miniscript wallets, always add signer to group
+                    addSignerToGroupWithKeyName(singleSigner, keyName)
                 }
             }
         }
@@ -923,7 +931,7 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun checkIfSignerAlreadyUsed(fingerPrint: String, excludeKeyName: String, isMasterSigner: Boolean): Boolean {
         val currentSigners = _uiState.value.namedSigners
         
-        // For master signers with key pattern key_x_y, check if the fingerprint is used outside the related keys group
+//        // For master signers with key pattern key_x_y, check if the fingerprint is used outside the related keys group
         if (isMasterSigner && isKeyPatternXY(excludeKeyName)) {
             val prefix = getKeyPrefix(excludeKeyName)
             val relatedKeys = getAllKeysFromScriptNode(_uiState.value.scriptNode!!)
@@ -934,7 +942,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 val isOutsideRelatedKeys = !relatedKeys.contains(keyName) && signerModel?.fingerPrint == fingerPrint
                 isOutsideRelatedKeys
             }
-            
+
             return isUsedOutsideRelatedKeys
         }
         
@@ -973,26 +981,23 @@ class FreeGroupWalletViewModel @Inject constructor(
         }
         return keys
     }
-    
-    private fun addSignerToStateForKey(signerModel: SignerModel, keyName: String) {
+
+    private fun assignExistingSignerToKeyPosition(signerModel: SignerModel, keyName: String) {
         val currentSigners = _uiState.value.namedSigners.toMutableMap()
-        
+
         // Check if keyName matches the pattern key_x_y (e.g., key_0_0, key_0_1)
         if (isKeyPatternXY(keyName) && signerModel.isMasterSigner) {
-            // For key_x_y pattern with master signers, we need to handle it differently in group wallets
-            // This should be called from a separate method, not here
-            Timber.tag("miniscript-feature").w("addSignerToStateForKey: key_x_y pattern should use addMasterSignerToRelatedKeys method instead")
-            
+            // For key_x_y pattern with master signers, we should use addMasterSignerToRelatedKeysInGroup
+            Timber.tag("miniscript-feature").w("assignExistingSignerToKeyPosition: key_x_y pattern should use addMasterSignerToRelatedKeys method instead")
+
             // Fallback to simple assignment for now
-            val previousSigner = currentSigners[keyName]
             currentSigners[keyName] = signerModel
         } else {
             // Handle simple key names (A, B, C, D, E, etc.) or non-master signers
-            val previousSigner = currentSigners[keyName]
             currentSigners[keyName] = signerModel
         }
-        
-        _uiState.update { 
+
+        _uiState.update {
             it.copy(
                 namedSigners = currentSigners,
                 event = FreeGroupWalletEvent.SignerAdded(keyName, signerModel)
@@ -1002,7 +1007,6 @@ class FreeGroupWalletViewModel @Inject constructor(
     
     fun removeSignerForKey(keyName: String) {
         viewModelScope.launch {
-            // For Miniscript wallets, call removeSignerFromGroup with keyName
             if (isMiniscriptWallet()) {
                 // Check if this is key_x_y pattern with master signer
                 val currentSigners = _uiState.value.namedSigners
@@ -1014,9 +1018,6 @@ class FreeGroupWalletViewModel @Inject constructor(
                 } else {
                     removeSignerFromGroupWithKeyName(keyName)
                 }
-            } else {
-                // Legacy behavior for non-Miniscript wallets
-                removeSignerFromStateForKey(keyName)
             }
         }
     }
@@ -1037,48 +1038,6 @@ class FreeGroupWalletViewModel @Inject constructor(
             _uiState.update { it.copy(event = FreeGroupWalletEvent.Error(error.message.orUnknownError())) }
         }
         _uiState.update { it.copy(isLoading = false) }
-    }
-    
-    private fun removeSignerFromStateForKey(keyName: String) {
-        val currentSigners = _uiState.value.namedSigners.toMutableMap()
-
-        // Check if keyName matches the pattern key_x_y (e.g., key_0_0, key_0_1)
-        if (isKeyPatternXY(keyName)) {
-            // Extract the prefix (key_x)
-            val prefix = getKeyPrefix(keyName)
-
-            // Get the signer to remove
-            val signerToRemove = currentSigners[keyName]
-
-            // If it's a master signer, remove all related keys with the same master fingerprint
-            if (signerToRemove?.isMasterSigner == true) {
-                val masterFingerprintToRemove = signerToRemove.fingerPrint
-
-                // Find all keys in scriptNode that share the same prefix (key_x_*)
-                val relatedKeys = getAllKeysFromScriptNode(_uiState.value.scriptNode!!)
-                    .filter { it.startsWith("${prefix}_") }
-
-                // Remove signers for all related keys with the same master fingerprint
-                relatedKeys.forEach { key ->
-                    if (currentSigners[key]?.fingerPrint == masterFingerprintToRemove) {
-                        currentSigners[key] = null
-                    }
-                }
-            } else {
-                // For non-master signers, just remove the specific key
-                currentSigners[keyName] = null
-            }
-        } else {
-            // Handle simple key names (A, B, C, D, E, etc.)
-            currentSigners[keyName] = null
-        }
-
-        _uiState.update {
-            it.copy(
-                namedSigners = currentSigners,
-                event = FreeGroupWalletEvent.SignerRemoved(keyName)
-            )
-        }
     }
     
     fun markEventHandled() {
@@ -1112,56 +1071,78 @@ class FreeGroupWalletViewModel @Inject constructor(
             for (key in relatedKeys) {
                 if (shouldReturn) break
                 
-                try {
-                    val singleSigner = getSignerFromMasterSignerByIndexUseCase(
-                        GetSignerFromMasterSignerByIndexUseCase.Param(
-                            masterSignerId = signerModel.fingerPrint,
-                            index = currentIndex,
-                            walletType = WalletType.MULTI_SIG,
-                            addressType = _uiState.value.group?.addressType ?: AddressType.TAPROOT
-                        )
-                    ).getOrThrow()
-                    
-                    singleSigner?.let {
-                        // Add this signer to the group with the specific key name
-                        addSignerToGroupWithKeyName(it, key)
-                    } ?: run {
-                        Timber.tag("miniscript-feature").e("addMasterSignerToRelatedKeysInGroup: No signer found for key=$key at index=$currentIndex")
-                    }
-                } catch (error: Exception) {
-                    Timber.tag("miniscript-feature").e("addMasterSignerToRelatedKeysInGroup: Failed to get signer for key=$key at index=$currentIndex: $error")
-                    
-                    // Handle TapSigner caching case
-                    if (error is NCNativeException && error.message.contains("-1009")) {
-                        val isMultisig = isMultisigDerivationPath(signerModel.derivationPath)
-                        val newPath = getPath(currentIndex, _uiState.value.isTestNet, isMultisig)
+                // Find a non-conflicting signer index
+                var nonConflictingIndex = currentIndex
+                var signerFound = false
+                
+                while (!signerFound) {
+                    try {
+                        val singleSigner = getSignerFromMasterSignerByIndexUseCase(
+                            GetSignerFromMasterSignerByIndexUseCase.Param(
+                                masterSignerId = signerModel.fingerPrint,
+                                index = nonConflictingIndex,
+                                walletType = WalletType.MULTI_SIG,
+                                addressType = _uiState.value.group?.addressType ?: AddressType.TAPROOT
+                            )
+                        ).getOrThrow()
                         
-                        // Store the pending state for resuming after caching
-                        pendingAddSignerState = PendingAddSignerState(
-                            signerModel = signerModel,
-                            keyName = keyName,
-                            relatedKeys = relatedKeys,
-                            currentIndex = currentIndex,
-                            processedKeyIndex = relatedKeys.indexOf(key)
-                        )
-                        
-                        // Store the path for caching
-                        savedStateHandle[NEW_PATH] = newPath
-                        
-                        // Update UI state to request caching
-                        _uiState.update { 
-                            it.copy(
-                                requestCacheTapSignerXpubEvent = true,
-                                isLoading = false
-                            ) 
+                        singleSigner?.let { signer ->
+                            // Check if this signer conflicts with any existing keys in namedSigners
+                            val currentNamedSigners = _uiState.value.namedSigners
+                            val hasConflict = currentNamedSigners.any { (existingKeyName, existingSigner) ->
+                                existingSigner != null && 
+                                existingSigner.fingerPrint == signer.masterFingerprint && 
+                                existingSigner.derivationPath == signer.derivationPath
+                            }
+                            
+                            if (!hasConflict) {
+                                addSignerToGroupWithKeyName(signer, key)
+                                signerFound = true
+                            } else {
+                                nonConflictingIndex++
+                            }
+                        } ?: run {
+                            signerFound = true // Break the while loop to move to next key
+                        }
+                    } catch (error: Exception) {
+                        // Handle TapSigner caching case
+                        if (error is NCNativeException && error.message.contains("-1009")) {
+                            val isMultisig = isMultisigDerivationPath(signerModel.derivationPath)
+                            val newPath = getPath(nonConflictingIndex, _uiState.value.isTestNet, isMultisig)
+                            
+                            // Store the pending state for resuming after caching
+                            val pendingState = PendingAddSignerState(
+                                signerModel = signerModel,
+                                keyName = keyName,
+                                relatedKeys = relatedKeys,
+                                currentIndex = nonConflictingIndex,
+                                processedKeyIndex = relatedKeys.indexOf(key)
+                            )
+                            pendingAddSignerState = pendingState
+                            
+                            // Store the path for caching
+                            savedStateHandle[NEW_PATH] = newPath
+                            
+                            // Update UI state to request caching
+                            _uiState.update { 
+                                it.copy(
+                                    requestCacheTapSignerXpubEvent = true,
+                                    isLoading = false,
+                                    pendingAddSignerState = pendingState
+                                ) 
+                            }
+                            
+                            shouldReturn = true
+                            break
                         }
                         
-                        shouldReturn = true
-                        break
+                        // For other errors, try next index
+                        nonConflictingIndex++
                     }
                 }
                 
-                currentIndex++
+                // Update currentIndex for the next key to start from where we left off
+                currentIndex = nonConflictingIndex + 1
             }
         }.onFailure { error ->
             Timber.tag("miniscript-feature").e("addMasterSignerToRelatedKeysInGroup: Failed to get current index: $error")
@@ -1224,6 +1205,9 @@ class FreeGroupWalletViewModel @Inject constructor(
     private fun resumeAddSignerProcess() {
         val pendingState = pendingAddSignerState ?: return
         pendingAddSignerState = null
+
+        // Clear pending state from UI
+        _uiState.update { it.copy(pendingAddSignerState = null) }
 
         // Resume the process from where it left off
         viewModelScope.launch {
