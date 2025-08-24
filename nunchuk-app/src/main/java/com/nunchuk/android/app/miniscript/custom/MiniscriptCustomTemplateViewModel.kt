@@ -37,7 +37,7 @@ class MiniscriptCustomTemplateViewModel @Inject constructor(
             ).onSuccess { result ->
                 if (result.template.isEmpty()) {
                     _event.value = MiniscriptCustomTemplateEvent.Error("Format not supported")
-                } else if (addressType != AddressType.TAPROOT && result.isValidTapscript && result.isValidMiniscriptTemplate) {
+                } else if (addressType != AddressType.TAPROOT && result.isValidTapscript) {
                     _event.value = MiniscriptCustomTemplateEvent.ShowTaprootWarning(result.template)
                 } else {
                     _event.value = MiniscriptCustomTemplateEvent.Success(result.template)
