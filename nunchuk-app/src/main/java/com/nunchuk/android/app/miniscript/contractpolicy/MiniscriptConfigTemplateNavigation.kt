@@ -634,7 +634,7 @@ fun AbsoluteCard(
                 text = "$m-of-$n",
                 contentEnd = {
                     Text(
-                        text = "multisig.",
+                        text = if (n == 1 && m == 1) "singlesig." else "multisig.",
                         style = NunchukTheme.typography.body
                     )
                 },
@@ -659,7 +659,7 @@ fun AbsoluteCard(
                         TextChipLineContent(
                             contentBeginning = {
                                 Text(
-                                    text = "$m‑of‑$n multisig OR a ",
+                                    text = "${if (n == 1 && m == 1) "$m‑of‑$n singlesig" else "$m‑of‑$n multisig"} OR a ",
                                     style = NunchukTheme.typography.body
                                 )
                             },
@@ -667,7 +667,7 @@ fun AbsoluteCard(
                             text = "$newM-of-$newN",
                             contentEnd = {
                                 Text(
-                                    text = " multisig.",
+                                    text = if (newN == 1 && newM == 1) " singlesig." else " multisig.",
                                     style = NunchukTheme.typography.body
                                 )
                             },
@@ -682,7 +682,7 @@ fun AbsoluteCard(
                         TextChipLineContent(
                             contentBeginning = {
                                 Text(
-                                    text = "$m‑of‑$n multisig OR a $m of ",
+                                    text = "${if (n == 1 && m == 1) "$m‑of‑$n singlesig" else "$m‑of‑$n multisig"} OR a $m of ",
                                     style = NunchukTheme.typography.body
                                 )
                             },
@@ -690,7 +690,7 @@ fun AbsoluteCard(
                             text = "$newN",
                             contentEnd = {
                                 Text(
-                                    text = " multisig.",
+                                    text = if (newN == 1 && m == 1) " singlesig." else " multisig.",
                                     style = NunchukTheme.typography.body
                                 )
                             },
@@ -705,7 +705,7 @@ fun AbsoluteCard(
                         TextChipLineContent(
                             contentBeginning = {
                                 Text(
-                                    text = "$m‑of‑$n multisig OR a ",
+                                    text = "${if (n == 1 && m == 1) "$m‑of‑$n singlesig" else "$m‑of‑$n multisig"} OR a ",
                                     style = NunchukTheme.typography.body
                                 )
                             },
@@ -713,7 +713,7 @@ fun AbsoluteCard(
                             text = "$newM",
                             contentEnd = {
                                 Text(
-                                    text = " of-$n-multisig.",
+                                    text = if (newM == 1 && n == 1) " of-$n-singlesig." else " of-$n-multisig.",
                                     style = NunchukTheme.typography.body
                                 )
                             },
@@ -791,7 +791,7 @@ fun RelativeCard(
                 text = "$m-of-$n",
                 contentEnd = {
                     Text(
-                        text = " multisig.",
+                        text = if (n == 1 && m == 1) " singlesig." else " multisig.",
                         style = NunchukTheme.typography.body
                     )
                 },
@@ -811,7 +811,7 @@ fun RelativeCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                "either the same $m-of-$n multisig OR a ",
+                "either the same ${if (n == 1 && m == 1) "$m-of-$n singlesig" else "$m-of-$n multisig"} OR a ",
                 style = NunchukTheme.typography.body
             )
 
@@ -825,7 +825,7 @@ fun RelativeCard(
                             text = "$newM-of-$newN",
                             contentEnd = {
                                 Text(
-                                    text = " multisig.",
+                                    text = if (newN == 1 && newM == 1) " singlesig." else " multisig.",
                                     style = NunchukTheme.typography.body
                                 )
                             },
@@ -848,7 +848,7 @@ fun RelativeCard(
                             text = "$newN",
                             contentEnd = {
                                 Text(
-                                    text = " multisig.",
+                                    text = if (newN == 1 && m == 1) " singlesig." else " multisig.",
                                     style = NunchukTheme.typography.body
                                 )
                             },
@@ -865,7 +865,7 @@ fun RelativeCard(
                             text = "$newM",
                             contentEnd = {
                                 Text(
-                                    text = " of-$n-multisig.",
+                                    text = if (newM == 1 && n == 1) " of-$n-singlesig." else " of-$n-multisig.",
                                     style = NunchukTheme.typography.body
                                 )
                             },
