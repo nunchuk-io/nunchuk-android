@@ -36,8 +36,5 @@ data class FreeGroupWalletUiState(
 )
 
 sealed class FreeGroupWalletEvent {
-    data class Error(val message: String) : FreeGroupWalletEvent()
-    data class SignerAdded(val keyName: String, val signer: SignerModel) : FreeGroupWalletEvent()
-    data class SignerRemoved(val keyName: String) : FreeGroupWalletEvent()
     data class ShowDuplicateSignerWarning(val signer: SignerModel, val keyName: String) : FreeGroupWalletEvent()
 }

@@ -224,15 +224,6 @@ fun FreeGroupWalletScreen(
     // Handle events from ViewModel
     LaunchedEffect(state.event) {
         when (val event = state.event) {
-            is FreeGroupWalletEvent.Error -> {
-                onMarkEventHandled()
-            }
-            is FreeGroupWalletEvent.SignerAdded -> {
-                onMarkEventHandled()
-            }
-            is FreeGroupWalletEvent.SignerRemoved -> {
-                onMarkEventHandled()
-            }
             is FreeGroupWalletEvent.ShowDuplicateSignerWarning -> {
                 duplicateSignerData = event.signer to event.keyName
                 showDuplicateSignerWarning = true

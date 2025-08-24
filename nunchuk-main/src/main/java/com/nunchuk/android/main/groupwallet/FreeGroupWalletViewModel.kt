@@ -855,7 +855,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 val masterSigner = masterSigners.find { it.id == signer.fingerPrint }
                 if (masterSigner == null) {
                     Timber.tag("miniscript-feature").e("proceedWithAddingSignerForKey: Master signer not found with id=${signer.fingerPrint}")
-                    _uiState.update { it.copy(event = FreeGroupWalletEvent.Error("Master signer not found")) }
+                    _uiState.update { it.copy(errorMessage = "Master signer not found") }
                     return@launch
                 }
                 
@@ -893,7 +893,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                     }
                 }.onFailure { error ->
                     Timber.tag("miniscript-feature").e("proceedWithAddingSignerForKey: Failed to get unused signer: $error")
-                    _uiState.update { it.copy(event = FreeGroupWalletEvent.Error(error.message.orUnknownError())) }
+                    _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
                 }
             } else {
                 val singleSigner = singleSigners.find {
@@ -902,7 +902,7 @@ class FreeGroupWalletViewModel @Inject constructor(
                 }
                 if (singleSigner == null) {
                     Timber.tag("miniscript-feature").e("proceedWithAddingSignerForKey: Single signer not found with fingerPrint=${signer.fingerPrint}, derivationPath=${signer.derivationPath}")
-                    _uiState.update { it.copy(event = FreeGroupWalletEvent.Error("Single signer not found")) }
+                    _uiState.update { it.copy(errorMessage = "Single signer not found") }
                     return@launch
                 }
                 
@@ -999,8 +999,7 @@ class FreeGroupWalletViewModel @Inject constructor(
 
         _uiState.update {
             it.copy(
-                namedSigners = currentSigners,
-                event = FreeGroupWalletEvent.SignerAdded(keyName, signerModel)
+                namedSigners = currentSigners
             )
         }
     }
@@ -1032,10 +1031,9 @@ class FreeGroupWalletViewModel @Inject constructor(
             )
         ).onSuccess {
             updateGroupSandbox(it)
-            _uiState.update { state -> state.copy(event = FreeGroupWalletEvent.SignerRemoved(keyName)) }
         }.onFailure { error ->
             Timber.e("Failed to remove signer from group $error")
-            _uiState.update { it.copy(event = FreeGroupWalletEvent.Error(error.message.orUnknownError())) }
+            _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
         }
         _uiState.update { it.copy(isLoading = false) }
     }
@@ -1146,7 +1144,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             }
         }.onFailure { error ->
             Timber.tag("miniscript-feature").e("addMasterSignerToRelatedKeysInGroup: Failed to get current index: $error")
-            _uiState.update { it.copy(event = FreeGroupWalletEvent.Error(error.message.orUnknownError())) }
+            _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
         }
     }
 
@@ -1176,8 +1174,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             updateGroupSandbox(groupSandbox)
             _uiState.update { state -> 
                 state.copy(
-                    isLoading = false,
-                    event = FreeGroupWalletEvent.SignerAdded(keyName, signer.toModel())
+                    isLoading = false
                 ) 
             }
         }.onFailure { error ->
@@ -1185,7 +1182,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             _uiState.update { 
                 it.copy(
                     isLoading = false,
-                    event = FreeGroupWalletEvent.Error(error.message.orUnknownError())
+                    errorMessage = error.message.orUnknownError()
                 ) 
             }
         }
