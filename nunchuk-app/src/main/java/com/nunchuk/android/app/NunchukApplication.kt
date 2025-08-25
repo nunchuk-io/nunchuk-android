@@ -25,6 +25,8 @@ import androidx.work.Configuration
 import com.nunchuk.android.BuildConfig
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.appearance.ThemeManager
+import com.nunchuk.android.core.domain.GetDisplayUnitSettingUseCase
+import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.manager.NcToastManager
@@ -33,10 +35,13 @@ import com.nunchuk.android.log.FileLogTree
 import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.usecase.darkmode.ConfigThemeUseCase
 import com.nunchuk.android.util.FileHelper
+import com.nunchuk.android.utils.onException
 import dagger.Lazy
 import dagger.hilt.android.HiltAndroidApp
 import io.branch.referral.Branch
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -75,6 +80,9 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
     @Inject
     lateinit var themeManager: ThemeManager // DO NOT REMOVE
 
+    @Inject
+    lateinit var getDisplayUnitSettingUseCase: GetDisplayUnitSettingUseCase
+
     override fun onCreate() {
         super.onCreate()
         if (BuildConfig.DEBUG) {
@@ -101,6 +109,7 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
         fileHelper.getOrCreateNunchukRootDir()
         registerActivityLifecycleCallbacks(ActivityManager)
         registerAppForegroundListener()
+        getDisplayUnitSetting()
         configThemeUseCase(Unit).launchIn(applicationScope)
     }
 
@@ -115,4 +124,13 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
         .setWorkerFactory(matrix.get().getWorkerFactory())
         .setExecutor(Executors.newCachedThreadPool())
         .build()
+
+    private fun getDisplayUnitSetting() {
+        applicationScope.launch {
+            getDisplayUnitSettingUseCase.execute()
+                .flowOn(IO)
+                .onException { }
+                .collect { CURRENT_DISPLAY_UNIT_TYPE = it.getCurrentDisplayUnitType() }
+        }
+    }
 }

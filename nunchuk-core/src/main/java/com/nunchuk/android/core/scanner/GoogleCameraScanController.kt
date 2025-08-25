@@ -29,6 +29,7 @@ class GoogleCameraScanController(
 ) : CameraScanController {
 
     private var camera: Camera? = null
+    private var cameraProvider: ProcessCameraProvider? = null
     private val cameraSelector = CameraSelector.Builder()
         .requireLensFacing(CameraSelector.LENS_FACING_BACK)
         .build()
@@ -66,37 +67,50 @@ class GoogleCameraScanController(
     private fun createCameraProvider() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
-            bindToLifecycleUseCaseGroup(cameraProviderFuture.get())
+            try {
+                val provider = cameraProviderFuture.get()
+                cameraProvider = provider
+                bindToLifecycleUseCaseGroup(provider)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to get camera provider")
+            }
         }, ContextCompat.getMainExecutor(context))
     }
 
     private fun bindToLifecycleUseCaseGroup(cameraProvider: ProcessCameraProvider) {
-        val previewUseCase = Preview.Builder()
-            .setTargetRotation(previewView.display.rotation)
-            .setTargetAspectRatio(cameraAspectRatio)
-            .build()
-            .also { it.surfaceProvider = previewView.surfaceProvider }
+        try {
+            // Unbind all use cases before binding new ones to prevent surface conflicts
+            cameraProvider.unbindAll()
+            
+            val previewUseCase = Preview.Builder()
+                .setTargetRotation(previewView.display.rotation)
+                .setTargetAspectRatio(cameraAspectRatio)
+                .build()
+                .also { it.surfaceProvider = previewView.surfaceProvider }
 
-        val analysisUseCase = ImageAnalysis.Builder()
-            .setTargetRotation(previewView.display.rotation)
-            .setTargetAspectRatio(cameraAspectRatio)
-            .build()
-            .also {
-                it.setAnalyzer(ContextCompat.getMainExecutor(context)) { imageProxy ->
-                    processImageProxy(barcodeScanner, imageProxy)
+            val analysisUseCase = ImageAnalysis.Builder()
+                .setTargetRotation(previewView.display.rotation)
+                .setTargetAspectRatio(cameraAspectRatio)
+                .build()
+                .also {
+                    it.setAnalyzer(ContextCompat.getMainExecutor(context)) { imageProxy ->
+                        processImageProxy(barcodeScanner, imageProxy)
+                    }
                 }
-            }
 
-        val useCaseGroup = UseCaseGroup.Builder()
-            .addUseCase(previewUseCase)
-            .addUseCase(analysisUseCase)
-            .build()
+            val useCaseGroup = UseCaseGroup.Builder()
+                .addUseCase(previewUseCase)
+                .addUseCase(analysisUseCase)
+                .build()
 
-        camera = cameraProvider.bindToLifecycle(
-            context as LifecycleOwner,
-            cameraSelector,
-            useCaseGroup
-        )
+            camera = cameraProvider.bindToLifecycle(
+                context as LifecycleOwner,
+                cameraSelector,
+                useCaseGroup
+            )
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to bind camera use cases")
+        }
     }
 
     @androidx.annotation.OptIn(ExperimentalGetImage::class)
@@ -113,26 +127,38 @@ class GoogleCameraScanController(
         inputImage: InputImage
     ) = barcodeScanner.process(inputImage)
         .addOnSuccessListener { barcodes ->
-            Timber.tag("camera-scanner").d("barcodes: ${barcodes.size}")
+            Timber.d("barcodes: ${barcodes.size}")
             if (barcodes.isNotEmpty()) {
                 listener?.invoke(barcodes.first().rawValue ?: "")
             }
         }
         .addOnFailureListener {
-            Timber.tag("camera-scanner").e(it)
+            Timber.e(it)
         }
 
     override fun stopScanning() {
-//        camera?.close()
-        camera = null
+        try {
+            cameraProvider?.unbindAll()
+            camera = null
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to stop scanning")
+        }
     }
 
     override fun resumeScanning() {
-
+        cameraProvider?.let { provider ->
+            bindToLifecycleUseCaseGroup(provider)
+        }
     }
 
     override fun onDestroy() {
-        // Cleanup if needed
+        try {
+            cameraProvider?.unbindAll()
+            camera = null
+            cameraProvider = null
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to cleanup camera resources")
+        }
     }
 
     override fun torchState(isOn: Boolean) {

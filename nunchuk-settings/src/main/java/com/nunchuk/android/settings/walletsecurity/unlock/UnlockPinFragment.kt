@@ -1,7 +1,6 @@
 package com.nunchuk.android.settings.walletsecurity.unlock
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
@@ -47,7 +46,6 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.core.biometric.BiometricPromptManager
-import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.model.setting.WalletSecuritySetting
 import com.nunchuk.android.nav.NunchukNavigator
@@ -189,7 +187,9 @@ fun UnlockPinContent(
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) {
         delay(1000L)
-        focusRequester.requestFocus()
+        runCatching {
+            focusRequester.requestFocus()
+        }
     }
     val isPinEnabled = state.walletSecuritySetting.protectWalletPin
     val desc = when {

@@ -137,6 +137,9 @@ abstract class BaseCameraActivity<Binding : ViewBinding> : BaseActivity<Binding>
             if (scanner != null && scanner is GoogleCameraScanController) {
                 return@setOnClickListener
             }
+            // Clean up the previous scanner before creating a new one
+            scanner?.stopScanning()
+            scanner?.onDestroy()
             scanner = getCameraScanController(true)
             scannerViewComposer?.barcodeView?.isVisible = false
             scannerViewComposer?.previewView?.isVisible = true
@@ -177,6 +180,12 @@ abstract class BaseCameraActivity<Binding : ViewBinding> : BaseActivity<Binding>
             scannerViewComposer?.btnTurnFlash?.setImageResource(R.drawable.nc_ic_flash_on)
         }
         scanner?.torchState(isFlashOn)
+    }
+
+    override fun onDestroy() {
+        scanner?.stopScanning()
+        scanner?.onDestroy()
+        super.onDestroy()
     }
 }
 

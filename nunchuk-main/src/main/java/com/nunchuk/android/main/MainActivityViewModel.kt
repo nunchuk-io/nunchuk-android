@@ -106,7 +106,6 @@ internal class MainActivityViewModel @Inject constructor(
     private val consumerSyncEventUseCase: ConsumerSyncEventUseCase,
     private val getRemotePriceConvertBTCUseCase: GetRemotePriceConvertBTCUseCase,
     private val scheduleGetPriceConvertBTCUseCase: ScheduleGetPriceConvertBTCUseCase,
-    private val getDisplayUnitSettingUseCase: GetDisplayUnitSettingUseCase,
     private val notificationManager: PushNotificationManager,
     private val checkUpdateRecommendUseCase: CheckUpdateRecommendUseCase,
     private val getSyncFileUseCase: GetSyncFileUseCase,
@@ -155,7 +154,6 @@ internal class MainActivityViewModel @Inject constructor(
     init {
         initSyncEventExecutor()
         registerDownloadFileBackupEvent()
-        getDisplayUnitSetting()
         checkMissingSyncFile()
         observeInitialSync()
         listenBtcPrice()
@@ -546,15 +544,6 @@ internal class MainActivityViewModel @Inject constructor(
                 .onException { }
                 .flowOn(Main)
                 .collect { retrieveTimelineEvents(it) }
-        }
-    }
-
-    private fun getDisplayUnitSetting() {
-        viewModelScope.launch {
-            getDisplayUnitSettingUseCase.execute()
-                .flowOn(IO)
-                .onException { }
-                .collect { CURRENT_DISPLAY_UNIT_TYPE = it.getCurrentDisplayUnitType() }
         }
     }
 

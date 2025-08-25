@@ -358,18 +358,20 @@ class WalletIntermediaryFragment : BaseCameraFragment<ViewBinding>(),
     }
 
     private fun showInputGroupWalletLinkDialog() {
-        val dialog = CommonInputBottomSheet.show(
-            CommonInputBottomSheet.Args(
-                title = getString(R.string.nc_enter_wallet_link),
-                desc = "",
-                action = getString(R.string.nc_text_continue),
-                defaultValue = ""
-            ),
-            childFragmentManager
-        )
-        dialog.listener = {
-            if (it.isNotEmpty()) {
-                viewModel.handleInputWalletLink(it)
+        if (isResumed) {
+            val dialog = CommonInputBottomSheet.show(
+                CommonInputBottomSheet.Args(
+                    title = getString(R.string.nc_enter_wallet_link),
+                    desc = "",
+                    action = getString(R.string.nc_text_continue),
+                    defaultValue = ""
+                ),
+                childFragmentManager
+            )
+            dialog.listener = {
+                if (it.isNotEmpty()) {
+                    viewModel.handleInputWalletLink(it)
+                }
             }
         }
     }
