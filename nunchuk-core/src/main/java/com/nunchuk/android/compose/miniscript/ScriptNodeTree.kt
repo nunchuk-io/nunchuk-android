@@ -117,69 +117,80 @@ fun ScriptNodeTree(
     when (node.type) {
         ScriptNodeType.ANDOR.name, ScriptNodeType.AND.name, ScriptNodeType.OR.name, ScriptNodeType.OR_TAPROOT.name -> {
             TreeBranchContainer(
+                node = node,
+                data = data,
                 modifier = nodeModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
-            ) { modifier, showThreadCurve ->
+            ) { modifier, showThreadCurve, showDetail ->
                 AndOrView(
+                    modifier = modifier,
                     isShowCurve = showThreadCurve,
                     isShowTapscriptBadge = ScriptNodeType.OR_TAPROOT.name == node.type,
                     padStart = 0,
                     node = node
                 ) {
-                    ActivePolicyAfterView(
-                        isSatisfiableNode = isSatisfiableNode,
-                        id = node.idString,
-                        coinsGroup = data.coinGroups,
-                        lockBased = data.lockBased,
-                        numberOfInputCoin = data.inputCoins.size
-                    )
-                    NodeContent(
-                        node = node,
-                        onChangeBip32Path = onChangeBip32Path,
-                        onActionKey = onActionKey,
-                        data = data,
-                        level = level,
-                        isInDisableBranch = isInDisableBranch,
-                        modifier = modifier,
-                        customActionButton = customActionButton
-                    )
+                    if (showDetail) {
+                        ActivePolicyAfterView(
+                            isSatisfiableNode = isSatisfiableNode,
+                            id = node.idString,
+                            coinsGroup = data.coinGroups,
+                            lockBased = data.lockBased,
+                            numberOfInputCoin = data.inputCoins.size
+                        )
+                        NodeContent(
+                            node = node,
+                            onChangeBip32Path = onChangeBip32Path,
+                            onActionKey = onActionKey,
+                            data = data,
+                            level = level,
+                            isInDisableBranch = isInDisableBranch,
+                            modifier = modifier,
+                            customActionButton = customActionButton
+                        )
+                    }
                 }
             }
         }
 
         ScriptNodeType.AFTER.name, ScriptNodeType.OLDER.name -> {
             TreeBranchContainer(
+                node = node,
+                data = data,
                 modifier = nodeModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level,
-            ) { modifier, showThreadCurve ->
+            ) { modifier, showThreadCurve, showDetail ->
                 TimelockItem(
                     modifier = modifier,
                     showThreadCurve = showThreadCurve,
                     data = data,
                     node = node
                 ) {
-                    NodeContent(
-                        node = node,
-                        onChangeBip32Path = onChangeBip32Path,
-                        onActionKey = onActionKey,
-                        data = data,
-                        level = level,
-                        isInDisableBranch = isInDisableBranch,
-                        modifier = modifier,
-                        customActionButton = customActionButton
-                    )
+                    if (showDetail) {
+                        NodeContent(
+                            node = node,
+                            onChangeBip32Path = onChangeBip32Path,
+                            onActionKey = onActionKey,
+                            data = data,
+                            level = level,
+                            isInDisableBranch = isInDisableBranch,
+                            modifier = modifier,
+                            customActionButton = customActionButton
+                        )
+                    }
                 }
             }
         }
 
         ScriptNodeType.PK.name -> {
             TreeBranchContainer(
+                node = node,
+                data = data,
                 modifier = nodeModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
-            ) { modifier, showThreadCurve ->
+            ) { modifier, showThreadCurve, showDetail ->
                 val signer = data.signers[node.keys.firstOrNull().orEmpty()]
                 val avatarColor = if (signer?.isVisible == false) {
                     val colorIndex = data.colorIndex % avatarColors.size
@@ -206,96 +217,108 @@ fun ScriptNodeTree(
 
         ScriptNodeType.MULTI.name, ScriptNodeType.THRESH.name -> {
             TreeBranchContainer(
-                modifier = Modifier,
+                node = node,
+                data = data,
+                modifier = nodeModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
-            ) { modifier, showThreadCurve ->
+            ) { modifier, showThreadCurve, showDetail ->
                 ThreshMultiItem(
                     topPadding = if (showThreadCurve) 10 else 0,
                     showThreadCurve = showThreadCurve,
-                    modifier = modifier.then(nodeModifier),
+                    modifier = modifier,
                     isSatisfiable = isSatisfiableNode && !isInDisableBranch,
                     data = data,
                     node = node
                 ) {
-                    ActivePolicyAfterView(
-                        lockBased = data.lockBased,
-                        id = node.idString,
-                        coinsGroup = data.coinGroups,
-                        isSatisfiableNode = isSatisfiableNode,
-                        numberOfInputCoin = data.inputCoins.size,
-                    )
-                    NodeContent(
-                        node = node,
-                        onChangeBip32Path = onChangeBip32Path,
-                        onActionKey = onActionKey,
-                        data = data,
-                        level = level,
-                        isInDisableBranch = isInDisableBranch,
-                        modifier = modifier.then(nodeModifier),
-                        customActionButton = customActionButton
-                    )
+                    if (showDetail) {
+                        ActivePolicyAfterView(
+                            lockBased = data.lockBased,
+                            id = node.idString,
+                            coinsGroup = data.coinGroups,
+                            isSatisfiableNode = isSatisfiableNode,
+                            numberOfInputCoin = data.inputCoins.size,
+                        )
+                        NodeContent(
+                            node = node,
+                            onChangeBip32Path = onChangeBip32Path,
+                            onActionKey = onActionKey,
+                            data = data,
+                            level = level,
+                            isInDisableBranch = isInDisableBranch,
+                            modifier = modifier,
+                            customActionButton = customActionButton
+                        )
+                    }
                 }
             }
         }
 
         ScriptNodeType.HASH160.name, ScriptNodeType.HASH256.name, ScriptNodeType.RIPEMD160.name, ScriptNodeType.SHA256.name -> {
             TreeBranchContainer(
+                node = node,
+                data = data,
                 modifier = nodeModifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
-            ) { modifier, showThreadCurve ->
+            ) { modifier, showThreadCurve, showDetail ->
                 HashlockItem(
                     data = data,
                     showThreadCurve = showThreadCurve,
                     node = node,
                     isSatisfiable = isSatisfiableNode && !isInDisableBranch,
                 ) {
-                    NodeContent(
-                        node = node,
-                        onChangeBip32Path = onChangeBip32Path,
-                        onActionKey = onActionKey,
-                        data = data,
-                        level = level,
-                        isInDisableBranch = isInDisableBranch,
-                        modifier = modifier,
-                        customActionButton = customActionButton
-                    )
+                    if (showDetail) {
+                        NodeContent(
+                            node = node,
+                            onChangeBip32Path = onChangeBip32Path,
+                            onActionKey = onActionKey,
+                            data = data,
+                            level = level,
+                            isInDisableBranch = isInDisableBranch,
+                            modifier = modifier,
+                            customActionButton = customActionButton
+                        )
+                    }
                 }
             }
         }
 
         ScriptNodeType.MUSIG.name -> {
             TreeBranchContainer(
+                node = node,
+                data = data,
                 modifier = Modifier,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
-            ) { modifier, showThreadCurve ->
+            ) { modifier, showThreadCurve, showDetail ->
                 MusigItem(
                     topPadding = if (showThreadCurve) 10 else 0,
                     showThreadCurve = showThreadCurve,
-                    modifier = modifier.then(nodeModifier),
+                    modifier = modifier,
                     isSatisfiable = isSatisfiableNode && !isInDisableBranch,
                     data = data,
                     node = node
                 ) {
-                    ActivePolicyAfterView(
-                        lockBased = data.lockBased,
-                        id = node.idString,
-                        coinsGroup = data.coinGroups,
-                        isSatisfiableNode = isSatisfiableNode,
-                        numberOfInputCoin = data.inputCoins.size
-                    )
-                    NodeContent(
-                        node = node,
-                        onChangeBip32Path = onChangeBip32Path,
-                        onActionKey = onActionKey,
-                        data = data,
-                        level = level,
-                        isInDisableBranch = isInDisableBranch,
-                        modifier = modifier.then(nodeModifier),
-                        customActionButton = customActionButton
-                    )
+                    if (showDetail) {
+                        ActivePolicyAfterView(
+                            lockBased = data.lockBased,
+                            id = node.idString,
+                            coinsGroup = data.coinGroups,
+                            isSatisfiableNode = isSatisfiableNode,
+                            numberOfInputCoin = data.inputCoins.size
+                        )
+                        NodeContent(
+                            node = node,
+                            onChangeBip32Path = onChangeBip32Path,
+                            onActionKey = onActionKey,
+                            data = data,
+                            level = level,
+                            isInDisableBranch = isInDisableBranch,
+                            modifier = modifier,
+                            customActionButton = customActionButton
+                        )
+                    }
                 }
             }
         }
@@ -463,7 +486,7 @@ private fun NodeKeys(
     var localColorIndex = data.colorIndex
     node.keys.forEachIndexed { i, key ->
         val keyPosition = "${node.idString}.${i + 1}"
-        TreeBranchContainer(
+        KeyContainer(
             modifier = modifier,
             drawLine = i != node.keys.size - 1 || node.subs.isNotEmpty(),
             indentationLevel = level + 1 // Keys are one level deeper than their parent node
@@ -639,10 +662,6 @@ fun MusigItem(
     data: ScriptNodeData = ScriptNodeData(),
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
-    var showDetail by remember(node.id) {
-        mutableStateOf(data.collapsedNode?.id != node.id)
-    }
-
     val keySet: KeySetStatus? = data.keySetStatues[node.idString]
     val requiredSignatures = node.keys.size
     val signedCountFromKeySet = keySet?.signerStatus?.count { it.value } ?: 0
@@ -725,35 +744,8 @@ fun MusigItem(
                     )
                 }
             }
-
-            if (data.collapsedNode?.id == node.id) {
-                Row(
-                    modifier = Modifier
-                        .padding(start = 8.dp)
-                        .padding(top = topPadding.dp)
-                        .clickable { showDetail = !showDetail },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = if (showDetail) stringResource(R.string.nc_collapse)
-                        else stringResource(R.string.nc_expand),
-                        style = NunchukTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.textPrimary
-                    )
-                    NcIcon(
-                        painter = painterResource(id = if (showDetail) R.drawable.ic_collapse else R.drawable.ic_expand),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(start = 4.dp)
-                            .size(16.dp),
-                        tint = MaterialTheme.colorScheme.textPrimary
-                    )
-                }
-            }
         }
-        if (showDetail) {
-            content()
-        }
+        content()
     }
 }
 
@@ -768,9 +760,6 @@ fun ThreshMultiItem(
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
     // Only calculate signed signatures when in SIGN mode
-    var showDetail by remember(node.id) {
-        mutableStateOf(data.collapsedNode?.id != node.id)
-    }
     val pendingSigners = if (data.mode == ScriptMode.SIGN && isSatisfiable) {
         val signedCount = when (node.type) {
             ScriptNodeType.THRESH.name -> {
@@ -869,34 +858,9 @@ fun ThreshMultiItem(
                         )
                     }
                 }
-            } else if (data.collapsedNode?.id == node.id) {
-                Row(
-                    modifier = Modifier
-                        .padding(start = 8.dp)
-                        .padding(top = topPadding.dp)
-                        .clickable { showDetail = !showDetail },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = if (showDetail) stringResource(R.string.nc_collapse)
-                        else stringResource(R.string.nc_expand),
-                        style = NunchukTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.textPrimary
-                    )
-                    NcIcon(
-                        painter = painterResource(id = if (showDetail) R.drawable.ic_collapse else R.drawable.ic_expand),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(start = 4.dp)
-                            .size(16.dp),
-                        tint = MaterialTheme.colorScheme.textPrimary
-                    )
-                }
             }
         }
-        if (showDetail) {
-            content()
-        }
+        content()
     }
 }
 
@@ -1167,6 +1131,69 @@ fun KeyItem(
 
 @Composable
 fun TreeBranchContainer(
+    node: ScriptNode,
+    data: ScriptNodeData,
+    modifier: Modifier = Modifier,
+    drawLine: Boolean = true,
+    itemHeight: Float = 0f,
+    indentationLevel: Int = 0,
+    content: @Composable (modifier: Modifier, showThreadCurve: Boolean, showDetail: Boolean) -> Unit
+) {
+    val indentationPadding = if (indentationLevel > 0) (indentationLevel * 10).dp else 0.dp
+    val shouldDrawLine = drawLine && indentationLevel > 0
+    val showThreadCurve = indentationLevel > 0
+    var showDetail by remember(node.id) {
+        mutableStateOf(data.collapsedNode?.id != node.id)
+    }
+
+    Box(
+        modifier = Modifier
+            .padding(start = indentationPadding)
+            .drawBehind {
+                val stroke = Stroke(width = 3.5f)
+                val lineX = 2.5f
+                val color = Color(0xFF757575)
+                if (shouldDrawLine) {
+                    drawLine(
+                        color = color,
+                        start = Offset(lineX, 0f),
+                        end = Offset(lineX, size.height + 40 - itemHeight),
+                        strokeWidth = stroke.width
+                    )
+                }
+            }
+    ) {
+        content(modifier, showThreadCurve, showDetail)
+        if (data.collapsedNode?.id == node.id) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = if (showThreadCurve) 10.dp else 0.dp)
+                    .clickable { showDetail = !showDetail },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = if (showDetail) stringResource(R.string.nc_collapse)
+                    else stringResource(R.string.nc_expand),
+                    style = NunchukTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.textPrimary
+                )
+                NcIcon(
+                    painter = painterResource(id = if (showDetail) R.drawable.ic_collapse else R.drawable.ic_expand),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(start = 4.dp)
+                        .size(16.dp),
+                    tint = MaterialTheme.colorScheme.textPrimary
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun KeyContainer(
     modifier: Modifier = Modifier,
     drawLine: Boolean = true,
     itemHeight: Float = 0f,
