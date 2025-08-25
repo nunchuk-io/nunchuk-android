@@ -1042,7 +1042,7 @@ class FreeGroupWalletViewModel @Inject constructor(
         _uiState.update { it.copy(event = null) }
     }
     
-    private fun isMiniscriptWallet(): Boolean {
+    fun isMiniscriptWallet(): Boolean {
         return _uiState.value.group?.walletType == WalletType.MINISCRIPT
     }
 
@@ -1170,6 +1170,10 @@ class FreeGroupWalletViewModel @Inject constructor(
             keyName = keyName
         )
         
+        addSignerToGroupWithRetry(params, maxRetries = 3)
+    }
+    
+    private suspend fun addSignerToGroupWithRetry(params: AddSignerToGroupUseCase.Params, maxRetries: Int, currentAttempt: Int = 1) {
         addSignerToGroupUseCase(params).onSuccess { groupSandbox ->
             updateGroupSandbox(groupSandbox)
             _uiState.update { state -> 
@@ -1178,12 +1182,23 @@ class FreeGroupWalletViewModel @Inject constructor(
                 ) 
             }
         }.onFailure { error ->
-            Timber.tag("miniscript-feature").e("addSignerToGroupWithKeyName: Failed to add signer to group: $error")
-            _uiState.update { 
-                it.copy(
-                    isLoading = false,
-                    errorMessage = error.message.orUnknownError()
-                ) 
+            val shouldRetry = error is NCNativeException && 
+                             error.message.contains("-7001") == true &&
+                             currentAttempt < maxRetries
+            
+            if (shouldRetry) {
+                delay(100)
+                addSignerToGroupWithRetry(params, maxRetries, currentAttempt + 1)
+            } else {
+                val shouldShowError = currentAttempt >= maxRetries ||
+                                    !(error is NCNativeException && error.message.contains("-7001") == true)
+                
+                _uiState.update { 
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = if (shouldShowError) error.message.orUnknownError() else ""
+                    ) 
+                }
             }
         }
     }

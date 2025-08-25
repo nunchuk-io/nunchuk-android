@@ -393,6 +393,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
 
     override fun onResume() {
         super.onResume()
+        if (viewModel.isMiniscriptWallet()) return
         viewModel.setSlotOccupied(false)
     }
 
