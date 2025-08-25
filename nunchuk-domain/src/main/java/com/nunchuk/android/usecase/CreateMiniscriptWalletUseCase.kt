@@ -23,16 +23,18 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.wallet.AddWalletBannerStateUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
 class CreateMiniscriptWalletUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
+    private val addWalletBannerStateUseCase: AddWalletBannerStateUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : UseCase<CreateMiniscriptWalletUseCase.Params, Wallet>(ioDispatcher) {
 
     override suspend fun execute(parameters: Params): Wallet {
-        return nunchukNativeSdk.createMiniscriptWallet(
+        val createdWallet = nunchukNativeSdk.createMiniscriptWallet(
             miniscriptTemplate = parameters.miniscriptTemplate,
             signerMap = parameters.signerMap,
             name = parameters.name,
@@ -41,6 +43,8 @@ class CreateMiniscriptWalletUseCase @Inject constructor(
             allowUsedSigner = parameters.allowUsedSigner,
             decoyPin = parameters.decoyPin
         )
+        addWalletBannerStateUseCase(createdWallet.id)
+        return createdWallet
     }
 
     data class Params(
