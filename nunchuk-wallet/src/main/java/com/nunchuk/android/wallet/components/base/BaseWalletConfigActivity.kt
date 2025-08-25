@@ -116,8 +116,7 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
                 addressType == AddressType.NATIVE_SEGWIT
 
         val options = mutableListOf<SheetOption>()
-        // QR > BC-UR2 (legacy) only for multisig and supported address types
-        if (isMultisig && isSupportedType) {
+        if (isMultisig && isSupportedType && !isMiniscriptWallet) {
             options.add(
                 SheetOption(
                     type = SheetOptionType.TYPE_QR_BC_UR2_LEGACY,
@@ -126,8 +125,7 @@ abstract class BaseWalletConfigActivity<Binding : ViewBinding> : BaseNfcActivity
                 )
             )
         }
-        // QR > BC-UR2 for both singlesig and multisig with supported address types, and not miniscript
-        if (!isMiniscriptWallet && isSupportedType) {
+        if (isSupportedType) {
             options.add(
                 SheetOption(
                     type = SheetOptionType.TYPE_QR_BC_UR2,

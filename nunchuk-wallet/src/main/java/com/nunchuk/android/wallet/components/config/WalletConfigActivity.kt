@@ -676,7 +676,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         val addressType = wallet.addressType
         val isSupportedType = addressType == AddressType.LEGACY ||
                 addressType == AddressType.NESTED_SEGWIT ||
-                addressType == AddressType.NATIVE_SEGWIT
+                addressType == AddressType.NATIVE_SEGWIT || addressType == AddressType.TAPROOT
 
         val options = mutableListOf<SheetOption>()
         options.add(SheetOption(SheetOptionType.TYPE_EXPORT_BSMS, stringId = R.string.nc_bsms))
