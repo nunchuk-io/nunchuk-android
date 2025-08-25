@@ -421,7 +421,7 @@ fun MiniscriptConfigTemplateScreen(
                         )
                     }
                     Text(
-                        text = "Reuse keys across multisig policies",
+                        text = "Reuse keys across policies (extra XPUBs might be required)",
                         style = NunchukTheme.typography.body
                     )
                 }
