@@ -196,13 +196,6 @@ fun AddWalletView(
         delay(100L)
         focusRequester.requestFocus()
     }
-    
-    // Set default address type to Taproot for miniscript wallets
-    LaunchedEffect(isCreateMiniscriptWallet) {
-        if (isCreateMiniscriptWallet && state.addressTypeSelected != AddressType.TAPROOT) {
-            onSelectAddressType(AddressType.TAPROOT)
-        }
-    }
 
     NunchukTheme {
         Scaffold(
