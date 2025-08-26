@@ -186,8 +186,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                     viewModel.setCurrentSigner(signer)
                     when {
                         signer.type == SignerType.COLDCARD_NFC
-                                || signer.type == SignerType.HARDWARE && signer.tags.contains(
-                            SignerTag.COLDCARD
+                                || (signer.type == SignerType.AIRGAP && signer.tags.contains(
+                            SignerTag.COLDCARD)
                         ) -> showSignByMk4Options()
 
                         signer.type == SignerType.NFC -> {
