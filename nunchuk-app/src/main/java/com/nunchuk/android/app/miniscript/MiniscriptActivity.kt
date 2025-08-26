@@ -30,7 +30,6 @@ import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.MiniscriptArgs
 import com.nunchuk.android.wallet.InputBipPathBottomSheet
 import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
-import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import timber.log.Timber
@@ -67,7 +66,7 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
 
                     LaunchedEffect(uiState.requestCacheTapSignerXpubEvent) {
                         if (uiState.requestCacheTapSignerXpubEvent) {
-                            handleCacheXpub()
+                            startNfcFlow(REQUEST_NFC_TOPUP_XPUBS, "Please rescan your TAPSIGNER to get a new XPUB")
                             sharedWalletViewModel.resetRequestCacheTapSignerXpub()
                         }
                     }
@@ -198,16 +197,6 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
 
     override fun onInputDone(masterSignerId: String, newInput: String) {
         sharedWalletViewModel.updateBip32Path(masterSignerId, newInput)
-    }
-
-    private fun handleCacheXpub() {
-        NCWarningDialog(this).showDialog(
-            title = getString(com.nunchuk.android.core.R.string.nc_text_info),
-            message = getString(com.nunchuk.android.core.R.string.nc_new_xpub_need),
-            onYesClick = {
-                startNfcFlow(REQUEST_NFC_TOPUP_XPUBS)
-            }
-        )
     }
 
     companion object {

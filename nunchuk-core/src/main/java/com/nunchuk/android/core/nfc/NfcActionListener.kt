@@ -20,5 +20,5 @@
 package com.nunchuk.android.core.nfc
 
 interface NfcActionListener {
-    fun startNfcFlow(requestCode: Int)
+    fun startNfcFlow(requestCode: Int, description: String = "")
 }

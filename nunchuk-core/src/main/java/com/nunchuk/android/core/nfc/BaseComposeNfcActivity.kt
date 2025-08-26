@@ -148,12 +148,12 @@ abstract class BaseComposeNfcActivity : BaseComposeShareSaveFileActivity(), NfcA
         super.onPause()
     }
 
-    override fun startNfcFlow(requestCode: Int) {
+    override fun startNfcFlow(requestCode: Int, description: String) {
         this.requestCode = requestCode
         nfcAdapter?.let {
             if (it.isEnabled) {
                 if (shouldShowInputCvcFirst(requestCode)) {
-                    showInputCvcDialog()
+                    showInputCvcDialog(descMessage = description)
                 } else {
                     askToScan()
                 }

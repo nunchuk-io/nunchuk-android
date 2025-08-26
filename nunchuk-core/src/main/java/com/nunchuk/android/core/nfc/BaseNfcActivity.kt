@@ -143,7 +143,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
         super.onPause()
     }
 
-    override fun startNfcFlow(requestCode: Int) {
+    override fun startNfcFlow(requestCode: Int, desctiption: String) {
         this.requestCode = requestCode
         nfcAdapter?.let {
             if (it.isEnabled) {
