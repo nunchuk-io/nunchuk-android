@@ -385,12 +385,15 @@ fun FreeGroupWalletScreen(
                                 data = ScriptNodeData(
                                     mode = ScriptMode.CONFIG,
                                     signers = state.namedSigners,
-                                    showBip32Path = true,
+                                    showBip32Path = showBip32Path,
                                     isGroupWallet = true,
                                     occupiedSlots = state.namedOccupied,
                                     colorIndex = startingColorIndex
                                 ),
-                                onChangeBip32Path = { _, _ -> },
+                                onChangeBip32Path = { keyPath, signer ->
+                                    onSetCurrentKey(keyPath)
+                                    onChangeBip32Path(-1, signer)
+                                },
                                 onActionKey = { keyPath, signer ->
                                     onSetCurrentKey(keyPath)
                                     if (signer != null) {
@@ -682,10 +685,8 @@ private fun TaprootAddressContent(
                 ),
                 signer = if (state.keyPath.isNotEmpty() && state.signers.isNotEmpty()) state.signers.first() else null,
                 onChangeBip32Path = { keyPath, signer ->
-                    val index = state.keyPath.indexOf(keyPath)
-                    if (index != -1) {
-                        onChangeBip32Path(index, signer)
-                    }
+                    onActionKey(keyPath, signer)
+                    onChangeBip32Path(-1, signer)
                 },
                 onActionKey = onActionKey
             )
@@ -709,10 +710,8 @@ private fun TaprootAddressContent(
                         colorIndex = startingColorIndex
                     ),
                     onChangeBip32Path = { keyPath, signer ->
-                        val index = state.keyPath.indexOf(keyPath)
-                        if (index != -1) {
-                            onChangeBip32Path(index, signer)
-                        }
+                        onActionKey(keyPath, signer)
+                        onChangeBip32Path(-1, signer)
                     },
                     onActionKey = onActionKey,
                     customActionButton = { key, signer ->

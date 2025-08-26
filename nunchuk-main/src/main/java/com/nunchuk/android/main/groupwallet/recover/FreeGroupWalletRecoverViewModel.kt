@@ -192,7 +192,7 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
         
         if ((allSigners.isEmpty() && oldAllSigners.isEmpty()).not() && isWaitingForSigner && oldAllSigners.size == allSigners.size) { // handle case add existing signer
             Timber.tag(TAG).e("All signers size is the same - handling existing signer addition")
-            val newSigner = addedSigner.toModel()
+            val newSigner = singleSignerMapper(addedSigner)
             handleAddedSigner(newSigner, index)
         }
     }

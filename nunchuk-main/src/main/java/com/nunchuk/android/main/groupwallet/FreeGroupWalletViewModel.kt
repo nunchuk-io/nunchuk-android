@@ -385,18 +385,19 @@ class FreeGroupWalletViewModel @Inject constructor(
         }
     }
 
-    private fun createSignerMapFromNamedSigners(signers: List<SignerModel?>, scriptNode: ScriptNode, groupSandbox: GroupSandbox): Map<String, SignerModel?> {
+    private suspend fun createSignerMapFromNamedSigners(signers: List<SignerModel?>, scriptNode: ScriptNode, groupSandbox: GroupSandbox): Map<String, SignerModel?> {
         val signerMap = mutableMapOf<String, SignerModel?>()
         
         if (groupSandbox.walletType == WalletType.MINISCRIPT && groupSandbox.namedSigners.isNotEmpty()) {
             groupSandbox.namedSigners.forEach { (keyName, singleSigner) ->
                 if (singleSigner.masterFingerprint.isNotEmpty() && singleSigner.xpub.isNotEmpty()) {
                     val existingSigner = signers.find { it?.fingerPrint == singleSigner.masterFingerprint }
-                    
+
+                    val model = singleSignerMapper(singleSigner)
                     val signerModel = if (existingSigner != null && existingSigner.name.isNotEmpty()) {
-                        singleSigner.toModel().copy(name = existingSigner.name, isVisible = existingSigner.isVisible)
+                        model.copy(name = existingSigner.name, isVisible = existingSigner.isVisible)
                     } else {
-                        singleSigner.toModel()
+                        model
                     }
                     
                     signerMap[keyName] = signerModel
@@ -654,8 +655,6 @@ class FreeGroupWalletViewModel @Inject constructor(
             }
         }
     }
-    
-
 
     fun changeBip32Path(masterSignerId: String, newPath: String) {
         viewModelScope.launch {
@@ -664,15 +663,56 @@ class FreeGroupWalletViewModel @Inject constructor(
                 GetSignerFromMasterSignerUseCase.Params(
                     masterSignerId, newPath
                 )
-            ).onSuccess {
-                val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: return@launch
-                addSignerToGroup(it, index)
+            ).onSuccess { singleSigner ->
+                if (isMiniscriptWallet()) {
+                    // For Miniscript wallets, use the current key assignment
+                    val currentKey = _uiState.value.currentKeyToAssign
+
+                    if (currentKey.isNotEmpty()) {
+                        addSignerToGroupWithKeyName(singleSigner, currentKey)
+                    } else {
+                        _uiState.update { it.copy(errorMessage = "No key selected for path change") }
+                    }
+                } else {
+                    val index = savedStateHandle.get<Int>(CURRENT_SIGNER_INDEX) ?: return@launch
+                    addSignerToGroup(singleSigner, index)
+                }
             }.onFailure { error ->
                 if (error is NCNativeException && error.message.contains("-1009")) {
                     savedStateHandle[NEW_PATH] = newPath
-                    _uiState.update { it.copy(requestCacheTapSignerXpubEvent = true) }
+                    
+                    if (isMiniscriptWallet()) {
+                        // For Miniscript, we need to store the signer model and current key for caching
+                        val currentKey = _uiState.value.currentKeyToAssign
+
+                        if (currentKey.isNotEmpty()) {
+                            // Find the signer model from the current namedSigners
+                            val currentSigner = _uiState.value.namedSigners[currentKey]
+                            if (currentSigner != null) {
+                                val pendingState = PendingAddSignerState(
+                                    signerModel = currentSigner,
+                                    keyName = currentKey,
+                                    relatedKeys = listOf(currentKey), // Only the current key
+                                    currentIndex = 0,
+                                    processedKeyIndex = 0
+                                )
+                                pendingAddSignerState = pendingState
+                                _uiState.update { 
+                                    it.copy(
+                                        requestCacheTapSignerXpubEvent = true,
+                                        pendingAddSignerState = pendingState
+                                    ) 
+                                }
+                            } else {
+                                _uiState.update { it.copy(errorMessage = "Signer not found for path change") }
+                            }
+                        } else {
+                            _uiState.update { it.copy(errorMessage = "No key selected for path change") }
+                        }
+                    } else {
+                        _uiState.update { it.copy(requestCacheTapSignerXpubEvent = true) }
+                    }
                 } else {
-                    Timber.e("Failed to change bip32 path $error")
                     _uiState.update { it.copy(errorMessage = error.message.orUnknownError()) }
                 }
             }
@@ -687,7 +727,6 @@ class FreeGroupWalletViewModel @Inject constructor(
     fun cacheTapSignerXpub(isoDep: IsoDep?, cvc: String) {
         // Check if this is for Miniscript flow (pending state exists)
         if (pendingAddSignerState != null) {
-            Timber.tag("miniscript-feature").d("Handling TapSigner caching for Miniscript flow")
             handleMiniscriptTapSignerCaching(isoDep, cvc)
             return
         }
@@ -695,7 +734,6 @@ class FreeGroupWalletViewModel @Inject constructor(
         // Original flow for non-Miniscript operations
         val signer = savedStateHandle.get<SignerModel>(CURRENT_SIGNER) ?: return
         val newPath = savedStateHandle.get<String>(NEW_PATH) ?: return
-        Timber.d("Cache tap signer xpub $signer $newPath")
         isoDep ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
@@ -706,9 +744,8 @@ class FreeGroupWalletViewModel @Inject constructor(
                     path = newPath,
                     cvc = cvc
                 )
-            ).onSuccess {
-                Timber.d("new signer $it")
-                addSignerToGroup(it)
+            ).onSuccess { newSigner ->
+                addSignerToGroup(newSigner)
             }.onFailure { error ->
                 _uiState.update {
                     it.copy(
@@ -725,7 +762,6 @@ class FreeGroupWalletViewModel @Inject constructor(
         val signerModel = pendingState.signerModel
         val newPath = savedStateHandle.get<String>(NEW_PATH) ?: return
         
-        Timber.tag("miniscript-feature").d("Handling Miniscript TapSigner caching for signer: ${signerModel.name} with path: $newPath")
         isoDep ?: return
         
         viewModelScope.launch {
@@ -740,12 +776,17 @@ class FreeGroupWalletViewModel @Inject constructor(
                     cvc = cvc
                 )
             ).onSuccess { newSigner ->
-                Timber.tag("miniscript-feature").d("Successfully cached TapSigner XPUB: ${newSigner.name}")
+                // Check if this is for adding a new signer or changing a path
+                val isPathChange = _uiState.value.namedSigners[pendingState.keyName] != null
                 
-                // Resume the add signer process
-                resumeAddSignerProcess()
+                if (isPathChange) {
+                    // This is a path change - replace the existing signer with the new one
+                    resumePathChangeProcess(newSigner)
+                } else {
+                    // This is adding a new signer - resume the add signer process
+                    resumeAddSignerProcess()
+                }
             }.onFailure { error ->
-                Timber.tag("miniscript-feature").e("Failed to cache TapSigner XPUB: $error")
                 _uiState.update {
                     it.copy(
                         errorMessage = error.message.orUnknownError(),
@@ -1227,6 +1268,20 @@ class FreeGroupWalletViewModel @Inject constructor(
                 pendingState.signerModel, 
                 pendingState.keyName
             )
+        }
+    }
+
+    private fun resumePathChangeProcess(newSigner: SingleSigner) {
+        val pendingState = pendingAddSignerState ?: return
+        pendingAddSignerState = null
+
+        // Clear pending state from UI
+        _uiState.update { it.copy(pendingAddSignerState = null) }
+
+        // For path changes, we need to replace the signer in the specific key position
+        viewModelScope.launch {
+            removeSignerFromGroupWithKeyName(pendingState.keyName)
+            addSignerToGroupWithKeyName(newSigner, pendingState.keyName)
         }
     }
 
