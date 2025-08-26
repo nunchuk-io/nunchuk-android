@@ -51,11 +51,7 @@
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim">
-            <argument
-                android:name="wallet_id"
-                app:argType="string" />
-        </action>
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
     </fragment>
 
     <fragment
@@ -356,6 +352,10 @@
             android:defaultValue="@null"
             app:argType="com.nunchuk.android.model.Amount"
             app:nullable="true" />
+        <argument
+            android:name="is_relative_wallet"
+            android:defaultValue="false"
+            app:argType="boolean" />
         <action
             android:id="@+id/action_coinSearchFragmentFragment_to_coinFilterFragment"
             app:destination="@id/coinFilterFragment"
@@ -399,10 +399,6 @@
 
         <argument
             android:name="is_search_transaction"
-            android:defaultValue="false"
-            app:argType="boolean" />
-        <argument
-            android:name="is_miniscript"
             android:defaultValue="false"
             app:argType="boolean" />
     </fragment>

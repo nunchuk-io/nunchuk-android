@@ -148,6 +148,7 @@ class CoinListFragment : BaseCoinListFragment() {
                         findNavController().navigate(
                             CoinListFragmentDirections.actionCoinListFragmentToCoinSearchNavigation(
                                 walletId = args.walletId,
+                                isRelativeWallet = coinListViewModel.isRelativeTimelockWallet()
                             )
                         )
                     },

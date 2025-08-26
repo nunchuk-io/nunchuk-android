@@ -28,7 +28,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -50,7 +49,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -74,9 +72,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.core.util.CurrencyFormatter
-import com.nunchuk.android.core.util.LOCAL_CURRENCY
 import com.nunchuk.android.core.util.MAX_FRACTION_DIGITS
-import com.nunchuk.android.core.util.getTextBtcUnit
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.coin.filter.collection.FilterByCollectionFragment
@@ -100,7 +96,6 @@ class CoinFilterFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 CoinFilterScreen(
-                    isMiniscript = args.isMiniscript,
                     isSearchTransaction = args.isSearchTransaction,
                     initValue = args.filter,
                     viewModel = viewModel,
@@ -181,7 +176,6 @@ class CoinFilterFragment : Fragment() {
 
 @Composable
 private fun CoinFilterScreen(
-    isMiniscript: Boolean,
     isSearchTransaction: Boolean,
     initValue: CoinFilterUiState,
     viewModel: CoinFilterViewModel = viewModel(),
@@ -191,7 +185,6 @@ private fun CoinFilterScreen(
     onSelectDate: (isStart: Boolean) -> Unit = {},
 ) {
     CoinFilterContent(
-        isMiniscript = isMiniscript,
         isSearchTransaction = isSearchTransaction,
         initValue = initValue,
         selectTags = viewModel.selectTags.value,
@@ -213,7 +206,6 @@ private fun CoinFilterScreen(
 
 @Composable
 private fun CoinFilterContent(
-    isMiniscript: Boolean = false,
     isSearchTransaction: Boolean = false,
     initValue: CoinFilterUiState = CoinFilterUiState(),
     selectTags: Set<Int> = emptySet(),
@@ -513,23 +505,21 @@ private fun CoinFilterContent(
                                         onClick = { isDescending = false },
                                     )
                                 }
-                                if (isMiniscript) {
-                                    Box(modifier = Modifier.padding(top = 16.dp)) {
-                                        Text(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .align(alignment = Alignment.CenterStart),
-                                            text = stringResource(R.string.nc_sort_by_coin_age),
-                                            style = NunchukTheme.typography.body
-                                        )
-                                        NcSwitch(
-                                            modifier = Modifier.align(alignment = Alignment.CenterEnd),
-                                            checked = sortByCoinAge,
-                                            onCheckedChange = {
-                                                sortByCoinAge = it
-                                            },
-                                        )
-                                    }
+                                Box(modifier = Modifier.padding(top = 16.dp)) {
+                                    Text(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .align(alignment = Alignment.CenterStart),
+                                        text = stringResource(R.string.nc_sort_by_coin_age),
+                                        style = NunchukTheme.typography.body
+                                    )
+                                    NcSwitch(
+                                        modifier = Modifier.align(alignment = Alignment.CenterEnd),
+                                        checked = sortByCoinAge,
+                                        onCheckedChange = {
+                                            sortByCoinAge = it
+                                        },
+                                    )
                                 }
                             }
                         }
@@ -556,27 +546,6 @@ private fun CoinFilterContent(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun SwitchAmount(isBtc: Boolean, onSwitchBtcAndCurrency: (Boolean) -> Unit) {
-    val unit = if (isBtc) LOCAL_CURRENCY else LocalContext.current.getTextBtcUnit()
-    Row(
-        modifier = Modifier.clickable { onSwitchBtcAndCurrency(isBtc.not()) },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_switch),
-            contentDescription = "Switch",
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            modifier = Modifier.padding(horizontal = 8.dp),
-            text = stringResource(R.string.nc_transaction_switch_to_currency_data, unit),
-            textDecoration = TextDecoration.Underline,
-            style = NunchukTheme.typography.titleSmall
-        )
     }
 }
 

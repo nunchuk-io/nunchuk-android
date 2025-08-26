@@ -158,7 +158,11 @@ class CoinListViewModel @Inject constructor(
         }
     }
 
-    fun onUnlockCoin(walletId: String, selectedCoins: List<UnspentOutput>, isCreateTransaction: Boolean) {
+    fun onUnlockCoin(
+        walletId: String,
+        selectedCoins: List<UnspentOutput>,
+        isCreateTransaction: Boolean
+    ) {
         viewModelScope.launch {
             selectedCoins.asSequence().filter { it.isLocked }.forEach {
                 unLockCoinUseCase(
@@ -292,16 +296,17 @@ class CoinListViewModel @Inject constructor(
 
         while (stack.isNotEmpty()) {
             val node = stack.removeAt(stack.size - 1)
-            
+
             when (node.type) {
                 ScriptNodeType.OLDER.name -> {
                     hasRelativeTimelock = true
                 }
+
                 ScriptNodeType.AFTER.name -> {
                     hasAbsoluteTimelock = true
                 }
             }
-            
+
             // Add sub-nodes to stack for processing
             stack.addAll(node.subs)
         }
@@ -312,7 +317,9 @@ class CoinListViewModel @Inject constructor(
         )
     }
 
-    fun isMiniscript() = _state.value.miniscriptWarningInfo != null
+    fun isRelativeTimelockWallet(): Boolean {
+        return state.value.miniscriptWarningInfo?.hasRelativeTimelock == true
+    }
 }
 
 sealed class CoinListEvent {

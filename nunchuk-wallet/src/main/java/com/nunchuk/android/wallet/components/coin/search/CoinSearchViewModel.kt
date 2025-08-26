@@ -66,7 +66,7 @@ class CoinSearchViewModel @Inject constructor(
 
     private val mutex = Mutex()
 
-    private val defaultFilter = CoinFilterUiState(showLockedCoin = isCustomizeCoinFlow.not(), sortByCoinAge = false)
+    private val defaultFilter = CoinFilterUiState(showLockedCoin = isCustomizeCoinFlow.not(), sortByCoinAge = args.isRelativeWallet)
     val filter = savedStateHandle.getStateFlow(KEY_FILTER, defaultFilter)
 
     fun updateFilter(filter: CoinFilterUiState) {
@@ -85,7 +85,7 @@ class CoinSearchViewModel @Inject constructor(
     suspend fun update(
         coins: List<UnspentOutput>,
         tags: Map<Int, CoinTag>,
-        collections: Map<Int, CoinCollection>
+        collections: Map<Int, CoinCollection>,
     ) {
         mutex.withLock {
             allCoins.apply {

@@ -20,6 +20,7 @@
 package com.nunchuk.android.wallet.components.coin.filter
 
 import android.os.Parcelable
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -35,8 +36,8 @@ class CoinFilterViewModel @Inject constructor(
         CoinFilterFragmentArgs.fromSavedStateHandle(savedStateHandle)
     val selectTags = mutableStateOf(args.filter.selectTags)
     val selectCollections = mutableStateOf(args.filter.selectCollections)
-    val startTime = mutableStateOf(args.filter.startTime)
-    val endTime = mutableStateOf(args.filter.endTime)
+    val startTime = mutableLongStateOf(args.filter.startTime)
+    val endTime = mutableLongStateOf(args.filter.endTime)
 
     fun setSelectedTags(tagIds: IntArray) {
         selectTags.value = tagIds.toSet()
@@ -48,9 +49,9 @@ class CoinFilterViewModel @Inject constructor(
 
     fun setDate(isStart: Boolean, timeInMillis: Long) {
         if (isStart) {
-            startTime.value = timeInMillis
+            startTime.longValue = timeInMillis
         } else {
-            endTime.value = timeInMillis
+            endTime.longValue = timeInMillis
         }
     }
 }

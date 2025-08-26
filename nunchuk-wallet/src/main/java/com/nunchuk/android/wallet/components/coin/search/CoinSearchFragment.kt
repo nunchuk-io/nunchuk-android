@@ -119,7 +119,6 @@ class CoinSearchFragment : BaseCoinListFragment() {
                         findNavController().navigate(
                             CoinSearchFragmentDirections.actionCoinSearchFragmentFragmentToCoinFilterFragment(
                                 filter = viewModel.filter.value,
-                                isMiniscript = coinListViewModel.isMiniscript()
                             )
                         )
                     },
