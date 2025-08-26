@@ -52,6 +52,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -293,7 +294,7 @@ private fun BatchTransactionContent(
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
 
-    var isSendAllRemainingClicked by remember { mutableStateOf(false) }
+    var isSendAllRemainingClicked by rememberSaveable { mutableStateOf(false) }
 
     NunchukTheme {
         Scaffold(

@@ -179,12 +179,10 @@ class TransactionConfirmViewModel @Inject constructor(
             if (txReceipts.size == 1) {
                 txReceipts = txReceipts.toMutableList().apply {
                     this[0] = this[0].copy(
-                        amount = Amount(inputs.sumOf { it.amount.value }.toLong()).pureBTC()
+                        amount = Amount(inputs.sumOf { it.amount.value }).pureBTC()
                     )
                 }
                 subtractFeeFromAmount = true
-            } else {
-                // TODO batch transaction
             }
         }
     }

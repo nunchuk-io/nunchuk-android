@@ -50,6 +50,7 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_SATSCARD_S
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.Amount
@@ -278,12 +279,22 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                             timelockCoin = timelockCoin,
                             walletId = args.walletId,
                             onContinue = { isSendAll, coins ->
-                                transactionConfirmViewModel.run {
-                                    updateInputs(isSendAll, coins)
-                                    handleConfirmEvent(
-                                        keySetIndex = if (timelockCoin.signingPath != null) 0 else 1,
-                                        signingPath = timelockCoin.signingPath
+                                if (!isSendAll && args.type == AddReceiptType.BATCH) {
+                                    navigator.openInputAmountScreen(
+                                        activityContext = this@AddReceiptActivity,
+                                        walletId = args.walletId,
+                                        availableAmount = coins
+                                            .sumOf { it.amount.value }.toDouble().fromSATtoBTC(),
+                                        inputs = coins
                                     )
+                                } else {
+                                    transactionConfirmViewModel.run {
+                                        updateInputs(isSendAll, coins)
+                                        handleConfirmEvent(
+                                            keySetIndex = if (timelockCoin.signingPath != null) 0 else 1,
+                                            signingPath = timelockCoin.signingPath
+                                        )
+                                    }
                                 }
                             }
                         )
