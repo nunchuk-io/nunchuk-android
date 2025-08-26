@@ -96,8 +96,8 @@ class CoinListViewModel @Inject constructor(
                     getSpendableAmount()
                 }
         }
-        refresh()
         getMiniscriptInfo()
+        refresh()
     }
 
     fun refresh() {

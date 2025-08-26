@@ -68,6 +68,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.coin.MODE_SELECT
 import com.nunchuk.android.compose.coin.MODE_VIEW_DETAIL
 import com.nunchuk.android.compose.coin.PreviewCoinCard
+import com.nunchuk.android.compose.coin.TimelockTimeline
 import com.nunchuk.android.compose.controlFillPrimary
 import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.compose.lightGray
@@ -111,7 +112,8 @@ class CoinListFragment : BaseCoinListFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 CoinListScreen(
-                    viewModel = coinListViewModel, args = args,
+                    viewModel = coinListViewModel,
+                    args = args,
                     onViewCoinDetail = {
                         findNavController().navigate(
                             CoinNavigationDirections.actionGlobalCoinDetailFragment(
@@ -445,6 +447,14 @@ private fun CoinListContent(
                     TimelockWarningSection(warningInfo = warningInfo)
                 }
 
+                // Show wallet timeline if wallet has absolute timelock
+                if (warningInfo?.hasAbsoluteTimelock == true && !warningInfo.hasRelativeTimelock && coins.isNotEmpty()) {
+                    TimelockTimeline(
+                        output = coins.first(),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+
                 LazyColumn(modifier = Modifier.weight(1f), state = listState) {
                     items(coins) { coin ->
                         PreviewCoinCard(
@@ -455,6 +465,7 @@ private fun CoinListContent(
                             onViewCoinDetail = onViewCoinDetail,
                             onViewTagDetail = onViewTagDetail,
                             tags = tags,
+                            isShowTimeline = warningInfo?.hasRelativeTimelock == true
                         )
                     }
                 }
