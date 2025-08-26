@@ -23,7 +23,6 @@ import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.model.Transaction
-import com.nunchuk.android.transaction.components.send.amount.InputAmountActivity
 import com.nunchuk.android.widget.NCToastMessage
 
 fun BaseComposeActivity.showCreateTransactionError(message: String) {
@@ -39,11 +38,6 @@ fun BaseComposeActivity.openTransactionDetailScreen(
     transaction: Transaction? = null
 ) {
     hideLoading()
-    if (isInheritanceClaimingFlow) {
-        ActivityManager.popUntilRoot()
-    } else {
-        ActivityManager.popUntil(InputAmountActivity::class.java, true)
-    }
     navigator.openTransactionDetailsScreen(
         activityContext = this,
         walletId = walletId,

@@ -370,6 +370,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                         )
                     )
                 } else {
+                    navigator.returnToMainScreen(this)
                     openTransactionDetailScreen(
                         event.transaction.txId,
                         args.walletId,
