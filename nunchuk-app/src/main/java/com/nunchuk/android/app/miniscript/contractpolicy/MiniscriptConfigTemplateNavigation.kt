@@ -450,7 +450,7 @@ fun MiniscriptConfigTemplateScreen(
                             showRequiredKeys = true,
                             minM = 1,
                             maxM = MAX_REQUIRED_KEYS,
-                            minN = 2,
+                            minN = 1,
                             maxN = MAX_TOTAL_KEYS
                         )
                     }
