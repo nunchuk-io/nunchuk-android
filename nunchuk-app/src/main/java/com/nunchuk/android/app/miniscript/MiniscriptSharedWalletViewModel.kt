@@ -9,6 +9,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerByPathUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
@@ -28,7 +29,6 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateMiniscriptWalletUseCase
-import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
@@ -60,7 +60,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     private val getSignerFromMasterSignerByIndexUseCase: GetSignerFromMasterSignerByIndexUseCase,
     private val getCurrentIndexFromMasterSignerUseCase: GetCurrentIndexFromMasterSignerUseCase,
     private val createMiniscriptWalletUseCase: CreateMiniscriptWalletUseCase,
-    private val getChainTipUseCase: GetChainTipUseCase,
+    private val singleSignerMapper: SingleSignerMapper,
     private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val accountManager: AccountManager,
@@ -429,14 +429,15 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                             ).onSuccess { singleSigner ->
                                 singleSigner?.let {
                                     // Add the signer to the currentSigners map
-                                    currentSigners[key] = it.toModel()
-                                    Timber.tag(TAG).d("Added signer: ${it.toModel()} to key: $key")
+                                    val model = singleSignerMapper(it)
+                                    currentSigners[key] = model
+                                    Timber.tag(TAG).d("Added signer: ${model} to key: $key")
 
                                     // Update UI state immediately
                                     _uiState.update { state ->
                                         state.copy(
                                             signers = currentSigners.toMap(),
-                                            areAllKeysAssigned = areAllKeysAssigned(state.scriptNode, currentSigners, listOf(it.toModel()))
+                                            areAllKeysAssigned = areAllKeysAssigned(state.scriptNode, currentSigners, listOf(model))
                                         )
                                     }
                                 } ?: run {
@@ -643,7 +644,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     masterSignerId, newPath
                 )
             ).onSuccess { newSigner ->
-                val newSignerModel = newSigner.toModel()
+                val newSignerModel = singleSignerMapper(newSigner)
                 
                 Timber.tag(TAG).d("BIP32 Update - Checking duplicate for ${newSignerModel.fingerPrint}:${newSignerModel.derivationPath} excluding key: $currentKey")
                 
@@ -744,7 +745,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     pendingUpdate.newPath
                 )
             ).onSuccess { newSigner ->
-                val newSignerModel = newSigner.toModel()
+                val newSignerModel = singleSignerMapper(newSigner)
                 
                 // Enable showing BIP32 paths and proceed with the update
                 _uiState.update { it.copy(showBip32PathForDuplicates = true) }
@@ -866,7 +867,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 Timber.tag(TAG).d("new signer $newSigner")
                 val currentKey = _uiState.value.currentKey
                 if (currentKey.isNotEmpty()) {
-                    val newSignerModel = newSigner.toModel()
+                    val newSignerModel = singleSignerMapper(newSigner)
                     
                     // Check if this update would create a duplicate (only if it's a BIP32 path change)
                     val pendingUpdate = _uiState.value.pendingBip32Update
@@ -964,14 +965,15 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                         )
                     ).onSuccess { singleSigner ->
                         singleSigner?.let {
-                            currentSigners[key] = it.toModel()
-                            Timber.tag(TAG).d("Resumed - Added signer: ${it.toModel()} to key: $key")
+                            val model = singleSignerMapper(it)
+                            currentSigners[key] = model
+                            Timber.tag(TAG).d("Resumed - Added signer: ${model} to key: $key")
 
                             // Update UI state immediately
                             _uiState.update { state ->
                                 state.copy(
                                     signers = currentSigners.toMap(),
-                                    areAllKeysAssigned = areAllKeysAssigned(state.scriptNode, currentSigners, listOf(it.toModel()))
+                                    areAllKeysAssigned = areAllKeysAssigned(state.scriptNode, currentSigners, listOf(model))
                                 )
                             }
                         } ?: run {
