@@ -25,6 +25,7 @@ import android.net.Uri
 import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
+import android.util.LruCache
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -213,6 +214,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val isPreimageRevealedUseCase: IsPreimageRevealedUseCase,
     private val getKeySetStatusUseCase: GetKeySetStatusUseCase,
     private val getTransactionSignersUseCase: GetTransactionSignersUseCase,
+    private val timelockTransactionCache: LruCache<String, Long>,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionDetailsState())
     val state = _state.asStateFlow()
@@ -558,6 +560,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     txId = txId
                 )
             ).onSuccess { (lockedTime, lockedBase) ->
+                timelockTransactionCache.put(txId, lockedTime)
                 _minscriptState.update {
                     it.copy(
                         lockedTime = lockedTime,
@@ -992,11 +995,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
             signRoomTransactionUseCase.execute(initEventId = initEventId, device = device, signerId)
                 .flowOn(IO).onException {
                     fireSignError(it)
-                }.collect { 
+                }.collect {
                     if (isMiniscriptWallet()) {
                         getSignedSigners()
                     }
-                    _event.emit(SignTransactionSuccess(roomId)) 
+                    _event.emit(SignTransactionSuccess(roomId))
                 }
         }
     }

@@ -30,8 +30,6 @@ import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
 import com.nunchuk.android.core.domain.GetListMessageFreeGroupWalletUseCase
 import com.nunchuk.android.core.domain.GetWalletBannerStateUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
-import com.nunchuk.android.core.domain.RemoveWalletBannerStateUseCase
-import com.nunchuk.android.core.domain.UpdateWalletBannerStateUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
@@ -84,7 +82,6 @@ import com.nunchuk.android.usecase.free.groupwallet.GetReplaceGroupsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.SetBackUpBannerWalletIdsUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.usecase.miniscript.GetSpendableNowAmountUseCase
-import com.nunchuk.android.usecase.wallet.AddWalletBannerStateUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.GroupChatManager
 import com.nunchuk.android.utils.onException
@@ -153,9 +150,6 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val getBackUpBannerWalletIdsUseCase: GetBackUpBannerWalletIdsUseCase,
     private val setBackUpBannerWalletIdsUseCase: SetBackUpBannerWalletIdsUseCase,
     private val getWalletBannerStateUseCase: GetWalletBannerStateUseCase,
-    private val addWalletBannerStateUseCase: AddWalletBannerStateUseCase,
-    private val removeWalletBannerStateUseCase: RemoveWalletBannerStateUseCase,
-    private val updateWalletBannerStateUseCase: UpdateWalletBannerStateUseCase,
     private val getChainTipUseCase: GetChainTipUseCase,
     private val getSpendableNowAmountUseCase: GetSpendableNowAmountUseCase,
     private val getTimelockedUntilUseCase: GetTimelockedUntilUseCase,
