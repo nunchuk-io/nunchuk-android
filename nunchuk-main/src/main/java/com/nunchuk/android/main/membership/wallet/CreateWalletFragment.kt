@@ -145,6 +145,7 @@ class CreateWalletFragment : MembershipFragment() {
 
     private fun handleCreateWalletSuccess(event: CreateWalletEvent.OnCreateWalletSuccess) {
         if (event.airgapCount > 0) {
+            requireActivity().setResult(Activity.RESULT_OK)
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletToAirgapFragment(
                     walletId = event.wallet.id,
