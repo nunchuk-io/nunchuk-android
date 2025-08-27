@@ -52,7 +52,6 @@ import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
@@ -335,8 +334,7 @@ fun MiniscriptConfigWalletScreen(
                     onDismiss = {
                         showSignerBottomSheet = false
                     },
-                    supportedSigners = uiState.supportedTypes.takeIf { uiState.addressType.isTaproot() == true }
-                        .orEmpty(),
+                    supportedSigners = uiState.supportedTypes,
                     onAddExistKey = { signer ->
                         showSignerBottomSheet = false
                         onAddExistingKey(signer, currentKeyToAssign)
