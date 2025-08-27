@@ -129,6 +129,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val serverTransactionCache: LruCache<String, ServerTransaction>,
     private val timelockTransactionCache: LruCache<String, Long>,
+    private val walletLockedBase: LruCache<String, MiniscriptTimelockBased>,
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val getGroupUseCase: GetGroupUseCase,
     private val hasSignerUseCase: HasSignerUseCase,
@@ -154,9 +155,6 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val getSpendableNowAmountUseCase: GetSpendableNowAmountUseCase,
     private val getTimelockedUntilUseCase: GetTimelockedUntilUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
-
-    // Shared locked base for all transactions in the wallet
-    private var lockedBase: MiniscriptTimelockBased = MiniscriptTimelockBased.NONE
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
@@ -536,8 +534,8 @@ internal class WalletDetailsViewModel @Inject constructor(
                         )
                     ).onSuccess { (lockedTime, lockedBaseType) ->
                         timelockTransactionCache.put(transaction.txId, lockedTime)
-                        if (lockedBase == MiniscriptTimelockBased.NONE) {
-                            lockedBase = lockedBaseType
+                        if (lockedBaseType != MiniscriptTimelockBased.NONE) {
+                            walletLockedBase.put(args.walletId, lockedBaseType)
                         }
                     }
                 }
@@ -553,7 +551,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                     brief = assistedWalletManager.getBriefWallet(args.walletId),
                     serverTransactionCache = serverTransactionCache,
                     lockedTimeTransactionCache = timelockTransactionCache,
-                    lockedBase = lockedBase,
+                    lockedBase = walletLockedBase[args.walletId] ?: MiniscriptTimelockBased.NONE,
                 )
             }).flow.flowOn(ioDispatcher)
 
