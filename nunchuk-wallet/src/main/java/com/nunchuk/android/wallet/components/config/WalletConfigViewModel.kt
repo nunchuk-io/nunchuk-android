@@ -422,7 +422,6 @@ internal class WalletConfigViewModel @Inject constructor(
             leaveRoom {
                 when (val event = deleteWalletUseCase.execute(walletId)) {
                     is Result.Success -> {
-                        setBackUpBannerWalletIdsUseCase(walletId)
                         if (isAssistedWallet()) {
                             _event.emit(WalletConfigEvent.DeleteAssistedWalletSuccess)
                         } else {
