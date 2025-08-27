@@ -76,11 +76,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
 
                     LaunchedEffect(state.requestCacheTapSignerXpubEvent) {
                         if (state.requestCacheTapSignerXpubEvent) {
-                            if (state.pendingAddSignerState != null) {
-                                startNfcFlow(REQUEST_NFC_TOPUP_XPUBS, "Please rescan your TAPSIGNER to get a new XPUB")
-                            } else {
-                                handleCacheXpub()
-                            }
+                            startNfcFlow(REQUEST_NFC_TOPUP_XPUBS, "Please rescan your TAPSIGNER to get a new XPUB")
                             viewModel.resetRequestCacheTapSignerXpub()
                         }
                     }
