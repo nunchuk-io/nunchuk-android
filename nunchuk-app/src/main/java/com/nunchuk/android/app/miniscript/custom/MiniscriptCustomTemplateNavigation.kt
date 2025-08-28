@@ -51,7 +51,7 @@ data class MiniscriptCustomTemplate(
 fun NavGraphBuilder.miniscriptCustomTemplateDestination(
     fromAddWallet: Boolean = false,
     onNext: (String, AddressType?) -> Unit = { _, _ -> },
-    onSaveAndBack: (String) -> Unit = {}
+    onSaveAndBack: (String, AddressType?) -> Unit = { _, _ -> }
 ) {
     composable<MiniscriptCustomTemplate> { navBackStackEntry ->
         val data: MiniscriptCustomTemplate = navBackStackEntry.toRoute()
@@ -66,7 +66,11 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
             when (event) {
                 is MiniscriptCustomTemplateEvent.Success -> {
                     val successEvent = event as MiniscriptCustomTemplateEvent.Success
-                    onNext(successEvent.template, successEvent.addressType)
+                    if (fromAddWallet) {
+                        onSaveAndBack(successEvent.template, successEvent.addressType)
+                    } else {
+                        onNext(successEvent.template, successEvent.addressType)
+                    }
                     viewModel.clearEvent()
                 }
                 is MiniscriptCustomTemplateEvent.Error -> {
@@ -84,7 +88,6 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
                     viewModel.clearEvent()
                 }
                 is MiniscriptCustomTemplateEvent.AddressTypeChangedToTaproot -> {
-                    viewModel.proceedWithTaproot(pendingTemplate)
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(
                             NcSnackbarVisuals(
@@ -92,6 +95,12 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
                                 type = NcToastType.SUCCESS
                             )
                         )
+                    }
+                    if (fromAddWallet) {
+                        onSaveAndBack(pendingTemplate, AddressType.TAPROOT)
+                        viewModel.clearEvent()
+                    } else {
+                        viewModel.proceedWithTaproot(pendingTemplate)
                     }
                 }
 
@@ -103,11 +112,7 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
             template = data.template.formatMiniscript(),
             fromAddWallet = fromAddWallet,
             onContinue = { template ->
-                if (fromAddWallet) {
-                    onSaveAndBack(MiniscriptUtil.revertFormattedMiniscript(template))
-                } else {
-                    viewModel.createMiniscriptTemplate(MiniscriptUtil.revertFormattedMiniscript(template), data.addressType)
-                }
+                viewModel.createMiniscriptTemplate(MiniscriptUtil.revertFormattedMiniscript(template), data.addressType)
             },
             onSaveAndBack = onSaveAndBack,
             snackbarHostState = snackbarHostState,
@@ -129,7 +134,7 @@ fun MiniscriptCustomTemplateScreen(
     template: String = "",
     fromAddWallet: Boolean = false,
     onContinue: (String) -> Unit = {},
-    onSaveAndBack: (String) -> Unit = {},
+    onSaveAndBack: (String, AddressType?) -> Unit = { _, _ -> },
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     showTaprootWarning: Boolean = false,
     onTaprootWarningDismiss: () -> Unit = {},

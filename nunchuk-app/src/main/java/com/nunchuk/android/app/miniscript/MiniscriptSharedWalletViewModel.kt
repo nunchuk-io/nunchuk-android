@@ -509,12 +509,19 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     fun removeSigner(keyName: String) {
         Timber.tag(TAG).d("Removing signer for key: $keyName")
         
-        // Check if this is a taproot signer removal (only for single-key scenarios)
+        // Check if this is a taproot signer removal
         val keyPath = _uiState.value.keyPath
-        if (keyPath.size == 1 && keyPath.contains(keyName)) {
+        if (keyPath.contains(keyName)) {
             Timber.tag(TAG).d("Removing taproot signer for keyPath: $keyName")
             val currentTaprootSigners = _uiState.value.taprootSigner.toMutableList()
-            currentTaprootSigners.removeAll { it.fingerPrint == keyName }
+            
+            // Find the index of the keyName in keyPath and remove the corresponding signer
+            val keyIndex = keyPath.indexOf(keyName)
+            if (keyIndex != -1 && keyIndex < currentTaprootSigners.size) {
+                currentTaprootSigners.removeAt(keyIndex)
+                Timber.tag(TAG).d("Removed taproot signer at index $keyIndex for key: $keyName")
+            }
+            
             _uiState.update {
                 it.copy(
                     taprootSigner = currentTaprootSigners,
@@ -526,45 +533,10 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         
         val currentSigners = _uiState.value.signers.toMutableMap()
 
-        // If keyName matches the pattern key_x_y, we need to handle related keys
-        val components = keyName.split("_")
-        if (components.size > 2) {
-            Timber.tag(TAG).d("Handling key with pattern key_x_y")
-            // Extract the prefix (key_x)
-            val prefix = "${components[0]}_${components[1]}"
-
-            // Get the signer to remove
-            val signerToRemove = currentSigners[keyName]
-            Timber.tag(TAG).d("Signer to remove: $signerToRemove")
-
-            // If it's a master signer, remove all related keys with the same master fingerprint
-            if (signerToRemove?.isMasterSigner == true) {
-                val masterFingerprintToRemove = signerToRemove.fingerPrint
-                Timber.tag(TAG).d("Removing all related keys with master fingerprint: $masterFingerprintToRemove")
-
-                // Find all keys in scriptNode that share the same prefix
-                val relatedKeys = getAllKeysFromScriptNode(_uiState.value.scriptNode!!)
-                    .filter { it.startsWith(prefix) }
-
-                Timber.tag(TAG).d("Found related keys to remove: $relatedKeys")
-
-                // Remove signers for all related keys with the same master fingerprint
-                relatedKeys.forEach { key ->
-                    if (currentSigners[key]?.fingerPrint == masterFingerprintToRemove) {
-                        currentSigners[key] = null
-                        Timber.tag(TAG).d("Removed signer for key: $key")
-                    }
-                }
-            } else {
-                // For non-master signers, just remove the specific key
-                currentSigners[keyName] = null
-                Timber.tag(TAG).d("Removed non-master signer for key: $keyName")
-            }
-        } else {
-            // Handle old key format
-            currentSigners[keyName] = null
-            Timber.tag(TAG).d("Removed signer for old format key: $keyName")
-        }
+        // Remove only the specific key that was requested
+        // This prevents removing key_0_1 when removing key_0_0
+        currentSigners[keyName] = null
+        Timber.tag(TAG).d("Removed signer for key: $keyName")
 
         _uiState.update {
             it.copy(
@@ -573,7 +545,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners, it.taprootSigner.filterNotNull())
             )
         }
-        Timber.tag(TAG).d("Updated state after removing signer(s). Current signers: $currentSigners")
+        Timber.tag(TAG).d("Updated state after removing signer. Current signers: $currentSigners")
     }
 
     private fun areAllKeysAssigned(scriptNode: ScriptNode?, signers: Map<String, SignerModel?>, taprootSigner: List<SignerModel> = emptyList()): Boolean {

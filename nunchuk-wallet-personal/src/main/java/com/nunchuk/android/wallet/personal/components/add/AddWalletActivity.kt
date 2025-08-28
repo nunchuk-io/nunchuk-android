@@ -67,6 +67,20 @@ class AddWalletActivity : BaseComposeActivity() {
             if (template.isNotEmpty()) {
                 viewModel.setMiniscriptTemplate(template)
             }
+            
+            // Handle address type change from miniscript screen
+            val addressTypeString = result.data?.getStringExtra("address_type")
+            if (addressTypeString != null) {
+                try {
+                    val newAddressType = AddressType.valueOf(addressTypeString)
+                    val currentAddressType = viewModel.state.value.addressTypeSelected
+                    if (currentAddressType != newAddressType) {
+                        viewModel.selectAddressType(newAddressType)
+                    }
+                } catch (e: IllegalArgumentException) {
+                    // Invalid address type, ignore
+                }
+            }
         }
     }
 

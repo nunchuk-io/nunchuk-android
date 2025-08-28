@@ -164,11 +164,11 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
                                     )
                                 )
                             },
-                            onSaveAndBack = { template ->
+                            onSaveAndBack = { template, addressType ->
                                 if (args.fromAddWallet) {
-                                    // Return the template as result to AddWalletActivity
                                     val resultIntent = Intent().apply {
                                         putExtra("miniscript_template", template)
+                                        addressType?.let { putExtra("address_type", it.name) }
                                     }
                                     setResult(RESULT_OK, resultIntent)
                                 }
