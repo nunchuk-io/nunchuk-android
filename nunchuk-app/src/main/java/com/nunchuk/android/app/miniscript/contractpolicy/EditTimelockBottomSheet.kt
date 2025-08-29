@@ -378,27 +378,6 @@ fun EditTimelockContent(
                             }
                             return@NcPrimaryDarkButton
                         }
-                    } else if (timelockType == MiniscriptTimelockType.ABSOLUTE && timeUnit == MiniscriptTimelockBased.TIME_LOCK) {
-                        val today = Calendar.getInstance().apply {
-                            set(Calendar.HOUR_OF_DAY, 0)
-                            set(Calendar.MINUTE, 0)
-                            set(Calendar.SECOND, 0)
-                            set(Calendar.MILLISECOND, 0)
-                        }
-                        val selectedDate = calendar.value
-                        val maxDate = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 388) }
-
-                        if (selectedDate.before(today) || selectedDate.after(maxDate)) {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    NcSnackbarVisuals(
-                                        message = "Invalid value. Timelock must not exceed 388 days.",
-                                        type = NcToastType.ERROR
-                                    )
-                                )
-                            }
-                            return@NcPrimaryDarkButton
-                        }
                     }
 
                     val value =
@@ -532,7 +511,7 @@ fun DatePickerField(
             )
             Text(
                 text = if (timelockType == MiniscriptTimelockType.ABSOLUTE) {
-                    "(UTC time)"
+                    ""
                 } else {
                     "(days, hours, minutes)"
                 },
