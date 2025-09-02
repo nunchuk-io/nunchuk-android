@@ -45,12 +45,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MiniscriptCustomTemplate(
     val template: String = "",
-    val addressType: AddressType
+    val addressType: AddressType,
+    val reuseSigner: Boolean = false
 )
 
 fun NavGraphBuilder.miniscriptCustomTemplateDestination(
     fromAddWallet: Boolean = false,
-    onNext: (String, AddressType?) -> Unit = { _, _ -> },
+    onNext: (String, AddressType?, Boolean) -> Unit = { _, _, _ -> },
     onSaveAndBack: (String, AddressType?) -> Unit = { _, _ -> }
 ) {
     composable<MiniscriptCustomTemplate> { navBackStackEntry ->
@@ -69,7 +70,7 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
                     if (fromAddWallet) {
                         onSaveAndBack(successEvent.template, successEvent.addressType)
                     } else {
-                        onNext(successEvent.template, successEvent.addressType)
+                        onNext(successEvent.template, successEvent.addressType, data.reuseSigner)
                     }
                     viewModel.clearEvent()
                 }

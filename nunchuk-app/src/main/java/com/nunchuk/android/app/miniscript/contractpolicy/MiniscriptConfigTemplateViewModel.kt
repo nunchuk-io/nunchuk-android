@@ -69,7 +69,7 @@ class MiniscriptConfigTemplateViewModel @Inject constructor(
                 _uiState.update { 
                     it.copy(
                         template = template,
-                        event = MiniscriptConfigTemplateEvent.TemplateCreated(template)
+                        event = MiniscriptConfigTemplateEvent.TemplateCreated(template, reuseSigner)
                     )
                 }
             }.onFailure { error ->
@@ -95,6 +95,6 @@ data class MiniscriptConfigTemplateState(
 )
 
 sealed class MiniscriptConfigTemplateEvent {
-    data class TemplateCreated(val template: String) : MiniscriptConfigTemplateEvent()
+    data class TemplateCreated(val template: String, val reuseSigner: Boolean) : MiniscriptConfigTemplateEvent()
     data class ShowError(val message: String) : MiniscriptConfigTemplateEvent()
 }

@@ -108,6 +108,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 addressType = args.addressType,
                 miniscriptTemplate = args.template,
                 walletName = args.walletName,
+                reuseSigner = args.reuseSigner,
             )
         }
         getScriptNodeFromTemplate(args.template)
@@ -1009,7 +1010,8 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         // Preserve important values that should not be reset
         val currentState = _uiState.value
         _uiState.value = MiniscriptSharedWalletState(
-            isTestNet = currentState.isTestNet
+            isTestNet = currentState.isTestNet,
+            reuseSigner = currentState.reuseSigner,
         )
         
         // Reload basic info
@@ -1041,7 +1043,8 @@ data class MiniscriptSharedWalletState(
     val currentKeyToAssign: String = "",
     val taprootSigner: List<SignerModel> = emptyList(),
     val showBip32PathForDuplicates: Boolean = false,
-    val pendingBip32Update: PendingBip32Update? = null
+    val pendingBip32Update: PendingBip32Update? = null,
+    val reuseSigner: Boolean = false
 )
 
 sealed class MiniscriptSharedWalletEvent {

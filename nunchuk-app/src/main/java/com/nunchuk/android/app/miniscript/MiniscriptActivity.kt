@@ -121,11 +121,12 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
 
                         miniscriptConfigTemplateDestination(
                             addressType = args.addressType,
-                        ) { template ->
+                        ) { template, reuseSigner ->
                             navHostController.navigate(
                                 route = MiniscriptCustomTemplate(
                                     template = template,
                                     addressType = args.addressType,
+                                    reuseSigner = reuseSigner
                                 )
                             )
                         }
@@ -155,12 +156,13 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
 
                         miniscriptCustomTemplateDestination(
                             fromAddWallet = args.fromAddWallet,
-                            onNext = { template, addressType ->
+                            onNext = { template, addressType, reuseSigner ->
                                 navHostController.navigate(
                                     route = MiniscriptConfigureWallet(
                                         template = template,
                                         addressType = addressType ?: args.addressType,
                                         walletName = args.walletName,
+                                        reuseSigner = reuseSigner
                                     )
                                 )
                             },

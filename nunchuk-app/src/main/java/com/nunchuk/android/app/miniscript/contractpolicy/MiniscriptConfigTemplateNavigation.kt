@@ -78,7 +78,7 @@ data class MiniscriptConfigTemplate(
 
 fun NavGraphBuilder.miniscriptConfigTemplateDestination(
     addressType: AddressType,
-    onNext: (String) -> Unit
+    onNext: (String, Boolean) -> Unit
 ) {
     composable<MiniscriptConfigTemplate> { navBackStackEntry ->
 
@@ -91,8 +91,8 @@ fun NavGraphBuilder.miniscriptConfigTemplateDestination(
         MiniscriptConfigTemplateContainer(
             addressType = addressType,
             multisignType = multisignType,
-            onContinueClick = { template ->
-                onNext(template)
+            onContinueClick = { template, reuseSigner ->
+                onNext(template, reuseSigner)
             }
         )
     }
@@ -102,7 +102,7 @@ fun NavGraphBuilder.miniscriptConfigTemplateDestination(
 fun MiniscriptConfigTemplateContainer(
     addressType: AddressType = AddressType.ANY,
     multisignType: MultisignType = MultisignType.FLEXIBLE,
-    onContinueClick: (String) -> Unit = {}
+    onContinueClick: (String, Boolean) -> Unit = { _, _ -> }
 ) {
     val viewModel: MiniscriptConfigTemplateViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -111,7 +111,7 @@ fun MiniscriptConfigTemplateContainer(
     LaunchedEffect(uiState.event) {
         when (val event = uiState.event) {
             is MiniscriptConfigTemplateEvent.TemplateCreated -> {
-                onContinueClick(event.template)
+                onContinueClick(event.template, event.reuseSigner)
                 viewModel.onEventHandled()
             }
 

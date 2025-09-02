@@ -66,7 +66,8 @@ import timber.log.Timber
 data class MiniscriptConfigureWallet(
     val template: String,
     val addressType: AddressType,
-    val walletName: String
+    val walletName: String,
+    val reuseSigner: Boolean = false
 )
 
 fun NavGraphBuilder.miniscriptConfigureWalletDestination(
@@ -195,7 +196,7 @@ fun MiniscriptConfigWalletScreen(
     var showSignerBottomSheet by rememberSaveable { mutableStateOf(false) }
     var currentKeyToAssign by rememberSaveable { mutableStateOf("") }
     var showMoreOption by rememberSaveable { mutableStateOf(false) }
-    var showBip32Path by rememberSaveable { mutableStateOf(uiState.showBip32PathForDuplicates) }
+    var showBip32Path by rememberSaveable(uiState.reuseSigner) { mutableStateOf(uiState.reuseSigner) }
     var showDuplicateSignerWarning by rememberSaveable { mutableStateOf(false) }
     var duplicateSignerData by rememberSaveable { mutableStateOf<Pair<SignerModel, String>?>(null) }
     var isDuplicateBip32Update by rememberSaveable { mutableStateOf(false) }
