@@ -103,6 +103,7 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailsEven
 import com.nunchuk.android.transaction.components.details.TransactionDetailsEvent.ViewBlockchainExplorer
 import com.nunchuk.android.transaction.usecase.GetBlockchainExplorerUrlUseCase
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.WalletTemplate
@@ -215,6 +216,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val getKeySetStatusUseCase: GetKeySetStatusUseCase,
     private val getTransactionSignersUseCase: GetTransactionSignersUseCase,
     private val timelockTransactionCache: LruCache<String, Long>,
+    private val walletLockedBase: LruCache<String, MiniscriptTimelockBased>,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionDetailsState())
     val state = _state.asStateFlow()
@@ -561,6 +563,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 )
             ).onSuccess { (lockedTime, lockedBase) ->
                 timelockTransactionCache.put(txId, lockedTime)
+                walletLockedBase.put(walletId, lockedBase)
                 _minscriptState.update {
                     it.copy(
                         lockedTime = lockedTime,

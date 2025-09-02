@@ -154,6 +154,21 @@ internal class TransactionAdapter(
                 transaction = data.transaction,
                 isTimelockedActive = isTimelockedActive
             )
+            if (isTimelockedActive) {
+                binding.status.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.nc_text_primary
+                    )
+                )
+            } else {
+                binding.status.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.nc_grey_g7
+                    )
+                )
+            }
             binding.date.text = data.transaction.getFormatDate()
             binding.tvRbfTag.isVisible = data.transaction.replacedTxid.isNotEmpty()
 
