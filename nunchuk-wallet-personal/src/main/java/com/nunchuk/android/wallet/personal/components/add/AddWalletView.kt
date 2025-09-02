@@ -105,6 +105,7 @@ fun AddWalletView(
     var walletConfigType by rememberSaveable {
         mutableStateOf(WalletConfigType.TOW_OF_THREE)
     }
+    var isWalletConfigManuallySelected by rememberSaveable { mutableStateOf(false) }
     var keys by remember { mutableIntStateOf(0) }
     var requiredKeys by remember { mutableIntStateOf(0) }
     var showMiniscriptBottomSheet by remember { mutableStateOf(false) }
@@ -160,7 +161,7 @@ fun AddWalletView(
     }
 
     LaunchedEffect(state.groupSandbox?.n ?: 3, state.groupSandbox?.m ?: 2, miniscriptTemplate) {
-        if (miniscriptTemplate.isEmpty() && walletConfigType != WalletConfigType.MINISCRIPT) {
+        if (miniscriptTemplate.isEmpty() && walletConfigType != WalletConfigType.MINISCRIPT && !isWalletConfigManuallySelected) {
             walletConfigType = getWalletConfigTypeBy(
                 n = state.groupSandbox?.n ?: 3,
                 m = state.groupSandbox?.m ?: 2
@@ -332,6 +333,7 @@ fun AddWalletView(
                                 onClick = {
                                     val previousWalletType = walletConfigType
                                     walletConfigType = option
+                                    isWalletConfigManuallySelected = true
                                     
                                     if (option != WalletConfigType.CUSTOM && option != WalletConfigType.MINISCRIPT) {
                                         requiredKeys = option.getMN().first
@@ -356,8 +358,8 @@ fun AddWalletView(
                             if (option == WalletConfigType.CUSTOM && walletConfigType == WalletConfigType.CUSTOM && !isCreateMiniscriptWallet) {
                                 KeysAndRequiredKeysScreen(
                                     state.freeGroupWalletConfig,
-                                    m = viewOnlyComposer?.requireKeys ?: state.groupSandbox?.m ?: 0,
-                                    n = viewOnlyComposer?.totalKeys ?: state.groupSandbox?.n ?: 0,
+                                    m = viewOnlyComposer?.requireKeys ?: state.groupSandbox?.m?.takeIf { it > 0 } ?: 1,
+                                    n = viewOnlyComposer?.totalKeys ?: state.groupSandbox?.n?.takeIf { it > 0 } ?: 1,
                                     viewOnly = isViewConfigOnly,
                                 ) { m, n ->
                                     keys = n
