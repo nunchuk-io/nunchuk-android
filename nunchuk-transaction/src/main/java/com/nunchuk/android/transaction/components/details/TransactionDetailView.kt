@@ -52,10 +52,12 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.coin.MODE_VIEW_ONLY
 import com.nunchuk.android.compose.coin.PreviewCoinCard
+import com.nunchuk.android.compose.fillPink
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.miniscript.MiniscriptUtil
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.canBroadCast
@@ -392,11 +394,12 @@ fun TransactionDetailView(
                             val scriptNode = miniscriptUiState.scriptNode
                                 ?: MiniscriptUtil.buildMusigNode(state.wallet.totalRequireSigns)
                             // TODO find better way to handle this
-                            val rootKeySetStatus = if (state.transaction.keySetStatus.isNotEmpty()) {
-                                mapOf("1" to state.transaction.keySetStatus[0])
-                            } else {
-                                emptyMap()
-                            }
+                            val rootKeySetStatus =
+                                if (state.transaction.keySetStatus.isNotEmpty()) {
+                                    mapOf("1" to state.transaction.keySetStatus[0])
+                                } else {
+                                    emptyMap()
+                                }
                             ScriptNodeTree(
                                 node = scriptNode,
                                 data = ScriptNodeData(
@@ -581,6 +584,11 @@ private fun TransactionHeader(
     } else {
         outputs.firstOrNull()?.first.orEmpty().truncatedAddress()
     }
+    val statusTextColor = if (isTimelockedActive) {
+        MaterialTheme.colorScheme.textPrimary
+    } else {
+        colorResource(R.color.nc_grey_g7)
+    }
     val status = if (isTimelockedActive) {
         stringResource(R.string.nc_timelocked)
     } else when (transaction.status) {
@@ -592,8 +600,8 @@ private fun TransactionHeader(
         TransactionStatus.REPLACED -> stringResource(R.string.nc_transaction_replaced)
         TransactionStatus.PENDING_NONCE -> ""
     }
-    val statusColor = if (isTimelockedActive) {
-        colorResource(R.color.nc_red_tint_color)
+    val statusBackgroundColor = if (isTimelockedActive) {
+        MaterialTheme.colorScheme.fillPink
     } else when (transaction.status) {
         TransactionStatus.PENDING_SIGNATURES -> colorResource(R.color.nc_red_tint_color)
         TransactionStatus.READY_TO_BROADCAST -> colorResource(R.color.nc_beeswax_tint)
@@ -619,7 +627,7 @@ private fun TransactionHeader(
             Row(
                 modifier = Modifier
                     .background(
-                        color = statusColor,
+                        color = statusBackgroundColor,
                         shape = RoundedCornerShape(20.dp),
                     )
                     .padding(horizontal = 10.dp, vertical = 4.dp),
@@ -644,12 +652,12 @@ private fun TransactionHeader(
                 Text(
                     modifier = Modifier
                         .background(
-                            color = statusColor,
+                            color = statusBackgroundColor,
                             shape = RoundedCornerShape(20.dp),
                         )
                         .padding(horizontal = 10.dp, vertical = 4.dp),
                     text = status,
-                    color = colorResource(R.color.nc_grey_g7),
+                    color = statusTextColor,
                     style = NunchukTheme.typography.caption,
                 )
 
