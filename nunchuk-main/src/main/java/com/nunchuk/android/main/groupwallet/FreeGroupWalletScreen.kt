@@ -1,6 +1,9 @@
 package com.nunchuk.android.main.groupwallet
 
+import android.app.Activity
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -67,6 +71,7 @@ import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.ADD_WALLET_REUSE_SIGNER_RESULT
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.component.FreeAddKeyCard
@@ -77,6 +82,8 @@ import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFrag
 import com.nunchuk.android.model.GroupSandbox
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.nav.args.AddWalletArgs
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
@@ -96,6 +103,7 @@ val avatarColors = listOf(
 fun NavGraphBuilder.freeGroupWallet(
     viewModel: FreeGroupWalletViewModel,
     snackState: SnackbarHostState,
+    navigator: NunchukNavigator,
     onEditClicked: (String, Boolean, String) -> Unit = { _, _, _ -> },
     onCopyLinkClicked: (String) -> Unit = {},
     onShowQRCodeClicked: (String) -> Unit = {},
@@ -132,10 +140,21 @@ fun NavGraphBuilder.freeGroupWallet(
             NcLoadingDialog()
         }
 
+        val launcher =
+            rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                val data = it.data
+                if (it.resultCode == Activity.RESULT_OK && data != null) {
+                    val miniscriptReuseSigner = data.getBooleanExtra(ADD_WALLET_REUSE_SIGNER_RESULT, false)
+                    viewModel.setMiniscriptReuseSigner(miniscriptReuseSigner)
+                }
+            }
+
         LifecycleResumeEffect(Unit) {
             viewModel.getGroupSandbox()
             onPauseOrDispose { }
         }
+
+        val context = LocalContext.current
 
         FreeGroupWalletScreen(
             snackState = snackState,
@@ -144,7 +163,16 @@ fun NavGraphBuilder.freeGroupWallet(
             onContinueClicked = onContinueClicked,
             onEditClicked = {
                 state.group?.let {
-                    onEditClicked(it.id, state.signers.any { it != null }, it.miniscriptTemplate)
+                    navigator.openAddWalletScreen(
+                        activityContext = context,
+                        launcher = launcher,
+                        args = AddWalletArgs(
+                            decoyPin = "",
+                            groupWalletId = it.id,
+                            hasGroupSigner = state.signers.any { it != null },
+                            miniscriptTemplate = it.miniscriptTemplate
+                        )
+                    )
                 }
             },
             onCopyLinkClicked = onCopyLinkClicked,
@@ -205,7 +233,7 @@ fun FreeGroupWalletScreen(
     var currentSignerIndex by rememberSaveable { mutableIntStateOf(-1) }
     var showDeleteSignerDialog by rememberSaveable { mutableStateOf(false) }
     var showKeyNotSynced by rememberSaveable { mutableStateOf(false) }
-    var showBip32Path by rememberSaveable { mutableStateOf(false) }
+    var showBip32Path by rememberSaveable(state.miniscriptReuseSigner) { mutableStateOf(state.miniscriptReuseSigner) }
     
     // New state variables for key actions
     var showRemoveConfirmation by rememberSaveable { mutableStateOf(false) }

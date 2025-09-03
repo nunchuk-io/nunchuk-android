@@ -52,7 +52,7 @@ data class MiniscriptCustomTemplate(
 fun NavGraphBuilder.miniscriptCustomTemplateDestination(
     fromAddWallet: Boolean = false,
     onNext: (String, AddressType?, Boolean) -> Unit = { _, _, _ -> },
-    onSaveAndBack: (String, AddressType?) -> Unit = { _, _ -> }
+    onSaveAndBack: (String, AddressType?, Boolean) -> Unit = { _, _, _ -> }
 ) {
     composable<MiniscriptCustomTemplate> { navBackStackEntry ->
         val data: MiniscriptCustomTemplate = navBackStackEntry.toRoute()
@@ -68,7 +68,7 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
                 is MiniscriptCustomTemplateEvent.Success -> {
                     val successEvent = event as MiniscriptCustomTemplateEvent.Success
                     if (fromAddWallet) {
-                        onSaveAndBack(successEvent.template, successEvent.addressType)
+                        onSaveAndBack(successEvent.template, successEvent.addressType, data.reuseSigner)
                     } else {
                         onNext(successEvent.template, successEvent.addressType, data.reuseSigner)
                     }
@@ -98,7 +98,7 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
                         )
                     }
                     if (fromAddWallet) {
-                        onSaveAndBack(pendingTemplate, AddressType.TAPROOT)
+                        onSaveAndBack(pendingTemplate, AddressType.TAPROOT, data.reuseSigner)
                         viewModel.clearEvent()
                     } else {
                         viewModel.proceedWithTaproot(pendingTemplate)
@@ -115,7 +115,9 @@ fun NavGraphBuilder.miniscriptCustomTemplateDestination(
             onContinue = { template ->
                 viewModel.createMiniscriptTemplate(MiniscriptUtil.revertFormattedMiniscript(template), data.addressType)
             },
-            onSaveAndBack = onSaveAndBack,
+            onSaveAndBack = { template, addressType ->
+                onSaveAndBack(template, addressType, data.reuseSigner)
+            },
             snackbarHostState = snackbarHostState,
             showTaprootWarning = showTaprootWarning,
             onTaprootWarningDismiss = {

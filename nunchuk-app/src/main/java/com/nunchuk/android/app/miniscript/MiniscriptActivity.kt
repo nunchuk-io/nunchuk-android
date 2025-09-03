@@ -166,11 +166,12 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
                                     )
                                 )
                             },
-                            onSaveAndBack = { template, addressType ->
+                            onSaveAndBack = { template, addressType, reuseSigner ->
                                 if (args.fromAddWallet) {
                                     val resultIntent = Intent().apply {
                                         putExtra("miniscript_template", template)
                                         addressType?.let { putExtra("address_type", it.name) }
+                                        putExtra("reuse_signer", reuseSigner)
                                     }
                                     setResult(RESULT_OK, resultIntent)
                                 }

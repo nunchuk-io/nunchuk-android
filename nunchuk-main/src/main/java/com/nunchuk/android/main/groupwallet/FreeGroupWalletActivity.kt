@@ -130,6 +130,7 @@ class FreeGroupWalletActivity : BaseComposeNfcActivity(), InputBipPathBottomShee
                             freeGroupWallet(
                                 viewModel = viewModel,
                                 snackState = snackState,
+                                navigator = navigator,
                                 onEditClicked = { groupId, hasGroupSigner, miniscriptTemplate ->
                                     navigator.openAddWalletScreen(
                                         activityContext = this@FreeGroupWalletActivity,

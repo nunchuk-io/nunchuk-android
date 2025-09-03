@@ -36,6 +36,7 @@ import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.data.model.WalletConfigType
 import com.nunchuk.android.core.data.model.getWalletConfigTypeBy
 import com.nunchuk.android.core.util.ADD_WALLET_RESULT
+import com.nunchuk.android.core.util.ADD_WALLET_REUSE_SIGNER_RESULT
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.showToast
 import com.nunchuk.android.nav.args.AddWalletArgs
@@ -81,6 +82,8 @@ class AddWalletActivity : BaseComposeActivity() {
                     // Invalid address type, ignore
                 }
             }
+            val reuseSigner = result.data?.getBooleanExtra("reuse_signer", false) == true
+            viewModel.setMiniscriptReuseSigner(reuseSigner)
         }
     }
 
@@ -193,6 +196,10 @@ class AddWalletActivity : BaseComposeActivity() {
                         }
 
                         is AddWalletEvent.OnCreateWalletSuccess -> {
+                            setResult(
+                                RESULT_OK,
+                                Intent().apply { putExtra(ADD_WALLET_REUSE_SIGNER_RESULT, event.reuseSigner) }
+                            )
                             finish()
                         }
                     }

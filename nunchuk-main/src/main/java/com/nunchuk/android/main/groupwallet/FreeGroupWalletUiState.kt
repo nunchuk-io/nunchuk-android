@@ -33,6 +33,7 @@ data class FreeGroupWalletUiState(
     val event: FreeGroupWalletEvent? = null,
     val isTestNet: Boolean = false,
     val pendingAddSignerState: PendingAddSignerState? = null,
+    val miniscriptReuseSigner: Boolean = false,
 )
 
 sealed class FreeGroupWalletEvent {

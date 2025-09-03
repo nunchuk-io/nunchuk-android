@@ -1555,6 +1555,10 @@ class FreeGroupWalletViewModel @Inject constructor(
         }
     }
 
+    fun setMiniscriptReuseSigner(reuse: Boolean) {
+        _uiState.update { it.copy(miniscriptReuseSigner = reuse) }
+    }
+
     companion object {
         private const val CURRENT_SIGNER_INDEX = "current_signer_index"
         private const val CURRENT_SIGNER = "current_signer"

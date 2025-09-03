@@ -76,6 +76,10 @@ class AddWalletViewModel @Inject constructor(
         _state.update { it.copy(addressTypeSelected = addressType) }
     }
 
+    fun setMiniscriptReuseSigner(reuse: Boolean) {
+        _state.update { it.copy(miniscriptReuseSigner = reuse) }
+    }
+
     fun updateWalletConfig(
         walletName: String,
         addressType: AddressType,
@@ -96,14 +100,14 @@ class AddWalletViewModel @Inject constructor(
                     )
                 ).onSuccess {
                     _state.update { it.copy(groupSandbox = it.groupSandbox?.copy(name = walletName)) }
-                    _event.emit(AddWalletEvent.OnCreateWalletSuccess)
+                    _event.emit(AddWalletEvent.OnCreateWalletSuccess(_state.value.miniscriptReuseSigner))
                 }.onFailure {
                     _event.emit(AddWalletEvent.ShowError(it.message.orEmpty()))
                 }
             }
         } else {
             viewModelScope.launch {
-                _event.emit(AddWalletEvent.OnCreateWalletSuccess)
+                _event.emit(AddWalletEvent.OnCreateWalletSuccess(_state.value.miniscriptReuseSigner))
             }
         }
     }
