@@ -291,7 +291,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                                     transactionConfirmViewModel.run {
                                         updateInputs(isSendAll, coins)
                                         handleConfirmEvent(
-                                            keySetIndex = if (timelockCoin.signingPath != null) 0 else 1,
+                                            keySetIndex = if (timelockCoin.signingPath != null) 1 else 0,
                                             signingPath = timelockCoin.signingPath
                                         )
                                     }
