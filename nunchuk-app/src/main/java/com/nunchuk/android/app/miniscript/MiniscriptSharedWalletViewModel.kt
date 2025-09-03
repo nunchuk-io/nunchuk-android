@@ -202,9 +202,9 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         scriptNode = result.scriptNode,
-                        keyPath = result.keyPath,
+                        keyPaths = result.keyPath,
                         scriptNodeMuSig = scriptNodeMuSig,
-                        areAllKeysAssigned = areAllKeysAssigned(result.scriptNode, it.signers, it.taprootSigner)
+                        areAllKeysAssigned = areAllKeysAssigned(result.scriptNode, it.signers)
                     )
                 }
                 mapKeyPositions(result.scriptNode, "")
@@ -230,8 +230,6 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     }
 
     fun addExistingSigner(signer: SignerModel, keyName: String) {
-        val addressType = _uiState.value.addressType
-        
         // Check if this signer fingerprint is already used in other keys
         val isSignerAlreadyUsed = checkIfSignerAlreadyUsed(signer.fingerPrint, keyName, signer.isMasterSigner)
         
@@ -280,12 +278,11 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     
     private fun checkIfSignerAlreadyUsed(fingerPrint: String, excludeKeyName: String, isMasterSigner: Boolean): Boolean {
         val currentSigners = _uiState.value.signers
-        val taprootSigner = _uiState.value.taprootSigner
         
         // For master signers with key pattern key_x_y, check if the fingerprint is used outside the related keys group
         if (isMasterSigner && isKeyPatternXY(excludeKeyName)) {
             val prefix = getKeyPrefix(excludeKeyName)
-            val relatedKeys = getAllKeysFromScriptNode(_uiState.value.scriptNode!!)
+            val relatedKeys = getAllWalletKeys()
                 .filter { it.startsWith(prefix) }
             
             // Check if fingerprint is used in keys outside the related group
@@ -293,10 +290,12 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 !relatedKeys.contains(keyName) && signerModel?.fingerPrint == fingerPrint
             }
             
-                    // Check taproot signer (only for single-key scenarios)
-        val keyPath = _uiState.value.keyPath
-        val isUsedInTaprootKey = keyPath.size == 1 && keyPath.isNotEmpty() && 
-            taprootSigner.any { it.fingerPrint == fingerPrint }
+            // Check taproot keys (handled through unified signers map)
+            val keyPath = _uiState.value.keyPaths
+            val isUsedInTaprootKey = keyPath.isNotEmpty() && 
+                keyPath.any { keyName -> 
+                    keyName != excludeKeyName && currentSigners[keyName]?.fingerPrint == fingerPrint 
+                }
             
             return isUsedOutsideRelatedKeys || isUsedInTaprootKey
         }
@@ -306,10 +305,11 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
             keyName != excludeKeyName && signerModel?.fingerPrint == fingerPrint
         }
         
-        val keyPath = _uiState.value.keyPath
-        val isUsedInTaprootKey = keyPath.size == 1 && keyPath.isNotEmpty() && 
-            !keyPath.contains(excludeKeyName) && 
-            taprootSigner.any { it.fingerPrint == fingerPrint }
+        val keyPath = _uiState.value.keyPaths
+        val isUsedInTaprootKey = keyPath.isNotEmpty() && 
+            keyPath.any { keyName -> 
+                keyName != excludeKeyName && currentSigners[keyName]?.fingerPrint == fingerPrint 
+            }
         
         return isUsedInRegularKeys || isUsedInTaprootKey
     }
@@ -326,34 +326,24 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     
     private fun checkIfSignerWithSamePathAlreadyUsed(fingerPrint: String, derivationPath: String, excludeKeyName: String): Boolean {
         val currentSigners = _uiState.value.signers
-        val taprootSigner = _uiState.value.taprootSigner
+        val keyPath = _uiState.value.keyPaths
         
         Timber.tag(TAG).d("Checking duplicate - fingerPrint: $fingerPrint, derivationPath: $derivationPath, excludeKeyName: $excludeKeyName")
         Timber.tag(TAG).d("Current signers: ${currentSigners.mapValues { "${it.value?.fingerPrint}:${it.value?.derivationPath}" }}")
-        Timber.tag(TAG).d("Taproot signer: ${taprootSigner.map { "${it.fingerPrint}:${it.derivationPath}" }}")
+        Timber.tag(TAG).d("Key path: $keyPath")
         
         // Check if the fingerprint + derivation path combination is used in any other key
-        val isUsedInRegularKeys = currentSigners.any { (keyName, signerModel) ->
+        val isUsedInSigners = currentSigners.any { (keyName, signerModel) ->
             val matches = keyName != excludeKeyName && 
                 signerModel?.fingerPrint == fingerPrint && 
                 signerModel.derivationPath == derivationPath
             if (matches) {
-                Timber.tag(TAG).d("Found duplicate in regular keys - keyName: $keyName, signer: ${signerModel?.fingerPrint}:${signerModel?.derivationPath}")
+                Timber.tag(TAG).d("Found duplicate in signers - keyName: $keyName, signer: ${signerModel?.fingerPrint}:${signerModel?.derivationPath}")
             }
             matches
         }
         
-        // Check if the fingerprint + derivation path combination is used in taproot signer
-        val keyPath = _uiState.value.keyPath
-        val isUsedInTaprootKey = keyPath.size == 1 && keyPath.isNotEmpty() && 
-            !keyPath.contains(excludeKeyName) && 
-            taprootSigner.any { it.fingerPrint == fingerPrint && it.derivationPath == derivationPath }
-        
-        if (isUsedInTaprootKey) {
-            Timber.tag(TAG).d("Found duplicate in taproot signer")
-        }
-        
-        val result = isUsedInRegularKeys || isUsedInTaprootKey
+        val result = isUsedInSigners
         Timber.tag(TAG).d("Duplicate check result: $result")
         
         return result
@@ -368,22 +358,6 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     private fun addSignerToState(signerModel: SignerModel, keyName: String) {
         Timber.tag(TAG).d("Adding signer: $signerModel to key: $keyName")
         
-        // Check if this is a taproot signer (keyName matches keyPath only for single-key scenarios)
-        val keyPath = _uiState.value.keyPath
-        if (keyPath.size == 1 && keyPath.contains(keyName)) {
-            Timber.tag(TAG).d("Storing taproot signer: $signerModel for keyPath: $keyName")
-            val currentTaprootSigners = _uiState.value.taprootSigner.toMutableList()
-            currentTaprootSigners.add(signerModel)
-            _uiState.update {
-                it.copy(
-                    taprootSigner = currentTaprootSigners,
-                    event = MiniscriptSharedWalletEvent.SignerAdded(keyName, signerModel),
-                    areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, it.signers, currentTaprootSigners)
-                )
-            }
-            return
-        }
-        
         val currentSigners = _uiState.value.signers.toMutableMap()
 
         // If keyName matches the pattern key_x_y, we need to handle master signer case
@@ -393,8 +367,8 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
             // Extract the prefix (key_x)
             val prefix = "${components[0]}_${components[1]}"
 
-            // Find all keys in scriptNode that share the same prefix
-            val relatedKeys = getAllKeysFromScriptNode(_uiState.value.scriptNode!!)
+            // Find all keys in wallet that share the same prefix
+            val relatedKeys = getAllWalletKeys()
                 .filter { it.startsWith(prefix) }
                 .sorted() // Sort to ensure consistent order
 
@@ -438,7 +412,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                                     _uiState.update { state ->
                                         state.copy(
                                             signers = currentSigners.toMap(),
-                                            areAllKeysAssigned = areAllKeysAssigned(state.scriptNode, currentSigners, listOf(model))
+                                            areAllKeysAssigned = areAllKeysAssigned(state.scriptNode, currentSigners.toMap())
                                         )
                                     }
                                 } ?: run {
@@ -485,7 +459,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                         it.copy(
                             signers = currentSigners,
                             event = MiniscriptSharedWalletEvent.SignerAdded(keyName, signerModel),
-                            areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners, listOf(signerModel))
+                            areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners)
                         )
                     }
                     Timber.tag(TAG).d("Updated state with new signers: $currentSigners")
@@ -500,7 +474,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 it.copy(
                     signers = currentSigners,
                     event = MiniscriptSharedWalletEvent.SignerAdded(keyName, signerModel),
-                    areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners, listOf(signerModel))
+                    areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners)
                 )
             }
             Timber.tag(TAG).d("Updated state with new signer: $signerModel for key: $keyName")
@@ -510,32 +484,9 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     fun removeSigner(keyName: String) {
         Timber.tag(TAG).d("Removing signer for key: $keyName")
         
-        // Check if this is a taproot signer removal
-        val keyPath = _uiState.value.keyPath
-        if (keyPath.contains(keyName)) {
-            Timber.tag(TAG).d("Removing taproot signer for keyPath: $keyName")
-            val currentTaprootSigners = _uiState.value.taprootSigner.toMutableList()
-            
-            // Find the index of the keyName in keyPath and remove the corresponding signer
-            val keyIndex = keyPath.indexOf(keyName)
-            if (keyIndex != -1 && keyIndex < currentTaprootSigners.size) {
-                currentTaprootSigners.removeAt(keyIndex)
-                Timber.tag(TAG).d("Removed taproot signer at index $keyIndex for key: $keyName")
-            }
-            
-            _uiState.update {
-                it.copy(
-                    taprootSigner = currentTaprootSigners,
-                    event = MiniscriptSharedWalletEvent.SignerRemoved(keyName)
-                )
-            }
-            return
-        }
-        
         val currentSigners = _uiState.value.signers.toMutableMap()
 
-        // Remove only the specific key that was requested
-        // This prevents removing key_0_1 when removing key_0_0
+        // Remove the signer for the specified key (works for both regular and taproot signers)
         currentSigners[keyName] = null
         Timber.tag(TAG).d("Removed signer for key: $keyName")
 
@@ -543,25 +494,25 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
             it.copy(
                 signers = currentSigners,
                 event = MiniscriptSharedWalletEvent.SignerRemoved(keyName),
-                areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners, it.taprootSigner.filterNotNull())
+                areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners)
             )
         }
         Timber.tag(TAG).d("Updated state after removing signer. Current signers: $currentSigners")
     }
 
-    private fun areAllKeysAssigned(scriptNode: ScriptNode?, signers: Map<String, SignerModel?>, taprootSigner: List<SignerModel> = emptyList()): Boolean {
+    private fun areAllKeysAssigned(scriptNode: ScriptNode?, signers: Map<String, SignerModel?>): Boolean {
         if (scriptNode == null) return false
         val allKeys = getAllKeysFromScriptNode(scriptNode)
         val areScriptKeysAssigned = allKeys.all { keyName -> signers[keyName] != null }
         
-        // Check if taproot signer is assigned when keyPath is present
-        val keyPath = _uiState.value.keyPath
+        // Check if taproot keys are assigned when keyPath is present
+        val keyPath = _uiState.value.keyPaths
         val scriptNodeMuSig = _uiState.value.scriptNodeMuSig
         
         val isTaprootKeyAssigned = if (keyPath.isNotEmpty()) {
             if (keyPath.size == 1) {
-                // Single key scenario - check taproot signer
-                taprootSigner.isNotEmpty()
+                // Single key scenario - check if the keyPath key has a signer assigned
+                keyPath.all { keyName -> signers[keyName] != null }
             } else {
                 // Multi-key scenario - check if all keys in scriptNodeMuSig are assigned
                 scriptNodeMuSig?.let { muSigNode ->
@@ -580,6 +531,22 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         node.subs.forEach { subNode ->
             keys.addAll(getAllKeysFromScriptNode(subNode))
         }
+        return keys
+    }
+
+    private fun getAllWalletKeys(): Set<String> {
+        val keys = mutableSetOf<String>()
+        
+        // Add keys from main script node
+        _uiState.value.scriptNode?.let { scriptNode ->
+            keys.addAll(getAllKeysFromScriptNode(scriptNode))
+        }
+        
+        // Add keys from MuSig node (for multi-key taproot scenarios)
+        _uiState.value.scriptNodeMuSig?.let { scriptNodeMuSig ->
+            keys.addAll(getAllKeysFromScriptNode(scriptNodeMuSig))
+        }
+        
         return keys
     }
 
@@ -673,38 +640,17 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     }
     
     private fun proceedWithBip32Update(newSignerModel: SignerModel, currentKey: String) {
-        // Check if this is updating a taproot signer (only for single-key scenarios)
-        val keyPath = _uiState.value.keyPath
-        if (keyPath.size == 1 && keyPath.contains(currentKey)) {
-            val currentTaprootSigners = _uiState.value.taprootSigner.toMutableList()
-            // Replace the signer with the same fingerprint
-            val index = currentTaprootSigners.indexOfFirst { it.fingerPrint == newSignerModel.fingerPrint }
-            if (index != -1) {
-                currentTaprootSigners[index] = newSignerModel
-            } else {
-                currentTaprootSigners.add(newSignerModel)
-            }
-            _uiState.update {
-                it.copy(
-                    taprootSigner = currentTaprootSigners,
-                    event = MiniscriptSharedWalletEvent.Bip32PathChanged(newSignerModel),
-                    currentKey = "",
-                    pendingBip32Update = null
-                )
-            }
-        } else {
-            // Update regular script signer
-            val currentSigners = _uiState.value.signers.toMutableMap()
-            currentSigners[currentKey] = newSignerModel
-            _uiState.update {
-                it.copy(
-                    signers = currentSigners,
-                    event = MiniscriptSharedWalletEvent.Bip32PathChanged(newSignerModel),
-                    currentKey = "",
-                    pendingBip32Update = null,
-                    areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners, it.taprootSigner)
-                )
-            }
+        // Update the signer in the unified signers map (works for both regular and taproot signers)
+        val currentSigners = _uiState.value.signers.toMutableMap()
+        currentSigners[currentKey] = newSignerModel
+        _uiState.update {
+            it.copy(
+                signers = currentSigners,
+                event = MiniscriptSharedWalletEvent.Bip32PathChanged(newSignerModel),
+                currentKey = "",
+                pendingBip32Update = null,
+                areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners)
+            )
         }
     }
     
@@ -741,6 +687,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         val scriptNode = _uiState.value.scriptNode ?: return result
         val scriptNodeMuSig = _uiState.value.scriptNodeMuSig
         val signers = _uiState.value.signers
+        val keyPath = _uiState.value.keyPaths
 
         fun traverseNode(node: ScriptNode) {
             // Process keys in current node
@@ -768,15 +715,11 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
             }
         }
         
-        // Add taproot signers if available (only for single-key scenarios)
-        val keyPath = _uiState.value.keyPath
-        val taprootSigners = _uiState.value.taprootSigner
-        if (keyPath.size == 1 && keyPath.isNotEmpty() && taprootSigners.isNotEmpty()) {
-            Timber.tag(TAG).d("Adding taproot signers to keySignerMap: $taprootSigners for keyPath: $keyPath")
-            keyPath.forEachIndexed { index, key ->
-                if (index < taprootSigners.size) {
-                    result[key] = taprootSigners[index].toSingleSigner()
-                }
+        // Add taproot keys from keyPath (handled uniformly through signers map)
+        keyPath.forEach { key ->
+            signers[key]?.let { signerModel ->
+                Timber.tag(TAG).d("Adding taproot key to keySignerMap: $key -> $signerModel")
+                result[key] = signerModel.toSingleSigner()
             }
         }
         
@@ -946,7 +889,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                             _uiState.update { state ->
                                 state.copy(
                                     signers = currentSigners.toMap(),
-                                    areAllKeysAssigned = areAllKeysAssigned(state.scriptNode, currentSigners, listOf(model))
+                                    areAllKeysAssigned = areAllKeysAssigned(state.scriptNode, currentSigners.toMap())
                                 )
                             }
                         } ?: run {
@@ -990,7 +933,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 it.copy(
                     signers = currentSigners,
                     event = MiniscriptSharedWalletEvent.SignerAdded(pendingState.keyName, signerModel),
-                    areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners, it.taprootSigner.filterNotNull())
+                    areAllKeysAssigned = areAllKeysAssigned(it.scriptNode, currentSigners)
                 )
             }
             Timber.tag(TAG).d("Resumed - Updated state with signers: $currentSigners")
@@ -1026,8 +969,8 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
 
 data class MiniscriptSharedWalletState(
     val scriptNode: ScriptNode? = null,
-    val keyPath: List<String> = emptyList(),
     val scriptNodeMuSig: ScriptNode? = null,
+    val keyPaths: List<String> = emptyList(),
     val supportedTypes: List<SupportedSigner> = emptyList(),
     val signers: Map<String, SignerModel?> = emptyMap(),
     val allSigners: List<SignerModel> = emptyList(),
@@ -1041,7 +984,6 @@ data class MiniscriptSharedWalletState(
     val requestCacheTapSignerXpubEvent: Boolean = false,
     val isTestNet: Boolean = false,
     val currentKeyToAssign: String = "",
-    val taprootSigner: List<SignerModel> = emptyList(),
     val showBip32PathForDuplicates: Boolean = false,
     val pendingBip32Update: PendingBip32Update? = null,
     val reuseSigner: Boolean = false

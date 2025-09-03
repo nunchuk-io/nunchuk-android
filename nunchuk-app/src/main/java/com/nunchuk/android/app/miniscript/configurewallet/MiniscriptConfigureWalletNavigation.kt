@@ -250,7 +250,7 @@ fun MiniscriptConfigWalletScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     val hasDuplicateSigners =
-                        getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner).isNotEmpty()
+                        getDuplicateSignerKeys(uiState.signers).isNotEmpty()
                     val isContinueEnabled = uiState.areAllKeysAssigned && !hasDuplicateSigners
 
                     NcPrimaryDarkButton(
@@ -293,7 +293,6 @@ fun MiniscriptConfigWalletScreen(
                             showSignerBottomSheet = true
                         }
                     },
-                    getDuplicateSignerKeys = ::getDuplicateSignerKeys,
                     parentModifier = parentModifier
                 )
 
@@ -306,7 +305,7 @@ fun MiniscriptConfigWalletScreen(
                                 signers = uiState.signers,
                                 showBip32Path = showBip32Path,
                                 duplicateSignerKeys = if (uiState.showBip32PathForDuplicates) {
-                                    getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner)
+                                    getDuplicateSignerKeys(uiState.signers)
                                 } else emptySet()
                             ),
                             onChangeBip32Path = onChangeBip32Path,
@@ -426,23 +425,22 @@ private fun TaprootAddressContent(
     showBip32Path: Boolean,
     onChangeBip32Path: (String, SignerModel) -> Unit,
     onActionKey: (String, SignerModel?) -> Unit,
-    getDuplicateSignerKeys: (Map<String, SignerModel?>, List<SignerModel>) -> Set<String>,
     parentModifier: Modifier = Modifier
 ) {
     if (uiState.addressType == AddressType.TAPROOT) {
-        if (uiState.keyPath.size <= 1) {
+        if (uiState.keyPaths.size <= 1) {
             MiniscriptTaproot(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                keyPath = uiState.keyPath.firstOrNull().orEmpty(),
+                keyPath = uiState.keyPaths.firstOrNull().orEmpty(),
                 data = ScriptNodeData(
                     mode = ScriptMode.CONFIG,
                     signers = uiState.signers,
                     showBip32Path = showBip32Path,
                     duplicateSignerKeys = if (uiState.showBip32PathForDuplicates) {
-                        getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner)
+                        getDuplicateSignerKeys(uiState.signers)
                     } else emptySet()
                 ),
-                signer = if (uiState.keyPath.isNotEmpty() && uiState.taprootSigner.isNotEmpty()) uiState.taprootSigner.first() else null,
+                signer = if (uiState.keyPaths.isNotEmpty()) uiState.signers[uiState.keyPaths.first()] else null,
                 onChangeBip32Path = onChangeBip32Path,
                 onActionKey = onActionKey
             )
@@ -461,7 +459,7 @@ private fun TaprootAddressContent(
                         signers = uiState.signers,
                         showBip32Path = showBip32Path,
                         duplicateSignerKeys = if (uiState.showBip32PathForDuplicates) {
-                            getDuplicateSignerKeys(uiState.signers, uiState.taprootSigner)
+                            getDuplicateSignerKeys(uiState.signers)
                         } else emptySet()
                     ),
                     onChangeBip32Path = onChangeBip32Path,
@@ -485,8 +483,7 @@ private fun TaprootAddressContent(
 }
 
 private fun getDuplicateSignerKeys(
-    signers: Map<String, SignerModel?>,
-    taprootSigners: List<SignerModel>
+    signers: Map<String, SignerModel?>
 ): Set<String> {
     val signerKeyCounts = mutableMapOf<String, Int>()
     val duplicateKeys = mutableSetOf<String>()
@@ -498,26 +495,11 @@ private fun getDuplicateSignerKeys(
         signerKeyCounts[signerKey] = currentCount + 1
 
         Timber.tag("miniscript-feature")
-            .d("  - Regular signer: $signerKey (count: ${currentCount + 1})")
+            .d("  - Signer: $signerKey (count: ${currentCount + 1})")
 
         if (currentCount > 0) {
             duplicateKeys.add(signerKey)
             Timber.tag("miniscript-feature").d("  - DUPLICATE FOUND: $signerKey")
-        }
-    }
-
-    // Count taproot signers
-    taprootSigners.forEach { signer ->
-        val signerKey = "${signer.fingerPrint}:${signer.derivationPath}"
-        val currentCount = signerKeyCounts.getOrDefault(signerKey, 0)
-        signerKeyCounts[signerKey] = currentCount + 1
-
-        Timber.tag("miniscript-feature")
-            .d("  - Taproot signer: $signerKey (count: ${currentCount + 1})")
-
-        if (currentCount > 0) {
-            duplicateKeys.add(signerKey)
-            Timber.tag("miniscript-feature").d("  - DUPLICATE FOUND in taproot: $signerKey")
         }
     }
 
@@ -570,7 +552,7 @@ fun MiniscriptConfigWalletScreenPreview() {
                 )
             )
         ),
-        keyPath = listOf("key_taproot"),
+        keyPaths = listOf("key_taproot"),
         addressType = AddressType.TAPROOT,
         signers = mapOf(
             "key_0_0" to null,
