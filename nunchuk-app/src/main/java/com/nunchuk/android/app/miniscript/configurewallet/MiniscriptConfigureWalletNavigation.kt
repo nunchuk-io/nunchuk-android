@@ -1,6 +1,5 @@
 package com.nunchuk.android.app.miniscript.configurewallet
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -44,6 +43,8 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcConfirmationVerticalDialog
+import com.nunchuk.android.compose.dialog.NcInputDialog
+import com.nunchuk.android.compose.dialog.NcInputType
 import com.nunchuk.android.compose.miniscript.MiniscriptTaproot
 import com.nunchuk.android.compose.miniscript.PolicyHeader
 import com.nunchuk.android.compose.miniscript.ScriptMode
@@ -86,55 +87,6 @@ fun NavGraphBuilder.miniscriptConfigureWalletDestination(
         }
 
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        val context = LocalContext.current
-
-        LaunchedEffect(uiState.event) {
-            when (val event = uiState.event) {
-                is MiniscriptSharedWalletEvent.Loading -> {
-                    // Handle loading state
-                }
-
-                null -> {}
-                is MiniscriptSharedWalletEvent.Error -> {
-                    Toast.makeText(
-                        context,
-                        event.message,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-
-                is MiniscriptSharedWalletEvent.SignerAdded -> {}
-                is MiniscriptSharedWalletEvent.SignerRemoved -> {}
-                is MiniscriptSharedWalletEvent.OpenChangeBip32Path -> {
-                    onOpenChangeBip32Path(event.signer)
-                }
-
-                is MiniscriptSharedWalletEvent.Bip32PathChanged -> {
-                    Toast.makeText(
-                        context,
-                        "BIP32 path updated successfully",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-
-                is MiniscriptSharedWalletEvent.RequestCacheTapSignerXpub -> {
-                    // This will be handled by the LaunchedEffect in MiniscriptActivity
-                }
-
-                is MiniscriptSharedWalletEvent.ShowDuplicateSignerWarning -> {
-                    // Don't clear these events here - let the screen handle them
-                    return@LaunchedEffect
-                }
-
-                is MiniscriptSharedWalletEvent.ShowDuplicateSignerUpdateWarning -> {
-                    // Don't clear these events here - let the screen handle them
-                    return@LaunchedEffect
-                }
-
-                else -> {}
-            }
-            viewModel.onEventHandled()
-        }
 
         // Load signers when the screen returns from adding a new key
         LifecycleResumeEffect(uiState.currentKeyToAssign) {
@@ -146,6 +98,7 @@ fun NavGraphBuilder.miniscriptConfigureWalletDestination(
 
         MiniscriptConfigWalletScreen(
             uiState = uiState,
+            onOpenChangeBip32Path = onOpenChangeBip32Path,
             onAddNewKey = {
                 onAddNewKey(viewModel.getSuggestedSigners())
             },
@@ -172,6 +125,9 @@ fun NavGraphBuilder.miniscriptConfigureWalletDestination(
             onProceedWithDuplicateBip32Update = {
                 viewModel.proceedWithDuplicateBip32Update()
             },
+            onSubmitPassphrase = { passphrase ->
+                viewModel.submitPassphrase(passphrase)
+            },
             onClearEvent = {
                 viewModel.onEventHandled()
             }
@@ -189,8 +145,10 @@ fun MiniscriptConfigWalletScreen(
     onSetCurrentKey: (String) -> Unit = {},
     onContinue: () -> Unit = {},
     onChangeBip32Path: (String, SignerModel) -> Unit = { _, _ -> },
+    onOpenChangeBip32Path: (SignerModel) -> Unit = {},
     onProceedWithDuplicateSigner: (SignerModel, String) -> Unit = { _, _ -> },
     onProceedWithDuplicateBip32Update: () -> Unit = {},
+    onSubmitPassphrase: (String) -> Unit = {},
     onClearEvent: () -> Unit = {}
 ) {
     var showSignerBottomSheet by rememberSaveable { mutableStateOf(false) }
@@ -202,24 +160,71 @@ fun MiniscriptConfigWalletScreen(
     var isDuplicateBip32Update by rememberSaveable { mutableStateOf(false) }
     var showRemoveConfirmation by rememberSaveable { mutableStateOf(false) }
     var keyToRemove by rememberSaveable { mutableStateOf("") }
+    var showPassphraseDialog by rememberSaveable { mutableStateOf(false) }
 
-    // Handle duplicate signer warning events
+    val context = LocalContext.current
+    
+    // Consolidated event handling for all MiniscriptSharedWalletEvent types
     LaunchedEffect(uiState.event) {
-        when (uiState.event) {
+        Timber.tag("miniscript-feature").d("Screen level - UI OBSERVED event change: ${uiState.event}")
+        Timber.tag("miniscript-feature").d("Screen level - MiniscriptConfigWalletScreen LaunchedEffect triggered with event: ${uiState.event}")
+        when (val event = uiState.event) {
+            is MiniscriptSharedWalletEvent.Error -> {
+                android.widget.Toast.makeText(
+                    context,
+                    event.message,
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+            
+            is MiniscriptSharedWalletEvent.SignerAdded -> {
+                // UI will react automatically via uiState changes
+            }
+            
+            is MiniscriptSharedWalletEvent.SignerRemoved -> {
+                // UI will react automatically via uiState changes
+            }
+            
+            is MiniscriptSharedWalletEvent.OpenChangeBip32Path -> {
+                onOpenChangeBip32Path(event.signer)
+            }
+            
+            is MiniscriptSharedWalletEvent.Bip32PathChanged -> {
+                android.widget.Toast.makeText(
+                    context,
+                    "BIP32 path updated successfully",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+            
+            is MiniscriptSharedWalletEvent.RequestCacheTapSignerXpub -> {
+                return@LaunchedEffect
+            }
+            
             is MiniscriptSharedWalletEvent.ShowDuplicateSignerWarning -> {
-                duplicateSignerData = Pair(uiState.event.signer, uiState.event.keyName)
+                duplicateSignerData = Pair(event.signer, event.keyName)
                 isDuplicateBip32Update = false
                 showDuplicateSignerWarning = true
             }
-
+            
             is MiniscriptSharedWalletEvent.ShowDuplicateSignerUpdateWarning -> {
-                duplicateSignerData = Pair(uiState.event.signer, uiState.event.keyName)
+                duplicateSignerData = Pair(event.signer, event.keyName)
                 isDuplicateBip32Update = true
                 showDuplicateSignerWarning = true
             }
+            
+            is MiniscriptSharedWalletEvent.RequestPassphrase -> {
+                showPassphraseDialog = true
+            }
 
+            is MiniscriptSharedWalletEvent.CreateWalletSuccess -> {
+                // UI will handle this automatically through navigation
+            }
+            
             else -> {}
         }
+        
+        onClearEvent()
     }
 
     NunchukTheme {
@@ -413,6 +418,31 @@ fun MiniscriptConfigWalletScreen(
                 onDismiss = {
                     showRemoveConfirmation = false
                     keyToRemove = ""
+                }
+            )
+        }
+
+        if (showPassphraseDialog) {
+            Timber.tag("miniscript-feature").d("Composing NcInputDialog for passphrase input")
+            NcInputDialog(
+                title = stringResource(id = R.string.nc_transaction_enter_passphrase),
+                inputType = NcInputType.PASSWORD,
+                isMaskedInput = true,
+                onConfirmed = { passphrase ->
+                    Timber.tag("miniscript-feature").d("NcInputDialog onConfirmed called with passphrase length: ${passphrase.length}")
+                    showPassphraseDialog = false
+                    onSubmitPassphrase(passphrase)
+                    onClearEvent()
+                },
+                onCanceled = {
+                    Timber.tag("miniscript-feature").d("NcInputDialog onCanceled called")
+                    showPassphraseDialog = false
+                    onClearEvent()
+                },
+                onDismiss = {
+                    Timber.tag("miniscript-feature").d("NcInputDialog onDismiss called")
+                    showPassphraseDialog = false
+                    onClearEvent()
                 }
             )
         }

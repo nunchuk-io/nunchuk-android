@@ -29,8 +29,11 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateMiniscriptWalletUseCase
+import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
+import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
+import com.nunchuk.android.usecase.signer.ClearSignerPassphraseUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.signer.GetCurrentIndexFromMasterSignerUseCase
 import com.nunchuk.android.usecase.signer.GetSignerFromMasterSignerByIndexUseCase
@@ -64,6 +67,9 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val accountManager: AccountManager,
+    private val getMasterSignerUseCase: GetMasterSignerUseCase,
+    private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
+    private val clearSignerPassphraseUseCase: ClearSignerPassphraseUseCase,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -247,7 +253,6 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     
     private fun proceedWithAddingSigner(signer: SignerModel, keyName: String) {
         val addressType = _uiState.value.addressType
-        _uiState.update { it.copy(event = MiniscriptSharedWalletEvent.Loading(true)) }
         viewModelScope.launch {
             if (signer.isMasterSigner) {
                 val masterSigner =
@@ -273,7 +278,6 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 addSignerToState(singleSigner.toModel(), keyName)
             }
         }
-        _uiState.update { it.copy(event = MiniscriptSharedWalletEvent.Loading(false)) }
     }
     
     private fun checkIfSignerAlreadyUsed(fingerPrint: String, excludeKeyName: String, isMasterSigner: Boolean): Boolean {
@@ -558,10 +562,12 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
     }
 
     fun onEventHandled() {
+        Timber.tag(TAG).d("onEventHandled called, clearing event: ${_uiState.value.event}")
         _uiState.update { it.copy(event = null) }
     }
 
     fun changeBip32Path(keyName: String, signer: SignerModel) {
+        Timber.tag(TAG).d("changeBip32Path called - keyName: $keyName, signer: ${signer.fingerPrint}")
         _uiState.update {
             it.copy(
                 currentKey = keyName,
@@ -569,14 +575,14 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 event = MiniscriptSharedWalletEvent.OpenChangeBip32Path(keyName, signer)
             )
         }
+        Timber.tag(TAG).d("changeBip32Path - OpenChangeBip32Path event emitted")
+        Timber.tag(TAG).d("changeBip32Path - Current uiState.event after update: ${_uiState.value.event}")
     }
 
     fun updateBip32Path(masterSignerId: String, newPath: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(event = MiniscriptSharedWalletEvent.Loading(true)) }
             val currentKey = _uiState.value.currentKey
             if (currentKey.isEmpty()) {
-                _uiState.update { it.copy(event = MiniscriptSharedWalletEvent.Loading(false)) }
                 return@launch
             }
             getSignerFromMasterSignerUseCase(
@@ -584,38 +590,41 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                     masterSignerId, newPath
                 )
             ).onSuccess { newSigner ->
-                val newSignerModel = singleSignerMapper(newSigner)
-                
-                Timber.tag(TAG).d("BIP32 Update - Checking duplicate for ${newSignerModel.fingerPrint}:${newSignerModel.derivationPath} excluding key: $currentKey")
-                
-                // Check if this update would create a duplicate signer (same fingerprint + same derivation path)
-                val wouldCreateDuplicate = checkIfSignerWithSamePathAlreadyUsed(
-                    newSignerModel.fingerPrint, 
-                    newSignerModel.derivationPath, 
-                    currentKey
-                )
-                
-                Timber.tag(TAG).d("BIP32 Update - Would create duplicate: $wouldCreateDuplicate")
-                
-                if (wouldCreateDuplicate) {
-                    Timber.tag(TAG).d("BIP32 Update - Showing duplicate warning dialog")
-                    // Store the pending update and show warning dialog
+                Timber.tag(TAG).d("updateBip32Path - Got new signer for path $newPath: $newSigner")
+                // After getting the new signer, check if passphrase is needed
+                getMasterSignerUseCase(
+                    masterSignerId
+                ).onSuccess { masterSigner ->
+                    Timber.tag(TAG).d("updateBip32Path - Got master signer: $masterSigner")
+                    if (masterSigner.device.needPassPhraseSent == true) {
+                        Timber.tag(TAG).d("Master signer requires passphrase, emitting RequestPassphrase event")
+                        _uiState.update {
+                            it.copy(
+                                pendingPassphraseState = PendingPassphraseState(
+                                    masterSignerId = masterSignerId,
+                                    newPath = newPath,
+                                    currentKey = currentKey,
+                                    newSigner = newSigner
+                                ),
+                                event = MiniscriptSharedWalletEvent.RequestPassphrase
+                            )
+                        }
+                        return@launch
+                    } else {
+                        Timber.tag(TAG).d("Master signer does not require passphrase, continuing with normal flow")
+                        // No passphrase needed, continue with the normal flow
+                        continueWithBip32Update(newSigner, currentKey, masterSignerId, newPath)
+                    }
+                }.onFailure { error ->
+                    Timber.tag(TAG).e("Failed to get master signer: $error")
                     _uiState.update {
                         it.copy(
-                            event = MiniscriptSharedWalletEvent.ShowDuplicateSignerUpdateWarning(
-                                newSignerModel, 
-                                currentKey
-                            ),
-                            pendingBip32Update = PendingBip32Update(masterSignerId, newPath, currentKey)
+                            event = MiniscriptSharedWalletEvent.Error(error.message.orUnknownError()),
+                            currentKey = "",
+                            pendingBip32Update = null
                         )
                     }
-                    return@launch
                 }
-                
-                Timber.tag(TAG).d("BIP32 Update - No duplicate found, proceeding with update")
-                // Proceed with the update if no duplicate
-                proceedWithBip32Update(newSignerModel, currentKey)
-                
             }.onFailure { error ->
                 if (error is NCNativeException && error.message.contains("-1009")) {
                     savedStateHandle[NEW_PATH] = newPath
@@ -626,7 +635,7 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                         ) 
                     }
                 } else {
-                    Timber.e("Failed to change bip32 path $error")
+                    Timber.tag(TAG).e("Failed to change bip32 path $error")
                     _uiState.update {
                         it.copy(
                             event = MiniscriptSharedWalletEvent.Error(error.message.orUnknownError()),
@@ -637,6 +646,37 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 }
             }
         }
+    }
+    
+    private suspend fun continueWithBip32Update(newSigner: SingleSigner, currentKey: String, masterSignerId: String, newPath: String) {
+        val newSignerModel = singleSignerMapper(newSigner)
+
+        // Check if this update would create a duplicate signer (same fingerprint + same derivation path)
+        val wouldCreateDuplicate = checkIfSignerWithSamePathAlreadyUsed(
+            newSignerModel.fingerPrint, 
+            newSignerModel.derivationPath, 
+            currentKey
+        )
+
+        if (wouldCreateDuplicate) {
+            Timber.tag(TAG).d("BIP32 Update - Showing duplicate warning dialog")
+            // Store the pending update and show warning dialog
+            _uiState.update {
+                it.copy(
+                    event = MiniscriptSharedWalletEvent.ShowDuplicateSignerUpdateWarning(
+                        newSignerModel, 
+                        currentKey
+                    ),
+                    pendingBip32Update = PendingBip32Update(masterSignerId, newPath, currentKey)
+                )
+            }
+        } else {
+            Timber.tag(TAG).d("BIP32 Update - No duplicate found, proceeding with update")
+            // Proceed with the update if no duplicate
+            proceedWithBip32Update(newSignerModel, currentKey)
+        }
+        
+//        clearSignerPassphraseUseCase(newSignerModel.fingerPrint)
     }
     
     private fun proceedWithBip32Update(newSignerModel: SignerModel, currentKey: String) {
@@ -674,8 +714,71 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
                 Timber.e("Failed to proceed with duplicate bip32 update: $error")
                 _uiState.update {
                     it.copy(
-                        event = MiniscriptSharedWalletEvent.Error(error.message.orUnknownError()),
+//                        event = MiniscriptSharedWalletEvent.Error(error.message.orUnknownError()),
                         pendingBip32Update = null
+                    )
+                }
+            }
+        }
+    }
+
+    fun submitPassphrase(passphrase: String) {
+        Timber.tag(TAG).d("submitPassphrase called with passphrase length: ${passphrase.length}")
+        val pendingState = _uiState.value.pendingPassphraseState ?: run {
+            Timber.tag(TAG).e("submitPassphrase called but no pending passphrase state found")
+            return
+        }
+        
+        viewModelScope.launch {
+
+            sendSignerPassphraseUseCase(
+                SendSignerPassphraseUseCase.Param(
+                    signerId = pendingState.masterSignerId,
+                    passphrase = passphrase
+                )
+            ).onSuccess {
+                // Passphrase sent successfully, continue with the BIP32 update flow
+                val newSignerModel = singleSignerMapper(pendingState.newSigner)
+                val currentKey = pendingState.currentKey
+                
+                Timber.tag(TAG).d("Passphrase sent successfully, continuing with BIP32 update")
+                
+                // Check if this update would create a duplicate signer
+                val wouldCreateDuplicate = checkIfSignerWithSamePathAlreadyUsed(
+                    newSignerModel.fingerPrint, 
+                    newSignerModel.derivationPath, 
+                    currentKey
+                )
+                
+                if (wouldCreateDuplicate) {
+                    // Show duplicate warning dialog
+                    _uiState.update {
+                        it.copy(
+                            event = MiniscriptSharedWalletEvent.ShowDuplicateSignerUpdateWarning(
+                                newSignerModel, 
+                                currentKey
+                            ),
+                            pendingBip32Update = PendingBip32Update(
+                                pendingState.masterSignerId, 
+                                pendingState.newPath, 
+                                currentKey
+                            ),
+                            pendingPassphraseState = null
+                        )
+                    }
+                    return@launch
+                }
+                
+                // No duplicate found, proceed with the update
+                proceedWithBip32Update(newSignerModel, currentKey)
+                _uiState.update { it.copy(pendingPassphraseState = null) }
+                
+            }.onFailure { error ->
+                Timber.e("Failed to send passphrase: $error")
+                _uiState.update {
+                    it.copy(
+//                        event = MiniscriptSharedWalletEvent.Error(error.message.orUnknownError()),
+                        pendingPassphraseState = null
                     )
                 }
             }
@@ -735,7 +838,6 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(event = MiniscriptSharedWalletEvent.Loading(true)) }
             createMiniscriptWalletUseCase(
                 CreateMiniscriptWalletUseCase.Params(
                     miniscriptTemplate = _uiState.value.miniscriptTemplate,
@@ -771,7 +873,6 @@ class MiniscriptSharedWalletViewModel @Inject constructor(
         Timber.tag(TAG).d("Caching tap signer xpub $signer with path: $newPath")
         isoDep ?: return
         viewModelScope.launch {
-            _uiState.update { it.copy(event = MiniscriptSharedWalletEvent.Loading(true)) }
             getSignerFromTapsignerMasterSignerByPathUseCase(
                 GetSignerFromTapsignerMasterSignerByPathUseCase.Data(
                     isoDep = isoDep,
@@ -986,11 +1087,11 @@ data class MiniscriptSharedWalletState(
     val currentKeyToAssign: String = "",
     val showBip32PathForDuplicates: Boolean = false,
     val pendingBip32Update: PendingBip32Update? = null,
+    val pendingPassphraseState: PendingPassphraseState? = null,
     val reuseSigner: Boolean = false
 )
 
 sealed class MiniscriptSharedWalletEvent {
-    data class Loading(val isLoading: Boolean) : MiniscriptSharedWalletEvent()
     data class Error(val message: String) : MiniscriptSharedWalletEvent()
     data class SignerAdded(val keyName: String, val signer: SignerModel) :
         MiniscriptSharedWalletEvent()
@@ -1004,6 +1105,7 @@ sealed class MiniscriptSharedWalletEvent {
     data object RequestCacheTapSignerXpub : MiniscriptSharedWalletEvent()
     data class ShowDuplicateSignerWarning(val signer: SignerModel, val keyName: String) : MiniscriptSharedWalletEvent()
     data class ShowDuplicateSignerUpdateWarning(val signer: SignerModel, val keyName: String) : MiniscriptSharedWalletEvent()
+    data object RequestPassphrase : MiniscriptSharedWalletEvent()
 }
 
 data class PendingAddSignerState(
@@ -1018,4 +1120,11 @@ data class PendingBip32Update(
     val masterSignerId: String,
     val newPath: String,
     val currentKey: String
+)
+
+data class PendingPassphraseState(
+    val masterSignerId: String,
+    val newPath: String,
+    val currentKey: String,
+    val newSigner: SingleSigner
 )
