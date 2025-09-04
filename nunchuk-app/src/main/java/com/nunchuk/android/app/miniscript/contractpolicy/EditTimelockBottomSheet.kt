@@ -534,6 +534,7 @@ fun DatePickerField(
                 "Select Time zone"
             },
             readOnly = true,
+            enabled = false,
             onClick = {
                 Timber.tag("miniscript-feature").d("Show timezone selection dialog")
                 showTimeZoneDialog = true
@@ -562,6 +563,7 @@ fun DatePickerField(
                 titleHint = datePickerTitleHint,
                 value = selectedDateText,
                 readOnly = true,
+                enabled = false,
                 onClick = {
                     datePickerDialog = true
                 },
@@ -588,6 +590,7 @@ fun DatePickerField(
                     title = "Time",
                     value = selectedTimeText,
                     readOnly = true,
+                    enabled = false,
                     onClick = {
                         timePickerDialog = true
                     },
