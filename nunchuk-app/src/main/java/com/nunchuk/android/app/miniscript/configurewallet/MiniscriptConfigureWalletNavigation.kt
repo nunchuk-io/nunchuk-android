@@ -166,8 +166,6 @@ fun MiniscriptConfigWalletScreen(
     
     // Consolidated event handling for all MiniscriptSharedWalletEvent types
     LaunchedEffect(uiState.event) {
-        Timber.tag("miniscript-feature").d("Screen level - UI OBSERVED event change: ${uiState.event}")
-        Timber.tag("miniscript-feature").d("Screen level - MiniscriptConfigWalletScreen LaunchedEffect triggered with event: ${uiState.event}")
         when (val event = uiState.event) {
             is MiniscriptSharedWalletEvent.Error -> {
                 android.widget.Toast.makeText(
@@ -175,14 +173,6 @@ fun MiniscriptConfigWalletScreen(
                     event.message,
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
-            }
-            
-            is MiniscriptSharedWalletEvent.SignerAdded -> {
-                // UI will react automatically via uiState changes
-            }
-            
-            is MiniscriptSharedWalletEvent.SignerRemoved -> {
-                // UI will react automatically via uiState changes
             }
             
             is MiniscriptSharedWalletEvent.OpenChangeBip32Path -> {

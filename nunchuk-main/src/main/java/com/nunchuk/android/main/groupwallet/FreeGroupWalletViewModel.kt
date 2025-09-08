@@ -1286,7 +1286,7 @@ class FreeGroupWalletViewModel @Inject constructor(
             val isSignerAlreadyInNamedSigners = currentNamedSigners.values.any { existingSigner ->
                 existingSigner != null && existingSigner.fingerPrint == signer.masterFingerprint
             } || groupNamedSigners.values.any { existingSigner ->
-                existingSigner != null && existingSigner.masterFingerprint == signer.masterFingerprint
+                existingSigner.masterFingerprint == signer.masterFingerprint
             }
 
             Timber.tag("miniscript-feature")

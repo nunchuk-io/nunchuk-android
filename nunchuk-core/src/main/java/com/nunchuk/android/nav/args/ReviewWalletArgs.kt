@@ -25,7 +25,9 @@ import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getBooleanValue
 import com.nunchuk.android.core.util.getStringValue
+import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
@@ -70,12 +72,11 @@ data class ReviewWalletArgs(
     val groupId: String = "",
     val isValueKeySetEnable: Boolean = false,
     val quickWalletParam: QuickWalletParam? = null,
-    // Miniscript-related fields
-    val scriptNode: com.nunchuk.android.model.ScriptNode? = null,
-    val scriptNodeMuSig: com.nunchuk.android.model.ScriptNode? = null,
+    val scriptNode: ScriptNode? = null,
+    val scriptNodeMuSig: ScriptNode? = null,
     val keyPath: List<String> = emptyList(),
     val namedSigners: List<NamedSigner> = emptyList(),
-    val supportedTypes: List<com.nunchuk.android.model.signer.SupportedSigner> = emptyList(),
+    val supportedTypes: List<SupportedSigner> = emptyList(),
 ) {
 
     fun buildBundle() = Bundle().apply {
