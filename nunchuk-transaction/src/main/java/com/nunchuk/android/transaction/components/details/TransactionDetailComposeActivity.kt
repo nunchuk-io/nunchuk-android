@@ -241,7 +241,8 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
                     )
                 },
                 onCopyText = { handleCopyContent(it) },
-                onPreimageSuccess = viewModel::handlePreimageSuccess
+                onPreimageSuccess = viewModel::handlePreimageSuccess,
+                onSetPendingSignNodeId = viewModel::setPendingNodeId
             )
         }
 

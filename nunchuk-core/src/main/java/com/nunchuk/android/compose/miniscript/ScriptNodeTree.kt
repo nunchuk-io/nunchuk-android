@@ -200,6 +200,7 @@ fun ScriptNodeTree(
                 }
                 CreateKeyItem(
                     index = 0,
+                    nodeId = node.idString,
                     key = node.keys.firstOrNull() ?: "",
                     signer = signer,
                     position = index,
@@ -337,6 +338,7 @@ fun ScriptNodeTree(
 @Composable
 internal fun CreateKeyItem(
     modifier: Modifier = Modifier,
+    nodeId: String,
     index: Int,
     key: String,
     signer: SignerModel?,
@@ -457,7 +459,7 @@ internal fun CreateKeyItem(
                 data.transactionStatus.isPendingSignatures() && data.mode == ScriptMode.SIGN && signer != null && signer.isVisible -> {
                     NcPrimaryDarkButton(
                         height = 36.dp,
-                        onClick = { onActionKey(key, signer) },
+                        onClick = { onActionKey(nodeId, signer) },
                         enabled = isSatisfiable
                     ) {
                         if (keySetStatus != null && keySetStatus.status == TransactionStatus.PENDING_NONCE) {
@@ -499,6 +501,7 @@ private fun NodeKeys(
                 avatarColors[0]
             }
             CreateKeyItem(
+                nodeId = node.idString,
                 index = i,
                 key = key,
                 signer = signer,

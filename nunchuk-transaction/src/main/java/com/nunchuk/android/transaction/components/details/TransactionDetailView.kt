@@ -109,6 +109,7 @@ fun TransactionDetailView(
     onEditChangeCoin: (UnspentOutput) -> Unit = {},
     onCopyText: (String) -> Unit = {},
     onPreimageSuccess: (String) -> Unit = {},
+    onSetPendingSignNodeId: (String) -> Unit = {}
 ) {
     var showDetail by rememberSaveable { mutableStateOf(false) }
     var showInputCoin by rememberSaveable { mutableStateOf(false) }
@@ -421,7 +422,8 @@ fun TransactionDetailView(
                                     transactionStatus = state.transaction.status,
                                 ),
                                 onChangeBip32Path = { _, _ -> },
-                                onActionKey = { _, signer ->
+                                onActionKey = { nodeId, signer ->
+                                    onSetPendingSignNodeId(nodeId)
                                     signer?.let(onSignClick)
                                 }
                             )

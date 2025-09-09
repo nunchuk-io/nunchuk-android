@@ -440,7 +440,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     )
                 }
                 if (isMiniscriptWallet()) {
-                    getSignedSigners()
+                    getSignedSigners(extendedTransaction.transaction)
                 }
             }.onFailure {
                 if (it.isNoInternetException) {
@@ -783,27 +783,50 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     transaction = it.transaction,
                     serverTransaction = it.serverTransaction,
                 )
-                if (it.transaction.raw.isNotEmpty()) {
-                    getSignedSigners()
-                }
+                getSignedSigners(it.transaction)
             }
         }
     }
 
-    private fun getSignedSigners() {
+    /**
+     * For miniscript wallet, get the signers who have signed the transaction
+     */
+    private fun getSignedSigners(tx: Transaction) {
         viewModelScope.launch {
-            getTransactionSignersUseCase(
-                GetTransactionSignersUseCase.Params(
-                    walletId = walletId,
-                    txId = txId
-                )
-            ).onSuccess { signers ->
-                val signedSignersMap = signers.associate { signer ->
-                    signer.masterFingerprint to true
+            val pendingNodeId = savedStateHandle.get<String>(KEY_NODE_ID).orEmpty()
+            if (miniscriptState.value.keySetStatues[pendingNodeId] != null) {
+                getKeySetStatusUseCase(
+                    GetKeySetStatusUseCase.Params(
+                        walletId = walletId,
+                        nodeId = pendingNodeId.split(".").mapNotNull { it.toIntOrNull() }
+                            .toIntArray(),
+                        txId = txId
+                    )
+                ).onSuccess { status ->
+                    val updatedMap = miniscriptState.value.keySetStatues.toMutableMap()
+                    updatedMap[pendingNodeId] = status
+                    _minscriptState.update { it.copy(keySetStatues = updatedMap) }
+                }.onFailure {
+                    Timber.e(
+                        it, "Failed to get key set status"
+                    )
                 }
-                _minscriptState.update { it.copy(signedSigners = signedSignersMap) }
-            }.onFailure {
-                Timber.e(it, "Failed to get transaction signers")
+                savedStateHandle.remove<String>(KEY_NODE_ID)
+            }
+            if (tx.raw.isNotEmpty()) {
+                getTransactionSignersUseCase(
+                    GetTransactionSignersUseCase.Params(
+                        walletId = walletId,
+                        txId = txId
+                    )
+                ).onSuccess { signers ->
+                    val signedSignersMap = signers.associate { signer ->
+                        signer.masterFingerprint to true
+                    }
+                    _minscriptState.update { it.copy(signedSigners = signedSignersMap) }
+                }.onFailure {
+                    Timber.e(it, "Failed to get transaction signers")
+                }
             }
         }
     }
@@ -1001,9 +1024,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 .flowOn(IO).onException {
                     fireSignError(it)
                 }.collect {
-                    if (isMiniscriptWallet()) {
-                        getSignedSigners()
-                    }
                     _event.emit(SignTransactionSuccess(roomId))
                 }
         }
@@ -1026,7 +1046,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     transaction = result.getOrThrow(),
                 )
                 if (isMiniscriptWallet()) {
-                    getSignedSigners()
+                    getSignedSigners(result.getOrThrow())
                 }
                 _event.emit(SignTransactionSuccess())
             } else {
@@ -1069,7 +1089,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             if (result.isSuccess && transaction != null) {
                 _state.update { it.copy(transaction = transaction) }
                 if (isMiniscriptWallet()) {
-                    getSignedSigners()
+                    getSignedSigners(transaction)
                 }
                 _event.emit(ImportTransactionFromMk4Success)
             } else {
@@ -1087,9 +1107,6 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
-                if (isMiniscriptWallet()) {
-                    getSignedSigners()
-                }
                 _event.emit(SignTransactionSuccess(roomId))
             } else {
                 fireSignError(result.exceptionOrNull())
@@ -1115,7 +1132,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     transaction = result.getOrThrow(),
                 )
                 if (isMiniscriptWallet()) {
-                    getSignedSigners()
+                    getSignedSigners(result.getOrThrow())
                 }
                 _event.emit(SignTransactionSuccess())
             } else {
@@ -1157,7 +1174,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             ).onSuccess {
                 getTransactionInfo()
                 if (isMiniscriptWallet()) {
-                    getSignedSigners()
+                    getSignedSigners(getState().transaction)
                 }
                 _event.emit(ImportTransactionSuccess)
             }.onFailure {
@@ -1226,7 +1243,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 } else {
                     updateTransaction(transaction = it)
                     if (isMiniscriptWallet()) {
-                        getSignedSigners()
+                        getSignedSigners(it)
                     }
                     _event.emit(SignTransactionSuccess())
                 }
@@ -1262,8 +1279,13 @@ internal class TransactionDetailsViewModel @Inject constructor(
         return _minscriptState.value.isMiniscriptWallet
     }
 
+    fun setPendingNodeId(nodeId: String) {
+        savedStateHandle[KEY_NODE_ID] = nodeId
+    }
+
     companion object {
         private const val INVALID_NUMBER_OF_SIGNED = -1
         private const val KEY_CURRENT_SIGNER = "current_signer"
+        private const val KEY_NODE_ID = "node_id"
     }
 }

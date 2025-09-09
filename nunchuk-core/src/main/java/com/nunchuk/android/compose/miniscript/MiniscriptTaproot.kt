@@ -29,6 +29,7 @@ fun MiniscriptTaproot(
         if (keyPath.isNotEmpty()) {
             CreateKeyItem(
                 index = 0,
+                nodeId = keyPath,
                 key = keyPath,
                 signer = signer,
                 position = "",
