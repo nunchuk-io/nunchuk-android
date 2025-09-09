@@ -612,7 +612,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 )
             }
 
-            if (!viewModel.isReplacedOrLocked()) {
+            if (!viewModel.isReplacedOrLocked() && !isMiniscriptWallet()) {
                 options.add(
                     SheetOption(
                         SheetOptionType.TYPE_REPLACE_KEY,
