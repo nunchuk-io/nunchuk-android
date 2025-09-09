@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.wallet.components.coin.list
 
+import com.nunchuk.android.compose.miniscript.TimelockInfo
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
@@ -31,10 +32,5 @@ data class CoinListUiState(
     val collections: Map<Int, CoinCollection> = emptyMap(),
     val selectedCoins: Set<UnspentOutput> = setOf(),
     val spendableAmount: Amount = Amount(0L),
-    val miniscriptWarningInfo: TimelockWarningInfo? = null,
-)
-
-data class TimelockWarningInfo(
-    val hasRelativeTimelock: Boolean = false,
-    val hasAbsoluteTimelock: Boolean = false,
+    val timelockInfo: TimelockInfo? = null,
 )

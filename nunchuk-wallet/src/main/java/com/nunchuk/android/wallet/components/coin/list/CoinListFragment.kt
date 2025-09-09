@@ -72,6 +72,7 @@ import com.nunchuk.android.compose.coin.TimelockTimeline
 import com.nunchuk.android.compose.controlFillPrimary
 import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.compose.lightGray
+import com.nunchuk.android.compose.miniscript.TimelockInfo
 import com.nunchuk.android.core.coin.CollectionFlow
 import com.nunchuk.android.core.coin.TagFlow
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -342,7 +343,7 @@ private fun CoinListScreen(
         tags = state.tags,
         selectedCoin = state.selectedCoins,
         spendableAmount = state.spendableAmount,
-        warningInfo = state.miniscriptWarningInfo,
+        warningInfo = state.timelockInfo,
         onSelectCoin = viewModel::onCoinSelect,
         onSelectOrUnselectAll = viewModel::onSelectOrUnselectAll,
         onSelectDone = viewModel::onSelectDone,
@@ -364,7 +365,7 @@ private fun CoinListContent(
     tags: Map<Int, CoinTag> = emptyMap(),
     selectedCoin: Set<UnspentOutput> = emptySet(),
     spendableAmount: Amount = Amount(0L),
-    warningInfo: TimelockWarningInfo? = null,
+    warningInfo: TimelockInfo? = null,
     enableSelectMode: () -> Unit = {},
     enableSearchMode: () -> Unit = {},
     onSelectOrUnselectAll: (isSelect: Boolean, coins: List<UnspentOutput>) -> Unit = { _, _ -> },
@@ -507,7 +508,7 @@ fun SpendableAmountSection(spendableAmount: Amount) {
 }
 
 @Composable
-private fun TimelockWarningSection(warningInfo: TimelockWarningInfo) {
+private fun TimelockWarningSection(warningInfo: TimelockInfo) {
     val warningMessage = when {
         warningInfo.hasRelativeTimelock && warningInfo.hasAbsoluteTimelock -> {
             "Move coins to reset a soon-expiring relative timelock. Absolute timelocks can't be reset, so after expiry, move funds to a new wallet to reuse signing policies."
@@ -560,7 +561,7 @@ private fun CoinListScreenPreview() {
             coin.copy(vout = 5)
         ),
         spendableAmount = Amount(1000000L),
-        warningInfo = TimelockWarningInfo(
+        warningInfo = TimelockInfo(
             hasAbsoluteTimelock = true
         ),
     )

@@ -22,13 +22,12 @@ package com.nunchuk.android.wallet.components.coin.list
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.miniscript.ScriptNodeType
+import com.nunchuk.android.compose.miniscript.analyzeMiniscriptForTimelocks
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.listener.TransactionListener
 import com.nunchuk.android.manager.AssistedWalletManager
-import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
@@ -274,51 +273,20 @@ class CoinListViewModel @Inject constructor(
                     getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
                         val warningInfo = analyzeMiniscriptForTimelocks(result.scriptNode)
                         _state.update { state ->
-                            state.copy(miniscriptWarningInfo = warningInfo)
+                            state.copy(timelockInfo = warningInfo)
                         }
                     }
                 } else {
                     _state.update { state ->
-                        state.copy(miniscriptWarningInfo = null)
+                        state.copy(timelockInfo = null)
                     }
                 }
             }
         }
     }
 
-    private fun analyzeMiniscriptForTimelocks(scriptNode: ScriptNode): TimelockWarningInfo {
-        var hasRelativeTimelock = false
-        var hasAbsoluteTimelock = false
-
-        // Use stack instead of recursion
-        val stack = mutableListOf<ScriptNode>()
-        stack.add(scriptNode)
-
-        while (stack.isNotEmpty()) {
-            val node = stack.removeAt(stack.size - 1)
-
-            when (node.type) {
-                ScriptNodeType.OLDER.name -> {
-                    hasRelativeTimelock = true
-                }
-
-                ScriptNodeType.AFTER.name -> {
-                    hasAbsoluteTimelock = true
-                }
-            }
-
-            // Add sub-nodes to stack for processing
-            stack.addAll(node.subs)
-        }
-
-        return TimelockWarningInfo(
-            hasRelativeTimelock = hasRelativeTimelock,
-            hasAbsoluteTimelock = hasAbsoluteTimelock,
-        )
-    }
-
     fun isRelativeTimelockWallet(): Boolean {
-        return state.value.miniscriptWarningInfo?.hasRelativeTimelock == true
+        return state.value.timelockInfo?.hasRelativeTimelock == true
     }
 }
 

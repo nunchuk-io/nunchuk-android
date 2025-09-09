@@ -257,7 +257,8 @@ class EstimatedFeeFragment : BaseFragment<FragmentTransactionEstimateFeeBinding>
                 TransactionCoinSelection(
                     modifier = Modifier,
                     inputs = inputs,
-                    allTags = state.allTags
+                    allTags = state.allTags,
+                    timelockInfo = state.timelockInfo
                 )
             }
         }

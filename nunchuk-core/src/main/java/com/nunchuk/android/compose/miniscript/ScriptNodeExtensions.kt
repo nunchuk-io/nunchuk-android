@@ -148,4 +148,35 @@ private fun calculateDateFromSeconds(timestampSeconds: Long): String {
 
 fun TimeLock.isTimestamp(): Boolean {
     return this.based == MiniscriptTimelockBased.TIME_LOCK
-} 
+}
+
+fun analyzeMiniscriptForTimelocks(scriptNode: ScriptNode): TimelockInfo {
+    var hasRelativeTimelock = false
+    var hasAbsoluteTimelock = false
+
+    // Use stack instead of recursion
+    val stack = mutableListOf<ScriptNode>()
+    stack.add(scriptNode)
+
+    while (stack.isNotEmpty()) {
+        val node = stack.removeAt(stack.size - 1)
+
+        when (node.type) {
+            ScriptNodeType.OLDER.name -> {
+                hasRelativeTimelock = true
+            }
+
+            ScriptNodeType.AFTER.name -> {
+                hasAbsoluteTimelock = true
+            }
+        }
+
+        // Add sub-nodes to stack for processing
+        stack.addAll(node.subs)
+    }
+
+    return TimelockInfo(
+        hasRelativeTimelock = hasRelativeTimelock,
+        hasAbsoluteTimelock = hasAbsoluteTimelock,
+    )
+}

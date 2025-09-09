@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.transaction.components.send.fee
 
+import com.nunchuk.android.compose.miniscript.TimelockInfo
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.EstimateFeeRates
@@ -54,4 +55,5 @@ data class EstimatedFeeState(
     val rollOverWalletPairAmount: PairAmount = PairAmount(Amount.ZER0, Amount.ZER0),
     val isValueKeySetDisable: Boolean = false,
     val antiFeeSniping: Boolean = false,
+    val timelockInfo: TimelockInfo? = null,
 )

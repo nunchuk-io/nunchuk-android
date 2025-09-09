@@ -21,6 +21,7 @@ package com.nunchuk.android.transaction.components.send.fee
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.compose.miniscript.analyzeMiniscriptForTimelocks
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
@@ -44,6 +45,7 @@ import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.EstimateRollOverAmountUseCase
 import com.nunchuk.android.usecase.GetDefaultAntiFeeSnipingUseCase
+import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -69,6 +71,7 @@ class EstimatedFeeViewModel @Inject constructor(
     private val estimateRollOverAmountUseCase: EstimateRollOverAmountUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getDefaultAntiFeeSnipingUseCase: GetDefaultAntiFeeSnipingUseCase,
+    private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EstimatedFeeState())
@@ -135,6 +138,14 @@ class EstimatedFeeViewModel @Inject constructor(
         viewModelScope.launch {
             getWalletDetail2UseCase(walletId).onSuccess { wallet ->
                 _state.update { it.copy(isValueKeySetDisable = wallet.isValueKeySetDisable) }
+                if (wallet.miniscript.isNotEmpty()) {
+                    getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
+                        val warningInfo = analyzeMiniscriptForTimelocks(result.scriptNode)
+                        _state.update { state ->
+                            state.copy(timelockInfo = warningInfo)
+                        }
+                    }
+                }
             }
         }
     }
