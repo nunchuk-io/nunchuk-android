@@ -562,8 +562,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     txId = txId
                 )
             ).onSuccess { (lockedTime, lockedBase) ->
+                if (lockedBase != MiniscriptTimelockBased.NONE) {
+                    walletLockedBase.put(walletId, lockedBase)
+                }
                 timelockTransactionCache.put(txId, lockedTime)
-                walletLockedBase.put(walletId, lockedBase)
                 _minscriptState.update {
                     it.copy(
                         lockedTime = lockedTime,

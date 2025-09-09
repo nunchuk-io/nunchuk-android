@@ -93,10 +93,10 @@ class WalletIntermediaryFragment : BaseCameraFragment<ViewBinding>(),
         }
 
     private val isHideAddKeyDialog
-        get() = requireArguments().getBoolean(
+        get() = arguments?.getBoolean(
             WalletIntermediaryActivity.EXTRA_IS_HIDE_ADD_KEY_DIALOG,
             false
-        )
+        ) == true
 
     private var isRecoverGroupWalletViaScanQrCode = false
 

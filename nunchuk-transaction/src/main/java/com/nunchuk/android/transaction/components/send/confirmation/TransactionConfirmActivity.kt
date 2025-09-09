@@ -191,13 +191,16 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
     private fun handleEvent(event: TransactionConfirmEvent) {
         when (event) {
             is CreateTxErrorEvent -> showCreateTransactionError(event.message)
-            is CreateTxSuccessEvent -> openTransactionDetailScreen(
-                event.transaction.txId,
-                args.walletId,
-                sessionHolder.getActiveRoomIdSafe(),
-                viewModel.isInheritanceClaimingFlow(),
-                transaction = if (viewModel.isInheritanceClaimingFlow()) event.transaction else null
-            )
+            is CreateTxSuccessEvent -> {
+                navigator.returnToMainScreen(this)
+                openTransactionDetailScreen(
+                    event.transaction.txId,
+                    args.walletId,
+                    sessionHolder.getActiveRoomIdSafe(),
+                    viewModel.isInheritanceClaimingFlow(),
+                    transaction = if (viewModel.isInheritanceClaimingFlow()) event.transaction else null
+                )
+            }
 
             is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
             is LoadingEvent -> showLoading(message = if (event.isClaimInheritance) getString(R.string.nc_withdrawal_in_progress) else null)
@@ -209,6 +212,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                     .apply {
                         lifecycle.addObserver(object : DefaultLifecycleObserver {
                             override fun onDestroy(owner: LifecycleOwner) {
+                                navigator.returnToMainScreen(this@TransactionConfirmActivity)
                                 openTransactionDetailScreen(
                                     event.txId,
                                     args.walletId,

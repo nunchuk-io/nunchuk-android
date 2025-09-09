@@ -26,8 +26,10 @@ import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import timber.log.Timber
 import javax.inject.Inject
 
 interface GetWalletsUseCase {
@@ -74,7 +76,7 @@ internal class GetWalletUseCaseImpl @Inject constructor(
                 roomWallet = roomWallet,
             )
         )
-    }.flowOn(Dispatchers.IO)
+    }.catch { Timber.e(it) }.flowOn(Dispatchers.IO)
 
 }
 
