@@ -33,6 +33,12 @@
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
         tools:src="@drawable/ic_qr" />
 
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group_density"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="tv_density,slider,tv_low,tv_medium,tv_high,tv_ultra_high" />
+
     <TextView
         android:id="@+id/tv_density"
         style="@style/NCText.Title"

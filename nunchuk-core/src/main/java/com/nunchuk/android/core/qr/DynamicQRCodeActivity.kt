@@ -34,6 +34,7 @@ import com.nunchuk.android.core.util.MEDIUM_DENSITY
 import com.nunchuk.android.core.util.ULTRA_DENSITY
 import com.nunchuk.android.core.util.densityToLevel
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.ExportWalletQRCodeType
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.setLightStatusBar
 import dagger.hilt.android.AndroidEntryPoint
@@ -103,6 +104,11 @@ class DynamicQRCodeActivity : BaseShareSaveFileActivity<ActivityDynamicQrBinding
 
         binding.btnSavePdf.setOnClickListener {
             showSaveShareOption()
+        }
+        
+        // Hide density controls for DESCRIPTOR_QR type
+        if (viewModel.type == ExportWalletQRCodeType.DESCRIPTOR_QR) {
+            binding.groupDensity.visibility = android.view.View.GONE
         }
     }
 

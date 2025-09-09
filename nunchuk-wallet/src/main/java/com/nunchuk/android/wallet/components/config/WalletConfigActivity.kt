@@ -38,6 +38,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.ExportWalletQRCodeType
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.RollOverWalletFlow
 import com.nunchuk.android.core.util.RollOverWalletSource
@@ -408,9 +409,9 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
 
             WalletConfigEvent.DeleteAssistedWalletSuccess -> walletDeleted()
-            is WalletConfigEvent.UploadWalletConfigEvent -> showSaveShareOption()
+            is WalletConfigEvent.UploadWalletConfigEvent -> showSaveShareOption(false)
             is WalletConfigEvent.ExportTxCoinControlSuccess -> shareConfigurationFile(event.filePath)
-            is WalletConfigEvent.ExportDescriptorSuccess -> showSaveShareOption()
+            is WalletConfigEvent.ExportDescriptorSuccess -> showSaveShareOption(true)
             WalletConfigEvent.ImportTxCoinControlSuccess -> NCToastMessage(this).showMessage(
                 message = getString(
                     R.string.nc_import_completed
@@ -430,7 +431,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     return
                 }
                 if (event.filePath.isEmpty().not()) {
-                    showSaveShareOption()
+                    showSaveShareOption(false)
                 }
             }
 
@@ -784,6 +785,10 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     override fun onDestroy() {
         ncProgressDialog.dismiss()
         super.onDestroy()
+    }
+
+    override fun exportAsQR() {
+        openDynamicQRScreen(args.walletId, ExportWalletQRCodeType.DESCRIPTOR_QR)
     }
 
     companion object {

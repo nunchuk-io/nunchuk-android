@@ -43,9 +43,20 @@ abstract class BaseShareSaveFileActivity<Binding : ViewBinding> : BaseActivity<B
         }
     }
 
-    protected fun showSaveShareOption() {
-        BottomSheetOption.newInstance(
-            options = listOf(
+    protected fun showSaveShareOption(includeQrExport: Boolean = true) {
+        val options = mutableListOf<SheetOption>()
+        
+        if (includeQrExport) {
+            options.add(
+                SheetOption(
+                    type = SheetOptionType.TYPE_EXPORT_QR_DESCRIPTOR,
+                    stringId = R.string.nc_export_via_qr
+                )
+            )
+        }
+        
+        options.addAll(
+            listOf(
                 SheetOption(
                     type = SheetOptionType.TYPE_SAVE_FILE,
                     stringId = R.string.nc_save_file
@@ -55,13 +66,17 @@ abstract class BaseShareSaveFileActivity<Binding : ViewBinding> : BaseActivity<B
                     stringId = R.string.nc_share_file
                 )
             )
-        ).show(supportFragmentManager, "BottomSheetOption")
+        )
+        
+        BottomSheetOption.newInstance(options = options)
+            .show(supportFragmentManager, "BottomSheetOption")
     }
 
     override fun onOptionClicked(option: SheetOption) {
         when (option.type) {
             SheetOptionType.TYPE_SAVE_FILE -> checkAndRequestPermission()
             SheetOptionType.TYPE_SHARE_FILE -> shareFile()
+            SheetOptionType.TYPE_EXPORT_QR_DESCRIPTOR -> exportAsQR()
             else -> {}
         }
     }
@@ -78,4 +93,6 @@ abstract class BaseShareSaveFileActivity<Binding : ViewBinding> : BaseActivity<B
     open fun shareFile() {}
 
     open fun saveFileToLocal() {}
+
+    open fun exportAsQR() {}
 }

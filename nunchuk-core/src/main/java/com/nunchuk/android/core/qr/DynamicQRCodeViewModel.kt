@@ -37,6 +37,7 @@ import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.membership.SaveBitmapToPDFUseCase
 import com.nunchuk.android.usecase.qr.ExportBBQRWalletUseCase
+import com.nunchuk.android.usecase.qr.ExportDescriptorQRWalletUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -59,6 +60,7 @@ class DynamicQRCodeViewModel @Inject constructor(
     private val getQrDensitySettingUseCase: GetQrDensitySettingUseCase,
     private val updateQrDensitySettingUseCase: UpdateQrDensitySettingUseCase,
     private val exportBBQRWalletUseCase: ExportBBQRWalletUseCase,
+    private val exportDescriptorQRWalletUseCase: ExportDescriptorQRWalletUseCase,
     private val savedStateHandle: SavedStateHandle,
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val saveBitmapToPDFUseCase: SaveBitmapToPDFUseCase,
@@ -134,6 +136,20 @@ class DynamicQRCodeViewModel @Inject constructor(
                         }
                 }
             }
+            ExportWalletQRCodeType.DESCRIPTOR_QR -> {
+                viewModelScope.launch {
+                    exportDescriptorQRWalletUseCase(
+                        ExportDescriptorQRWalletUseCase.Params(
+                            walletId,
+                            density
+                        )
+                    )
+                        .map { list -> list.mapNotNull { it.convertToQRCode() } }
+                        .onSuccess { bitmaps ->
+                            _state.update { it.copy(bitmaps = bitmaps) }
+                        }
+                }
+            }
         }
     }
 
@@ -173,6 +189,7 @@ class DynamicQRCodeViewModel @Inject constructor(
             ExportWalletQRCodeType.BC_UR2_LEGACY -> "${_state.value.name}_BCUR2_Legacy.pdf"
             ExportWalletQRCodeType.BC_UR2 -> "${_state.value.name}_BCUR2.pdf"
             ExportWalletQRCodeType.BBQR -> "${_state.value.name}_BBQR.pdf"
+            ExportWalletQRCodeType.DESCRIPTOR_QR -> "${_state.value.name}_Descriptor.pdf"
             else -> ""
         }
         return pdfName
