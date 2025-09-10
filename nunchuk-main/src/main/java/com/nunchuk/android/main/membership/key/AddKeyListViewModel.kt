@@ -105,7 +105,6 @@ class AddKeyListViewModel @Inject constructor(
     val key = _keys.asStateFlow()
 
     private val singleSigners = mutableListOf<SingleSigner>()
-    var shouldShowNewPortal: Boolean = false
 
     init {
         viewModelScope.launch {
@@ -160,9 +159,6 @@ class AddKeyListViewModel @Inject constructor(
                     membershipStepManager.localMembershipPlan
                 )
             )
-        }
-        viewModelScope.launch {
-            shouldShowNewPortal = ncDataStore.shouldShowNewPortal()
         }
         refresh()
     }
@@ -332,12 +328,6 @@ class AddKeyListViewModel @Inject constructor(
         return runCatching {
             gson.fromJson(extra, SignerExtra::class.java).userKeyFileName
         }.getOrDefault("")
-    }
-
-    fun markShowPortal() {
-        viewModelScope.launch {
-            ncDataStore.setShowPortal(false)
-        }
     }
 
     companion object {

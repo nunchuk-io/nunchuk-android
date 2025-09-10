@@ -185,7 +185,6 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             )
 
             SignerType.PORTAL_NFC.ordinal -> {
-                viewModel.markShowPortal()
                 handleShowKeysOrCreate(
                     viewModel.getPortalSigners(),
                     SignerType.PORTAL_NFC,
@@ -451,7 +450,6 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             context = requireContext(),
             isKeyHolderLimited = isKeyHolderLimited,
             isStandard = viewModel.getGroupWalletType()?.isStandard == true,
-            shouldShowNewPortal = viewModel.shouldShowNewPortal
         )
         BottomSheetOption.newInstance(
             options = options,

@@ -77,7 +77,6 @@ class NcDataStore @Inject constructor(
     private val useLargeFontHomeBalances = booleanPreferencesKey("use_large_font_home_balances")
     private val displayTotalBalance = booleanPreferencesKey("display_total_balance")
     private val antiFeeSniping = booleanPreferencesKey("anti_fee_sniping")
-    private val showNewPortalKey = booleanPreferencesKey("show_new_portal")
     private val passwordTokenKey = stringPreferencesKey("password_token")
     private val lastCloseAppKey = longPreferencesKey("last_close_app")
     private val isDarkModeKey = booleanPreferencesKey("is_dark_mode")
@@ -418,18 +417,6 @@ class NcDataStore @Inject constructor(
         get() = context.dataStore.data.map {
             it[passwordTokenKey].orEmpty()
         }
-
-    suspend fun shouldShowNewPortal() : Boolean {
-        return context.dataStore.data.map {
-            it[showNewPortalKey] != false
-        }.first()
-    }
-
-    suspend fun setShowPortal(show: Boolean) {
-        context.dataStore.edit {
-            it[showNewPortalKey] = show
-        }
-    }
 
     suspend fun setReferrerCode(code: String) {
         context.dataStore.edit {

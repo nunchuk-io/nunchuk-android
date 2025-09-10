@@ -9,7 +9,6 @@ import com.nunchuk.android.type.SignerType
 fun getKeyOptions(context: Context,
                   isKeyHolderLimited: Boolean,
                   isStandard: Boolean,
-                  shouldShowNewPortal: Boolean = false
 ) = if (isKeyHolderLimited) {
         listOfNotNull(
             SheetOption(
@@ -35,14 +34,7 @@ fun getKeyOptions(context: Context,
             SheetOption(
                 type = SignerType.NFC.ordinal,
                 label = context.getString(R.string.nc_tapsigner),
-                showDivider = false
-            ),
-            SheetOption(
-                type = SignerType.PORTAL_NFC.ordinal,
-                resId = if(shouldShowNewPortal) R.drawable.ic_new else 0,
-                label = context.getString(R.string.nc_portal),
-                showDivider = true,
-                applyTint = false
+                showDivider = true
             ),
             SheetOption(
                 type = SheetOptionType.TYPE_ADD_BITBOX,
@@ -71,6 +63,11 @@ fun getKeyOptions(context: Context,
             SheetOption(
                 type = SheetOptionType.TYPE_ADD_LEDGER,
                 label = context.getString(R.string.nc_ledger)
+            ),
+            SheetOption(
+                type = SignerType.PORTAL_NFC.ordinal,
+                label = context.getString(R.string.nc_portal),
+                applyTint = false
             ),
             SheetOption(
                 type = SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,

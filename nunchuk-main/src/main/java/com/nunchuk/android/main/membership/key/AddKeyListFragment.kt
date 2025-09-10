@@ -198,7 +198,6 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             )
 
             SignerType.PORTAL_NFC.ordinal -> {
-                viewModel.markShowPortal()
                 handleShowKeysOrCreate(
                     viewModel.getPortal(),
                     SignerType.PORTAL_NFC,
@@ -397,7 +396,6 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             context = requireContext(),
             isKeyHolderLimited = false,
             isStandard = false,
-            shouldShowNewPortal = viewModel.shouldShowNewPortal
         )
         BottomSheetOption.newInstance(
             options = options,

@@ -261,7 +261,6 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             )
 
             SignerType.PORTAL_NFC.ordinal -> {
-                viewModel.markNewPortalShown()
                 handleShowKeysOrCreate(
                     viewModel.getPortalSigners(),
                     SignerType.PORTAL_NFC,
@@ -497,7 +496,6 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                 context = requireContext(),
                 isKeyHolderLimited = isKeyHolderLimited,
                 isStandard = isStandard,
-                shouldShowNewPortal = viewModel.shouldShowNewPortal
             )
             BottomSheetOption.newInstance(
                 options = options,

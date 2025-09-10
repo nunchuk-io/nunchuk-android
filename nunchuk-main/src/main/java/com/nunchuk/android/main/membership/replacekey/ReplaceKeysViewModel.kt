@@ -95,7 +95,6 @@ class ReplaceKeysViewModel @Inject constructor(
     private val replacedSigners = mutableListOf<SignerServer>()
 
     private var loadWalletStatusJob: Job? = null
-    var shouldShowNewPortal = false
 
     init {
         viewModelScope.launch {
@@ -167,9 +166,6 @@ class ReplaceKeysViewModel @Inject constructor(
             getReplaceWalletStatus()
         } else {
             _uiState.update { it.copy(isDataLoaded = true) }
-        }
-        viewModelScope.launch {
-            shouldShowNewPortal = ncDataStore.shouldShowNewPortal()
         }
         loadSigners()
     }
@@ -468,12 +464,6 @@ class ReplaceKeysViewModel @Inject constructor(
     fun isMultiSig() = _uiState.value.isMultiSig
     fun getPortalSigners() =
         _uiState.value.signers.filter { it.type == SignerType.PORTAL_NFC && isSignerExist(it.fingerPrint).not() }
-
-    fun markNewPortalShown() {
-        viewModelScope.launch {
-            ncDataStore.setShowPortal(false)
-        }
-    }
 
     fun isInheritanceXfp(xfp: String) = _uiState.value.inheritanceXfps.contains(xfp)
 
