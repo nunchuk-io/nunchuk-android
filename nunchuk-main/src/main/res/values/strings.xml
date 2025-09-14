@@ -390,4 +390,24 @@
     <string name="nc_go_to_website_to_deposit">Go to website to deposit</string>
     <string name="nc_no_new_signatures_detected">No new signatures detected</string>
     <string name="nc_choose_wallet_to_send">Choose wallet to send</string>
+    
+    <!-- Inheritance plan type selection strings -->
+    <string name="nc_select_inheritance_plan_type">Select inheritance plan type</string>
+    <string name="nc_off_chain_timelock">Off-chain timelock</string>
+    <string name="nc_managed_by_nunchuk">Managed by Nunchuk</string>
+    <string name="nc_on_chain_timelock">On-chain timelock</string>
+    <string name="nc_enforced_on_bitcoin">Enforced on Bitcoin</string>
+    <string name="nc_off_chain_pros">You can change the timelock as many times as needed without disrupting your existing setup.</string>
+    <string name="nc_off_chain_cons">Claiming the inheritance depends on Nunchuk services being available.</string>
+    <string name="nc_on_chain_pros">Your Beneficiary can claim the inheritance with or without Nunchuk\'s assistance once the timelock expires.</string>
+    <string name="nc_on_chain_cons">Changing the timelock requires creating a new wallet and moving funds, though Nunchuk can help automate this.</string>
+    <string name="nc_change_plan_later">You can change the plan later (new wallet required). Not sure which to choose? Read our in-depth comparison.</string>
+    
+    <!-- On-chain timelock explanation strings -->
+    <string name="nc_how_onchain_timelock_works">How on-chain timelock works</string>
+    <string name="nc_onchain_wallet_spending_paths_desc">Your new wallet will have two spending paths: before and after the timelock.</string>
+    <string name="nc_before_timelock_desc">Before the timelock: spending requires two signatures from a 2-of-4 multisig.</string>
+    <string name="nc_after_timelock_desc">After the timelock: spending only requires one signature from a 1-of-3 multisig.</string>
+    <string name="nc_select_inheritance_key_instruction">Among your keys, select one key to be the inheritance key.</string>
+    <string name="nc_keys_added_twice_hint">Each key must be added twice, using different derivation paths for the two spending paths.</string>
 </resources>
