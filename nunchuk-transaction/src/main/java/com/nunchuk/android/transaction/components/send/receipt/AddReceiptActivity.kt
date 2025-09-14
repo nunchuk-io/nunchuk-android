@@ -485,7 +485,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 } else {
                     transactionConfirmViewModel.checkMiniscriptSigningPolicy()
                 }
-            } else if (state.addressType.isTaproot()) {
+            } else if (state.addressType.isTaproot() && !state.isValueKeySetDisable) {
                 transactionConfirmViewModel.checkShowTaprootDraftTransaction()
             } else {
                 transactionConfirmViewModel.handleConfirmEvent(true)

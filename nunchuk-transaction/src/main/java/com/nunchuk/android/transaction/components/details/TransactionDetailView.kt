@@ -450,7 +450,7 @@ fun TransactionDetailView(
                                 toggleExpand = {
                                     isExpanded = !isExpanded
                                 },
-                                count = transaction.keySetStatus.size - 1,
+                                count = transaction.keySetStatus.size,
                                 isExpanded = isExpanded,
                                 isValueKeySetDisable = true
                             )
@@ -471,12 +471,11 @@ fun TransactionDetailView(
 
                     if (isExpanded) {
                         val finalKeySet = if (isValueKeySetDisable) {
-                            keySetMap.filter { it.key != state.defaultKeySetIndex }
-                        } else {
                             keySetMap
+                        } else {
+                            keySetMap.filter { it.key != state.defaultKeySetIndex }
                         }
-                        finalKeySet.filter { isValueKeySetDisable || it.key != state.defaultKeySetIndex }
-                            .forEach { (index, keySetStatus) ->
+                        finalKeySet.forEach { (index, keySetStatus) ->
                                 item {
                                     KeySetView(
                                         signers = signerMap,
