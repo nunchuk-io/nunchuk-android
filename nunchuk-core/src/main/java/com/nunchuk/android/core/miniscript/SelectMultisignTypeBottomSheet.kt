@@ -89,7 +89,7 @@ fun SelectMultisignTypeBottomSheetContent(
                 )
             }
 
-            items(MultisignType.entries.take(3).size) {
+            items(MultisignType.entries.take(4).size) {
                 val multisignType = MultisignType.entries[it]
                 SelectMultisignTypeItem(
                     modifier = Modifier.clickable {
@@ -113,7 +113,7 @@ fun SelectMultisignTypeBottomSheetContent(
             }
 
             items(MultisignType.entries.takeLast(2).size) {
-                val multisignType = MultisignType.entries[it + 3]
+                val multisignType = MultisignType.entries[it + 4]
                 SelectMultisignTypeItem(
                     modifier = Modifier.fillMaxWidth().clickable {
                         onSelect(multisignType)

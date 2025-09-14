@@ -313,6 +313,13 @@ fun MiniscriptConfigTemplateScreen(
                 newN = 3
             }
 
+            MultisignType.ZEN_HODL -> {
+                m = 2
+                n = 3
+                newM = 3
+                newN = 3
+            }
+
             else -> {}
         }
     }
@@ -321,6 +328,7 @@ fun MiniscriptConfigTemplateScreen(
         MultisignType.FLEXIBLE -> "Flexible multisig"
         MultisignType.EXPANDING -> "Expanding multisig"
         MultisignType.DECAYING -> "Decaying multisig"
+        MultisignType.ZEN_HODL -> "Zen Hodl"
         else -> ""
     }
 
@@ -373,6 +381,32 @@ fun MiniscriptConfigTemplateScreen(
                 )
 
                 when {
+                    multisignType == MultisignType.ZEN_HODL -> {
+                        when (timelockData.timelockType) {
+                            MiniscriptTimelockType.ABSOLUTE -> {
+                                ZenHodlAbsoluteCard(
+                                    m = m,
+                                    n = n,
+                                    timeLockText = timeLockText,
+                                    chipModifier = chipModifier,
+                                    onEditingInitialPolicyChange = { editingInitialPolicy = it },
+                                    onShowEditPolicyBottomSheetChange = { showEditPolicyBottomSheet = it },
+                                    onShowEditTimelockBottomSheetChange = { showEditTimelockBottomSheet = it }
+                                )
+                            }
+                            MiniscriptTimelockType.RELATIVE -> {
+                                ZenHodlRelativeCard(
+                                    m = m,
+                                    n = n,
+                                    timeLockText = timeLockText,
+                                    chipModifier = chipModifier,
+                                    onEditingInitialPolicyChange = { editingInitialPolicy = it },
+                                    onShowEditPolicyBottomSheetChange = { showEditPolicyBottomSheet = it },
+                                    onShowEditTimelockBottomSheetChange = { showEditTimelockBottomSheet = it }
+                                )
+                            }
+                        }
+                    }
                     timelockData.timelockType == MiniscriptTimelockType.ABSOLUTE -> {
                         AbsoluteCard(
                             m = m,
@@ -403,27 +437,29 @@ fun MiniscriptConfigTemplateScreen(
                     }
                 }
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(start = 2.dp)
-                        .clickable {
-                            reuseSigner.value = !reuseSigner.value
+                if (multisignType != MultisignType.ZEN_HODL) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .padding(start = 2.dp)
+                            .clickable {
+                                reuseSigner.value = !reuseSigner.value
+                            }
+                    ) {
+                        CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
+                            NcCheckBox(
+                                checked = reuseSigner.value,
+                                onCheckedChange = {
+                                    reuseSigner.value = it
+                                },
+                                enabled = true
+                            )
                         }
-                ) {
-                    CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
-                        NcCheckBox(
-                            checked = reuseSigner.value,
-                            onCheckedChange = {
-                                reuseSigner.value = it
-                            },
-                            enabled = true
+                        Text(
+                            text = "Reuse keys across policies (extra XPUBs might be required)",
+                            style = NunchukTheme.typography.body
                         )
                     }
-                    Text(
-                        text = "Reuse keys across policies (extra XPUBs might be required)",
-                        style = NunchukTheme.typography.body
-                    )
                 }
             }
 
@@ -475,6 +511,19 @@ fun MiniscriptConfigTemplateScreen(
                         )
                     }
 
+                    multisignType == MultisignType.ZEN_HODL -> {
+                        EditPolicyConfig(
+                            initialM = m,
+                            initialN = n,
+                            showTotalKeys = true,
+                            showRequiredKeys = true,
+                            minM = 1,
+                            maxM = MAX_REQUIRED_KEYS,
+                            minN = 1,
+                            maxN = MAX_TOTAL_KEYS
+                        )
+                    }
+
                     else -> EditPolicyConfig()
                 }
 
@@ -516,6 +565,11 @@ fun MiniscriptConfigTemplateScreen(
                                     if (newM >= m) {
                                         m = newM + 1
                                     }
+                                }
+
+                                MultisignType.ZEN_HODL -> {
+                                    m = newMValue
+                                    n = newNValue
                                 }
 
                                 else -> {}
@@ -732,6 +786,65 @@ fun AbsoluteCard(
 }
 
 @Composable
+fun ZenHodlAbsoluteCard(
+    m: Int,
+    n: Int,
+    timeLockText: String,
+    chipModifier: Modifier,
+    onEditingInitialPolicyChange: (Boolean) -> Unit,
+    onShowEditPolicyBottomSheetChange: (Boolean) -> Unit,
+    onShowEditTimelockBottomSheetChange: (Boolean) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.lightGray)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Coins sent to this wallet are locked",
+                style = NunchukTheme.typography.body,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "immediately and cannot be spent until ",
+                style = NunchukTheme.typography.body,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            TextChipLineContent(
+                modifier = chipModifier,
+                text = timeLockText,
+                onClick = {
+                    onShowEditTimelockBottomSheetChange(true)
+                }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "After that, spending requires signature from a ",
+                style = NunchukTheme.typography.body
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            TextChipLineContent(
+                modifier = chipModifier,
+                contentBeginning = {
+                    Text(
+                        text = "a ",
+                        style = NunchukTheme.typography.body
+                    )
+                },
+                text = if (n == 1 && m == 1) "singlesig" else "$m-of-$n multisig.",
+                onClick = {
+                    onEditingInitialPolicyChange(false)
+                    onShowEditPolicyBottomSheetChange(true)
+                }
+            )
+        }
+    }
+}
+
+@Composable
 fun RelativeCard(
     m: Int,
     n: Int,
@@ -883,13 +996,84 @@ fun RelativeCard(
     }
 }
 
+@Composable
+fun ZenHodlRelativeCard(
+    m: Int,
+    n: Int,
+    timeLockText: String,
+    chipModifier: Modifier,
+    onEditingInitialPolicyChange: (Boolean) -> Unit,
+    onShowEditPolicyBottomSheetChange: (Boolean) -> Unit,
+    onShowEditTimelockBottomSheetChange: (Boolean) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.lightGray)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            TextChipLineContent(
+                modifier = chipModifier,
+                contentBeginning = {
+                    Text(
+                        text = "First ",
+                        style = NunchukTheme.typography.body
+                    )
+                },
+                text = timeLockText,
+                contentEnd = {
+                    Text(
+                        text = " after a coin is received:",
+                        style = NunchukTheme.typography.body
+                    )
+                },
+                onClick = {
+                    onShowEditTimelockBottomSheetChange(true)
+                }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "spending that coin is not allowed.",
+                style = NunchukTheme.typography.body
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "After that, the same coin can be spent with a ",
+                style = NunchukTheme.typography.body
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextChipLineContent(
+                modifier = chipModifier,
+                contentBeginning = {
+                    Text(
+                        text = "a ",
+                        style = NunchukTheme.typography.body
+                    )
+                },
+                text = if (n == 1 && m == 1) "singlesig" else "$m-of-$n multisig.",
+                onClick = {
+                    onEditingInitialPolicyChange(false)
+                    onShowEditPolicyBottomSheetChange(true)
+                }
+            )
+        }
+    }
+}
+
 @PreviewLightDark
 @Composable
 private fun MiniscriptConfigTemplateScreenPreview() {
     NunchukTheme {
         MiniscriptConfigTemplateScreen(
             currentBlockHeight = 850000,
-            multisignType = MultisignType.DECAYING
+            multisignType = MultisignType.ZEN_HODL
         )
     }
 }

@@ -21,6 +21,11 @@ enum class MultisignType(
         "Flexible multisig", "Freely change the key set over time",
         icon = R.drawable.ic_flexible_multisign
     ),
+    ZEN_HODL(
+        "Zen Hodl",
+        "Locks coins immediately when deposited and only allows spending after the timelock expires",
+        icon = R.drawable.ic_zen_hodl
+    ),
     CUSTOM(
         "Enter miniscript",
         "Paste or enter your miniscript",
