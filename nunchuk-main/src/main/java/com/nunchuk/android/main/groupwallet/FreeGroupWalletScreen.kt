@@ -34,7 +34,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -84,21 +83,13 @@ import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.AddWalletArgs
+import com.nunchuk.android.share.groupwallet.avatarColors
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import timber.log.Timber
 
 const val freeGroupWalletRoute = "free_group_wallet"
-val avatarColors = listOf(
-    Color(0xFF1C652D),
-    Color(0xFFA66800),
-    Color(0xFFCF4018),
-    Color(0xFF7E519B),
-    Color(0xFF2F466C),
-    Color(0xFFF1AE00),
-    Color(0xFF757575),
-)
 
 fun NavGraphBuilder.freeGroupWallet(
     viewModel: FreeGroupWalletViewModel,

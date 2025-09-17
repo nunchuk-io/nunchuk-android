@@ -24,6 +24,7 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.primaryT1
 import com.nunchuk.android.core.R
+import com.nunchuk.android.share.groupwallet.avatarColors
 
 @Composable
 fun PolicyHeader(

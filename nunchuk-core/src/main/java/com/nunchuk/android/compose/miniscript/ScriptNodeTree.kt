@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -40,6 +41,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcBadgeOutline
+import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NcIcon
@@ -66,6 +68,8 @@ import com.nunchuk.android.model.KeySetStatus
 import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.contains
+import com.nunchuk.android.share.groupwallet.avatarColors
 import com.nunchuk.android.share.miniscript.rememberBlockHeightManager
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.TransactionStatus
@@ -76,18 +80,9 @@ import java.util.Locale
 enum class ScriptMode {
     VIEW,
     CONFIG,
-    SIGN
+    SIGN,
+    SELECTING
 }
-
-val avatarColors = listOf(
-    Color(0xFF1C652D),
-    Color(0xFFA66800),
-    Color(0xFFCF4018),
-    Color(0xFF7E519B),
-    Color(0xFF2F466C),
-    Color(0xFFF1AE00),
-    Color(0xFF757575),
-)
 
 @Composable
 fun ScriptNodeTree(
@@ -107,11 +102,14 @@ fun ScriptNodeTree(
             && node.idString.startsWith(data.topLevelDisableNode.idString)
     val isSatisfiableNode = data.satisfiableMap[node.idString] != false
 
+    val isPathDisabled = data.mode == ScriptMode.SELECTING && data.isPathDisabled(node.id)
     val nodeModifier = when {
         data.mode == ScriptMode.CONFIG -> Modifier
         data.mode == ScriptMode.SIGN && (node.type == ScriptNodeType.AFTER.name || node.type == ScriptNodeType.OLDER.name) -> Modifier
         data.mode == ScriptMode.SIGN && isSatisfiableNode -> Modifier
         data.mode == ScriptMode.VIEW && isNormalNode -> Modifier
+        data.mode == ScriptMode.SELECTING && !isPathDisabled -> Modifier
+        isPathDisabled -> Modifier.alpha(0.4f)
         else -> Modifier.alpha(0.4f)
     }
     when (node.type) {
@@ -588,6 +586,7 @@ data class ScriptNodeData(
     val satisfiableMap: Map<String, Boolean> = emptyMap(),
     val keySetStatues: Map<String, KeySetStatus> = emptyMap(),
     val coinGroups: Map<String, CoinsGroup> = emptyMap(),
+    val subNodeFollowParents: Set<List<Int>> = emptySet(),
     val collapsedNode: ScriptNode? = null,
     val topLevelDisableNode: ScriptNode? = null,
     val onPreImageClick: (ScriptNode) -> Unit = {},
@@ -597,10 +596,19 @@ data class ScriptNodeData(
     val isGroupWallet: Boolean = false,
     val occupiedSlots: Set<String> = emptySet(),
     val colorIndex: Int = 0,
-    val transactionStatus: TransactionStatus = TransactionStatus.PENDING_SIGNATURES
+    val transactionStatus: TransactionStatus = TransactionStatus.PENDING_SIGNATURES,
+    val rootNode: ScriptNode? = null,
+    val onPathSelectionChange: (List<Int>, Boolean) -> Unit = { _, _ -> },
+    val disabledPaths: Set<List<Int>> = emptySet()
 ) {
     fun isSlotOccupied(position: String): Boolean {
         return occupiedSlots.contains(position)
+    }
+    
+    fun isPathDisabled(nodeId: List<Int>): Boolean {
+        return disabledPaths.any { disabledPath ->
+            nodeId.size >= disabledPath.size && nodeId.take(disabledPath.size) == disabledPath
+        }
     }
 }
 
@@ -625,7 +633,8 @@ fun AndOrView(
                 modifier = Modifier
                     .weight(1f)
                     .padding(top = if (isShowCurve) 10.dp else 0.dp)
-                    .padding(start = padStart.dp)
+                    .padding(start = padStart.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Row {
                     Text(
@@ -1140,7 +1149,7 @@ fun TreeBranchContainer(
     drawLine: Boolean = true,
     itemHeight: Float = 0f,
     indentationLevel: Int = 0,
-    content: @Composable (modifier: Modifier, showThreadCurve: Boolean, showDetail: Boolean) -> Unit
+    content: @Composable BoxScope.(modifier: Modifier, showThreadCurve: Boolean, showDetail: Boolean) -> Unit
 ) {
     val indentationPadding = if (indentationLevel > 0) (indentationLevel * 10).dp else 0.dp
     val shouldDrawLine = drawLine && indentationLevel > 0
@@ -1188,6 +1197,23 @@ fun TreeBranchContainer(
                         .padding(start = 4.dp)
                         .size(16.dp),
                     tint = MaterialTheme.colorScheme.textPrimary
+                )
+            }
+        } else if (data.mode == ScriptMode.SELECTING && node.id.size > 1) {
+            if (node.id.size == 2 || data.signingPath.contains(node.id.take(node.id.size - 1))) {
+                val isNodeDisabled = data.isPathDisabled(node.id)
+                NcCheckBox(
+                    modifier = Modifier
+                        .padding(top = if (node.type == ScriptNodeType.PK.name) 16.dp else 0.dp)
+                        .size(24.dp)
+                        .align(Alignment.TopEnd),
+                    checked = data.signingPath.path.contains(node.id),
+                    enabled = !isNodeDisabled && !data.subNodeFollowParents.contains(node.id),
+                    onCheckedChange = { checked ->
+                        if (!isNodeDisabled) {
+                            data.onPathSelectionChange(node.id, checked)
+                        }
+                    }
                 )
             }
         }

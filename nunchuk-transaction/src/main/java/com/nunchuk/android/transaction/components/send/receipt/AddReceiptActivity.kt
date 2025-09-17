@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.manager.ActivityManager
@@ -121,6 +122,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             val navController = rememberNavController()
             var draftTx by remember { mutableStateOf<TaprootDraftTransaction?>(null) }
             var dummySigningPaths by remember { mutableStateOf(emptyList<Pair<SigningPath, Amount>>()) }
+            var selectingPaths by remember { mutableStateOf<List<SigningPath>>(emptyList()) }
             var timelockCoin by remember { mutableStateOf<TimelockCoin?>(null) }
             val state by viewModel.state.asFlow()
                 .collectAsStateWithLifecycle(AddReceiptState())
@@ -131,25 +133,25 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                         hideLoading()
                         if (it.draftTransaction != null) {
                             draftTx = it.draftTransaction
-                            navController.navigate(ReceiptNavigation.TaprootFeeSelection)
+                            navController.navigate(TaprootFeeSelection)
                         } else {
                             transactionConfirmViewModel.handleConfirmEvent()
                         }
                     } else if (it is TransactionConfirmEvent.ChooseSigningPathsSuccess) {
                         hideLoading()
-                        navController.navigate(ReceiptNavigation.ChooseSigningPath)
+                        navController.navigate(ChooseSigningPath)
                     } else if (it is TransactionConfirmEvent.ChooseSigningPolicy) {
                         hideLoading()
                         dummySigningPaths = it.result
-                        navController.navigate(ReceiptNavigation.ChooseSigningPolicy) {
-                            popUpTo(ReceiptNavigation.ChooseSigningPolicy) {
+                        navController.navigate(ChooseSigningPolicy(true)) {
+                            popUpTo<ChooseSigningPolicy> {
                                 inclusive = true
                             }
                         }
                     } else if (it is TransactionConfirmEvent.ShowTimeLockNotice) {
                         hideLoading()
                         timelockCoin = it.timeLockCoin
-                        navController.navigate(ReceiptNavigation.TimelockNotice)
+                        navController.navigate(TimelockNotice)
                     }
                 }
             }
@@ -160,8 +162,8 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                     val wallet = state.wallet
                     if (wallet.id.isNotEmpty()) {
                         if (wallet.addressType.isTaproot() && !state.isValueKeySetDisable) {
-                            navController.navigate(ReceiptNavigation.ChooseSigningPath) {
-                                popUpTo(ReceiptNavigation.ChooseSigningPolicy) {
+                            navController.navigate(ChooseSigningPath) {
+                                popUpTo<ChooseSigningPolicy> {
                                     inclusive = true
                                 }
                             }
@@ -173,16 +175,16 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             }
 
             val startDestination = when (args.type) {
-                AddReceiptType.BATCH -> ReceiptNavigation.Batch
-                AddReceiptType.ADD_RECEIPT -> ReceiptNavigation.Main
-                AddReceiptType.SELECT_PATH -> ReceiptNavigation.ChooseSigningPolicy
+                AddReceiptType.BATCH -> Batch
+                AddReceiptType.ADD_RECEIPT -> Main
+                AddReceiptType.SELECT_PATH -> ChooseSigningPolicy
             }
 
             NavHost(
                 navController = navController,
                 startDestination = startDestination
             ) {
-                composable<ReceiptNavigation.Main> {
+                composable<Main> {
                     AndroidFragment(
                         clazz = AddReceiptFragment::class.java,
                         modifier = Modifier
@@ -191,7 +193,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                         arguments = intent.extras!!
                     )
                 }
-                composable<ReceiptNavigation.Batch> {
+                composable<Batch> {
                     AndroidFragment(
                         clazz = BatchTransactionFragment::class.java,
                         modifier = Modifier
@@ -203,7 +205,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                         ).toBundle()
                     )
                 }
-                composable<ReceiptNavigation.TaprootFeeSelection> {
+                composable<TaprootFeeSelection> {
                     val confirmTransactionUiState by transactionConfirmViewModel.uiState.collectAsStateWithLifecycle()
                     val tx = draftTx
                     LaunchedEffect(tx) {
@@ -229,7 +231,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                         )
                     }
                 }
-                composable<ReceiptNavigation.ChooseSigningPath> {
+                composable<ChooseSigningPath> {
                     val scriptNode = state.scriptNode
                     if (scriptNode != null) {
                         ChooseSigningPathScreen(
@@ -254,26 +256,36 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                         )
                     }
                 }
-                composable<ReceiptNavigation.ChooseSigningPolicy> {
+                composable<ChooseSigningPolicy> {
+                    val route = it.toRoute<ChooseSigningPolicy>()
                     val scriptNode = state.scriptNode
                     if (scriptNode != null) {
                         SelectScriptPathPolicyScreen(
+                            isSelectingPathEnabled = route.isSelectingModeEnabled,
                             scriptNode = scriptNode,
                             signers = state.signers,
-                            signingPaths = dummySigningPaths,
-                            onContinue = { signingPath ->
-                                if (args.type == AddReceiptType.SELECT_PATH) {
-                                    signingPathSelected(signingPath)
-                                } else {
-                                    transactionConfirmViewModel.draftMiniscriptTransaction(
-                                        signingPath = signingPath
-                                    )
+                            signingPaths = if (route.isSelectingModeEnabled) dummySigningPaths else dummySigningPaths.filter { (path, _) ->
+                                path in selectingPaths
+                            },
+                            onContinue = { signingPaths ->
+                                if (signingPaths.size == 1) {
+                                    val signingPath = signingPaths.first()
+                                    if (args.type == AddReceiptType.SELECT_PATH) {
+                                        signingPathSelected(signingPath)
+                                    } else {
+                                        transactionConfirmViewModel.draftMiniscriptTransaction(
+                                            signingPath = signingPath
+                                        )
+                                    }
+                                } else if (signingPaths.isNotEmpty()) {
+                                    selectingPaths = signingPaths
+                                    navController.navigate(ChooseSigningPolicy(false))
                                 }
                             }
                         )
                     }
                 }
-                composable<ReceiptNavigation.TimelockNotice> {
+                composable<TimelockNotice> {
                     timelockCoin?.let { timelockCoin ->
                         TimelockNoticeScreen(
                             timelockCoin = timelockCoin,

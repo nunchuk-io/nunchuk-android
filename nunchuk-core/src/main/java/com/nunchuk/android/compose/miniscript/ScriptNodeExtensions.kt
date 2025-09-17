@@ -21,7 +21,7 @@ val ScriptNode.displayName: String
                     val days = totalSeconds / (24 * 60 * 60)
                     val hours = (totalSeconds % (24 * 60 * 60)) / (60 * 60)
                     val minutes = (totalSeconds % (60 * 60)) / 60
-                    
+
                     val parts = mutableListOf<String>()
                     if (days > 0) {
                         parts.add("${days}d")
@@ -32,19 +32,21 @@ val ScriptNode.displayName: String
                     if (minutes > 0) {
                         parts.add("${minutes}m")
                     }
-                    
+
                     if (parts.isEmpty()) {
                         "After 0d"
                     } else {
                         "After ${parts.joinToString(" ")}"
                     }
                 }
+
                 else -> { // block height
                     val formattedBlocks = String.format("%,d", timeLock.value)
                     if (timeLock.value == 1L) "After 1 block" else "After $formattedBlocks blocks"
                 }
             }
         }
+
         ScriptNodeType.AFTER.name -> {
             val timeLock = this.timeLock ?: TimeLock()
             when {
@@ -52,12 +54,14 @@ val ScriptNode.displayName: String
                     val targetDate = calculateDateFromSeconds(timeLock.value)
                     "After $targetDate"
                 }
+
                 else -> { // block height
                     val formattedBlocks = String.format("%,d", timeLock.value)
                     if (timeLock.value == 1L) "After 1 block" else "After block $formattedBlocks"
                 }
             }
         }
+
         ScriptNodeType.HASH160.name -> "HASH160"
         ScriptNodeType.HASH256.name -> "HASH256"
         ScriptNodeType.RIPEMD160.name -> "RIPEMD160"
@@ -91,11 +95,13 @@ val ScriptNode.descriptionText: String
                         if (daysFromNow == 1) "1 $dayText from today." else "$daysFromNow $dayText from today."
                     }
                 }
+
                 else -> { // block height - provide a generic description since we don't have currentBlockHeight
                     "When the specified block height is reached."
                 }
             }
         }
+
         ScriptNodeType.HASH160.name -> "Requires a preimage that hashes to a given value with HASH160"
         ScriptNodeType.HASH256.name -> "Requires a preimage that hashes to a given value with SHA256"
         ScriptNodeType.RIPEMD160.name -> "Requires a preimage that hashes to a given value with RIPEMD160"
@@ -129,13 +135,13 @@ fun ScriptNode.getAfterBlockDescription(currentBlockHeight: Int): String {
 private fun calculateDateFromSeconds(timestampSeconds: Long): String {
     val calendar = Calendar.getInstance()
     calendar.timeInMillis = timestampSeconds * 1000
-    
+
     val hour = calendar.get(Calendar.HOUR_OF_DAY)
     val minute = calendar.get(Calendar.MINUTE)
-    
+
     val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
     val dateString = dateFormat.format(calendar.time)
-    
+
     // Only show time if hour and minute are not both 0
     return if (hour == 0 && minute == 0) {
         dateString

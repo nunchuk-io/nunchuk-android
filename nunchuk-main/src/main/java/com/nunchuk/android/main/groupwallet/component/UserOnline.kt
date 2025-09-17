@@ -26,7 +26,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.primaryT1
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.groupwallet.avatarColors
+import com.nunchuk.android.share.groupwallet.avatarColors
 
 @Composable
 fun UserOnline(numberOfOnlineUsers: Int) {

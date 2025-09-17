@@ -40,7 +40,7 @@ import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.groupwallet.KEY_NOT_SYNCED_NAME
-import com.nunchuk.android.main.groupwallet.avatarColors
+import com.nunchuk.android.share.groupwallet.avatarColors
 import com.nunchuk.android.type.SignerType
 
 /**
