@@ -40,6 +40,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -622,9 +624,28 @@ fun TextChip(text: String, modifier: Modifier = Modifier, onClick: () -> Unit = 
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = text,
+            text = buildAnnotatedString {
+                if (text.isNotEmpty()) {
+                    val lastChar = text.last()
+                    val shouldRemoveLastCharUnderline = lastChar == '.' || lastChar == ','
+                    
+                    if (shouldRemoveLastCharUnderline && text.length > 1) {
+                        addStyle(
+                            style = SpanStyle(textDecoration = TextDecoration.Underline),
+                            start = 0,
+                            end = text.length - 1
+                        )
+                    } else {
+                        addStyle(
+                            style = SpanStyle(textDecoration = TextDecoration.Underline),
+                            start = 0,
+                            end = text.length
+                        )
+                    }
+                    append(text)
+                }
+            },
             style = NunchukTheme.typography.body,
-            textDecoration = TextDecoration.Underline,
         )
         Spacer(modifier = Modifier.width(4.dp))
         Icon(
@@ -685,13 +706,7 @@ fun AbsoluteCard(
                         style = NunchukTheme.typography.body
                     )
                 },
-                text = "$m-of-$n",
-                contentEnd = {
-                    Text(
-                        text = if (n == 1 && m == 1) "singlesig." else "multisig.",
-                        style = NunchukTheme.typography.body
-                    )
-                },
+                text = "$m-of-$n ${if (n == 1 && m == 1) "singlesig." else "multisig."}",
                 onClick = {
                     onEditingInitialPolicyChange(true)
                     onShowEditPolicyBottomSheetChange(true)
@@ -718,13 +733,7 @@ fun AbsoluteCard(
                                 )
                             },
                             modifier = chipModifier,
-                            text = "$newM-of-$newN",
-                            contentEnd = {
-                                Text(
-                                    text = if (newN == 1 && newM == 1) " singlesig." else " multisig.",
-                                    style = NunchukTheme.typography.body
-                                )
-                            },
+                            text = "$newM-of-$newN ${if (newN == 1 && newM == 1) " singlesig." else " multisig."}",
                             onClick = {
                                 onEditingInitialPolicyChange(false)
                                 onShowEditPolicyBottomSheetChange(true)
@@ -814,7 +823,7 @@ fun ZenHodlAbsoluteCard(
             Spacer(modifier = Modifier.height(16.dp))
             TextChipLineContent(
                 modifier = chipModifier,
-                text = timeLockText,
+                text = "$timeLockText,",
                 onClick = {
                     onShowEditTimelockBottomSheetChange(true)
                 }
@@ -901,13 +910,7 @@ fun RelativeCard(
                     )
                 },
                 modifier = chipModifier,
-                text = "$m-of-$n",
-                contentEnd = {
-                    Text(
-                        text = if (n == 1 && m == 1) " singlesig." else " multisig.",
-                        style = NunchukTheme.typography.body
-                    )
-                },
+                text = "$m-of-$n ${if (n == 1 && m == 1) "singlesig." else "multisig."}",
                 onClick = {
                     onEditingInitialPolicyChange(true)
                     onShowEditPolicyBottomSheetChange(true)
@@ -935,13 +938,7 @@ fun RelativeCard(
                     MultisignType.FLEXIBLE -> {
                         TextChipLineContent(
                             modifier = chipModifier,
-                            text = "$newM-of-$newN",
-                            contentEnd = {
-                                Text(
-                                    text = if (newN == 1 && newM == 1) " singlesig." else " multisig.",
-                                    style = NunchukTheme.typography.body
-                                )
-                            },
+                            text = "$newM-of-$newN ${if (newN == 1 && newM == 1) " singlesig." else " multisig."}",
                             onClick = {
                                 onEditingInitialPolicyChange(false)
                                 onShowEditPolicyBottomSheetChange(true)
