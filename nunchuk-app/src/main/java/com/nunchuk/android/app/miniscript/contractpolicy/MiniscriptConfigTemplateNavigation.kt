@@ -314,8 +314,8 @@ fun MiniscriptConfigTemplateScreen(
             }
 
             MultisignType.ZEN_HODL -> {
-                m = 2
-                n = 3
+                m = 1
+                n = 1
                 newM = 3
                 newN = 3
             }
@@ -822,7 +822,7 @@ fun ZenHodlAbsoluteCard(
 
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "After that, spending requires signature from a ",
+                text = "After that, spending requires signature from",
                 style = NunchukTheme.typography.body
             )
             Spacer(modifier = Modifier.height(16.dp))
