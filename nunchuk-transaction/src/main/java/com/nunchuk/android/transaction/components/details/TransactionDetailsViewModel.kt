@@ -656,6 +656,12 @@ internal class TransactionDetailsViewModel @Inject constructor(
             }
         }
 
+        if (satisfiableMap[node.idString] == false) {
+            node.subs.forEach { subNode ->
+                satisfiableMap[subNode.idString] = false
+            }
+        }
+
         // special case for ANDOR node
         if (node.type == ScriptNodeType.ANDOR.name && node.subs.size == 3) {
             val isSatisfiable = isScriptNodeSatisfiableUseCase(
