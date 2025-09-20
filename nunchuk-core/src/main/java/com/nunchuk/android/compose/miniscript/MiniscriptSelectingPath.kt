@@ -219,8 +219,8 @@ fun SigningPath.updateWithSmartSelection(
 fun SigningPath.containsAllLeafNodes(requiredLeafNodes: List<List<Int>>): Boolean {
     if (requiredLeafNodes.isEmpty()) return false
 
-    return path.all {
-        node -> requiredLeafNodes.any { requiredNode ->
+    return requiredLeafNodes.all { requiredNode ->
+        path.any { node ->
             node.size >= requiredNode.size && node.take(requiredNode.size) == requiredNode
         }
     }
