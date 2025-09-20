@@ -75,7 +75,11 @@ fun SelectScriptPathPolicyScreen(
                 .fillMaxSize(),
             topBar = {
                 NcTopAppBar(
-                    title = stringResource(R.string.nc_select_signing_policy),
+                    title = if (isSelectingMode) {
+                        stringResource(R.string.nc_choose_signing_path)
+                    } else {
+                        stringResource(R.string.nc_select_signing_policy)
+                    },
                     textStyle = NunchukTheme.typography.titleLarge,
                 )
             },
