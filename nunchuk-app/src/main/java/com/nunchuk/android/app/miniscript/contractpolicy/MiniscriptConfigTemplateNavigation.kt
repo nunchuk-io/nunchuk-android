@@ -823,7 +823,7 @@ fun ZenHodlAbsoluteCard(
             Spacer(modifier = Modifier.height(16.dp))
             TextChipLineContent(
                 modifier = chipModifier,
-                text = "$timeLockText,",
+                text = "$timeLockText.",
                 onClick = {
                     onShowEditTimelockBottomSheetChange(true)
                 }
@@ -843,7 +843,7 @@ fun ZenHodlAbsoluteCard(
                         style = NunchukTheme.typography.body
                     )
                 },
-                text = if (n == 1 && m == 1) "singlesig" else "$m-of-$n multisig.",
+                text = if (n == 1 && m == 1) "singlesig." else "$m-of-$n multisig.",
                 onClick = {
                     onEditingInitialPolicyChange(false)
                     onShowEditPolicyBottomSheetChange(true)
@@ -1054,7 +1054,7 @@ fun ZenHodlRelativeCard(
                         style = NunchukTheme.typography.body
                     )
                 },
-                text = if (n == 1 && m == 1) "singlesig" else "$m-of-$n multisig.",
+                text = if (n == 1 && m == 1) "singlesig." else "$m-of-$n multisig.",
                 onClick = {
                     onEditingInitialPolicyChange(false)
                     onShowEditPolicyBottomSheetChange(true)
