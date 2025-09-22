@@ -51,6 +51,9 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.HighlightMessageType
+import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
@@ -58,22 +61,24 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
-import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.main.membership.plantype.InheritancePlanType
+import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.SignerType
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class InheritanceKeyIntroFragment : MembershipFragment(), BottomSheetOptionListener {
     private val viewModel: TapSignerInheritanceIntroViewModel by viewModels()
+    private val args: InheritanceKeyIntroFragmentArgs by navArgs<InheritanceKeyIntroFragmentArgs>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -82,7 +87,11 @@ class InheritanceKeyIntroFragment : MembershipFragment(), BottomSheetOptionListe
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                TapSignerInheritanceIntroScreen(viewModel, ::handleShowMore)
+                TapSignerInheritanceIntroScreen(
+                    inheritanceType = args.inheritanceType,
+                    viewModel = viewModel,
+                    onMoreClicked = ::handleShowMore
+                )
             }
         }
     }
@@ -130,13 +139,15 @@ class InheritanceKeyIntroFragment : MembershipFragment(), BottomSheetOptionListe
         if (membershipStepManager.isKeyExisted(signer.fingerPrint).not()) {
             navigator.openSetupMk4(
                 activity = requireActivity(),
-                fromMembershipFlow = true,
-                xfp = signer.fingerPrint,
-                groupId = (activity as MembershipActivity).groupId,
-                action = ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION,
-                walletId = (activity as MembershipActivity).walletId,
-                keyName = signer.name,
-                signerType = signer.type
+                args = SetupMk4Args(
+                    fromMembershipFlow = true,
+                    xfp = signer.fingerPrint,
+                    groupId = (activity as MembershipActivity).groupId,
+                    action = ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION,
+                    walletId = (activity as MembershipActivity).walletId,
+                    keyName = signer.name,
+                    signerType = signer.type
+                )
             )
         } else {
             showSameSignerAdded()
@@ -149,16 +160,22 @@ class InheritanceKeyIntroFragment : MembershipFragment(), BottomSheetOptionListe
 
     private fun handleAddKey() {
         runCatching {
-            if (viewModel.getSigners().isNotEmpty()) {
+            if (args.inheritanceType == InheritancePlanType.ON_CHAIN) {
                 findNavController().navigate(
-                    InheritanceKeyIntroFragmentDirections.actionInheritanceKeyIntroFragmentToTapSignerListBottomSheetFragment(
-                        signers = viewModel.getSigners().toTypedArray(),
-                        type = SignerType.NFC,
-                        description = "We noticed that you already have a TAPSIGNER or COLDCARD in your key manager"
-                    )
+                    InheritanceKeyIntroFragmentDirections.actionInheritanceKeyIntroFragmentToImportantNoticePassphraseFragment()
                 )
             } else {
-                openSelectHardwareOption()
+                if (viewModel.getSigners().isNotEmpty()) {
+                    findNavController().navigate(
+                        InheritanceKeyIntroFragmentDirections.actionInheritanceKeyIntroFragmentToTapSignerListBottomSheetFragment(
+                            signers = viewModel.getSigners().toTypedArray(),
+                            type = SignerType.NFC,
+                            description = "We noticed that you already have a TAPSIGNER or COLDCARD in your key manager"
+                        )
+                    )
+                } else {
+                    openSelectHardwareOption()
+                }
             }
         }
     }
@@ -201,10 +218,12 @@ class InheritanceKeyIntroFragment : MembershipFragment(), BottomSheetOptionListe
             SignerType.COLDCARD_NFC.ordinal -> {
                 navigator.openSetupMk4(
                     activity = requireActivity(),
-                    fromMembershipFlow = true,
-                    action = ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION,
-                    groupId = (activity as MembershipActivity).groupId,
-                    walletId = (activity as MembershipActivity).walletId
+                    args = SetupMk4Args(
+                        fromMembershipFlow = true,
+                        action = ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION,
+                        groupId = (activity as MembershipActivity).groupId,
+                        walletId = (activity as MembershipActivity).walletId
+                    )
                 )
                 findNavController().popBackStack()
             }
@@ -214,12 +233,14 @@ class InheritanceKeyIntroFragment : MembershipFragment(), BottomSheetOptionListe
 
 @Composable
 private fun TapSignerInheritanceIntroScreen(
+    inheritanceType: InheritancePlanType,
     viewModel: TapSignerInheritanceIntroViewModel = viewModel(),
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     TapSignerInheritanceIntroContent(
         onContinueClicked = viewModel::onContinueClicked,
+        inheritanceType = inheritanceType,
         onMoreClicked = onMoreClicked,
         remainTime = remainTime
     )
@@ -228,6 +249,7 @@ private fun TapSignerInheritanceIntroScreen(
 @Composable
 private fun TapSignerInheritanceIntroContent(
     remainTime: Int = 0,
+    inheritanceType: InheritancePlanType = InheritancePlanType.ON_CHAIN,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
@@ -260,12 +282,37 @@ private fun TapSignerInheritanceIntroContent(
                     text = stringResource(R.string.nc_your_inheritance_key),
                     style = NunchukTheme.typography.heading
                 )
-                Text(
-                    modifier = Modifier.padding(16.dp),
-                    text = "This key will serve as your designated inheritance key. Please take a moment to label or mark it accordingly.",
-                    style = NunchukTheme.typography.body
-                )
+                if (inheritanceType == InheritancePlanType.OFF_CHAIN) {
+                    Text(
+                        modifier = Modifier.padding(16.dp),
+                        text = "This key will serve as your designated inheritance key. Please take a moment to label or mark it accordingly.",
+                        style = NunchukTheme.typography.body
+                    )
+                } else {
+                    Text(
+                        modifier = Modifier.padding(16.dp),
+                        text = "The inheritance key is used to claim funds and spend from the wallet after the timelock.\n" +
+                                "\n" +
+                                "If you do not already have a BIP39 seed phrase, view it on your device or generate a new one. Either a 12-word or 24-word seed phrase is acceptable (12 words are sufficient). Keep it secret.\n" +
+                                "\n" +
+                                "You will later share this seed phrase backup with your Beneficiary so they can access the inheritance.",
+                        style = NunchukTheme.typography.body
+                    )
+                }
                 Spacer(modifier = Modifier.weight(1.0f))
+
+                if (inheritanceType == InheritancePlanType.ON_CHAIN) {
+                    NcHintMessage(
+                        messages = listOf(
+                            ClickAbleText(
+                                content = "Your device may use a different term for the seed phrase, such as \"recovery phrase\" or \"mnemonic.\""
+                            )
+                        ),
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        type = HighlightMessageType.HINT,
+                    )
+                }
+
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -279,10 +326,9 @@ private fun TapSignerInheritanceIntroContent(
     }
 }
 
+
 @Preview
 @Composable
 private fun TapSignerInheritanceIntroScreenPreview() {
-    TapSignerInheritanceIntroContent(
-
-    )
+    TapSignerInheritanceIntroContent()
 }

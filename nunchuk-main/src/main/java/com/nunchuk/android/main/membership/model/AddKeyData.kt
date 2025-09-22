@@ -36,10 +36,20 @@ data class AddKeyData(
         get() = signer != null || verifyType != VerifyType.NONE
 }
 
+data class AddKeyOnChainData(
+    val type: MembershipStep,
+    val signers: List<SignerModel>? = null,
+    val verifyType: VerifyType = VerifyType.NONE
+) {
+    val isVerifyOrAddKey: Boolean
+        get() = signers != null || verifyType != VerifyType.NONE
+}
+
 val MembershipStep.resId: Int
     get() {
         return when (this) {
             MembershipStep.ADD_SEVER_KEY -> R.drawable.ic_server_key_dark
+            MembershipStep.TIMELOCK -> R.drawable.ic_timer
             MembershipStep.HONEY_ADD_INHERITANCE_KEY,
             MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY,
             MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1,
@@ -68,6 +78,7 @@ fun MembershipStep.getLabel(context: Context, isStandard: Boolean): String {
         MembershipStep.IRON_ADD_HARDWARE_KEY_2 -> "$defaultKeyName #2"
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> "$defaultKeyName #1"
         MembershipStep.ADD_SEVER_KEY -> context.getString(R.string.nc_server_key)
+        MembershipStep.TIMELOCK -> context.getString(R.string.nc_timelock)
         MembershipStep.HONEY_ADD_INHERITANCE_KEY, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY -> "$defaultKeyName #1"
         MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 -> "$defaultKeyName #2"
         MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> "$defaultKeyName #2"

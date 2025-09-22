@@ -32,6 +32,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import dagger.hilt.android.AndroidEntryPoint
@@ -51,7 +52,10 @@ class ColdCardSkipVerifyFragment : MembershipFragment() {
         ColdCardSkipVerifyScreen(
             remainTime = remainTime,
             onContinueClick = {
-                navigator.openSetupMk4(requireActivity(), false)
+                navigator.openSetupMk4(
+                    requireActivity(), 
+                    SetupMk4Args(fromMembershipFlow = false)
+                )
             }
         )
     }

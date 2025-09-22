@@ -25,6 +25,8 @@ import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.referral.ReferralArgs
+import com.nunchuk.android.core.util.BackUpSeedPhraseType
+import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
@@ -35,6 +37,7 @@ import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.nav.args.CheckFirmwareArgs
 import com.nunchuk.android.nav.args.MiniscriptArgs
 
 interface AppNavigator {
@@ -168,4 +171,17 @@ interface AppNavigator {
         activityContext: Context,
         args: MiniscriptArgs
     )
+
+    fun openCheckFirmwareActivity(
+        activityContext: Context,
+        launcher: ActivityResultLauncher<Intent>? = null,
+        args: CheckFirmwareArgs
+    )
+
+    fun openBackUpSeedPhraseActivity(
+        activityContext: Context,
+        args: BackUpSeedPhraseArgs
+    )
+
+    fun returnMembershipScreen()
 }

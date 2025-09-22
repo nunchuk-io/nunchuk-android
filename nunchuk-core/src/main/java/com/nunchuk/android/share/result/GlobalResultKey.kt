@@ -39,6 +39,7 @@ object GlobalResultKey {
     const val WALLET = "_q"
     const val MNEMONIC = "_r"
     const val SIGNING_PATH = "_s"
+    const val EXTRA_SIGNERS = "_t"
 }
 
 object GlobalResult {

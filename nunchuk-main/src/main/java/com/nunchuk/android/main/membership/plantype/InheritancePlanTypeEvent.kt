@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.plantype
+package com.nunchuk.android.main.membership.plantype
 
 sealed class InheritancePlanTypeEvent {
     data class OnContinueClicked(val selectedPlanType: InheritancePlanType) : InheritancePlanTypeEvent()

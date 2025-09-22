@@ -32,7 +32,10 @@ import com.nunchuk.android.app.wallet.QuickWalletActivity
 import com.nunchuk.android.auth.nav.AuthNavigatorDelegate
 import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
 import com.nunchuk.android.core.data.model.QuickWalletParam
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.referral.ReferralArgs
+import com.nunchuk.android.core.util.BackUpSeedPhraseType
+import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
@@ -48,6 +51,8 @@ import com.nunchuk.android.main.membership.authentication.WalletAuthenticationAc
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.main.membership.byzantine.primaryowner.PrimaryOwnerActivity
 import com.nunchuk.android.main.membership.key.desktop.AddDesktopKeyActivity
+import com.nunchuk.android.main.membership.onchaintimelock.backupseedphrase.BackUpSeedPhraseActivity
+import com.nunchuk.android.main.membership.onchaintimelock.checkfirmware.CheckFirmwareActivity
 import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
 import com.nunchuk.android.main.rollover.RollOverWalletActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
@@ -61,6 +66,7 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.nav.args.CheckFirmwareArgs
 import com.nunchuk.android.nav.args.MainComposeArgs
 import com.nunchuk.android.nav.args.MiniscriptArgs
 import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
@@ -438,5 +444,24 @@ interface AppNavigatorDelegate : AppNavigator {
         args: MiniscriptArgs
     ) {
         MiniscriptActivity.start(activityContext, args)
+    }
+
+    override fun openCheckFirmwareActivity(
+        activityContext: Context,
+        launcher: ActivityResultLauncher<Intent>?,
+        args: CheckFirmwareArgs
+    ) {
+        CheckFirmwareActivity.navigate(activityContext, launcher, args)
+    }
+
+    override fun openBackUpSeedPhraseActivity(
+        activityContext: Context,
+        args: BackUpSeedPhraseArgs
+    ) {
+        BackUpSeedPhraseActivity.start(activityContext, args)
+    }
+
+    override fun returnMembershipScreen() {
+        ActivityManager.popUntil(MembershipActivity::class.java)
     }
 }

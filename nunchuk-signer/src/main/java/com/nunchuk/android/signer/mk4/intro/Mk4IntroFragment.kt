@@ -60,6 +60,7 @@ import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.isRecommendedSingleSigPath
@@ -71,6 +72,7 @@ import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.isParseAction
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -139,7 +141,8 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 newIndex = (activity as Mk4Activity).newIndex,
                 xfp = (activity as Mk4Activity).xfp,
                 replacedXfp = (activity as Mk4Activity).replacedXfp,
-                walletId = (activity as Mk4Activity).walletId
+                walletId = (activity as Mk4Activity).walletId,
+                onChainAddSignerParam = (activity as Mk4Activity).onChainAddSignerParam
             )
             nfcViewModel.clearScanInfo()
         }
@@ -152,17 +155,55 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 is Mk4IntroViewEvent.ShowError -> showError(it.message)
                 Mk4IntroViewEvent.OnContinueClicked -> onContinueClicked()
                 is Mk4IntroViewEvent.OnCreateSignerSuccess -> {
-                    if (args.isAddInheritanceKey) {
-                        mk4ViewModel.setOrUpdate(
-                            mk4ViewModel.coldCardBackUpParam.copy(
-                                xfp = it.signer.masterFingerprint,
-                                keyType = it.signer.type,
-                                keyName = it.signer.name
+                    val onChainAddSignerParam = (activity as Mk4Activity).onChainAddSignerParam
+                    if (args.isAddInheritanceKey || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
+                        if (onChainAddSignerParam != null) {
+                            if (onChainAddSignerParam.currentSignerXfp.isNotEmpty() && onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
+                                if (it.signer.masterFingerprint == onChainAddSignerParam.currentSignerXfp) {
+                                    viewModel.setKeyVerified(
+                                        groupId = (activity as Mk4Activity).groupId,
+                                        masterSignerId = it.signer.masterFingerprint
+                                    )
+                                } else {
+                                    requireActivity().setResult(Activity.RESULT_OK)
+                                    navigator.returnMembershipScreen()
+                                }
+                            } else {
+                                when (onChainAddSignerParam.keyIndex) {
+                                    0 -> {
+                                        requireActivity().setResult(Activity.RESULT_OK)
+                                        navigator.returnMembershipScreen()
+                                    }
+                                    1 -> {
+                                        requireActivity().setResult(Activity.RESULT_OK)
+                                        navigator.openBackUpSeedPhraseActivity(
+                                            requireActivity(), 
+                                            BackUpSeedPhraseArgs(
+                                                type = BackUpSeedPhraseType.INTRO,
+                                                xfp = "",
+                                                groupId = (activity as Mk4Activity).groupId,
+                                                walletId = (activity as Mk4Activity).walletId.orEmpty()
+                                            )
+                                        )
+                                    }
+                                    else -> {
+                                        requireActivity().setResult(Activity.RESULT_OK)
+                                        navigator.returnMembershipScreen()
+                                    }
+                                }
+                            }
+                        } else {
+                            mk4ViewModel.setOrUpdate(
+                                mk4ViewModel.coldCardBackUpParam.copy(
+                                    xfp = it.signer.masterFingerprint,
+                                    keyType = it.signer.type,
+                                    keyName = it.signer.name
+                                )
                             )
-                        )
-                        findNavController().navigate(
-                            ColdcardRecoverFragmentDirections.actionColdcardRecoverFragmentToColdCardBackUpIntroFragment()
-                        )
+                            findNavController().navigate(
+                                ColdcardRecoverFragmentDirections.actionColdcardRecoverFragmentToColdCardBackUpIntroFragment()
+                            )
+                        }
                     } else {
                         requireActivity().setResult(Activity.RESULT_OK)
                         requireActivity().finish()
@@ -239,6 +280,19 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                             )
                         )
                     }
+                }
+
+                Mk4IntroViewEvent.KeyVerifiedSuccess -> {
+                    requireActivity().setResult(Activity.RESULT_OK)
+                    navigator.openBackUpSeedPhraseActivity(
+                        requireActivity(),
+                        BackUpSeedPhraseArgs(
+                            type = BackUpSeedPhraseType.SUCCESS,
+                            xfp = "",
+                            groupId = (activity as Mk4Activity).groupId,
+                            walletId = (activity as Mk4Activity).walletId.orEmpty()
+                        )
+                    )
                 }
             }
         }

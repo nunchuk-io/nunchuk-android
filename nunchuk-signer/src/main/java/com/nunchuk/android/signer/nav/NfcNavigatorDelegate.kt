@@ -25,6 +25,7 @@ import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.nav.NfcNavigator
+import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.portal.PortalDeviceActivity
@@ -34,40 +35,9 @@ import com.nunchuk.android.type.SignerType
 interface NfcNavigatorDelegate : NfcNavigator {
     override fun openSetupMk4(
         activity: Activity,
-        fromMembershipFlow: Boolean,
-        action: ColdcardAction,
-        groupId: String,
-        newIndex: Int,
-        isScanQRCode: Boolean,
-        replacedXfp: String?,
-        walletId: String?,
-        signerType: SignerType?,
-        backUpFilePath: String?,
-        keyId: String?,
-        keyName: String?,
-        xfp: String?,
-        backUpFileName: String?,
-        isFromAddKey: Boolean,
-        quickWalletParam: QuickWalletParam?
+        args: SetupMk4Args
     ) {
-        Mk4Activity.navigate(
-            activity = activity,
-            isMembershipFlow = fromMembershipFlow,
-            action = action,
-            groupId = groupId,
-            newIndex = newIndex,
-            isScanQRCode = isScanQRCode,
-            replacedXfp = replacedXfp,
-            walletId = walletId,
-            signerType = signerType,
-            backUpFilePath = backUpFilePath,
-            keyId = keyId,
-            keyName = keyName,
-            xfp = xfp,
-            backUpFileName = backUpFileName,
-            isFromAddKey = isFromAddKey,
-            quickWalletParam = quickWalletParam,
-        )
+        Mk4Activity.navigate(activity, args)
     }
 
     override fun startSetupMk4ForResult(
@@ -84,13 +54,15 @@ interface NfcNavigatorDelegate : NfcNavigator {
         launcher.launch(
             Mk4Activity.buildIntent(
                 activity = activity,
-                isMembershipFlow = fromMembershipFlow,
-                action = action,
-                groupId = groupId,
-                newIndex = newIndex,
-                xfp = xfp,
-                replacedXfp = replacedXfp,
-                walletId = walletId,
+                args = SetupMk4Args(
+                    fromMembershipFlow = fromMembershipFlow,
+                    action = action,
+                    groupId = groupId,
+                    newIndex = newIndex,
+                    xfp = xfp,
+                    replacedXfp = replacedXfp,
+                    walletId = walletId,
+                )
             )
         )
     }

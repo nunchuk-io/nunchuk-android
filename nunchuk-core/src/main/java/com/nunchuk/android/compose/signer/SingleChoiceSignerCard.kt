@@ -25,6 +25,7 @@ fun SingleChoiceSignerCard(
     checkable: Boolean = true,
     isChecked: Boolean = false,
     isShowPath: Boolean = false,
+    ignoreIndexCheckForAcctX: Boolean = false,
     onSelectSigner: (SignerModel) -> Unit,
     onEditPath: (SignerModel) -> Unit = {},
 ) {
@@ -37,6 +38,7 @@ fun SingleChoiceSignerCard(
         SignerCard(
             modifier = Modifier.weight(1f),
             item = signer,
+            ignoreIndexCheckForAcctX = ignoreIndexCheckForAcctX,
         ) {
             if (isShowPath && signer.derivationPath.isNotEmpty()) {
                 Text(

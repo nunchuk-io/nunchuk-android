@@ -26,13 +26,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
-import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.nfc.BaseNfcActivity
+import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.utils.parcelable
-import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -41,22 +39,23 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
 
     private val viewModel by viewModels<Mk4ViewModel>()
 
-    val action: ColdcardAction by lazy(LazyThreadSafetyMode.NONE) {
-        intent.serializable(EXTRA_ACTION) ?: ColdcardAction.CREATE
-    }
-    val groupId: String by lazy { intent.getStringExtra(EXTRA_GROUP_ID).orEmpty() }
-    val newIndex by lazy { intent.getIntExtra(EXTRA_INDEX, -1) }
-    val xfp by lazy { intent.getStringExtra(EXTRA_XFP).orEmpty() }
-    val replacedXfp by lazy { intent.getStringExtra(EXTRA_REPLACE_XFP) }
-    val walletId by lazy { intent.getStringExtra(EXTRA_WALLET_ID) }
-    val signerType by lazy { intent.serializable(EXTRA_SIGNER_TYPE) ?: SignerType.NFC }
-    private val backUpFilePath by lazy { intent.getStringExtra(EXTRA_BACK_UP_FILE_PATH).orEmpty() }
-    val keyId by lazy { intent.getStringExtra(EXTRA_KEY_ID).orEmpty() }
-    val keyName by lazy { intent.getStringExtra(EXTRA_KEY_NAME).orEmpty() }
-    val backUpFileName by lazy { intent.getStringExtra(EXTRA_BACK_UP_FILE_NAME).orEmpty() }
-    val isFromAddKey by lazy { intent.getBooleanExtra(EXTRA_IS_FROM_ADD_KEY, false) }
-    val isMembershipFlow by lazy { intent.getBooleanExtra(EXTRA_IS_MEMBERSHIP_FLOW, false) }
-    val quickWalletParam by lazy { intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM) }
+    private val args by lazy { SetupMk4Args.deserializeFrom(intent) }
+    
+    val action: ColdcardAction by lazy(LazyThreadSafetyMode.NONE) { args.action }
+    val groupId: String by lazy { args.groupId }
+    val newIndex by lazy { args.newIndex }
+    val xfp by lazy { args.xfp.orEmpty() }
+    val replacedXfp by lazy { args.replacedXfp }
+    val walletId by lazy { args.walletId }
+    val signerType by lazy { args.signerType ?: SignerType.NFC }
+    private val backUpFilePath by lazy { args.backUpFilePath.orEmpty() }
+    val keyId by lazy { args.keyId.orEmpty() }
+    val keyName by lazy { args.keyName.orEmpty() }
+    val backUpFileName by lazy { args.backUpFileName.orEmpty() }
+    val isFromAddKey by lazy { args.isFromAddKey }
+    val isMembershipFlow by lazy { args.fromMembershipFlow }
+    val quickWalletParam by lazy { args.quickWalletParam }
+    val onChainAddSignerParam by lazy { args.onChainAddSignerParam }
 
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater).also {
@@ -88,7 +87,7 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
         )
         when (action) {
             ColdcardAction.CREATE -> {
-                if (isFromAddKey) {
+                if (isFromAddKey || onChainAddSignerParam != null) {
                     graph.setStartDestination(R.id.coldCardIntroFragment)
                 } else {
                     graph.setStartDestination(R.id.mk4IntroFragment)
@@ -115,99 +114,19 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
     }
 
     companion object {
-        private const val EXTRA_IS_MEMBERSHIP_FLOW = "is_membership_flow"
-        private const val EXTRA_ACTION = "action"
-        private const val EXTRA_GROUP_ID = "group_id"
-        private const val EXTRA_INDEX = "index"
-        private const val EXTRA_XFP = "xfp"
-        private const val EXTRA_SCAN_QR_CODE = "scan_qr_code"
-        private const val EXTRA_REPLACE_XFP = "replace_xfp"
-        private const val EXTRA_WALLET_ID = "wallet_id"
-        private const val EXTRA_SIGNER_TYPE = "signer_type"
-        private const val EXTRA_BACK_UP_FILE_PATH = "back_up_file_path"
-        private const val EXTRA_KEY_ID = "key_id"
-        private const val EXTRA_KEY_NAME = "key_name"
-        private const val EXTRA_BACK_UP_FILE_NAME = "back_up_file_name"
-        private const val EXTRA_IS_FROM_ADD_KEY = "is_from_add_key"
-        private const val EXTRA_QUICK_WALLET_PARAM = "quick_wallet_param"
-
-        /**
-         * @param signerType, backUpFilePath, keyId, keyName are used for the backup flow
-         */
         fun navigate(
             activity: Activity,
-            isMembershipFlow: Boolean,
-            action: ColdcardAction,
-            groupId: String,
-            newIndex: Int = -1,
-            xfp: String? = null,
-            isScanQRCode: Boolean = false,
-            replacedXfp: String? = null,
-            walletId: String? = null,
-            signerType: SignerType?,
-            backUpFilePath: String? = null,
-            keyId: String? = null,
-            keyName: String? = null,
-            backUpFileName: String? = null,
-            isFromAddKey: Boolean = false,
-            quickWalletParam: QuickWalletParam? = null
+            args: SetupMk4Args
         ) {
-            activity.startActivity(
-                buildIntent(
-                    activity = activity,
-                    isMembershipFlow = isMembershipFlow,
-                    action = action,
-                    groupId = groupId,
-                    newIndex = newIndex,
-                    xfp = xfp,
-                    isScanQRCode = isScanQRCode,
-                    replacedXfp = replacedXfp,
-                    walletId = walletId,
-                    signerType = signerType,
-                    backUpFilePath = backUpFilePath,
-                    keyId = keyId,
-                    keyName = keyName,
-                    backUpFileName = backUpFileName,
-                    isFromAddKey = isFromAddKey,
-                    quickWalletParam = quickWalletParam
-                )
-            )
+            activity.startActivity(buildIntent(activity, args))
         }
 
         fun buildIntent(
             activity: Activity,
-            isMembershipFlow: Boolean = false,
-            action: ColdcardAction,
-            groupId: String = "",
-            newIndex: Int = -1,
-            xfp: String? = null,
-            isScanQRCode: Boolean = false,
-            replacedXfp: String? = null,
-            walletId: String? = null,
-            signerType: SignerType? = null,
-            backUpFilePath: String? = null,
-            keyId: String? = null,
-            keyName: String? = null,
-            backUpFileName: String? = null,
-            isFromAddKey: Boolean = false,
-            quickWalletParam: QuickWalletParam? = null
+            args: SetupMk4Args
         ): Intent {
             return Intent(activity, Mk4Activity::class.java).apply {
-                putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
-                putExtra(EXTRA_ACTION, action)
-                putExtra(EXTRA_GROUP_ID, groupId)
-                putExtra(EXTRA_INDEX, newIndex)
-                putExtra(EXTRA_XFP, xfp)
-                putExtra(EXTRA_SCAN_QR_CODE, isScanQRCode)
-                putExtra(EXTRA_REPLACE_XFP, replacedXfp)
-                putExtra(EXTRA_WALLET_ID, walletId)
-                putExtra(EXTRA_SIGNER_TYPE, signerType)
-                putExtra(EXTRA_BACK_UP_FILE_PATH, backUpFilePath)
-                putExtra(EXTRA_KEY_ID, keyId)
-                putExtra(EXTRA_KEY_NAME, keyName)
-                putExtra(EXTRA_BACK_UP_FILE_NAME, backUpFileName)
-                putExtra(EXTRA_IS_FROM_ADD_KEY, isFromAddKey)
-                putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
+                putExtras(args.buildBundle())
             }
         }
     }

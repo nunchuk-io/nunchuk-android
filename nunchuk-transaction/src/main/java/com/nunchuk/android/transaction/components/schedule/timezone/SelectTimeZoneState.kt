@@ -19,4 +19,6 @@
 
 package com.nunchuk.android.transaction.components.schedule.timezone
 
+import com.nunchuk.android.core.ui.TimeZoneDetail
+
 data class SelectTimeZoneState(val timezones: List<TimeZoneDetail> = emptyList())

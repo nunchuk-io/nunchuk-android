@@ -49,6 +49,7 @@ import com.nunchuk.android.usecase.CheckExistingKeyUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -74,6 +75,7 @@ class Mk4IntroViewModel @Inject constructor(
     private val extractWalletsFromColdCard: ExtractWalletsFromColdCard,
     private val createWallet2UseCase: CreateWallet2UseCase,
     private val syncKeyUseCase: SyncKeyUseCase,
+    private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
@@ -110,6 +112,7 @@ class Mk4IntroViewModel @Inject constructor(
         xfp: String?,
         replacedXfp: String?,
         walletId: String?,
+        onChainAddSignerParam: com.nunchuk.android.core.signer.OnChainAddSignerParam? = null
     ) {
         viewModelScope.launch {
             _event.emit(Mk4IntroViewEvent.Loading(true))
@@ -135,6 +138,11 @@ class Mk4IntroViewModel @Inject constructor(
                     }
                     if (newIndex >= 0 && !signer.derivationPath.endsWith("${newIndex}h/2h")) {
                         _event.emit(Mk4IntroViewEvent.NewIndexNotMatchException)
+                        _event.emit(Mk4IntroViewEvent.Loading(false))
+                        return@launch
+                    }
+                    if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
+                        _event.emit(Mk4IntroViewEvent.OnCreateSignerSuccess(signer))
                         _event.emit(Mk4IntroViewEvent.Loading(false))
                         return@launch
                     }
@@ -293,6 +301,22 @@ class Mk4IntroViewModel @Inject constructor(
                 } else {
                     _event.emit(Mk4IntroViewEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
                 }
+            }
+        }
+    }
+
+    fun setKeyVerified(groupId: String, masterSignerId: String) {
+        viewModelScope.launch {
+            setKeyVerifiedUseCase(
+                SetKeyVerifiedUseCase.Param(
+                    groupId = groupId,
+                    masterSignerId = masterSignerId,
+                    isAppVerified = true
+                )
+            ).onSuccess {
+                _event.emit(Mk4IntroViewEvent.KeyVerifiedSuccess)
+            }.onFailure {
+                _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))
             }
         }
     }

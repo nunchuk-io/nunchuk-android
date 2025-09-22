@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.plantype
+package com.nunchuk.android.main.membership.plantype
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -76,9 +76,6 @@ class InheritancePlanTypeFragment : MembershipFragment() {
                             )
                         }
                         InheritancePlanType.OFF_CHAIN -> {
-                            findNavController().navigate(
-                                InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToInheritancePlanOverviewFragment()
-                            )
                         }
                     }
                 }

@@ -83,6 +83,15 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
         <activity android:name="com.nunchuk.android.main.MainComposeActivity" />
+
+        <activity android:name=".membership.onchaintimelock.checkfirmware.CheckFirmwareActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
+        <activity android:name=".membership.onchaintimelock.backupseedphrase.BackUpSeedPhraseActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar.Light" />
+
     </application>
 
 </manifest>

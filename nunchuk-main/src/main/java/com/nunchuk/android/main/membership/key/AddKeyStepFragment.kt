@@ -125,7 +125,7 @@ class AddKeyStepFragment : MembershipFragment() {
     }
 
     private fun handleOpenKeyList() {
-        findNavController().navigate(AddKeyStepFragmentDirections.actionAddKeyStepFragmentToAddKeyListFragment())
+        findNavController().navigate(AddKeyStepFragmentDirections.actionAddKeyStepFragmentToInheritancePlanTypeFragment())
     }
 
     private fun handleOpenRecoveryQuestion() {

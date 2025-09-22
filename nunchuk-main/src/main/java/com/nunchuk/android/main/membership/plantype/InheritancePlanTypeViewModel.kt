@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.plantype
+package com.nunchuk.android.main.membership.plantype
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

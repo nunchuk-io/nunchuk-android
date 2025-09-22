@@ -276,47 +276,7 @@
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.intro.InheritanceSetupIntroFragment"
         android:label="InheritanceSetupIntroFragment">
         <action
-            android:id="@+id/action_inheritanceSetupIntroFragment_to_inheritancePlanTypeFragment"
-            app:destination="@id/inheritancePlanTypeFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <action
             android:id="@+id/action_inheritanceSetupIntroFragment_to_inheritancePlanOverviewFragment"
-            app:destination="@id/inheritancePlanOverviewFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/inheritancePlanTypeFragment"
-        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.plantype.InheritancePlanTypeFragment"
-        android:label="InheritancePlanTypeFragment">
-        <action
-            android:id="@+id/action_inheritancePlanTypeFragment_to_onChainTimelockExplanationFragment"
-            app:destination="@id/onChainTimelockExplanationFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <action
-            android:id="@+id/action_inheritancePlanTypeFragment_to_inheritancePlanOverviewFragment"
-            app:destination="@id/inheritancePlanOverviewFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/onChainTimelockExplanationFragment"
-        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.onchainexplanation.OnChainTimelockExplanationFragment"
-        android:label="OnChainTimelockExplanationFragment">
-        <action
-            android:id="@+id/action_onChainTimelockExplanationFragment_to_inheritancePlanOverviewFragment"
             app:destination="@id/inheritancePlanOverviewFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"

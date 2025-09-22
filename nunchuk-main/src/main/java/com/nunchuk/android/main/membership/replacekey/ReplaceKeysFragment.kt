@@ -36,6 +36,7 @@ import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
@@ -110,17 +111,19 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                             val backUpFileName = viewModel.getBackUpFileName(signer.fingerPrint)
                             navigator.openSetupMk4(
                                 activity = requireActivity(),
-                                fromMembershipFlow = true,
-                                backUpFilePath = viewModel.getFilePath(signer.id),
-                                xfp = signer.fingerPrint,
-                                action = if (backUpFileName.isNotEmpty()) ColdcardAction.VERIFY_KEY else ColdcardAction.UPLOAD_BACKUP,
-                                keyName = signer.name,
-                                signerType = signer.type,
-                                keyId = viewModel.getKeyId(signer.id),
-                                backUpFileName = backUpFileName,
-                                groupId = args.groupId,
-                                walletId = args.walletId,
-                                replacedXfp = viewModel.getReplaceSignerXfp(signer.id)
+                                args = SetupMk4Args(
+                                    fromMembershipFlow = true,
+                                    backUpFilePath = viewModel.getFilePath(signer.id),
+                                    xfp = signer.fingerPrint,
+                                    action = if (backUpFileName.isNotEmpty()) ColdcardAction.VERIFY_KEY else ColdcardAction.UPLOAD_BACKUP,
+                                    keyName = signer.name,
+                                    signerType = signer.type,
+                                    keyId = viewModel.getKeyId(signer.id),
+                                    backUpFileName = backUpFileName,
+                                    groupId = args.groupId,
+                                    walletId = args.walletId,
+                                    replacedXfp = viewModel.getReplaceSignerXfp(signer.id)
+                                )
                             )
                         }
                     },
@@ -140,14 +143,16 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
                     if (signer.type == SignerType.COLDCARD_NFC || signer.type == SignerType.AIRGAP) {
                         navigator.openSetupMk4(
                             activity = requireActivity(),
-                            fromMembershipFlow = true,
-                            action = ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION,
-                            groupId = (activity as MembershipActivity).groupId,
-                            walletId = (activity as MembershipActivity).walletId,
-                            replacedXfp = viewModel.replacedXfp,
-                            xfp = signer.fingerPrint,
-                            keyName = signer.name,
-                            signerType = signer.type
+                            args = SetupMk4Args(
+                                fromMembershipFlow = true,
+                                action = ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION,
+                                groupId = (activity as MembershipActivity).groupId,
+                                walletId = (activity as MembershipActivity).walletId,
+                                replacedXfp = viewModel.replacedXfp,
+                                xfp = signer.fingerPrint,
+                                keyName = signer.name,
+                                signerType = signer.type
+                            )
                         )
                         clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
                         return@setFragmentResultListener
@@ -247,11 +252,13 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
             SheetOptionType.TYPE_ADD_INHERITANCE_COLDCARD -> {
                 navigator.openSetupMk4(
                     activity = requireActivity(),
-                    fromMembershipFlow = true,
-                    action = ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION,
-                    groupId = (activity as MembershipActivity).groupId,
-                    walletId = (activity as MembershipActivity).walletId,
-                    replacedXfp = viewModel.replacedXfp
+                    args = SetupMk4Args(
+                        fromMembershipFlow = true,
+                        action = ColdcardAction.INHERITANCE_PASSPHRASE_QUESTION,
+                        groupId = (activity as MembershipActivity).groupId,
+                        walletId = (activity as MembershipActivity).walletId,
+                        replacedXfp = viewModel.replacedXfp
+                    )
                 )
             }
             SignerType.NFC.ordinal -> handleShowKeysOrCreate(
@@ -279,22 +286,26 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
 
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(
                 activity = requireActivity(),
-                fromMembershipFlow = true,
-                groupId = args.groupId,
-                replacedXfp = viewModel.replacedXfp,
-                walletId = args.walletId
+                args = SetupMk4Args(
+                    fromMembershipFlow = true,
+                    groupId = args.groupId,
+                    replacedXfp = viewModel.replacedXfp,
+                    walletId = args.walletId
+                )
             )
 
             SheetOptionType.TYPE_ADD_COLDCARD_QR,
             SheetOptionType.TYPE_ADD_COLDCARD_FILE,
             -> navigator.openSetupMk4(
                 activity = requireActivity(),
-                fromMembershipFlow = true,
-                action = ColdcardAction.RECOVER_KEY,
-                groupId = args.groupId,
-                isScanQRCode = option.type == SheetOptionType.TYPE_ADD_COLDCARD_QR,
-                replacedXfp = viewModel.replacedXfp,
-                walletId = args.walletId
+                args = SetupMk4Args(
+                    fromMembershipFlow = true,
+                    action = ColdcardAction.RECOVER_KEY,
+                    groupId = args.groupId,
+                    isScanQRCode = option.type == SheetOptionType.TYPE_ADD_COLDCARD_QR,
+                    replacedXfp = viewModel.replacedXfp,
+                    walletId = args.walletId
+                )
             )
 
             SheetOptionType.TYPE_ADD_AIRGAP_JADE,

@@ -38,4 +38,5 @@ sealed class Mk4IntroViewEvent {
     data object NewIndexNotMatchException : Mk4IntroViewEvent()
     data object XfpNotMatchException : Mk4IntroViewEvent()
     data class CheckExistingKey(val type: ResultExistingKey, val signer: SingleSigner) : Mk4IntroViewEvent()
+    data object KeyVerifiedSuccess : Mk4IntroViewEvent()
 }

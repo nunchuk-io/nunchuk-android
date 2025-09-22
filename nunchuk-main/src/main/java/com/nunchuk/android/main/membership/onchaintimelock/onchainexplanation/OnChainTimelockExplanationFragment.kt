@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.onchainexplanation
+package com.nunchuk.android.main.membership.onchaintimelock.onchainexplanation
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -48,7 +48,7 @@ class OnChainTimelockExplanationFragment : MembershipFragment() {
                 OnChainTimelockExplanationScreen(
                     onContinueClicked = {
                         findNavController().navigate(
-                            OnChainTimelockExplanationFragmentDirections.actionOnChainTimelockExplanationFragmentToInheritancePlanOverviewFragment()
+                            OnChainTimelockExplanationFragmentDirections.actionOnChainTimelockExplanationFragmentToOnChainTimelockAddKeyListFragment()
                         )
                     }
                 )

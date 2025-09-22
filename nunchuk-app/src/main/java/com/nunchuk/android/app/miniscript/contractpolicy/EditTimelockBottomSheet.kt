@@ -48,8 +48,9 @@ import com.nunchuk.android.compose.NcTimePickerDialog
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.textSecondary
-import com.nunchuk.android.transaction.components.schedule.timezone.TimeZoneDetail
-import com.nunchuk.android.transaction.components.schedule.timezone.toTimeZoneDetail
+import com.nunchuk.android.core.ui.TimeZoneDetail
+import com.nunchuk.android.core.ui.TimeZoneSelectionDialog
+import com.nunchuk.android.core.ui.toTimeZoneDetail
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.MiniscriptTimelockType
 import kotlinx.coroutines.launch

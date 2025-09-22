@@ -19,17 +19,24 @@
 
 package com.nunchuk.android.signer
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.signer.KeyFlow
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.nav.args.CheckFirmwareArgs
+import com.nunchuk.android.nav.args.SetupMk4Args
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.utils.parcelableArrayList
@@ -41,6 +48,27 @@ class SignerIntroActivity : BaseComposeActivity() {
         intent.parcelableArrayList<SupportedSigner>(EXTRA_SUPPORTED_SIGNERS).orEmpty()
     }
     private val keyFlow by lazy { intent.getIntExtra(EXTRA_KEY_FLOW, KeyFlow.NONE) }
+    private val onChainAddSignerParam by lazy { 
+        intent.getParcelableExtra<OnChainAddSignerParam>(EXTRA_ONCHAIN_ADD_SIGNER_PARAM)
+    }
+
+    private val checkFirmwareLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            val filteredSigners = result.data?.getParcelableArrayListExtra<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
+            if (!filteredSigners.isNullOrEmpty()) {
+                // Pass the filtered signers to the OnChainTimelockAddKeyListFragment
+                val intent = Intent().apply {
+                    putParcelableArrayListExtra(GlobalResultKey.EXTRA_SIGNERS, ArrayList(filteredSigners))
+                }
+                setResult(Activity.RESULT_OK, intent)
+                finish()
+            } else {
+                finish()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,8 +83,8 @@ class SignerIntroActivity : BaseComposeActivity() {
                     onClick = { keyType: KeyType ->
                         when (keyType) {
                             KeyType.TAPSIGNER -> navigateToSetupTapSigner()
-                            KeyType.COLDCARD -> openSetupMk4()
-                            KeyType.JADE -> handleSelectAddAirgapType(SignerTag.JADE)
+                            KeyType.COLDCARD -> handleColdCardSelection()
+                            KeyType.JADE -> handleJadeSelection()
                             KeyType.PORTAL -> openPortalScreen()
                             KeyType.SEEDSIGNER -> handleSelectAddAirgapType(SignerTag.SEEDSIGNER)
                             KeyType.KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
@@ -70,10 +98,44 @@ class SignerIntroActivity : BaseComposeActivity() {
         })
     }
 
+    private fun handleColdCardSelection() {
+        if (onChainAddSignerParam != null) {
+            navigator.openCheckFirmwareActivity(
+                activityContext = this,
+                launcher = checkFirmwareLauncher,
+                args = CheckFirmwareArgs(
+                    signerTag = SignerTag.COLDCARD,
+                    onChainAddSignerParam = onChainAddSignerParam,
+                    walletId = walletId,
+                    groupId = groupId
+                )
+            )
+        } else {
+            openSetupMk4()
+        }
+    }
+
+    private fun handleJadeSelection() {
+        if (onChainAddSignerParam != null) {
+            navigator.openCheckFirmwareActivity(
+                activityContext = this,
+                launcher = checkFirmwareLauncher,
+                args = CheckFirmwareArgs(
+                    signerTag = SignerTag.JADE,
+                    onChainAddSignerParam = onChainAddSignerParam,
+                    walletId = walletId,
+                    groupId = groupId
+                )
+            )
+        } else {
+            handleSelectAddAirgapType(SignerTag.JADE)
+        }
+    }
+
     private fun handleSelectAddAirgapType(tag: SignerTag?) {
         navigator.openAddAirSignerScreen(
             activityContext = this,
-            isMembershipFlow = false,
+            isMembershipFlow = onChainAddSignerParam != null,
             tag = tag,
             groupId = groupId,
             walletId = walletId,
@@ -84,10 +146,13 @@ class SignerIntroActivity : BaseComposeActivity() {
     private fun openSetupMk4() {
         navigator.openSetupMk4(
             activity = this,
-            fromMembershipFlow = false,
-            isFromAddKey = true,
-            groupId = groupId,
-            walletId = walletId,
+            args = SetupMk4Args(
+                fromMembershipFlow = onChainAddSignerParam != null,
+                isFromAddKey = true,
+                groupId = groupId,
+                walletId = walletId,
+                onChainAddSignerParam = onChainAddSignerParam,
+            )
         )
         finish()
     }
@@ -97,7 +162,7 @@ class SignerIntroActivity : BaseComposeActivity() {
             activity = this,
             args = PortalDeviceArgs(
                 type = PortalDeviceFlow.SETUP,
-                isMembershipFlow = walletId.isNotEmpty(),
+                isMembershipFlow = walletId.isNotEmpty() || onChainAddSignerParam != null,
                 walletId = walletId,
                 groupId = groupId,
             )
@@ -108,7 +173,7 @@ class SignerIntroActivity : BaseComposeActivity() {
     private fun openAddAirSignerIntroScreen() {
         navigator.openAddAirSignerScreen(
             activityContext = this,
-            isMembershipFlow = false,
+            isMembershipFlow = onChainAddSignerParam != null,
             groupId = groupId,
             walletId = walletId
         )
@@ -150,6 +215,7 @@ class SignerIntroActivity : BaseComposeActivity() {
         private const val EXTRA_GROUP_ID = "group_id"
         private const val EXTRA_SUPPORTED_SIGNERS = "supported_signers"
         private const val EXTRA_KEY_FLOW = "key_flow"
+        private const val EXTRA_ONCHAIN_ADD_SIGNER_PARAM = "onchain_add_signer_param"
 
         fun start(
             activityContext: Context,
@@ -157,17 +223,30 @@ class SignerIntroActivity : BaseComposeActivity() {
             groupId: String? = null,
             supportedSigners: List<SupportedSigner>? = null,
             @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
+            onChainAddSignerParam: OnChainAddSignerParam? = null,
         ) {
             activityContext.startActivity(
-                Intent(activityContext, SignerIntroActivity::class.java).apply {
-                    putExtra(EXTRA_WALLET_ID, walletId)
-                    putExtra(EXTRA_GROUP_ID, groupId)
-                    putExtra(EXTRA_KEY_FLOW, keyFlow)
-                    supportedSigners?.let {
-                        putParcelableArrayListExtra(EXTRA_SUPPORTED_SIGNERS, ArrayList(it))
-                    }
-                },
+                buildIntent(activityContext, walletId, groupId, supportedSigners, keyFlow, onChainAddSignerParam)
             )
+        }
+
+        fun buildIntent(
+            activityContext: Context,
+            walletId: String? = null,
+            groupId: String? = null,
+            supportedSigners: List<SupportedSigner>? = null,
+            @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
+            onChainAddSignerParam: OnChainAddSignerParam? = null,
+        ): Intent {
+            return Intent(activityContext, SignerIntroActivity::class.java).apply {
+                putExtra(EXTRA_WALLET_ID, walletId)
+                putExtra(EXTRA_GROUP_ID, groupId)
+                putExtra(EXTRA_KEY_FLOW, keyFlow)
+                putExtra(EXTRA_ONCHAIN_ADD_SIGNER_PARAM, onChainAddSignerParam)
+                supportedSigners?.let {
+                    putParcelableArrayListExtra(EXTRA_SUPPORTED_SIGNERS, ArrayList(it))
+                }
+            }
         }
     }
 }

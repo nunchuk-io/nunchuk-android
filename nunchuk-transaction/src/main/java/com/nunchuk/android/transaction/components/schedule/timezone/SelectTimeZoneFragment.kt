@@ -64,6 +64,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.ui.TimeZoneDetail
 import com.nunchuk.android.transaction.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch

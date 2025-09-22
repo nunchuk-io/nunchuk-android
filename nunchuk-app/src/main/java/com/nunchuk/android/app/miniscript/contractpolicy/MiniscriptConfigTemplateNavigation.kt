@@ -59,7 +59,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.fillBeewax
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.core.miniscript.MultisignType
-import com.nunchuk.android.transaction.components.schedule.timezone.toTimeZoneDetail
+import com.nunchuk.android.core.ui.toTimeZoneDetail
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.type.MiniscriptTimelockType

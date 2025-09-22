@@ -37,6 +37,13 @@
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <action
+            android:id="@+id/action_addKeyStepFragment_to_inheritancePlanTypeFragment"
+            app:destination="@id/inheritancePlanTypeFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
             android:id="@+id/action_addKeyListFragment_to_recoveryQuestionFragment"
             app:destination="@id/recoveryQuestionFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
@@ -67,6 +74,20 @@
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
+
+    <fragment
+        android:id="@+id/onChainTimelockExplanationFragment"
+        android:name="com.nunchuk.android.main.membership.onchaintimelock.onchainexplanation.OnChainTimelockExplanationFragment"
+        android:label="OnChainTimelockExplanationFragment">
+        <action
+            android:id="@+id/action_onChainTimelockExplanationFragment_to_onChainTimelockAddKeyListFragment"
+            app:destination="@id/onChainTimelockAddKeyListFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
 
     <fragment
         android:id="@+id/addKeyListFragment"
@@ -113,6 +134,75 @@
     </fragment>
 
     <fragment
+        android:id="@+id/onChainTimelockAddKeyListFragment"
+        android:name="com.nunchuk.android.main.membership.onchaintimelock.addkey.OnChainTimelockAddKeyListFragment"
+        android:label="OnChainTimelockAddKeyListFragment">
+        <action
+            android:id="@+id/action_onChainTimelockAddKeyListFragment_to_tapSignerListBottomSheetFragment"
+            app:destination="@id/tapSignerListBottomSheetFragment" />
+        <action
+            android:id="@+id/action_onChainTimelockAddKeyListFragment_to_inheritanceKeyIntroFragment"
+            app:destination="@id/inheritanceKeyIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_onChainTimelockAddKeyListFragment_to_addDesktopKeyFragment"
+            app:destination="@id/add_desktop_key_navigation"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+            <argument
+                android:name="signer_tag"
+                app:argType="com.nunchuk.android.type.SignerTag" />
+
+            <argument
+                android:name="step"
+                app:argType="com.nunchuk.android.model.MembershipStep" />
+
+            <argument
+                android:name="group_id"
+                android:defaultValue="@null"
+                app:argType="string"
+                app:nullable="true" />
+        </action>
+        <action
+            android:id="@+id/action_onChainTimelockAddKeyListFragment_to_customKeyAccountFragmentFragment"
+            app:destination="@id/customKeyAccountFragmentFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_onChainTimelockAddKeyListFragment_to_onChainSetUpTimelockFragment"
+            app:destination="@id/onChainSetUpTimelockFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/onChainSetUpTimelockFragment"
+        android:name="com.nunchuk.android.main.membership.onchaintimelock.setuptimelock.OnChainSetUpTimelockFragment"
+        android:label="OnChainSetUpTimelockFragment" />
+
+    <fragment
+        android:id="@+id/inheritancePlanTypeFragment"
+        android:name="com.nunchuk.android.main.membership.plantype.InheritancePlanTypeFragment"
+        android:label="InheritancePlanTypeFragment">
+        <action
+            android:id="@+id/action_inheritancePlanTypeFragment_to_onChainTimelockExplanationFragment"
+            app:destination="@id/onChainTimelockExplanationFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
         android:id="@+id/recoveryQuestionFragment"
         android:name="com.nunchuk.android.main.membership.key.recoveryquestion.RecoveryQuestionFragment"
         android:label="RecoveryQuestionFragment">
@@ -142,6 +232,11 @@
             android:name="description"
             android:defaultValue=""
             app:argType="string" />
+
+        <argument
+            android:name="ignoreIndexCheckForAcctX"
+            android:defaultValue="false"
+            app:argType="boolean" />
 
     </dialog>
 
@@ -206,10 +301,25 @@
         android:id="@+id/inheritanceKeyIntroFragment"
         android:name="com.nunchuk.android.main.membership.honey.intro.InheritanceKeyIntroFragment"
         android:label="inheritanceKeyIntroFragment">
+        <argument
+            android:name="inheritanceType"
+            app:argType="com.nunchuk.android.main.membership.plantype.InheritancePlanType" />
         <action
             android:id="@+id/action_inheritanceKeyIntroFragment_to_tapSignerListBottomSheetFragment"
             app:destination="@id/tapSignerListBottomSheetFragment" />
+        <action
+            android:id="@+id/action_inheritanceKeyIntroFragment_to_importantNoticePassphraseFragment"
+            app:destination="@id/importantNoticePassphraseFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
+
+    <fragment
+        android:id="@+id/importantNoticePassphraseFragment"
+        android:name="com.nunchuk.android.main.membership.onchaintimelock.importantpassphrase.ImportantNoticePassphraseFragment"
+        android:label="ImportantNoticePassphraseFragment" />
 
     <fragment
         android:id="@+id/registerWalletToAirgapFragment"

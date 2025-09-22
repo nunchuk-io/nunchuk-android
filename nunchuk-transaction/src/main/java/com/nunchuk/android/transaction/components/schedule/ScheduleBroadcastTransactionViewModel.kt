@@ -28,7 +28,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.schedule.timezone.TimeZoneDetail
+import com.nunchuk.android.core.ui.TimeZoneDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

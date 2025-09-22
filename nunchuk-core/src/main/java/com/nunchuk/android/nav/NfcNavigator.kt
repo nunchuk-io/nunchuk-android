@@ -25,6 +25,7 @@ import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -32,21 +33,7 @@ import com.nunchuk.android.type.SignerType
 interface NfcNavigator {
     fun openSetupMk4(
         activity: Activity,
-        fromMembershipFlow: Boolean,
-        action: ColdcardAction = ColdcardAction.CREATE,
-        groupId: String = "",
-        newIndex: Int = -1,
-        isScanQRCode: Boolean = false,
-        replacedXfp: String? = null,
-        walletId: String? = null,
-        signerType: SignerType? = null,
-        backUpFilePath: String? = null,
-        keyId: String? = null,
-        keyName: String? = null,
-        xfp: String? = null,
-        backUpFileName: String? = null,
-        isFromAddKey: Boolean = false,
-        quickWalletParam: QuickWalletParam? = null,
+        args: SetupMk4Args
     )
 
     fun startSetupMk4ForResult(

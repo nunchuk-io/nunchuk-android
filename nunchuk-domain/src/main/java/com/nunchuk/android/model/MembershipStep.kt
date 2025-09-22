@@ -39,6 +39,7 @@ enum class MembershipStep {
     BYZANTINE_ADD_HARDWARE_KEY_4,
     BYZANTINE_INVITE_MEMBER,
     BYZANTINE_ADD_INHERITANCE_KEY_1,
+    TIMELOCK,
 }
 
 val MembershipStep.isAddInheritanceKey: Boolean

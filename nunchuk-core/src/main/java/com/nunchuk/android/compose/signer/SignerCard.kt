@@ -34,6 +34,7 @@ fun SignerCard(
     showValueKey: Boolean = false,
     signerIcon: Int? = null,
     isShowKeyTypeBadge: Boolean = true,
+    ignoreIndexCheckForAcctX: Boolean = false,
     xfpContent: @Composable (() -> Unit)? = null,
     content: @Composable () -> Unit = {}
 ) {
@@ -73,7 +74,7 @@ fun SignerCard(
                         ),
                     )
                 }
-                if (item.isShowAcctX()) {
+                if (item.isShowAcctX(ignoreIndexCheckForAcctX)) {
                     NcTag(
                         label = stringResource(R.string.nc_acct_x, item.index),
                         backgroundColor = colorResource(

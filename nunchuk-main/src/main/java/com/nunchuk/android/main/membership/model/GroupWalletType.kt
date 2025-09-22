@@ -66,6 +66,7 @@ fun GroupWalletType.toSteps(isPersonalWallet: Boolean = false): List<MembershipS
             MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
             MembershipStep.ADD_SEVER_KEY,
+            MembershipStep.TIMELOCK
         )
     } else {
         listOf(

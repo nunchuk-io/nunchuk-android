@@ -34,7 +34,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.schedule.timezone.SelectTimeZoneViewModel
-import com.nunchuk.android.transaction.components.schedule.timezone.TimeZoneDetail
+import com.nunchuk.android.core.ui.TimeZoneDetail
 import kotlinx.serialization.Serializable
 
 @Serializable

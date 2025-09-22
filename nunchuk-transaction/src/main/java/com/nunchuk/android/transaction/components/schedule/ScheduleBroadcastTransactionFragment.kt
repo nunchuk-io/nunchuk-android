@@ -63,7 +63,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.schedule.timezone.SelectTimeZoneFragment
-import com.nunchuk.android.transaction.components.schedule.timezone.TimeZoneDetail
+import com.nunchuk.android.core.ui.TimeZoneDetail
 import com.nunchuk.android.utils.formatByHour
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.simpleGlobalDateFormat

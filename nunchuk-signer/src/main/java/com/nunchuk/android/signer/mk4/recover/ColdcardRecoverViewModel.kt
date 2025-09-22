@@ -38,7 +38,6 @@ import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.signer.mk4.intro.Mk4IntroViewEvent
 import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
@@ -49,6 +48,7 @@ import com.nunchuk.android.usecase.ParseJsonSignerUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -57,7 +57,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -71,6 +70,7 @@ class ColdcardRecoverViewModel @Inject constructor(
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val createSignerUseCase: CreateSignerUseCase,
     private val syncKeyUseCase: SyncKeyUseCase,
+    private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
@@ -115,7 +115,8 @@ class ColdcardRecoverViewModel @Inject constructor(
         groupId: String,
         newIndex: Int,
         replacedXfp: String?,
-        walletId: String?
+        walletId: String?,
+        onChainAddSignerParam: com.nunchuk.android.core.signer.OnChainAddSignerParam? = null
     ) {
         viewModelScope.launch {
             _event.emit(ColdcardRecoverEvent.LoadingEvent(true))
@@ -135,7 +136,8 @@ class ColdcardRecoverViewModel @Inject constructor(
                     groupId = groupId,
                     newIndex = newIndex,
                     replacedXfp = replacedXfp,
-                    walletId = walletId
+                    walletId = walletId,
+                    onChainAddSignerParam = onChainAddSignerParam
                 )
             }
             _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
@@ -147,7 +149,8 @@ class ColdcardRecoverViewModel @Inject constructor(
         groupId: String,
         newIndex: Int,
         replacedXfp: String?,
-        walletId: String?
+        walletId: String?,
+        onChainAddSignerParam: com.nunchuk.android.core.signer.OnChainAddSignerParam? = null
     ) =
         viewModelScope.launch {
             if (args.isMembershipFlow) {
@@ -165,6 +168,11 @@ class ColdcardRecoverViewModel @Inject constructor(
                 }
                 if (newIndex >= 0 && !signer.derivationPath.endsWith("${newIndex}h/2h")) {
                     _event.emit(ColdcardRecoverEvent.NewIndexNotMatchException)
+                    _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
+                    return@launch
+                }
+                if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
+                    _event.emit(ColdcardRecoverEvent.CreateSignerSuccess(signer))
                     _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                     return@launch
                 }
@@ -256,6 +264,22 @@ class ColdcardRecoverViewModel @Inject constructor(
             }
         }
 
+    fun setKeyVerified(groupId: String, masterSignerId: String) {
+        viewModelScope.launch {
+            setKeyVerifiedUseCase(
+                SetKeyVerifiedUseCase.Param(
+                    groupId = groupId,
+                    masterSignerId = masterSignerId,
+                    isAppVerified = true
+                )
+            ).onSuccess {
+                _event.emit(ColdcardRecoverEvent.KeyVerifiedSuccess)
+            }.onFailure {
+                _event.emit(ColdcardRecoverEvent.ShowError(it.message.orUnknownError()))
+            }
+        }
+    }
+
     fun checkExistingKey(signer: SingleSigner) {
         viewModelScope.launch {
             if (checkAssistedSignerExistenceHelper.isInAssistedWallet(signer.toModel())) {
@@ -285,4 +309,5 @@ sealed class ColdcardRecoverEvent {
     data object ErrorMk4TestNet : ColdcardRecoverEvent()
     data class LoadMk4SignersSuccess(val signers: List<SingleSigner>) : ColdcardRecoverEvent()
     data class CheckExistingKey(val type: ResultExistingKey, val signer: SingleSigner) : ColdcardRecoverEvent()
+    data object KeyVerifiedSuccess : ColdcardRecoverEvent()
 }

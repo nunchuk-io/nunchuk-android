@@ -40,6 +40,14 @@ class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private val isFromAddKey by lazy { (requireActivity() as Mk4Activity).isFromAddKey }
     private val mk4ViewModel: Mk4ViewModel by activityViewModels()
+    
+    private val mk4Activity by lazy { requireActivity() as Mk4Activity }
+    private val isMembershipFlow by lazy { 
+        mk4Activity.isMembershipFlow || mk4Activity.onChainAddSignerParam != null
+    }
+    private val isAddInheritanceKey by lazy {
+        mk4Activity.onChainAddSignerParam?.isAddInheritanceSigner() ?: isFromAddKey.not()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,15 +57,15 @@ class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
         val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
         ColdCardIntroScreen(
             remainTime = remainTime,
-            isMembershipFlow = (requireActivity() as Mk4Activity).isMembershipFlow,
+            isMembershipFlow = isMembershipFlow,
             isFromAddKey = isFromAddKey
         ) {
             when (it) {
                 ColdCardAction.NFC -> {
                     findNavController().navigate(
                         ColdCardIntroFragmentDirections.actionColdCardIntroFragmentToMk4InfoFragment(
-                            isMembershipFlow = isFromAddKey.not(),
-                            isAddInheritanceKey = isFromAddKey.not()
+                            isMembershipFlow = isMembershipFlow,
+                            isAddInheritanceKey = isAddInheritanceKey
                         )
                     )
                 }
@@ -84,9 +92,9 @@ class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 ColdCardAction.QR, ColdCardAction.FILE -> {
                     findNavController().navigate(
                         ColdCardIntroFragmentDirections.actionColdCardIntroFragmentToColdcardRecoverFragment(
-                            isMembershipFlow = isFromAddKey.not(),
+                            isMembershipFlow = isMembershipFlow,
                             scanQrCode = it == ColdCardAction.QR,
-                            isAddInheritanceKey = isFromAddKey.not()
+                            isAddInheritanceKey = isAddInheritanceKey
                         )
                     )
                 }

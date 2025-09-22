@@ -1,4 +1,4 @@
-package com.nunchuk.android.app.miniscript.contractpolicy
+package com.nunchuk.android.core.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,9 +28,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.transaction.R
-import com.nunchuk.android.transaction.components.schedule.timezone.TimeZoneDetail
-import com.nunchuk.android.transaction.components.schedule.timezone.toTimeZoneDetail
+import com.nunchuk.android.core.R
 import java.util.TimeZone
 
 @Composable

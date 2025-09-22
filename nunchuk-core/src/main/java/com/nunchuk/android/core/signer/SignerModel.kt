@@ -86,7 +86,7 @@ data class SignerModel(
 
     private fun cardIdShorten() = cardId.takeLast(5)
 
-    fun isShowAcctX() = index > 0 && type != SignerType.SERVER && type != SignerType.UNKNOWN
+    fun isShowAcctX(ignoreIndexCheck: Boolean = false) = (ignoreIndexCheck || index > 0) && type != SignerType.SERVER && type != SignerType.UNKNOWN
 }
 
 fun SingleSigner.toModel(isPrimaryKey: Boolean = false) = SignerModel(

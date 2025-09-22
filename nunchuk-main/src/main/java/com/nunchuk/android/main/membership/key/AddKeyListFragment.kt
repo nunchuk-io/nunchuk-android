@@ -98,11 +98,13 @@ import com.nunchuk.android.main.membership.model.AddKeyData
 import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
+import com.nunchuk.android.main.membership.plantype.InheritancePlanType
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.isAddInheritanceKey
+import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -214,14 +216,19 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
                 )
             }
 
-            SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(requireActivity(), true)
+            SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(
+                requireActivity(), 
+                SetupMk4Args(fromMembershipFlow = true)
+            )
             SheetOptionType.TYPE_ADD_COLDCARD_QR,
             SheetOptionType.TYPE_ADD_COLDCARD_FILE,
                 -> navigator.openSetupMk4(
                 requireActivity(),
-                true,
-                ColdcardAction.RECOVER_KEY,
-                isScanQRCode = option.type == SheetOptionType.TYPE_ADD_COLDCARD_QR
+                SetupMk4Args(
+                    fromMembershipFlow = true,
+                    action = ColdcardAction.RECOVER_KEY,
+                    isScanQRCode = option.type == SheetOptionType.TYPE_ADD_COLDCARD_QR
+                )
             )
 
             SheetOptionType.TYPE_ADD_AIRGAP_JADE,
@@ -378,7 +385,9 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             }
 
             MembershipStep.HONEY_ADD_INHERITANCE_KEY -> {
-                findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToInheritanceKeyIntroFragment())
+                findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToInheritanceKeyIntroFragment(
+                    inheritanceType = InheritancePlanType.OFF_CHAIN
+                ))
             }
 
             MembershipStep.IRON_ADD_HARDWARE_KEY_1,
@@ -434,13 +443,15 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
     private fun openVerifyColdCard(event: AddKeyListEvent.OnVerifySigner) {
         navigator.openSetupMk4(
             activity = requireActivity(),
-            fromMembershipFlow = true,
-            backUpFilePath = event.filePath,
-            xfp = event.signer.fingerPrint,
-            action = if (event.backUpFileName.isNotEmpty()) ColdcardAction.VERIFY_KEY else ColdcardAction.UPLOAD_BACKUP,
-            keyName = event.signer.name,
-            signerType = event.signer.type,
-            backUpFileName = event.backUpFileName,
+            args = SetupMk4Args(
+                fromMembershipFlow = true,
+                backUpFilePath = event.filePath,
+                xfp = event.signer.fingerPrint,
+                action = if (event.backUpFileName.isNotEmpty()) ColdcardAction.VERIFY_KEY else ColdcardAction.UPLOAD_BACKUP,
+                keyName = event.signer.name,
+                signerType = event.signer.type,
+                backUpFileName = event.backUpFileName,
+            )
         )
     }
 

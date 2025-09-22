@@ -58,6 +58,7 @@ import com.nunchuk.android.model.RecoverWalletData
 import com.nunchuk.android.model.RecoverWalletType
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.nav.args.AddWalletArgs
+import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.personal.R
@@ -233,16 +234,20 @@ class WalletIntermediaryFragment : BaseCameraFragment<ViewBinding>(),
         when (option.type) {
             SheetOptionType.IMPORT_MULTI_SIG_COLD_CARD -> navigator.openSetupMk4(
                 requireActivity(),
-                false,
-                ColdcardAction.RECOVER_MULTI_SIG_WALLET,
-                quickWalletParam = quickWalletParam
+                SetupMk4Args(
+                    fromMembershipFlow = false,
+                    action = ColdcardAction.RECOVER_MULTI_SIG_WALLET,
+                    quickWalletParam = quickWalletParam
+                )
             )
 
             SheetOptionType.IMPORT_SINGLE_SIG_COLD_CARD -> navigator.openSetupMk4(
                 requireActivity(),
-                false,
-                ColdcardAction.RECOVER_SINGLE_SIG_WALLET,
-                quickWalletParam = quickWalletParam
+                SetupMk4Args(
+                    fromMembershipFlow = false,
+                    action = ColdcardAction.RECOVER_SINGLE_SIG_WALLET,
+                    quickWalletParam = quickWalletParam
+                )
             )
 
             SheetOptionType.TYPE_GROUP_WALLET -> {

@@ -61,6 +61,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.COLDCARD_GUIDE_URL
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
@@ -70,6 +71,7 @@ import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResult
 import com.nunchuk.android.signer.R
@@ -97,7 +99,8 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                 groupId = (activity as Mk4Activity).groupId,
                 newIndex = (activity as Mk4Activity).newIndex,
                 replacedXfp = (activity as Mk4Activity).replacedXfp,
-                walletId = (activity as Mk4Activity).walletId
+                walletId = (activity as Mk4Activity).walletId,
+                onChainAddSignerParam = (activity as Mk4Activity).onChainAddSignerParam
             )
         }
     }
@@ -111,7 +114,8 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                     groupId = (activity as Mk4Activity).groupId,
                     newIndex = (activity as Mk4Activity).newIndex,
                     replacedXfp = (activity as Mk4Activity).replacedXfp,
-                    walletId = (activity as Mk4Activity).walletId
+                    walletId = (activity as Mk4Activity).walletId,
+                    onChainAddSignerParam = (activity as Mk4Activity).onChainAddSignerParam
                 )
             }
         }
@@ -152,17 +156,55 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                         }
 
                         is ColdcardRecoverEvent.CreateSignerSuccess -> {
-                            if (args.isAddInheritanceKey) {
-                                mk4ViewModel.setOrUpdate(
-                                    mk4ViewModel.coldCardBackUpParam.copy(
-                                        xfp = event.signer.masterFingerprint,
-                                        keyType = event.signer.type,
-                                        keyName = event.signer.name
+                            val onChainAddSignerParam = (activity as Mk4Activity).onChainAddSignerParam
+                            if (args.isAddInheritanceKey || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
+                                if (onChainAddSignerParam != null) {
+                                    if (onChainAddSignerParam.currentSignerXfp.isNotEmpty() && onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
+                                        if (event.signer.masterFingerprint == onChainAddSignerParam.currentSignerXfp) {
+                                            viewModel.setKeyVerified(
+                                                groupId = (activity as Mk4Activity).groupId,
+                                                masterSignerId = event.signer.masterFingerprint
+                                            )
+                                        } else {
+                                            requireActivity().setResult(RESULT_OK)
+                                            navigator.returnMembershipScreen()
+                                        }
+                                    } else {
+                                        when (onChainAddSignerParam.keyIndex) {
+                                            0 -> {
+                                                requireActivity().setResult(RESULT_OK)
+                                                navigator.returnMembershipScreen()
+                                            }
+                                            1 -> {
+                                                requireActivity().setResult(RESULT_OK)
+                                                navigator.openBackUpSeedPhraseActivity(
+                                                    requireActivity(), 
+                                                    BackUpSeedPhraseArgs(
+                                                        type = BackUpSeedPhraseType.INTRO,
+                                                        xfp = "",
+                                                        groupId = (activity as Mk4Activity).groupId,
+                                                        walletId = (activity as Mk4Activity).walletId.orEmpty()
+                                                    )
+                                                )
+                                            }
+                                            else -> {
+                                                requireActivity().setResult(RESULT_OK)
+                                                navigator.returnMembershipScreen()
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    mk4ViewModel.setOrUpdate(
+                                        mk4ViewModel.coldCardBackUpParam.copy(
+                                            xfp = event.signer.masterFingerprint,
+                                            keyType = event.signer.type,
+                                            keyName = event.signer.name
+                                        )
                                     )
-                                )
-                                findNavController().navigate(
-                                    ColdcardRecoverFragmentDirections.actionColdcardRecoverFragmentToColdCardBackUpIntroFragment()
-                                )
+                                    findNavController().navigate(
+                                        ColdcardRecoverFragmentDirections.actionColdcardRecoverFragmentToColdCardBackUpIntroFragment()
+                                    )
+                                }
                             } else {
                                 requireActivity().apply {
                                     setResult(RESULT_OK)
@@ -235,6 +277,19 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                                     )
                                 )
                             }
+                        }
+
+                        ColdcardRecoverEvent.KeyVerifiedSuccess -> {
+                            requireActivity().setResult(RESULT_OK)
+                            navigator.openBackUpSeedPhraseActivity(
+                                requireActivity(),
+                                BackUpSeedPhraseArgs(
+                                    type = BackUpSeedPhraseType.SUCCESS,
+                                    xfp = "",
+                                    groupId = (activity as Mk4Activity).groupId,
+                                    walletId = (activity as Mk4Activity).walletId.orEmpty()
+                                )
+                            )
                         }
                     }
                 }

@@ -107,7 +107,9 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
                                 REQUEST_KEY,
                                 TapSignerListBottomSheetFragmentArgs(
                                     listOf(signer).toTypedArray(),
-                                    args.type
+                                    args.type,
+                                    args.description,
+                                    args.ignoreIndexCheckForAcctX
                                 ).toBundle()
                             )
                         },
@@ -116,7 +118,9 @@ class TapSignerListBottomSheetFragment : BaseComposeBottomSheet() {
                             setFragmentResult(
                                 REQUEST_KEY, TapSignerListBottomSheetFragmentArgs(
                                     emptyArray(),
-                                    args.type
+                                    args.type,
+                                    args.description,
+                                    args.ignoreIndexCheckForAcctX
                                 ).toBundle()
                             )
                         }
@@ -170,6 +174,7 @@ fun TapSignerListScreen(
         description = args.description,
         onSignerSelected = viewModel::onSignerSelected,
         selectedSigner = selectedSigner,
+        ignoreIndexCheckForAcctX = args.ignoreIndexCheckForAcctX,
     )
 }
 
@@ -184,6 +189,7 @@ private fun TapSignerListContent(
     selectedSigner: SignerModel? = null,
     type: SignerType = SignerType.NFC,
     description: String = "",
+    ignoreIndexCheckForAcctX: Boolean = false,
 ) {
     val signerLabel = when (type) {
         SignerType.NFC -> "TAPSIGNER(s)"
@@ -241,7 +247,8 @@ private fun TapSignerListContent(
                     signer = signer,
                     isChecked = signer == selectedSigner,
                     onSelectSigner = onSignerSelected,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    ignoreIndexCheckForAcctX = ignoreIndexCheckForAcctX,
                 )
             }
 
@@ -269,6 +276,7 @@ private fun TapSignerListContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .alpha(0.4f),
+                        ignoreIndexCheckForAcctX = ignoreIndexCheckForAcctX,
                     )
                 }
             }

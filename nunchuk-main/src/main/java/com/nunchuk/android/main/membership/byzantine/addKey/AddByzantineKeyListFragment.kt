@@ -54,12 +54,14 @@ import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyData
+import com.nunchuk.android.main.membership.plantype.InheritancePlanType
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -203,18 +205,22 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
 
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(
                 activity = requireActivity(),
-                fromMembershipFlow = true,
-                groupId = args.groupId
+                args = SetupMk4Args(
+                    fromMembershipFlow = true,
+                    groupId = args.groupId
+                )
             )
 
             SheetOptionType.TYPE_ADD_COLDCARD_QR,
             SheetOptionType.TYPE_ADD_COLDCARD_FILE,
             -> navigator.openSetupMk4(
                 activity = requireActivity(),
-                fromMembershipFlow = true,
-                action = ColdcardAction.RECOVER_KEY,
-                groupId = args.groupId,
-                isScanQRCode = option.type == SheetOptionType.TYPE_ADD_COLDCARD_QR
+                args = SetupMk4Args(
+                    fromMembershipFlow = true,
+                    action = ColdcardAction.RECOVER_KEY,
+                    groupId = args.groupId,
+                    isScanQRCode = option.type == SheetOptionType.TYPE_ADD_COLDCARD_QR
+                )
             )
 
             SheetOptionType.TYPE_ADD_AIRGAP_JADE,
@@ -431,7 +437,9 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
             }
 
             MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 -> {
-                findNavController().navigate(AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToInheritanceKeyIntroFragment())
+                findNavController().navigate(AddByzantineKeyListFragmentDirections.actionAddByzantineKeyListFragmentToInheritanceKeyIntroFragment(
+                    inheritanceType = InheritancePlanType.OFF_CHAIN
+                ))
             }
 
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,
@@ -489,14 +497,16 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
     private fun openVerifyColdCard(event: AddKeyListEvent.OnVerifySigner) {
         navigator.openSetupMk4(
             activity = requireActivity(),
-            fromMembershipFlow = true,
-            backUpFilePath = event.filePath,
-            xfp = event.signer.fingerPrint,
-            groupId = (activity as MembershipActivity).groupId,
-            action = if (event.backUpFileName.isNotEmpty()) ColdcardAction.VERIFY_KEY else ColdcardAction.UPLOAD_BACKUP,
-            signerType = event.signer.type,
-            keyName = event.signer.name,
-            backUpFileName = event.backUpFileName
+            args = SetupMk4Args(
+                fromMembershipFlow = true,
+                backUpFilePath = event.filePath,
+                xfp = event.signer.fingerPrint,
+                groupId = (activity as MembershipActivity).groupId,
+                action = if (event.backUpFileName.isNotEmpty()) ColdcardAction.VERIFY_KEY else ColdcardAction.UPLOAD_BACKUP,
+                signerType = event.signer.type,
+                keyName = event.signer.name,
+                backUpFileName = event.backUpFileName
+            )
         )
     }
 

@@ -58,6 +58,7 @@ import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResult
@@ -137,10 +138,12 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                     coldcardOrAirgapLauncher.launch(
                         Mk4Activity.buildIntent(
                             activity = requireActivity(),
-                            action = ColdcardAction.CREATE,
-                            walletId = args.walletId,
-                            newIndex = viewModel.getNewIndex(),
-                            xfp = args.signer.fingerPrint,
+                            args = SetupMk4Args(
+                                action = ColdcardAction.CREATE,
+                                walletId = args.walletId,
+                                newIndex = viewModel.getNewIndex(),
+                                xfp = args.signer.fingerPrint,
+                            )
                         )
                     )
                 } else {
@@ -163,11 +166,13 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                     coldcardOrAirgapLauncher.launch(
                         Mk4Activity.buildIntent(
                             activity = requireActivity(),
-                            action = ColdcardAction.RECOVER_KEY,
-                            walletId = args.walletId,
-                            newIndex = viewModel.getNewIndex(),
-                            xfp = args.signer.fingerPrint,
-                            groupId = args.groupId.orEmpty()
+                            args = SetupMk4Args(
+                                action = ColdcardAction.RECOVER_KEY,
+                                walletId = args.walletId,
+                                newIndex = viewModel.getNewIndex(),
+                                xfp = args.signer.fingerPrint,
+                                groupId = args.groupId.orEmpty()
+                            )
                         )
                     )
                 } else {
