@@ -604,7 +604,7 @@ data class ScriptNodeData(
     fun isSlotOccupied(position: String): Boolean {
         return occupiedSlots.contains(position)
     }
-    
+
     fun isPathDisabled(nodeId: List<Int>): Boolean {
         return disabledPaths.any { disabledPath ->
             nodeId.size >= disabledPath.size && nodeId.take(disabledPath.size) == disabledPath
@@ -761,6 +761,79 @@ fun MusigItem(
     }
 }
 
+private fun calculatePending(
+    node: ScriptNode,
+    data: ScriptNodeData,
+): Int {
+    if (data.satisfiableMap[node.idString] == false) {
+        return 1
+    }
+    return when (node.type) {
+        ScriptNodeType.THRESH.name -> {
+            val signedCount = node.subs.count { sub ->
+                calculatePending(sub, data) <= 0
+            }
+
+            node.k - signedCount
+        }
+
+        ScriptNodeType.MULTI.name -> node.k - calculateMultiSigned(node, data)
+
+        ScriptNodeType.PK.name -> if (calculateMultiSigned(node, data) > 0) 0 else 1
+
+        ScriptNodeType.OR.name, ScriptNodeType.OR_TAPROOT.name -> {
+            if (node.subs.any { sub -> calculatePending(sub, data) <= 0 }) {
+                0
+            } else {
+                1
+            }
+        }
+
+        ScriptNodeType.ANDOR.name -> {
+            if (node.subs
+                    .drop(1)
+                    .any { sub -> calculatePending(sub, data) <= 0 }
+            ) {
+                0
+            } else {
+                1
+            }
+        }
+
+        ScriptNodeType.AND.name -> {
+            node.subs.sumOf { sub -> calculatePending(sub, data) }
+        }
+
+        ScriptNodeType.HASH160.name, ScriptNodeType.HASH256.name, ScriptNodeType.RIPEMD160.name, ScriptNodeType.SHA256.name -> {
+            if (data.signedHash[node.idString] == true) 0 else 1
+        }
+
+        ScriptNodeType.OLDER.name, ScriptNodeType.AFTER.name -> 0
+        ScriptNodeType.MUSIG.name -> {
+            val keySet = data.keySetStatues[node.idString]
+            if (keySet == null) {
+                node.k
+            } else {
+                val signedCount = keySet.signerStatus.count { it.value }
+                node.k - signedCount
+            }
+        }
+
+        else -> 0
+    }
+}
+
+private fun calculateMultiSigned(
+    node: ScriptNode,
+    data: ScriptNodeData
+): Int {
+    return node.keys.count { key ->
+        val signer = data.signers[key]
+        val xfp = signer?.fingerPrint
+        xfp != null && data.signedSigners[xfp] == true
+    }
+}
+
 @Composable
 fun ThreshMultiItem(
     modifier: Modifier = Modifier,
@@ -771,34 +844,12 @@ fun ThreshMultiItem(
     data: ScriptNodeData = ScriptNodeData(),
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
-    // Only calculate signed signatures when in SIGN mode
-    val pendingSigners = if (data.mode == ScriptMode.SIGN && isSatisfiable) {
-        val signedCount = when (node.type) {
-            ScriptNodeType.THRESH.name -> {
-                node.subs.count { sub ->
-                    val firstKey = sub.keys.firstOrNull()
-                    if (firstKey != null) {
-                        val signer = data.signers[firstKey]
-                        val xfp = signer?.fingerPrint
-                        xfp != null && data.signedSigners[xfp] == true
-                    } else false
-                }
-            }
-
-            ScriptNodeType.MULTI.name -> {
-                node.keys.count { key ->
-                    val signer = data.signers[key]
-                    val xfp = signer?.fingerPrint
-                    xfp != null && data.signedSigners[xfp] == true
-                }
-            }
-
-            else -> 0
+    val pendingSigners =
+        if (data.mode == ScriptMode.SIGN && data.satisfiableMap[node.idString] != false) {
+            calculatePending(node, data)
+        } else {
+            0
         }
-        node.k - signedCount
-    } else {
-        0
-    }
 
     Column {
         Row(
