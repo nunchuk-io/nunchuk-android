@@ -684,7 +684,7 @@ fun AbsoluteCard(
                         style = NunchukTheme.typography.body
                     )
                 },
-                text = timeLockText,
+                text = "$timeLockText,",
                 contentEnd = {
                     Text(
                         text = "spending requires",
@@ -881,7 +881,7 @@ fun RelativeCard(
                         style = NunchukTheme.typography.body
                     )
                 },
-                text = timeLockText,
+                text = "$timeLockText,",
                 contentEnd = {
                     Text(
                         text = " after a coin is received:",
@@ -1018,7 +1018,7 @@ fun ZenHodlRelativeCard(
                         style = NunchukTheme.typography.body
                     )
                 },
-                text = timeLockText,
+                text = "$timeLockText,",
                 contentEnd = {
                     Text(
                         text = " after a coin is received:",
