@@ -26,13 +26,11 @@ import com.nunchuk.android.app.miniscript.reviewwallet.miniscriptReviewWalletDes
 import com.nunchuk.android.core.miniscript.MultisignType
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.MiniscriptArgs
 import com.nunchuk.android.wallet.InputBipPathBottomSheet
 import com.nunchuk.android.wallet.InputBipPathBottomSheetListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
-import timber.log.Timber
 
 @AndroidEntryPoint
 class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetListener {
@@ -182,13 +180,10 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
                         miniscriptReviewWalletDestination(
                             viewModel = sharedWalletViewModel
                         ) { wallet ->
-                            Timber.tag("miniscript-feature")
-                                .d("Navigation callback received wallet: $wallet")
-                            navigator.openBackupWalletScreen(
+                            navigator.openWalletDetailsScreen(
                                 activityContext = this@MiniscriptActivity,
-                                args = BackUpWalletArgs(wallet = wallet)
+                                walletId = wallet.id
                             )
-                            Timber.tag("miniscript-feature").d("Opening backup wallet screen")
                             finish()
                         }
 

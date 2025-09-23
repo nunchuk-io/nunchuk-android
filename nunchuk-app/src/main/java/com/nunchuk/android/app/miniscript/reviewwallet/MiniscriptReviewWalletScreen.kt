@@ -47,7 +47,6 @@ import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.util.toReadableString
 import kotlinx.serialization.Serializable
-import timber.log.Timber
 
 @Serializable
 object MiniscriptReviewWallet
@@ -61,28 +60,12 @@ fun MiniscriptReviewWalletScreen(
     val context = LocalContext.current
 
     LaunchedEffect(uiState.event) {
-        Timber.tag("miniscript-feature").d("Event received in LaunchedEffect: ${uiState.event}")
         when (val event = uiState.event) {
             is MiniscriptSharedWalletEvent.CreateWalletSuccess -> {
-                Timber.tag("miniscript-feature")
-                    .d("Processing CreateWalletSuccess event with wallet: ${event.wallet}")
                 onNext(event.wallet)
-                Timber.tag("miniscript-feature").d("onNext called with wallet: ${event.wallet}")
             }
-
-            is MiniscriptSharedWalletEvent.Error -> {
-                Timber.tag("miniscript-feature").e("Error event received: ${event.message}")
-            }
-
-            null -> {
-                Timber.tag("miniscript-feature").d("Null event received")
-            }
-
-            else -> {
-                Timber.tag("miniscript-feature").d("Other event received: $event")
-            }
+            else -> {}
         }
-        Timber.tag("miniscript-feature").d("Calling onEventHandled()")
         viewModel.onEventHandled()
     }
 
@@ -193,7 +176,6 @@ fun MiniscriptReviewWalletScreen(
                             ),
                             onChangeBip32Path = { _, _ -> },
                             onActionKey = { _, _ -> }
-                            // Using default behavior, no custom action button needed
                         )
                     }
                 }
