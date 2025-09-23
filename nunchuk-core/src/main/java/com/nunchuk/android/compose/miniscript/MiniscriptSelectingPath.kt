@@ -64,6 +64,7 @@ fun updateSigningPathForNode(
                         if (!currentPaths.contains(childNode.id)) {
                             currentPaths.add(childNode.id)
                         }
+                        subNodeFollowParent.add(childNode.id)
                     }
                 }
 

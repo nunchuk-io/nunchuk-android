@@ -764,6 +764,7 @@ fun MusigItem(
 private fun calculatePending(
     node: ScriptNode,
     data: ScriptNodeData,
+    currentBlockHeight: Int,
 ): Int {
     if (data.satisfiableMap[node.idString] == false) {
         return 1
@@ -771,7 +772,7 @@ private fun calculatePending(
     return when (node.type) {
         ScriptNodeType.THRESH.name -> {
             val signedCount = node.subs.count { sub ->
-                calculatePending(sub, data) <= 0
+                calculatePending(sub, data, currentBlockHeight) <= 0
             }
 
             node.k - signedCount
@@ -782,7 +783,7 @@ private fun calculatePending(
         ScriptNodeType.PK.name -> if (calculateMultiSigned(node, data) > 0) 0 else 1
 
         ScriptNodeType.OR.name, ScriptNodeType.OR_TAPROOT.name -> {
-            if (node.subs.any { sub -> calculatePending(sub, data) <= 0 }) {
+            if (node.subs.any { sub -> calculatePending(sub, data, currentBlockHeight) <= 0 }) {
                 0
             } else {
                 1
@@ -792,7 +793,7 @@ private fun calculatePending(
         ScriptNodeType.ANDOR.name -> {
             if (node.subs
                     .drop(1)
-                    .any { sub -> calculatePending(sub, data) <= 0 }
+                    .any { sub -> calculatePending(sub, data, currentBlockHeight) <= 0 }
             ) {
                 0
             } else {
@@ -801,14 +802,49 @@ private fun calculatePending(
         }
 
         ScriptNodeType.AND.name -> {
-            node.subs.sumOf { sub -> calculatePending(sub, data) }
+            node.subs.sumOf { sub -> calculatePending(sub, data, currentBlockHeight) }
         }
 
         ScriptNodeType.HASH160.name, ScriptNodeType.HASH256.name, ScriptNodeType.RIPEMD160.name, ScriptNodeType.SHA256.name -> {
             if (data.signedHash[node.idString] == true) 0 else 1
         }
 
-        ScriptNodeType.OLDER.name, ScriptNodeType.AFTER.name -> 0
+        ScriptNodeType.OLDER.name -> {
+            val timelockValue = node.timeLock?.value ?: 0L
+            val isUnlocked = data.inputCoins.all { coin ->
+                when (node.timeLock?.based) {
+                    MiniscriptTimelockBased.TIME_LOCK -> {
+                        val currentTime = System.currentTimeMillis() / 1000L
+                        (coin.time + timelockValue) <= currentTime
+                    }
+
+                    MiniscriptTimelockBased.HEIGHT_LOCK -> {
+                        (coin.height + timelockValue) <= currentBlockHeight
+                    }
+
+                    else -> false
+                }
+            }
+            if (isUnlocked) 0 else 1
+        }
+
+        ScriptNodeType.AFTER.name -> {
+            val timelockValue = node.timeLock?.value ?: 0L
+            val isUnlocked = when (node.timeLock?.based) {
+                MiniscriptTimelockBased.TIME_LOCK -> {
+                    val currentTime = System.currentTimeMillis() / 1000L
+                    currentTime >= timelockValue
+                }
+
+                MiniscriptTimelockBased.HEIGHT_LOCK -> {
+                    currentBlockHeight >= timelockValue
+                }
+
+                else -> false
+            }
+            if (isUnlocked) 0 else 1
+        }
+
         ScriptNodeType.MUSIG.name -> {
             val keySet = data.keySetStatues[node.idString]
             if (keySet == null) {
@@ -844,9 +880,10 @@ fun ThreshMultiItem(
     data: ScriptNodeData = ScriptNodeData(),
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
+    val blockHeight by rememberBlockHeightManager().state.collectAsStateWithLifecycle()
     val pendingSigners =
         if (data.mode == ScriptMode.SIGN && data.satisfiableMap[node.idString] != false) {
-            calculatePending(node, data)
+            calculatePending(node, data, blockHeight)
         } else {
             0
         }
