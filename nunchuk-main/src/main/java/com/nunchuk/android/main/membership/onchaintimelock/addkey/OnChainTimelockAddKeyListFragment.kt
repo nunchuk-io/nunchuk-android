@@ -731,20 +731,25 @@ private fun AddKeyCard(
                     bottom.linkTo(parent.bottom)
                 }) {
             if (signers.isNotEmpty()) {
-                Box(
-                    modifier = modifier
-                        .background(
-                            color = if (item.verifyType != VerifyType.NONE || signers.size == 1) {
-                                colorResource(id = R.color.nc_fill_slime)
-                            } else if (isDisabled) {
-                                colorResource(id = R.color.nc_grey_dark_color)
-                            } else {
-                                colorResource(id = R.color.nc_fill_beewax)
-                            },
-                            shape = RoundedCornerShape(8.dp)
-                        ),
-                    contentAlignment = Alignment.Center,
+                val shouldShowDashLine = signers.size == 1
+                NcDashLineBox(
+                    modifier = modifier,
+                    showDashedBorder = shouldShowDashLine
                 ) {
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                color = if (item.verifyType != VerifyType.NONE || signers.size == 1) {
+                                    colorResource(id = R.color.nc_fill_slime)
+                                } else if (isDisabled) {
+                                    colorResource(id = R.color.nc_grey_dark_color)
+                                } else {
+                                    colorResource(id = R.color.nc_fill_beewax)
+                                },
+                                shape = RoundedCornerShape(8.dp)
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
                     Row(
                         modifier = Modifier.padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -879,6 +884,7 @@ private fun AddKeyCard(
                                 )
                             }
                         }
+                    }
                     }
                 }
             } else {
