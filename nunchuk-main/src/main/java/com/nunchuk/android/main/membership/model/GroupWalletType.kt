@@ -59,15 +59,18 @@ fun WalletConfig.toGroupWalletType(): GroupWalletType? {
         .find { this.m == it.m && this.n == it.n && this.allowInheritance == it.allowInheritance && this.requiredServerKey == it.requiredServerKey }
 }
 
-fun GroupWalletType.toSteps(isPersonalWallet: Boolean = false): List<MembershipStep> = when (this) {
+fun GroupWalletType.toSteps(isPersonalWallet: Boolean = false, isOnChain: Boolean = false): List<MembershipStep> = when (this) {
     GroupWalletType.TWO_OF_FOUR_MULTISIG -> if (isPersonalWallet) {
         listOf(
             MembershipStep.HONEY_ADD_INHERITANCE_KEY,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
             MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
             MembershipStep.ADD_SEVER_KEY,
-            MembershipStep.TIMELOCK
-        )
+        ).toMutableList().apply {
+            if (isOnChain) {
+                add(MembershipStep.TIMELOCK)
+            }
+        }
     } else {
         listOf(
             MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY,

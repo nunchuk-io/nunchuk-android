@@ -24,6 +24,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.core.domain.utils.NfcFileManager
+import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.signer.SignerModel
@@ -51,7 +52,6 @@ import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
-import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -173,7 +173,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                 loadSigners()
                 draft.config.toGroupWalletType()?.let { type ->
                     if (_keys.value.isEmpty()) {
-                        _keys.value = type.toSteps(isPersonalWallet = true)
+                        _keys.value = type.toSteps(isPersonalWallet = true, isOnChain = true)
                             .map { step -> AddKeyOnChainData(type = step) }
                     }
                 }

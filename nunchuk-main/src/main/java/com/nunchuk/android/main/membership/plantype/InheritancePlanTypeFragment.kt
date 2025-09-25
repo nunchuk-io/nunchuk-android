@@ -76,6 +76,9 @@ class InheritancePlanTypeFragment : MembershipFragment() {
                             )
                         }
                         InheritancePlanType.OFF_CHAIN -> {
+                            findNavController().navigate(
+                                InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToAddKeyListFragment()
+                            )
                         }
                     }
                 }
