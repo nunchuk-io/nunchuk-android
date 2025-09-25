@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
@@ -30,7 +29,6 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
-import com.nunchuk.android.signer.mk4.Mk4ViewModel
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -39,8 +37,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private val isFromAddKey by lazy { (requireActivity() as Mk4Activity).isFromAddKey }
-    private val mk4ViewModel: Mk4ViewModel by activityViewModels()
-    
+
     private val mk4Activity by lazy { requireActivity() as Mk4Activity }
     private val isMembershipFlow by lazy { 
         mk4Activity.isMembershipFlow || mk4Activity.onChainAddSignerParam != null
@@ -58,7 +55,8 @@ class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
         ColdCardIntroScreen(
             remainTime = remainTime,
             isMembershipFlow = isMembershipFlow,
-            isFromAddKey = isFromAddKey
+            isFromAddKey = isFromAddKey,
+            mk4Activity = mk4Activity
         ) {
             when (it) {
                 ColdCardAction.NFC -> {
@@ -111,6 +109,7 @@ internal fun ColdCardIntroScreen(
     remainTime: Int = 0,
     isFromAddKey: Boolean = false,
     isMembershipFlow: Boolean = false,
+    mk4Activity: Mk4Activity? = null,
     onColdCardAction: (ColdCardAction) -> Unit = {}
 ) {
     NunchukTheme {
@@ -136,7 +135,11 @@ internal fun ColdCardIntroScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_add_coldcard_mk4),
+                    text = if (mk4Activity?.onChainAddSignerParam?.isAddInheritanceSigner() == true) {
+                        "Add COLDCARD (${mk4Activity.onChainAddSignerParam!!.keyIndex + 1}/2)"
+                    } else {
+                        stringResource(R.string.nc_add_coldcard_mk4)
+                    },
                     style = NunchukTheme.typography.heading
                 )
                 Text(

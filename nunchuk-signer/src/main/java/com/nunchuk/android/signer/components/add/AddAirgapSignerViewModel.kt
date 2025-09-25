@@ -46,6 +46,7 @@ import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapS
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerSuccessEvent
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddSameKey
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ErrorMk4TestNet
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.KeyVerifiedSuccess
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.LoadingEventAirgap
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess
 import com.nunchuk.android.signer.util.isTestNetPath
@@ -61,6 +62,7 @@ import com.nunchuk.android.usecase.ParseJsonSignerUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
@@ -97,6 +99,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val analyzeQrUseCase: AnalyzeQrUseCase,
     private val syncKeyUseCase: SyncKeyUseCase,
+    private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val changeKeyTypeUseCase: ChangeKeyTypeUseCase,
@@ -114,6 +117,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private var replacedXfp: String? = null
     private var walletId: String = ""
     private var walletType = WalletType.MULTI_SIG
+    private var onChainAddSignerParam: com.nunchuk.android.core.signer.OnChainAddSignerParam? = null
 
     private val _state = MutableStateFlow(AddAirgapSignerState())
     val uiState = _state.asStateFlow()
@@ -127,11 +131,12 @@ internal class AddAirgapSignerViewModel @Inject constructor(
 
     val remainTime = membershipStepManager.remainingTime
 
-    fun init(groupId: String, isMembershipFlow: Boolean, replacedXfp: String?, walletId: String) {
+    fun init(groupId: String, isMembershipFlow: Boolean, replacedXfp: String?, walletId: String, onChainAddSignerParam: com.nunchuk.android.core.signer.OnChainAddSignerParam? = null) {
         this.groupId = groupId
         this.isMembershipFlow = isMembershipFlow
         this.replacedXfp = replacedXfp
         this.walletId = walletId
+        this.onChainAddSignerParam = onChainAddSignerParam
         if (walletId.isNotEmpty()) {
             getWalletType(walletId)
         }
@@ -202,6 +207,14 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                 _state.update { it.copy(showKeyNameError = true) }
                 return@launch
             }
+
+            if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
+                val signer = signerInput.toSingleSigner(newSignerName, signerTag)
+                setEvent(AddAirgapSignerSuccessEvent(signer))
+                setEvent(LoadingEventAirgap(false))
+                return@launch
+            }
+
             if (replacedXfp.isNullOrEmpty() && membershipStepManager.isKeyExisted(signerInput.fingerPrint) && isMembershipFlow) {
                 setEvent(AddSameKey)
                 return@launch
@@ -408,6 +421,22 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                 )
             ).onSuccess {
                 setEvent(AddAirgapSignerSuccessEvent(it))
+            }.onFailure {
+                setEvent(AddAirgapSignerErrorEvent(it.message.orUnknownError()))
+            }
+        }
+    }
+    
+    fun setKeyVerified(groupId: String, masterSignerId: String) {
+        viewModelScope.launch {
+            setKeyVerifiedUseCase(
+                SetKeyVerifiedUseCase.Param(
+                    groupId = groupId,
+                    masterSignerId = masterSignerId,
+                    isAppVerified = true
+                )
+            ).onSuccess {
+                setEvent(KeyVerifiedSuccess)
             }.onFailure {
                 setEvent(AddAirgapSignerErrorEvent(it.message.orUnknownError()))
             }

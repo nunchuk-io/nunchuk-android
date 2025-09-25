@@ -89,7 +89,6 @@ import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
-import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
@@ -110,6 +109,8 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.isAddInheritanceKey
+import com.nunchuk.android.nav.args.AddAirSignerArgs
+import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -270,9 +271,11 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
     private fun handleSelectAddAirgapType(tag: SignerTag?) {
         navigator.openAddAirSignerScreen(
             activityContext = requireActivity(),
-            isMembershipFlow = true,
-            tag = tag,
-            step = membershipStepManager.currentStep
+            args = AddAirSignerArgs(
+                isMembershipFlow = true,
+                tag = tag,
+                step = membershipStepManager.currentStep,
+            )
         )
     }
 
@@ -343,16 +346,17 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 )
             }
         } else {
+            val firstSigner = data.signers.first()
+
             navigator.openBackUpSeedPhraseActivity(
                 activityContext = requireActivity(),
                 args = BackUpSeedPhraseArgs(
                     type = BackUpSeedPhraseType.INTRO,
-                    xfp = ""
+                    xfp = firstSigner.fingerPrint,
                 )
             )
             return
             // Signers exist, check the current signer type and open corresponding flow
-            val firstSigner = data.signers.first()
 
             lifecycleScope.launch {
                 // Check if this signer is from a filtered result with index == 1
@@ -730,7 +734,7 @@ private fun AddKeyCard(
                 Box(
                     modifier = modifier
                         .background(
-                            color = if (item.verifyType != VerifyType.NONE) {
+                            color = if (item.verifyType != VerifyType.NONE || signers.size == 1) {
                                 colorResource(id = R.color.nc_fill_slime)
                             } else if (isDisabled) {
                                 colorResource(id = R.color.nc_grey_dark_color)

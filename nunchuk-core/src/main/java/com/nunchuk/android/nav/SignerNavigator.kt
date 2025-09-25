@@ -31,6 +31,7 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.PrimaryKey
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
@@ -71,26 +72,13 @@ interface SignerNavigator {
 
     fun openAddAirSignerScreen(
         activityContext: Context,
-        isMembershipFlow: Boolean,
-        tag: SignerTag? = null,
-        groupId: String = "",
-        xfp: String? = null,
-        newIndex: Int = -1,
-        replacedXfp: String? = null,
-        walletId: String = "",
-        step: MembershipStep? = null,
+        args: AddAirSignerArgs,
     )
 
     fun openAddAirSignerScreenForResult(
         launcher: ActivityResultLauncher<Intent>,
         activityContext: Context,
-        isMembershipFlow: Boolean,
-        tag: SignerTag? = null,
-        groupId: String = "",
-        xfp: String? = null,
-        newIndex: Int = -1,
-        replacedXfp: String? = null,
-        walletId: String = "",
+        args: AddAirSignerArgs,
     )
 
     /**

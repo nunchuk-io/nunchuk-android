@@ -61,6 +61,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -329,10 +330,12 @@ class AddByzantineKeyListFragment : MembershipFragment(), BottomSheetOptionListe
     private fun handleSelectAddAirgapType(tag: SignerTag?) {
         navigator.openAddAirSignerScreen(
             activityContext = requireActivity(),
-            isMembershipFlow = true,
-            tag = tag,
-            groupId = args.groupId,
-            step = membershipStepManager.currentStep
+            args = AddAirSignerArgs(
+                isMembershipFlow = true,
+                tag = tag,
+                groupId = args.groupId,
+                step = membershipStepManager.currentStep,
+            )
         )
     }
 

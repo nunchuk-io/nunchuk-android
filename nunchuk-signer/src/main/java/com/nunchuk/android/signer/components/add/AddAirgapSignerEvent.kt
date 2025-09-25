@@ -32,4 +32,5 @@ sealed class AddAirgapSignerEvent {
     data object NewIndexNotMatchException : AddAirgapSignerEvent()
     data object XfpNotMatchException : AddAirgapSignerEvent()
     data class CheckExisting(val type: ResultExistingKey, val singleSigner: SingleSigner) : AddAirgapSignerEvent()
+    data object KeyVerifiedSuccess : AddAirgapSignerEvent()
 }

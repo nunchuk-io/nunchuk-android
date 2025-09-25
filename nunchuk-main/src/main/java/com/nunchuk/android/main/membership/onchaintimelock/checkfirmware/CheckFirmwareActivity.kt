@@ -34,6 +34,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -60,6 +61,7 @@ class CheckFirmwareActivity : ComponentActivity() {
         setContent {
             ColdCardCheckFirmwareScreen(
                 viewModel = viewModel,
+                signerTag = args.signerTag,
                 onFilteredSignersReady = { signers ->
                     val resultIntent = Intent().apply {
                         putParcelableArrayListExtra(GlobalResultKey.EXTRA_SIGNERS, ArrayList(signers))
@@ -91,10 +93,13 @@ class CheckFirmwareActivity : ComponentActivity() {
             SignerTag.JADE -> {
                 navigator.openAddAirSignerScreen(
                     activityContext = this,
-                    isMembershipFlow = args.onChainAddSignerParam != null,
-                    tag = SignerTag.JADE,
-                    groupId = args.groupId,
-                    walletId = args.walletId,
+                    args = AddAirSignerArgs(
+                        isMembershipFlow = args.onChainAddSignerParam != null,
+                        tag = SignerTag.JADE,
+                        groupId = args.groupId,
+                        walletId = args.walletId,
+                        onChainAddSignerParam = args.onChainAddSignerParam,
+                    )
                 )
             }
             else -> {
@@ -125,6 +130,7 @@ class CheckFirmwareActivity : ComponentActivity() {
 @Composable
 private fun ColdCardCheckFirmwareScreen(
     viewModel: CheckFirmwareViewModel = viewModel(),
+    signerTag: SignerTag = SignerTag.COLDCARD,
     onMoreClicked: () -> Unit = {},
     onFilteredSignersReady: (List<SignerModel>) -> Unit = {},
     onOpenNextScreen: () -> Unit = {}
@@ -147,6 +153,7 @@ private fun ColdCardCheckFirmwareScreen(
     ColdCardCheckFirmwareContent(
         onMoreClicked = onMoreClicked,
         remainTime = remainTime,
+        signerTag = signerTag,
         onContinueClicked = viewModel::onContinueClicked
     )
 }
@@ -154,13 +161,17 @@ private fun ColdCardCheckFirmwareScreen(
 @Composable
 private fun ColdCardCheckFirmwareContent(
     remainTime: Int = 0,
+    signerTag: SignerTag = SignerTag.COLDCARD,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {},
 ) {
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
-                backgroundRes = R.drawable.bg_check_coldcard_firmware_illustration,
+                backgroundRes = when (signerTag) {
+                    SignerTag.JADE -> R.drawable.bg_add_jade
+                    else -> R.drawable.bg_check_coldcard_firmware_illustration
+                },
                 title = stringResource(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
@@ -183,16 +194,20 @@ private fun ColdCardCheckFirmwareContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Check ColdCard firmware",
+                    text = when (signerTag) {
+                        SignerTag.COLDCARD -> stringResource(id = R.string.nc_check_coldcard_firmware_title)
+                        SignerTag.JADE -> stringResource(id = R.string.nc_check_jade_firmware_title)
+                        else -> stringResource(id = R.string.nc_check_coldcard_firmware_title)
+                    },
                     style = NunchukTheme.typography.heading
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
-                    text = "Before adding your ColdCard as a signer, it's important to verify that your device is running the latest firmware version.\n" +
-                            "\n" +
-                            "Having the most up-to-date firmware ensures optimal security and compatibility with Nunchuk.\n" +
-                            "\n" +
-                            "Please check your ColdCard firmware version and update if necessary before proceeding.",
+                    text = when (signerTag) {
+                        SignerTag.COLDCARD -> stringResource(id = R.string.nc_check_coldcard_firmware_desc)
+                        SignerTag.JADE -> stringResource(id = R.string.nc_check_jade_firmware_desc)
+                        else -> stringResource(id = R.string.nc_check_coldcard_firmware_desc)
+                    },
                     style = NunchukTheme.typography.body
                 )
                 Spacer(modifier = Modifier.weight(1.0f))

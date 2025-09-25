@@ -34,6 +34,7 @@ import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -135,10 +136,13 @@ class SignerIntroActivity : BaseComposeActivity() {
     private fun handleSelectAddAirgapType(tag: SignerTag?) {
         navigator.openAddAirSignerScreen(
             activityContext = this,
-            isMembershipFlow = onChainAddSignerParam != null,
-            tag = tag,
-            groupId = groupId,
-            walletId = walletId,
+            args = AddAirSignerArgs(
+                isMembershipFlow = onChainAddSignerParam != null,
+                tag = tag,
+                groupId = groupId,
+                walletId = walletId,
+                onChainAddSignerParam = onChainAddSignerParam,
+            )
         )
         finish()
     }
@@ -173,9 +177,12 @@ class SignerIntroActivity : BaseComposeActivity() {
     private fun openAddAirSignerIntroScreen() {
         navigator.openAddAirSignerScreen(
             activityContext = this,
-            isMembershipFlow = onChainAddSignerParam != null,
-            groupId = groupId,
-            walletId = walletId
+            args = AddAirSignerArgs(
+                isMembershipFlow = onChainAddSignerParam != null,
+                groupId = groupId,
+                walletId = walletId,
+                onChainAddSignerParam = onChainAddSignerParam,
+            )
         )
         finish()
     }

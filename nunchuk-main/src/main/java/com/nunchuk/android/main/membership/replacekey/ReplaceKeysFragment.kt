@@ -36,6 +36,7 @@ import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -402,11 +403,13 @@ class ReplaceKeysFragment : Fragment(), BottomSheetOptionListener {
     private fun handleSelectAddAirgapType(tag: SignerTag?) {
         navigator.openAddAirSignerScreen(
             activityContext = requireActivity(),
-            isMembershipFlow = true,
-            tag = tag,
-            groupId = args.groupId,
-            replacedXfp = viewModel.replacedXfp,
-            walletId = args.walletId
+            args = AddAirSignerArgs(
+                isMembershipFlow = true,
+                tag = tag,
+                groupId = args.groupId,
+                replacedXfp = viewModel.replacedXfp,
+                walletId = args.walletId,
+            )
         )
     }
 

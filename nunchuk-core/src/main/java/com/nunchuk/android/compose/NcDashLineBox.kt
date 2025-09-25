@@ -43,10 +43,16 @@ fun NcDashLineBox(
     width: Dp = 2.dp,
     dashWidth: Dp = 8.dp,
     color: Color = colorResource(id = R.color.nc_text_primary),
+    showDashedBorder: Boolean = true,
     content: @Composable BoxScope.() -> Unit
 ) {
         Box(
-            modifier = modifier.dashedBorder(width, color, RoundedCornerShape(8.dp), dashWidth, dashWidth), contentAlignment = Alignment.Center
+            modifier = if (showDashedBorder) {
+                modifier.dashedBorder(width, color, RoundedCornerShape(8.dp), dashWidth, dashWidth)
+            } else {
+                modifier
+            }, 
+            contentAlignment = Alignment.Center
         ) {
             content()
         }

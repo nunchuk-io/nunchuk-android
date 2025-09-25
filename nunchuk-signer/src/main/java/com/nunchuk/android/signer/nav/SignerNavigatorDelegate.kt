@@ -32,6 +32,7 @@ import com.nunchuk.android.model.PrimaryKey
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.SignerNavigator
+import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.signer.SignerIntroActivity
 import com.nunchuk.android.signer.components.add.AddAirgapSignerActivity
 import com.nunchuk.android.signer.components.add.ScanDynamicQRActivity
@@ -128,26 +129,12 @@ interface SignerNavigatorDelegate : SignerNavigator {
 
     override fun openAddAirSignerScreen(
         activityContext: Context,
-        isMembershipFlow: Boolean,
-        tag: SignerTag?,
-        groupId: String,
-        xfp: String?,
-        newIndex: Int,
-        replacedXfp: String?,
-        walletId: String,
-        step: MembershipStep?,
+        args: AddAirSignerArgs,
     ) {
         activityContext.startActivity(
             AddAirgapSignerActivity.buildIntent(
                 activityContext = activityContext,
-                isMembershipFlow = isMembershipFlow,
-                tag = tag,
-                groupId = groupId,
-                xfp = xfp,
-                newIndex = newIndex,
-                replacedXfp = replacedXfp,
-                walletId = walletId,
-                step = step,
+                args = args,
             )
         )
     }
@@ -155,24 +142,12 @@ interface SignerNavigatorDelegate : SignerNavigator {
     override fun openAddAirSignerScreenForResult(
         launcher: ActivityResultLauncher<Intent>,
         activityContext: Context,
-        isMembershipFlow: Boolean,
-        tag: SignerTag?,
-        groupId: String,
-        xfp: String?,
-        newIndex: Int,
-        replacedXfp: String?,
-        walletId: String,
+        args: AddAirSignerArgs,
     ) {
         launcher.launch(
             AddAirgapSignerActivity.buildIntent(
                 activityContext = activityContext,
-                isMembershipFlow = isMembershipFlow,
-                tag = tag,
-                groupId = groupId,
-                xfp = xfp,
-                newIndex = newIndex,
-                replacedXfp = replacedXfp,
-                walletId = walletId
+                args = args,
             )
         )
     }

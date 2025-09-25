@@ -63,6 +63,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.isRecommendedSingleSigPath
@@ -70,6 +71,7 @@ import com.nunchuk.android.core.util.isTestNetSigner
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResult
 import com.nunchuk.android.signer.R
@@ -77,6 +79,7 @@ import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapS
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerSuccessEvent
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddSameKey
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ErrorMk4TestNet
+import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.KeyVerifiedSuccess
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.LoadingEventAirgap
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.ParseKeystoneAirgapSignerSuccess
 import com.nunchuk.android.type.Chain
@@ -122,7 +125,8 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
             setContent {
                 val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-                AddAirgapSignerContent(remainTime = remainTime, uiState = uiState,
+                AddAirgapSignerContent(
+                    remainTime = remainTime, uiState = uiState,
                     isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow,
                     onKeyNameChange = { viewModel.updateKeyName(it) },
                     onKeySpecChange = { viewModel.updateKeySpec(it) },
@@ -164,6 +168,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
             isMembershipFlow = (activity as AddAirgapSignerActivity).isMembershipFlow,
             replacedXfp = (activity as AddAirgapSignerActivity).replacedXfp,
             walletId = (activity as AddAirgapSignerActivity).walletId,
+            onChainAddSignerParam = (activity as AddAirgapSignerActivity).onChainAddSignerParam,
         )
     }
 
@@ -205,10 +210,54 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
         TODO("Not yet implemented")
     }
 
+    private fun handleSignerSuccess(signer: SingleSigner) {
+        val activity = requireActivity() as AddAirgapSignerActivity
+        val onChainAddSignerParam = activity.onChainAddSignerParam
+
+         if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true && onChainAddSignerParam.currentSignerXfp.isNotEmpty()) {
+             if (signer.masterFingerprint == onChainAddSignerParam.currentSignerXfp) {
+                 viewModel.setKeyVerified(
+                     groupId = activity.groupId,
+                     masterSignerId = signer.masterFingerprint
+                 )
+             } else {
+                 activity.setResult(Activity.RESULT_OK)
+                 navigator.returnMembershipScreen()
+             }
+         } else if (onChainAddSignerParam != null) {
+            when (onChainAddSignerParam.keyIndex) {
+                0 -> {
+                    activity.setResult(Activity.RESULT_OK)
+                    navigator.returnMembershipScreen()
+                }
+
+                1 -> {
+                    activity.setResult(Activity.RESULT_OK)
+                    navigator.openBackUpSeedPhraseActivity(
+                        requireActivity(),
+                        BackUpSeedPhraseArgs(
+                            type = BackUpSeedPhraseType.INTRO,
+                            xfp = "",
+                            groupId = activity.groupId,
+                            walletId = activity.walletId
+                        )
+                    )
+                }
+
+                else -> {
+                    activity.setResult(Activity.RESULT_OK)
+                    navigator.returnMembershipScreen()
+                }
+            }
+        } else {
+            openSignerInfo(signer)
+        }
+    }
+
     private fun observeEvent() {
         viewModel.event.observe(viewLifecycleOwner) {
             when (it) {
-                is AddAirgapSignerSuccessEvent -> openSignerInfo(it.singleSigner)
+                is AddAirgapSignerSuccessEvent -> handleSignerSuccess(it.singleSigner)
                 is AddAirgapSignerErrorEvent -> onAddAirSignerError(it.message)
                 is LoadingEventAirgap -> showOrHideLoading(it.isLoading)
                 is ParseKeystoneAirgapSignerSuccess -> handleResult(it.signers)
@@ -261,6 +310,20 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
 
                         ResultExistingKey.None -> openSignerInfo(it.singleSigner)
                     }
+                }
+
+                KeyVerifiedSuccess -> {
+                    val activity = requireActivity() as AddAirgapSignerActivity
+                    activity.setResult(Activity.RESULT_OK)
+                    navigator.openBackUpSeedPhraseActivity(
+                        requireActivity(),
+                        BackUpSeedPhraseArgs(
+                            type = BackUpSeedPhraseType.SUCCESS,
+                            xfp = "",
+                            groupId = activity.groupId,
+                            walletId = activity.walletId
+                        )
+                    )
                 }
             }
         }

@@ -410,4 +410,10 @@
     <string name="nc_after_timelock_desc">After the timelock: spending only requires one signature from a 1-of-3 multisig.</string>
     <string name="nc_select_inheritance_key_instruction">Among your keys, select one key to be the inheritance key.</string>
     <string name="nc_keys_added_twice_hint">Each key must be added twice, using different derivation paths for the two spending paths.</string>
+    
+    <!-- Check Firmware Strings -->
+    <string name="nc_check_coldcard_firmware_title">Check ColdCard firmware</string>
+    <string name="nc_check_jade_firmware_title">Check your JADE firmware</string>
+    <string name="nc_check_coldcard_firmware_desc">Before adding your ColdCard as a signer, it\'s important to verify that your device is running the latest firmware version.\n\nHaving the most up-to-date firmware ensures optimal security and compatibility with Nunchuk.\n\nPlease check your ColdCard firmware version and update if necessary before proceeding.</string>
+    <string name="nc_check_jade_firmware_desc">Your JADE must support Miniscript for on-chain timelocks. Please make sure the device is running firmware v1.0.30 or above.\n\nTo check or update JADE firmware, please follow Blockstream\'s instructions.</string>
 </resources>
