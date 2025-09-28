@@ -39,6 +39,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,10 +49,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
@@ -65,6 +64,7 @@ import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.fillDenim
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
@@ -129,20 +129,22 @@ private fun MagicalPhraseIntroContent(
     onContinueClicked: () -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding()
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
-                    .navigationBarsPadding()
+                    .padding(innerPadding)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
                 Column(
                     modifier = Modifier
-                        .background(colorResource(id = R.color.nc_denim_tint_color))
+                        .background(MaterialTheme.colorScheme.fillDenim)
                         .statusBarsPadding()
                 ) {
                     NcTopAppBar(
-                        backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
+                        backgroundColor = MaterialTheme.colorScheme.fillDenim,
                         title = stringResource(
                             id = R.string.nc_estimate_remain_time,
                             remainTime
@@ -154,7 +156,7 @@ private fun MagicalPhraseIntroContent(
                 }
                 Column(
                     modifier = Modifier
-                        .background(color = colorResource(id = R.color.nc_denim_tint_color))
+                        .background(color = MaterialTheme.colorScheme.fillDenim)
                         .height(215.dp)
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.Center
@@ -209,6 +211,8 @@ private fun MagicalPhraseIntroContent(
 @Composable
 private fun MagicalPhraseIntroScreenPreview() {
     MagicalPhraseIntroContent(
-
+        remainTime = 5,
+        magicalPhrase = "example-magical-phrase-12345",
+        onContinueClicked = {}
     )
 }

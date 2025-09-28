@@ -41,9 +41,9 @@ import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTimePickerDialog
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.timezone.NcTimeZoneField
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.ui.TimeZoneDetail
-import com.nunchuk.android.core.ui.TimeZoneSelectionDialog
 import com.nunchuk.android.core.ui.toTimeZoneDetail
 import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -103,7 +103,6 @@ private fun OnChainSetUpTimelockContent(
     
     var datePickerDialog by remember { mutableStateOf(false) }
     var timePickerDialog by remember { mutableStateOf(false) }
-    var showTimeZoneDialog by remember { mutableStateOf(false) }
 
     NunchukTheme {
         Scaffold(topBar = {
@@ -144,29 +143,12 @@ private fun OnChainSetUpTimelockContent(
                 )
 
                 // Timezone field
-                NcTextField(
+                NcTimeZoneField(
                     modifier = Modifier.padding(start = 16.dp, top = 10.dp, end = 16.dp),
-                    title = "Time zone",
-                    value = if (selectedTimeZone.city.isNotEmpty()) {
-                        "${selectedTimeZone.city} (${selectedTimeZone.offset})"
-                    } else {
-                        "Select Time zone"
-                    },
-                    readOnly = true,
-                    enabled = false,
-                    onClick = {
-                        showTimeZoneDialog = true
-                    },
-                    rightContent = {
-                        Icon(
-                            modifier = Modifier.padding(end = 12.dp).clickable {
-                                showTimeZoneDialog = true
-                            },
-                            painter = painterResource(id = com.nunchuk.android.core.R.drawable.ic_arrow_down),
-                            contentDescription = ""
-                        )
-                    },
-                    onValueChange = {}
+                    selectedTimeZone = selectedTimeZone,
+                    onTimeZoneSelected = { timeZone ->
+                        selectedTimeZone = timeZone
+                    }
                 )
 
                 // Date and Time fields
@@ -260,16 +242,6 @@ private fun OnChainSetUpTimelockContent(
                     )
                 }
 
-                // Timezone selection dialog
-                if (showTimeZoneDialog) {
-                    TimeZoneSelectionDialog(
-                        onDismissRequest = { showTimeZoneDialog = false },
-                        onTimeZoneSelected = { timeZone ->
-                            selectedTimeZone = timeZone
-                            showTimeZoneDialog = false
-                        }
-                    )
-                }
                 
                 Spacer(modifier = Modifier.weight(1.0f))
                 NcPrimaryDarkButton(

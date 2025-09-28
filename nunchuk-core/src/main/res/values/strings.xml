@@ -331,9 +331,9 @@
     <string name="nc_show_wallet_qr">Show wallet QR code</string>
     <string name="nc_done_scanning">Done scanning</string>
     <string name="nc_schedule_broadcast">Schedule broadcast</string>
-    <string name="nc_setup_inheritance_plan_intro_title">Set up inheritance plan</string>
-    <string name="nc_setup_inheritance_plan_intro_desc">The Nunchuk inheritance plan allows you to safely pass along your bitcoin to your loved ones, while not affecting the security of your day-to-day wallet usage.\n\nBefore we begin, here are some definitions.</string>
-    <string name="nc_magical_phrase_desc">Your inheritance plan is uniquely identified by a Magic Phrase. The phrase can be used to look up your plan later.\n\n[B]Make note of this Magic Phrase[/B]. You will need to share it with the Beneficiary or Trustee.</string>
+    <string name="nc_setup_inheritance_plan_intro_title">Set up an inheritance plan</string>
+    <string name="nc_setup_inheritance_plan_intro_desc">The Nunchuk inheritance plan allows you to safely pass on your bitcoin to your loved ones, while not affecting the security of day-to-day usage.\n\nBefore we begin, here are some definitions.</string>
+    <string name="nc_magical_phrase_desc">Your inheritance plan is uniquely identified by a Magic Phrase. The phrase can be used to look up your plan later.\n\n[B]Back up the Magic Phrase on a steel plate, or a durable format that is non-digital[/B]. You will need to share it with the Beneficiary or Trustee.</string>
     <string name="nc_magical_phrase">Magic Phrase</string>
     <string name="nc_a_magical_phrase">A Magic Phrase</string>
     <string name="nc_a_backup_password">A Backup Password</string>
@@ -408,10 +408,10 @@
     <string name="nc_confirm_use_biometric_sign_in">To confirm the use of biometric sign in, please re-enter your password.</string>
     <string name="nc_finalize_changes">Finalize changes</string>
     <string name="nc_finalize_changes_desc">Please sign a test message using one of the keys below.</string>
-    <string name="nc_set_up_activation_date">Set up an Activation Date</string>
+    <string name="nc_set_up_activation_date">Set up an off-chain timelock</string>
     <string name="nc_update_activation_date">Update activation date</string>
     <string name="nc_set_up_activation_date_notice">Even with the correct Magic Phrase and Backup Password, one cannot claim the inheritance before this date.</string>
-    <string name="nc_set_up_activation_date_desc">[B]Only on or after this date,[/B] a Beneficiary or Trustee can claim the inheritance.\n\nYou can change the Activation Date later via the Services tab.\n\nWe recommend an Activation Date not too far in the future (e.g. 2 years from now). Review the plan annually and adjust the date if necessary to avoid long term uncertainties.</string>
+    <string name="nc_set_up_activation_date_desc">[B]Only on or after this date[/B] can a Beneficiary or Trustee claim the inheritance.\n\nYou can change the timelock later via the Services tab.\n\nWe recommend setting a timelock not too far in the future (e.g., 2 years from now). Review the plan annually and adjust the date if necessary to avoid long-term uncertainties.</string>
     <string name="nc_inheritance_leave_message">Would you like to leave a message?</string>
     <string name="nc_inheritance_leave_message_desc">After the Beneficiary or Trustee claims the inheritance, they will be able to see this message.</string>
     <string name="nc_update_message">Update message</string>

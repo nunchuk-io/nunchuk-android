@@ -22,6 +22,8 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.ac
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.ui.TimeZoneDetail
+import com.nunchuk.android.core.ui.toTimeZoneDetail
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,6 +33,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Calendar
+import java.util.TimeZone
 import javax.inject.Inject
 
 @HiltViewModel
@@ -50,23 +54,16 @@ class InheritanceActivationDateViewModel @Inject constructor(
     val remainTime = membershipStepManager.remainingTime
 
     fun init(param: InheritancePlanningParam.SetupOrReview) {
-        if (args.isUpdateRequest) {
-            _state.update {
-                it.copy(date = param.activationDate)
+        // No initialization needed for UI state
+    }
+
+    fun onContinueClicked(timeZone: TimeZoneDetail, selectedDate: Long) = viewModelScope.launch {
+        if (selectedDate != 0L && timeZone.id.isNotEmpty()) {
+            val calendar = Calendar.getInstance(TimeZone.getTimeZone(timeZone.id)).apply {
+                timeInMillis = selectedDate
             }
-        }
-    }
-
-    fun onContinueClicked() = viewModelScope.launch {
-        val date = _state.value.date
-        if (date != 0L) {
-            _event.emit(InheritanceActivationDateEvent.ContinueClick(date))
-        }
-    }
-
-    fun setDate(timeInMillis: Long) {
-        _state.update {
-            it.copy(date = timeInMillis)
+            val utcTimestamp = calendar.timeInMillis
+            _event.emit(InheritanceActivationDateEvent.ContinueClick(utcTimestamp))
         }
     }
 

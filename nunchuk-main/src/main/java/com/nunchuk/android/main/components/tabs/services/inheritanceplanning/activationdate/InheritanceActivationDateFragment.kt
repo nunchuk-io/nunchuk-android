@@ -31,10 +31,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -44,6 +43,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -59,7 +62,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.google.android.material.datepicker.MaterialDatePicker
+import com.nunchuk.android.compose.NcDatePickerDialog
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -67,6 +70,9 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.compose.timezone.NcTimeZoneField
+import com.nunchuk.android.core.ui.TimeZoneDetail
+import com.nunchuk.android.core.ui.toTimeZoneDetail
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
@@ -75,7 +81,6 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
 
@@ -93,12 +98,11 @@ class InheritanceActivationDateFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceActivationDateScreen(viewModel,
-                    args,
-                    inheritanceViewModel,
-                    onDatePicker = {
-                        showDatePicker()
-                    })
+                InheritanceActivationDateScreen(
+                    viewModel = viewModel,
+                    args = args,
+                    inheritanceViewModel = inheritanceViewModel
+                )
             }
         }
     }
@@ -109,7 +113,11 @@ class InheritanceActivationDateFragment : MembershipFragment() {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceActivationDateEvent.ContinueClick -> {
-                    inheritanceViewModel.setOrUpdate(inheritanceViewModel.setupOrReviewParam.copy(activationDate = event.date))
+                    inheritanceViewModel.setOrUpdate(
+                        inheritanceViewModel.setupOrReviewParam.copy(
+                            activationDate = event.date
+                        )
+                    )
                     if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
                         findNavController().popBackStack()
                     } else {
@@ -120,23 +128,6 @@ class InheritanceActivationDateFragment : MembershipFragment() {
                 }
             }
         }
-    }
-
-    private fun showDatePicker() {
-        val oldCalUtc = Calendar.getInstance().apply {
-            val selectedDate = viewModel.state.value.date
-            timeInMillis =
-                if (selectedDate == 0L) Calendar.getInstance().timeInMillis else selectedDate
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
-        val materialDatePicker = MaterialDatePicker.Builder.datePicker()
-            .setTheme(R.style.NcMaterialCalendar)
-            .setSelection(oldCalUtc.timeInMillis)
-            .build()
-        materialDatePicker.addOnPositiveButtonClickListener { timeInMillis ->
-            viewModel.setDate(timeInMillis)
-        }
-        materialDatePicker.show(childFragmentManager, "MaterialDatePicker")
     }
 
     companion object {
@@ -150,39 +141,65 @@ fun InheritanceActivationDateScreen(
     viewModel: InheritanceActivationDateViewModel = viewModel(),
     args: InheritanceActivationDateFragmentArgs,
     inheritanceViewModel: InheritancePlanningViewModel,
-    onDatePicker: () -> Unit = {}
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-    val date = if (state.date > 0) Date(state.date).simpleGlobalDateFormat() else ""
+
+    var selectedTimeZone by remember {
+        mutableStateOf(TimeZone.getDefault().id.toTimeZoneDetail() ?: TimeZoneDetail())
+    }
+    var selectedDate by remember { mutableLongStateOf(inheritanceViewModel.setupOrReviewParam.activationDate) }
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    val date = if (selectedDate > 0) Date(selectedDate).simpleGlobalDateFormat() else ""
 
     InheritanceActivationDateScreenContent(
         remainTime = remainTime,
         date = date,
+        selectedTimeZone = selectedTimeZone,
+        onTimeZoneSelected = { timeZone ->
+            selectedTimeZone = timeZone
+        },
         planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
         isUpdateRequest = args.isUpdateRequest,
         onContinueClick = {
-            viewModel.onContinueClicked()
-        }, onDatePick = {
-            onDatePicker()
-        })
+            viewModel.onContinueClicked(selectedTimeZone, selectedDate)
+        },
+        onDatePick = { timeZone ->
+            showDatePicker = true
+        },
+    )
+
+    // Date picker dialog
+    if (showDatePicker) {
+        NcDatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            onConfirm = { timeInMillis ->
+                selectedDate = timeInMillis
+                showDatePicker = false
+            }
+        )
+    }
 }
 
 @Composable
 fun InheritanceActivationDateScreenContent(
     remainTime: Int = 0,
     date: String = "",
+    selectedTimeZone: TimeZoneDetail = TimeZone.getDefault().id.toTimeZoneDetail()
+        ?: TimeZoneDetail(),
+    onTimeZoneSelected: (TimeZoneDetail) -> Unit = {},
     planFlow: Int = InheritancePlanFlow.NONE,
     isUpdateRequest: Boolean = false,
     onContinueClick: () -> Unit = {},
-    onDatePick: () -> Unit = {}
+    onDatePick: (TimeZoneDetail) -> Unit = {}
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(
+            modifier = Modifier.systemBarsPadding()
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
+                    .padding(innerPadding)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
@@ -205,6 +222,13 @@ fun InheritanceActivationDateScreenContent(
                     style = NunchukTheme.typography.body
                 )
 
+                // Timezone field
+                NcTimeZoneField(
+                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
+                    selectedTimeZone = selectedTimeZone,
+                    onTimeZoneSelected = onTimeZoneSelected
+                )
+
                 ConstraintLayout(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -212,7 +236,8 @@ fun InheritanceActivationDateScreenContent(
                         .padding(horizontal = 16.dp)
                 ) {
                     val (title, input) = createRefs()
-                    Text(text = stringResource(id = R.string.nc_activation_date),
+                    Text(
+                        text = stringResource(id = R.string.nc_activation_date),
                         style = NunchukTheme.typography.titleSmall,
                         modifier = Modifier
                             .padding(bottom = 4.dp)
@@ -225,7 +250,7 @@ fun InheritanceActivationDateScreenContent(
                                 color = MaterialTheme.colorScheme.strokePrimary,
                                 shape = RoundedCornerShape(8.dp)
                             )
-                            .clickable(onClick = { onDatePick() })
+                            .clickable(onClick = { onDatePick(selectedTimeZone) })
                             .constrainAs(input) {
                                 top.linkTo(title.bottom)
                             },
