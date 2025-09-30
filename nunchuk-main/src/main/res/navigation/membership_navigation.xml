@@ -661,6 +661,12 @@
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
+
+        <argument
+            android:name="onChainAddSignerParam"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.core.signer.OnChainAddSignerParam"
+            app:nullable="true" />
     </fragment>
 
     <fragment

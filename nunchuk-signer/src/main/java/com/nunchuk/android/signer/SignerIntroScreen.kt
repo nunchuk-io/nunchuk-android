@@ -42,6 +42,7 @@ import com.nunchuk.android.type.SignerType
 fun SignerIntroScreen(
     keyFlow: Int = KeyFlow.NONE,
     supportedSigners: List<SupportedSigner> = emptyList(),
+    viewModel: SignerIntroViewModel? = null,
     onClick: (KeyType) -> Unit = {}
 ) {
     val isDisableAll = keyFlow != KeyFlow.NONE

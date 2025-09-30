@@ -88,7 +88,6 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
-import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
@@ -110,7 +109,6 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.nav.args.AddAirSignerArgs
-import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -153,7 +151,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                             if (filteredSigners.first().type == SignerType.COLDCARD_NFC || filteredSigners.first().tags.contains(SignerTag.COLDCARD)) {
                                 SignerType.COLDCARD_NFC
                             } else {
-                                SignerType.AIRGAP
+                                filteredSigners.first().type
                             },
                             "",
                             true
@@ -184,7 +182,13 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         observer()
         setFragmentResultListener(CustomKeyAccountFragment.REQUEST_KEY) { _, bundle ->
             val signer = bundle.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)
-            if (signer != null) {
+            val newIndex = bundle.getInt(GlobalResultKey.EXTRA_INDEX, -1)
+            
+            // Check if this is a result with newIndex (OnChainAddSignerParam case)
+            if (newIndex != -1 && signer?.masterFingerprint?.isNotEmpty() == true) {
+                viewModel.handleCustomKeyAccountResult(signer.masterFingerprint, newIndex)
+            } else if (signer != null) {
+                // Original flow for non-OnChainAddSignerParam case
                 viewModel.onSelectedExistingHardwareSigner(signer)
             }
             clearFragmentResult(CustomKeyAccountFragment.REQUEST_KEY)
@@ -193,7 +197,11 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             val data = TapSignerListBottomSheetFragmentArgs.fromBundle(bundle)
             if (data.signers.isNotEmpty()) {
                 when (data.type) {
-                    SignerType.NFC -> openCreateBackUpTapSigner(data.signers.first().id)
+                    SignerType.NFC -> viewModel.addExistingTapSignerKey(
+                        data.signers.first(),
+                        currentKeyData,
+                        (activity as MembershipActivity).walletId
+                    )
                     SignerType.PORTAL_NFC -> findNavController().navigate(
                         OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToCustomKeyAccountFragmentFragment(
                             data.signers.first(),
@@ -207,7 +215,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         if (signer.type == SignerType.AIRGAP && signer.tags.isEmpty() && selectedSignerTag != null) {
                             viewModel.onUpdateSignerTag(signer, selectedSignerTag)
                         } else {
-                                viewModel.onSelectedExistingHardwareSigner(signer.toSingleSigner())
+                            viewModel.onSelectedExistingHardwareSigner(signer.toSingleSigner())
                         }
                     }
                 }
@@ -255,6 +263,28 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             clearFragmentResult("ImportantNoticePassphraseFragment")
         }
         
+        // Setup TapSigner caching with MembershipActivity
+        val membershipActivity = activity as? MembershipActivity
+        membershipActivity?.setTapSignerCachingCallback { isoDep, cvc ->
+            viewModel.cacheTapSignerXpub(isoDep, cvc)
+        }
+
+        // Observe requestCacheTapSignerXpubEvent state to handle TapSigner caching
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.state.collect { state ->
+                if (state.requestCacheTapSignerXpubEvent) {
+                    membershipActivity?.requestTapSignerCaching()
+                    viewModel.resetRequestCacheTapSignerXpub()
+                }
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Clear TapSigner caching callback when fragment is destroyed
+        val membershipActivity = activity as? MembershipActivity
+        membershipActivity?.clearTapSignerCachingCallback()
     }
 
     private fun openRequestAddDesktopKey(tag: SignerTag) {
@@ -295,6 +325,15 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> {
 
+                }
+                is AddKeyListEvent.NavigateToCustomKeyAccount -> {
+                    findNavController().navigate(
+                        OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToCustomKeyAccountFragmentFragment(
+                            event.signer,
+                            walletId = event.walletId,
+                            onChainAddSignerParam = event.onChainAddSignerParam
+                        )
+                    )
                 }
             }
         }
@@ -348,14 +387,12 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         } else {
             val firstSigner = data.signers.first()
 
-            navigator.openBackUpSeedPhraseActivity(
-                activityContext = requireActivity(),
-                args = BackUpSeedPhraseArgs(
-                    type = BackUpSeedPhraseType.INTRO,
-                    xfp = firstSigner.fingerPrint,
-                )
-            )
-            return
+            // Special handling for TapSigner (SignerType.NFC) to add second signer for Acct 1
+            if (firstSigner.type == SignerType.NFC && data.signers.size == 1) {
+                viewModel.handleTapSignerAcct1Addition(data, firstSigner, (activity as MembershipActivity).walletId)
+                return
+            }
+
             // Signers exist, check the current signer type and open corresponding flow
 
             lifecycleScope.launch {

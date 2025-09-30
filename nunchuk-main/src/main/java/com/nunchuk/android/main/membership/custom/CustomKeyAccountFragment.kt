@@ -54,6 +54,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
@@ -123,9 +124,15 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                 .collect { event ->
                     when (event) {
                         is CustomKeyAccountFragmentEvent.CheckSigner -> handleCheckSigner(event.signer)
-                        is CustomKeyAccountFragmentEvent.OpenScanTapSigner -> openCreateBackUpTapSigner(
-                            event.index
-                        )
+                        is CustomKeyAccountFragmentEvent.OpenScanTapSigner -> {
+                            if (args.onChainAddSignerParam != null) {
+                                // Return the index to the previous screen for OnChainAddSignerParam case
+                                setResultAndFinish(args.signer.toSingleSigner(), event.index)
+                            } else {
+                                // Follow current logic of calling openCreateBackUpTapSigner
+                                openCreateBackUpTapSigner(event.index)
+                            }
+                        }
                     }
                 }
         }
@@ -260,7 +267,15 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                     )
                 }
 
-                args.signer.type == SignerType.NFC -> openCreateBackUpTapSigner(viewModel.getNewIndex())
+                args.signer.type == SignerType.NFC -> {
+                    if (args.onChainAddSignerParam != null) {
+                        // Return the newIndex to the previous screen for OnChainAddSignerParam case
+                        setResultAndFinish(args.signer.toSingleSigner(), viewModel.getNewIndex())
+                    } else {
+                        // Follow current logic of calling openCreateBackUpTapSigner
+                        openCreateBackUpTapSigner(viewModel.getNewIndex())
+                    }
+                }
 
                 args.signer.type == SignerType.PORTAL_NFC -> {
                     navigator.openPortalScreen(
@@ -292,11 +307,16 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
         }
     }
 
-    private fun setResultAndFinish(signer: SingleSigner) {
+    private fun setResultAndFinish(signer: SingleSigner?, newIndex: Int = -1) {
         setFragmentResult(
             REQUEST_KEY,
             Bundle().apply {
-                putParcelable(GlobalResultKey.EXTRA_SIGNER, signer)
+                if (signer != null) {
+                    putParcelable(GlobalResultKey.EXTRA_SIGNER, signer)
+                }
+                if (newIndex != -1) {
+                    putInt(GlobalResultKey.EXTRA_INDEX, newIndex)
+                }
             },
         )
         requireActivity().onBackPressedDispatcher.onBackPressed()

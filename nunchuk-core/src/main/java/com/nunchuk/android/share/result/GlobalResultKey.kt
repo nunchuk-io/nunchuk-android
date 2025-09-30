@@ -40,6 +40,7 @@ object GlobalResultKey {
     const val MNEMONIC = "_r"
     const val SIGNING_PATH = "_s"
     const val EXTRA_SIGNERS = "_t"
+    const val EXTRA_INDEX = "_u"
 }
 
 object GlobalResult {

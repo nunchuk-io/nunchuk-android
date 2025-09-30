@@ -21,12 +21,17 @@ package com.nunchuk.android.main.membership
 
 import android.app.Activity
 import android.content.Intent
+import android.nfc.tech.IsoDep
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.main.membership.onchaintimelock.addkey.OnChainTimelockAddKeyListViewModel
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.GroupWalletType
@@ -48,6 +53,9 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     lateinit var membershipStepManager: MembershipStepManager
 
     private val viewModel: MembershipViewModel by viewModels()
+    
+    // Callback for TapSigner caching
+    private var tapSignerCachingCallback: ((IsoDep?, String) -> Unit)? = null
 
     val quickWalletParam by lazy { intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM) }
 
@@ -80,6 +88,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
         observer()
+        setupNfcObservers()
     }
 
     private fun observer() {
@@ -88,6 +97,30 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
                 membershipStepManager.initStep(it.groupId, it.groupWalletType)
             }
         }
+    }
+
+    private fun setupNfcObservers() {
+        // Handle NFC flow for TapSigner xpub caching
+        flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_NFC_TOPUP_XPUBS }) {
+            tapSignerCachingCallback?.invoke(
+                IsoDep.get(it.tag),
+                nfcViewModel.inputCvc.orEmpty()
+            )
+            nfcViewModel.clearScanInfo()
+        }
+    }
+
+    // Public methods for Fragment to interact with NFC functionality
+    fun requestTapSignerCaching() {
+        startNfcFlow(REQUEST_NFC_TOPUP_XPUBS, "Please rescan your TAPSIGNER to get a new XPUB")
+    }
+
+    fun setTapSignerCachingCallback(callback: (IsoDep?, String) -> Unit) {
+        tapSignerCachingCallback = callback
+    }
+
+    fun clearTapSignerCachingCallback() {
+        tapSignerCachingCallback = null
     }
 
     val groupId: String
@@ -106,6 +139,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
         const val EXTRA_GROUP_STEP = "group_step"
         const val EXTRA_KEY_WALLET_ID = "wallet_id"
         const val EXTRA_QUICK_WALLET_PARAM = "quick_wallet_param"
+        private const val REQUEST_NFC_TOPUP_XPUBS = 2001
 
 
         fun buildIntent(

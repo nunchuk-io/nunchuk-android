@@ -25,6 +25,8 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.nunchuk.android.core.base.BaseComposeActivity
@@ -52,6 +54,8 @@ class SignerIntroActivity : BaseComposeActivity() {
     private val onChainAddSignerParam by lazy { 
         intent.getParcelableExtra<OnChainAddSignerParam>(EXTRA_ONCHAIN_ADD_SIGNER_PARAM)
     }
+    
+    private val viewModel: SignerIntroViewModel by viewModels()
 
     private val checkFirmwareLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -59,7 +63,6 @@ class SignerIntroActivity : BaseComposeActivity() {
         if (result.resultCode == Activity.RESULT_OK && result.data != null) {
             val filteredSigners = result.data?.getParcelableArrayListExtra<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
             if (!filteredSigners.isNullOrEmpty()) {
-                // Pass the filtered signers to the OnChainTimelockAddKeyListFragment
                 val intent = Intent().apply {
                     putParcelableArrayListExtra(GlobalResultKey.EXTRA_SIGNERS, ArrayList(filteredSigners))
                 }
@@ -74,16 +77,35 @@ class SignerIntroActivity : BaseComposeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        viewModel.init(onChainAddSignerParam)
+
         setContentView(ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
+                // Handle ViewModel events
+                LaunchedEffect(Unit) {
+                    viewModel.event.collect { event ->
+                        when (event) {
+                            is SignerIntroEvent.ShowFilteredTapSigners -> {
+                                onFilteredTapSignersReady(event.signers)
+                            }
+
+                            SignerIntroEvent.OpenSetupTapSigner -> {
+                                navigateToSetupTapSigner()
+                            }
+                        }
+                    }
+                }
+
                 SignerIntroScreen(
                     keyFlow = keyFlow,
                     supportedSigners = supportedSigners,
+                    viewModel = viewModel,
                     onClick = { keyType: KeyType ->
                         when (keyType) {
-                            KeyType.TAPSIGNER -> navigateToSetupTapSigner()
+                            KeyType.TAPSIGNER -> handleTapSignerSelection()
                             KeyType.COLDCARD -> handleColdCardSelection()
                             KeyType.JADE -> handleJadeSelection()
                             KeyType.PORTAL -> openPortalScreen()
@@ -97,6 +119,22 @@ class SignerIntroActivity : BaseComposeActivity() {
                 )
             }
         })
+    }
+
+    private fun onFilteredTapSignersReady(filteredSigners: List<SignerModel>) {
+        val intent = Intent().apply {
+            putParcelableArrayListExtra(GlobalResultKey.EXTRA_SIGNERS, ArrayList(filteredSigners))
+        }
+        setResult(Activity.RESULT_OK, intent)
+        finish()
+    }
+
+    private fun handleTapSignerSelection() {
+        if (onChainAddSignerParam != null) {
+            viewModel.onTapSignerContinueClicked()
+        } else {
+            navigateToSetupTapSigner()
+        }
     }
 
     private fun handleColdCardSelection() {
