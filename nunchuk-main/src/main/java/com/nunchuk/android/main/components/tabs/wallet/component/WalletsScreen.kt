@@ -101,7 +101,9 @@ internal fun WalletsScreen(
             HapticFeedbackConstantsCompat.SEGMENT_FREQUENT_TICK
         )
     }
-    val totalBalance = state.wallets.sumOf { it.wallet.balance.value }
+    val totalBalance = state.groupWalletUis
+        .filter { !it.role.toRole.isKeyHolderLimited }
+        .sumOf { it.wallet?.wallet?.balance?.value ?: 0 }
     val totalInCurrency = Amount(value = totalBalance).getCurrencyAmount()
     val totalInBtc = Amount(value = totalBalance).getBTCAmount()
 
