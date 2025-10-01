@@ -367,11 +367,11 @@ fun EditTimelockContent(
                         }
                     } else if (timelockType == MiniscriptTimelockType.RELATIVE && timeUnit == MiniscriptTimelockBased.HEIGHT_LOCK) {
                         val blocks = numericValue.toLongOrNull() ?: 0L
-                        if (blocks < 0 || blocks > 65535) {
+                        if (blocks < 0 || blocks > 65534) {
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar(
                                     NcSnackbarVisuals(
-                                        message = "Invalid block height. Enter a value between 0 and 65,535 blocks.",
+                                        message = "Invalid block height. Enter a value between 0 and 65,534 blocks.",
                                         type = NcToastType.ERROR
                                     )
                                 )
