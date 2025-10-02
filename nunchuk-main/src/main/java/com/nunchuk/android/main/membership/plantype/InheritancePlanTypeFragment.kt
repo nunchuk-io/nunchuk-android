@@ -37,6 +37,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButtonOption
 import com.nunchuk.android.compose.NcTopAppBar
@@ -45,12 +46,15 @@ import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class InheritancePlanTypeFragment : MembershipFragment() {
     private val viewModel: InheritancePlanTypeViewModel by viewModels()
+    private val args: InheritancePlanTypeFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -69,16 +73,42 @@ class InheritancePlanTypeFragment : MembershipFragment() {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritancePlanTypeEvent.OnContinueClicked -> {
+                    val groupId = args.groupId
+                    val role = args.role ?: AssistedWalletRole.NONE.name
                     when (event.selectedPlanType) {
                         InheritancePlanType.ON_CHAIN -> {
-                            findNavController().navigate(
-                                InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToOnChainTimelockExplanationFragment()
-                            )
+                            if (!groupId.isNullOrEmpty()) {
+                                // Byzantine group wallet flow - navigate to OnChainTimelockByzantineAddKeyFragment
+                                findNavController().navigate(
+                                    InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToOnChainTimelockByzantineAddKeyFragment(
+                                        groupId = groupId,
+                                        isAddOnly = false,
+                                        role = role
+                                    )
+                                )
+                            } else {
+                                // Personal wallet flow - navigate to OnChainTimelockExplanationFragment
+                                findNavController().navigate(
+                                    InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToOnChainTimelockExplanationFragment()
+                                )
+                            }
                         }
                         InheritancePlanType.OFF_CHAIN -> {
-                            findNavController().navigate(
-                                InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToAddKeyListFragment()
-                            )
+                            if (!groupId.isNullOrEmpty()) {
+                                // Byzantine group wallet flow - navigate to AddByzantineKeyListFragment
+                                findNavController().navigate(
+                                    InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToAddByzantineKeyListFragment(
+                                        groupId = groupId,
+                                        isAddOnly = false,
+                                        role = role
+                                    )
+                                )
+                            } else {
+                                // Personal wallet flow - navigate to AddKeyListFragment
+                                findNavController().navigate(
+                                    InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToAddKeyListFragment()
+                                )
+                            }
                         }
                     }
                 }

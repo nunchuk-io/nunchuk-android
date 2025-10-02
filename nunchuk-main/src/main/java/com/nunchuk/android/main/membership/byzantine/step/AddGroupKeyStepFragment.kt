@@ -109,7 +109,7 @@ class AddGroupKeyStepFragment : MembershipFragment() {
     private fun handleOpenKeyList() {
         val groupId = (activity as MembershipActivity).groupId
         findNavController().navigate(
-            AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToAddByzantineKeyListFragment(
+            AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToInheritancePlanTypeFragment(
                 groupId = groupId,
                 role = viewModel.getRole().name
             )
