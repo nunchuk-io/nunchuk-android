@@ -39,11 +39,11 @@ ext {
     navVersion = "2.6.0"
 
     MAJOR_VERSION = 1
-    MINOR_VERSION = 72
+    MINOR_VERSION = 73
     PATCH_VERSION = 0
     TASK_LABEL = "DEV"
 
-    VERSION_CODE = 295
+    VERSION_CODE = 296
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
