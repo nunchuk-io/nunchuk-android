@@ -109,7 +109,6 @@ class InheritanceActivationDateFragment : MembershipFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.init(inheritanceViewModel.setupOrReviewParam)
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceActivationDateEvent.ContinueClick -> {

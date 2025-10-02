@@ -416,4 +416,6 @@
     <string name="nc_check_jade_firmware_title">Check your JADE firmware</string>
     <string name="nc_check_coldcard_firmware_desc">Before adding your ColdCard as a signer, it\'s important to verify that your device is running the latest firmware version.\n\nHaving the most up-to-date firmware ensures optimal security and compatibility with Nunchuk.\n\nPlease check your ColdCard firmware version and update if necessary before proceeding.</string>
     <string name="nc_check_jade_firmware_desc">Your JADE must support Miniscript for on-chain timelocks. Please make sure the device is running firmware v1.0.30 or above.\n\nTo check or update JADE firmware, please follow Blockstream\'s instructions.</string>
+    <string name="nc_provider_need_these_info_title">The Beneficiary needs the following to claim the inheritance:</string>
+    <string name="nc_inheritance_off_chain_timelock_info_title">These can be used after the off-chain timelock:</string>
 </resources>

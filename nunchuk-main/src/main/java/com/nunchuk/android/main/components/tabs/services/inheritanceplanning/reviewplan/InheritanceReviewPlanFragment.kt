@@ -34,11 +34,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -377,365 +378,378 @@ fun InheritanceReviewPlanScreenContent(
     val isEditable = groupId.isEmpty() || state.currentUserRole.toRole.isMasterOrAdmin
     val magicalPhraseMask = if (groupId.isNotEmpty() && magicalPhrase.isEmpty()) {
         Utils.maskValue("", isMask = true)
-    } else { magicalPhrase.ifBlank { stringResource(id = R.string.nc_no_listed) } }
+    } else {
+        magicalPhrase.ifBlank { stringResource(id = R.string.nc_no_listed) }
+    }
 
     NunchukTheme {
-        Scaffold { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .navigationBarsPadding()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .background(colorResource(id = R.color.nc_denim_tint_color))
-                        .statusBarsPadding()
-                ) {
-                    val title = if (planFlow == InheritancePlanFlow.SETUP) stringResource(
-                        id = R.string.nc_estimate_remain_time,
-                        remainTime
-                    ) else ""
-                    NcTopAppBar(
-                        backgroundColor = colorResource(id = R.color.nc_denim_tint_color),
-                        title = title,
-                        isBack = planFlow != InheritancePlanFlow.VIEW,
-                        actions = {
-                            IconButton(onClick = {
-                                onActionTopBarClick()
-                            }) {
-                                var showMoreIcon = false
-                                if (planFlow == InheritancePlanFlow.SETUP) {
-                                    showMoreIcon = false
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                val title = if (planFlow == InheritancePlanFlow.SETUP) stringResource(
+                    id = R.string.nc_estimate_remain_time,
+                    remainTime
+                ) else ""
+                NcTopAppBar(
+                    backgroundColor = colorResource(id = R.color.nc_primary_light_color),
+                    title = title,
+                    isBack = planFlow != InheritancePlanFlow.VIEW,
+                    tintColor = Color.White,
+                    actions = {
+                        IconButton(onClick = {
+                            onActionTopBarClick()
+                        }) {
+                            var showMoreIcon = false
+                            if (planFlow == InheritancePlanFlow.SETUP) {
+                                showMoreIcon = false
+                            } else {
+                                if (groupId.isNotEmpty()) {
+                                    if (state.currentUserRole.toRole.isMasterOrAdmin) showMoreIcon =
+                                        true
                                 } else {
-                                    if (groupId.isNotEmpty()) {
-                                        if (state.currentUserRole.toRole.isMasterOrAdmin) showMoreIcon = true
-                                    } else {
-                                        showMoreIcon = true
-                                    }
-                                }
-                                if (showMoreIcon && isEditable) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_more_horizontal),
-                                        contentDescription = "More"
-                                    )
+                                    showMoreIcon = true
                                 }
                             }
+                            if (showMoreIcon && isEditable) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_more_horizontal),
+                                    contentDescription = "More",
+                                    tint = Color.White
+                                )
+                            }
                         }
-                    )
-                }
-                LazyColumn(
-                    modifier = Modifier.weight(1.0f),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    item {
-                        Column(
+                    }
+                )
+            }
+        ) { innerPadding ->
+            LazyColumn(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .background(color = colorResource(id = R.color.nc_primary_light_color))
+                            .fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.nc_review_your_plan),
+                            style = NunchukTheme.typography.heading,
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = Color.White
+                        )
+                        Box(
                             modifier = Modifier
-                                .background(color = colorResource(id = R.color.nc_denim_tint_color))
-                                .fillMaxWidth()
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            Text(
-                                text = stringResource(id = R.string.nc_review_your_plan),
-                                style = NunchukTheme.typography.heading,
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .background(
-                                            color = colorResource(id = R.color.nc_primary_light_color),
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
-                                        .padding(16.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(12.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Image(
-                                            painter = painterResource(id = R.drawable.ic_assisted_wallet_intro),
-                                            modifier = Modifier
-                                                .width(60.dp)
-                                                .height(60.dp),
-                                            contentDescription = null
-                                        )
-                                        Column(
-                                            modifier = Modifier
-                                                .weight(1.0f)
-                                                .padding(start = 8.dp)
-                                        ) {
-                                            Text(
-                                                modifier = Modifier.padding(top = 4.dp),
-                                                color = colorResource(id = R.color.nc_white_color),
-                                                text = stringResource(id = R.string.nc_wallet_subject_to_inheritance),
-                                                style = NunchukTheme.typography.title
-                                            )
-                                            Text(
-                                                modifier = Modifier.padding(top = 4.dp),
-                                                color = colorResource(id = R.color.nc_white_color),
-                                                text = state.walletName.orEmpty(),
-                                                style = NunchukTheme.typography.body
-                                            )
-                                        }
-                                    }
-
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    DetailPlanItem(
-                                        iconId = R.drawable.ic_calendar_light,
-                                        titleId = R.string.nc_activation_date,
-                                        content = Date(state.activationDate).simpleGlobalDateFormat(),
-                                        editable = isEditable,
-                                        onClick = {
-                                            onEditActivationDateClick()
-                                        }
-                                    )
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    DetailPlanItem(
-                                        iconId = R.drawable.ic_star_light,
-                                        titleId = R.string.nc_magical_phrase,
-                                        content = magicalPhraseMask,
-                                        editable = false
-                                    )
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    DetailPlanItem(
-                                        iconId = R.drawable.ic_password_light,
-                                        titleId = R.string.nc_backup_password,
-                                        actionText = stringResource(id = R.string.nc_text_info),
-                                        content = if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) stringResource(id = R.string.nc_backup_passwords_desc) else stringResource(id = R.string.nc_backup_password_desc),
-                                        editable = true,
-                                        onClick = {
-                                            onBackUpPasswordInfoClick()
-                                        }
-                                    )
-                                    if (isEditable && planFlow == InheritancePlanFlow.VIEW) {
-                                        Spacer(modifier = Modifier.height(24.dp))
-                                        NcOutlineButton(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(bottom = 16.dp)
-                                                .height(48.dp),
-                                            borderColor = Color.White,
-                                            onClick = onShareSecretClicked,
-                                        ) {
-                                            Text(
-                                                text = stringResource(R.string.nc_share_your_secrets),
-                                                color = Color.White,
-                                                style = NunchukTheme.typography.title
-                                            )
-                                        }
-                                        Text(
-                                            text = stringResource(id = R.string.nc_view_claiming_instructions),
-                                            color = Color.White,
-                                            textAlign = TextAlign.Center,
-                                            style = NunchukTheme.typography.title,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(12.dp)
-                                                .clickable {
-                                                    onViewClaimingInstruction()
-                                                }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        Column(
-                            modifier = Modifier.padding(
-                                start = 16.dp, end = 16.dp, top = 24.dp
-                            )
-                        ) {
-                            Row(horizontalArrangement = Arrangement.Center) {
-                                Text(
-                                    text = stringResource(id = R.string.nc_note_to_beneficiary_trustee),
-                                    style = NunchukTheme.typography.title
-                                )
-                                Spacer(modifier = Modifier.weight(weight = 1f))
-                                if (isEditable) {
-                                    Text(
-                                        text = stringResource(id = R.string.nc_edit),
-                                        style = NunchukTheme.typography.title,
-                                        textDecoration = TextDecoration.Underline,
-                                        modifier = Modifier.clickable {
-                                            onEditNoteClick()
-                                        }
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            Box(
-                                modifier = Modifier.background(
-                                    color = MaterialTheme.colorScheme.greyLight, shape = RoundedCornerShape(8.dp)
-                                ),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = state.note.ifBlank { stringResource(id = R.string.nc_no_note) },
-                                    style = NunchukTheme.typography.body,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp)
-                                )
-                            }
-                        }
-
-                        Divider(
-                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
-                            thickness = 1.dp,
-                            color = MaterialTheme.colorScheme.whisper
-                        )
-                        Column(
-                            modifier = Modifier.padding(
-                                start = 16.dp, end = 16.dp, top = 24.dp
-                            )
-                        ) {
-                            Row(horizontalArrangement = Arrangement.Center) {
-                                Text(
-                                    text = stringResource(id = R.string.nc_buffer_period),
-                                    style = NunchukTheme.typography.title
-                                )
-                                Spacer(modifier = Modifier.weight(weight = 1f))
-                                if (isEditable) {
-                                    Text(
-                                        text = stringResource(id = R.string.nc_edit),
-                                        style = NunchukTheme.typography.title,
-                                        textDecoration = TextDecoration.Underline,
-                                        modifier = Modifier.clickable {
-                                            onEditBufferPeriodClick(state.bufferPeriod)
-                                        }
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            Box(
-                                modifier = Modifier.background(
-                                    color = MaterialTheme.colorScheme.greyLight, shape = RoundedCornerShape(8.dp)
-                                ),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = state.bufferPeriod?.displayName.orEmpty()
-                                        .ifBlank { stringResource(id = R.string.nc_no_buffer) },
-                                    style = NunchukTheme.typography.body,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp)
-                                )
-                            }
-                        }
-
-                        Divider(
-                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
-                            thickness = 1.dp,
-                            color = MaterialTheme.colorScheme.whisper
-                        )
-
-                        Column(
-                            modifier = Modifier.padding(
-                                start = 16.dp, end = 16.dp, top = 24.dp
-                            )
-                        ) {
-                            Row(horizontalArrangement = Arrangement.Center) {
-                                Text(
-                                    text = stringResource(id = R.string.nc_notification_preferences),
-                                    style = NunchukTheme.typography.title,
-                                )
-                                Spacer(modifier = Modifier.weight(weight = 1f))
-                                if (isEditable) {
-                                    Text(
-                                        text = stringResource(id = R.string.nc_edit),
-                                        style = NunchukTheme.typography.title,
-                                        textDecoration = TextDecoration.Underline,
-                                        modifier = Modifier.clickable {
-                                            onNotifyPrefClick()
-                                        }
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Box(
+                            Column(
                                 modifier = Modifier
                                     .background(
-                                        color = MaterialTheme.colorScheme.greyLight, shape = RoundedCornerShape(8.dp)
+                                        color = colorResource(id = R.color.nc_primary_light_color),
+                                        shape = RoundedCornerShape(8.dp)
                                     )
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center,
+                                    .padding(horizontal = 16.dp)
                             ) {
-                                Column {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.ic_assisted_wallet_intro),
+                                        modifier = Modifier
+                                            .width(60.dp)
+                                            .height(60.dp),
+                                        contentDescription = null
+                                    )
+                                    Column(
+                                        modifier = Modifier
+                                            .weight(1.0f)
+                                            .padding(start = 8.dp)
+                                    ) {
                                         Text(
-                                            text = stringResource(id = R.string.nc_beneficiary_trustee_email_address),
-                                            style = NunchukTheme.typography.body,
-                                            modifier = Modifier.fillMaxWidth(0.3f),
+                                            modifier = Modifier.padding(top = 4.dp),
+                                            color = colorResource(id = R.color.nc_white_color),
+                                            text = stringResource(id = R.string.nc_wallet_subject_to_inheritance),
+                                            style = NunchukTheme.typography.title
                                         )
-                                        Spacer(modifier = Modifier.weight(1f))
                                         Text(
-                                            text = state.emails.joinToString("\n")
-                                                .ifEmpty { "(${stringResource(id = R.string.nc_none)})" },
+                                            modifier = Modifier.padding(top = 4.dp),
+                                            color = colorResource(id = R.color.nc_white_color),
+                                            text = state.walletName.orEmpty(),
+                                            style = NunchukTheme.typography.body
+                                        )
+                                    }
+                                }
+
+                                Text(
+                                    text = stringResource(R.string.nc_provider_need_these_info_title),
+                                    modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
+                                    style = NunchukTheme.typography.title,
+                                    color = Color.White
+                                )
+                                SpecialDetailPlanItem(
+                                    iconId = R.drawable.ic_star_light,
+                                    titleId = R.string.nc_magical_phrase,
+                                    content = magicalPhraseMask,
+                                    editable = false
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                SpecialDetailPlanItem(
+                                    iconId = R.drawable.ic_password_light,
+                                    titleId = R.string.nc_backup_password,
+                                    actionText = stringResource(id = R.string.nc_text_info),
+                                    content = if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) stringResource(
+                                        id = R.string.nc_backup_passwords_desc
+                                    ) else stringResource(id = R.string.nc_backup_password_desc),
+                                    editable = true,
+                                    onClick = {
+                                        onBackUpPasswordInfoClick()
+                                    }
+                                )
+                                Text(
+                                    text = stringResource(R.string.nc_inheritance_off_chain_timelock_info_title),
+                                    modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
+                                    style = NunchukTheme.typography.title,
+                                    color = Color.White
+                                )
+                                ActivationDateItem(
+                                    activationDate = Date(state.activationDate).simpleGlobalDateFormat(),
+                                    editable = isEditable,
+                                    onClick = {
+                                        onEditActivationDateClick()
+                                    }
+                                )
+                                if (isEditable && planFlow == InheritancePlanFlow.VIEW) {
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                    NcOutlineButton(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(bottom = 16.dp)
+                                            .height(48.dp),
+                                        borderColor = Color.White,
+                                        onClick = onShareSecretClicked,
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.nc_share_your_secrets),
+                                            color = Color.White,
                                             style = NunchukTheme.typography.title
                                         )
                                     }
-
-                                    Divider(
-                                        modifier = Modifier.padding(
-                                            start = 16.dp,
-                                            end = 16.dp,
-                                            top = 24.dp,
-                                            bottom = 24.dp
-                                        ),
-                                        thickness = 1.dp,
-                                        color = MaterialTheme.colorScheme.whisper
+                                    Text(
+                                        text = stringResource(id = R.string.nc_view_claiming_instructions),
+                                        color = Color.White,
+                                        textAlign = TextAlign.Center,
+                                        style = NunchukTheme.typography.title,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(12.dp)
+                                            .clickable {
+                                                onViewClaimingInstruction()
+                                            }
                                     )
-
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = stringResource(id = R.string.nc_notify_them_today),
-                                            style = NunchukTheme.typography.body,
-                                            modifier = Modifier.fillMaxWidth(0.3f),
-                                        )
-                                        Spacer(modifier = Modifier.weight(1f))
-                                        Text(
-                                            text = if (state.isNotifyToday) stringResource(id = R.string.nc_text_yes) else stringResource(
-                                                id = R.string.nc_text_no
-                                            ), style = NunchukTheme.typography.title
-                                        )
+                                }
+                            }
+                        }
+                    }
+                    Column(
+                        modifier = Modifier.padding(
+                            start = 16.dp, end = 16.dp, top = 24.dp
+                        )
+                    ) {
+                        Row(horizontalArrangement = Arrangement.Center) {
+                            Text(
+                                text = stringResource(id = R.string.nc_note_to_beneficiary_trustee),
+                                style = NunchukTheme.typography.title
+                            )
+                            Spacer(modifier = Modifier.weight(weight = 1f))
+                            if (isEditable) {
+                                Text(
+                                    text = stringResource(id = R.string.nc_edit),
+                                    style = NunchukTheme.typography.title,
+                                    textDecoration = TextDecoration.Underline,
+                                    modifier = Modifier.clickable {
+                                        onEditNoteClick()
                                     }
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Box(
+                            modifier = Modifier.background(
+                                color = MaterialTheme.colorScheme.greyLight,
+                                shape = RoundedCornerShape(8.dp)
+                            ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = state.note.ifBlank { stringResource(id = R.string.nc_no_note) },
+                                style = NunchukTheme.typography.body,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            )
+                        }
+                    }
+
+                    Divider(
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.whisper
+                    )
+                    Column(
+                        modifier = Modifier.padding(
+                            start = 16.dp, end = 16.dp, top = 24.dp
+                        )
+                    ) {
+                        Row(horizontalArrangement = Arrangement.Center) {
+                            Text(
+                                text = stringResource(id = R.string.nc_buffer_period),
+                                style = NunchukTheme.typography.title
+                            )
+                            Spacer(modifier = Modifier.weight(weight = 1f))
+                            if (isEditable) {
+                                Text(
+                                    text = stringResource(id = R.string.nc_edit),
+                                    style = NunchukTheme.typography.title,
+                                    textDecoration = TextDecoration.Underline,
+                                    modifier = Modifier.clickable {
+                                        onEditBufferPeriodClick(state.bufferPeriod)
+                                    }
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Box(
+                            modifier = Modifier.background(
+                                color = MaterialTheme.colorScheme.greyLight,
+                                shape = RoundedCornerShape(8.dp)
+                            ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = state.bufferPeriod?.displayName.orEmpty()
+                                    .ifBlank { stringResource(id = R.string.nc_no_buffer) },
+                                style = NunchukTheme.typography.body,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            )
+                        }
+                    }
+
+                    Divider(
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.whisper
+                    )
+
+                    Column(
+                        modifier = Modifier.padding(
+                            start = 16.dp, end = 16.dp, top = 24.dp
+                        )
+                    ) {
+                        Row(horizontalArrangement = Arrangement.Center) {
+                            Text(
+                                text = stringResource(id = R.string.nc_notification_preferences),
+                                style = NunchukTheme.typography.title,
+                            )
+                            Spacer(modifier = Modifier.weight(weight = 1f))
+                            if (isEditable) {
+                                Text(
+                                    text = stringResource(id = R.string.nc_edit),
+                                    style = NunchukTheme.typography.title,
+                                    textDecoration = TextDecoration.Underline,
+                                    modifier = Modifier.clickable {
+                                        onNotifyPrefClick()
+                                    }
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    color = MaterialTheme.colorScheme.greyLight,
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = stringResource(id = R.string.nc_beneficiary_trustee_email_address),
+                                        style = NunchukTheme.typography.body,
+                                        modifier = Modifier.fillMaxWidth(0.3f),
+                                    )
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    Text(
+                                        text = state.emails.joinToString("\n")
+                                            .ifEmpty { "(${stringResource(id = R.string.nc_none)})" },
+                                        style = NunchukTheme.typography.title
+                                    )
+                                }
+
+                                Divider(
+                                    modifier = Modifier.padding(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        top = 24.dp,
+                                        bottom = 24.dp
+                                    ),
+                                    thickness = 1.dp,
+                                    color = MaterialTheme.colorScheme.whisper
+                                )
+
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = stringResource(id = R.string.nc_notify_them_today),
+                                        style = NunchukTheme.typography.body,
+                                        modifier = Modifier.fillMaxWidth(0.3f),
+                                    )
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    Text(
+                                        text = if (state.isNotifyToday) stringResource(id = R.string.nc_text_yes) else stringResource(
+                                            id = R.string.nc_text_no
+                                        ), style = NunchukTheme.typography.title
+                                    )
                                 }
                             }
                         }
                     }
                 }
-                val continueText = if (planFlow == InheritancePlanFlow.SETUP) {
-                    stringResource(id = R.string.nc_text_continue)
-                } else {
-                    stringResource(id = R.string.nc_continue_to_finalize_changes)
+            }
+            val continueText = if (planFlow == InheritancePlanFlow.SETUP) {
+                stringResource(id = R.string.nc_text_continue)
+            } else {
+                stringResource(id = R.string.nc_continue_to_finalize_changes)
+            }
+            if (isEditable) {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp), onContinueClicked
+                ) {
+                    Text(text = continueText)
                 }
-                if (isEditable) {
-                    NcPrimaryDarkButton(
+                if (planFlow == InheritancePlanFlow.VIEW) {
+                    NcOutlineButton(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp), onContinueClicked
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 16.dp)
+                            .height(48.dp),
+                        onClick = onDiscardChange,
                     ) {
-                        Text(text = continueText)
-                    }
-                    if (planFlow == InheritancePlanFlow.VIEW) {
-                        NcOutlineButton(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                                .padding(bottom = 16.dp)
-                                .height(48.dp),
-                            onClick = onDiscardChange,
-                        ) {
-                            Text(text = stringResource(R.string.nc_discard_changes))
-                        }
+                        Text(text = stringResource(R.string.nc_discard_changes))
                     }
                 }
             }
@@ -744,7 +758,7 @@ fun InheritanceReviewPlanScreenContent(
 }
 
 @Composable
-fun DetailPlanItem(
+fun SpecialDetailPlanItem(
     iconId: Int = R.drawable.ic_nc_star_dark,
     titleId: Int = R.string.nc_text_continue,
     content: String = "dolphin concert apple",
@@ -752,17 +766,25 @@ fun DetailPlanItem(
     actionText: String = stringResource(id = R.string.nc_edit),
     onClick: () -> Unit = {}
 ) {
-    Column {
+    Column(
+        modifier = Modifier
+            .background(
+                color = Color.White, shape = RoundedCornerShape(12.dp)
+            )
+            .padding(12.dp)
+            .fillMaxWidth(),
+    ) {
         Row(horizontalArrangement = Arrangement.Center) {
             Icon(
+                modifier = Modifier.size(24.dp),
                 painter = painterResource(id = iconId),
-                tint = Color.White,
+                tint = colorResource(id = R.color.cl_031F2B),
                 contentDescription = ""
             )
             Text(
                 modifier = Modifier.padding(start = 8.dp),
                 text = stringResource(id = titleId),
-                color = colorResource(id = R.color.nc_white_color),
+                color = colorResource(id = R.color.cl_031F2B),
                 style = NunchukTheme.typography.title
             )
             Spacer(modifier = Modifier.weight(weight = 1f))
@@ -772,27 +794,72 @@ fun DetailPlanItem(
                         onClick()
                     },
                     text = actionText,
-                    color = colorResource(id = R.color.nc_white_color),
+                    color = colorResource(id = R.color.cl_031F2B),
                     style = NunchukTheme.typography.title,
                     textDecoration = TextDecoration.Underline,
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        Box(
-            modifier = Modifier.background(
-                color = MaterialTheme.colorScheme.greyLight, shape = RoundedCornerShape(8.dp)
-            ),
-            contentAlignment = Alignment.Center,
+        Text(
+            text = content,
+            style = NunchukTheme.typography.body,
+            color = colorResource(id = R.color.cl_031F2B),
+            modifier = Modifier
+                .padding(start = 32.dp)
+                .fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun ActivationDateItem(
+    activationDate: String = "January 1, 2024",
+    editable: Boolean = false,
+    onClick: () -> Unit = {}
+) {
+    Row(
+        modifier = Modifier
+            .background(
+                color = Color.White.copy(alpha = 0.2f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(12.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_calendar_light),
+            tint = Color.White,
+            contentDescription = ""
+        )
+        Column(
+            modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = content,
+                text = stringResource(id = R.string.nc_activation_date),
                 style = NunchukTheme.typography.body,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = activationDate,
+                style = NunchukTheme.typography.bodySmall,
+                color = Color.White
+            )
+        }
+        Spacer(modifier = Modifier.weight(weight = 1f))
+        if (editable) {
+            Text(
+                modifier = Modifier.clickable {
+                    onClick()
+                },
+                text = stringResource(id = R.string.nc_edit),
+                color = colorResource(id = R.color.nc_white_color),
+                style = NunchukTheme.typography.title,
+                textDecoration = TextDecoration.Underline,
             )
         }
     }
@@ -801,12 +868,16 @@ fun DetailPlanItem(
 @PreviewLightDark
 @Composable
 private fun DetailPlanItemPreview() {
-    DetailPlanItem()
+    SpecialDetailPlanItem()
 }
 
 
 @PreviewLightDark
 @Composable
 private fun InheritanceReviewPlanScreenPreview() {
-    InheritanceReviewPlanScreenContent()
+    InheritanceReviewPlanScreenContent(
+        state = InheritanceReviewPlanState(
+            walletName = "My Wallet",
+        )
+    )
 }
