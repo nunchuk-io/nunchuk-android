@@ -102,26 +102,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
             }
         }
 
-    private val signerIntroLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-                val filteredSigners = result.data?.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
-                if (!filteredSigners.isNullOrEmpty()) {
-                    findNavController().navigate(
-                        OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToTapSignerListBottomSheetFragment(
-                            filteredSigners.toTypedArray(),
-                            if (filteredSigners.first().type == SignerType.COLDCARD_NFC || filteredSigners.first().tags.contains(SignerTag.COLDCARD)) {
-                                SignerType.COLDCARD_NFC
-                            } else {
-                                filteredSigners.first().type
-                            },
-                            "",
-                            true
-                        )
-                    )
-                }
-            }
-        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -246,6 +226,24 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 )
             }
             clearFragmentResult("ImportantNoticePassphraseFragment")
+        }
+        setFragmentResultListener("SignerIntroFragment") { _, bundle ->
+            val filteredSigners = bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
+            if (!filteredSigners.isNullOrEmpty()) {
+                findNavController().navigate(
+                    OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToTapSignerListBottomSheetFragment(
+                        filteredSigners.toTypedArray(),
+                        if (filteredSigners.first().type == SignerType.COLDCARD_NFC || filteredSigners.first().tags.contains(SignerTag.COLDCARD)) {
+                            SignerType.COLDCARD_NFC
+                        } else {
+                            filteredSigners.first().type
+                        },
+                        "",
+                        true
+                    )
+                )
+            }
+            clearFragmentResult("SignerIntroFragment")
         }
 
         if (args.role.toRole.isFacilitatorAdmin) {
@@ -571,16 +569,18 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
 
     private fun handleHardwareKeyAdd(data: AddKeyOnChainData) {
         if (data.signers.isNullOrEmpty()) {
-            // No signers exist, open signer intro screen
-            navigator.openSignerIntroScreenForResult(
-                launcher = signerIntroLauncher,
-                activityContext = requireActivity(),
-                walletId = (activity as MembershipActivity).walletId,
-                groupId = args.groupId,
-                onChainAddSignerParam = OnChainAddSignerParam(
-                    flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                    keyIndex = data.signers?.size ?: 0,
-                    currentSignerXfp = data.signers?.firstOrNull()?.fingerPrint ?: ""
+            // No signers exist, open signer intro fragment
+            findNavController().navigate(
+                OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToSignerIntroFragment(
+                    walletId = (activity as MembershipActivity).walletId,
+                    groupId = args.groupId,
+                    supportedSigners = null,
+                    keyFlow = 0,
+                    onChainAddSignerParam = OnChainAddSignerParam(
+                        flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
+                        keyIndex = data.signers?.size ?: 0,
+                        currentSignerXfp = data.signers?.firstOrNull()?.fingerPrint ?: ""
+                    )
                 )
             )
         } else {
