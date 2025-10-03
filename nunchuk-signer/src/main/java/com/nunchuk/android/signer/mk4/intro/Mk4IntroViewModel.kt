@@ -141,6 +141,15 @@ class Mk4IntroViewModel @Inject constructor(
                         _event.emit(Mk4IntroViewEvent.Loading(false))
                         return@launch
                     }
+                    if (onChainAddSignerParam != null && signer.masterSignerId != onChainAddSignerParam.currentSignerXfp) {
+                        _event.emit(
+                            Mk4IntroViewEvent.ShowError(
+                                "The added key has an XFP mismatch. Please use the same device for both keys."
+                            )
+                        )
+                        _event.emit(Mk4IntroViewEvent.Loading(false))
+                        return@launch
+                    }
                     if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
                         _event.emit(Mk4IntroViewEvent.OnCreateSignerSuccess(signer))
                         _event.emit(Mk4IntroViewEvent.Loading(false))

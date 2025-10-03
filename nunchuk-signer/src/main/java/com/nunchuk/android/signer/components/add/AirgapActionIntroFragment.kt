@@ -24,6 +24,7 @@ import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.ActionItem
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.type.SignerTag
@@ -36,12 +37,19 @@ class AirgapActionIntroFragment : MembershipFragment() {
         (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
     }
 
+    private val onChainAddSignerParam: OnChainAddSignerParam? by lazy {
+        (requireActivity() as AddAirgapSignerActivity).onChainAddSignerParam
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View = content {
-        AirgapActionIntroScreen(isMembershipFlow = isMembershipFlow) { jadeAction ->
+        AirgapActionIntroScreen(
+            isMembershipFlow = isMembershipFlow,
+            onChainAddSignerParam = onChainAddSignerParam
+        ) { jadeAction ->
             when (jadeAction) {
                 JADEAction.QR -> {
                     findNavController().navigate(
@@ -68,6 +76,7 @@ class AirgapActionIntroFragment : MembershipFragment() {
 @Composable
 internal fun AirgapActionIntroScreen(
     isMembershipFlow: Boolean,
+    onChainAddSignerParam: OnChainAddSignerParam? = null,
     onAction: (JADEAction) -> Unit = {}
 ) {
     NunchukTheme {
@@ -85,10 +94,30 @@ internal fun AirgapActionIntroScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_add_jade),
+                    text = if (onChainAddSignerParam != null) {
+                        "${stringResource(R.string.nc_add_jade)} (${onChainAddSignerParam.keyIndex + 1}/2)"
+                    } else {
+                        stringResource(R.string.nc_add_jade)
+                    },
                     style = NunchukTheme.typography.heading
                 )
+                if (onChainAddSignerParam != null) {
+                    Spacer(modifier = Modifier.padding(top = 16.dp))
+                    Text(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        text = "Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths. \n" +
+                                "\n" +
+                                "Please add a key for the spending path after the timelock. On your device, select account 0 for this spending path.",
+                        style = NunchukTheme.typography.body
+                    )
+                }
                 Spacer(modifier = Modifier.padding(top = 24.dp))
+                if (onChainAddSignerParam != null) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        thickness = 0.5.dp
+                    )
+                }
                 ActionItem(
                     title = stringResource(R.string.nc_add_jade_via_qr),
                     iconId = R.drawable.ic_nfc_card,

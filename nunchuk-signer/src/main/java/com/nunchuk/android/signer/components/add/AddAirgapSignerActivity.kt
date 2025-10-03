@@ -25,6 +25,7 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.signer.R
@@ -47,7 +48,7 @@ class AddAirgapSignerActivity : BaseActivity<ActivityNavigationBinding>() {
     val replacedXfp: String? by lazy { args.replacedXfp }
     val walletId: String by lazy { args.walletId }
     val step: MembershipStep? by lazy { args.step }
-    val onChainAddSignerParam: com.nunchuk.android.core.signer.OnChainAddSignerParam? by lazy { args.onChainAddSignerParam }
+    val onChainAddSignerParam: OnChainAddSignerParam? by lazy { args.onChainAddSignerParam }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

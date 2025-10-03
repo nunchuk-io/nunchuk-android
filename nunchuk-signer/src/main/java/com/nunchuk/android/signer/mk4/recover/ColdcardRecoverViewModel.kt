@@ -26,6 +26,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.getFileFromUri
@@ -150,7 +151,7 @@ class ColdcardRecoverViewModel @Inject constructor(
         newIndex: Int,
         replacedXfp: String?,
         walletId: String?,
-        onChainAddSignerParam: com.nunchuk.android.core.signer.OnChainAddSignerParam? = null
+        onChainAddSignerParam: OnChainAddSignerParam? = null
     ) =
         viewModelScope.launch {
             if (args.isMembershipFlow) {
@@ -158,6 +159,15 @@ class ColdcardRecoverViewModel @Inject constructor(
                     singleSigners.find { it.derivationPath.isRecommendedMultiSigPath }
                 if (signer == null) {
                     _event.emit(ColdcardRecoverEvent.ShowError("Can not find valid signer path"))
+                    _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
+                    return@launch
+                }
+                if (onChainAddSignerParam != null && signer.masterSignerId != onChainAddSignerParam.currentSignerXfp) {
+                    _event.emit(
+                        ColdcardRecoverEvent.ShowError(
+                            "The added key has an XFP mismatch. Please use the same device for both keys."
+                        )
+                    )
                     _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                     return@launch
                 }

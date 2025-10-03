@@ -207,12 +207,20 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                 _state.update { it.copy(showKeyNameError = true) }
                 return@launch
             }
-
-            if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
+            if (onChainAddSignerParam != null ) {
                 val signer = signerInput.toSingleSigner(newSignerName, signerTag)
-                setEvent(AddAirgapSignerSuccessEvent(signer))
-                setEvent(LoadingEventAirgap(false))
-                return@launch
+                if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
+                    setEvent(AddAirgapSignerSuccessEvent(signer))
+                    setEvent(LoadingEventAirgap(false))
+                    return@launch
+                } else if  (signer.masterSignerId != onChainAddSignerParam?.currentSignerXfp){
+                    setEvent(
+                        AddAirgapSignerErrorEvent(
+                            "The added key has an XFP mismatch. Please use the same device for both keys."
+                        )
+                    )
+                    setEvent(LoadingEventAirgap(false))
+                }
             }
 
             if (replacedXfp.isNullOrEmpty() && membershipStepManager.isKeyExisted(signerInput.fingerPrint) && isMembershipFlow) {

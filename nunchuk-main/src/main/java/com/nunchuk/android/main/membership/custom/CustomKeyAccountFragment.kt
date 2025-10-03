@@ -58,6 +58,7 @@ import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
@@ -230,7 +231,19 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
         if (signer == null) {
             when {
                 args.signer.type == SignerType.COLDCARD_NFC || args.signer.tags.contains(SignerTag.COLDCARD) -> {
-                    showAddColdcardOptions()
+                    if (args.onChainAddSignerParam != null) {
+                        navigator.openSetupMk4(
+                            activity = requireActivity(),
+                            args = SetupMk4Args(
+                                fromMembershipFlow = true,
+                                groupId = (activity as MembershipActivity).groupId,
+                                walletId = (activity as MembershipActivity).walletId,
+                                onChainAddSignerParam = args.onChainAddSignerParam
+                            )
+                        )
+                    } else {
+                        showAddColdcardOptions()
+                    }
                 }
 
                 args.signer.type == SignerType.AIRGAP -> {

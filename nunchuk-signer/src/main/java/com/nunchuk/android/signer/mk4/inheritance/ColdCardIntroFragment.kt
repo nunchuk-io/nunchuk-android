@@ -135,7 +135,7 @@ internal fun ColdCardIntroScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = if (mk4Activity?.onChainAddSignerParam?.isAddInheritanceSigner() == true) {
+                    text = if (mk4Activity?.onChainAddSignerParam != null) {
                         "Add COLDCARD (${mk4Activity.onChainAddSignerParam!!.keyIndex + 1}/2)"
                     } else {
                         stringResource(R.string.nc_add_coldcard_mk4)
@@ -144,7 +144,11 @@ internal fun ColdCardIntroScreen(
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
-                    text = stringResource(R.string.nc_add_coldcard_mk4_desc),
+                    text = if (mk4Activity?.onChainAddSignerParam?.isAddInheritanceSigner() == true) {
+                        "Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\nPlease add a key for the spending path after the timelock. On your device, select account 0 for this spending path."
+                    } else {
+                        stringResource(R.string.nc_add_coldcard_mk4_desc)
+                    },
                     style = NunchukTheme.typography.body
                 )
 

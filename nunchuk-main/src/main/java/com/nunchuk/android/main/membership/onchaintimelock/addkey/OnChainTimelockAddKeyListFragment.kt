@@ -83,7 +83,6 @@ import com.nunchuk.android.compose.pullrefresh.pullRefresh
 import com.nunchuk.android.compose.pullrefresh.rememberPullRefreshState
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
-import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
@@ -94,7 +93,6 @@ import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
-import com.nunchuk.android.main.membership.byzantine.addKey.getKeyOptions
 import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
@@ -110,7 +108,6 @@ import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
-import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -204,20 +201,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     SignerType.NFC -> openSetupTapSigner()
                     SignerType.PORTAL_NFC -> openSetupPortal()
                     SignerType.AIRGAP -> handleSelectAddAirgapType(selectedSignerTag)
-                    SignerType.COLDCARD_NFC -> {
-                        navigator.openSetupMk4(
-                            activity = requireActivity(),
-                            args = SetupMk4Args(
-                                fromMembershipFlow = true,
-                                groupId = (activity as MembershipActivity).groupId,
-                                walletId = (activity as MembershipActivity).walletId,
-                                onChainAddSignerParam = OnChainAddSignerParam(
-                                    flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
-                                    keyIndex = currentKeyData?.signers?.size ?: 0
-                                )
-                            )
-                        )
-                    }
+                    SignerType.COLDCARD_NFC -> openSetupColdCard()
                     SignerType.HARDWARE -> selectedSignerTag?.let { openRequestAddDesktopKey(it) }
                     else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
                 }
@@ -315,7 +299,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     if (event.signer.type == SignerType.NFC) {
                         openVerifyTapSigner(event)
                     } else {
-                        openVerifyColdCard(event)
                     }
                 }
 
@@ -332,6 +315,9 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                             onChainAddSignerParam = event.onChainAddSignerParam
                         )
                     )
+                }
+                is AddKeyListEvent.HandleSignerTypeLogic -> {
+                    handleSignerTypeLogic(event.signer)
                 }
             }
         }
@@ -393,142 +379,41 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 return
             }
 
-            // Signers exist, check the current signer type and open corresponding flow
-
-            lifecycleScope.launch {
-                // Check if this signer is from a filtered result with index == 1
-                // If it's in an assisted wallet, navigate to CustomKeyAccountFragment
-                if (viewModel.isIndex1UsedInAssistedWallet(firstSigner)) {
-                    findNavController().navigate(
-                        OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToCustomKeyAccountFragmentFragment(
-                            firstSigner,
-                            walletId = (activity as MembershipActivity).walletId,
-                        )
-                    )
-                    return@launch
-                }
-
-                val signerTag = when (firstSigner.type) {
-                    SignerType.COLDCARD_NFC -> SignerTag.COLDCARD
-                    SignerType.AIRGAP -> firstSigner.tags.firstOrNull()
-                    SignerType.HARDWARE -> firstSigner.tags.firstOrNull()
-                    else -> null
-                }
-                
-                // First check if there are signers with index == 1 for the current signer tag
-                if (signerTag != null) {
-                    val filteredSigners = viewModel.filterSignersByTypeAndIndex(viewModel.state.value.signers, signerTag)
-                    if (filteredSigners.isNotEmpty()) {
-                        findNavController().navigate(
-                            OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToTapSignerListBottomSheetFragment(
-                                filteredSigners.toTypedArray(),
-                                firstSigner.type,
-                                "",
-                                true
-                            )
-                        )
-                        return@launch
-                    }
-                    
-                    handleSignerTypeLogic(firstSigner)
-                } else {
-                    handleSignerTypeLogic(firstSigner)
-                }
-            }
+            // Signers exist, delegate to ViewModel to handle the logic
+            viewModel.handleSignerIndexCheck(data, firstSigner, (activity as MembershipActivity).walletId)
         }
     }
     
     private fun handleSignerTypeLogic(firstSigner: SignerModel) {
         when (firstSigner.type) {
-            SignerType.NFC -> handleShowKeysOrCreate(
-                viewModel.getTapSigners(),
-                SignerType.NFC,
-                ::openSetupTapSigner
-            )
+            SignerType.NFC -> openSetupTapSigner()
             
-            SignerType.PORTAL_NFC -> handleShowKeysOrCreate(
-                viewModel.getPortal(),
-                SignerType.PORTAL_NFC,
-                ::openSetupPortal
-            )
+            SignerType.PORTAL_NFC -> openSetupPortal()
             
             SignerType.COLDCARD_NFC -> {
                 selectedSignerTag = SignerTag.COLDCARD
-                handleShowKeysOrCreate(
-                    viewModel.getColdcard(),
-                    SignerType.COLDCARD_NFC,
-                ) {
-
-                }
+                openSetupColdCard()
             }
             
             SignerType.AIRGAP -> {
                 val tag = firstSigner.tags.firstOrNull()
                 selectedSignerTag = tag
-                handleShowKeysOrCreate(
-                    viewModel.getAirgap(tag),
-                    SignerType.AIRGAP
-                ) { handleSelectAddAirgapType(tag) }
+                handleSelectAddAirgapType(tag)
             }
             
             SignerType.HARDWARE -> {
                 val tag = firstSigner.tags.firstOrNull()
                 selectedSignerTag = tag
                 when (tag) {
-                    SignerTag.LEDGER -> handleShowKeysOrCreate(
-                        viewModel.getHardwareSigners(SignerTag.LEDGER),
-                        SignerType.HARDWARE
-                    ) { openRequestAddDesktopKey(SignerTag.LEDGER) }
-                    
-                    SignerTag.TREZOR -> handleShowKeysOrCreate(
-                        viewModel.getHardwareSigners(SignerTag.TREZOR),
-                        SignerType.HARDWARE
-                    ) { openRequestAddDesktopKey(SignerTag.TREZOR) }
-                    
-                    SignerTag.BITBOX -> handleShowKeysOrCreate(
-                        viewModel.getHardwareSigners(SignerTag.BITBOX),
-                        SignerType.HARDWARE
-                    ) { openRequestAddDesktopKey(SignerTag.BITBOX) }
-                    
+                    SignerTag.LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
+                    SignerTag.TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
+                    SignerTag.BITBOX -> openRequestAddDesktopKey(SignerTag.BITBOX)
                     SignerTag.COLDCARD -> openRequestAddDesktopKey(SignerTag.COLDCARD)
-                    
-                    else -> openSelectHardwareOption()
+                    else -> {}
                 }
             }
             
-            else -> openSelectHardwareOption()
-        }
-    }
-
-    private fun openSelectHardwareOption() {
-        val options = getKeyOptions(
-            context = requireContext(),
-            isKeyHolderLimited = false,
-            isStandard = false,
-        )
-        BottomSheetOption.newInstance(
-            options = options,
-            title = getString(R.string.nc_what_type_of_hardware_want_to_add),
-            showClosedIcon = true,
-        ).show(childFragmentManager, "BottomSheetOption")
-    }
-
-    private fun handleShowKeysOrCreate(
-        signer: List<SignerModel>,
-        type: SignerType,
-        onEmptySigner: () -> Unit,
-    ) {
-        if (signer.isNotEmpty()) {
-            findNavController().navigate(
-                OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToTapSignerListBottomSheetFragment(
-                    signer.toTypedArray(),
-                    type,
-                    "",
-                    true
-                )
-            )
-        } else {
-            onEmptySigner()
+            else -> {}
         }
     }
 
@@ -542,17 +427,18 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         )
     }
 
-    private fun openVerifyColdCard(event: AddKeyListEvent.OnVerifySigner) {
+    private fun openSetupColdCard() {
         navigator.openSetupMk4(
             activity = requireActivity(),
             args = SetupMk4Args(
                 fromMembershipFlow = true,
-                backUpFilePath = event.filePath,
-                xfp = event.signer.fingerPrint,
-                action = if (event.backUpFileName.isNotEmpty()) ColdcardAction.VERIFY_KEY else ColdcardAction.UPLOAD_BACKUP,
-                keyName = event.signer.name,
-                signerType = event.signer.type,
-                backUpFileName = event.backUpFileName,
+                groupId = (activity as MembershipActivity).groupId,
+                walletId = (activity as MembershipActivity).walletId,
+                onChainAddSignerParam = OnChainAddSignerParam(
+                    flags = if (currentKeyData?.type?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
+                    keyIndex = currentKeyData?.signers?.size ?: 0,
+                    currentSignerXfp = currentKeyData?.signers?.firstOrNull()?.fingerPrint ?: ""
+                )
             )
         )
     }
@@ -572,14 +458,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 type = PortalDeviceFlow.SETUP,
                 isMembershipFlow = true
             ),
-        )
-    }
-
-    private fun openCreateBackUpTapSigner(masterSignerId: String) {
-        navigator.openCreateBackUpTapSigner(
-            activity = requireActivity(),
-            fromMembershipFlow = true,
-            masterSignerId = masterSignerId,
         )
     }
 }

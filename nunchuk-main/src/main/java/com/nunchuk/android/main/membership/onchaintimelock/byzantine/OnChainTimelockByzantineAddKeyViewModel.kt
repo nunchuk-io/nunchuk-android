@@ -692,6 +692,76 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         )
     }
 
+    /**
+     * Handles the logic for checking signer index and navigating accordingly
+     * @param data The current AddKeyOnChainData
+     * @param firstSigner The first signer to check
+     * @param walletId The wallet ID for navigation
+     */
+    fun handleSignerIndexCheck(
+        data: AddKeyOnChainData,
+        firstSigner: SignerModel,
+        walletId: String
+    ) {
+        viewModelScope.launch {
+            // Call getCurrentIndexFromMasterSigner to check resultIndex
+            val resultIndexResult = getCurrentIndexFromMasterSigner(firstSigner.fingerPrint)
+
+            when (resultIndexResult) {
+                is Result.Success -> {
+                    val resultIndex = resultIndexResult.data
+
+                    if (resultIndex >= 1) {
+                        // If resultIndex >= 1, navigate to CustomKeyAccountFragment
+                        _event.emit(
+                            OnChainTimelockByzantineAddKeyListEvent.NavigateToCustomKeyAccount(
+                                signer = firstSigner,
+                                walletId = walletId,
+                                onChainAddSignerParam = OnChainAddSignerParam(
+                                    flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
+                                    keyIndex = 1,
+                                    currentSignerXfp = firstSigner.fingerPrint
+                                )
+                            )
+                        )
+                    } else {
+                        // If resultIndex < 1, call GetSignerFromMasterSignerUseCase
+                        val signerResult =
+                            getSignerFromMasterSignerByIndex(firstSigner.fingerPrint, 1)
+
+                        when (signerResult) {
+                            is Result.Success -> {
+                                val signer = signerResult.data
+
+                                if (signer != null) {
+                                    // If signer != null, add signer to corresponding AddKeyOnChainData.signers
+                                    handleSignerNewIndex(signer)
+                                } else {
+                                    // If signer == null, run handleSignerTypeLogic flow
+                                    _event.emit(OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic(firstSigner))
+                                }
+                            }
+
+                            is Result.Error -> {
+                                // If error getting signer, run handleSignerTypeLogic flow
+                                _event.emit(OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic(firstSigner))
+                            }
+                        }
+                    }
+                }
+
+                is Result.Error -> {
+                    // If error getting current index, show error
+                    _event.emit(
+                        OnChainTimelockByzantineAddKeyListEvent.ShowError(
+                            resultIndexResult.exception.message ?: "Failed to get current index"
+                        )
+                    )
+                }
+            }
+        }
+    }
+
     private fun getPath(index: Int, isTestNet: Boolean = false, isMultisig: Boolean = true): String {
         if (isMultisig) {
             return if (isTestNet) "m/48h/1h/${index}h/2h" else "m/48h/0h/${index}h/2h"
@@ -721,6 +791,7 @@ sealed class OnChainTimelockByzantineAddKeyListEvent {
     data class ShowError(val message: String) : OnChainTimelockByzantineAddKeyListEvent()
     data class UpdateSignerTag(val signer: SignerModel) : OnChainTimelockByzantineAddKeyListEvent()
     data class NavigateToCustomKeyAccount(val signer: SignerModel, val walletId: String, val onChainAddSignerParam: OnChainAddSignerParam? = null) : OnChainTimelockByzantineAddKeyListEvent()
+    data class HandleSignerTypeLogic(val signer: SignerModel) : OnChainTimelockByzantineAddKeyListEvent()
 }
 
 data class OnChainTimelockByzantineAddKeyListState(
