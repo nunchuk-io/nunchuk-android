@@ -455,7 +455,7 @@ internal fun CreateKeyItem(
                     }
                 }
 
-                data.transactionStatus.isPendingSignatures() && data.mode == ScriptMode.SIGN && signer != null && signer.isVisible -> {
+                data.transactionStatus.isPendingSignatures() && data.mode == ScriptMode.SIGN && signer != null && signer.isVisible && isSatisfiable -> {
                     NcPrimaryDarkButton(
                         height = 36.dp,
                         onClick = { onActionKey(nodeId, signer) },
