@@ -81,6 +81,8 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.ui.TimeZoneDetail
+import com.nunchuk.android.core.ui.toTimeZoneDetail
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.openExternalLink
@@ -106,6 +108,7 @@ import com.nunchuk.android.utils.simpleGlobalDateFormat
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Date
+import java.util.TimeZone
 
 @AndroidEntryPoint
 class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionListener {
@@ -517,6 +520,7 @@ fun InheritanceReviewPlanScreenContent(
                                 )
                                 ActivationDateItem(
                                     activationDate = Date(state.activationDate).simpleGlobalDateFormat(),
+                                    timeZoneId = state.timeZoneId,
                                     editable = isEditable,
                                     onClick = {
                                         onEditActivationDateClick()
@@ -817,13 +821,26 @@ fun SpecialDetailPlanItem(
 @Composable
 fun ActivationDateItem(
     activationDate: String = "January 1, 2024",
+    timeZoneId: String = "",
     editable: Boolean = false,
     onClick: () -> Unit = {}
 ) {
+    val timeZoneDetail = if (timeZoneId.isNotEmpty()) {
+        timeZoneId.toTimeZoneDetail()
+    } else {
+        TimeZone.getDefault().id.toTimeZoneDetail()
+    } ?: TimeZoneDetail()
+    
+    val timeZoneDisplay = if (timeZoneDetail.city.isNotEmpty() && timeZoneDetail.offset.isNotEmpty()) {
+        "${timeZoneDetail.city} (${timeZoneDetail.offset})"
+    } else {
+        timeZoneDetail.id.ifEmpty { TimeZone.getDefault().id }
+    }
+
     Row(
         modifier = Modifier
             .background(
-                color = Color.White.copy(alpha = 0.2f),
+                color = Color.Black.copy(alpha = 0.2f),
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(12.dp)
@@ -839,18 +856,17 @@ fun ActivationDateItem(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = stringResource(id = R.string.nc_activation_date),
-                style = NunchukTheme.typography.body,
+                text = activationDate,
+                style = NunchukTheme.typography.title,
                 color = Color.White
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = activationDate,
+                text = timeZoneDisplay,
                 style = NunchukTheme.typography.bodySmall,
-                color = Color.White
+                color = Color.White.copy(alpha = 0.8f)
             )
         }
-        Spacer(modifier = Modifier.weight(weight = 1f))
         if (editable) {
             Text(
                 modifier = Modifier.clickable {

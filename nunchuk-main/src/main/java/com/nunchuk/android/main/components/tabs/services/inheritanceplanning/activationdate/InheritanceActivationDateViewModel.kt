@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.ui.TimeZoneDetail
@@ -30,18 +29,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.Calendar
-import java.util.TimeZone
 import javax.inject.Inject
 
 @HiltViewModel
 class InheritanceActivationDateViewModel @Inject constructor(
     membershipStepManager: MembershipStepManager,
-    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
-    private val args = InheritanceActivationDateFragmentArgs.fromSavedStateHandle(savedStateHandle)
-
     private val _event = MutableSharedFlow<InheritanceActivationDateEvent>()
     val event = _event.asSharedFlow()
 
@@ -52,11 +45,7 @@ class InheritanceActivationDateViewModel @Inject constructor(
 
     fun onContinueClicked(timeZone: TimeZoneDetail, selectedDate: Long) = viewModelScope.launch {
         if (selectedDate != 0L && timeZone.id.isNotEmpty()) {
-            val calendar = Calendar.getInstance(TimeZone.getTimeZone(timeZone.id)).apply {
-                timeInMillis = selectedDate
-            }
-            val utcTimestamp = calendar.timeInMillis
-            _event.emit(InheritanceActivationDateEvent.ContinueClick(utcTimestamp))
+            _event.emit(InheritanceActivationDateEvent.ContinueClick(selectedDate, timeZone.id))
         }
     }
 

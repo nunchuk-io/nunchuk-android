@@ -114,7 +114,8 @@ class InheritanceActivationDateFragment : MembershipFragment() {
                 is InheritanceActivationDateEvent.ContinueClick -> {
                     inheritanceViewModel.setOrUpdate(
                         inheritanceViewModel.setupOrReviewParam.copy(
-                            activationDate = event.date
+                            activationDate = event.date,
+                            selectedZoneId = event.selectedZoneId
                         )
                     )
                     if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {

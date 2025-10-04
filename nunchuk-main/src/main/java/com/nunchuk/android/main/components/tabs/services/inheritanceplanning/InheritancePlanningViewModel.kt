@@ -112,6 +112,7 @@ enum class InheritanceKeyType {
 sealed class InheritancePlanningParam {
     data class SetupOrReview(
         val activationDate: Long = 0L,
+        val selectedZoneId: String = "",
         val walletId: String,
         val emails: List<String> = emptyList(),
         val isNotify: Boolean = false,

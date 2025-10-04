@@ -41,6 +41,7 @@ sealed class InheritanceReviewPlanEvent {
 
 data class InheritanceReviewPlanState(
     val activationDate: Long = 0,
+    val timeZoneId: String = "",
     val note: String = "",
     val isNotifyToday: Boolean = false,
     val emails: List<String> = emptyList(),

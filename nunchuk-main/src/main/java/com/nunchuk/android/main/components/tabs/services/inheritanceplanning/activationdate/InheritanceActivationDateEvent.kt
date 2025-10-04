@@ -19,10 +19,8 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate
 
-import com.nunchuk.android.core.ui.TimeZoneDetail
-
 sealed class InheritanceActivationDateEvent {
-    data class ContinueClick(val date: Long) : InheritanceActivationDateEvent()
+    data class ContinueClick(val date: Long, val selectedZoneId: String) : InheritanceActivationDateEvent()
 }
 
 data class InheritanceActivationDateState(
