@@ -126,7 +126,8 @@ fun ScriptNodeTree(
                     isShowCurve = showThreadCurve,
                     isShowTapscriptBadge = ScriptNodeType.OR_TAPROOT.name == node.type,
                     padStart = 0,
-                    node = node
+                    node = node,
+                    data = data
                 ) {
                     if (showDetail) {
                         ActivePolicyAfterView(
@@ -619,44 +620,96 @@ fun AndOrView(
     isShowTapscriptBadge: Boolean = false,
     padStart: Int = 0,
     node: ScriptNode,
+    data: ScriptNodeData = ScriptNodeData(),
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
+    val blockHeight by rememberBlockHeightManager().state.collectAsStateWithLifecycle()
+    val pendingSigners =
+        if (data.mode == ScriptMode.SIGN && data.satisfiableMap[node.idString] != false) {
+            calculatePending(node, data, blockHeight)
+        } else {
+            0
+        }
+
     Column(modifier = modifier) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
+        Box(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            if (isShowCurve) {
-                CurveView()
-            }
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(top = if (isShowCurve) 10.dp else 0.dp)
-                    .padding(start = padStart.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Row {
-                    Text(
-                        text = "${node.idString}. ${node.displayName}",
-                        style = NunchukTheme.typography.body
-                    )
-                    if (isShowTapscriptBadge) {
-                        NcBadgeOutline(
-                            modifier = Modifier.padding(start = 8.dp),
-                            text = "Tapscripts"
+                if (isShowCurve) {
+                    CurveView()
+                }
+                Column(
+                    modifier = Modifier
+                        .padding(top = if (isShowCurve) 10.dp else 0.dp)
+                        .padding(start = padStart.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Row {
+                        Text(
+                            text = "${node.idString}. ${node.displayName}",
+                            style = NunchukTheme.typography.body
+                        )
+                        if (isShowTapscriptBadge) {
+                            NcBadgeOutline(
+                                modifier = Modifier.padding(start = 8.dp),
+                                text = "Tapscripts"
+                            )
+                        }
+                    }
+
+                    if (node.descriptionText.isNotEmpty()) {
+                        Text(
+                            text = node.descriptionText,
+                            style = NunchukTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.textSecondary
+                            ),
+                            modifier = Modifier.padding(bottom = 16.dp)
                         )
                     }
                 }
+            }
 
-                if (node.descriptionText.isNotEmpty()) {
-                    Text(
-                        text = node.descriptionText,
-                        style = NunchukTheme.typography.bodySmall.copy(
-                            color = MaterialTheme.colorScheme.textSecondary
-                        ),
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
+            // Show pending conditions or enough conditions collected
+            if (data.mode == ScriptMode.SIGN && data.satisfiableMap[node.idString] != false) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(start = 8.dp)
+                        .padding(top = if (isShowCurve) 10.dp else 0.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (pendingSigners > 0) {
+                        NcIcon(
+                            painter = painterResource(id = R.drawable.ic_pending_signatures),
+                            contentDescription = "Warning",
+                            tint = MaterialTheme.colorScheme.textSecondary
+                        )
+                        Text(
+                            text = pluralStringResource(
+                                R.plurals.nc_transaction_pending_conditions,
+                                pendingSigners,
+                                pendingSigners
+                            ),
+                            style = NunchukTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.textSecondary,
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    } else {
+                        NcIcon(
+                            painter = painterResource(id = R.drawable.ic_check_circle),
+                            contentDescription = "Check",
+                            tint = MaterialTheme.colorScheme.textSecondary
+                        )
+                        Text(
+                            text = stringResource(R.string.nc_transaction_enough_conditions),
+                            style = NunchukTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.textSecondary,
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    }
                 }
             }
         }

@@ -440,7 +440,7 @@
     <string name="nc_transaction_note">Transaction note</string>
     <string name="nc_transaction_member_signers">Member keys</string>
     <string name="nc_transaction_enough_signers">Enough signatures collected</string>
-    <string name="nc_transaction_enough_conditions">Enough conditions collected</string>
+    <string name="nc_transaction_enough_conditions">Enough conditions satisfied</string>
     <string name="nc_transaction_broadcast">Broadcast transaction</string>
     <string name="nc_transaction_less_details">Less details</string>
     <string name="nc_transaction_export_transaction">Export transaction</string>
