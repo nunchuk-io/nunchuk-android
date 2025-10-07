@@ -45,8 +45,16 @@ class InheritancePlanTypeViewModel @Inject constructor(
         viewModelScope.launch {
             // Call setLocalMembershipPlan when user continues
             args.slug?.let { slug ->
-                args.walletType?.let { walletType ->
-                    setLocalMembershipPlan(slug, walletType, args.groupId)
+                args.walletType?.let { walletTypeStr ->
+                    // Convert String to GroupWalletType
+                    val groupWalletType = try {
+                        GroupWalletType.valueOf(walletTypeStr)
+                    } catch (e: IllegalArgumentException) {
+                        null
+                    }
+                    groupWalletType?.let { walletType ->
+                        setLocalMembershipPlan(slug, walletType, args.groupId)
+                    }
                 }
             }
             _event.emit(InheritancePlanTypeEvent.OnContinueClicked(_state.value.selectedPlanType))

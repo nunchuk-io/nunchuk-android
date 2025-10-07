@@ -242,6 +242,7 @@ interface AppNavigatorDelegate : AppNavigator {
         isPersonalWallet: Boolean,
         walletType: GroupWalletType?,
         slug: String?,
+        walletTypeName: String?,
         isClearTop: Boolean,
         quickWalletParam: QuickWalletParam?
     ) {
@@ -253,6 +254,7 @@ interface AppNavigatorDelegate : AppNavigator {
             isPersonalWallet = isPersonalWallet,
             walletType = walletType,
             slug = slug,
+            walletTypeName = walletTypeName,
             quickWalletParam = quickWalletParam
         ).apply {
             if (isClearTop) {

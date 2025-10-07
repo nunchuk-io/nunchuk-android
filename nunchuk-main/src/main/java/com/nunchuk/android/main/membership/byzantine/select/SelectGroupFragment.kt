@@ -86,6 +86,7 @@ class SelectGroupFragment : MembershipFragment() {
                                     isPersonalWallet = true,
                                     walletType = option.walletType,
                                     slug = option.slug,
+                                    walletTypeName = option.walletType.name,
                                     quickWalletParam = (requireActivity() as? MembershipActivity)?.quickWalletParam
                                 )
                                 requireActivity().finish()

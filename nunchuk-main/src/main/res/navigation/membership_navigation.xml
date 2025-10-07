@@ -299,7 +299,7 @@
         <argument
             android:name="wallet_type"
             android:defaultValue="@null"
-            app:argType="com.nunchuk.android.model.byzantine.GroupWalletType"
+            app:argType="string"
             app:nullable="true" />
 
         <action
