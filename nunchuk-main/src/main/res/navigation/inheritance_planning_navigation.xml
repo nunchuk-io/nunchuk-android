@@ -259,7 +259,33 @@
         android:label="InheritanceNotifyPrefFragment">
 
         <action
+            android:id="@+id/action_inheritanceNotifyPrefFragment_to_inheritanceNotificationSettingsFragment"
+            app:destination="@id/inheritanceNotificationSettingsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
+        <action
             android:id="@+id/action_inheritanceNotifyPrefFragment_to_inheritanceReviewPlanFragment"
+            app:destination="@id/inheritanceReviewPlanFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <argument
+            android:name="is_update_request"
+            android:defaultValue="false"
+            app:argType="boolean" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/inheritanceNotificationSettingsFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notificationsettings.InheritanceNotificationSettingsFragment"
+        android:label="InheritanceNotificationSettingsFragment">
+
+        <action
+            android:id="@+id/action_inheritanceNotificationSettingsFragment_to_inheritanceReviewPlanFragment"
             app:destination="@id/inheritanceReviewPlanFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
