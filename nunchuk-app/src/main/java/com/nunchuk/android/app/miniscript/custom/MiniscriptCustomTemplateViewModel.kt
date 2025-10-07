@@ -2,11 +2,9 @@ package com.nunchuk.android.app.miniscript.custom
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.miniscript.isInvalid
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.usecase.CreateMiniscriptTemplateByCustomUseCase
-import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,8 +21,7 @@ sealed class MiniscriptCustomTemplateEvent {
 
 @HiltViewModel
 class MiniscriptCustomTemplateViewModel @Inject constructor(
-    private val miniscriptTemplateByCustomUseCase: CreateMiniscriptTemplateByCustomUseCase,
-    private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase
+    private val miniscriptTemplateByCustomUseCase: CreateMiniscriptTemplateByCustomUseCase
 ) : ViewModel() {
 
     private val _event = MutableStateFlow<MiniscriptCustomTemplateEvent?>(null)
@@ -40,14 +37,7 @@ class MiniscriptCustomTemplateViewModel @Inject constructor(
             ).onSuccess { result ->
                 if (result.template.isEmpty()) {
                     _event.value = MiniscriptCustomTemplateEvent.Error("Format not supported")
-                    return@onSuccess
-                }
-                val scriptNodeResult = getScriptNodeFromMiniscriptTemplateUseCase(result.template)
-                if (scriptNodeResult.isFailure || scriptNodeResult.getOrNull()?.scriptNode?.isInvalid == true) {
-                    _event.value = MiniscriptCustomTemplateEvent.Error("Format not supported")
-                    return@launch
-                }
-                if (addressType != AddressType.TAPROOT && result.isValidTapscript) {
+                } else if (addressType != AddressType.TAPROOT && result.isValidTapscript) {
                     _event.value = MiniscriptCustomTemplateEvent.ShowTaprootWarning(result.template)
                 } else {
                     _event.value = MiniscriptCustomTemplateEvent.Success(result.template)
@@ -59,7 +49,12 @@ class MiniscriptCustomTemplateViewModel @Inject constructor(
         }
     }
 
+    fun continueWithCurrentAddressType(template: String) {
+        _event.value = MiniscriptCustomTemplateEvent.Success(template)
+    }
+
     fun changeToTaprootAndContinue(template: String) {
+        // First show the success message for address type change
         _event.value = MiniscriptCustomTemplateEvent.AddressTypeChangedToTaproot
     }
 
