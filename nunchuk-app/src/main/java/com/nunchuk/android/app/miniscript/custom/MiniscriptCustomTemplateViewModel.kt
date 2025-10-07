@@ -2,7 +2,6 @@ package com.nunchuk.android.app.miniscript.custom
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.usecase.CreateMiniscriptTemplateByCustomUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,8 +42,7 @@ class MiniscriptCustomTemplateViewModel @Inject constructor(
                     _event.value = MiniscriptCustomTemplateEvent.Success(result.template)
                 }
             }.onFailure { e ->
-                _event.value =
-                    MiniscriptCustomTemplateEvent.Error(e.message.orUnknownError())
+                _event.value = MiniscriptCustomTemplateEvent.Error("Format not supported")
             }
         }
     }
