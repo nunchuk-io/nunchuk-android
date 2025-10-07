@@ -290,6 +290,18 @@
             app:argType="string"
             app:nullable="true" />
 
+        <argument
+            android:name="slug"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+
+        <argument
+            android:name="wallet_type"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.byzantine.GroupWalletType"
+            app:nullable="true" />
+
         <action
             android:id="@+id/action_inheritancePlanTypeFragment_to_addKeyListFragment"
             app:destination="@id/addKeyListFragment"

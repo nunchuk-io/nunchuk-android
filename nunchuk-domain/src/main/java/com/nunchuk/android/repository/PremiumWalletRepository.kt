@@ -514,8 +514,10 @@ interface PremiumWalletRepository {
         walletId: String,
     ): Wallet
 
-    suspend fun initPersonalWallet(
-        walletConfig: WalletConfig
+    suspend fun initWallet(
+        walletConfig: WalletConfig,
+        groupId: String?,
+        walletType: com.nunchuk.android.type.WalletType? = null
     )
 
     suspend fun removeKeyReplacement(groupId: String?, walletId: String, xfp: String)

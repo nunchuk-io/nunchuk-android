@@ -138,6 +138,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     companion object {
         const val EXTRA_GROUP_STEP = "group_step"
         const val EXTRA_KEY_WALLET_ID = "wallet_id"
+        const val EXTRA_SLUG = "slug"
         const val EXTRA_QUICK_WALLET_PARAM = "quick_wallet_param"
         private const val REQUEST_NFC_TOPUP_XPUBS = 2001
 
@@ -149,6 +150,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             isPersonalWallet: Boolean,
             walletId: String? = null,
             groupId: String? = null,
+            slug: String? = null,
             quickWalletParam: QuickWalletParam?
         ) = Intent(activity, MembershipActivity::class.java).apply {
             putExtra(EXTRA_GROUP_STEP, groupStep)
@@ -156,6 +158,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             putExtra(EXTRA_GROUP_ID, groupId)
             putExtra(EXTRA_IS_PERSONAL_WALLET, isPersonalWallet)
             putExtra(MembershipFragment.EXTRA_WALLET_TYPE, walletType)
+            putExtra(EXTRA_SLUG, slug)
             putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
         }
 

@@ -3,6 +3,7 @@ package com.nunchuk.android.core.data.api
 import com.nunchuk.android.core.data.model.CreateServerKeyResponse
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
 import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
+import com.nunchuk.android.core.data.model.InitWalletConfigRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
@@ -129,6 +130,12 @@ internal interface GroupWalletApi {
         @Path("key_id_or_xfp") id: String,
         @Query("derivation_path") derivationPath: String,
     ): Data<CreateServerKeyResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/init")
+    suspend fun initDraftWallet(
+        @Path("group_id") groupId: String,
+        @Body config: InitWalletConfigRequest
+    ): Data<DraftWalletResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/draft-wallets/current")
     suspend fun getDraftWallet(@Path("group_id") groupId: String): Data<DraftWalletResponse>

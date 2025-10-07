@@ -80,12 +80,12 @@ class SelectGroupFragment : MembershipFragment() {
                     onContinueClicked = { option ->
                         if (viewModel.checkGroupTypeAvailable(option.slug)) {
                             if (args.isPersonal) {
-                                viewModel.setLocalMembershipPlan(option.slug, option.walletType)
                                 navigator.openMembershipActivity(
                                     activityContext = requireActivity(),
                                     groupStep = MembershipStage.NONE,
                                     isPersonalWallet = true,
                                     walletType = option.walletType,
+                                    slug = option.slug,
                                     quickWalletParam = (requireActivity() as? MembershipActivity)?.quickWalletParam
                                 )
                                 requireActivity().finish()

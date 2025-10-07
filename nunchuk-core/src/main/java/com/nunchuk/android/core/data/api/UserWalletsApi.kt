@@ -40,7 +40,7 @@ import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
-import com.nunchuk.android.core.data.model.PersonalWalletConfig
+import com.nunchuk.android.core.data.model.InitWalletConfigRequest
 import com.nunchuk.android.core.data.model.RequestRecoverKeyRequest
 import com.nunchuk.android.core.data.model.SecurityQuestionDataResponse
 import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
@@ -439,7 +439,7 @@ internal interface UserWalletsApi {
 
     @POST("/v1.1/user-wallets/draft-wallets/init")
     suspend fun initDraftWallet(
-        @Body config: PersonalWalletConfig
+        @Body config: InitWalletConfigRequest
     ): Data<DraftWalletResponse>
 
     @GET("/v1.1/user-wallets/draft-wallets/current")

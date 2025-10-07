@@ -5,6 +5,7 @@ import com.nunchuk.android.core.data.model.byzantine.DraftWalletDto
 import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
 import com.nunchuk.android.core.data.model.byzantine.toDomainModel
 import com.nunchuk.android.core.data.model.byzantine.toModel
+import com.nunchuk.android.core.data.model.byzantine.toWalletType
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.WalletAliasRequest
 import com.nunchuk.android.core.data.model.membership.toModel
@@ -149,7 +150,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         return DraftWallet(
             config = draftWallet.walletConfig.toModel(),
             isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
-            signers = draftWallet.signers.map { it.toModel() }
+            signers = draftWallet.signers.map { it.toModel() },
+            walletType = draftWallet.walletType.toWalletType()
         )
     }
 
@@ -232,7 +234,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         return DraftWallet(
             config = draftWallet.walletConfig.toModel(),
             isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
-            signers = draftWallet.signers.map { it.toModel() }
+            signers = draftWallet.signers.map { it.toModel() },
+            walletType = draftWallet.walletType.toWalletType()
         )
     }
 

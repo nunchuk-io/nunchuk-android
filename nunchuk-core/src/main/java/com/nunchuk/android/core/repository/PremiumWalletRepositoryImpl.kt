@@ -40,9 +40,9 @@ import com.nunchuk.android.core.data.model.InheritanceClaimClaimRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimCreateTransactionRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
+import com.nunchuk.android.core.data.model.InitWalletConfigRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
-import com.nunchuk.android.core.data.model.PersonalWalletConfig
 import com.nunchuk.android.core.data.model.QuestionsAndAnswerRequest
 import com.nunchuk.android.core.data.model.RequestRecoverKeyRequest
 import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
@@ -2803,17 +2803,37 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
     }
 
-    override suspend fun initPersonalWallet(walletConfig: WalletConfig) {
-        val response = userWalletApiManager.walletApi.initDraftWallet(
-            PersonalWalletConfig(
-                WalletConfigDto(
-                    m = walletConfig.m,
-                    n = walletConfig.n,
-                    requiredServerKey = walletConfig.requiredServerKey,
-                    allowInheritance = walletConfig.allowInheritance
+    override suspend fun initWallet(
+        walletConfig: WalletConfig,
+        groupId: String?,
+        walletType: com.nunchuk.android.type.WalletType?
+    ) {
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.initDraftWallet(
+                InitWalletConfigRequest(
+                    walletConfig = WalletConfigDto(
+                        m = walletConfig.m,
+                        n = walletConfig.n,
+                        requiredServerKey = walletConfig.requiredServerKey,
+                        allowInheritance = walletConfig.allowInheritance
+                    ),
+                    walletType = walletType?.name
                 )
             )
-        )
+        } else {
+            userWalletApiManager.groupWalletApi.initDraftWallet(
+                groupId,
+                InitWalletConfigRequest(
+                    walletConfig = WalletConfigDto(
+                        m = walletConfig.m,
+                        n = walletConfig.n,
+                        requiredServerKey = walletConfig.requiredServerKey,
+                        allowInheritance = walletConfig.allowInheritance
+                    ),
+                    walletType = walletType?.name
+                )
+            )
+        }
         if (response.isSuccess.not()) {
             throw response.error
         }

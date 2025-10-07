@@ -51,6 +51,7 @@ interface AppNavigator {
         groupId: String? = null,
         isPersonalWallet: Boolean = false,
         walletType: GroupWalletType? = null,
+        slug: String? = null,
         isClearTop: Boolean = false,
         quickWalletParam: QuickWalletParam? = null
     )

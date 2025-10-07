@@ -307,7 +307,9 @@ data class UpdateSecurityQuestionResponse(
     val dummyTransaction: DummyTransactionDto? = null
 )
 
-internal data class PersonalWalletConfig(
+internal data class InitWalletConfigRequest(
     @SerializedName("wallet_config")
     val walletConfig: WalletConfigDto? = null,
+    @SerializedName("wallet_type")
+    val walletType: String? = null
 )
