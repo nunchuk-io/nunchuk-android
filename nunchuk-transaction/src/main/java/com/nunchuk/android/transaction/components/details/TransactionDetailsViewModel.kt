@@ -674,7 +674,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             if (isSatisfiable) {
                 satisfiableMap[node.subs[0].idString] = true
                 satisfiableMap[node.subs[1].idString] = true
-                satisfiableMap[node.subs[2].idString] = false
+                satisfiableMap[node.subs[2].idString] = true
             } else {
                 satisfiableMap[node.subs[0].idString] = false
                 satisfiableMap[node.subs[1].idString] = false
