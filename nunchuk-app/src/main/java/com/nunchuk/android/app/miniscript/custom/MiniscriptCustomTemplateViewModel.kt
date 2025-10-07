@@ -2,6 +2,7 @@ package com.nunchuk.android.app.miniscript.custom
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.miniscript.isInvalid
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.usecase.CreateMiniscriptTemplateByCustomUseCase
@@ -39,9 +40,10 @@ class MiniscriptCustomTemplateViewModel @Inject constructor(
             ).onSuccess { result ->
                 if (result.template.isEmpty()) {
                     _event.value = MiniscriptCustomTemplateEvent.Error("Format not supported")
+                    return@onSuccess
                 }
                 val scriptNodeResult = getScriptNodeFromMiniscriptTemplateUseCase(result.template)
-                if (scriptNodeResult.isFailure) {
+                if (scriptNodeResult.isFailure || scriptNodeResult.getOrNull()?.scriptNode?.isInvalid == true) {
                     _event.value = MiniscriptCustomTemplateEvent.Error("Format not supported")
                     return@launch
                 }
