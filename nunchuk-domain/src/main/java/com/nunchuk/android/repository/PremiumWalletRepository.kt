@@ -44,6 +44,7 @@ import com.nunchuk.android.model.SecurityQuestion
 import com.nunchuk.android.model.SeverWallet
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TransactionAdditional
+import com.nunchuk.android.model.UserWalletConfigsSetup
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.WalletConstraints
@@ -518,4 +519,6 @@ interface PremiumWalletRepository {
     )
 
     suspend fun removeKeyReplacement(groupId: String?, walletId: String, xfp: String)
+    
+    suspend fun getUserWalletConfigsSetup(): UserWalletConfigsSetup
 }

@@ -196,15 +196,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         }
                     }
                 }
-            } else {
-                when (data.type) {
-                    SignerType.NFC -> openSetupTapSigner()
-                    SignerType.PORTAL_NFC -> openSetupPortal()
-                    SignerType.AIRGAP -> handleSelectAddAirgapType(selectedSignerTag)
-                    SignerType.COLDCARD_NFC -> openSetupColdCard()
-                    SignerType.HARDWARE -> selectedSignerTag?.let { openRequestAddDesktopKey(it) }
-                    else -> throw IllegalArgumentException("Signer type invalid ${data.signers.first().type}")
-                }
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
         }
@@ -398,6 +389,10 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             SignerType.AIRGAP -> {
                 val tag = firstSigner.tags.firstOrNull()
                 selectedSignerTag = tag
+                if (selectedSignerTag == SignerTag.COLDCARD) {
+                    openSetupColdCard()
+                    return
+                }
                 handleSelectAddAirgapType(tag)
             }
             
@@ -409,6 +404,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     SignerTag.TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
                     SignerTag.BITBOX -> openRequestAddDesktopKey(SignerTag.BITBOX)
                     SignerTag.COLDCARD -> openRequestAddDesktopKey(SignerTag.COLDCARD)
+                    SignerTag.JADE -> openRequestAddDesktopKey(SignerTag.JADE)
                     else -> {}
                 }
             }
@@ -472,7 +468,7 @@ fun AddKeyListScreen(
     val keys by viewModel.key.collectAsStateWithLifecycle()
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
-    AddKeyListContent(
+    OnChainTimelockAddKeyListContent(
         onContinueClicked = viewModel::onContinueClicked,
         onAddClicked = viewModel::onAddKeyClicked,
         onVerifyClicked = viewModel::onVerifyClicked,
@@ -487,7 +483,7 @@ fun AddKeyListScreen(
 }
 
 @Composable
-fun AddKeyListContent(
+fun OnChainTimelockAddKeyListContent(
     isRefreshing: Boolean = false,
     remainingTime: Int,
     onContinueClicked: () -> Unit = {},
@@ -654,12 +650,11 @@ private fun AddKeyCard(
                     Box(
                         modifier = Modifier
                             .background(
-                                color = if (item.verifyType != VerifyType.NONE || signers.size == 1) {
-                                    colorResource(id = R.color.nc_fill_slime)
-                                } else if (isDisabled) {
-                                    colorResource(id = R.color.nc_grey_dark_color)
-                                } else {
-                                    colorResource(id = R.color.nc_fill_beewax)
+                                color = when {
+                                    signers.size == 1 -> colorResource(id = R.color.nc_fill_slime).copy(alpha = 0.4f)
+                                    item.verifyType != VerifyType.NONE -> colorResource(id = R.color.nc_fill_slime)
+                                    isDisabled -> colorResource(id = R.color.nc_grey_dark_color)
+                                    else -> colorResource(id = R.color.nc_fill_beewax)
                                 },
                                 shape = RoundedCornerShape(8.dp)
                             ),
@@ -928,7 +923,7 @@ private fun ConfigItem(
 fun AddKeyListScreenIronHandPreview(
     @PreviewParameter(SignerModelProvider::class) signer: SignerModel,
 ) {
-    AddKeyListContent(
+    OnChainTimelockAddKeyListContent(
         keys = listOf(
             AddKeyOnChainData(
                 type = MembershipStep.IRON_ADD_HARDWARE_KEY_1,
@@ -951,7 +946,7 @@ fun AddKeyListScreenIronHandPreview(
 fun AddKeyListScreenHoneyBadgerPreview(
     @PreviewParameter(SignerModelProvider::class) signer: SignerModel,
 ) {
-    AddKeyListContent(
+    OnChainTimelockAddKeyListContent(
         keys = listOf(
             AddKeyOnChainData(
                 type = MembershipStep.HONEY_ADD_INHERITANCE_KEY,

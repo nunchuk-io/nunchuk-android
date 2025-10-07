@@ -26,10 +26,42 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.text.bold
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
@@ -39,11 +71,19 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.NcCircleImage
+import com.nunchuk.android.compose.NcDashLineBox
+import com.nunchuk.android.compose.NcOutlineButton
+import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTag
+import com.nunchuk.android.compose.NcTopAppBar
+import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.pullrefresh.PullRefreshIndicator
+import com.nunchuk.android.compose.pullrefresh.pullRefresh
+import com.nunchuk.android.compose.pullrefresh.rememberPullRefreshState
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
-import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
-import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
@@ -51,20 +91,26 @@ import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.showError
+import com.nunchuk.android.core.util.toReadableDrawableResId
+import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
-import com.nunchuk.android.main.membership.byzantine.addKey.AddByzantineKeyListContent
 import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyOnChainData
+import com.nunchuk.android.main.membership.model.getButtonText
+import com.nunchuk.android.main.membership.model.getLabel
+import com.nunchuk.android.main.membership.model.resId
 import com.nunchuk.android.main.membership.plantype.InheritancePlanType
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
@@ -340,61 +386,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
         )
     }
 
-    private fun showAddColdcardOptions() {
-        BottomSheetOption.newInstance(
-            listOf(
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_COLDCARD_NFC,
-                    label = getString(R.string.nc_add_coldcard_via_nfc),
-                    resId = R.drawable.ic_nfc_indicator_small
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_COLDCARD_QR,
-                    label = getString(R.string.nc_add_coldcard_via_qr),
-                    resId = R.drawable.ic_qr
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_COLDCARD_USB,
-                    label = getString(R.string.nc_add_coldcard_via_usb),
-                    resId = R.drawable.ic_usb
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_COLDCARD_FILE,
-                    label = getString(R.string.nc_add_coldcard_via_file),
-                    resId = R.drawable.ic_import
-                ),
-            )
-        ).show(childFragmentManager, "BottomSheetOption")
-    }
-
-    private fun showAirgapOptions() {
-        BottomSheetOption.newInstance(
-            title = getString(R.string.nc_what_type_of_airgap_you_have),
-            options = listOf(
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_JADE,
-                    label = getString(R.string.nc_blockstream_jade),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT,
-                    label = getString(R.string.nc_foudation_passport),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER,
-                    label = getString(R.string.nc_seedsigner),
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE,
-                    label = getString(R.string.nc_keystone),
-                ),
-                SheetOption(
-                    type = SignerType.COLDCARD_NFC.ordinal,
-                    label = getString(R.string.nc_coldcard)
-                ),
-            )
-        ).show(childFragmentManager, "BottomSheetOption")
-    }
-
     private fun observer() {
         flowObserver(viewModel.event) { event ->
             when (event) {
@@ -408,7 +399,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 }
                 OnChainTimelockByzantineAddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
                 is OnChainTimelockByzantineAddKeyListEvent.ShowError -> showError(event.message)
-                OnChainTimelockByzantineAddKeyListEvent.SelectAirgapType -> showAirgapOptions()
+                OnChainTimelockByzantineAddKeyListEvent.SelectAirgapType -> {}
                 is OnChainTimelockByzantineAddKeyListEvent.UpdateSignerTag -> findNavController().navigate(
                     OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToCustomKeyAccountFragmentFragment(
                         event.signer,
@@ -510,30 +501,17 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
             SignerType.NFC -> openSetupTapSigner()
             
             SignerType.PORTAL_NFC -> openSetupPortal()
-            
-            SignerType.COLDCARD_NFC -> {
-                selectedSignerTag = SignerTag.COLDCARD
-                navigator.openSetupMk4(
-                    activity = requireActivity(),
-                    args = SetupMk4Args(
-                        fromMembershipFlow = true,
-                        groupId = args.groupId,
-                        walletId = (activity as MembershipActivity).walletId,
-                        onChainAddSignerParam = OnChainAddSignerParam(
-                            flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                            keyIndex = currentKeyData?.signers?.size ?: 0,
-                            currentSignerXfp = currentKeyData?.signers?.firstOrNull()?.fingerPrint ?: ""
-                        )
-                    )
-                )
-            }
-            
+
             SignerType.AIRGAP -> {
                 val tag = firstSigner.tags.firstOrNull()
                 selectedSignerTag = tag
+                if (selectedSignerTag == SignerTag.COLDCARD) {
+                    openSetupColdCard()
+                    return
+                }
                 handleSelectAddAirgapType(tag)
             }
-            
+
             SignerType.HARDWARE -> {
                 val tag = firstSigner.tags.firstOrNull()
                 selectedSignerTag = tag
@@ -542,12 +520,29 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     SignerTag.TREZOR -> openRequestAddDesktopKey(SignerTag.TREZOR)
                     SignerTag.BITBOX -> openRequestAddDesktopKey(SignerTag.BITBOX)
                     SignerTag.COLDCARD -> openRequestAddDesktopKey(SignerTag.COLDCARD)
+                    SignerTag.JADE -> openRequestAddDesktopKey(SignerTag.JADE)
                     else -> {}
                 }
             }
             
             else -> {}
         }
+    }
+
+    private fun openSetupColdCard() {
+        navigator.openSetupMk4(
+            activity = requireActivity(),
+            args = SetupMk4Args(
+                fromMembershipFlow = true,
+                groupId = (activity as MembershipActivity).groupId,
+                walletId = (activity as MembershipActivity).walletId,
+                onChainAddSignerParam = OnChainAddSignerParam(
+                    flags = if (currentKeyData?.type?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
+                    keyIndex = currentKeyData?.signers?.size ?: 0,
+                    currentSignerXfp = currentKeyData?.signers?.firstOrNull()?.fingerPrint ?: ""
+                )
+            )
+        )
     }
 
 
@@ -617,38 +612,450 @@ fun OnChainTimelockByzantineAddKeyListScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     
-    // Convert AddKeyOnChainData to AddKeyData for display
-    AddByzantineKeyListContent(
+    OnChainTimelockByzantineAddKeyListContent(
         onContinueClicked = viewModel::onContinueClicked,
-        onAddClicked = { keyData -> 
-            // Find the corresponding AddKeyOnChainData
-            keys.find { it.type == keyData.type }?.let { viewModel.onAddKeyClicked(it) }
-        },
-        onVerifyClicked = { keyData -> 
-            // Find the corresponding AddKeyOnChainData
-            keys.find { it.type == keyData.type }?.let { viewModel.onVerifyClicked(it) }
-        },
-        keys = keys.map { onChainData ->
-            com.nunchuk.android.main.membership.model.AddKeyData(
-                type = onChainData.type,
-                signer = onChainData.signers?.firstOrNull(),
-                verifyType = onChainData.verifyType
-            )
-        },
-        missingBackupKeys = state.missingBackupKeys.map { onChainData ->
-            com.nunchuk.android.main.membership.model.AddKeyData(
-                type = onChainData.type,
-                signer = onChainData.signers?.firstOrNull(),
-                verifyType = onChainData.verifyType
-            )
-        },
+        onAddClicked = viewModel::onAddKeyClicked,
+        onVerifyClicked = viewModel::onVerifyClicked,
+        keys = keys,
         remainingTime = remainingTime,
         onMoreClicked = onMoreClicked,
         refresh = viewModel::refresh,
         isRefreshing = state.isRefreshing,
+        missingBackupKeys = state.missingBackupKeys,
         isAddOnly = isAddOnly,
-        groupWalletType = state.groupWalletType,
-        role = role
     )
+}
+
+@Composable
+fun OnChainTimelockByzantineAddKeyListContent(
+    isRefreshing: Boolean = false,
+    remainingTime: Int,
+    onContinueClicked: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
+    keys: List<AddKeyOnChainData> = emptyList(),
+    missingBackupKeys: List<AddKeyOnChainData> = emptyList(),
+    onVerifyClicked: (data: AddKeyOnChainData) -> Unit = {},
+    onAddClicked: (data: AddKeyOnChainData) -> Unit = {},
+    refresh: () -> Unit = { },
+    isAddOnly: Boolean = false,
+) {
+    val state = rememberPullRefreshState(isRefreshing, refresh)
+
+    NunchukTheme {
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                NcTopAppBar(
+                    title = stringResource(R.string.nc_estimate_remain_time, remainingTime),
+                    actions = {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
+                    },
+                )
+            },
+            bottomBar = {
+                if (!isAddOnly) {
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = onContinueClicked,
+                        enabled = keys.all { it.isVerifyOrAddKey } && missingBackupKeys.isEmpty()
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_text_continue))
+                    }
+                }
+            },
+        ) { innerPadding ->
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .pullRefresh(state)
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 16.dp)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.nc_let_add_your_keys),
+                            style = NunchukTheme.typography.heading
+                        )
+                        Text(
+                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+                            text = buildAnnotatedString {
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
+                                    append("Before the timelock")
+                                }
+                                append(
+                                    ", spending requires signatures based on your wallet configuration."
+                                )
+                                append("\n\n")
+                            },
+                            style = NunchukTheme.typography.body
+                        )
+                    }
+
+                    items(keys.filter { it.type != MembershipStep.TIMELOCK }) { key ->
+                        AddKeyCard(
+                            item = key,
+                            onAddClicked = onAddClicked,
+                            onVerifyClicked = onVerifyClicked,
+                            isMissingBackup = missingBackupKeys.contains(key) && key.signers?.any { it.type != SignerType.NFC } == true
+                        )
+                    }
+                    
+                    item {
+                        Text(
+                            modifier = Modifier
+                                .padding(top = 16.dp, bottom = 4.dp)
+                                .fillMaxWidth(),
+                            text = "Pull to refresh the key statuses.",
+                            style = NunchukTheme.typography.bodySmall,
+                        )
+                    }
+
+                    val timelockKey = keys.firstOrNull { it.type == MembershipStep.TIMELOCK }
+                    if (timelockKey != null) {
+                        item {
+                            Text(
+                                modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+                                text = buildAnnotatedString {
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
+                                        append("After the timelock")
+                                    }
+                                    append(
+                                        ", spending requirements change based on your wallet configuration."
+                                    )
+                                    append("\n\n")
+                                },
+                                style = NunchukTheme.typography.body
+                            )
+                            Column {
+                                AddKeyCard(
+                                    item = timelockKey,
+                                    onAddClicked = onAddClicked,
+                                    onVerifyClicked = onVerifyClicked,
+                                    isMissingBackup = missingBackupKeys.contains(timelockKey) && timelockKey.signers?.any { it.type != SignerType.NFC } == true
+                                )
+                            }
+                        }
+                    }
+                }
+
+                PullRefreshIndicator(isRefreshing, state, Modifier.align(Alignment.TopCenter))
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddKeyCard(
+    item: AddKeyOnChainData,
+    modifier: Modifier = Modifier,
+    isMissingBackup: Boolean = false,
+    onAddClicked: (data: AddKeyOnChainData) -> Unit = {},
+    onVerifyClicked: (data: AddKeyOnChainData) -> Unit = {},
+    isDisabled: Boolean = false,
+    isStandard: Boolean = false
+) {
+    ConstraintLayout(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+    ) {
+        val (banner, content) = createRefs()
+        val signers = item.signers ?: emptyList()
+        Box(
+            modifier = modifier
+                .constrainAs(content) {
+                    top.linkTo(parent.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(parent.bottom)
+                }) {
+            if (signers.isNotEmpty()) {
+                val shouldShowDashLine = signers.size == 1
+                NcDashLineBox(
+                    modifier = modifier,
+                    showDashedBorder = shouldShowDashLine
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                color = when {
+                                    signers.size == 1 -> colorResource(id = R.color.nc_fill_slime).copy(alpha = 0.4f)
+                                    item.verifyType != VerifyType.NONE -> colorResource(id = R.color.nc_fill_slime)
+                                    isDisabled -> colorResource(id = R.color.nc_grey_dark_color)
+                                    else -> colorResource(id = R.color.nc_fill_beewax)
+                                },
+                                shape = RoundedCornerShape(8.dp)
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            NcCircleImage(
+                                resId = signers.firstOrNull()?.toReadableDrawableResId()
+                                    ?: R.drawable.ic_hardware_key,
+                            )
+                            Column(
+                                modifier = Modifier
+                                    .weight(1.0f)
+                                    .padding(start = 8.dp)
+                            ) {
+                                // Display signer names - show both if available
+                                if (signers.size >= 2) {
+                                    Text(
+                                        text = "${signers[0].name} & ${signers[1].name}",
+                                        style = NunchukTheme.typography.body
+                                    )
+                                } else {
+                                    Text(
+                                        text = signers.firstOrNull()?.name ?: "Unknown Signer",
+                                        style = NunchukTheme.typography.body
+                                    )
+                                }
+                                Row(modifier = Modifier.padding(top = 4.dp)) {
+                                    if (signers.size >= 2) {
+                                        NcTag(
+                                            label = signers[0].toReadableSignerType(context = LocalContext.current),
+                                            backgroundColor = colorResource(
+                                                id = R.color.nc_bg_mid_gray
+                                            ),
+                                        )
+                                        NcTag(
+                                            modifier = Modifier.padding(start = 4.dp),
+                                            label = signers[1].toReadableSignerType(context = LocalContext.current),
+                                            backgroundColor = colorResource(
+                                                id = R.color.nc_bg_mid_gray
+                                            ),
+                                        )
+                                    } else {
+                                        NcTag(
+                                            label = signers.firstOrNull()
+                                                ?.toReadableSignerType(context = LocalContext.current)
+                                                ?: "Unknown",
+                                            backgroundColor = colorResource(
+                                                id = R.color.nc_bg_mid_gray
+                                            ),
+                                        )
+                                    }
+                                    val firstAcctLabel = signers.firstOrNull()?.let { firstSigner ->
+                                        if (firstSigner.isShowAcctX(true)) {
+                                            stringResource(R.string.nc_acct_x, firstSigner.index)
+                                        } else {
+                                            "Acct X"
+                                        }
+                                    } ?: "Acct X"
+                                    NcTag(
+                                        modifier = Modifier
+                                            .padding(start = 4.dp)
+                                            .alpha(if (firstAcctLabel == "Acct X") 0.5f else 1.0f),
+                                        label = firstAcctLabel,
+                                        backgroundColor = colorResource(
+                                            id = R.color.nc_bg_mid_gray
+                                        ),
+                                    )
+                                    val secondAcctLabel = signers.getOrNull(1)?.let { secondSigner ->
+                                        if (secondSigner.isShowAcctX(true)) {
+                                            stringResource(R.string.nc_acct_x, secondSigner.index)
+                                        } else {
+                                            "Acct Y"
+                                        }
+                                    } ?: "Acct Y"
+                                    NcTag(
+                                        modifier = Modifier
+                                            .padding(start = 4.dp)
+                                            .alpha(if (secondAcctLabel == "Acct Y") 0.5f else 1.0f),
+                                        label = secondAcctLabel,
+                                        backgroundColor = colorResource(
+                                            id = R.color.nc_bg_mid_gray
+                                        ),
+                                    )
+                                }
+                                if (signers.size >= 2) {
+                                    Text(
+                                        modifier = Modifier.padding(top = 4.dp),
+                                        text = "${signers[0].getXfpOrCardIdLabel()} & ${signers[1].getXfpOrCardIdLabel()}",
+                                        style = NunchukTheme.typography.bodySmall
+                                    )
+                                } else {
+                                    Text(
+                                        modifier = Modifier.padding(top = 4.dp),
+                                        text = signers.firstOrNull()?.getXfpOrCardIdLabel() ?: "",
+                                        style = NunchukTheme.typography.bodySmall
+                                    )
+                                }
+                            }
+                            if (signers.size >= 2) {
+                                if (item.verifyType != VerifyType.NONE) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.nc_circle_checked),
+                                        contentDescription = "Checked icon"
+                                    )
+                                    Text(
+                                        modifier = Modifier.padding(start = 4.dp),
+                                        style = NunchukTheme.typography.body,
+                                        text = stringResource(
+                                            R.string.nc_added
+                                        )
+                                    )
+                                } else if (signers.any { it.isVisible }) {
+                                    NcOutlineButton(
+                                        modifier = Modifier.height(36.dp),
+                                        onClick = { onVerifyClicked(item) },
+                                    ) {
+                                        Text(
+                                            text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
+                                                R.string.nc_upload_backup
+                                            )
+                                        )
+                                    }
+                                }
+                            } else {
+                                NcOutlineButton(
+                                    modifier = Modifier.height(36.dp),
+                                    enabled = isDisabled.not(),
+                                    onClick = { onAddClicked(item) },
+                                ) {
+                                    Text(
+                                        text = item.type.getButtonText(LocalContext.current),
+                                        style = NunchukTheme.typography.caption,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (item.verifyType != VerifyType.NONE) {
+                    Box(
+                        modifier = modifier
+                            .background(
+                                colorResource(id = R.color.nc_fill_slime),
+                                shape = RoundedCornerShape(8.dp)
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        ConfigItem(item, isDisabled = isDisabled)
+                    }
+                } else {
+                    NcDashLineBox(modifier = modifier) {
+                        ConfigItem(
+                            item = item,
+                            onAddClicked = onAddClicked,
+                            isDisabled = isDisabled,
+                            isStandard = isStandard
+                        )
+                    }
+                }
+            }
+        }
+
+        if (item.type.isAddInheritanceKey) {
+            Image(
+                modifier = Modifier
+                    .constrainAs(banner) {
+                        top.linkTo(parent.top)
+                        end.linkTo(parent.end)
+                    },
+                contentDescription = "Inheritance icon",
+                painter = painterResource(id = R.drawable.ic_badge_inheritance)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ConfigItem(
+    item: AddKeyOnChainData,
+    onAddClicked: ((data: AddKeyOnChainData) -> Unit)? = null,
+    isDisabled: Boolean = false,
+    isStandard: Boolean = false
+) {
+    val signers = item.signers ?: emptyList()
+    Row(
+        modifier = Modifier.padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        NcCircleImage(resId = item.type.resId)
+        Column(
+            modifier = Modifier
+                .weight(1.0f)
+                .padding(start = 8.dp)
+        ) {
+            Text(
+                text = item.type.getLabel(context = LocalContext.current, isStandard = isStandard),
+                style = NunchukTheme.typography.body
+            )
+            if (item.type != MembershipStep.ADD_SEVER_KEY) {
+                Row(modifier = Modifier.padding(top = 4.dp)) {
+                    val firstAcctLabel = signers.firstOrNull()?.let { firstSigner ->
+                        if (firstSigner.isShowAcctX(true)) {
+                            stringResource(R.string.nc_acct_x, firstSigner.index)
+                        } else {
+                            "Acct X"
+                        }
+                    } ?: "Acct X"
+                    NcTag(
+                        modifier = Modifier.alpha(if (firstAcctLabel == "Acct X") 0.5f else 1.0f),
+                        label = firstAcctLabel,
+                        backgroundColor = colorResource(
+                            id = R.color.nc_bg_mid_gray
+                        ),
+                    )
+                    val secondAcctLabel = signers.getOrNull(1)?.let { secondSigner ->
+                        if (secondSigner.isShowAcctX(true)) {
+                            stringResource(R.string.nc_acct_x, secondSigner.index)
+                        } else {
+                            "Acct Y"
+                        }
+                    } ?: "Acct Y"
+                    NcTag(
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .alpha(if (secondAcctLabel == "Acct Y") 0.5f else 1.0f),
+                        label = secondAcctLabel,
+                        backgroundColor = colorResource(
+                            id = R.color.nc_bg_mid_gray
+                        ),
+                    )
+                }
+            }
+        }
+        if (onAddClicked != null) {
+            NcOutlineButton(
+                modifier = Modifier.height(36.dp),
+                enabled = isDisabled.not(),
+                onClick = { onAddClicked(item) },
+            ) {
+                Text(
+                    text = item.type.getButtonText(LocalContext.current),
+                    style = NunchukTheme.typography.caption,
+                )
+            }
+        } else {
+            Icon(
+                painter = painterResource(id = R.drawable.nc_circle_checked),
+                contentDescription = "Checked icon"
+            )
+            Text(
+                modifier = Modifier.padding(start = 4.dp),
+                style = NunchukTheme.typography.body,
+                text = stringResource(R.string.nc_configured)
+            )
+        }
+    }
 }
 

@@ -14,7 +14,7 @@ internal data class DraftWalletDto(
     @SerializedName("wallet_config") val walletConfig: WalletConfigDto? = null,
     @SerializedName("is_master_security_question_set") val isMasterSecurityQuestionSet: Boolean = false,
     @SerializedName("server_key_id") val serverKeyId: String? = null,
-    @SerializedName("signers") val signers: ArrayList<SignerServerDto> = arrayListOf()
+    @SerializedName("signers") val signers: ArrayList<SignerServerDto> = arrayListOf(),
 )
 
 internal data class WalletConfigDto(

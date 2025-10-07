@@ -309,5 +309,5 @@ data class UpdateSecurityQuestionResponse(
 
 internal data class PersonalWalletConfig(
     @SerializedName("wallet_config")
-    val walletConfig: WalletConfigDto? = null
+    val walletConfig: WalletConfigDto? = null,
 )

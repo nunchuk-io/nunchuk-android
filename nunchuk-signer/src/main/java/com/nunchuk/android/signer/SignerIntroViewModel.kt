@@ -8,9 +8,15 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.SupportedSignerConfig
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetIndexFromPathUseCase
+import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -27,6 +33,7 @@ class SignerIntroViewModel @Inject constructor(
     private val getAllSignersUseCase: GetAllSignersUseCase,
     private val masterSignerMapper: MasterSignerMapper,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
+    private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
 ) : ViewModel() {
 
     val remainTime = membershipStepManager.remainingTime
@@ -36,13 +43,46 @@ class SignerIntroViewModel @Inject constructor(
     private val _filteredTapSigners = MutableStateFlow<List<SignerModel>>(emptyList())
     val filteredTapSigners = _filteredTapSigners.asStateFlow()
 
+    private val _supportedSigners = MutableStateFlow<List<SupportedSigner>>(emptyList())
+    val supportedSigners = _supportedSigners.asStateFlow()
+
+    private val _supportedSignerConfigs = MutableStateFlow<List<SupportedSignerConfig>>(emptyList())
+    val supportedSignerConfigs = _supportedSignerConfigs.asStateFlow()
+
+    private val _isAddInheritanceSigner = MutableStateFlow(false)
+    val isAddInheritanceSigner = _isAddInheritanceSigner.asStateFlow()
+
     private val _event = MutableSharedFlow<SignerIntroEvent>()
     val event = _event.asSharedFlow()
 
     fun init(onChainAddSignerParam: OnChainAddSignerParam?) {
         this.onChainAddSignerParam = onChainAddSignerParam ?: return
+        _isAddInheritanceSigner.update { onChainAddSignerParam.isAddInheritanceSigner() }
+        fetchUserWalletConfigs()
         fetchAndFilterTapSigners()
     }
+
+    private fun fetchUserWalletConfigs() {
+        viewModelScope.launch {
+            getUserWalletConfigsSetupUseCase(Unit).onSuccess { configs ->
+                _supportedSignerConfigs.update { configs.supportedSigners }
+                val supportedSigners = convertToSupportedSigners(configs.supportedSigners)
+                _supportedSigners.update { supportedSigners }
+            }
+        }
+    }
+
+    private fun convertToSupportedSigners(configs: List<SupportedSignerConfig>): List<SupportedSigner> {
+        return configs.map { config ->
+            SupportedSigner(
+                type = SignerType.valueOf(config.signerType),
+                tag = config.signerTag?.let { SignerTag.valueOf(it) },
+                walletType = WalletType.valueOf(config.walletType),
+                addressType = AddressType.NATIVE_SEGWIT // Default address type
+            )
+        }
+    }
+
 
     private fun fetchAndFilterTapSigners() {
         viewModelScope.launch {

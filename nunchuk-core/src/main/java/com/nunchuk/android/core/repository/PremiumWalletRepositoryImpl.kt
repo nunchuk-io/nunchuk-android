@@ -92,6 +92,7 @@ import com.nunchuk.android.core.mapper.toBackupKey
 import com.nunchuk.android.core.mapper.toByzantineGroup
 import com.nunchuk.android.core.mapper.toCalculateRequiredSignatures
 import com.nunchuk.android.core.mapper.toCalculateRequiredSignaturesEx
+import com.nunchuk.android.core.mapper.toDomain
 import com.nunchuk.android.core.mapper.toGroupChat
 import com.nunchuk.android.core.mapper.toGroupEntity
 import com.nunchuk.android.core.mapper.toHistoryPeriod
@@ -142,6 +143,7 @@ import com.nunchuk.android.model.SpendingPolicy
 import com.nunchuk.android.model.SpendingTimeUnit
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TransactionAdditional
+import com.nunchuk.android.model.UserWalletConfigsSetup
 import com.nunchuk.android.model.VerifiedPKeyTokenRequest
 import com.nunchuk.android.model.VerifiedPasswordTokenRequest
 import com.nunchuk.android.model.VerifyFederatedTokenRequest
@@ -2837,6 +2839,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) {
             throw response.error
         }
+    }
+
+    override suspend fun getUserWalletConfigsSetup(): UserWalletConfigsSetup {
+        val response = userWalletApiManager.walletApi.getUserWalletConfigsSetup()
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        return response.data.toDomain()
     }
 
     private fun getHeaders(

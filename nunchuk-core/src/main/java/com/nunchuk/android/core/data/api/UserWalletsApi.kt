@@ -50,6 +50,7 @@ import com.nunchuk.android.core.data.model.TransactionAdditionalResponse
 import com.nunchuk.android.core.data.model.UpdateKeyPayload
 import com.nunchuk.android.core.data.model.UpdateSecurityQuestionResponse
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
+import com.nunchuk.android.core.data.model.UserWalletConfigsSetupResponse
 import com.nunchuk.android.core.data.model.byzantine.CreateDraftWalletRequest
 import com.nunchuk.android.core.data.model.byzantine.DraftWalletResponse
 import com.nunchuk.android.core.data.model.byzantine.DummyTransactionResponse
@@ -735,4 +736,7 @@ internal interface UserWalletsApi {
         @Path("wallet_id_or_local_id") walletId: String,
         @Path("xfp") xfp: String,
     ): Data<Unit>
+
+    @GET("/v1.1/user-wallets/configs/setup")
+    suspend fun getUserWalletConfigsSetup(): Data<UserWalletConfigsSetupResponse>
 }
