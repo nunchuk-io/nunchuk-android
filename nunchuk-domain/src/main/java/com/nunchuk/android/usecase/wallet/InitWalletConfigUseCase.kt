@@ -8,10 +8,10 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class InitPersonalWalletUseCase @Inject constructor(
+class InitWalletConfigUseCase @Inject constructor(
     private val repository: PremiumWalletRepository,
     @IoDispatcher dispatcher: CoroutineDispatcher
-) : UseCase<InitPersonalWalletUseCase.Param, Unit>(dispatcher) {
+) : UseCase<InitWalletConfigUseCase.Param, Unit>(dispatcher) {
 
     override suspend fun execute(parameters: Param) {
         repository.initWallet(parameters.walletConfig, parameters.groupId, parameters.walletType)

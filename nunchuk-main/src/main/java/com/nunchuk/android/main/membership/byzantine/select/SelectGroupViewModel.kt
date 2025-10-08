@@ -4,13 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
-import com.nunchuk.android.core.domain.membership.SetLocalMembershipPlanFlowUseCase
 import com.nunchuk.android.model.slug
 import com.nunchuk.android.model.wallet.WalletOption
 import com.nunchuk.android.usecase.membership.GetGroupAssistedWalletConfigUseCase
-import com.nunchuk.android.usecase.wallet.InitPersonalWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow

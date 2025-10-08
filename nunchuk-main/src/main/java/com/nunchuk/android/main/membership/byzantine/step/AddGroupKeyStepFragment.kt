@@ -56,6 +56,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.StepWithEstTime
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -80,7 +81,7 @@ class AddGroupKeyStepFragment : MembershipFragment() {
         super.onViewCreated(view, savedInstanceState)
         flowObserver(viewModel.event) { event ->
             when (event) {
-                AddKeyStepEvent.OpenAddKeyList -> handleOpenKeyList()
+                is AddKeyStepEvent.OpenAddKeyList -> handleOpenKeyList(event.walletType)
                 AddKeyStepEvent.OpenRecoveryQuestion -> handleOpenRecoveryQuestion()
                 AddKeyStepEvent.OpenCreateWallet -> handleOpenCreateWallet()
                 AddKeyStepEvent.OnMoreClicked -> handleShowMore()
@@ -106,14 +107,35 @@ class AddGroupKeyStepFragment : MembershipFragment() {
         findNavController().navigate(AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToCreateWalletFragment())
     }
 
-    private fun handleOpenKeyList() {
+    private fun handleOpenKeyList(walletType: WalletType?) {
         val groupId = (activity as MembershipActivity).groupId
-        findNavController().navigate(
-            AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToInheritancePlanTypeFragment(
-                groupId = groupId,
-                role = viewModel.getRole().name
-            )
-        )
+        when (walletType) {
+            WalletType.MULTI_SIG -> {
+                findNavController().navigate(
+                    AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToAddByzantineKeyListFragment(
+                        groupId = groupId,
+                        role = viewModel.getRole().name
+                    )
+                )
+            }
+            WalletType.MINISCRIPT -> {
+                findNavController().navigate(
+                    AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToOnChainTimelockByzantineAddKeyFragment(
+                        groupId = groupId,
+                        role = viewModel.getRole().name,
+                        isAddOnly = false
+                    )
+                )
+            }
+            else -> {
+                findNavController().navigate(
+                    AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToInheritancePlanTypeFragment(
+                        groupId = groupId,
+                        role = viewModel.getRole().name
+                    )
+                )
+            }
+        }
     }
 
     private fun handleOpenRecoveryQuestion() {

@@ -8,7 +8,7 @@ import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.type.WalletType
-import com.nunchuk.android.usecase.wallet.InitPersonalWalletUseCase
+import com.nunchuk.android.usecase.wallet.InitWalletConfigUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class InheritancePlanTypeViewModel @Inject constructor(
-    private val initPersonalWalletUseCase: InitPersonalWalletUseCase,
+    private val initWalletConfigUseCase: InitWalletConfigUseCase,
     private val setLocalMembershipPlanFlowUseCase: SetLocalMembershipPlanFlowUseCase,
     private val applicationScope: CoroutineScope,
     savedStateHandle: SavedStateHandle
@@ -64,13 +64,12 @@ class InheritancePlanTypeViewModel @Inject constructor(
     private fun setLocalMembershipPlan(slug: String, type: GroupWalletType, groupId: String?) {
         applicationScope.launch {
             val plan = slug.toMembershipPlan()
-            // Determine wallet type based on selected plan type
             val walletType = when (_state.value.selectedPlanType) {
                 InheritancePlanType.OFF_CHAIN -> WalletType.MULTI_SIG
                 InheritancePlanType.ON_CHAIN -> WalletType.MINISCRIPT
             }
-            initPersonalWalletUseCase(
-                InitPersonalWalletUseCase.Param(
+            initWalletConfigUseCase(
+                InitWalletConfigUseCase.Param(
                     walletConfig = WalletConfig(
                         allowInheritance = type.allowInheritance,
                         m = type.m,

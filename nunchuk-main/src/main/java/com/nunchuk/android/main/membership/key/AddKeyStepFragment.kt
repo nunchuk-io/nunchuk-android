@@ -66,6 +66,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.type.WalletType
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -90,7 +91,7 @@ class AddKeyStepFragment : MembershipFragment() {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is AddKeyStepEvent.OpenContactUs -> requireActivity().sendEmail(event.email)
-                AddKeyStepEvent.OpenAddKeyList -> handleOpenKeyList()
+                is AddKeyStepEvent.OpenAddKeyList -> handleOpenKeyList(event.walletType)
                 AddKeyStepEvent.OpenRecoveryQuestion -> handleOpenRecoveryQuestion()
                 AddKeyStepEvent.OpenCreateWallet -> handleOpenCreateWallet()
                 AddKeyStepEvent.OnMoreClicked -> handleShowMore()
@@ -125,15 +126,29 @@ class AddKeyStepFragment : MembershipFragment() {
         findNavController().navigate(AddKeyStepFragmentDirections.actionAddKeyStepFragmentToCreateWalletFragment())
     }
 
-    private fun handleOpenKeyList() {
-        val slug = (requireActivity() as? MembershipActivity)?.intent?.getStringExtra(MembershipActivity.EXTRA_SLUG)
-        val walletTypeName = (requireActivity() as? MembershipActivity)?.intent?.getStringExtra(MembershipActivity.EXTRA_WALLET_TYPE_NAME)
-        findNavController().navigate(
-            AddKeyStepFragmentDirections.actionAddKeyStepFragmentToInheritancePlanTypeFragment(
-                slug = slug,
-                walletType = walletTypeName
-            )
-        )
+    private fun handleOpenKeyList(walletType: WalletType?) {
+        when (walletType) {
+            WalletType.MULTI_SIG -> {
+                findNavController().navigate(
+                    AddKeyStepFragmentDirections.actionAddKeyStepFragmentToAddKeyListFragment()
+                )
+            }
+            WalletType.MINISCRIPT -> {
+                findNavController().navigate(
+                    AddKeyStepFragmentDirections.actionAddKeyStepFragmentToOnChainTimelockAddKeyListFragment()
+                )
+            }
+            else -> {
+                val slug = (requireActivity() as? MembershipActivity)?.intent?.getStringExtra(MembershipActivity.EXTRA_SLUG)
+                val walletTypeName = (requireActivity() as? MembershipActivity)?.intent?.getStringExtra(MembershipActivity.EXTRA_WALLET_TYPE_NAME)
+                findNavController().navigate(
+                    AddKeyStepFragmentDirections.actionAddKeyStepFragmentToInheritancePlanTypeFragment(
+                        slug = slug,
+                        walletType = walletTypeName
+                    )
+                )
+            }
+        }
     }
 
     private fun handleOpenRecoveryQuestion() {

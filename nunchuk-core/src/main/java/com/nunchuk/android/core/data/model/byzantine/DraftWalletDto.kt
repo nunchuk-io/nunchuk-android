@@ -33,12 +33,12 @@ internal fun WalletConfigDto?.toModel(): WalletConfig = WalletConfig(
     requiredServerKey = this?.requiredServerKey == true
 )
 
-internal fun String?.toWalletType(): WalletType {
+internal fun String?.toWalletType(): WalletType? {
     return when (this?.uppercase()) {
         "MULTI_SIG", "MULTISIG" -> WalletType.MULTI_SIG
         "MINISCRIPT" -> WalletType.MINISCRIPT
         "ESCROW" -> WalletType.ESCROW
         "SINGLE_SIG", "SINGLESIG" -> WalletType.SINGLE_SIG
-        else -> WalletType.MULTI_SIG // Default to MULTI_SIG
+        else -> null
     }
 }

@@ -30,6 +30,7 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
@@ -91,6 +92,8 @@ class AddGroupKeyStepViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AddGroupUiState())
     val uiState = _uiState.asStateFlow()
 
+    private var draftWalletType: WalletType? = null
+
     val groupRemainTime =
         membershipStepManager.remainingTime.map {
             intArrayOf(
@@ -145,6 +148,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
             _isSetupRecoverKeyDone.value = draftWallet.isMasterSecurityQuestionSet
             val isConfigDone = draftWallet.config.n == draftWallet.signers.size
             _isConfigKeyDone.value = isCreateWallet || isConfigDone
+            draftWalletType = draftWallet.walletType
         }
     }
 
@@ -162,7 +166,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
                 savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.SETUP_KEY_RECOVERY
                 _event.emit(AddKeyStepEvent.OpenRecoveryQuestion)
             } else {
-                _event.emit(AddKeyStepEvent.OpenAddKeyList)
+                _event.emit(AddKeyStepEvent.OpenAddKeyList(draftWalletType))
             }
         }
     }
@@ -185,7 +189,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
 data class AddGroupUiState(val isMaster: Boolean = false, val role: AssistedWalletRole = AssistedWalletRole.NONE)
 
 sealed class AddKeyStepEvent {
-    object OpenAddKeyList : AddKeyStepEvent()
+    data class OpenAddKeyList(val walletType: WalletType?) : AddKeyStepEvent()
     object OpenRecoveryQuestion : AddKeyStepEvent()
     object OpenCreateWallet : AddKeyStepEvent()
     data class OpenRegisterAirgap(val walletId: String) : AddKeyStepEvent()

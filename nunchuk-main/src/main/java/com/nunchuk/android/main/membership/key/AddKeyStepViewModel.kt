@@ -29,6 +29,8 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -45,6 +47,7 @@ class AddKeyStepViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val savedStateHandle: SavedStateHandle,
     private val getSecurityQuestionUseCase: GetSecurityQuestionUseCase,
+    private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
 ) : ViewModel() {
     private val currentStep =
@@ -108,6 +111,9 @@ class AddKeyStepViewModel @Inject constructor(
             )
         }.stateIn(viewModelScope, SharingStarted.Eagerly, IntArray(4))
 
+    var draftWalletType: WalletType? = null
+        private set
+
     init {
         viewModelScope.launch {
             currentStep.filterNotNull().collect {
@@ -116,6 +122,9 @@ class AddKeyStepViewModel @Inject constructor(
         }
         viewModelScope.launch {
             getSecurityQuestionUseCase(GetSecurityQuestionUseCase.Param(isFilterAnswer = false,))
+        }
+        viewModelScope.launch {
+            draftWalletType = syncDraftWalletUseCase("").getOrNull()?.walletType
         }
     }
 
@@ -138,7 +147,7 @@ class AddKeyStepViewModel @Inject constructor(
                 savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.SETUP_KEY_RECOVERY
                 _event.emit(AddKeyStepEvent.OpenRecoveryQuestion)
             } else {
-                _event.emit(AddKeyStepEvent.OpenAddKeyList)
+                _event.emit(AddKeyStepEvent.OpenAddKeyList(draftWalletType))
             }
         }
     }
@@ -163,7 +172,7 @@ class AddKeyStepViewModel @Inject constructor(
 
 sealed class AddKeyStepEvent {
     data class OpenContactUs(val email: String) : AddKeyStepEvent()
-    object OpenAddKeyList : AddKeyStepEvent()
+    data class OpenAddKeyList(val walletType: WalletType?) : AddKeyStepEvent()
     object OpenRecoveryQuestion : AddKeyStepEvent()
     object OpenCreateWallet : AddKeyStepEvent()
     data class OpenRegisterAirgap(val walletId: String) : AddKeyStepEvent()

@@ -186,6 +186,7 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.SERVER_KEY_NAME
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
@@ -2806,7 +2807,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun initWallet(
         walletConfig: WalletConfig,
         groupId: String?,
-        walletType: com.nunchuk.android.type.WalletType?
+        walletType: WalletType?
     ) {
         val response = if (groupId.isNullOrEmpty()) {
             userWalletApiManager.walletApi.initDraftWallet(
