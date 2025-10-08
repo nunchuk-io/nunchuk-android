@@ -378,6 +378,11 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
+    <fragment
+        android:id="@+id/inheritanceTimelockInfoFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.timelockinfo.InheritanceTimelockInfoFragment"
+        android:label="InheritanceTimelockInfoFragment" />
+
 
     <fragment
         android:id="@+id/inheritanceReviewPlanGroupGroupFragment"

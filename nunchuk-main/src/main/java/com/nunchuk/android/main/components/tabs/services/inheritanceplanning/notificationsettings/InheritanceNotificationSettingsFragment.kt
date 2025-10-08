@@ -69,6 +69,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceNotificationSettings
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -110,12 +111,16 @@ class InheritanceNotificationSettingsFragment : MembershipFragment() {
         includeWalletConfiguration: Boolean,
         emailMeWalletConfig: Boolean
     ) {
+        val notificationSettings = InheritanceNotificationSettings(
+            notifyOnTimelockExpiry = notifyOnTimelockExpiry,
+            notifyOnWalletChanges = notifyOnWalletChanges,
+            includeWalletConfiguration = includeWalletConfiguration,
+            emailMeWalletConfig = emailMeWalletConfig
+        )
+        
         inheritanceViewModel.setOrUpdate(
             inheritanceViewModel.setupOrReviewParam.copy(
-                notifyOnTimelockExpiry = notifyOnTimelockExpiry,
-                notifyOnWalletChanges = notifyOnWalletChanges,
-                includeWalletConfiguration = includeWalletConfiguration,
-                emailMeWalletConfig = emailMeWalletConfig
+                notificationSettings = notificationSettings
             )
         )
         if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
@@ -155,17 +160,18 @@ fun InheritanceNotificationSettingsScreen(
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
     
     // Internal state for notification settings
+    val initialSettings = inheritanceViewModel.setupOrReviewParam.notificationSettings ?: InheritanceNotificationSettings()
     var notifyOnTimelockExpiry by remember { 
-        mutableStateOf(inheritanceViewModel.setupOrReviewParam.notifyOnTimelockExpiry) 
+        mutableStateOf(initialSettings.notifyOnTimelockExpiry) 
     }
     var notifyOnWalletChanges by remember { 
-        mutableStateOf(inheritanceViewModel.setupOrReviewParam.notifyOnWalletChanges) 
+        mutableStateOf(initialSettings.notifyOnWalletChanges) 
     }
     var includeWalletConfiguration by remember { 
-        mutableStateOf(inheritanceViewModel.setupOrReviewParam.includeWalletConfiguration) 
+        mutableStateOf(initialSettings.includeWalletConfiguration) 
     }
     var emailMeWalletConfig by remember { 
-        mutableStateOf(inheritanceViewModel.setupOrReviewParam.emailMeWalletConfig) 
+        mutableStateOf(initialSettings.emailMeWalletConfig) 
     }
 
     InheritanceNotificationSettingsScreenContent(

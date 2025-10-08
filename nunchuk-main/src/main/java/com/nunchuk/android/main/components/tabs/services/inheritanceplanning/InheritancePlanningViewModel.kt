@@ -12,6 +12,7 @@ import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.wallet.GetServerWalletUseCase
@@ -96,18 +97,28 @@ class InheritancePlanningViewModel @Inject constructor(
     fun getGroupWalletType(): GroupWalletType? {
         return state.value.groupWalletType
     }
+
+    fun isMiniscriptWallet() = state.value.walletType == WalletType.MINISCRIPT
 }
 
 data class InheritancePlanningState(
     val groupId: String = "",
     val groupWalletType: GroupWalletType? = null,
     val keyTypes: List<InheritanceKeyType> = emptyList(),
+    val walletType: WalletType = WalletType.MULTI_SIG
 )
 
 @Keep
 enum class InheritanceKeyType {
     TAPSIGNER, COLDCARD
 }
+
+data class InheritanceNotificationSettings(
+    val notifyOnTimelockExpiry: Boolean = true,
+    val notifyOnWalletChanges: Boolean = true,
+    val includeWalletConfiguration: Boolean = true,
+    val emailMeWalletConfig: Boolean = true
+)
 
 sealed class InheritancePlanningParam {
     data class SetupOrReview(
@@ -116,10 +127,7 @@ sealed class InheritancePlanningParam {
         val walletId: String,
         val emails: List<String> = emptyList(),
         val isNotify: Boolean = false,
-        val notifyOnTimelockExpiry: Boolean = true,
-        val notifyOnWalletChanges: Boolean = true,
-        val includeWalletConfiguration: Boolean = true,
-        val emailMeWalletConfig: Boolean = true,
+        val notificationSettings: InheritanceNotificationSettings? = null,
         val magicalPhrase: String = "",
         val bufferPeriod: Period? = null,
         val note: String = "",

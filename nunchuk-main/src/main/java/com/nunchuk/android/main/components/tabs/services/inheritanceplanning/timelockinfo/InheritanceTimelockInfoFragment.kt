@@ -17,49 +17,44 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.intro
+package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.timelockinfo
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.compose.NcHighlightText
+import com.nunchuk.android.compose.HighlightMessageType
+import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class InheritanceSetupIntroFragment : MembershipFragment() {
-    private val viewModel: InheritanceSetupIntroViewModel by viewModels()
+class InheritanceTimelockInfoFragment : MembershipFragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -68,25 +63,17 @@ class InheritanceSetupIntroFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceSetupIntroScreen(viewModel) {
-                    findNavController().navigate(
-                        InheritanceSetupIntroFragmentDirections.actionInheritanceSetupIntroFragmentToInheritancePlanOverviewFragment()
-                    )
+                InheritanceTimelockInfoContent {
+                    findNavController().popBackStack()
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun InheritanceSetupIntroScreen(viewModel: InheritanceSetupIntroViewModel = viewModel(), onContinueClicked: () -> Unit) {
-    val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-    InheritanceSetupIntroContent(remainTime, onContinueClicked)
-}
-
-@Composable
-private fun InheritanceSetupIntroContent(
-    remainTime: Int = 0,
+private fun InheritanceTimelockInfoContent(
     onContinueClicked: () -> Unit = {}
 ) {
     NunchukTheme {
@@ -94,60 +81,71 @@ private fun InheritanceSetupIntroContent(
             modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 NcImageAppBar(
-                    backgroundRes = R.drawable.bg_inheritance,
+                    backgroundRes = R.drawable.bg_timelock_illustrations,
                     title = stringResource(
                         id = R.string.nc_estimate_remain_time,
-                        remainTime
+                        0 // Placeholder for time
                     ),
                 )
+            },
+            bottomBar = {
+                Column {
+                    NcHintMessage(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        messages = listOf(
+                            ClickAbleText(stringResource(R.string.nc_timelock_info_hint))
+                        ),
+                        type = HighlightMessageType.HINT
+                    )
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = onContinueClicked,
+                    ) {
+                        Text(text = stringResource(R.string.nc_text_continue))
+                    }
+                }
+
             }
         ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .fillMaxHeight()
+                    .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_setup_inheritance_plan_intro_title),
+                    modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
+                    text = stringResource(R.string.nc_about_the_timelock_title),
                     style = NunchukTheme.typography.heading
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_setup_inheritance_plan_intro_desc),
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    text = stringResource(R.string.nc_about_the_timelock_description_1),
                     style = NunchukTheme.typography.body
                 )
-                Box(
-                    modifier = Modifier
-                        .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                        .background(
-                            color = colorResource(
-                                id = R.color.nc_grey_light
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                ) {
-                    NcHighlightText(
-                        modifier = Modifier.padding(12.dp),
-                        style = NunchukTheme.typography.body,
-                        text = stringResource(id = R.string.nc_set_up_inheritance_hint)
-                    )
-                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_inheritance_claim_trustee),
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    text = stringResource(R.string.nc_about_the_timelock_description_2),
                     style = NunchukTheme.typography.body
                 )
-                Spacer(modifier = Modifier.weight(1.0f))
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClicked,
-                ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
-                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    text = stringResource(R.string.nc_about_the_timelock_description_3),
+                    style = NunchukTheme.typography.body
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
@@ -155,6 +153,6 @@ private fun InheritanceSetupIntroContent(
 
 @PreviewLightDark
 @Composable
-private fun InheritanceSetupIntroScreenPreview() {
-    InheritanceSetupIntroContent()
+private fun InheritanceTimelockInfoScreenPreview() {
+    InheritanceTimelockInfoContent()
 }

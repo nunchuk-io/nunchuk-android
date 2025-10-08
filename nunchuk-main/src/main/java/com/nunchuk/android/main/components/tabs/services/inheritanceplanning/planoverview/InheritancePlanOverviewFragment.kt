@@ -27,9 +27,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
@@ -70,8 +70,10 @@ class InheritancePlanOverviewFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritancePlanOverviewScreen(viewModel,
-                    groupWalletType = inheritanceViewModel.getGroupWalletType()) {
+                InheritancePlanOverviewScreen(
+                    viewModel,
+                    groupWalletType = inheritanceViewModel.getGroupWalletType()
+                ) {
                     findNavController().navigate(
                         InheritancePlanOverviewFragmentDirections.actionInheritancePlanOverviewFragmentToMagicalPhraseIntroFragment()
                     )
@@ -82,13 +84,17 @@ class InheritancePlanOverviewFragment : MembershipFragment() {
 }
 
 @Composable
-private fun InheritancePlanOverviewScreen(viewModel: InheritancePlanOverviewViewModel = viewModel(),
-                                          groupWalletType: GroupWalletType? = null,
-                                          onContinueClicked: () -> Unit = {},) {
+private fun InheritancePlanOverviewScreen(
+    viewModel: InheritancePlanOverviewViewModel = viewModel(),
+    groupWalletType: GroupWalletType? = null,
+    onContinueClicked: () -> Unit = {},
+) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-    InheritancePlanOverviewContent(remainTime = remainTime,
+    InheritancePlanOverviewContent(
+        remainTime = remainTime,
         groupWalletType = groupWalletType,
-        onContinueClicked = onContinueClicked)
+        onContinueClicked = onContinueClicked
+    )
 }
 
 @Composable
@@ -99,14 +105,8 @@ private fun InheritancePlanOverviewContent(
 ) {
     NunchukTheme {
         Scaffold(
-            modifier = Modifier.systemBarsPadding(),
-        ) { innerPadding ->
-            Column(
-                Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-            ) {
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
                 NcTopAppBar(
                     title = stringResource(
                         id = R.string.nc_estimate_remain_time,
@@ -116,6 +116,14 @@ private fun InheritancePlanOverviewContent(
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
                     }
                 )
+            }
+        ) { innerPadding ->
+            Column(
+                Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_plan_overview),
@@ -134,7 +142,9 @@ private fun InheritancePlanOverviewContent(
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 2,
-                    label = if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) stringResource(id = R.string.nc_two_backup_password)
+                    label = if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) stringResource(
+                        id = R.string.nc_two_backup_password
+                    )
                     else stringResource(id = R.string.nc_a_backup_password),
                 )
                 NCLabelWithIndex(

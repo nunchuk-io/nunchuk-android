@@ -31,9 +31,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -193,9 +193,19 @@ fun InheritanceActivationDateScreenContent(
     onContinueClick: () -> Unit = {},
     onDatePick: (TimeZoneDetail) -> Unit = {}
 ) {
+    val isSetupFlow = planFlow == InheritancePlanFlow.SETUP && isUpdateRequest.not()
+    val title = if (isSetupFlow) stringResource(
+        id = R.string.nc_estimate_remain_time,
+        remainTime
+    ) else ""
     NunchukTheme {
         Scaffold(
-            modifier = Modifier.systemBarsPadding()
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                NcTopAppBar(title = title, actions = {
+                    Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
+                })
+            }
         ) { innerPadding ->
             Column(
                 modifier = Modifier
@@ -203,14 +213,6 @@ fun InheritanceActivationDateScreenContent(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                val isSetupFlow = planFlow == InheritancePlanFlow.SETUP && isUpdateRequest.not()
-                val title = if (isSetupFlow) stringResource(
-                    id = R.string.nc_estimate_remain_time,
-                    remainTime
-                ) else ""
-                NcTopAppBar(title = title, actions = {
-                    Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
-                })
                 Text(
                     modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_set_up_activation_date),

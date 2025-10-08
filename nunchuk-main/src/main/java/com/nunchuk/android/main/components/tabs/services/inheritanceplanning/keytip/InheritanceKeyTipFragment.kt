@@ -93,14 +93,8 @@ private fun InheritanceKeyTipContent(
 ) {
     NunchukTheme {
         Scaffold(
-            modifier = Modifier.navigationBarsPadding()
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-            ) {
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
                 NcImageAppBar(
                     backgroundRes = R.drawable.bg_inheritance_key_illustration,
                     title = stringResource(
@@ -108,6 +102,14 @@ private fun InheritanceKeyTipContent(
                         remainTime
                     ),
                 )
+            }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_inheritance_key_tip),

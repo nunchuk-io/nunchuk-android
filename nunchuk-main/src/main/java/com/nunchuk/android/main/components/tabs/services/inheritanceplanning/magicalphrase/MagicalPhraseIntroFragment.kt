@@ -34,7 +34,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -130,7 +129,19 @@ private fun MagicalPhraseIntroContent(
 ) {
     NunchukTheme {
         Scaffold(
-            modifier = Modifier.navigationBarsPadding()
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                NcTopAppBar(
+                    backgroundColor = MaterialTheme.colorScheme.fillDenim,
+                    title = stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ),
+                    actions = {
+                        Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
+                    }
+                )
+            }
         ) { innerPadding ->
             Column(
                 modifier = Modifier
@@ -138,22 +149,6 @@ private fun MagicalPhraseIntroContent(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                Column(
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.fillDenim)
-                        .statusBarsPadding()
-                ) {
-                    NcTopAppBar(
-                        backgroundColor = MaterialTheme.colorScheme.fillDenim,
-                        title = stringResource(
-                            id = R.string.nc_estimate_remain_time,
-                            remainTime
-                        ),
-                        actions = {
-                            Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
-                        }
-                    )
-                }
                 Column(
                     modifier = Modifier
                         .background(color = MaterialTheme.colorScheme.fillDenim)

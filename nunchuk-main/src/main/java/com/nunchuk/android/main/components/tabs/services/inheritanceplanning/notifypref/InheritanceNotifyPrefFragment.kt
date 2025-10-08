@@ -79,9 +79,11 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NcHintMessage
+import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.contact.components.add.EmailWithState
@@ -90,6 +92,7 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.EmailValidator
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -132,7 +135,12 @@ class InheritanceNotifyPrefFragment : MembershipFragment() {
     }
 
     private fun openReviewPlanScreen(isDiscard: Boolean, emails: List<String>, isNotify: Boolean) {
-        inheritanceViewModel.setOrUpdate(inheritanceViewModel.setupOrReviewParam.copy(isNotify = isNotify, emails = emails))
+        inheritanceViewModel.setOrUpdate(
+            inheritanceViewModel.setupOrReviewParam.copy(
+                isNotify = isNotify,
+                emails = emails
+            )
+        )
         if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
             if (isDiscard.not()) {
                 setFragmentResult(
@@ -144,6 +152,10 @@ class InheritanceNotifyPrefFragment : MembershipFragment() {
                 )
             }
             findNavController().popBackStack()
+        } else if (inheritanceViewModel.isMiniscriptWallet()) {
+            findNavController().navigate(
+                InheritanceNotifyPrefFragmentDirections.actionInheritanceNotifyPrefFragmentToInheritanceNotificationSettingsFragment()
+            )
         } else {
             findNavController().navigate(
                 InheritanceNotifyPrefFragmentDirections.actionInheritanceNotifyPrefFragmentToInheritanceReviewPlanFragment()
@@ -168,6 +180,7 @@ fun InheritanceNotifyPrefScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
+    val inheritanceState by inheritanceViewModel.state.collectAsStateWithLifecycle()
 
     var inputText by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
@@ -180,13 +193,16 @@ fun InheritanceNotifyPrefScreen(
                 is InheritanceNotifyPrefEvent.ContinueClick -> {
                     onContinueClick(event.emails, event.isNotify)
                 }
+
                 InheritanceNotifyPrefEvent.AllEmailValidEvent -> {
                     showError = false
                 }
+
                 InheritanceNotifyPrefEvent.InvalidEmailEvent -> {
                     showError = true
                     isEmptyError = false
                 }
+
                 InheritanceNotifyPrefEvent.EmptyEmailError -> {
                     showError = true
                     isEmptyError = true
@@ -204,6 +220,7 @@ fun InheritanceNotifyPrefScreen(
 
     InheritanceNotifyPrefScreenContent(
         remainTime = remainTime,
+        isMiniscriptWallet = inheritanceState.walletType == WalletType.MINISCRIPT,
         emails = state.emails,
         isNotify = state.isNotify,
         inputText = inputText,
@@ -233,6 +250,7 @@ fun InheritanceNotifyPrefScreen(
 @Composable
 fun InheritanceNotifyPrefScreenContent(
     remainTime: Int = 0,
+    isMiniscriptWallet: Boolean = false,
     emails: List<EmailWithState> = emptyList(),
     isNotify: Boolean = false,
     inputText: String = "",
@@ -245,11 +263,50 @@ fun InheritanceNotifyPrefScreenContent(
     onRemoveEmail: (EmailWithState) -> Unit = {},
     onNotifyChange: (Boolean) -> Unit = {},
     onContinueClick: () -> Unit = {},
-    onSkipClick: () -> Unit = {}
+    onSkipClick: () -> Unit = {},
 ) {
+    var showSkipConfirmationDialog by remember { mutableStateOf(false) }
+    val isSetupFlow = planFlow == InheritancePlanFlow.SETUP && isUpdateRequest.not()
+
     NunchukTheme {
         Scaffold(
-            modifier = Modifier.systemBarsPadding()
+            modifier = Modifier.systemBarsPadding(),
+            bottomBar = {
+                val continueBtnText =
+                    if (isSetupFlow) stringResource(id = R.string.nc_text_continue) else stringResource(
+                        id = R.string.nc_update_notification_preferences
+                    )
+
+                Column {
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = onContinueClick,
+                        enabled = emails.isNotEmpty()
+                    ) {
+                        Text(text = continueBtnText)
+                    }
+                    if (isSetupFlow) {
+                        NcOutlineButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .padding(bottom = 16.dp),
+                            onClick = {
+                                if (isMiniscriptWallet) {
+                                    showSkipConfirmationDialog = true
+                                } else {
+                                    onSkipClick()
+                                }
+                            },
+                        ) {
+                            Text(text = stringResource(R.string.nc_dont_want_any_notifications))
+                        }
+                    }
+                }
+
+            }
         ) { innerPadding ->
             Column(
                 modifier = Modifier
@@ -257,7 +314,6 @@ fun InheritanceNotifyPrefScreenContent(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                val isSetupFlow = planFlow == InheritancePlanFlow.SETUP && isUpdateRequest.not()
                 val title = if (isSetupFlow) stringResource(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
@@ -353,7 +409,9 @@ fun InheritanceNotifyPrefScreenContent(
                 if (showError) {
                     Text(
                         modifier = Modifier.padding(start = 16.dp, top = 4.dp, end = 16.dp),
-                        text = if (isEmptyError) stringResource(R.string.nc_please_provide_valid_email_address) else stringResource(R.string.nc_contact_valid_email_address),
+                        text = if (isEmptyError) stringResource(R.string.nc_please_provide_valid_email_address) else stringResource(
+                            R.string.nc_contact_valid_email_address
+                        ),
                         style = NunchukTheme.typography.bodySmall.copy(
                             color = MaterialTheme.colorScheme.error
                         )
@@ -387,35 +445,24 @@ fun InheritanceNotifyPrefScreenContent(
                     messages = listOf(ClickAbleText(content = stringResource(R.string.nc_inheritance_notify_pref_warning))),
                     type = HighlightMessageType.WARNING
                 )
-
-                val continueBtnText =
-                    if (isSetupFlow) stringResource(id = R.string.nc_text_continue) else stringResource(
-                        id = R.string.nc_update_notification_preferences
-                    )
-
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClick,
-                    enabled = emails.isNotEmpty()
-                ) {
-                    Text(text = continueBtnText)
-                }
-
-                if (isSetupFlow) {
-                    NcPrimaryDarkButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .padding(bottom = 16.dp),
-                        onClick = onSkipClick,
-                    ) {
-                        Text(text = stringResource(R.string.nc_dont_want_any_notifications))
-                    }
-                }
             }
         }
+    }
+
+    if (showSkipConfirmationDialog) {
+        NcConfirmationDialog(
+            message = stringResource(R.string.nc_inheritance_skip_notifications_confirmation),
+            title = stringResource(R.string.nc_confirmation),
+            positiveButtonText = stringResource(R.string.nc_text_continue),
+            negativeButtonText = stringResource(R.string.nc_add_email),
+            onPositiveClick = {
+                showSkipConfirmationDialog = false
+                onSkipClick()
+            },
+            onDismiss = {
+                showSkipConfirmationDialog = false
+            }
+        )
     }
 }
 
@@ -437,11 +484,13 @@ private fun EmailChip(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = if (email.valid) painterResource(R.drawable.ic_check_circle_outline_24) else painterResource(R.drawable.ic_error_outline_24),
+                painter = if (email.valid) painterResource(R.drawable.ic_check_circle_outline_24) else painterResource(
+                    R.drawable.ic_error_outline_24
+                ),
                 contentDescription = if (email.valid) "Valid email" else "Invalid email",
                 modifier = Modifier.size(20.dp)
             )
-            
+
             // Email text
             Text(
                 text = email.email,
@@ -450,7 +499,7 @@ private fun EmailChip(
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
             )
-            
+
             // Right close icon
             Icon(
                 imageVector = Icons.Default.Close,
@@ -466,9 +515,21 @@ private fun EmailChip(
 @Composable
 private fun InheritanceNotifyPrefScreenPreview() {
     InheritanceNotifyPrefScreenContent(
+        planFlow = InheritancePlanFlow.SETUP,
+        isUpdateRequest = false,
+        isMiniscriptWallet = true,
         emails = listOf(
             EmailWithState(email = "jayce@nunchuk.io", valid = true),
             EmailWithState(email = "invalid-email", valid = false)
         )
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceNotifyPrefScreenUpdatePreview() {
+    InheritanceNotifyPrefScreenContent(
+        planFlow = InheritancePlanFlow.NONE,
+        isUpdateRequest = true,
     )
 }

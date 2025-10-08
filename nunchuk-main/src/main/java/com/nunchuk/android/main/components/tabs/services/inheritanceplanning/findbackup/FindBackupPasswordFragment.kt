@@ -145,14 +145,8 @@ private fun FindBackupPasswordContent(
     }
     NunchukTheme {
         Scaffold(
-            modifier = Modifier.navigationBarsPadding()
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxHeight()
-                    .verticalScroll(rememberScrollState())
-            ) {
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
                 NcImageAppBar(
                     backgroundRes = if (inheritanceKeyType == InheritanceKeyType.TAPSIGNER) R.drawable.nc_bg_tap_signer_explain else R.drawable.bg_backup_coldcard_illustration,
                     title = stringResource(
@@ -160,6 +154,14 @@ private fun FindBackupPasswordContent(
                         remainTime
                     ),
                 )
+            }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+            ) {
                 if (numOfKeys > 1) {
                     Text(
                         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
