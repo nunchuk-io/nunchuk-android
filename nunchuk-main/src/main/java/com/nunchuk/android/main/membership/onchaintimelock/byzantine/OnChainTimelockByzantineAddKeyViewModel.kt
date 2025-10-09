@@ -38,6 +38,7 @@ import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.main.membership.model.AddKeyOnChainData
+import com.nunchuk.android.main.membership.model.toAddKeyOnChainDataList
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.main.membership.model.toSteps
 import com.nunchuk.android.model.MasterSigner
@@ -191,36 +192,43 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         if (key.value.isEmpty()) return
         val signers = _state.value.signers
         val coldCardMissingBackupKeys = mutableListOf<AddKeyOnChainData>()
-        val news = key.value.map { addKeyData ->
-            val info = getStepInfo(addKeyData.type)
-            val extra = runCatching {
-                gson.fromJson(info.extraData, SignerExtra::class.java)
-            }.getOrNull()
+        val updatedKeys = key.value.map { addKeyData ->
+            var updatedCard = addKeyData
             
-            if (addKeyData.signers == null && info.masterSignerId.isNotEmpty() && extra != null) {
-                val signer = signers.find { it.fingerPrint == info.masterSignerId }
-                    ?.copy(
-                        index = getIndexFromPathUseCase(extra.derivationPath)
-                            .getOrDefault(0)
-                    )
-                return@map addKeyData.copy(
-                    signers = if (signer != null) listOf(signer) else null,
-                    verifyType = info.verifyType
-                )
-            }
-            
-            val newKeyData = addKeyData.copy(verifyType = info.verifyType)
-            
-            // Check if Coldcard Inheritance signer is missing backup key
-            if (info.step.isAddInheritanceKey && newKeyData.signers?.any { it.type != SignerType.NFC } == true) {
-                if (extra != null && extra.userKeyFileName.isEmpty()) {
-                    coldCardMissingBackupKeys.add(newKeyData)
+            // Process each step in the card
+            addKeyData.steps.forEach { step ->
+                val info = getStepInfo(step)
+                val extra = runCatching {
+                    gson.fromJson(info.extraData, SignerExtra::class.java)
+                }.getOrNull()
+                
+                // If step has a master signer ID and extra data, try to find and add the signer
+                if (info.masterSignerId.isNotEmpty() && extra != null) {
+                    val signer = signers.find { it.fingerPrint == info.masterSignerId }
+                        ?.copy(
+                            index = getIndexFromPathUseCase(extra.derivationPath)
+                                .getOrDefault(0)
+                        )
+                    
+                    if (signer != null) {
+                        updatedCard = updatedCard.updateStep(step, signer, info.verifyType)
+                    }
+                    
+                    // Check if Coldcard Inheritance signer is missing backup key
+                    if (step.isAddInheritanceKey && signer?.type != SignerType.NFC) {
+                        if (extra.userKeyFileName.isEmpty()) {
+                            if (!coldCardMissingBackupKeys.contains(updatedCard)) {
+                                coldCardMissingBackupKeys.add(updatedCard)
+                            }
+                        }
+                    }
                 }
             }
-            return@map newKeyData
+            
+            updatedCard
         }
         _state.update { it.copy(missingBackupKeys = coldCardMissingBackupKeys) }
-        _keys.value = news
+        _keys.value = updatedKeys
     }
 
     fun onUpdateSignerTag(signer: SignerModel, tag: SignerTag) {
@@ -241,8 +249,25 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
 
     fun onAddKeyClicked(data: AddKeyOnChainData) {
         viewModelScope.launch {
-            savedStateHandle[KEY_CURRENT_STEP] = data.type
-            _event.emit(OnChainTimelockByzantineAddKeyListEvent.OnAddKey(data))
+            // Get the next step that needs to be added
+            val nextStep = data.getNextStepToAdd()
+            if (nextStep != null) {
+                savedStateHandle[KEY_CURRENT_STEP] = nextStep
+                _event.emit(OnChainTimelockByzantineAddKeyListEvent.OnAddKey(data))
+            }
+        }
+    }
+    
+    private fun updateCardForStep(step: MembershipStep, signer: SignerModel, verifyType: VerifyType) {
+        val currentKeys = _keys.value
+        val cardIndex = currentKeys.indexOfFirst { it.steps.contains(step) }
+        
+        if (cardIndex != -1) {
+            val card = currentKeys[cardIndex]
+            val updatedCard = card.updateStep(step, signer, verifyType)
+            _keys.value = currentKeys.toMutableList().apply {
+                set(cardIndex, updatedCard)
+            }
         }
     }
 
@@ -250,18 +275,26 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         membershipStepManager.isKeyExisted(masterSignerId)
 
     fun onVerifyClicked(data: AddKeyOnChainData) {
-        data.signers?.firstOrNull()?.let { signer ->
-            savedStateHandle[KEY_CURRENT_STEP] = data.type
-            viewModelScope.launch {
-                val stepInfo = getStepInfo(data.type)
-                _event.emit(
-                    OnChainTimelockByzantineAddKeyListEvent.OnVerifySigner(
-                        signer = signer,
-                        filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer),
-                        backUpFileName = getBackUpFileName(stepInfo.extraData)
-                    )
+        viewModelScope.launch {
+            // Find the first step that needs verification (has signer but needs verification)
+            val stepToVerify = data.steps.firstOrNull { step ->
+                val stepData = data.stepDataMap[step]
+                stepData?.signer != null && stepData.verifyType == VerifyType.NONE
+            } ?: data.steps.firstOrNull { step ->
+                data.stepDataMap[step]?.signer != null
+            } ?: return@launch
+            
+            val signer = data.getSignerForStep(stepToVerify) ?: return@launch
+            
+            savedStateHandle[KEY_CURRENT_STEP] = stepToVerify
+            val stepInfo = getStepInfo(stepToVerify)
+            _event.emit(
+                OnChainTimelockByzantineAddKeyListEvent.OnVerifySigner(
+                    signer = signer,
+                    filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer),
+                    backUpFileName = getBackUpFileName(stepInfo.extraData)
                 )
-            }
+            )
         }
     }
 
@@ -379,12 +412,14 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
     }
 
     private suspend fun processTapSignerWithCompleteData(signer: SingleSigner, signerModel: SignerModel, data: AddKeyOnChainData? = null, walletId: String? = null) {
+        val currentStep = membershipStepManager.currentStep
+            ?: throw IllegalArgumentException("Current step empty")
+        
         // Sync the signer to the membership system
         syncKeyUseCase(
             SyncKeyUseCase.Param(
                 groupId = args.groupId,
-                step = membershipStepManager.currentStep
-                    ?: throw IllegalArgumentException("Current step empty"),
+                step = currentStep,
                 signer = signer,
                 walletType = WalletType.MINISCRIPT
             )
@@ -396,8 +431,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         // Save membership step
         saveMembershipStepUseCase(
             MembershipStepInfo(
-                step = membershipStepManager.currentStep
-                    ?: throw IllegalArgumentException("Current step empty"),
+                step = currentStep,
                 masterSignerId = signer.masterFingerprint,
                 plan = MembershipPlan.NONE,
                 verifyType = VerifyType.APP_VERIFIED,
@@ -412,6 +446,9 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                 groupId = args.groupId
             )
         )
+        
+        // Update the card with the new signer for the current step
+        updateCardForStep(currentStep, signerModel, VerifyType.APP_VERIFIED)
         
         // After successfully adding signer, handle TapSigner Acct 1 addition if we have the required data
         if (data != null && walletId != null) {
@@ -430,7 +467,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                         // Navigate to CustomKeyAccountFragment
                         val onChainAddSignerParam = OnChainAddSignerParam(
                             flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                            keyIndex = data.signers?.size ?: 0,
+                            keyIndex = data.getAllSigners().size,
                             currentSignerXfp = firstSigner.fingerPrint
                         )
                         _event.emit(OnChainTimelockByzantineAddKeyListEvent.NavigateToCustomKeyAccount(firstSigner, walletId, onChainAddSignerParam))
@@ -506,11 +543,13 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
 
     fun handleSignerNewIndex(signer: SingleSigner) {
         viewModelScope.launch {
+            val currentStep = membershipStepManager.currentStep
+                ?: throw IllegalArgumentException("Current step empty")
+            
             syncKeyUseCase(
                 SyncKeyUseCase.Param(
                     groupId = args.groupId,
-                    step = membershipStepManager.currentStep
-                        ?: throw IllegalArgumentException("Current step empty"),
+                    step = currentStep,
                     signer = signer,
                     walletType = WalletType.MINISCRIPT
                 )
@@ -520,8 +559,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
             }
             saveMembershipStepUseCase(
                 MembershipStepInfo(
-                    step = membershipStepManager.currentStep
-                        ?: throw IllegalArgumentException("Current step empty"),
+                    step = currentStep,
                     masterSignerId = signer.masterFingerprint,
                     plan = MembershipPlan.NONE,
                     verifyType = VerifyType.APP_VERIFIED,
@@ -536,6 +574,9 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                     groupId = args.groupId
                 )
             )
+            
+            // Update the card with the new signer for the current step
+            updateCardForStep(currentStep, signer.toModel(), VerifyType.APP_VERIFIED)
         }
     }
 
@@ -585,8 +626,8 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                 _state.update { it.copy(groupWalletType = draft.config.toGroupWalletType(), walletType = WalletType.MINISCRIPT) }
                 draft.config.toGroupWalletType()?.let { type ->
                     if (_keys.value.isEmpty()) {
-                        _keys.value = type.toSteps(isPersonalWallet = false, walletType = WalletType.MINISCRIPT)
-                            .map { step -> AddKeyOnChainData(type = step) }
+                        val steps = type.toSteps(isPersonalWallet = false, walletType = WalletType.MINISCRIPT)
+                        _keys.value = steps.toAddKeyOnChainDataList()
                     }
                 }
             }

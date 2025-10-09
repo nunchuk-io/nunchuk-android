@@ -241,7 +241,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                                 walletId = (activity as MembershipActivity).walletId,
                                 onChainAddSignerParam = OnChainAddSignerParam(
                                     flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                                    keyIndex = currentKeyData?.signers?.size ?: 0
+                                    keyIndex = currentKeyData?.getAllSigners()?.size ?: 0
                                 )
                             )
                         )
@@ -434,8 +434,11 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
 
     private fun handleOnAddKey(data: AddKeyOnChainData) {
         currentKeyData = data
-        when (data.type) {
-            MembershipStep.ADD_SEVER_KEY -> {
+        // Get the actual next step to determine what UI to show
+        val nextStep = data.getNextStepToAdd() ?: data.type
+        
+        when {
+            nextStep == MembershipStep.ADD_SEVER_KEY -> {
                 if (!isKeyHolderLimited) {
                     navigator.openConfigGroupServerKeyActivity(
                         activityContext = requireActivity(),
@@ -445,8 +448,10 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 }
             }
 
-            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY, 
-            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 -> {
+            nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY || 
+            nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK ||
+            nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 ||
+            nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK -> {
                 // For Byzantine on-chain timelock inheritance keys
                 findNavController().navigate(
                     OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToInheritanceKeyIntroFragment(
@@ -455,11 +460,16 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 )
             }
 
-            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,
-            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
-            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
-            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3,
-            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4,
+            nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 ||
+            nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK ||
+            nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 ||
+            nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK ||
+            nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 ||
+            nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK ||
+            nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 ||
+            nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3_TIMELOCK ||
+            nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 ||
+            nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4_TIMELOCK
             -> handleHardwareKeyAdd(data)
 
             else -> Unit
@@ -467,7 +477,9 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
     }
 
     private fun handleHardwareKeyAdd(data: AddKeyOnChainData) {
-        if (data.signers.isNullOrEmpty()) {
+        val allSigners = data.getAllSigners()
+        
+        if (allSigners.isEmpty()) {
             // No signers exist, open signer intro fragment
             findNavController().navigate(
                 OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToSignerIntroFragment(
@@ -477,16 +489,16 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     keyFlow = 0,
                     onChainAddSignerParam = OnChainAddSignerParam(
                         flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                        keyIndex = data.signers?.size ?: 0,
-                        currentSignerXfp = data.signers?.firstOrNull()?.fingerPrint ?: ""
+                        keyIndex = allSigners.size,
+                        currentSignerXfp = allSigners.firstOrNull()?.fingerPrint ?: ""
                     )
                 )
             )
         } else {
-            val firstSigner = data.signers.first()
+            val firstSigner = allSigners.first()
 
             // Special handling for TapSigner (SignerType.NFC) to add second signer for Acct 1
-            if (firstSigner.type == SignerType.NFC && data.signers.size == 1) {
+            if (firstSigner.type == SignerType.NFC && allSigners.size == 1) {
                 viewModel.handleTapSignerAcct1Addition(data, firstSigner, (activity as MembershipActivity).walletId)
                 return
             }
@@ -530,6 +542,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
     }
 
     private fun openSetupColdCard() {
+        val nextStep = currentKeyData?.getNextStepToAdd() ?: currentKeyData?.type
         navigator.openSetupMk4(
             activity = requireActivity(),
             args = SetupMk4Args(
@@ -537,9 +550,9 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 groupId = (activity as MembershipActivity).groupId,
                 walletId = (activity as MembershipActivity).walletId,
                 onChainAddSignerParam = OnChainAddSignerParam(
-                    flags = if (currentKeyData?.type?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                    keyIndex = currentKeyData?.signers?.size ?: 0,
-                    currentSignerXfp = currentKeyData?.signers?.firstOrNull()?.fingerPrint ?: ""
+                    flags = if (nextStep?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
+                    keyIndex = currentKeyData?.getAllSigners()?.size ?: 0,
+                    currentSignerXfp = currentKeyData?.getAllSigners()?.firstOrNull()?.fingerPrint ?: ""
                 )
             )
         )

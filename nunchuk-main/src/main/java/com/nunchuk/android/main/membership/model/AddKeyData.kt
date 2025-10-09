@@ -36,13 +36,176 @@ data class AddKeyData(
         get() = signer != null || verifyType != VerifyType.NONE
 }
 
-data class AddKeyOnChainData(
-    val type: MembershipStep,
-    val signers: List<SignerModel>? = null,
+/**
+ * Represents data for a single step within a card
+ */
+data class StepData(
+    val signer: SignerModel? = null,
     val verifyType: VerifyType = VerifyType.NONE
 ) {
+    val isComplete: Boolean
+        get() = signer != null || verifyType != VerifyType.NONE
+}
+
+/**
+ * Represents a card that can contain one or more membership steps
+ * For MINISCRIPT: Contains 2 steps [timelockStep, regularStep]
+ * For MULTI_SIG: Contains 1 step [regularStep]
+ */
+data class AddKeyOnChainData(
+    val steps: List<MembershipStep>, // Ordered: [timelockStep, regularStep] or [regularStep]
+    val stepDataMap: Map<MembershipStep, StepData> = emptyMap()
+) {
+    /**
+     * Gets the primary step for this card (used for display label)
+     * For dual-slot: returns the regular (non-timelock) step
+     * For single-slot: returns the only step
+     */
+    val type: MembershipStep
+        get() = steps.lastOrNull() ?: MembershipStep.ADD_SEVER_KEY
+    
+    /**
+     * Gets the timelock step if this is a dual-slot card
+     */
+    val timelockType: MembershipStep?
+        get() = if (steps.size >= 2) steps.first() else null
+    
+    /**
+     * Checks if all required steps in this card are complete
+     */
     val isVerifyOrAddKey: Boolean
-        get() = signers != null || verifyType != VerifyType.NONE
+        get() = steps.all { step ->
+            stepDataMap[step]?.isComplete == true
+        }
+    
+    /**
+     * Gets the next step that needs to be added (timelock first, then regular)
+     * @return The next MembershipStep to add, or null if all are complete
+     */
+    fun getNextStepToAdd(): MembershipStep? {
+        return steps.firstOrNull { step ->
+            stepDataMap[step]?.isComplete != true
+        }
+    }
+    
+    /**
+     * Gets all added signers (for UI display), ordered by step order
+     * @return List of signers
+     */
+    fun getAllSigners(): List<SignerModel> {
+        return steps.mapNotNull { step ->
+            stepDataMap[step]?.signer
+        }
+    }
+    
+    /**
+     * Gets signer for a specific step
+     */
+    fun getSignerForStep(step: MembershipStep): SignerModel? {
+        return stepDataMap[step]?.signer
+    }
+    
+    /**
+     * Gets verify type for a specific step
+     */
+    fun getVerifyTypeForStep(step: MembershipStep): VerifyType {
+        return stepDataMap[step]?.verifyType ?: VerifyType.NONE
+    }
+    
+    /**
+     * Updates the data for a specific step
+     */
+    fun updateStep(step: MembershipStep, signer: SignerModel?, verifyType: VerifyType): AddKeyOnChainData {
+        val updatedMap = stepDataMap.toMutableMap()
+        updatedMap[step] = StepData(signer, verifyType)
+        return copy(stepDataMap = updatedMap)
+    }
+    
+    /**
+     * Checks if this is a dual-slot card
+     */
+    val hasDualSlots: Boolean
+        get() = steps.size >= 2
+    
+    /**
+     * Legacy support: Gets all signers as a list (for old code compatibility)
+     */
+    val signers: List<SignerModel>?
+        get() = getAllSigners().takeIf { it.isNotEmpty() }
+    
+    /**
+     * Legacy support: Gets overall verify type (returns APP_VERIFIED if all steps complete)
+     */
+    val verifyType: VerifyType
+        get() = if (isVerifyOrAddKey) VerifyType.APP_VERIFIED else VerifyType.NONE
+}
+
+/**
+ * Maps a regular step to its timelock counterpart
+ */
+private fun MembershipStep.getTimelockStep(): MembershipStep? {
+    return when (this) {
+        MembershipStep.HONEY_ADD_INHERITANCE_KEY -> MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK
+        MembershipStep.HONEY_ADD_HARDWARE_KEY_1 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK
+        MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK
+        MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY -> MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK
+        MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 -> MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3_TIMELOCK
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4_TIMELOCK
+        else -> null
+    }
+}
+
+/**
+ * Converts a flat list of steps to AddKeyOnChainData with dual-slot pairing for MINISCRIPT
+ * @param walletType The wallet type (MULTI_SIG or MINISCRIPT)
+ * @return List of AddKeyOnChainData, with paired timelock steps for MINISCRIPT
+ */
+fun List<MembershipStep>.toAddKeyOnChainDataList(): List<AddKeyOnChainData> {
+    // For MINISCRIPT, pair regular steps with their timelock counterparts
+    val result = mutableListOf<AddKeyOnChainData>()
+    val processedSteps = mutableSetOf<MembershipStep>()
+    
+    forEach { step ->
+        if (processedSteps.contains(step)) return@forEach
+        
+        val timelockStep = step.getTimelockStep()
+        if (timelockStep != null) {
+            // This is a regular step that has a timelock pair
+            result.add(
+                AddKeyOnChainData(
+                    steps = listOf(timelockStep, step) // [timelock, regular]
+                )
+            )
+            processedSteps.add(step)
+            processedSteps.add(timelockStep)
+        } else if (step.name.contains("_TIMELOCK")) {
+            // This is a timelock step - check if its regular counterpart exists
+            val regularStep = this.find { it.getTimelockStep() == step }
+            if (regularStep != null && !processedSteps.contains(regularStep)) {
+                result.add(
+                    AddKeyOnChainData(
+                        steps = listOf(step, regularStep) // [timelock, regular]
+                    )
+                )
+                processedSteps.add(step)
+                processedSteps.add(regularStep)
+            } else if (!processedSteps.contains(step)) {
+                // Timelock step without regular pair (shouldn't happen, but handle gracefully)
+                result.add(AddKeyOnChainData(steps = listOf(step)))
+                processedSteps.add(step)
+            }
+        } else {
+            // Single step (like ADD_SEVER_KEY, TIMELOCK)
+            result.add(AddKeyOnChainData(steps = listOf(step)))
+            processedSteps.add(step)
+        }
+    }
+    
+    return result
 }
 
 val MembershipStep.resId: Int

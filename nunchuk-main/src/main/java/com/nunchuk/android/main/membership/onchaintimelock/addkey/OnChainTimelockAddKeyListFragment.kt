@@ -97,6 +97,7 @@ import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyOnChainData
+import com.nunchuk.android.main.membership.model.StepData
 import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
@@ -315,19 +316,25 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
     }
 
     private fun handleOnAddKey(data: AddKeyOnChainData) {
-        when (data.type) {
-            MembershipStep.ADD_SEVER_KEY -> {
+        // Get the actual next step to determine what UI to show
+        val nextStep = data.getNextStepToAdd() ?: data.type
+        
+        when {
+            nextStep == MembershipStep.ADD_SEVER_KEY -> {
                 navigator.openConfigServerKeyActivity(
                     activityContext = requireActivity(),
                     groupStep = MembershipStage.NONE
                 )
             }
 
-            MembershipStep.HONEY_ADD_INHERITANCE_KEY,
-            MembershipStep.IRON_ADD_HARDWARE_KEY_1,
-            MembershipStep.IRON_ADD_HARDWARE_KEY_2,
-            MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-            MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
+            nextStep == MembershipStep.HONEY_ADD_INHERITANCE_KEY ||
+            nextStep == MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK ||
+            nextStep == MembershipStep.IRON_ADD_HARDWARE_KEY_1 ||
+            nextStep == MembershipStep.IRON_ADD_HARDWARE_KEY_2 ||
+            nextStep == MembershipStep.HONEY_ADD_HARDWARE_KEY_1 ||
+            nextStep == MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK ||
+            nextStep == MembershipStep.HONEY_ADD_HARDWARE_KEY_2 ||
+            nextStep == MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK
                 -> handleHardwareKeyAdd(data)
 
             else -> Unit
@@ -336,9 +343,14 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
 
     private fun handleHardwareKeyAdd(data: AddKeyOnChainData) {
         currentKeyData = data
-        if (data.signers.isNullOrEmpty()) {
+        // Get the next step to determine what to add
+        val nextStep = data.getNextStepToAdd() ?: data.type
+        val allSigners = data.getAllSigners()
+        
+        if (allSigners.isEmpty()) {
             // No signers exist, check if this is inheritance key or hardware key
-            if (data.type == MembershipStep.HONEY_ADD_INHERITANCE_KEY) {
+            if (nextStep == MembershipStep.HONEY_ADD_INHERITANCE_KEY || 
+                nextStep == MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK) {
                 // For inheritance key, navigate to inheritance intro screen
                 findNavController().navigate(
                     OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToInheritanceKeyIntroFragment(
@@ -355,17 +367,17 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         keyFlow = 0,
                         onChainAddSignerParam = OnChainAddSignerParam(
                             flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                            keyIndex = data.signers?.size ?: 0,
-                            currentSignerXfp = data.signers?.firstOrNull()?.fingerPrint ?: ""
+                            keyIndex = allSigners.size,
+                            currentSignerXfp = allSigners.firstOrNull()?.fingerPrint ?: ""
                         )
                     )
                 )
             }
         } else {
-            val firstSigner = data.signers.first()
+            val firstSigner = allSigners.first()
 
             // Special handling for TapSigner (SignerType.NFC) to add second signer for Acct 1
-            if (firstSigner.type == SignerType.NFC && data.signers.size == 1) {
+            if (firstSigner.type == SignerType.NFC && allSigners.size == 1) {
                 viewModel.handleTapSignerAcct1Addition(data, firstSigner, (activity as MembershipActivity).walletId)
                 return
             }
@@ -926,16 +938,24 @@ fun AddKeyListScreenIronHandPreview(
     OnChainTimelockAddKeyListContent(
         keys = listOf(
             AddKeyOnChainData(
-                type = MembershipStep.IRON_ADD_HARDWARE_KEY_1,
-                signers = listOf(signer),
-                verifyType = VerifyType.APP_VERIFIED
+                steps = listOf(MembershipStep.IRON_ADD_HARDWARE_KEY_1),
+                stepDataMap = mapOf(
+                    MembershipStep.IRON_ADD_HARDWARE_KEY_1 to StepData(
+                        signer = signer,
+                        verifyType = VerifyType.APP_VERIFIED
+                    )
+                )
             ),
             AddKeyOnChainData(
-                type = MembershipStep.IRON_ADD_HARDWARE_KEY_2,
-                signers = listOf(signer),
-                verifyType = VerifyType.NONE
+                steps = listOf(MembershipStep.IRON_ADD_HARDWARE_KEY_2),
+                stepDataMap = mapOf(
+                    MembershipStep.IRON_ADD_HARDWARE_KEY_2 to StepData(
+                        signer = signer,
+                        verifyType = VerifyType.NONE
+                    )
+                )
             ),
-            AddKeyOnChainData(type = MembershipStep.ADD_SEVER_KEY),
+            AddKeyOnChainData(steps = listOf(MembershipStep.ADD_SEVER_KEY)),
         ),
         remainingTime = 0,
     )
@@ -949,18 +969,20 @@ fun AddKeyListScreenHoneyBadgerPreview(
     OnChainTimelockAddKeyListContent(
         keys = listOf(
             AddKeyOnChainData(
-                type = MembershipStep.HONEY_ADD_INHERITANCE_KEY,
-                verifyType = VerifyType.NONE
+                steps = listOf(MembershipStep.HONEY_ADD_INHERITANCE_KEY),
+                stepDataMap = emptyMap()
             ),
             AddKeyOnChainData(
-                type = MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-                signers = listOf(signer),
-                verifyType = VerifyType.NONE
+                steps = listOf(MembershipStep.HONEY_ADD_HARDWARE_KEY_1),
+                stepDataMap = mapOf(
+                    MembershipStep.HONEY_ADD_HARDWARE_KEY_1 to StepData(
+                        signer = signer,
+                        verifyType = VerifyType.NONE
+                    )
+                )
             ),
-            AddKeyOnChainData(
-                type = MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
-            ),
-            AddKeyOnChainData(type = MembershipStep.ADD_SEVER_KEY),
+            AddKeyOnChainData(steps = listOf(MembershipStep.HONEY_ADD_HARDWARE_KEY_2)),
+            AddKeyOnChainData(steps = listOf(MembershipStep.ADD_SEVER_KEY)),
         ),
         remainingTime = 0,
     )
