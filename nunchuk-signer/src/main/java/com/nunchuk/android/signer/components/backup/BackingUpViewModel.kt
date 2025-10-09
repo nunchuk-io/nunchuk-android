@@ -29,8 +29,10 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.UploadBackupFileKeyUseCase
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.replace.UploadReplaceBackupFileKeyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -47,6 +49,7 @@ class BackingUpViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val uploadReplaceBackupFileKeyUseCase: UploadReplaceBackupFileKeyUseCase,
+    private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val cardIdManager: CardIdManager,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<BackingUpEvent>()
@@ -117,6 +120,7 @@ class BackingUpViewModel @Inject constructor(
                     )
                 )
             } else {
+                val walletType = syncDraftWalletUseCase(groupId).getOrNull()?.walletType ?: WalletType.MULTI_SIG
                 uploadBackupFileKeyUseCase(
                     UploadBackupFileKeyUseCase.Param(
                         step = membershipStepManager.currentStep
@@ -131,6 +135,7 @@ class BackingUpViewModel @Inject constructor(
                             ?: MembershipPlan.BYZANTINE,
                         groupId = groupId,
                         signerIndex = signerIndex,
+                        walletType = walletType,
                         existingColdCard = existingColdCard,
                         isRequestAddKey = isRequestAddOrReplaceKey
                     )

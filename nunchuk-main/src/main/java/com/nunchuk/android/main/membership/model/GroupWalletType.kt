@@ -6,6 +6,7 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.type.WalletType
 
 
 @get:StringRes
@@ -59,7 +60,7 @@ fun WalletConfig.toGroupWalletType(): GroupWalletType? {
         .find { this.m == it.m && this.n == it.n && this.allowInheritance == it.allowInheritance && this.requiredServerKey == it.requiredServerKey }
 }
 
-fun GroupWalletType.toSteps(isPersonalWallet: Boolean = false, isOnChain: Boolean = false): List<MembershipStep> = when (this) {
+fun GroupWalletType.toSteps(isPersonalWallet: Boolean = false, walletType: WalletType? = null): List<MembershipStep> = when (this) {
     GroupWalletType.TWO_OF_FOUR_MULTISIG -> if (isPersonalWallet) {
         listOf(
             MembershipStep.HONEY_ADD_INHERITANCE_KEY,
@@ -67,7 +68,7 @@ fun GroupWalletType.toSteps(isPersonalWallet: Boolean = false, isOnChain: Boolea
             MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
             MembershipStep.ADD_SEVER_KEY,
         ).toMutableList().apply {
-            if (isOnChain) {
+            if (walletType == WalletType.MINISCRIPT) {
                 add(MembershipStep.TIMELOCK)
             }
         }

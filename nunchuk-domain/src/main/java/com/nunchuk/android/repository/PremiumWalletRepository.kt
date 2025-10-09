@@ -60,6 +60,7 @@ import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.model.wallet.ReplaceWalletStatus
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.WalletType
 import kotlinx.coroutines.flow.Flow
 
 interface PremiumWalletRepository {
@@ -346,14 +347,14 @@ interface PremiumWalletRepository {
 
     suspend fun clearTransactionEmergencyLockdown(groupId: String?, walletId: String)
 
-    suspend fun requestAddKey(groupId: String, step: MembershipStep, tags: List<SignerTag>): String
+    suspend fun requestAddKey(groupId: String, step: MembershipStep, tags: List<SignerTag>, walletType: WalletType): String
 
     suspend fun checkKeyAdded(plan: MembershipPlan, groupId: String, requestId: String?): Boolean
     suspend fun deleteDraftWallet()
     suspend fun cancelRequestIdIfNeed(groupId: String, step: MembershipStep)
     suspend fun getPermissionGroupWallet(type: GroupWalletType): DefaultPermissions
     suspend fun createGroupServerKey(groupId: String, name: String, groupKeyPolicy: GroupKeyPolicy)
-    suspend fun syncKey(groupId: String, step: MembershipStep, signer: SingleSigner)
+    suspend fun syncKey(groupId: String, step: MembershipStep, signer: SingleSigner, walletType: WalletType)
     suspend fun createGroup(
         m: Int,
         n: Int,

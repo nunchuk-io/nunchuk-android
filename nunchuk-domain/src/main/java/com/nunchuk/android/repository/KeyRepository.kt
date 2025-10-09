@@ -26,6 +26,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import kotlinx.coroutines.flow.Flow
 
 interface KeyRepository {
@@ -41,6 +42,7 @@ interface KeyRepository {
         groupId: String,
         newIndex: Int,
         isRequestAddKey: Boolean,
+        walletType: WalletType,
         existingColdCard: SingleSigner? = null
     ): Flow<KeyUpload>
 

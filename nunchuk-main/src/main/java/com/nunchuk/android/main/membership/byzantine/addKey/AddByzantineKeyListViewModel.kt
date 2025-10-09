@@ -47,6 +47,7 @@ import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetIndexFromPathUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
@@ -272,7 +273,7 @@ class AddByzantineKeyListViewModel @Inject constructor(
             _state.update { it.copy(isRefreshing = true) }
             syncDraftWalletUseCase(args.groupId).onSuccess { draft ->
                 loadSigners()
-                _state.update { it.copy(groupWalletType = draft.config.toGroupWalletType()) }
+                _state.update { it.copy(groupWalletType = draft.config.toGroupWalletType(), walletType = draft.walletType) }
                 draft.config.toGroupWalletType()?.let { type ->
                     if (_keys.value.isEmpty()) {
                         _keys.value = type.toSteps().map { step -> AddKeyData(type = step) }
@@ -294,7 +295,8 @@ class AddByzantineKeyListViewModel @Inject constructor(
                     groupId = args.groupId,
                     step = membershipStepManager.currentStep
                         ?: throw IllegalArgumentException("Current step empty"),
-                    signer = signer
+                    signer = signer,
+                    walletType = _state.value.walletType ?: WalletType.MULTI_SIG
                 )
             ).onFailure {
                 _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
@@ -364,5 +366,6 @@ data class AddKeyListState(
     val similarGroups: Map<String, String> = emptyMap(),
     val shouldShowKeyAdded: Boolean = false,
     val groupWalletType: GroupWalletType? = null,
+    val walletType: WalletType? = null,
     val missingBackupKeys: List<AddKeyData> = emptyList()
 )

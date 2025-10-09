@@ -57,6 +57,7 @@ import com.nunchuk.android.usecase.DraftWalletUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import com.nunchuk.android.usecase.signer.CreateSoftwareSignerByXprvUseCase
@@ -81,6 +82,7 @@ internal class SetPassphraseViewModel @Inject constructor(
     private val createWalletUseCase: CreateWalletUseCase,
     private val changePrimaryKeyUseCase: ChangePrimaryKeyUseCase,
     private val syncKeyUseCase: SyncKeyUseCase,
+    private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase,
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
@@ -334,12 +336,14 @@ internal class SetPassphraseViewModel @Inject constructor(
                     addressType = AddressType.NATIVE_SEGWIT
                 )
             ).onSuccess { signer ->
+                val walletType = syncDraftWalletUseCase(groupId).getOrNull()?.walletType ?: WalletType.MULTI_SIG
                 syncKeyUseCase(
                     SyncKeyUseCase.Param(
                         step = membershipStepManager.currentStep
                             ?: throw IllegalArgumentException("Current step empty"),
                         groupId = groupId,
-                        signer = signer
+                        signer = signer,
+                        walletType = walletType
                     )
                 ).onSuccess {
                     saveMembershipStepUseCase(

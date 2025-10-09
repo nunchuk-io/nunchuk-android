@@ -43,6 +43,7 @@ import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetIndexFromPathUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.membership.CheckRequestAddDesktopKeyStatusUseCase
@@ -169,6 +170,7 @@ class AddKeyListViewModel @Inject constructor(
             _state.update { it.copy(isRefresh = true) }
             syncDraftWalletUseCase("").onSuccess { draft ->
                 loadSigners()
+                _state.update { it.copy(walletType = draft.walletType) }
                 draft.config.toGroupWalletType()?.let { type ->
                     if (_keys.value.isEmpty()) {
                         _keys.value = type.toSteps(isPersonalWallet = true)
@@ -206,7 +208,8 @@ class AddKeyListViewModel @Inject constructor(
                 SyncKeyUseCase.Param(
                     step = membershipStepManager.currentStep
                         ?: throw IllegalArgumentException("Current step empty"),
-                    signer = actualSigner
+                    signer = actualSigner,
+                    walletType = _state.value.walletType ?: WalletType.MULTI_SIG
                 )
             ).onFailure {
                 _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
@@ -347,5 +350,6 @@ data class AddKeyListState(
     val isLoading: Boolean = false,
     val isRefresh: Boolean = false,
     val signers: List<SignerModel> = emptyList(),
+    val walletType: WalletType? = null,
     val missingBackupKeys: List<AddKeyData> = emptyList()
 )

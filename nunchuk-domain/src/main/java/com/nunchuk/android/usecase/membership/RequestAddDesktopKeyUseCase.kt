@@ -23,6 +23,7 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -33,8 +34,8 @@ class RequestAddDesktopKeyUseCase @Inject constructor(
 ) : UseCase<RequestAddDesktopKeyUseCase.Param, String>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param): String {
-        return repository.requestAddKey(parameters.groupId, parameters.step, parameters.tags)
+        return repository.requestAddKey(parameters.groupId, parameters.step, parameters.tags, parameters.walletType)
     }
 
-    data class Param(val step: MembershipStep, val groupId: String, val tags: List<SignerTag>)
+    data class Param(val step: MembershipStep, val groupId: String, val tags: List<SignerTag>, val walletType: WalletType)
 }

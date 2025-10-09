@@ -43,6 +43,7 @@ import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CheckExistingKeyUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
 import com.nunchuk.android.usecase.ParseJsonSignerUseCase
@@ -50,6 +51,7 @@ import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -71,6 +73,7 @@ class ColdcardRecoverViewModel @Inject constructor(
     private val saveMembershipStepUseCase: SaveMembershipStepUseCase,
     private val createSignerUseCase: CreateSignerUseCase,
     private val syncKeyUseCase: SyncKeyUseCase,
+    private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
@@ -117,7 +120,7 @@ class ColdcardRecoverViewModel @Inject constructor(
         newIndex: Int,
         replacedXfp: String?,
         walletId: String?,
-        onChainAddSignerParam: com.nunchuk.android.core.signer.OnChainAddSignerParam? = null
+        onChainAddSignerParam: OnChainAddSignerParam? = null
     ) {
         viewModelScope.launch {
             _event.emit(ColdcardRecoverEvent.LoadingEvent(true))
@@ -240,12 +243,14 @@ class ColdcardRecoverViewModel @Inject constructor(
                             groupId = groupId
                         )
                     )
+                    val walletType = syncDraftWalletUseCase(groupId).getOrNull()?.walletType ?: WalletType.MULTI_SIG
                     syncKeyUseCase(
                         SyncKeyUseCase.Param(
                             step = membershipStepManager.currentStep
                                 ?: throw IllegalArgumentException("Current step empty"),
                             groupId = groupId,
-                            signer = coldcardSigner
+                            signer = coldcardSigner,
+                            walletType = walletType
                         )
                     ).onFailure {
                         _event.emit(ColdcardRecoverEvent.ShowError(it.message.orUnknownError()))

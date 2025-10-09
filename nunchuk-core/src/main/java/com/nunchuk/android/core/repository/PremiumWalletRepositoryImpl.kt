@@ -1763,9 +1763,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun syncKey(
-        groupId: String, step: MembershipStep, signer: SingleSigner,
+        groupId: String, step: MembershipStep, signer: SingleSigner, walletType: WalletType,
     ) {
-        val index = step.toIndex()
+        val index = step.toIndex(walletType)
         val signerDto = serverSignerMapper(
             signer, step.isAddInheritanceKey
         ).copy(index = index)
@@ -1783,6 +1783,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         groupId: String,
         step: MembershipStep,
         tags: List<SignerTag>,
+        walletType: WalletType,
     ): String {
         val chatId = accountManager.getAccount().chatId
         var localRequest =
@@ -1801,11 +1802,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return if (localRequest == null) {
             val response =
                 if (groupId.isNotEmpty()) userWalletApiManager.groupWalletApi.requestAddKey(
-                    groupId, DesktopKeyRequest(tags.map { it.name }, keyIndex = step.toIndex())
+                    groupId, DesktopKeyRequest(tags.map { it.name }, keyIndex = step.toIndex(walletType))
                 )
                 else userWalletApiManager.walletApi.requestAddKey(
                     DesktopKeyRequest(
-                        tags.map { it.name }, keyIndex = step.toIndex()
+                        tags.map { it.name }, keyIndex = step.toIndex(walletType)
                     )
                 )
             val requestId = response.data.request?.id.orEmpty()

@@ -48,8 +48,10 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CheckExistingKeyUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -75,6 +77,7 @@ class Mk4IntroViewModel @Inject constructor(
     private val extractWalletsFromColdCard: ExtractWalletsFromColdCard,
     private val createWallet2UseCase: CreateWallet2UseCase,
     private val syncKeyUseCase: SyncKeyUseCase,
+    private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
@@ -201,12 +204,14 @@ class Mk4IntroViewModel @Inject constructor(
                                     groupId = groupId
                                 )
                             )
+                            val walletType = syncDraftWalletUseCase(groupId).getOrNull()?.walletType ?: WalletType.MULTI_SIG
                             syncKeyUseCase(
                                 SyncKeyUseCase.Param(
                                     step = membershipStepManager.currentStep
                                         ?: throw IllegalArgumentException("Current step empty"),
                                     groupId = groupId,
-                                    signer = coldcardSigner
+                                    signer = coldcardSigner,
+                                    walletType = walletType
                                 )
                             ).onFailure {
                                 _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))

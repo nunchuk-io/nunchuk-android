@@ -190,9 +190,10 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
             _state.update { it.copy(isRefresh = true) }
             syncDraftWalletUseCase("").onSuccess { draft ->
                 loadSigners()
+                _state.update { it.copy(walletType = WalletType.MINISCRIPT) }
                 draft.config.toGroupWalletType()?.let { type ->
                     if (_keys.value.isEmpty()) {
-                        _keys.value = type.toSteps(isPersonalWallet = true, isOnChain = true)
+                        _keys.value = type.toSteps(isPersonalWallet = true, walletType = WalletType.MINISCRIPT)
                             .map { step -> AddKeyOnChainData(type = step) }
                     }
                 }
@@ -231,7 +232,8 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                 SyncKeyUseCase.Param(
                     step = membershipStepManager.currentStep
                         ?: throw IllegalArgumentException("Current step empty"),
-                    signer = actualSigner
+                    signer = actualSigner,
+                    walletType = WalletType.MINISCRIPT
                 )
             ).onFailure {
                 _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
@@ -848,6 +850,7 @@ data class AddKeyListState(
     val isLoading: Boolean = false,
     val isRefresh: Boolean = false,
     val signers: List<SignerModel> = emptyList(),
+    val walletType: WalletType? = null,
     val missingBackupKeys: List<AddKeyOnChainData> = emptyList(),
     val requestCacheTapSignerXpubEvent: Boolean = false
 )

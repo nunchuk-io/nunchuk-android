@@ -146,12 +146,23 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 )
             }
         }
+        draftWallet.timelock?.let { timelock ->
+            membershipRepository.saveStepInfo(
+                MembershipStepInfo(
+                    step = MembershipStep.TIMELOCK,
+                    extraData = timelock.value.toString(),
+                    plan = plan,
+                    groupId = groupId
+                )
+            )
+        }
         handleUpdateServerSigners(draftWallet.signers, newSigner)
         return DraftWallet(
             config = draftWallet.walletConfig.toModel(),
             isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
             signers = draftWallet.signers.map { it.toModel() },
-            walletType = draftWallet.walletType.toWalletType()
+            walletType = draftWallet.walletType.toWalletType(),
+            timelock = draftWallet.timelock?.value ?: 0
         )
     }
 
@@ -230,12 +241,23 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 }
             }
         }
+        draftWallet.timelock?.let { timelock ->
+            membershipRepository.saveStepInfo(
+                MembershipStepInfo(
+                    step = MembershipStep.TIMELOCK,
+                    extraData = timelock.value.toString(),
+                    plan = MembershipPlan.BYZANTINE,
+                    groupId = groupId
+                )
+            )
+        }
         handleUpdateServerSigners(draftWallet.signers, newSigner)
         return DraftWallet(
             config = draftWallet.walletConfig.toModel(),
             isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
             signers = draftWallet.signers.map { it.toModel() },
-            walletType = draftWallet.walletType.toWalletType()
+            walletType = draftWallet.walletType.toWalletType(),
+            timelock = draftWallet.timelock?.value ?: 0
         )
     }
 

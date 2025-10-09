@@ -4,6 +4,7 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -18,6 +19,7 @@ class SyncKeyUseCase @Inject constructor(
             parameters.groupId,
             parameters.step,
             parameters.signer,
+            parameters.walletType,
         )
     }
 
@@ -25,5 +27,6 @@ class SyncKeyUseCase @Inject constructor(
         val groupId: String = "",
         val step: MembershipStep,
         val signer: SingleSigner,
+        val walletType: WalletType,
     )
 }

@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.membership.RequestAddDesktopKeyUseCase
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -16,6 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AddDesktopKeyViewModel @Inject constructor(
     private val requestAddDesktopKeyUseCase: RequestAddDesktopKeyUseCase,
+    private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val args = AddDesktopKeyFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -27,11 +30,13 @@ class AddDesktopKeyViewModel @Inject constructor(
     fun requestAddDesktopKey() {
         if (requestJob?.isActive != true) {
             requestJob = viewModelScope.launch {
+                val walletType = syncDraftWalletUseCase(args.groupId.orEmpty()).getOrNull()?.walletType ?: WalletType.MULTI_SIG
                 requestAddDesktopKeyUseCase(
                     RequestAddDesktopKeyUseCase.Param(
                         args.step,
                         args.groupId.orEmpty(),
-                        if (args.isAddInheritanceKey) listOf(SignerTag.INHERITANCE, args.signerTag) else listOf(args.signerTag)
+                        if (args.isAddInheritanceKey) listOf(SignerTag.INHERITANCE, args.signerTag) else listOf(args.signerTag),
+                        walletType
                     )
                 ).onSuccess {
                     _event.emit(AddDesktopKeyEvent.RequestAddKeySuccess(it))

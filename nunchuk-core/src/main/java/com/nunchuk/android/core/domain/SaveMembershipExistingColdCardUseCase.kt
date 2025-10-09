@@ -28,6 +28,7 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.UseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
@@ -62,7 +63,8 @@ class SaveMembershipExistingColdCardUseCase @Inject constructor(
             SyncKeyUseCase.Param(
                 step = parameters.step,
                 groupId = parameters.groupId,
-                signer = signer
+                signer = signer,
+                walletType = parameters.walletType
             )
         )
     }
@@ -71,6 +73,7 @@ class SaveMembershipExistingColdCardUseCase @Inject constructor(
         val step: MembershipStep,
         val plan: MembershipPlan,
         val groupId: String,
-        val signer: SignerModel
+        val signer: SignerModel,
+        val walletType: WalletType
     )
 }

@@ -10,6 +10,8 @@ import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,6 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class Mk4ViewModel @Inject constructor(
     private val saveMembershipExistingColdCardUseCase: SaveMembershipExistingColdCardUseCase,
+    private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val membershipStepManager: MembershipStepManager,
     private val getAllSignersUseCase: GetAllSignersUseCase,
     private val masterSignerMapper: MasterSignerMapper,
@@ -68,13 +71,15 @@ class Mk4ViewModel @Inject constructor(
     fun saveMembershipExistingColdCard() = viewModelScope.launch {
         _event.emit(Mk4Event.Loading(true))
         existingSigner ?: return@launch
+        val walletType = syncDraftWalletUseCase(coldCardBackUpParam.groupId).getOrNull()?.walletType ?: WalletType.MULTI_SIG
         saveMembershipExistingColdCardUseCase(
             SaveMembershipExistingColdCardUseCase.Params(
                 step = membershipStepManager.currentStep
                     ?: throw IllegalArgumentException("Current step empty"),
                 plan = membershipStepManager.localMembershipPlan,
                 groupId = coldCardBackUpParam.groupId,
-                signer = existingSigner!!
+                signer = existingSigner!!,
+                walletType = walletType
             )
         ).onSuccess {
             _event.emit(Mk4Event.Success)

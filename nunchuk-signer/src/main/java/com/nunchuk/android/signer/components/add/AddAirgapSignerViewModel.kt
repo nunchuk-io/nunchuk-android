@@ -137,7 +137,9 @@ internal class AddAirgapSignerViewModel @Inject constructor(
         this.replacedXfp = replacedXfp
         this.walletId = walletId
         this.onChainAddSignerParam = onChainAddSignerParam
-        if (walletId.isNotEmpty()) {
+        if (onChainAddSignerParam != null) {
+            this.walletType = WalletType.MINISCRIPT
+        } else if (walletId.isNotEmpty()) {
             getWalletType(walletId)
         }
     }
@@ -310,7 +312,8 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                                 step = membershipStepManager.currentStep
                                     ?: throw IllegalArgumentException("Current step empty"),
                                 groupId = groupId,
-                                signer = airgap
+                                signer = airgap,
+                                walletType = walletType
                             )
                         )
                     }

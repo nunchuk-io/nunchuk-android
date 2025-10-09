@@ -385,7 +385,8 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                 groupId = args.groupId,
                 step = membershipStepManager.currentStep
                     ?: throw IllegalArgumentException("Current step empty"),
-                signer = signer
+                signer = signer,
+                walletType = WalletType.MINISCRIPT
             )
         ).onFailure {
             _event.emit(OnChainTimelockByzantineAddKeyListEvent.ShowError(it.message.orUnknownError()))
@@ -510,7 +511,8 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                     groupId = args.groupId,
                     step = membershipStepManager.currentStep
                         ?: throw IllegalArgumentException("Current step empty"),
-                    signer = signer
+                    signer = signer,
+                    walletType = WalletType.MINISCRIPT
                 )
             ).onFailure {
                 _event.emit(OnChainTimelockByzantineAddKeyListEvent.ShowError(it.message.orUnknownError()))
@@ -580,10 +582,10 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
             _state.update { it.copy(isRefreshing = true) }
             syncDraftWalletUseCase(args.groupId).onSuccess { draft ->
                 loadSigners()
-                _state.update { it.copy(groupWalletType = draft.config.toGroupWalletType()) }
+                _state.update { it.copy(groupWalletType = draft.config.toGroupWalletType(), walletType = WalletType.MINISCRIPT) }
                 draft.config.toGroupWalletType()?.let { type ->
                     if (_keys.value.isEmpty()) {
-                        _keys.value = type.toSteps(isPersonalWallet = false, isOnChain = true)
+                        _keys.value = type.toSteps(isPersonalWallet = false, walletType = WalletType.MINISCRIPT)
                             .map { step -> AddKeyOnChainData(type = step) }
                     }
                 }
@@ -800,6 +802,7 @@ data class OnChainTimelockByzantineAddKeyListState(
     val similarGroups: Map<String, String> = emptyMap(),
     val shouldShowKeyAdded: Boolean = false,
     val groupWalletType: GroupWalletType? = null,
+    val walletType: WalletType? = null,
     val missingBackupKeys: List<AddKeyOnChainData> = emptyList(),
     val requestCacheTapSignerXpubEvent: Boolean = false
 )
