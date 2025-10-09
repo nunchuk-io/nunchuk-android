@@ -49,7 +49,7 @@ ext {
             applicationId    : "com.nunchuk.android",
             compileSdkVersion: 35,
             targetSdkVersion : 35,
-            minSdkVersion    : 26,
+            minSdkVersion    : 24,
             versionName      : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}",
             taskLabel        : ".${TASK_LABEL}",
             versionCode      : VERSION_CODE
