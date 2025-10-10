@@ -515,7 +515,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                         val onChainAddSignerParam = OnChainAddSignerParam(
                             flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
                             keyIndex = data.signers?.size ?: 0,
-                            currentSignerXfp = firstSigner.fingerPrint
+                            currentSigner = firstSigner
                         )
                         _event.emit(
                             AddKeyListEvent.NavigateToCustomKeyAccount(
@@ -792,7 +792,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                                 onChainAddSignerParam = OnChainAddSignerParam(
                                     flags = if (data.type.isAddInheritanceKey) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
                                     keyIndex = 1,
-                                    currentSignerXfp = firstSigner.fingerPrint
+                                    currentSigner = firstSigner
                                 )
                             )
                         )

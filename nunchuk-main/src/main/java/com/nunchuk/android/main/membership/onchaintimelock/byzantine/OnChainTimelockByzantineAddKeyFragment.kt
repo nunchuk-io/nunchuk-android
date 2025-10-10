@@ -490,7 +490,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     onChainAddSignerParam = OnChainAddSignerParam(
                         flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
                         keyIndex = allSigners.size,
-                        currentSignerXfp = allSigners.firstOrNull()?.fingerPrint ?: ""
+                        currentSigner = allSigners.firstOrNull()
                     )
                 )
             )
@@ -552,7 +552,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 onChainAddSignerParam = OnChainAddSignerParam(
                     flags = if (nextStep?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
                     keyIndex = currentKeyData?.getAllSigners()?.size ?: 0,
-                    currentSignerXfp = currentKeyData?.getAllSigners()?.firstOrNull()?.fingerPrint ?: ""
+                    currentSigner = currentKeyData?.getAllSigners()?.firstOrNull()
                 )
             )
         )

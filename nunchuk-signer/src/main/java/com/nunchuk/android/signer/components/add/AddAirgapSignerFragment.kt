@@ -214,8 +214,8 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
         val activity = requireActivity() as AddAirgapSignerActivity
         val onChainAddSignerParam = activity.onChainAddSignerParam
 
-         if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true && onChainAddSignerParam.currentSignerXfp.isNotEmpty()) {
-             if (signer.masterFingerprint == onChainAddSignerParam.currentSignerXfp) {
+         if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true && onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true) {
+             if (signer.masterFingerprint == onChainAddSignerParam.currentSigner?.fingerPrint) {
                  viewModel.setKeyVerified(
                      groupId = activity.groupId,
                      masterSignerId = signer.masterFingerprint
@@ -237,7 +237,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                         requireActivity(),
                         BackUpSeedPhraseArgs(
                             type = BackUpSeedPhraseType.INTRO,
-                            xfp = "",
+                            signer = null,
                             groupId = activity.groupId,
                             walletId = activity.walletId
                         )
@@ -319,7 +319,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                         requireActivity(),
                         BackUpSeedPhraseArgs(
                             type = BackUpSeedPhraseType.SUCCESS,
-                            xfp = "",
+                            signer = null,
                             groupId = activity.groupId,
                             walletId = activity.walletId
                         )

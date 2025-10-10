@@ -37,6 +37,7 @@ import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -88,6 +89,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         val newSigner = mutableMapOf<String, Boolean>()
         val plan =
             if (draftWallet.walletConfig?.allowInheritance == true) MembershipPlan.HONEY_BADGER else MembershipPlan.IRON_HAND
+        val walletType = draftWallet.walletType.toWalletType()
+        
         draftWallet.signers.forEach { key ->
             val signerType = key.type.toSignerType()
             newSigner[key.xfp.orEmpty()] = !saveServerSignerIfNeed(key)
@@ -111,11 +114,25 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                     )
                 )
             } else {
-                val step = when (key.index) {
-                    0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_INHERITANCE_KEY else MembershipStep.IRON_ADD_HARDWARE_KEY_1
-                    1 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_HARDWARE_KEY_1 else MembershipStep.IRON_ADD_HARDWARE_KEY_2
-                    2 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_2
-                    else -> throw IllegalArgumentException()
+                val step = if (walletType == WalletType.MINISCRIPT) {
+                    // MINISCRIPT index mapping
+                    when (key.index) {
+                        0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_INHERITANCE_KEY else MembershipStep.IRON_ADD_HARDWARE_KEY_1
+                        1 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK else throw IllegalArgumentException("Iron Hand doesn't support timelock at index 1")
+                        2 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_HARDWARE_KEY_1 else MembershipStep.IRON_ADD_HARDWARE_KEY_2
+                        3 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK
+                        4 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_2
+                        5 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK
+                        else -> throw IllegalArgumentException("Unexpected index ${key.index} for MINISCRIPT")
+                    }
+                } else {
+                    // MULTI_SIG index mapping (original logic)
+                    when (key.index) {
+                        0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_INHERITANCE_KEY else MembershipStep.IRON_ADD_HARDWARE_KEY_1
+                        1 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_HARDWARE_KEY_1 else MembershipStep.IRON_ADD_HARDWARE_KEY_2
+                        2 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_2
+                        else -> throw IllegalArgumentException("Unexpected index ${key.index} for MULTI_SIG")
+                    }
                 }
                 val verifyType =
                     if (signerType == SignerType.NFC) {
@@ -172,6 +189,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
     ): DraftWallet {
         val chatId = accountManager.getAccount().chatId
         val newSigner = mutableMapOf<String, Boolean>()
+        val walletType = draftWallet.walletType.toWalletType()
+        
         draftWallet.signers.forEach { key ->
             val signerType = key.type.toSignerType()
             newSigner[key.xfp.orEmpty()] = !saveServerSignerIfNeed(key)
@@ -200,13 +219,43 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                     )
                 }
             } else {
-                val step = when (key.index) {
-                    0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
-                    1 -> if (draftWallet.walletConfig?.n == GroupWalletType.THREE_OF_FIVE_INHERITANCE.n && draftWallet.walletConfig.allowInheritance) MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
-                    2 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2
-                    3 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3
-                    4 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4
-                    else -> throw IllegalArgumentException()
+                val step = if (walletType == WalletType.MINISCRIPT) {
+                    // MINISCRIPT index mapping
+                    when (key.index) {
+                        0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
+                        1 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK
+                        2 -> if (draftWallet.walletConfig?.n == GroupWalletType.THREE_OF_FIVE_INHERITANCE.n && draftWallet.walletConfig.allowInheritance) {
+                            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1
+                        } else {
+                            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
+                        }
+                        3 -> if (draftWallet.walletConfig?.n == GroupWalletType.THREE_OF_FIVE_INHERITANCE.n && draftWallet.walletConfig.allowInheritance) {
+                            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK
+                        } else {
+                            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK
+                        }
+                        4 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2
+                        5 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK
+                        6 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
+                        7 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK
+                        8 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2
+                        9 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK
+                        10 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3
+                        11 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3_TIMELOCK
+                        12 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4
+                        13 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4_TIMELOCK
+                        else -> throw IllegalArgumentException("Unexpected index ${key.index} for MINISCRIPT")
+                    }
+                } else {
+                    // MULTI_SIG index mapping (original logic)
+                    when (key.index) {
+                        0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
+                        1 -> if (draftWallet.walletConfig?.n == GroupWalletType.THREE_OF_FIVE_INHERITANCE.n && draftWallet.walletConfig.allowInheritance) MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
+                        2 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2
+                        3 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3
+                        4 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4
+                        else -> throw IllegalArgumentException("Unexpected index ${key.index} for MULTI_SIG")
+                    }
                 }
                 val info = membershipStepDao.getStep(chatId, chain.value, step, groupId)
                 val verifyType =

@@ -7,7 +7,7 @@ import kotlinx.parcelize.Parcelize
 data class OnChainAddSignerParam(
     val flags: Int = 0,
     val keyIndex: Int = -1,
-    val currentSignerXfp: String = "",
+    val currentSigner: SignerModel? = null,
 ) : Parcelable {
     
     companion object {

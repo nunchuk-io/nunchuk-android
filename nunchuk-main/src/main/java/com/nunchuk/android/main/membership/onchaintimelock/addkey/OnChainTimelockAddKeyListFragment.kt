@@ -146,11 +146,15 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                AddKeyListScreen(viewModel, membershipStepManager, ::handleShowMore, onConfigTimelockClicked = {
-                    findNavController().navigate(
-                        OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToOnChainSetUpTimelockFragment()
-                    )
-                })
+                AddKeyListScreen(
+                    viewModel,
+                    membershipStepManager,
+                    ::handleShowMore,
+                    onConfigTimelockClicked = {
+                        findNavController().navigate(
+                            OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToOnChainSetUpTimelockFragment()
+                        )
+                    })
             }
         }
     }
@@ -161,7 +165,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         setFragmentResultListener(CustomKeyAccountFragment.REQUEST_KEY) { _, bundle ->
             val signer = bundle.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)
             val newIndex = bundle.getInt(GlobalResultKey.EXTRA_INDEX, -1)
-            
+
             // Check if this is a result with newIndex (OnChainAddSignerParam case)
             if (newIndex != -1 && signer?.masterFingerprint?.isNotEmpty() == true) {
                 viewModel.handleCustomKeyAccountResult(signer.masterFingerprint, newIndex)
@@ -180,6 +184,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         currentKeyData,
                         (activity as MembershipActivity).walletId
                     )
+
                     SignerType.PORTAL_NFC -> findNavController().navigate(
                         OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToCustomKeyAccountFragmentFragment(
                             data.signers.first(),
@@ -201,12 +206,16 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
         }
         setFragmentResultListener("ImportantNoticePassphraseFragment") { _, bundle ->
-            val filteredSigners = bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
+            val filteredSigners =
+                bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
             if (!filteredSigners.isNullOrEmpty()) {
                 findNavController().navigate(
                     OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToTapSignerListBottomSheetFragment(
                         filteredSigners.toTypedArray(),
-                        if (filteredSigners.first().type == SignerType.COLDCARD_NFC || filteredSigners.first().tags.contains(SignerTag.COLDCARD)) {
+                        if (filteredSigners.first().type == SignerType.COLDCARD_NFC || filteredSigners.first().tags.contains(
+                                SignerTag.COLDCARD
+                            )
+                        ) {
                             SignerType.COLDCARD_NFC
                         } else {
                             SignerType.AIRGAP
@@ -219,12 +228,16 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             clearFragmentResult("ImportantNoticePassphraseFragment")
         }
         setFragmentResultListener("SignerIntroFragment") { _, bundle ->
-            val filteredSigners = bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
+            val filteredSigners =
+                bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
             if (!filteredSigners.isNullOrEmpty()) {
                 findNavController().navigate(
                     OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToTapSignerListBottomSheetFragment(
                         filteredSigners.toTypedArray(),
-                        if (filteredSigners.first().type == SignerType.COLDCARD_NFC || filteredSigners.first().tags.contains(SignerTag.COLDCARD)) {
+                        if (filteredSigners.first().type == SignerType.COLDCARD_NFC || filteredSigners.first().tags.contains(
+                                SignerTag.COLDCARD
+                            )
+                        ) {
                             SignerType.COLDCARD_NFC
                         } else {
                             filteredSigners.first().type
@@ -236,7 +249,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             }
             clearFragmentResult("SignerIntroFragment")
         }
-        
+
         // Setup TapSigner caching with MembershipActivity
         val membershipActivity = activity as? MembershipActivity
         membershipActivity?.setTapSignerCachingCallback { isoDep, cvc ->
@@ -299,6 +312,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 AddKeyListEvent.SelectAirgapType -> {
 
                 }
+
                 is AddKeyListEvent.NavigateToCustomKeyAccount -> {
                     findNavController().navigate(
                         OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToCustomKeyAccountFragmentFragment(
@@ -308,6 +322,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         )
                     )
                 }
+
                 is AddKeyListEvent.HandleSignerTypeLogic -> {
                     handleSignerTypeLogic(event.signer)
                 }
@@ -318,24 +333,18 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
     private fun handleOnAddKey(data: AddKeyOnChainData) {
         // Get the actual next step to determine what UI to show
         val nextStep = data.getNextStepToAdd() ?: data.type
-        
-        when {
-            nextStep == MembershipStep.ADD_SEVER_KEY -> {
+
+        when (nextStep) {
+            MembershipStep.ADD_SEVER_KEY -> {
                 navigator.openConfigServerKeyActivity(
                     activityContext = requireActivity(),
                     groupStep = MembershipStage.NONE
                 )
             }
 
-            nextStep == MembershipStep.HONEY_ADD_INHERITANCE_KEY ||
-            nextStep == MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK ||
-            nextStep == MembershipStep.IRON_ADD_HARDWARE_KEY_1 ||
-            nextStep == MembershipStep.IRON_ADD_HARDWARE_KEY_2 ||
-            nextStep == MembershipStep.HONEY_ADD_HARDWARE_KEY_1 ||
-            nextStep == MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK ||
-            nextStep == MembershipStep.HONEY_ADD_HARDWARE_KEY_2 ||
-            nextStep == MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK
-                -> handleHardwareKeyAdd(data)
+            MembershipStep.HONEY_ADD_INHERITANCE_KEY, MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK, MembershipStep.IRON_ADD_HARDWARE_KEY_1, MembershipStep.IRON_ADD_HARDWARE_KEY_2, MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK, MembershipStep.HONEY_ADD_HARDWARE_KEY_2, MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK -> handleHardwareKeyAdd(
+                data
+            )
 
             else -> Unit
         }
@@ -346,11 +355,12 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         // Get the next step to determine what to add
         val nextStep = data.getNextStepToAdd() ?: data.type
         val allSigners = data.getAllSigners()
-        
+
         if (allSigners.isEmpty()) {
             // No signers exist, check if this is inheritance key or hardware key
-            if (nextStep == MembershipStep.HONEY_ADD_INHERITANCE_KEY || 
-                nextStep == MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK) {
+            if (nextStep == MembershipStep.HONEY_ADD_INHERITANCE_KEY ||
+                nextStep == MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK
+            ) {
                 // For inheritance key, navigate to inheritance intro screen
                 findNavController().navigate(
                     OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToInheritanceKeyIntroFragment(
@@ -368,7 +378,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         onChainAddSignerParam = OnChainAddSignerParam(
                             flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
                             keyIndex = allSigners.size,
-                            currentSignerXfp = allSigners.firstOrNull()?.fingerPrint ?: ""
+                            currentSigner = allSigners.firstOrNull()
                         )
                     )
                 )
@@ -378,26 +388,34 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
 
             // Special handling for TapSigner (SignerType.NFC) to add second signer for Acct 1
             if (firstSigner.type == SignerType.NFC && allSigners.size == 1) {
-                viewModel.handleTapSignerAcct1Addition(data, firstSigner, (activity as MembershipActivity).walletId)
+                viewModel.handleTapSignerAcct1Addition(
+                    data,
+                    firstSigner,
+                    (activity as MembershipActivity).walletId
+                )
                 return
             }
 
             // Signers exist, delegate to ViewModel to handle the logic
-            viewModel.handleSignerIndexCheck(data, firstSigner, (activity as MembershipActivity).walletId)
+            viewModel.handleSignerIndexCheck(
+                data,
+                firstSigner,
+                (activity as MembershipActivity).walletId
+            )
         }
     }
-    
+
     private fun handleSignerTypeLogic(firstSigner: SignerModel) {
         when (firstSigner.type) {
             SignerType.NFC -> openSetupTapSigner()
-            
+
             SignerType.PORTAL_NFC -> openSetupPortal()
-            
+
             SignerType.COLDCARD_NFC -> {
                 selectedSignerTag = SignerTag.COLDCARD
                 openSetupColdCard()
             }
-            
+
             SignerType.AIRGAP -> {
                 val tag = firstSigner.tags.firstOrNull()
                 selectedSignerTag = tag
@@ -407,7 +425,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 }
                 handleSelectAddAirgapType(tag)
             }
-            
+
             SignerType.HARDWARE -> {
                 val tag = firstSigner.tags.firstOrNull()
                 selectedSignerTag = tag
@@ -420,7 +438,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     else -> {}
                 }
             }
-            
+
             else -> {}
         }
     }
@@ -445,7 +463,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 onChainAddSignerParam = OnChainAddSignerParam(
                     flags = if (currentKeyData?.type?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
                     keyIndex = currentKeyData?.signers?.size ?: 0,
-                    currentSignerXfp = currentKeyData?.signers?.firstOrNull()?.fingerPrint ?: ""
+                    currentSigner = currentKeyData?.signers?.firstOrNull()
                 )
             )
         )
@@ -643,7 +661,7 @@ private fun AddKeyCard(
             .fillMaxWidth()
             .wrapContentHeight()
     ) {
-        val (banner,content) = createRefs()
+        val (banner, content) = createRefs()
         val signers = item.signers ?: emptyList()
         Box(
             modifier = modifier
@@ -663,7 +681,10 @@ private fun AddKeyCard(
                         modifier = Modifier
                             .background(
                                 color = when {
-                                    signers.size == 1 -> colorResource(id = R.color.nc_fill_slime).copy(alpha = 0.4f)
+                                    signers.size == 1 -> colorResource(id = R.color.nc_fill_slime).copy(
+                                        alpha = 0.4f
+                                    )
+
                                     item.verifyType != VerifyType.NONE -> colorResource(id = R.color.nc_fill_slime)
                                     isDisabled -> colorResource(id = R.color.nc_grey_dark_color)
                                     else -> colorResource(id = R.color.nc_fill_beewax)
@@ -672,47 +693,24 @@ private fun AddKeyCard(
                             ),
                         contentAlignment = Alignment.Center,
                     ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        NcCircleImage(
-                            resId = signers.firstOrNull()?.toReadableDrawableResId()
-                                ?: R.drawable.ic_hardware_key,
-                        )
-                        Column(
-                            modifier = Modifier
-                                .weight(1.0f)
-                                .padding(start = 8.dp)
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Display signer names - show both if available
-                            if (signers.size >= 2) {
-                                Text(
-                                    text = "${signers[0].name} & ${signers[1].name}",
-                                    style = NunchukTheme.typography.body
-                                )
-                            } else {
+                            NcCircleImage(
+                                resId = signers.firstOrNull()?.toReadableDrawableResId()
+                                    ?: R.drawable.ic_hardware_key,
+                            )
+                            Column(
+                                modifier = Modifier
+                                    .weight(1.0f)
+                                    .padding(start = 8.dp)
+                            ) {
                                 Text(
                                     text = signers.firstOrNull()?.name ?: "Unknown Signer",
                                     style = NunchukTheme.typography.body
                                 )
-                            }
-                            Row(modifier = Modifier.padding(top = 4.dp)) {
-                                if (signers.size >= 2) {
-                                    NcTag(
-                                        label = signers[0].toReadableSignerType(context = LocalContext.current),
-                                        backgroundColor = colorResource(
-                                            id = R.color.nc_bg_mid_gray
-                                        ),
-                                    )
-                                    NcTag(
-                                        modifier = Modifier.padding(start = 4.dp),
-                                        label = signers[1].toReadableSignerType(context = LocalContext.current),
-                                        backgroundColor = colorResource(
-                                            id = R.color.nc_bg_mid_gray
-                                        ),
-                                    )
-                                } else {
+                                Row(modifier = Modifier.padding(top = 4.dp)) {
                                     NcTag(
                                         label = signers.firstOrNull()
                                             ?.toReadableSignerType(context = LocalContext.current)
@@ -721,92 +719,95 @@ private fun AddKeyCard(
                                             id = R.color.nc_bg_mid_gray
                                         ),
                                     )
+                                    val firstAcctLabel = signers.firstOrNull()?.let { firstSigner ->
+                                        if (firstSigner.isShowAcctX(true)) {
+                                            stringResource(R.string.nc_acct_x, firstSigner.index)
+                                        } else {
+                                            "Acct X"
+                                        }
+                                    } ?: "Acct X"
+                                    NcTag(
+                                        modifier = Modifier
+                                            .padding(start = 4.dp)
+                                            .alpha(if (firstAcctLabel == "Acct X") 0.5f else 1.0f),
+                                        label = firstAcctLabel,
+                                        backgroundColor = colorResource(
+                                            id = R.color.nc_bg_mid_gray
+                                        ),
+                                    )
+                                    val secondAcctLabel =
+                                        signers.getOrNull(1)?.let { secondSigner ->
+                                            if (secondSigner.isShowAcctX(true)) {
+                                                stringResource(
+                                                    R.string.nc_acct_x,
+                                                    secondSigner.index
+                                                )
+                                            } else {
+                                                "Acct Y"
+                                            }
+                                        } ?: "Acct Y"
+                                    NcTag(
+                                        modifier = Modifier
+                                            .padding(start = 4.dp)
+                                            .alpha(if (secondAcctLabel == "Acct Y") 0.5f else 1.0f),
+                                        label = secondAcctLabel,
+                                        backgroundColor = colorResource(
+                                            id = R.color.nc_bg_mid_gray
+                                        ),
+                                    )
                                 }
-                                val firstAcctLabel = signers.firstOrNull()?.let { firstSigner ->
-                                    if (firstSigner.isShowAcctX(true)) {
-                                        stringResource(R.string.nc_acct_x, firstSigner.index)
-                                    } else {
-                                        "Acct X"
-                                    }
-                                } ?: "Acct X"
-                                NcTag(
-                                    modifier = Modifier
-                                        .padding(start = 4.dp)
-                                        .alpha(if (firstAcctLabel == "Acct X") 0.5f else 1.0f),
-                                    label = firstAcctLabel,
-                                    backgroundColor = colorResource(
-                                        id = R.color.nc_bg_mid_gray
-                                    ),
-                                )
-                                val secondAcctLabel = signers.getOrNull(1)?.let { secondSigner ->
-                                    if (secondSigner.isShowAcctX(true)) {
-                                        stringResource(R.string.nc_acct_x, secondSigner.index)
-                                    } else {
-                                        "Acct Y"
-                                    }
-                                } ?: "Acct Y"
-                                NcTag(
-                                    modifier = Modifier
-                                        .padding(start = 4.dp)
-                                        .alpha(if (secondAcctLabel == "Acct Y") 0.5f else 1.0f),
-                                    label = secondAcctLabel,
-                                    backgroundColor = colorResource(
-                                        id = R.color.nc_bg_mid_gray
-                                    ),
-                                )
+                                if (signers.size >= 2) {
+                                    Text(
+                                        modifier = Modifier.padding(top = 4.dp),
+                                        text = signers[0].getXfpOrCardIdLabel(),
+                                        style = NunchukTheme.typography.bodySmall
+                                    )
+                                } else {
+                                    Text(
+                                        modifier = Modifier.padding(top = 4.dp),
+                                        text = signers.firstOrNull()?.getXfpOrCardIdLabel() ?: "",
+                                        style = NunchukTheme.typography.bodySmall
+                                    )
+                                }
                             }
                             if (signers.size >= 2) {
-                                Text(
-                                    modifier = Modifier.padding(top = 4.dp),
-                                    text = "${signers[0].getXfpOrCardIdLabel()} & ${signers[1].getXfpOrCardIdLabel()}",
-                                    style = NunchukTheme.typography.bodySmall
-                                )
-                            } else {
-                                Text(
-                                    modifier = Modifier.padding(top = 4.dp),
-                                    text = signers.firstOrNull()?.getXfpOrCardIdLabel() ?: "",
-                                    style = NunchukTheme.typography.bodySmall
-                                )
-                            }
-                        }
-                        if (signers.size >= 2) {
-                            if (item.verifyType != VerifyType.NONE) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.nc_circle_checked),
-                                    contentDescription = "Checked icon"
-                                )
-                                Text(
-                                    modifier = Modifier.padding(start = 4.dp),
-                                    style = NunchukTheme.typography.body,
-                                    text = stringResource(
-                                        R.string.nc_added
+                                if (item.verifyType != VerifyType.NONE) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.nc_circle_checked),
+                                        contentDescription = "Checked icon"
                                     )
-                                )
-                            } else if (signers.any { it.isVisible }) {
+                                    Text(
+                                        modifier = Modifier.padding(start = 4.dp),
+                                        style = NunchukTheme.typography.body,
+                                        text = stringResource(
+                                            R.string.nc_added
+                                        )
+                                    )
+                                } else if (signers.any { it.isVisible }) {
+                                    NcOutlineButton(
+                                        modifier = Modifier.height(36.dp),
+                                        onClick = { onVerifyClicked(item) },
+                                    ) {
+                                        Text(
+                                            text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
+                                                R.string.nc_upload_backup
+                                            )
+                                        )
+                                    }
+                                }
+                            } else {
                                 NcOutlineButton(
                                     modifier = Modifier.height(36.dp),
-                                    onClick = { onVerifyClicked(item) },
+                                    enabled = isDisabled.not(),
+                                    onClick = { onAddClicked(item) },
                                 ) {
                                     Text(
-                                        text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
-                                            R.string.nc_upload_backup
-                                        )
+                                        text = item.type.getButtonText(LocalContext.current),
+                                        style = NunchukTheme.typography.caption,
                                     )
                                 }
                             }
-                        } else {
-                            NcOutlineButton(
-                                modifier = Modifier.height(36.dp),
-                                enabled = isDisabled.not(),
-                                onClick = { onAddClicked(item) },
-                            ) {
-                                Text(
-                                    text = item.type.getButtonText(LocalContext.current),
-                                    style = NunchukTheme.typography.caption,
-                                )
-                            }
                         }
-                    }
                     }
                 }
             } else {

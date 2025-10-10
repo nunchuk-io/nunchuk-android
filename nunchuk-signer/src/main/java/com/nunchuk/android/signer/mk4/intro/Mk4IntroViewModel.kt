@@ -144,7 +144,7 @@ class Mk4IntroViewModel @Inject constructor(
                         _event.emit(Mk4IntroViewEvent.Loading(false))
                         return@launch
                     }
-                    if (onChainAddSignerParam != null && signer.masterSignerId != onChainAddSignerParam.currentSignerXfp) {
+                    if (onChainAddSignerParam != null && signer.masterSignerId != onChainAddSignerParam.currentSigner?.fingerPrint) {
                         _event.emit(
                             Mk4IntroViewEvent.ShowError(
                                 "The added key has an XFP mismatch. Please use the same device for both keys."

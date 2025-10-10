@@ -63,7 +63,7 @@ class BackUpSeedPhraseActivity : BaseComposeActivity() {
                                     supportedSigners = null,
                                     onChainAddSignerParam = OnChainAddSignerParam(
                                         flags = OnChainAddSignerParam.FLAG_VERIFY_BACKUP_SEED_PHRASE,
-                                        currentSignerXfp = args.xfp
+                                        currentSigner = args.signer
                                     )
                                 )
                                 finish()

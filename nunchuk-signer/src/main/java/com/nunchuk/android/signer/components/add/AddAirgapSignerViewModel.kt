@@ -215,7 +215,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     setEvent(AddAirgapSignerSuccessEvent(signer))
                     setEvent(LoadingEventAirgap(false))
                     return@launch
-                } else if  (signer.masterSignerId != onChainAddSignerParam?.currentSignerXfp){
+                } else if  (signer.masterSignerId != onChainAddSignerParam?.currentSigner?.fingerPrint){
                     setEvent(
                         AddAirgapSignerErrorEvent(
                             "The added key has an XFP mismatch. Please use the same device for both keys."

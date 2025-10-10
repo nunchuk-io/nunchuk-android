@@ -165,7 +165,7 @@ class ColdcardRecoverViewModel @Inject constructor(
                     _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                     return@launch
                 }
-                if (onChainAddSignerParam != null && signer.masterSignerId != onChainAddSignerParam.currentSignerXfp) {
+                if (onChainAddSignerParam != null && signer.masterFingerprint != onChainAddSignerParam.currentSigner?.fingerPrint) {
                     _event.emit(
                         ColdcardRecoverEvent.ShowError(
                             "The added key has an XFP mismatch. Please use the same device for both keys."

@@ -21,33 +21,35 @@ package com.nunchuk.android.nav.args
 
 import android.content.Intent
 import android.os.Bundle
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 
 data class BackUpSeedPhraseArgs(
     val type: BackUpSeedPhraseType,
-    val xfp: String = "",
+    val signer: SignerModel? = null,
     val groupId: String = "",
     val walletId: String = ""
 ) {
 
     fun buildBundle() = Bundle().apply {
         putSerializable(TYPE, type)
-        putString(XFP, xfp)
+        putParcelable(SIGNER, signer)
         putString(GROUP_ID, groupId)
         putString(WALLET_ID, walletId)
     }
 
     companion object {
         private const val TYPE = "type"
-        private const val XFP = "xfp"
+        private const val SIGNER = "signer"
         private const val GROUP_ID = "group_id"
         private const val WALLET_ID = "wallet_id"
 
         fun deserializeFrom(intent: Intent): BackUpSeedPhraseArgs = BackUpSeedPhraseArgs(
             type = intent.extras?.getSerializable(TYPE) as? BackUpSeedPhraseType 
                 ?: throw IllegalArgumentException("BackUpSeedPhraseType is required"),
-            xfp = intent.extras?.getString(XFP, "").orEmpty(),
+            signer = intent.extras?.parcelable(SIGNER),
             groupId = intent.extras?.getString(GROUP_ID, "").orEmpty(),
             walletId = intent.extras?.getString(WALLET_ID, "").orEmpty()
         )

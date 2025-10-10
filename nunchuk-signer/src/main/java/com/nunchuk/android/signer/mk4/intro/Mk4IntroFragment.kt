@@ -158,8 +158,8 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                     val onChainAddSignerParam = (activity as Mk4Activity).onChainAddSignerParam
                     if (args.isAddInheritanceKey || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
                         if (onChainAddSignerParam != null) {
-                            if (onChainAddSignerParam.currentSignerXfp.isNotEmpty() && onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
-                                if (it.signer.masterFingerprint == onChainAddSignerParam.currentSignerXfp) {
+                            if (onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true && onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
+                                if (it.signer.masterFingerprint == onChainAddSignerParam.currentSigner?.fingerPrint) {
                                     viewModel.setKeyVerified(
                                         groupId = (activity as Mk4Activity).groupId,
                                         masterSignerId = it.signer.masterFingerprint
@@ -180,7 +180,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                             requireActivity(), 
                                             BackUpSeedPhraseArgs(
                                                 type = BackUpSeedPhraseType.INTRO,
-                                                xfp = "",
+                                                signer = null,
                                                 groupId = (activity as Mk4Activity).groupId,
                                                 walletId = (activity as Mk4Activity).walletId.orEmpty()
                                             )
@@ -288,7 +288,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                         requireActivity(),
                         BackUpSeedPhraseArgs(
                             type = BackUpSeedPhraseType.SUCCESS,
-                            xfp = "",
+                            signer = null,
                             groupId = (activity as Mk4Activity).groupId,
                             walletId = (activity as Mk4Activity).walletId.orEmpty()
                         )

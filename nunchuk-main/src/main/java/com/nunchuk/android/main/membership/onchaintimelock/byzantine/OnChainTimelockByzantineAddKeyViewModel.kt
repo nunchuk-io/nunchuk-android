@@ -468,7 +468,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                         val onChainAddSignerParam = OnChainAddSignerParam(
                             flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
                             keyIndex = data.getAllSigners().size,
-                            currentSignerXfp = firstSigner.fingerPrint
+                            currentSigner = firstSigner
                         )
                         _event.emit(OnChainTimelockByzantineAddKeyListEvent.NavigateToCustomKeyAccount(firstSigner, walletId, onChainAddSignerParam))
                         return@launch
@@ -763,7 +763,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                                 onChainAddSignerParam = OnChainAddSignerParam(
                                     flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
                                     keyIndex = 1,
-                                    currentSignerXfp = firstSigner.fingerPrint
+                                    currentSigner = firstSigner
                                 )
                             )
                         )
