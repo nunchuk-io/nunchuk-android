@@ -106,7 +106,10 @@ data class InheritancePlanningState(
     val groupWalletType: GroupWalletType? = null,
     val keyTypes: List<InheritanceKeyType> = emptyList(),
     val walletType: WalletType = WalletType.MULTI_SIG
-)
+) {
+    val isMiniscriptWallet: Boolean
+        get() = walletType == WalletType.MINISCRIPT
+}
 
 @Keep
 enum class InheritanceKeyType {

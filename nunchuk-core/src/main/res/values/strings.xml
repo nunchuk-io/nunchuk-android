@@ -310,6 +310,8 @@
     <string name="nc_your_inheritance_key">Your inheritance key</string>
     <string name="nc_inheritance_intro_desc">This TAPSIGNER will be your designated inheritance key.\n\nPlease take a moment to mark or label this key.</string>
     <string name="nc_inheritance_key_tip_desc">[B]The inheritance key is designed to be used exclusively for the purpose of inheritance.[/B] As such, it should rarely be accessed. However, in an emergency, it can function as a backup signing key.\n\nWe recommend that you put it away in a safe place. Only use this key to sign daily transactions as a last resort.</string>
+    <string name="nc_inheritance_key_tip_desc_miniscript">The inheritance key is used to claim funds and spend from the wallet after the timelock.\n\n[B]Back up the seed phrase of the inheritance key on a steel plate or another durable, non-digital medium.[/B] You will need to share this seed phrase with your Beneficiary or Trustee so they can access the inheritance.</string>
+    <string name="nc_inheritance_key_hardware_device_hint">You can also give the Beneficiary the hardware device used to generate the inheritance key. However, because electronics can fail, it is essential to share the seed phrase in an analog format that can last many decades.</string>
     <string name="nc_set_up_inheritance_plan">Set up an inheritance plan</string>
     <string name="nc_set_up_inheritance_plan_wallet">Set up an inheritance plan for this wallet</string>
     <string name="nc_view_inheritance_plan">View inheritance plan</string>
@@ -332,8 +334,9 @@
     <string name="nc_done_scanning">Done scanning</string>
     <string name="nc_schedule_broadcast">Schedule broadcast</string>
     <string name="nc_setup_inheritance_plan_intro_title">Set up an inheritance plan</string>
-    <string name="nc_setup_inheritance_plan_intro_desc">The Nunchuk inheritance plan allows you to safely pass on your bitcoin to your loved ones, while not affecting the security of day-to-day usage.\n\nBefore we begin, here are some definitions.</string>
+    <string name="nc_setup_inheritance_plan_intro_desc">The Nunchuk inheritance plan lets you safely pass on your bitcoin to loved ones without affecting day-to-day security.\n\nBefore we begin, here are a few definitions.</string>
     <string name="nc_magical_phrase_desc">Your inheritance plan is uniquely identified by a Magic Phrase. The phrase can be used to look up your plan later.\n\n[B]Back up the Magic Phrase on a steel plate, or a durable format that is non-digital[/B]. You will need to share it with the Beneficiary or Trustee.</string>
+    <string name="nc_magical_phrase_required_for_claiming">The Magic Phrase is required when claiming with the Nunchuk service.</string>
     <string name="nc_magical_phrase">Magic Phrase</string>
     <string name="nc_a_magical_phrase">A Magic Phrase</string>
     <string name="nc_a_backup_password">A Backup Password</string>

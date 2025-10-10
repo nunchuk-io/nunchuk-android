@@ -70,9 +70,11 @@ class InheritancePlanOverviewFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
+                val sharedState by inheritanceViewModel.state.collectAsStateWithLifecycle()
                 InheritancePlanOverviewScreen(
-                    viewModel,
-                    groupWalletType = inheritanceViewModel.getGroupWalletType()
+                    viewModel = viewModel,
+                    groupWalletType = inheritanceViewModel.getGroupWalletType(),
+                    isMiniscriptWallet = sharedState.isMiniscriptWallet
                 ) {
                     findNavController().navigate(
                         InheritancePlanOverviewFragmentDirections.actionInheritancePlanOverviewFragmentToMagicalPhraseIntroFragment()
@@ -87,10 +89,12 @@ class InheritancePlanOverviewFragment : MembershipFragment() {
 private fun InheritancePlanOverviewScreen(
     viewModel: InheritancePlanOverviewViewModel = viewModel(),
     groupWalletType: GroupWalletType? = null,
+    isMiniscriptWallet: Boolean,
     onContinueClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     InheritancePlanOverviewContent(
+        isMiniscriptWallet = isMiniscriptWallet,
         remainTime = remainTime,
         groupWalletType = groupWalletType,
         onContinueClicked = onContinueClicked
@@ -99,6 +103,7 @@ private fun InheritancePlanOverviewScreen(
 
 @Composable
 private fun InheritancePlanOverviewContent(
+    isMiniscriptWallet: Boolean,
     remainTime: Int = 0,
     groupWalletType: GroupWalletType? = null,
     onContinueClicked: () -> Unit = {},
@@ -150,7 +155,11 @@ private fun InheritancePlanOverviewContent(
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 3,
-                    label = stringResource(R.string.nc_activation_date),
+                    label = if (isMiniscriptWallet) {
+                        stringResource(R.string.nc_an_on_chain_timelock)
+                    } else {
+                        stringResource(R.string.nc_an_off_chain_timelock)
+                    },
                 )
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
@@ -174,5 +183,11 @@ private fun InheritancePlanOverviewContent(
 @PreviewLightDark
 @Composable
 private fun InheritancePlanOverviewScreenPreview() {
-    InheritancePlanOverviewContent()
+    InheritancePlanOverviewContent(isMiniscriptWallet = false)
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritancePlanOverviewScreenMiniscriptPreview() {
+    InheritancePlanOverviewContent(isMiniscriptWallet = true)
 }

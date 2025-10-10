@@ -38,7 +38,7 @@
     <string name="nc_find_backup_passwords">Find your Backup Passwords</string>
     <string name="nc_record_your_backup_password">Record your Backup Password</string>
     <string name="nc_set_up_inheritance_hint">[B]Beneficiary[/B]: an individual who will inherit your bitcoin.\n\n[B]Trustee[/B]: a trusted individual responsible for safeguarding secrets for the Beneficiary.</string>
-    <string name="nc_here_is_plan_magical_phrase">Here is your plan’s Magic Phrase</string>
+    <string name="nc_here_is_plan_magical_phrase">Your plan’s Magic Phrase</string>
     <string name="nc_inheritance_key_tip">Inheritance key</string>
     <string name="nc_complete_a_health_check">To complete a health check</string>
     <string name="nc_authorize_inheritance_planning_request">To authorize the inheritance planning request</string>
@@ -394,8 +394,8 @@
     <!-- Inheritance plan type selection strings -->
     <string name="nc_select_inheritance_plan_type">Select inheritance plan type</string>
     <string name="nc_off_chain_timelock">Off-chain timelock</string>
-    <string name="nc_managed_by_nunchuk">Managed by Nunchuk</string>
     <string name="nc_on_chain_timelock">On-chain timelock</string>
+    <string name="nc_managed_by_nunchuk">Managed by Nunchuk</string>
     <string name="nc_enforced_on_bitcoin">Enforced on Bitcoin</string>
     <string name="nc_off_chain_pros">You can change the timelock as many times as needed without disrupting your existing setup.</string>
     <string name="nc_off_chain_cons">Claiming the inheritance depends on Nunchuk services being available.</string>
@@ -427,4 +427,6 @@
     <string name="nc_timelock_info_hint">Even with the inheritance key, the Beneficiary or Trustee cannot claim funds before the timelock expires.</string>
     <string name="nc_inheritance_skip_notifications_confirmation">If you don’t provide a Beneficiary email address, you’ll need to share all inheritance plan updates with them manually. Are you sure you want to continue?</string>
     <string name="nc_add_email">Add email</string>
+    <string name="nc_an_off_chain_timelock">an off-chain timelock</string>
+    <string name="nc_an_on_chain_timelock">an on-chain timelock</string>
 </resources>

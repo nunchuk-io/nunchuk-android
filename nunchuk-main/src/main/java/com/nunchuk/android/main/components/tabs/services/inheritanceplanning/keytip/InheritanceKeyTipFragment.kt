@@ -41,21 +41,25 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcHighlightText
+import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class InheritanceKeyTipFragment : MembershipFragment() {
     private val viewModel: InheritanceKeyTipViewModel by viewModels()
+    private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -65,9 +69,12 @@ class InheritanceKeyTipFragment : MembershipFragment() {
 
             setContent {
                 val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-                InheritanceKeyTipContent(remainTime) {
-                    viewModel.onContinueClick()
-                }
+                val sharedState by inheritanceViewModel.state.collectAsStateWithLifecycle()
+                InheritanceKeyTipContent(
+                    remainTime = remainTime,
+                    isMiniscriptWallet = sharedState.isMiniscriptWallet,
+                    onContinueClicked = { viewModel.onContinueClick() }
+                )
             }
         }
     }
@@ -89,6 +96,7 @@ class InheritanceKeyTipFragment : MembershipFragment() {
 @Composable
 private fun InheritanceKeyTipContent(
     remainTime: Int = 0,
+    isMiniscriptWallet: Boolean = false,
     onContinueClicked: () -> Unit = {}
 ) {
     NunchukTheme {
@@ -102,6 +110,29 @@ private fun InheritanceKeyTipContent(
                         remainTime
                     ),
                 )
+            },
+            bottomBar = {
+                Column {
+                    if (isMiniscriptWallet) {
+                        NcHintMessage(
+                            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                            messages = listOf(
+                                com.nunchuk.android.core.util.ClickAbleText(
+                                    stringResource(R.string.nc_inheritance_key_hardware_device_hint)
+                                )
+                            )
+                        )
+                    }
+
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = onContinueClicked,
+                    ) {
+                        Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
+                    }
+                }
             }
         ) { innerPadding ->
             Column(
@@ -117,18 +148,13 @@ private fun InheritanceKeyTipContent(
                 )
                 NcHighlightText(
                     modifier = Modifier.padding(16.dp),
-                    text = stringResource(R.string.nc_inheritance_key_tip_desc),
+                    text = if (isMiniscriptWallet) {
+                        stringResource(R.string.nc_inheritance_key_tip_desc_miniscript)
+                    } else {
+                        stringResource(R.string.nc_inheritance_key_tip_desc)
+                    },
                     style = NunchukTheme.typography.body
                 )
-                Spacer(modifier = Modifier.weight(1.0f))
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClicked,
-                ) {
-                    Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
-                }
             }
         }
     }
@@ -138,6 +164,18 @@ private fun InheritanceKeyTipContent(
 @Composable
 private fun InheritanceKeyTipScreenPreview() {
     InheritanceKeyTipContent(
+        remainTime = 5,
+        isMiniscriptWallet = false,
+        onContinueClicked = {}
+    )
+}
 
+@PreviewLightDark
+@Composable
+private fun InheritanceKeyTipScreenMiniscriptPreview() {
+    InheritanceKeyTipContent(
+        remainTime = 5,
+        isMiniscriptWallet = true,
+        onContinueClicked = {}
     )
 }

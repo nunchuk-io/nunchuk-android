@@ -60,6 +60,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcHighlightText
+import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
@@ -84,7 +85,11 @@ class MagicalPhraseIntroFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                MagicalPhraseIntroScreen(viewModel)
+                val sharedState by inheritanceViewModel.state.collectAsStateWithLifecycle()
+                MagicalPhraseIntroScreen(
+                    viewModel = viewModel,
+                    isMiniscriptWallet = sharedState.isMiniscriptWallet
+                )
             }
         }
     }
@@ -97,11 +102,16 @@ class MagicalPhraseIntroFragment : MembershipFragment() {
                 .collect { event ->
                     when (event) {
                         is MagicalPhraseIntroEvent.OnContinueClicked -> {
-                            inheritanceViewModel.setOrUpdate(inheritanceViewModel.setupOrReviewParam.copy(magicalPhrase = event.magicalPhrase))
+                            inheritanceViewModel.setOrUpdate(
+                                inheritanceViewModel.setupOrReviewParam.copy(
+                                    magicalPhrase = event.magicalPhrase
+                                )
+                            )
                             findNavController().navigate(
                                 MagicalPhraseIntroFragmentDirections.actionMagicalPhraseIntroFragmentToFindBackupPasswordFragment()
                             )
                         }
+
                         is MagicalPhraseIntroEvent.Error -> showError(message = event.message)
                         is MagicalPhraseIntroEvent.Loading -> showOrHideLoading(loading = event.loading)
                     }
@@ -111,13 +121,17 @@ class MagicalPhraseIntroFragment : MembershipFragment() {
 }
 
 @Composable
-private fun MagicalPhraseIntroScreen(viewModel: MagicalPhraseIntroViewModel = viewModel()) {
+private fun MagicalPhraseIntroScreen(
+    viewModel: MagicalPhraseIntroViewModel = viewModel(),
+    isMiniscriptWallet: Boolean = false
+) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     MagicalPhraseIntroContent(
         remainTime = remainTime,
         magicalPhrase = state.magicalPhrase.orEmpty(),
-        viewModel::onContinueClicked
+        isMiniscriptWallet = isMiniscriptWallet,
+        onContinueClicked = viewModel::onContinueClicked
     )
 }
 
@@ -125,6 +139,7 @@ private fun MagicalPhraseIntroScreen(viewModel: MagicalPhraseIntroViewModel = vi
 private fun MagicalPhraseIntroContent(
     remainTime: Int = 0,
     magicalPhrase: String = "",
+    isMiniscriptWallet: Boolean = false,
     onContinueClicked: () -> Unit = {},
 ) {
     NunchukTheme {
@@ -141,6 +156,31 @@ private fun MagicalPhraseIntroContent(
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
                     }
                 )
+            },
+            bottomBar = {
+                Column {
+                    if (isMiniscriptWallet) {
+                        NcHintMessage(
+                            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                            messages = listOf(
+                                com.nunchuk.android.core.util.ClickAbleText(
+                                    stringResource(R.string.nc_magical_phrase_required_for_claiming)
+                                )
+                            )
+                        )
+                    }
+
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        enabled = magicalPhrase.isNotEmpty(),
+                        onClick = onContinueClicked,
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_text_continue))
+                    }
+                }
+
             }
         ) { innerPadding ->
             Column(
@@ -187,16 +227,6 @@ private fun MagicalPhraseIntroContent(
                     text = stringResource(R.string.nc_magical_phrase_desc),
                     style = NunchukTheme.typography.body
                 )
-                Spacer(modifier = Modifier.weight(1.0f))
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    enabled = magicalPhrase.isNotEmpty(),
-                    onClick = onContinueClicked,
-                ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
-                }
             }
         }
     }
@@ -208,6 +238,18 @@ private fun MagicalPhraseIntroScreenPreview() {
     MagicalPhraseIntroContent(
         remainTime = 5,
         magicalPhrase = "example-magical-phrase-12345",
+        isMiniscriptWallet = false,
+        onContinueClicked = {}
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun MagicalPhraseIntroScreenMiniscriptPreview() {
+    MagicalPhraseIntroContent(
+        remainTime = 5,
+        magicalPhrase = "example-magical-phrase-12345",
+        isMiniscriptWallet = true,
         onContinueClicked = {}
     )
 }
