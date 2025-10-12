@@ -10,7 +10,6 @@ import com.nunchuk.android.model.SigningPath
 data class PathSelectionResult(
     val signingPath: SigningPath,
     val disabledPaths: Set<List<Int>>,
-    val subNodeFollowParent: Set<List<Int>>,
 )
 
 
@@ -28,7 +27,6 @@ fun updateSigningPathForNode(
 ): PathSelectionResult {
     val currentPaths = currentPath.path.toMutableList()
     val disabledPaths = currentDisabledPaths.toMutableSet()
-    val subNodeFollowParent = mutableSetOf<List<Int>>()
 
     when {
         isSelected -> {
@@ -64,7 +62,6 @@ fun updateSigningPathForNode(
                         if (!currentPaths.contains(childNode.id)) {
                             currentPaths.add(childNode.id)
                         }
-                        subNodeFollowParent.add(childNode.id)
                     }
                 }
 
@@ -142,14 +139,12 @@ fun updateSigningPathForNode(
             if (!currentPaths.contains(childNode.id)) {
                 currentPaths.add(childNode.id)
             }
-            subNodeFollowParent.add(childNode.id)
         }
     }
 
     return PathSelectionResult(
         signingPath = SigningPath(path = currentPaths),
         disabledPaths = disabledPaths,
-        subNodeFollowParent = subNodeFollowParent
     )
 }
 

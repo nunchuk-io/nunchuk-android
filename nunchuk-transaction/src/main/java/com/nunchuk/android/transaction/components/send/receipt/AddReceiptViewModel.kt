@@ -23,6 +23,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.utils.ParseSignerStringUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
+import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.MusigKeyPrefix
 import com.nunchuk.android.core.util.isValueKeySetDisable
@@ -59,6 +60,7 @@ internal class AddReceiptViewModel @Inject constructor(
     private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
     private val parseSignerStringUseCase: ParseSignerStringUseCase,
 ) : NunchukViewModel<AddReceiptState, AddReceiptEvent>() {
+    private val _subNodeFollowParents: MutableSet<List<Int>> = mutableSetOf()
 
     override val initialState = AddReceiptState()
 
@@ -105,26 +107,32 @@ internal class AddReceiptViewModel @Inject constructor(
     }
 
     private suspend fun getMiniscriptInfo(wallet: Wallet) {
+        _subNodeFollowParents.clear()
         getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
             val signers = parseSignersFromScriptNode(result.scriptNode)
             if (wallet.addressType == AddressType.TAPROOT && wallet.walletTemplate != WalletTemplate.DISABLE_KEY_PATH && wallet.totalRequireSigns > 1) {
-                val muSigSignerMap = wallet.signers.take(wallet.totalRequireSigns).mapIndexed { index, signer ->
-                    "$MusigKeyPrefix$index" to singleSignerMapper(signer)
-                }.toMap()
+                val muSigSignerMap =
+                    wallet.signers.take(wallet.totalRequireSigns).mapIndexed { index, signer ->
+                        "$MusigKeyPrefix$index" to singleSignerMapper(signer)
+                    }.toMap()
                 updateState {
                     copy(
+                        subNodeFollowParents = _subNodeFollowParents,
                         scriptNode = result.scriptNode,
                         signers = signers + muSigSignerMap,
                     )
                 }
             } else {
-                updateState { copy(scriptNode = result.scriptNode, signers = signers) }
+                updateState { copy(scriptNode = result.scriptNode, signers = signers, subNodeFollowParents = _subNodeFollowParents,) }
             }
         }
     }
 
     private suspend fun parseSignersFromScriptNode(node: ScriptNode): Map<String, SignerModel> {
         val signerMap = mutableMapOf<String, SignerModel>()
+        if (node.type == ScriptNodeType.AND.name) {
+            _subNodeFollowParents.addAll(node.subs.map { it.id })
+        }
         node.keys.forEach { key ->
             parseSignerStringUseCase(key).getOrNull()?.let {
                 singleSignerMapper(it)

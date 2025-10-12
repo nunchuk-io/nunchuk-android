@@ -57,6 +57,7 @@ import com.nunchuk.android.transaction.R
 @Composable
 fun SelectScriptPathPolicyScreen(
     isSelectingPathEnabled: Boolean,
+    subNodeFollowParents: Set<List<Int>>,
     scriptNode: ScriptNode,
     signers: Map<String, SignerModel>,
     signingPaths: List<Pair<SigningPath, Amount>>,
@@ -65,7 +66,6 @@ fun SelectScriptPathPolicyScreen(
     var selectedIndex by remember { mutableIntStateOf(0) }
     var currentPath by rememberSaveable { mutableStateOf(SigningPath(emptyList())) }
     var disabledPaths by rememberSaveable { mutableStateOf(emptySet<List<Int>>()) }
-    var subNodeFollowParents by rememberSaveable { mutableStateOf(emptySet<List<Int>>()) }
     val isSelectingMode = signingPaths.size > 7 && isSelectingPathEnabled
 
     NunchukTheme {
@@ -224,10 +224,6 @@ fun SelectScriptPathPolicyScreen(
                                         )
                                         currentPath = result.signingPath
                                         disabledPaths = result.disabledPaths
-                                        subNodeFollowParents =
-                                            subNodeFollowParents.toMutableSet().apply {
-                                                addAll(result.subNodeFollowParent)
-                                            }
                                     }
                                 ),
                             )
@@ -299,6 +295,7 @@ private fun WalletConfigViewMiniscriptPreview(
                 Amount(2000)
             )
         ),
-        onContinue = {}
+        onContinue = {},
+        subNodeFollowParents = emptySet()
     )
 }

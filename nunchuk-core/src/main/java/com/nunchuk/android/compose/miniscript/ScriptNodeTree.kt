@@ -1317,7 +1317,7 @@ fun TreeBranchContainer(
             }
     ) {
         content(modifier, showThreadCurve, showDetail)
-        if (data.collapsedNode?.id == node.id) {
+        if (data.collapsedNode?.id == node.id && node.type != ScriptNodeType.PK.name) {
             Row(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -1343,19 +1343,22 @@ fun TreeBranchContainer(
         } else if (data.mode == ScriptMode.SELECTING && node.id.size > 1) {
             if (node.id.size == 2 || data.signingPath.contains(node.id.take(node.id.size - 1))) {
                 val isNodeDisabled = data.isPathDisabled(node.id)
-                NcCheckBox(
-                    modifier = Modifier
-                        .padding(top = if (node.type == ScriptNodeType.PK.name) 16.dp else 0.dp)
-                        .size(24.dp)
-                        .align(Alignment.TopEnd),
-                    checked = data.signingPath.path.contains(node.id),
-                    enabled = !isNodeDisabled && !data.subNodeFollowParents.contains(node.id),
-                    onCheckedChange = { checked ->
-                        if (!isNodeDisabled) {
-                            data.onPathSelectionChange(node.id, checked)
+                val isNodeFollowingParent = data.subNodeFollowParents.contains(node.id)
+                if (!isNodeFollowingParent || data.signingPath.path.contains(node.id)) {
+                    NcCheckBox(
+                        modifier = Modifier
+                            .padding(top = if (node.type == ScriptNodeType.PK.name) 16.dp else 0.dp)
+                            .size(24.dp)
+                            .align(Alignment.TopEnd),
+                        checked = data.signingPath.path.contains(node.id),
+                        enabled = !isNodeDisabled && !data.subNodeFollowParents.contains(node.id),
+                        onCheckedChange = { checked ->
+                            if (!isNodeDisabled) {
+                                data.onPathSelectionChange(node.id, checked)
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }

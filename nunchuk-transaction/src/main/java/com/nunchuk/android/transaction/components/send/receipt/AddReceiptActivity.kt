@@ -81,6 +81,7 @@ import com.nunchuk.android.transaction.components.utils.showCreateTransactionErr
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -126,6 +127,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             var timelockCoin by remember { mutableStateOf<TimelockCoin?>(null) }
             val state by viewModel.state.asFlow()
                 .collectAsStateWithLifecycle(AddReceiptState())
+            Timber.d("CongHai - state.followParents: ${state.subNodeFollowParents}")
 
             LaunchedEffect(Unit) {
                 transactionConfirmViewModel.event.collect {
@@ -267,6 +269,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                             signingPaths = if (route.isSelectingModeEnabled) dummySigningPaths else dummySigningPaths.filter { (path, _) ->
                                 path in selectingPaths
                             },
+                            subNodeFollowParents = state.subNodeFollowParents,
                             onContinue = { signingPaths ->
                                 if (signingPaths.size == 1) {
                                     val signingPath = signingPaths.first()

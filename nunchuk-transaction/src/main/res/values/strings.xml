@@ -43,7 +43,6 @@
     <string name="nc_text_n_a">N/A</string>
     <string name="nc_transaction_view_blockchain">View on blockchain explorer</string>
     <string name="nc_transaction_enter_passphrase">Enter your passphrase</string>
-    <string name="nc_transaction_export_transaction_as_file">Export via file</string>
     <string name="nc_transaction_import_signature_via_file">Import via file</string>
     <string name="nc_transaction_import_signature_via_qr_code">Import signature via QR code</string>
 
