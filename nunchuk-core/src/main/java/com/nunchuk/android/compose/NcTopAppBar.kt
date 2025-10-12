@@ -81,7 +81,8 @@ fun NcTopAppBar(
                 modifier = Modifier
                     .fillMaxWidth(),
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                color = tintColor
             )
         },
         actions = {

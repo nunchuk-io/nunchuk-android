@@ -13,12 +13,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun SelectableContainer(
     modifier: Modifier = Modifier,
     paddingValues: PaddingValues = PaddingValues(16.dp),
+    borderWidth: Dp = 1.dp,
     isSelected: Boolean = false,
     onClick: () -> Unit,
     content: @Composable () -> Unit = { }
@@ -27,7 +29,7 @@ fun SelectableContainer(
         modifier = modifier
             .clickable(enabled = true, onClick = onClick)
             .border(
-                width = 1.dp,
+                width = borderWidth,
                 color = if (isSelected) MaterialTheme.colorScheme.textPrimary else MaterialTheme.colorScheme.strokePrimary,
                 shape = RoundedCornerShape(8.dp)
             )

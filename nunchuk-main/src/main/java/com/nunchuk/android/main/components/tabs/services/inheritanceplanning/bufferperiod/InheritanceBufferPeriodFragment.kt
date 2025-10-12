@@ -23,19 +23,24 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -52,18 +57,16 @@ import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.compose.SelectableContainer
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.model.Period
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class InheritanceBufferPeriodFragment : MembershipFragment() {
@@ -92,7 +95,11 @@ class InheritanceBufferPeriodFragment : MembershipFragment() {
                 is InheritanceBufferPeriodEvent.Loading -> showOrHideLoading(loading = event.isLoading)
                 is InheritanceBufferPeriodEvent.Error -> showError(message = event.message)
                 is InheritanceBufferPeriodEvent.OnContinueClick -> {
-                    inheritanceViewModel.setOrUpdate(inheritanceViewModel.setupOrReviewParam.copy(bufferPeriod = event.period))
+                    inheritanceViewModel.setOrUpdate(
+                        inheritanceViewModel.setupOrReviewParam.copy(
+                            bufferPeriod = event.period
+                        )
+                    )
                     if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
                         setFragmentResult(
                             REQUEST_KEY,
@@ -142,21 +149,36 @@ private fun InheritanceBufferPeriodContent(
     options: List<BufferPeriodOption> = emptyList(),
     onOptionClick: (String) -> Unit = {},
     onContinueClick: () -> Unit = {}
-) = NunchukTheme {
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .statusBarsPadding()
-                .navigationBarsPadding()
-        ) {
-            val isSetupFlow = planFlow == InheritancePlanFlow.SETUP && isUpdateRequest.not()
-            val title = if (isSetupFlow) stringResource(
-                id = R.string.nc_estimate_remain_time,
-                remainTime
-            ) else ""
-            NcTopAppBar(title = title)
+) {
+    val isSetupFlow = planFlow == InheritancePlanFlow.SETUP && isUpdateRequest.not()
+    val title = if (isSetupFlow) stringResource(
+        id = R.string.nc_estimate_remain_time,
+        remainTime
+    ) else ""
+    NunchukTheme {
+        Scaffold(
+            topBar = {
+                NcTopAppBar(title = title)
+            },
+            bottomBar = {
+                val continueBtnText =
+                    if (isSetupFlow) stringResource(id = R.string.nc_text_continue) else stringResource(
+                        id = R.string.nc_update_buffer_period
+                    )
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .navigationBarsPadding()
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    enabled = options.any { it.isSelected },
+                    onClick = onContinueClick,
+                ) {
+                    Text(text = continueBtnText)
+                }
+            }
+        ) { innerPadding ->
             LazyColumn(
-                modifier = Modifier.weight(1F),
+                modifier = Modifier.padding(innerPadding),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -182,20 +204,6 @@ private fun InheritanceBufferPeriodContent(
                     }
                 }
             }
-
-            val continueBtnText =
-                if (isSetupFlow) stringResource(id = R.string.nc_text_continue) else stringResource(
-                    id = R.string.nc_update_buffer_period
-                )
-            NcPrimaryDarkButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                enabled = options.any { it.isSelected },
-                onClick = onContinueClick,
-            ) {
-                Text(text = continueBtnText)
-            }
         }
     }
 }
@@ -209,16 +217,21 @@ private fun OptionItem(
     isRecommended: Boolean,
     onClick: () -> Unit
 ) {
-    Card(
-        modifier = modifier, onClick = onClick,
-        border = BorderStroke(
-            width = 2.dp,
-            color = if (isSelected) colorResource(id = R.color.nc_text_primary) else MaterialTheme.colorScheme.textSecondary
-        ),
-        shape = RoundedCornerShape(12.dp)
+    SelectableContainer(
+        modifier = modifier,
+        paddingValues = PaddingValues(18.dp),
+        borderWidth = 2.dp,
+        isSelected = isSelected,
+        onClick = onClick,
     ) {
-        Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            NcRadioButton(selected = isSelected, onClick = onClick)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            NcRadioButton(
+                modifier = Modifier
+                    .size(24.dp)
+                    .padding(end = 12.dp),
+                selected = isSelected,
+                onClick = onClick
+            )
             Text(text = label, style = NunchukTheme.typography.title)
             if (isRecommended) {
                 NcTag(
@@ -233,10 +246,14 @@ private fun OptionItem(
 @PreviewLightDark
 @Composable
 private fun InheritanceBufferPeriodFragmentContentPreview() {
-    InheritanceBufferPeriodContent(options = listOf(
-        BufferPeriodOption(period = Period(
-            "", "", 3, true, "My Name", true
-        ), false)
-    ))
+    InheritanceBufferPeriodContent(
+        options = listOf(
+            BufferPeriodOption(
+                period = Period(
+                    "", "", 3, true, "My Name", true
+                ), false
+            )
+        )
+    )
 }
 

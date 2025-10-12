@@ -348,12 +348,12 @@ fun InheritanceNotifyPrefScreenContent(
                         .padding(top = 4.dp)
                         .padding(horizontal = 16.dp)
                         .background(
-                            color = if (showError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surface,
+                            color = MaterialTheme.colorScheme.surface,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .border(
                             width = 1.dp,
-                            color = if (showError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.strokePrimary,
+                            color = MaterialTheme.colorScheme.strokePrimary,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .padding(16.dp)
@@ -391,7 +391,7 @@ fun InheritanceNotifyPrefScreenContent(
                             .padding(top = if (emails.isNotEmpty()) 8.dp else 0.dp),
                         decorationBox = { innerTextField ->
                             Box {
-                                if (inputText.isEmpty()) {
+                                if (inputText.isEmpty() && emails.isEmpty()) {
                                     Text(
                                         text = stringResource(R.string.nc_inheritance_notify_pref_hint),
                                         style = NunchukTheme.typography.body.copy(

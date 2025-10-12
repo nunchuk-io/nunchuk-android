@@ -57,6 +57,7 @@ import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceKeyType
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -88,8 +89,12 @@ class FindBackupPasswordFragment : MembershipFragment() {
                                 2
                             )
                         )
-                    } else {
+                    } else if (inheritanceViewModel.getGroupWalletType() == GroupWalletType.THREE_OF_FIVE_INHERITANCE) {
                         findNavController().navigate(FindBackupPasswordFragmentDirections.actionFindBackupPasswordFragmentToInheritanceActivationDateFragment())
+                    } else {
+                        findNavController().navigate(
+                            FindBackupPasswordFragmentDirections.actionFindBackupPasswordFragmentToInheritanceKeyTipFragment()
+                        )
                     }
                 }
             }

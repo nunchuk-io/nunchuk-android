@@ -43,7 +43,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -435,6 +435,7 @@ fun InheritanceReviewPlanScreenContent(
                     Column(
                         modifier = Modifier
                             .background(color = colorResource(id = R.color.nc_primary_light_color))
+                            .padding(bottom = 16.dp)
                             .fillMaxWidth()
                     ) {
                         Text(
@@ -600,7 +601,7 @@ fun InheritanceReviewPlanScreenContent(
                         }
                     }
 
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
                         thickness = 1.dp,
                         color = MaterialTheme.colorScheme.whisper
@@ -648,7 +649,7 @@ fun InheritanceReviewPlanScreenContent(
                         }
                     }
 
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
                         thickness = 1.dp,
                         color = MaterialTheme.colorScheme.whisper
@@ -702,7 +703,7 @@ fun InheritanceReviewPlanScreenContent(
                                     )
                                 }
 
-                                Divider(
+                                HorizontalDivider(
                                     modifier = Modifier.padding(
                                         start = 16.dp,
                                         end = 16.dp,
@@ -830,12 +831,13 @@ fun ActivationDateItem(
     } else {
         TimeZone.getDefault().id.toTimeZoneDetail()
     } ?: TimeZoneDetail()
-    
-    val timeZoneDisplay = if (timeZoneDetail.city.isNotEmpty() && timeZoneDetail.offset.isNotEmpty()) {
-        "${timeZoneDetail.city} (${timeZoneDetail.offset})"
-    } else {
-        timeZoneDetail.id.ifEmpty { TimeZone.getDefault().id }
-    }
+
+    val timeZoneDisplay =
+        if (timeZoneDetail.city.isNotEmpty() && timeZoneDetail.offset.isNotEmpty()) {
+            "${timeZoneDetail.city} (${timeZoneDetail.offset})"
+        } else {
+            timeZoneDetail.id.ifEmpty { TimeZone.getDefault().id }
+        }
 
     Row(
         modifier = Modifier
@@ -872,7 +874,7 @@ fun ActivationDateItem(
                 modifier = Modifier.clickable {
                     onClick()
                 },
-                text = stringResource(id = R.string.nc_edit),
+                text = stringResource(id = R.string.nc_change),
                 color = colorResource(id = R.color.nc_white_color),
                 style = NunchukTheme.typography.title,
                 textDecoration = TextDecoration.Underline,
