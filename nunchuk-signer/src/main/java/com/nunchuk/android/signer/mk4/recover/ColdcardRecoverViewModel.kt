@@ -28,9 +28,11 @@ import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.gson
+import com.nunchuk.android.core.util.isIdentical
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -165,7 +167,7 @@ class ColdcardRecoverViewModel @Inject constructor(
                     _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                     return@launch
                 }
-                if (onChainAddSignerParam != null && signer.masterFingerprint != onChainAddSignerParam.currentSigner?.fingerPrint) {
+                if (onChainAddSignerParam != null && signer.masterFingerprint != onChainAddSignerParam.currentSigner?.fingerPrint && onChainAddSignerParam.keyIndex > 0) {
                     _event.emit(
                         ColdcardRecoverEvent.ShowError(
                             "The added key has an XFP mismatch. Please use the same device for both keys."
@@ -190,9 +192,17 @@ class ColdcardRecoverViewModel @Inject constructor(
                     return@launch
                 }
                 if (membershipStepManager.isKeyExisted(signer.masterFingerprint)) {
-                    _event.emit(ColdcardRecoverEvent.AddSameKey)
-                    _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
-                    return@launch
+                    if (onChainAddSignerParam != null && onChainAddSignerParam.currentSigner != null) {
+                        if (signer.isIdentical(onChainAddSignerParam.currentSigner!!.toSingleSigner()) == true) {
+                            _event.emit(ColdcardRecoverEvent.AddSameKey)
+                            _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
+                            return@launch
+                        }
+                    } else {
+                        _event.emit(ColdcardRecoverEvent.AddSameKey)
+                        _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
+                        return@launch
+                    }
                 }
                 val signerName = if (replacedXfp.isNullOrEmpty()) {
                     COLDCARD_DEFAULT_KEY_NAME + membershipStepManager.getNextKeySuffixByType(
@@ -243,7 +253,8 @@ class ColdcardRecoverViewModel @Inject constructor(
                             groupId = groupId
                         )
                     )
-                    val walletType = syncDraftWalletUseCase(groupId).getOrNull()?.walletType ?: WalletType.MULTI_SIG
+                    val walletType = syncDraftWalletUseCase(groupId).getOrNull()?.walletType
+                        ?: WalletType.MULTI_SIG
                     syncKeyUseCase(
                         SyncKeyUseCase.Param(
                             step = membershipStepManager.currentStep
@@ -323,6 +334,8 @@ sealed class ColdcardRecoverEvent {
     data object NewIndexNotMatchException : ColdcardRecoverEvent()
     data object ErrorMk4TestNet : ColdcardRecoverEvent()
     data class LoadMk4SignersSuccess(val signers: List<SingleSigner>) : ColdcardRecoverEvent()
-    data class CheckExistingKey(val type: ResultExistingKey, val signer: SingleSigner) : ColdcardRecoverEvent()
+    data class CheckExistingKey(val type: ResultExistingKey, val signer: SingleSigner) :
+        ColdcardRecoverEvent()
+
     data object KeyVerifiedSuccess : ColdcardRecoverEvent()
 }

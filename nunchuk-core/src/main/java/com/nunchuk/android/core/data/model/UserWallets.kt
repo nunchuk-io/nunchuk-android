@@ -35,6 +35,16 @@ internal data class CreateServerKeysPayload(
     val walletId: String? = null,
 )
 
+internal data class CreateTimelockPayload(
+    @SerializedName("timelock")
+    val timelock: TimelockPayload
+)
+
+internal data class TimelockPayload(
+    @SerializedName("value")
+    val value: Long
+)
+
 internal data class CreateSecurityQuestionRequest(
     @SerializedName("question")
     val question: String = ""

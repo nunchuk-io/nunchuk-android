@@ -32,8 +32,10 @@ import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.domain.wallet.ParseMk4WalletUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.DEFAULT_COLDCARD_WALLET_NAME
 import com.nunchuk.android.core.util.gson
+import com.nunchuk.android.core.util.isIdentical
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MembershipStepInfo
@@ -45,10 +47,10 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CheckExistingKeyUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
-import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
@@ -144,7 +146,7 @@ class Mk4IntroViewModel @Inject constructor(
                         _event.emit(Mk4IntroViewEvent.Loading(false))
                         return@launch
                     }
-                    if (onChainAddSignerParam != null && signer.masterSignerId != onChainAddSignerParam.currentSigner?.fingerPrint) {
+                    if (onChainAddSignerParam != null && signer.masterFingerprint != onChainAddSignerParam.currentSigner?.fingerPrint && onChainAddSignerParam.keyIndex > 0) {
                         _event.emit(
                             Mk4IntroViewEvent.ShowError(
                                 "The added key has an XFP mismatch. Please use the same device for both keys."
@@ -159,9 +161,17 @@ class Mk4IntroViewModel @Inject constructor(
                         return@launch
                     }
                     if (membershipStepManager.isKeyExisted(signer.masterFingerprint)) {
-                        _event.emit(Mk4IntroViewEvent.OnSignerExistInAssistedWallet)
-                        _event.emit(Mk4IntroViewEvent.Loading(false))
-                        return@launch
+                        if (onChainAddSignerParam != null && onChainAddSignerParam.currentSigner != null) {
+                            if (signer.isIdentical(onChainAddSignerParam.currentSigner!!.toSingleSigner()) == true) {
+                                _event.emit(Mk4IntroViewEvent.OnSignerExistInAssistedWallet)
+                                _event.emit(Mk4IntroViewEvent.Loading(false))
+                                return@launch
+                            }
+                        } else {
+                            _event.emit(Mk4IntroViewEvent.OnSignerExistInAssistedWallet)
+                            _event.emit(Mk4IntroViewEvent.Loading(false))
+                            return@launch
+                        }
                     }
                     val signerName = if (replacedXfp.isNullOrEmpty()) {
                         membershipStepManager.getInheritanceKeyName(false)

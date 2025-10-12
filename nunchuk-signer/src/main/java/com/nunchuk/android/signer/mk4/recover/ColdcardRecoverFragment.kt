@@ -61,6 +61,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.COLDCARD_GUIDE_URL
 import com.nunchuk.android.core.util.ClickAbleText
@@ -181,7 +182,7 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                                                     requireActivity(), 
                                                     BackUpSeedPhraseArgs(
                                                         type = BackUpSeedPhraseType.INTRO,
-                                                        signer = null,
+                                                        signer = event.signer.toModel(),
                                                         groupId = (activity as Mk4Activity).groupId,
                                                         walletId = (activity as Mk4Activity).walletId.orEmpty()
                                                     )

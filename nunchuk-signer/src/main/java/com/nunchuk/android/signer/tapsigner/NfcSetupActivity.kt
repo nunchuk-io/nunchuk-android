@@ -121,6 +121,11 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
     val walletId: String
             by lazy(LazyThreadSafetyMode.NONE) { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
 
+    val onChainAddSignerParam: com.nunchuk.android.core.signer.OnChainAddSignerParam?
+            by lazy(LazyThreadSafetyMode.NONE) { 
+                intent.getParcelableExtra(EXTRA_ONCHAIN_ADD_SIGNER_PARAM)
+            }
+
     var keyId: String = ""
 
     companion object {
@@ -134,6 +139,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
         const val EXTRA_SIGNER_INDEX = "signer_index"
         const val EXTRA_REPLACED_XFP = "replaced_xfp"
         const val EXTRA_WALLET_ID = "wallet_id"
+        private const val EXTRA_ONCHAIN_ADD_SIGNER_PARAM = "onchain_add_signer_param"
 
         /**
          * Setup action
@@ -185,6 +191,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             replacedXfp: String = "",
             walletId: String = "",
             keyId: String = "",
+            onChainAddSignerParam: com.nunchuk.android.core.signer.OnChainAddSignerParam? = null,
         ) = Intent(activity, NfcSetupActivity::class.java).apply {
             putExtra(EXTRA_ACTION, setUpAction)
             putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
@@ -197,6 +204,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             putExtra(EXTRA_REPLACED_XFP, replacedXfp)
             putExtra(EXTRA_WALLET_ID, walletId)
             putExtra(EXTRA_KEY_ID, keyId)
+            putExtra(EXTRA_ONCHAIN_ADD_SIGNER_PARAM, onChainAddSignerParam)
         }
     }
 }

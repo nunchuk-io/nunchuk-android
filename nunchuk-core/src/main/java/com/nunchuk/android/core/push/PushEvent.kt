@@ -29,6 +29,7 @@ sealed class PushEvent {
     data class WalletCreate(val walletId: String, val groupId: String) : PushEvent()
     data class TransactionCancelled(val walletId: String, val transactionId: String) : PushEvent()
     data class DraftResetWallet(val groupId: String) : PushEvent()
+    data class DraftWalletTimelockSet(val groupId: String) : PushEvent()
     data class GroupMembershipRequestCreated(val groupId: String) : PushEvent()
     data class GroupWalletCreated(val walletId: String) : PushEvent()
     data class GroupEmergencyLockdownStarted(val walletId: String) : PushEvent()

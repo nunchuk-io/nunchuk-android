@@ -27,6 +27,7 @@ import com.nunchuk.android.core.data.model.CreateSecurityQuestionRequest
 import com.nunchuk.android.core.data.model.CreateSecurityQuestionResponse
 import com.nunchuk.android.core.data.model.CreateServerKeyResponse
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
+import com.nunchuk.android.core.data.model.CreateTimelockPayload
 import com.nunchuk.android.core.data.model.CreateUpdateInheritancePlanRequest
 import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
 import com.nunchuk.android.core.data.model.EmptyRequest
@@ -447,6 +448,11 @@ internal interface UserWalletsApi {
 
     @DELETE("/v1.1/user-wallets/draft-wallets/current")
     suspend fun deleteDraftWallet(): Data<Unit>
+
+    @PUT("/v1.1/user-wallets/draft-wallets/timelock")
+    suspend fun createDraftWalletTimelock(
+        @Body payload: CreateTimelockPayload
+    ): Data<DraftWalletResponse>
 
     @GET("/v1.1/user-wallets/draft-wallets/request-add-key/{request_id}")
     suspend fun getRequestAddKeyStatus(

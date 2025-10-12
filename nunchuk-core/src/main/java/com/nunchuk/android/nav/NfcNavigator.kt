@@ -22,13 +22,12 @@ package com.nunchuk.android.nav
 import android.app.Activity
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
-import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.portal.PortalDeviceArgs
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.type.SignerTag
-import com.nunchuk.android.type.SignerType
 
 interface NfcNavigator {
     fun openSetupMk4(
@@ -54,6 +53,7 @@ interface NfcNavigator {
         groupId: String = "",
         replacedXfp: String = "",
         walletId: String = "",
+        onChainAddSignerParam: OnChainAddSignerParam? = null,
     )
 
     fun openVerifyBackupTapSigner(

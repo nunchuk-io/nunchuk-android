@@ -17,50 +17,29 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.model
+package com.nunchuk.android.usecase.membership
 
-import com.google.gson.Gson
-import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-private val gson = Gson()
+class CreateTimelockUseCase @Inject constructor(
+    private val premiumWalletRepository: PremiumWalletRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<CreateTimelockUseCase.Param, Unit>(ioDispatcher) {
 
-data class MembershipStepInfo(
-    val id: Long = 0,
-    val step: MembershipStep,
-    val masterSignerId: String = "",
-    val keyIdInServer: String = "",
-    val verifyType: VerifyType = VerifyType.NONE,
-    val extraData: String = "",
-    val plan: MembershipPlan = MembershipPlan.NONE,
-    val groupId: String,
-) {
-    val isVerifyOrAddKey: Boolean
-        get() = verifyType != VerifyType.NONE || masterSignerId.isNotEmpty()
-
-    fun isInheritanceKeyRequireBackup(): Boolean {
-        val signer = runCatching {
-            gson.fromJson(
-                extraData,
-                SignerExtra::class.java
-            )
-        }.getOrNull()
-        return step.isAddInheritanceKey && signer != null && signer.signerType != SignerType.NFC && (verifyType != VerifyType.NONE || signer.userKeyFileName.isNotEmpty())
+    override suspend fun execute(parameters: Param) {
+        return premiumWalletRepository.createDraftWalletTimelock(
+            groupId = parameters.groupId,
+            timelockValue = parameters.timelockValue
+        )
     }
 
-    fun isNFCKey(): Boolean {
-        val signer = runCatching {
-            gson.fromJson(
-                extraData,
-                SignerExtra::class.java
-            )
-        }.getOrNull()
-        return signer?.signerType == SignerType.NFC
-    }
-
-    fun parseTimelockValue(): Long {
-        return runCatching {
-            extraData.toLongOrNull() ?: 0L
-        }.getOrDefault(0L)
-    }
+    data class Param(
+        val groupId: String?,
+        val timelockValue: Long
+    )
 }
 

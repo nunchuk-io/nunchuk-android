@@ -26,11 +26,15 @@ import com.nunchuk.android.core.domain.BaseNfcUseCase
 import com.nunchuk.android.core.domain.GetTapSignerStatusUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TapSignerStatus
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
+import com.nunchuk.android.usecase.signer.GetSignerFromMasterSignerByIndexUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,6 +50,7 @@ class AddTapSignerIntroViewModel @Inject constructor(
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
+    private val getSignerFromMasterSignerByIndexUseCase: GetSignerFromMasterSignerByIndexUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<AddTapSignerIntroEvent>()
     val event = _event.asSharedFlow()
@@ -108,6 +113,26 @@ class AddTapSignerIntroViewModel @Inject constructor(
 
     fun isInAssistedWallet(masterSignerId: String) =
         checkAssistedSignerExistenceHelper.isInAssistedWallet(masterSignerId)
+
+    fun getSignerModel(masterSignerId: String, signerIndex: Int) = viewModelScope.launch {
+        if (masterSignerId.isEmpty()) return@launch
+        getSignerFromMasterSignerByIndexUseCase(
+            GetSignerFromMasterSignerByIndexUseCase.Param(
+                masterSignerId = masterSignerId,
+                index = signerIndex,
+                walletType = WalletType.MULTI_SIG,
+                addressType = AddressType.NATIVE_SEGWIT
+            )
+        ).onSuccess { singleSigner ->
+            singleSigner?.let {
+                _event.emit(AddTapSignerIntroEvent.ReturnSignerModel(it))
+            } ?: run {
+                _event.emit(AddTapSignerIntroEvent.GetTapSignerStatusError(Exception("Signer not found")))
+            }
+        }.onFailure {
+            _event.emit(AddTapSignerIntroEvent.GetTapSignerStatusError(it))
+        }
+    }
 }
 
 sealed class AddTapSignerIntroEvent {
@@ -119,4 +144,5 @@ sealed class AddTapSignerIntroEvent {
     data class GetTapSignerStatusError(val e: Throwable?) : AddTapSignerIntroEvent()
     data object ContinueEventAddTapSigner : AddTapSignerIntroEvent()
     data class GetMasterSignerSuccess(val masterSigner: MasterSigner) : AddTapSignerIntroEvent()
+    data class ReturnSignerModel(val singleSigner: SingleSigner) : AddTapSignerIntroEvent()
 }

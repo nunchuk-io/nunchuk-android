@@ -22,15 +22,14 @@ package com.nunchuk.android.signer.nav
 import android.app.Activity
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
-import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.portal.PortalDeviceArgs
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.nav.NfcNavigator
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.portal.PortalDeviceActivity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
-import com.nunchuk.android.type.SignerType
 
 interface NfcNavigatorDelegate : NfcNavigator {
     override fun openSetupMk4(
@@ -72,7 +71,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
         fromMembershipFlow: Boolean,
         groupId: String,
         replacedXfp: String,
-        walletId: String
+        walletId: String,
+        onChainAddSignerParam: OnChainAddSignerParam?
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
@@ -82,6 +82,7 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 groupId = groupId,
                 replacedXfp = replacedXfp,
                 walletId = walletId,
+                onChainAddSignerParam = onChainAddSignerParam,
             )
         )
     }

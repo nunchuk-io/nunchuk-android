@@ -34,7 +34,6 @@ import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.main.membership.model.AddKeyOnChainData
@@ -145,6 +144,18 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            pushEventManager.event.collect { event ->
+                when (event) {
+                    is PushEvent.DraftWalletTimelockSet -> {
+                        if (event.groupId == args.groupId) {
+                            refresh()
+                        }
+                    }
+                    else -> {}
+                }
+            }
+        }
+        viewModelScope.launch {
             currentStep.filterNotNull().collect {
                 membershipStepManager.setCurrentStep(it)
             }
@@ -191,7 +202,6 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
     private suspend fun updateKeyData() {
         if (key.value.isEmpty()) return
         val signers = _state.value.signers
-        val coldCardMissingBackupKeys = mutableListOf<AddKeyOnChainData>()
         val updatedKeys = key.value.map { addKeyData ->
             var updatedCard = addKeyData
             
@@ -213,21 +223,11 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                     if (signer != null) {
                         updatedCard = updatedCard.updateStep(step, signer, info.verifyType)
                     }
-                    
-                    // Check if Coldcard Inheritance signer is missing backup key
-                    if (step.isAddInheritanceKey && signer?.type != SignerType.NFC) {
-                        if (extra.userKeyFileName.isEmpty()) {
-                            if (!coldCardMissingBackupKeys.contains(updatedCard)) {
-                                coldCardMissingBackupKeys.add(updatedCard)
-                            }
-                        }
-                    }
                 }
             }
             
             updatedCard
         }
-        _state.update { it.copy(missingBackupKeys = coldCardMissingBackupKeys) }
         _keys.value = updatedKeys
     }
 
@@ -381,7 +381,6 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                     return@launch
                 }
 
-                // Use GetUnusedSignerFromMasterSignerV2UseCase to get signer with complete data
                 getUnusedSignerFromMasterSignerV2UseCase(
                     GetUnusedSignerFromMasterSignerV2UseCase.Params(
                         masterSigner,
@@ -389,11 +388,9 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                         AddressType.NATIVE_SEGWIT
                     )
                 ).onSuccess { singleSigner ->
-                    // Process the signer with complete data
                     processTapSignerWithCompleteData(singleSigner, signerModel, data, walletId)
                 }.onFailure { error ->
                     if (error is NCNativeException && error.message.contains("-1009") == true) {
-                        // Store context for TapSigner caching - using index 0 for first account
                         savedStateHandle[KEY_TAPSIGNER_MASTER_ID] = signerModel.fingerPrint
                         savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(0)
                         savedStateHandle[KEY_TAPSIGNER_CONTEXT] = TapSignerCachingContext.ADD_TAPSIGNER_KEY.name
@@ -585,39 +582,6 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
             MembershipStepInfo(step = step, groupId = args.groupId)
         }
 
-    fun getTapSigners() =
-        _state.value.signers.filter { it.type == SignerType.NFC && isSignerExist(it.fingerPrint).not() }
-
-    fun getColdcard() = _state.value.signers.filter {
-        (it.type == SignerType.COLDCARD_NFC
-                && it.derivationPath.isRecommendedMultiSigPath
-                && isSignerExist(it.fingerPrint).not()) || (it.type == SignerType.AIRGAP && it.tags.isEmpty())
-    }
-
-    fun getAirgap(tag: SignerTag?): List<SignerModel> {
-        return if (tag == null) {
-            _state.value.signers.filter {
-                it.type == SignerType.AIRGAP
-                        && isSignerExist(it.fingerPrint).not()
-            }
-        } else {
-            _state.value.signers.filter {
-                it.type == SignerType.AIRGAP
-                        && isSignerExist(it.fingerPrint).not()
-                        && (it.tags.contains(tag) || it.tags.isEmpty())
-            }
-        }
-    }
-
-    fun getHardwareSigners(tag: SignerTag) =
-        _state.value.signers.filter { it.type == SignerType.HARDWARE && it.tags.contains(tag) }
-
-    fun getSoftwareSigners() =
-        _state.value.signers.filter { (it.type == SignerType.SOFTWARE || it.type == SignerType.FOREIGN_SOFTWARE) && isSignerExist(it.fingerPrint).not() }
-
-    fun getPortalSigners() = 
-        _state.value.signers.filter { it.type == SignerType.PORTAL_NFC && isSignerExist(it.fingerPrint).not() }
-
     fun refresh() {
         viewModelScope.launch {
             _state.update { it.copy(isRefreshing = true) }
@@ -685,23 +649,6 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                 false
             }
         }
-    }
-
-    fun isInAssistedWallet(signer: SignerModel): Boolean {
-        return checkAssistedSignerExistenceHelper.isInAssistedWallet(signer)
-    }
-
-    suspend fun isIndex1UsedInAssistedWallet(signer: SignerModel): Boolean {
-        return _state.value.signers
-            .filter { it.fingerPrint == signer.fingerPrint }
-            .any { signerWithSameFingerprint ->
-                try {
-                    val index = getIndexFromPathUseCase(signerWithSameFingerprint.derivationPath).getOrThrow()
-                    index == 1 && checkAssistedSignerExistenceHelper.isInAssistedWallet(signerWithSameFingerprint)
-                } catch (e: Exception) {
-                    false
-                }
-            }
     }
 
     suspend fun getCurrentIndexFromMasterSigner(fingerPrint: String): Result<Int> {
@@ -781,13 +728,13 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                                     handleSignerNewIndex(signer)
                                 } else {
                                     // If signer == null, run handleSignerTypeLogic flow
-                                    _event.emit(OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic(firstSigner))
+                                    _event.emit(OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic(firstSigner.type, firstSigner.tags.firstOrNull()))
                                 }
                             }
 
                             is Result.Error -> {
                                 // If error getting signer, run handleSignerTypeLogic flow
-                                _event.emit(OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic(firstSigner))
+                                _event.emit(OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic(firstSigner.type, firstSigner.tags.firstOrNull()))
                             }
                         }
                     }
@@ -834,7 +781,7 @@ sealed class OnChainTimelockByzantineAddKeyListEvent {
     data class ShowError(val message: String) : OnChainTimelockByzantineAddKeyListEvent()
     data class UpdateSignerTag(val signer: SignerModel) : OnChainTimelockByzantineAddKeyListEvent()
     data class NavigateToCustomKeyAccount(val signer: SignerModel, val walletId: String, val onChainAddSignerParam: OnChainAddSignerParam? = null) : OnChainTimelockByzantineAddKeyListEvent()
-    data class HandleSignerTypeLogic(val signer: SignerModel) : OnChainTimelockByzantineAddKeyListEvent()
+    data class HandleSignerTypeLogic(val type: SignerType, val tag: SignerTag?) : OnChainTimelockByzantineAddKeyListEvent()
 }
 
 data class OnChainTimelockByzantineAddKeyListState(
@@ -844,7 +791,6 @@ data class OnChainTimelockByzantineAddKeyListState(
     val shouldShowKeyAdded: Boolean = false,
     val groupWalletType: GroupWalletType? = null,
     val walletType: WalletType? = null,
-    val missingBackupKeys: List<AddKeyOnChainData> = emptyList(),
     val requestCacheTapSignerXpubEvent: Boolean = false
 )
 

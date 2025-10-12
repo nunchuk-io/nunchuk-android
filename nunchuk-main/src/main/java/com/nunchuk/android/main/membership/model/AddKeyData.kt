@@ -41,43 +41,38 @@ data class AddKeyData(
  */
 data class StepData(
     val signer: SignerModel? = null,
-    val verifyType: VerifyType = VerifyType.NONE
+    val verifyType: VerifyType = VerifyType.NONE,
+    val timelock: Long? = null
 ) {
     val isComplete: Boolean
         get() = signer != null || verifyType != VerifyType.NONE
+
+    fun isTimelockComplete(): Boolean {
+        return timelock != null && timelock > 0
+    }
 }
 
-/**
- * Represents a card that can contain one or more membership steps
- * For MINISCRIPT: Contains 2 steps [timelockStep, regularStep]
- * For MULTI_SIG: Contains 1 step [regularStep]
- */
+
 data class AddKeyOnChainData(
-    val steps: List<MembershipStep>, // Ordered: [timelockStep, regularStep] or [regularStep]
+    val steps: List<MembershipStep>, // Ordered: [timelockStep, regularStep]
     val stepDataMap: Map<MembershipStep, StepData> = emptyMap()
 ) {
-    /**
-     * Gets the primary step for this card (used for display label)
-     * For dual-slot: returns the regular (non-timelock) step
-     * For single-slot: returns the only step
-     */
+
     val type: MembershipStep
         get() = steps.lastOrNull() ?: MembershipStep.ADD_SEVER_KEY
-    
+
     /**
      * Gets the timelock step if this is a dual-slot card
      */
     val timelockType: MembershipStep?
         get() = if (steps.size >= 2) steps.first() else null
-    
+
     /**
-     * Checks if all required steps in this card are complete
+     * Checks if any step in this card has been verified
      */
     val isVerifyOrAddKey: Boolean
-        get() = steps.all { step ->
-            stepDataMap[step]?.isComplete == true
-        }
-    
+        get() = stepDataMap.values.any { it.verifyType == VerifyType.APP_VERIFIED }
+
     /**
      * Gets the next step that needs to be added (timelock first, then regular)
      * @return The next MembershipStep to add, or null if all are complete
@@ -87,7 +82,21 @@ data class AddKeyOnChainData(
             stepDataMap[step]?.isComplete != true
         }
     }
-    
+
+    /**
+     * Gets the next step after the given currentStep
+     * @param currentStep The step that was just completed
+     * @return The next MembershipStep to add, or null if currentStep is the last step
+     */
+    fun getNextStepToAdd(currentStep: MembershipStep): MembershipStep? {
+        val currentIndex = steps.indexOf(currentStep)
+        return if (currentIndex != -1 && currentIndex + 1 < steps.size) {
+            steps[currentIndex + 1]
+        } else {
+            null
+        }
+    }
+
     /**
      * Gets all added signers (for UI display), ordered by step order
      * @return List of signers
@@ -97,47 +106,60 @@ data class AddKeyOnChainData(
             stepDataMap[step]?.signer
         }
     }
-    
+
     /**
      * Gets signer for a specific step
      */
     fun getSignerForStep(step: MembershipStep): SignerModel? {
         return stepDataMap[step]?.signer
     }
-    
+
     /**
      * Gets verify type for a specific step
      */
     fun getVerifyTypeForStep(step: MembershipStep): VerifyType {
         return stepDataMap[step]?.verifyType ?: VerifyType.NONE
     }
-    
+
     /**
      * Updates the data for a specific step
      */
-    fun updateStep(step: MembershipStep, signer: SignerModel?, verifyType: VerifyType): AddKeyOnChainData {
+    fun updateStep(
+        step: MembershipStep,
+        signer: SignerModel?,
+        verifyType: VerifyType,
+        timelock: Long? = null
+    ): AddKeyOnChainData {
         val updatedMap = stepDataMap.toMutableMap()
-        updatedMap[step] = StepData(signer, verifyType)
+        updatedMap[step] = StepData(signer, verifyType, timelock)
         return copy(stepDataMap = updatedMap)
     }
-    
+
     /**
      * Checks if this is a dual-slot card
      */
     val hasDualSlots: Boolean
         get() = steps.size >= 2
-    
+
     /**
      * Legacy support: Gets all signers as a list (for old code compatibility)
      */
     val signers: List<SignerModel>?
         get() = getAllSigners().takeIf { it.isNotEmpty() }
-    
+
     /**
      * Legacy support: Gets overall verify type (returns APP_VERIFIED if all steps complete)
      */
     val verifyType: VerifyType
         get() = if (isVerifyOrAddKey) VerifyType.APP_VERIFIED else VerifyType.NONE
+
+    /**
+     * Checks whether to show the acctX badge for this card
+     * Badge should not be shown for ADD_SEVER_KEY or TIMELOCK steps
+     */
+    fun shouldShowAcctXBadge(): Boolean {
+        return type != MembershipStep.ADD_SEVER_KEY && type != MembershipStep.TIMELOCK
+    }
 }
 
 /**
@@ -168,10 +190,10 @@ fun List<MembershipStep>.toAddKeyOnChainDataList(): List<AddKeyOnChainData> {
     // For MINISCRIPT, pair regular steps with their timelock counterparts
     val result = mutableListOf<AddKeyOnChainData>()
     val processedSteps = mutableSetOf<MembershipStep>()
-    
+
     forEach { step ->
         if (processedSteps.contains(step)) return@forEach
-        
+
         val timelockStep = step.getTimelockStep()
         if (timelockStep != null) {
             // This is a regular step that has a timelock pair
@@ -204,7 +226,7 @@ fun List<MembershipStep>.toAddKeyOnChainDataList(): List<AddKeyOnChainData> {
             processedSteps.add(step)
         }
     }
-    
+
     return result
 }
 
@@ -254,7 +276,7 @@ fun MembershipStep.getLabel(context: Context, isStandard: Boolean): String {
 
 fun MembershipStep.getButtonText(context: Context): String {
     return when (this) {
-        MembershipStep.ADD_SEVER_KEY -> context.getString(R.string.nc_configure)
+        MembershipStep.ADD_SEVER_KEY, MembershipStep.TIMELOCK -> context.getString(R.string.nc_configure)
         else -> context.getString(R.string.nc_add)
     }
 }

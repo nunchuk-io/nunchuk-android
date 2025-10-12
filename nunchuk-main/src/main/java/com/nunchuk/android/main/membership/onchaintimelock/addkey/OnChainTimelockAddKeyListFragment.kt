@@ -58,6 +58,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -87,6 +88,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
+import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
@@ -108,10 +110,12 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.nav.args.AddAirSignerArgs
+import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
@@ -134,6 +138,20 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             if (result.resultCode == Activity.RESULT_OK && data != null) {
                 data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let {
                     viewModel.onSelectedExistingHardwareSigner(it)
+                }
+            }
+        }
+
+    private val addTapSignerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)?.let { signerModel ->
+                    viewModel.addExistingTapSignerKey(
+                        signerModel,
+                        currentKeyData,
+                        (activity as MembershipActivity).walletId
+                    )
                 }
             }
         }
@@ -202,6 +220,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         }
                     }
                 }
+            } else {
+                handleSignerTypeLogic(data.type, null)
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
         }
@@ -301,10 +321,15 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             when (event) {
                 is AddKeyListEvent.OnAddKey -> handleOnAddKey(event.data)
                 is AddKeyListEvent.OnVerifySigner -> {
-                    if (event.signer.type == SignerType.NFC) {
-                        openVerifyTapSigner(event)
-                    } else {
-                    }
+                    navigator.openBackUpSeedPhraseActivity(
+                        requireActivity(),
+                        BackUpSeedPhraseArgs(
+                            type = BackUpSeedPhraseType.INTRO,
+                            signer = event.signer,
+                            groupId = (activity as MembershipActivity).groupId,
+                            walletId = (activity as MembershipActivity).walletId
+                        )
+                    )
                 }
 
                 AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
@@ -324,7 +349,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 }
 
                 is AddKeyListEvent.HandleSignerTypeLogic -> {
-                    handleSignerTypeLogic(event.signer)
+                    handleSignerTypeLogic(event.type, event.tag)
                 }
             }
         }
@@ -405,8 +430,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         }
     }
 
-    private fun handleSignerTypeLogic(firstSigner: SignerModel) {
-        when (firstSigner.type) {
+    private fun handleSignerTypeLogic(type: SignerType, tag: SignerTag?) {
+        when (type) {
             SignerType.NFC -> openSetupTapSigner()
 
             SignerType.PORTAL_NFC -> openSetupPortal()
@@ -417,7 +442,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             }
 
             SignerType.AIRGAP -> {
-                val tag = firstSigner.tags.firstOrNull()
                 selectedSignerTag = tag
                 if (selectedSignerTag == SignerTag.COLDCARD) {
                     openSetupColdCard()
@@ -427,7 +451,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             }
 
             SignerType.HARDWARE -> {
-                val tag = firstSigner.tags.firstOrNull()
                 selectedSignerTag = tag
                 when (tag) {
                     SignerTag.LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
@@ -441,16 +464,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
 
             else -> {}
         }
-    }
-
-    private fun openVerifyTapSigner(event: AddKeyListEvent.OnVerifySigner) {
-        navigator.openVerifyBackupTapSigner(
-            activity = requireActivity(),
-            fromMembershipFlow = true,
-            backUpFilePath = event.filePath,
-            masterSignerId = event.signer.id,
-            walletId = (activity as MembershipActivity).walletId,
-        )
     }
 
     private fun openSetupColdCard() {
@@ -470,9 +483,19 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
     }
 
     private fun openSetupTapSigner() {
-        navigator.openSetupTapSigner(
-            activity = requireActivity(),
-            fromMembershipFlow = true,
+        addTapSignerLauncher.launch(
+            NfcSetupActivity.buildIntent(
+                activity = requireActivity(),
+                setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
+                fromMembershipFlow = true,
+                groupId = (activity as MembershipActivity).groupId,
+                walletId = (activity as MembershipActivity).walletId,
+                onChainAddSignerParam = OnChainAddSignerParam(
+                    flags = if (currentKeyData?.type?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
+                    keyIndex = currentKeyData?.signers?.size ?: 0,
+                    currentSigner = currentKeyData?.signers?.firstOrNull()
+                )
+            )
         )
     }
 
@@ -507,8 +530,8 @@ fun AddKeyListScreen(
         onMoreClicked = onMoreClicked,
         refresh = viewModel::refresh,
         isRefreshing = uiState.isRefresh,
-        missingBackupKeys = uiState.missingBackupKeys,
-        onConfigTimelockClicked = onConfigTimelockClicked
+        onConfigTimelockClicked = onConfigTimelockClicked,
+        onChangeTimelockClicked = onConfigTimelockClicked
     )
 }
 
@@ -520,10 +543,10 @@ fun OnChainTimelockAddKeyListContent(
     onMoreClicked: () -> Unit = {},
     onConfigTimelockClicked: (data: AddKeyOnChainData) -> Unit = {},
     keys: List<AddKeyOnChainData> = emptyList(),
-    missingBackupKeys: List<AddKeyOnChainData> = emptyList(),
     onVerifyClicked: (data: AddKeyOnChainData) -> Unit = {},
     onAddClicked: (data: AddKeyOnChainData) -> Unit = {},
     refresh: () -> Unit = { },
+    onChangeTimelockClicked: (data: AddKeyOnChainData) -> Unit = {}
 ) {
     val state = rememberPullRefreshState(isRefreshing, refresh)
 
@@ -549,7 +572,11 @@ fun OnChainTimelockAddKeyListContent(
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = onContinueClicked,
-                    enabled = keys.all { it.isVerifyOrAddKey } && missingBackupKeys.isEmpty()
+                    enabled = keys.filter { it.type.isAddInheritanceKey }.all { data ->
+                        data.steps.all { step ->
+                            data.stepDataMap[step]?.isComplete == true
+                        }
+                    }
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
                 }
@@ -583,8 +610,6 @@ fun OnChainTimelockAddKeyListContent(
                                 append(
                                     ", spending requires two signatures from a 2-of-4 multisig:"
                                 )
-
-                                append("\n\n")
                             },
                             style = NunchukTheme.typography.body
                         )
@@ -595,16 +620,17 @@ fun OnChainTimelockAddKeyListContent(
                             item = key,
                             onAddClicked = onAddClicked,
                             onVerifyClicked = onVerifyClicked,
-                            isMissingBackup = missingBackupKeys.contains(key) && key.signers?.any { it.type != SignerType.NFC } == true
+                            onChangeTimelockClicked = onChangeTimelockClicked
                         )
                     }
                     item {
                         Text(
                             modifier = Modifier
-                                .padding(top = 16.dp, bottom = 4.dp)
+                                .padding(top = 12.dp)
                                 .fillMaxWidth(),
                             text = "Pull to refresh the key statuses.",
                             style = NunchukTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center
                         )
                     }
 
@@ -621,8 +647,6 @@ fun OnChainTimelockAddKeyListContent(
                                     append(
                                         ", spending only requires one signature from a 1-of-3 multisig. The keyset remains the same, minus the Platform key."
                                     )
-
-                                    append("\n\n")
                                 },
                                 style = NunchukTheme.typography.body
                             )
@@ -633,7 +657,7 @@ fun OnChainTimelockAddKeyListContent(
                                         onConfigTimelockClicked(it)
                                     },
                                     onVerifyClicked = onVerifyClicked,
-                                    isMissingBackup = missingBackupKeys.contains(timelockKey) && timelockKey.signers?.any { it.type != SignerType.NFC } == true
+                                    onChangeTimelockClicked = onChangeTimelockClicked
                                 )
                             }
                         }
@@ -650,11 +674,11 @@ fun OnChainTimelockAddKeyListContent(
 private fun AddKeyCard(
     item: AddKeyOnChainData,
     modifier: Modifier = Modifier,
-    isMissingBackup: Boolean = false,
     onAddClicked: (data: AddKeyOnChainData) -> Unit = {},
     onVerifyClicked: (data: AddKeyOnChainData) -> Unit = {},
     isDisabled: Boolean = false,
-    isStandard: Boolean = false
+    isStandard: Boolean = false,
+    onChangeTimelockClicked: (data: AddKeyOnChainData) -> Unit = {}
 ) {
     ConstraintLayout(
         modifier = Modifier
@@ -788,11 +812,7 @@ private fun AddKeyCard(
                                         modifier = Modifier.height(36.dp),
                                         onClick = { onVerifyClicked(item) },
                                     ) {
-                                        Text(
-                                            text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
-                                                R.string.nc_upload_backup
-                                            )
-                                        )
+                                        Text(text = stringResource(R.string.nc_verify_backup))
                                     }
                                 }
                             } else {
@@ -820,7 +840,7 @@ private fun AddKeyCard(
                             ),
                         contentAlignment = Alignment.Center,
                     ) {
-                        ConfigItem(item, isDisabled = isDisabled)
+                        ConfigItem(item, isDisabled = isDisabled, onChangeTimelockClicked = onChangeTimelockClicked)
                     }
                 } else {
                     NcDashLineBox(modifier = modifier) {
@@ -828,7 +848,8 @@ private fun AddKeyCard(
                             item = item,
                             onAddClicked = onAddClicked,
                             isDisabled = isDisabled,
-                            isStandard = isStandard
+                            isStandard = isStandard,
+                            onChangeTimelockClicked = onChangeTimelockClicked
                         )
                     }
                 }
@@ -854,9 +875,15 @@ private fun ConfigItem(
     item: AddKeyOnChainData,
     onAddClicked: ((data: AddKeyOnChainData) -> Unit)? = null,
     isDisabled: Boolean = false,
-    isStandard: Boolean = false
+    isStandard: Boolean = false,
+    onChangeTimelockClicked: (data: AddKeyOnChainData) -> Unit = {}
 ) {
     val signers = item.signers ?: emptyList()
+    
+    // Check if this is a TIMELOCK step with timelock data configured
+    val isTimelockWithData = item.type == MembershipStep.TIMELOCK && 
+                             item.stepDataMap[MembershipStep.TIMELOCK]?.timelock != null
+    
     Row(
         modifier = Modifier.padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -871,7 +898,7 @@ private fun ConfigItem(
                 text = item.type.getLabel(context = LocalContext.current, isStandard = isStandard),
                 style = NunchukTheme.typography.body
             )
-            if (item.type != MembershipStep.ADD_SEVER_KEY) {
+            if (item.shouldShowAcctXBadge()) {
                 Row(modifier = Modifier.padding(top = 4.dp)) {
                     val firstAcctLabel = signers.firstOrNull()?.let { firstSigner ->
                         if (firstSigner.isShowAcctX(true)) {
@@ -914,6 +941,18 @@ private fun ConfigItem(
             ) {
                 Text(
                     text = item.type.getButtonText(LocalContext.current),
+                    style = NunchukTheme.typography.caption,
+                )
+            }
+        } else if (isTimelockWithData) {
+            // Show "Change" button for configured timelock
+            NcOutlineButton(
+                modifier = Modifier.height(36.dp),
+                enabled = isDisabled.not(),
+                onClick = { onChangeTimelockClicked(item) },
+            ) {
+                Text(
+                    text = "Change",
                     style = NunchukTheme.typography.caption,
                 )
             }

@@ -40,6 +40,7 @@ data class SignerServerDto(
     @SerializedName("user_key") val userKey: KeyResponse? = null,
     @SerializedName("key_index") val index: Int = 0,
     @SerializedName("is_visible") val isVisible: Boolean = true,
+    @SerializedName("verification_type") val verificationType: String? = null,
 )
 
 internal fun SignerServerDto.toModel(): SignerServer {

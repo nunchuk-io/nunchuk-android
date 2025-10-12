@@ -77,6 +77,16 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun createDraftWalletTimelock(groupId: String, timelockValue: Long) {
+        val payload = com.nunchuk.android.core.data.model.CreateTimelockPayload(
+            timelock = com.nunchuk.android.core.data.model.TimelockPayload(value = timelockValue)
+        )
+        val response = userWalletApiManager.groupWalletApi.createGroupDraftWalletTimelock(groupId, payload)
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
     private suspend fun deletePersonalSteps() {
         val chatId = accountManager.getAccount().chatId
         membershipStepDao.deleteStepByChatId(chain.value, chatId)
@@ -115,7 +125,6 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 )
             } else {
                 val step = if (walletType == WalletType.MINISCRIPT) {
-                    // MINISCRIPT index mapping
                     when (key.index) {
                         0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_INHERITANCE_KEY else MembershipStep.IRON_ADD_HARDWARE_KEY_1
                         1 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK else throw IllegalArgumentException("Iron Hand doesn't support timelock at index 1")
@@ -126,7 +135,6 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                         else -> throw IllegalArgumentException("Unexpected index ${key.index} for MINISCRIPT")
                     }
                 } else {
-                    // MULTI_SIG index mapping (original logic)
                     when (key.index) {
                         0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_INHERITANCE_KEY else MembershipStep.IRON_ADD_HARDWARE_KEY_1
                         1 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_HARDWARE_KEY_1 else MembershipStep.IRON_ADD_HARDWARE_KEY_2
@@ -134,7 +142,9 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                         else -> throw IllegalArgumentException("Unexpected index ${key.index} for MULTI_SIG")
                     }
                 }
-                val verifyType =
+                val verifyType = if (walletType == WalletType.MINISCRIPT) {
+                    key.verificationType.toVerifyType()
+                } else {
                     if (signerType == SignerType.NFC) {
                         key.userKey?.verificationType.toVerifyType()
                     } else {
@@ -144,6 +154,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                             VerifyType.APP_VERIFIED
                         }
                     }
+                }
                 membershipRepository.saveStepInfo(
                     MembershipStepInfo(
                         step = step,
@@ -167,6 +178,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             membershipRepository.saveStepInfo(
                 MembershipStepInfo(
                     step = MembershipStep.TIMELOCK,
+                    verifyType = VerifyType.APP_VERIFIED,
                     extraData = timelock.value.toString(),
                     plan = plan,
                     groupId = groupId
@@ -220,7 +232,6 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 }
             } else {
                 val step = if (walletType == WalletType.MINISCRIPT) {
-                    // MINISCRIPT index mapping
                     when (key.index) {
                         0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
                         1 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK
@@ -247,7 +258,6 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                         else -> throw IllegalArgumentException("Unexpected index ${key.index} for MINISCRIPT")
                     }
                 } else {
-                    // MULTI_SIG index mapping (original logic)
                     when (key.index) {
                         0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
                         1 -> if (draftWallet.walletConfig?.n == GroupWalletType.THREE_OF_FIVE_INHERITANCE.n && draftWallet.walletConfig.allowInheritance) MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
@@ -258,7 +268,9 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                     }
                 }
                 val info = membershipStepDao.getStep(chatId, chain.value, step, groupId)
-                val verifyType =
+                val verifyType = if (walletType == WalletType.MINISCRIPT) {
+                    key.verificationType.toVerifyType()
+                } else {
                     if (signerType == SignerType.NFC) {
                         key.userKey?.verificationType.toVerifyType()
                     } else {
@@ -268,6 +280,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                             VerifyType.APP_VERIFIED
                         }
                     }
+                }
                 if (info == null || info.masterSignerId != key.xfp || info.verifyType != verifyType) {
                     membershipRepository.saveStepInfo(
                         MembershipStepInfo(
@@ -294,6 +307,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             membershipRepository.saveStepInfo(
                 MembershipStepInfo(
                     step = MembershipStep.TIMELOCK,
+                    verifyType = VerifyType.APP_VERIFIED,
                     extraData = timelock.value.toString(),
                     plan = MembershipPlan.BYZANTINE,
                     groupId = groupId

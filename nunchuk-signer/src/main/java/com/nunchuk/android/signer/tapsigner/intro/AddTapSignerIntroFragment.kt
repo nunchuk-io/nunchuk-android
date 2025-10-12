@@ -57,6 +57,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
@@ -115,11 +116,20 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
     override fun onBackUpFileReady(path: String) {
         nameNfcViewModel.getMasterSigner()?.let { signer ->
             nfcViewModel.updateMasterSigner(signer)
-            findNavController().navigate(
-                AddTapSignerIntroFragmentDirections.actionAddTapSignerIntroFragmentToUploadBackUpTapSignerFragment(
-                    path, signer.id
+            
+            // Check if this is from OnChain flow with onChainAddSignerParam
+            val onChainAddSignerParam = (activity as NfcSetupActivity).onChainAddSignerParam
+            if (onChainAddSignerParam != null) {
+                // Return the signer to OnChainTimelockAddKeyListFragment
+                viewModel.getSignerModel(signer.id, (activity as NfcSetupActivity).signerIndex)
+            } else {
+                // Normal flow: navigate to upload backup
+                findNavController().navigate(
+                    AddTapSignerIntroFragmentDirections.actionAddTapSignerIntroFragmentToUploadBackUpTapSignerFragment(
+                        path, signer.id
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -199,6 +209,17 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                         name = it.masterSigner.name,
                         type = it.masterSigner.type,
                         justAdded = true
+                    )
+                    requireActivity().finish()
+                }
+
+                is AddTapSignerIntroEvent.ReturnSignerModel -> {
+                    val signerModel = it.singleSigner.toModel()
+                    requireActivity().setResult(
+                        android.app.Activity.RESULT_OK,
+                        android.content.Intent().apply {
+                            putExtra(com.nunchuk.android.share.result.GlobalResultKey.EXTRA_SIGNER, signerModel)
+                        }
                     )
                     requireActivity().finish()
                 }

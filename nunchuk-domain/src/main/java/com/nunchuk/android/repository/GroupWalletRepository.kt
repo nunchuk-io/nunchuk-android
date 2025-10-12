@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface GroupWalletRepository {
     suspend fun syncDraftWallet(groupId: String): DraftWallet
+    suspend fun createDraftWalletTimelock(groupId: String, timelockValue: Long)
     fun getWalletHealthStatus(groupId: String, walletId: String): Flow<List<KeyHealthStatus>>
     suspend fun getWalletHealthStatusRemote(groupId: String, walletId: String): List<KeyHealthStatus>
     suspend fun requestHealthCheck(groupId: String, walletId: String, xfp: String)

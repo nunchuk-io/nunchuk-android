@@ -72,6 +72,7 @@ class BackUpSeedPhraseActivity : BaseComposeActivity() {
 
                         backUpSeedPhraseVerifySuccessDestination(
                             onContinue = {
+                                navigator.returnMembershipScreen()
                             }
                         )
                     }

@@ -33,8 +33,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcDatePickerDialog
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
@@ -48,6 +52,7 @@ import com.nunchuk.android.core.ui.toTimeZoneDetail
 import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
@@ -55,6 +60,7 @@ import java.util.TimeZone
 @AndroidEntryPoint
 class OnChainSetUpTimelockFragment : MembershipFragment(), BottomSheetOptionListener {
     private val viewModel: OnChainSetUpTimelockViewModel by viewModels()
+    private val args: OnChainSetUpTimelockFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -63,7 +69,29 @@ class OnChainSetUpTimelockFragment : MembershipFragment(), BottomSheetOptionList
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                OnChainSetUpTimelockScreen(viewModel)
+                OnChainSetUpTimelockScreen(viewModel, args.groupId)
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        observeEvent()
+    }
+
+    private fun observeEvent() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.event.collect { event ->
+                    when (event) {
+                        is OnChainSetUpTimelockEvent.Success -> {
+                            requireActivity().onBackPressedDispatcher.onBackPressed()
+                        }
+                        is OnChainSetUpTimelockEvent.Error -> {
+//                            NCToastMessage(requireContext()).showError(event.message)
+                        }
+                    }
+                }
             }
         }
     }
@@ -72,14 +100,16 @@ class OnChainSetUpTimelockFragment : MembershipFragment(), BottomSheetOptionList
 @Composable
 private fun OnChainSetUpTimelockScreen(
     viewModel: OnChainSetUpTimelockViewModel = viewModel(),
+    groupId: String? = null,
     onMoreClicked: () -> Unit = {},
-    onContinue: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     
     OnChainSetUpTimelockContent(
         onMoreClicked = onMoreClicked,
-        onContinueClicked = onContinue,
+        onContinueClicked = { selectedDate, selectedTimeZone ->
+            viewModel.onContinueClick(selectedDate, selectedTimeZone, groupId = groupId)
+        },
         remainTime = remainTime
     )
 }
@@ -88,7 +118,7 @@ private fun OnChainSetUpTimelockScreen(
 private fun OnChainSetUpTimelockContent(
     remainTime: Int = 0,
     onMoreClicked: () -> Unit = {},
-    onContinueClicked: () -> Unit = {},
+    onContinueClicked: (Calendar, TimeZoneDetail) -> Unit = { _, _ -> },
 ) {
     // Local state management
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
@@ -248,7 +278,9 @@ private fun OnChainSetUpTimelockContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    onClick = onContinueClicked,
+                    onClick = {
+                        onContinueClicked(selectedDate, selectedTimeZone)
+                    },
                 ) {
                     Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
                 }
@@ -263,6 +295,6 @@ private fun OnChainSetUpTimelockScreenPreview() {
     OnChainSetUpTimelockContent(
         remainTime = 0,
         onMoreClicked = {},
-        onContinueClicked = {}
+        onContinueClicked = { _, _ -> }
     )
 }

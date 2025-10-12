@@ -28,6 +28,7 @@ import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSigner
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.CardIdManager
+import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -119,6 +120,31 @@ class TapSignerIdViewModel @Inject constructor(
     }
 
 
+    fun getSignerForOnChain(isoDep: IsoDep, cvc: String, index: Int) {
+        viewModelScope.launch {
+            _event.emit(TapSignerIdEvent.NfcLoading(true))
+            getSignerFromTapsignerMasterSignerUseCase(
+                GetSignerFromTapsignerMasterSignerUseCase.Data(
+                    isoDep = isoDep,
+                    cvc = cvc,
+                    masterSignerId = args.masterSignerId,
+                    index = index,
+                    walletType = WalletType.MULTI_SIG
+                )
+            ).onSuccess { singleSigner ->
+                _event.emit(TapSignerIdEvent.NfcLoading(false))
+                singleSigner?.let {
+                    _event.emit(TapSignerIdEvent.ReturnSignerModel(it))
+                } ?: run {
+                    _event.emit(TapSignerIdEvent.GetTapSignerBackupKeyError(Exception("Signer not found")))
+                }
+            }.onFailure { error ->
+                _event.emit(TapSignerIdEvent.NfcLoading(false))
+                _event.emit(TapSignerIdEvent.GetTapSignerBackupKeyError(error))
+            }
+        }
+    }
+
     fun onContinueClicked() {
         viewModelScope.launch {
             _event.emit(TapSignerIdEvent.OnContinueClicked)
@@ -141,4 +167,5 @@ sealed class TapSignerIdEvent {
     data class NfcLoading(val isLoading: Boolean) : TapSignerIdEvent()
     data class GetTapSignerBackupKeyEvent(val filePath: String) : TapSignerIdEvent()
     data class GetTapSignerBackupKeyError(val e: Throwable?) : TapSignerIdEvent()
+    data class ReturnSignerModel(val singleSigner: SingleSigner) : TapSignerIdEvent()
 }

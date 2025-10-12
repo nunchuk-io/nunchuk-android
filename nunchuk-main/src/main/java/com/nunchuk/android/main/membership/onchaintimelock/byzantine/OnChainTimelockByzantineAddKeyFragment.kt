@@ -89,7 +89,6 @@ import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.isAirgapTag
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
@@ -117,6 +116,7 @@ import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
@@ -143,6 +143,20 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
             if (result.resultCode == Activity.RESULT_OK && data != null) {
                 data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let {
                     viewModel.handleSignerNewIndex(it)
+                }
+            }
+        }
+
+    private val addTapSignerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val data = result.data
+            if (result.resultCode == Activity.RESULT_OK && data != null) {
+                data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)?.let { signerModel ->
+                    viewModel.addExistingTapSignerKey(
+                        signerModel,
+                        currentKeyData,
+                        (activity as MembershipActivity).walletId
+                    )
                 }
             }
         }
@@ -200,23 +214,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                             groupId = args.groupId,
                             walletId = (activity as MembershipActivity).walletId,
                         )
-                    )
-                    SignerType.AIRGAP -> {
-                        val hasTag = signer.tags.any { it.isAirgapTag || it == SignerTag.COLDCARD }
-                        val selectedSignerTag = selectedSignerTag
-                        if (hasTag || selectedSignerTag == null) {
-                            findNavController().navigate(
-                                OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToCustomKeyAccountFragmentFragment(
-                                    signer,
-                                    groupId = args.groupId,
-                                    walletId = (activity as MembershipActivity).walletId,
-                                )
-                            )
-                        } else {
-                            viewModel.onUpdateSignerTag(signer, selectedSignerTag)
-                        }
-                    }
-                    else -> {
+                    )else -> {
                         val selectedSignerTag = selectedSignerTag
                         if (signer.type == SignerType.AIRGAP && signer.tags.isEmpty() && selectedSignerTag != null) {
                             viewModel.onUpdateSignerTag(signer, selectedSignerTag)
@@ -418,7 +416,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     )
                 }
                 is OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic -> {
-                    handleSignerTypeLogic(event.signer)
+                    handleSignerTypeLogic(event.type, event.tag)
                 }
             }
         }
@@ -508,14 +506,13 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
         }
     }
 
-    private fun handleSignerTypeLogic(firstSigner: SignerModel) {
-        when (firstSigner.type) {
+    private fun handleSignerTypeLogic(type: SignerType, tag: SignerTag?) {
+        when (type) {
             SignerType.NFC -> openSetupTapSigner()
             
             SignerType.PORTAL_NFC -> openSetupPortal()
 
             SignerType.AIRGAP -> {
-                val tag = firstSigner.tags.firstOrNull()
                 selectedSignerTag = tag
                 if (selectedSignerTag == SignerTag.COLDCARD) {
                     openSetupColdCard()
@@ -525,7 +522,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
             }
 
             SignerType.HARDWARE -> {
-                val tag = firstSigner.tags.firstOrNull()
                 selectedSignerTag = tag
                 when (tag) {
                     SignerTag.LEDGER -> openRequestAddDesktopKey(SignerTag.LEDGER)
@@ -587,10 +583,20 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
     }
 
     private fun openSetupTapSigner() {
-        navigator.openSetupTapSigner(
-            activity = requireActivity(),
-            fromMembershipFlow = true,
-            groupId = args.groupId,
+        val nextStep = currentKeyData?.getNextStepToAdd() ?: currentKeyData?.type
+        addTapSignerLauncher.launch(
+            NfcSetupActivity.buildIntent(
+                activity = requireActivity(),
+                setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
+                fromMembershipFlow = true,
+                groupId = args.groupId,
+                walletId = (activity as MembershipActivity).walletId,
+                onChainAddSignerParam = OnChainAddSignerParam(
+                    flags = if (nextStep?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
+                    keyIndex = currentKeyData?.getAllSigners()?.size ?: 0,
+                    currentSigner = currentKeyData?.getAllSigners()?.firstOrNull()
+                )
+            )
         )
     }
 
@@ -634,7 +640,6 @@ fun OnChainTimelockByzantineAddKeyListScreen(
         onMoreClicked = onMoreClicked,
         refresh = viewModel::refresh,
         isRefreshing = state.isRefreshing,
-        missingBackupKeys = state.missingBackupKeys,
         isAddOnly = isAddOnly,
     )
 }
@@ -646,7 +651,6 @@ fun OnChainTimelockByzantineAddKeyListContent(
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
     keys: List<AddKeyOnChainData> = emptyList(),
-    missingBackupKeys: List<AddKeyOnChainData> = emptyList(),
     onVerifyClicked: (data: AddKeyOnChainData) -> Unit = {},
     onAddClicked: (data: AddKeyOnChainData) -> Unit = {},
     refresh: () -> Unit = { },
@@ -677,7 +681,11 @@ fun OnChainTimelockByzantineAddKeyListContent(
                             .fillMaxWidth()
                             .padding(16.dp),
                         onClick = onContinueClicked,
-                        enabled = keys.all { it.isVerifyOrAddKey } && missingBackupKeys.isEmpty()
+                        enabled = keys.filter { it.type.isAddInheritanceKey }.all { data ->
+                            data.steps.all { step ->
+                                data.stepDataMap[step]?.isComplete == true
+                            }
+                        }
                     ) {
                         Text(text = stringResource(id = R.string.nc_text_continue))
                     }
@@ -721,8 +729,7 @@ fun OnChainTimelockByzantineAddKeyListContent(
                         AddKeyCard(
                             item = key,
                             onAddClicked = onAddClicked,
-                            onVerifyClicked = onVerifyClicked,
-                            isMissingBackup = missingBackupKeys.contains(key) && key.signers?.any { it.type != SignerType.NFC } == true
+                            onVerifyClicked = onVerifyClicked
                         )
                     }
                     
@@ -756,8 +763,7 @@ fun OnChainTimelockByzantineAddKeyListContent(
                                 AddKeyCard(
                                     item = timelockKey,
                                     onAddClicked = onAddClicked,
-                                    onVerifyClicked = onVerifyClicked,
-                                    isMissingBackup = missingBackupKeys.contains(timelockKey) && timelockKey.signers?.any { it.type != SignerType.NFC } == true
+                                    onVerifyClicked = onVerifyClicked
                                 )
                             }
                         }
@@ -774,7 +780,6 @@ fun OnChainTimelockByzantineAddKeyListContent(
 private fun AddKeyCard(
     item: AddKeyOnChainData,
     modifier: Modifier = Modifier,
-    isMissingBackup: Boolean = false,
     onAddClicked: (data: AddKeyOnChainData) -> Unit = {},
     onVerifyClicked: (data: AddKeyOnChainData) -> Unit = {},
     isDisabled: Boolean = false,
@@ -929,11 +934,7 @@ private fun AddKeyCard(
                                         modifier = Modifier.height(36.dp),
                                         onClick = { onVerifyClicked(item) },
                                     ) {
-                                        Text(
-                                            text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
-                                                R.string.nc_upload_backup
-                                            )
-                                        )
+                                        Text(text = stringResource(R.string.nc_verify_backup))
                                     }
                                 }
                             } else {

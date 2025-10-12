@@ -202,7 +202,14 @@
     <fragment
         android:id="@+id/onChainSetUpTimelockFragment"
         android:name="com.nunchuk.android.main.membership.onchaintimelock.setuptimelock.OnChainSetUpTimelockFragment"
-        android:label="OnChainSetUpTimelockFragment" />
+        android:label="OnChainSetUpTimelockFragment">
+        
+        <argument
+            android:name="group_id"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
 
     <fragment
         android:id="@+id/onChainTimelockByzantineAddKeyFragment"

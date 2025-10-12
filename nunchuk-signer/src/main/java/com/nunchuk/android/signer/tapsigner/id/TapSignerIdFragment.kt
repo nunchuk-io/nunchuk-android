@@ -55,6 +55,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
@@ -62,6 +63,7 @@ import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import dagger.hilt.android.AndroidEntryPoint
@@ -106,12 +108,30 @@ class TapSignerIdFragment : MembershipFragment() {
                         BaseNfcActivity.REQUEST_NFC_VIEW_BACKUP_KEY
                     )
                     TapSignerIdEvent.OnAddNewOne, TapSignerIdEvent.OnGetSingleWalletDone -> requireActivity().finish()
+                    is TapSignerIdEvent.ReturnSignerModel -> {
+                        val signerModel = event.singleSigner.toModel()
+                        requireActivity().setResult(
+                            android.app.Activity.RESULT_OK,
+                            android.content.Intent().apply {
+                                putExtra(GlobalResultKey.EXTRA_SIGNER, signerModel)
+                            }
+                        )
+                        requireActivity().finish()
+                    }
                 }
             }
         }
 
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_VIEW_BACKUP_KEY }) {
-            if (args.isMembershipFlow) {
+            val onChainAddSignerParam = (requireActivity() as NfcSetupActivity).onChainAddSignerParam
+            if (onChainAddSignerParam != null) {
+                // OnChain flow: get signer and return to OnChainTimelockAddKeyListFragment
+                viewModel.getSignerForOnChain(
+                    isoDep = IsoDep.get(it.tag) ?: return@flowObserver,
+                    cvc = nfcViewModel.inputCvc.orEmpty(),
+                    index = (requireActivity() as NfcSetupActivity).signerIndex
+                )
+            } else if (args.isMembershipFlow) {
                 viewModel.getTapSignerBackup(
                     isoDep = IsoDep.get(it.tag) ?: return@flowObserver,
                     cvc = nfcViewModel.inputCvc.orEmpty(),

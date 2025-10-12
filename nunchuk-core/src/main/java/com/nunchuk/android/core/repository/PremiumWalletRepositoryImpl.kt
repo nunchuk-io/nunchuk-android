@@ -30,6 +30,7 @@ import com.nunchuk.android.core.data.model.ChangeEmailSignatureRequest
 import com.nunchuk.android.core.data.model.ConfigSecurityQuestionPayload
 import com.nunchuk.android.core.data.model.CreateSecurityQuestionRequest
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
+import com.nunchuk.android.core.data.model.CreateTimelockPayload
 import com.nunchuk.android.core.data.model.CreateUpdateInheritancePlanRequest
 import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
 import com.nunchuk.android.core.data.model.EmptyRequest
@@ -48,6 +49,7 @@ import com.nunchuk.android.core.data.model.RequestRecoverKeyRequest
 import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.TapSignerPayload
+import com.nunchuk.android.core.data.model.TimelockPayload
 import com.nunchuk.android.core.data.model.UpdateKeyPayload
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
 import com.nunchuk.android.core.data.model.byzantine.CreateDraftWalletRequest
@@ -1915,6 +1917,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             throw response.error
         }
         requestAddKeyDao.deleteRequests(accountManager.getAccount().chatId, chain.value)
+    }
+
+    override suspend fun createDraftWalletTimelock(groupId: String?, timelockValue: Long) {
+        val payload = CreateTimelockPayload(
+            timelock = TimelockPayload(value = timelockValue)
+        )
+        val response = if (groupId.isNullOrEmpty()) {
+            userWalletApiManager.walletApi.createDraftWalletTimelock(payload)
+        } else {
+            userWalletApiManager.groupWalletApi.createGroupDraftWalletTimelock(groupId, payload)
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
     }
 
     override suspend fun cancelRequestIdIfNeed(groupId: String, step: MembershipStep) {

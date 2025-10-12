@@ -32,8 +32,10 @@ import com.nunchuk.android.core.signer.InvalidSignerFormatException
 import com.nunchuk.android.core.signer.SignerInput
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSigner
+import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.core.util.getFileFromUri
+import com.nunchuk.android.core.util.isIdentical
 import com.nunchuk.android.core.util.isValidPathForAssistedWallet
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -226,7 +228,18 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             }
 
             if (replacedXfp.isNullOrEmpty() && membershipStepManager.isKeyExisted(signerInput.fingerPrint) && isMembershipFlow) {
-                setEvent(AddSameKey)
+                if (onChainAddSignerParam != null && onChainAddSignerParam?.currentSigner != null) {
+                    val signer = signerInput.toSingleSigner(newSignerName, signerTag)
+                    if (signer.isIdentical(onChainAddSignerParam?.currentSigner!!.toSingleSigner()) == true) {
+                        setEvent(AddSameKey)
+                        setEvent(LoadingEventAirgap(false))
+                        return@launch
+                    }
+                } else {
+                    setEvent(AddSameKey)
+                    setEvent(LoadingEventAirgap(false))
+                    return@launch
+                }
                 return@launch
             }
             if (!xfp.isNullOrEmpty() && signerInput.fingerPrint != xfp) {

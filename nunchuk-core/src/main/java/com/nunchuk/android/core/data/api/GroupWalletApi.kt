@@ -2,6 +2,7 @@ package com.nunchuk.android.core.data.api
 
 import com.nunchuk.android.core.data.model.CreateServerKeyResponse
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
+import com.nunchuk.android.core.data.model.CreateTimelockPayload
 import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
 import com.nunchuk.android.core.data.model.InitWalletConfigRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
@@ -142,6 +143,12 @@ internal interface GroupWalletApi {
 
     @DELETE("/v1.1/group-wallets/groups/{group_id}/draft-wallets/current")
     suspend fun deleteDraftWallet(@Path("group_id") groupId: String): Data<Unit>
+
+    @PUT("/v1.1/group-wallets/groups/{group_id}/draft-wallets/timelock")
+    suspend fun createGroupDraftWalletTimelock(
+        @Path("group_id") groupId: String,
+        @Body payload: CreateTimelockPayload
+    ): Data<DraftWalletResponse>
 
     @GET("/v1.1/group-wallets/permissions/default")
     suspend fun getPermissionGroupWallet(

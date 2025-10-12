@@ -122,3 +122,14 @@ val SignerTag?.formattedName: String
 
 val SignerType.canSign: Boolean
     get() = this != SERVER && this != UNKNOWN
+
+fun SingleSigner.isIdentical(other: SingleSigner): Boolean {
+    return this.masterFingerprint == other.masterFingerprint &&
+            this.derivationPath == other.derivationPath
+}
+
+fun SignerModel.isIdentical(other: SignerModel): Boolean {
+    return this.fingerPrint == other.fingerPrint &&
+            this.derivationPath == other.derivationPath
+}
+
