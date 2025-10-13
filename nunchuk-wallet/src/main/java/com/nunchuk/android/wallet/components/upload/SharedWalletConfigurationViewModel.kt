@@ -116,7 +116,8 @@ class SharedWalletConfigurationViewModel @Inject constructor(
 
     private fun exportWallet(walletId: String, filePath: String, isSaveFile: Boolean) {
         viewModelScope.launch {
-            when (val event = exportWalletUseCase.execute(walletId, filePath, ExportFormat.COLDCARD)) {
+            val format = if (isMiniscriptWallet) ExportFormat.DESCRIPTOR_EXTERNAL_INTERNAL else ExportFormat.COLDCARD
+            when (val event = exportWalletUseCase.execute(walletId, filePath, format)) {
                 is Success -> {
                     if (isSaveFile) {
                         saveLocalFile(filePath)
