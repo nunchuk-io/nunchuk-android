@@ -621,6 +621,11 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
 
     fun isUnBackedUpSigner(signer: SignerModel) = unBackedUpSignerXfpSet.contains(signer.fingerPrint)
 
+    fun getHardwareSigners(tag: SignerTag): List<SignerModel> =
+        _state.value.signers.filter {
+            it.type == SignerType.HARDWARE && it.tags.contains(tag)
+        }
+
     private fun getBackUpFileName(extra: String): String {
         return runCatching {
             gson.fromJson(extra, SignerExtra::class.java).userKeyFileName

@@ -189,8 +189,10 @@ fun SignerIntroScreen(
                         modifier = Modifier.weight(1f),
                         iconRes = R.drawable.ic_ledger_hardware,
                         title = stringResource(id = R.string.nc_ledger),
-                        isDisabled = true,
+                        isDisabled = dynamicSupportedSigners.isNotEmpty()
+                                && !dynamicSupportedSigners.any { it.type == SignerType.HARDWARE && it.tag == SignerTag.LEDGER } || isDisableAll,
                         subtitle = stringResource(id = R.string.nc_desktop_only),
+                        onClick = { onClick(KeyType.LEDGER) }
                     )
                 }
 
@@ -204,15 +206,19 @@ fun SignerIntroScreen(
                         modifier = Modifier.weight(1f),
                         iconRes = R.drawable.ic_bitbox_hardware,
                         title = stringResource(id = R.string.nc_bitbox),
-                        isDisabled = true,
-                        subtitle = stringResource(id = R.string.nc_desktop_only)
+                        isDisabled = dynamicSupportedSigners.isNotEmpty()
+                                && !dynamicSupportedSigners.any { it.type == SignerType.HARDWARE && it.tag == SignerTag.BITBOX } || isDisableAll,
+                        subtitle = stringResource(id = R.string.nc_desktop_only),
+                        onClick = { onClick(KeyType.BITBOX) }
                     )
                     SignerItem(
                         modifier = Modifier.weight(1f),
                         iconRes = R.drawable.ic_trezor_hardware,
                         title = stringResource(id = R.string.nc_trezor),
-                        isDisabled = true,
-                        subtitle = stringResource(id = R.string.nc_desktop_only)
+                        isDisabled = dynamicSupportedSigners.isNotEmpty()
+                                && !dynamicSupportedSigners.any { it.type == SignerType.HARDWARE && it.tag == SignerTag.TREZOR } || isDisableAll,
+                        subtitle = stringResource(id = R.string.nc_desktop_only),
+                        onClick = { onClick(KeyType.TREZOR) }
                     )
                 }
 
@@ -355,6 +361,9 @@ enum class KeyType {
     SEEDSIGNER,
     KEYSTONE,
     FOUNDATION,
+    LEDGER,
+    BITBOX,
+    TREZOR,
     SOFTWARE,
     GENERIC_AIRGAP
 }

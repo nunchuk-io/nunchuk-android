@@ -250,24 +250,39 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         setFragmentResultListener("SignerIntroFragment") { _, bundle ->
             val filteredSigners =
                 bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
-            if (!filteredSigners.isNullOrEmpty()) {
-                findNavController().navigate(
-                    OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToTapSignerListBottomSheetFragment(
-                        filteredSigners.toTypedArray(),
-                        if (filteredSigners.first().type == SignerType.COLDCARD_NFC || filteredSigners.first().tags.contains(
-                                SignerTag.COLDCARD
-                            )
-                        ) {
-                            SignerType.COLDCARD_NFC
-                        } else {
-                            filteredSigners.first().type
-                        },
-                        "",
-                        true
+            val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
+            
+            when {
+                !filteredSigners.isNullOrEmpty() -> {
+                    findNavController().navigate(
+                        OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToTapSignerListBottomSheetFragment(
+                            filteredSigners.toTypedArray(),
+                            if (filteredSigners.first().type == SignerType.COLDCARD_NFC || filteredSigners.first().tags.contains(
+                                    SignerTag.COLDCARD
+                                )
+                            ) {
+                                SignerType.COLDCARD_NFC
+                            } else {
+                                filteredSigners.first().type
+                            },
+                            "",
+                            true
+                        )
                     )
-                )
+                }
+                signerTag != null -> {
+                    handleHardwareSignerTag(signerTag)
+                }
             }
             clearFragmentResult("SignerIntroFragment")
+        }
+        
+        setFragmentResultListener("ColdCardIntroFragment") { _, bundle ->
+            val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
+            if (signerTag != null) {
+                handleHardwareSignerTag(signerTag)
+            }
+            clearFragmentResult("ColdCardIntroFragment")
         }
 
         // Setup TapSigner caching with MembershipActivity
@@ -292,6 +307,23 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         // Clear TapSigner caching callback when fragment is destroyed
         val membershipActivity = activity as? MembershipActivity
         membershipActivity?.clearTapSignerCachingCallback()
+    }
+
+    private fun handleHardwareSignerTag(tag: SignerTag) {
+        selectedSignerTag = tag
+        val hardwareSigners = viewModel.getHardwareSigners(tag)
+        if (hardwareSigners.isNotEmpty()) {
+            findNavController().navigate(
+                OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToTapSignerListBottomSheetFragment(
+                    hardwareSigners.toTypedArray(),
+                    SignerType.HARDWARE,
+                    "",
+                    true
+                )
+            )
+        } else {
+            openRequestAddDesktopKey(tag)
+        }
     }
 
     private fun openRequestAddDesktopKey(tag: SignerTag) {

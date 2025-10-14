@@ -114,6 +114,7 @@ class SignerIntroActivity : BaseComposeActivity() {
                             KeyType.FOUNDATION -> handleSelectAddAirgapType(SignerTag.PASSPORT)
                             KeyType.SOFTWARE -> openAddSoftwareSignerScreen()
                             KeyType.GENERIC_AIRGAP -> openAddAirSignerIntroScreen()
+                            else -> {}
                         }
                     }
                 )

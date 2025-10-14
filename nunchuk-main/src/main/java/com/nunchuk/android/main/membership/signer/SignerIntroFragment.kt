@@ -112,6 +112,9 @@ class SignerIntroFragment : MembershipFragment() {
                             KeyType.SEEDSIGNER -> handleSelectAddAirgapType(SignerTag.SEEDSIGNER)
                             KeyType.KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
                             KeyType.FOUNDATION -> handleSelectAddAirgapType(SignerTag.PASSPORT)
+                            KeyType.LEDGER -> handleHardwareSignerSelection(SignerTag.LEDGER)
+                            KeyType.BITBOX -> handleHardwareSignerSelection(SignerTag.BITBOX)
+                            KeyType.TREZOR -> handleHardwareSignerSelection(SignerTag.TREZOR)
                             KeyType.SOFTWARE -> openAddSoftwareSignerScreen()
                             KeyType.GENERIC_AIRGAP -> openAddAirSignerIntroScreen()
                         }
@@ -168,6 +171,19 @@ class SignerIntroFragment : MembershipFragment() {
             )
         } else {
             handleSelectAddAirgapType(SignerTag.JADE)
+        }
+    }
+
+    private fun handleHardwareSignerSelection(tag: SignerTag) {
+        if (args.onChainAddSignerParam != null) {
+            // Return the hardware signer tag to OnChainTimelockAddKeyListFragment
+            setFragmentResult(
+                REQUEST_KEY,
+                bundleOf(GlobalResultKey.EXTRA_SIGNER_TAG to tag)
+            )
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        } else {
+            // For non-onChain flows, this should not be called as the buttons are disabled
         }
     }
 
