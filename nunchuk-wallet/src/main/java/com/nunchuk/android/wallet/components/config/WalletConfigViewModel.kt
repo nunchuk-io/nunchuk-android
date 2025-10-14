@@ -59,7 +59,6 @@ import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.DeleteWalletUseCase
 import com.nunchuk.android.usecase.ExportTransactionsHistoryUseCase
 import com.nunchuk.android.usecase.ExportWalletUseCase
-import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -68,7 +67,6 @@ import com.nunchuk.android.usecase.UpdateWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetDeprecatedGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
-import com.nunchuk.android.usecase.free.groupwallet.SetBackUpBannerWalletIdsUseCase
 import com.nunchuk.android.usecase.membership.ExportCoinControlBIP329UseCase
 import com.nunchuk.android.usecase.membership.ExportTxCoinControlUseCase
 import com.nunchuk.android.usecase.membership.ForceRefreshWalletUseCase
@@ -130,11 +128,9 @@ internal class WalletConfigViewModel @Inject constructor(
     private val getGroupWalletsUseCase: GetGroupWalletsUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
     private val getDeprecatedGroupWalletsUseCase: GetDeprecatedGroupWalletsUseCase,
-    private val setBackUpBannerWalletIdsUseCase: SetBackUpBannerWalletIdsUseCase,
     private val exportTransactionsHistoryUseCase: ExportTransactionsHistoryUseCase,
     private val getScriptNodeFromMiniscriptTemplateUseCase: GetScriptNodeFromMiniscriptTemplateUseCase,
     private val parseSignerStringUseCase: ParseSignerStringUseCase,
-    private val getChainTipUseCase: GetChainTipUseCase,
     private val getWalletDescriptorUseCase: GetWalletDescriptorUseCase,
     private val singleSignerMapper: SingleSignerMapper,
     @ApplicationContext private val context: Context,
