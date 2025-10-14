@@ -122,7 +122,10 @@ import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.Collections.emptyList
+import java.util.Date
+import java.util.Locale
 
 @AndroidEntryPoint
 class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
@@ -963,6 +966,17 @@ private fun ConfigItem(
                         ),
                     )
                 }
+            }
+            if (isTimelockWithData) {
+                val timelockValue = item.stepDataMap[MembershipStep.TIMELOCK]?.timelock
+                val formattedDate = timelockValue?.let {
+                    val dateFormat = SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.getDefault())
+                    dateFormat.format(Date(it * 1000)) // Convert seconds to milliseconds
+                } ?: ""
+                Text(
+                    text = formattedDate,
+                    style = NunchukTheme.typography.body
+                )
             }
         }
         if (onAddClicked != null) {

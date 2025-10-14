@@ -59,6 +59,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -84,7 +85,6 @@ import com.nunchuk.android.compose.pullrefresh.rememberPullRefreshState
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
-import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
@@ -124,6 +124,9 @@ import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @AndroidEntryPoint
 class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheetOptionListener {
@@ -383,16 +386,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
             activityContext = requireActivity(),
             groupId = args.groupId,
         )
-    }
-
-    private fun getSignerTag(type: Int): SignerTag? {
-        return when (type) {
-            SheetOptionType.TYPE_ADD_AIRGAP_JADE -> SignerTag.JADE
-            SheetOptionType.TYPE_ADD_AIRGAP_SEEDSIGNER -> SignerTag.SEEDSIGNER
-            SheetOptionType.TYPE_ADD_AIRGAP_PASSPORT -> SignerTag.PASSPORT
-            SheetOptionType.TYPE_ADD_AIRGAP_KEYSTONE -> SignerTag.KEYSTONE
-            else -> null
-        }
     }
 
     private fun handleHardwareSignerTag(tag: SignerTag) {
@@ -808,6 +801,7 @@ fun OnChainTimelockByzantineAddKeyListContent(
                                 .fillMaxWidth(),
                             text = "Pull to refresh the key statuses.",
                             style = NunchukTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
                         )
                     }
 
@@ -1101,6 +1095,17 @@ private fun ConfigItem(
                         ),
                     )
                 }
+            }
+            if (isTimelockWithData) {
+                val timelockValue = item.stepDataMap[MembershipStep.TIMELOCK]?.timelock
+                val formattedDate = timelockValue?.let {
+                    val dateFormat = SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.getDefault())
+                    dateFormat.format(Date(it * 1000)) // Convert seconds to milliseconds
+                } ?: ""
+                Text(
+                    text = formattedDate,
+                    style = NunchukTheme.typography.body
+                )
             }
         }
         if (onAddClicked != null) {

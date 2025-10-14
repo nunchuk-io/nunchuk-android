@@ -77,7 +77,7 @@ class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
                             .showDialog(
                                 message = getString(R.string.nc_info_hardware_key_not_supported),
                             )
-                    } else if (mk4Activity.onChainAddSignerParam != null) {
+                    } else if (mk4Activity.onChainAddSignerParam != null && mk4Activity.onChainAddSignerParam!!.isVerifyBackupSeedPhrase().not()) {
                         // Return hardware signer tag to parent fragment (OnChainTimelockAddKeyListFragment/OnChainTimelockByzantineAddKeyFragment)
                         setFragmentResult(
                             REQUEST_KEY,

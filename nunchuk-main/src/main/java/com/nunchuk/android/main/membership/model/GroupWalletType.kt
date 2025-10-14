@@ -91,6 +91,7 @@ fun GroupWalletType.toSteps(isPersonalWallet: Boolean = false, walletType: Walle
                 MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
                 MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK,
                 MembershipStep.ADD_SEVER_KEY,
+                MembershipStep.TIMELOCK
             )
         } else {
             listOf(
@@ -134,6 +135,7 @@ fun GroupWalletType.toSteps(isPersonalWallet: Boolean = false, walletType: Walle
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3,
             MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3_TIMELOCK,
             MembershipStep.ADD_SEVER_KEY,
+            MembershipStep.TIMELOCK
         )
     } else {
         listOf(
