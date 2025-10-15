@@ -35,6 +35,16 @@ class InheritancePlanTypeViewModel @Inject constructor(
     private val args: InheritancePlanTypeFragmentArgs =
         InheritancePlanTypeFragmentArgs.fromSavedStateHandle(savedStateHandle)
 
+    init {
+        viewModelScope.launch {
+            _state.emit(_state.value.copy(
+                isPersonal = args.isPersonal,
+                slug = args.slug,
+                walletTypeName = args.walletTypeName
+            ))
+        }
+    }
+
     fun onPlanTypeSelected(planType: InheritancePlanType) {
         viewModelScope.launch {
             _state.emit(_state.value.copy(selectedPlanType = planType))

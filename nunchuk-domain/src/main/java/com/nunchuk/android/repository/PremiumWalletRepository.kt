@@ -362,7 +362,8 @@ interface PremiumWalletRepository {
         requiredServerKey: Boolean,
         allowInheritance: Boolean,
         setupPreference: String,
-        members: List<AssistedMember>
+        members: List<AssistedMember>,
+        walletType: String? = null
     ): ByzantineGroup
 
     suspend fun getWalletConstraints(): List<WalletConstraints>

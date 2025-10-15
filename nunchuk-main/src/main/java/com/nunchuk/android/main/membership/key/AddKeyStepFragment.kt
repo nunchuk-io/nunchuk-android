@@ -63,7 +63,6 @@ import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.sendEmail
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.WalletType
@@ -138,16 +137,7 @@ class AddKeyStepFragment : MembershipFragment() {
                     AddKeyStepFragmentDirections.actionAddKeyStepFragmentToOnChainTimelockAddKeyListFragment()
                 )
             }
-            else -> {
-                val slug = (requireActivity() as? MembershipActivity)?.intent?.getStringExtra(MembershipActivity.EXTRA_SLUG)
-                val walletTypeName = (requireActivity() as? MembershipActivity)?.intent?.getStringExtra(MembershipActivity.EXTRA_WALLET_TYPE_NAME)
-                findNavController().navigate(
-                    AddKeyStepFragmentDirections.actionAddKeyStepFragmentToInheritancePlanTypeFragment(
-                        slug = slug,
-                        walletType = walletTypeName
-                    )
-                )
-            }
+            else -> {}
         }
     }
 

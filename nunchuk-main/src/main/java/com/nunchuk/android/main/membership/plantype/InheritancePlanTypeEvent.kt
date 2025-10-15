@@ -10,5 +10,8 @@ enum class InheritancePlanType {
 }
 
 data class InheritancePlanTypeUiState(
-    val selectedPlanType: InheritancePlanType = InheritancePlanType.OFF_CHAIN
+    val selectedPlanType: InheritancePlanType = InheritancePlanType.OFF_CHAIN,
+    val isPersonal: Boolean = false,
+    val slug: String? = null,
+    val walletTypeName: String? = null
 )

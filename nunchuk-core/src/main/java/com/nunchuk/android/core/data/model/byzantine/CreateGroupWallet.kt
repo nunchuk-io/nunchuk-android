@@ -27,7 +27,9 @@ data class CreateGroupRequest(
     @SerializedName("setup_preference")
     val setupPreference: String,
     @SerializedName("wallet_config")
-    val walletConfig: WalletConfigRequest
+    val walletConfig: WalletConfigRequest,
+    @SerializedName("wallet_type")
+    val walletType: String? = null
 )
 
 data class MemberRequest(

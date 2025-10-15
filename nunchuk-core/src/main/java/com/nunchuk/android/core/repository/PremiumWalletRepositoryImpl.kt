@@ -1953,6 +1953,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         allowInheritance: Boolean,
         setupPreference: String,
         members: List<AssistedMember>,
+        walletType: String?
     ): ByzantineGroup {
         val response = userWalletApiManager.groupWalletApi.createGroup(
             CreateGroupRequest(
@@ -1963,7 +1964,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     requiredServerKey
                 ),
                 setupPreference = setupPreference,
-                members = members.map { it.toMemberRequest() })
+                members = members.map { it.toMemberRequest() },
+                walletType = walletType
+            )
         )
         val groupResponse = response.data.data ?: throw NullPointerException("Can not create group")
         val group = groupResponse.toByzantineGroup()

@@ -127,14 +127,8 @@ class AddGroupKeyStepFragment : MembershipFragment() {
                     )
                 )
             }
-            else -> {
-                findNavController().navigate(
-                    AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToInheritancePlanTypeFragment(
-                        groupId = groupId,
-                        role = viewModel.getRole().name
-                    )
-                )
-            }
+
+            else -> {}
         }
     }
 

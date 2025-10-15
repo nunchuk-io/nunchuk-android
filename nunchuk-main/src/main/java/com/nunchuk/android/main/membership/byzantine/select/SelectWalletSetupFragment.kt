@@ -63,7 +63,8 @@ class SelectWalletSetupFragment : MembershipFragment() {
                                 setupPreference = it,
                                 groupType = args.groupType,
                                 members = emptyArray(),
-                                flow = ByzantineMemberFlow.SETUP
+                                flow = ByzantineMemberFlow.SETUP,
+                                inheritancePlanType = args.inheritancePlanType
                             )
                         )
                     },

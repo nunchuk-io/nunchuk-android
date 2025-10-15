@@ -20,7 +20,8 @@ class CreateGroupWalletUseCase @Inject constructor(
             parameters.requiredServerKey,
             parameters.allowInheritance,
             parameters.setupPreference,
-            parameters.members)
+            parameters.members,
+            parameters.walletType)
     }
 
     class Param(
@@ -29,6 +30,7 @@ class CreateGroupWalletUseCase @Inject constructor(
         val requiredServerKey: Boolean,
         val allowInheritance: Boolean,
         val setupPreference: String,
-        val members: List<AssistedMember>
+        val members: List<AssistedMember>,
+        val walletType: String? = null
     )
 }

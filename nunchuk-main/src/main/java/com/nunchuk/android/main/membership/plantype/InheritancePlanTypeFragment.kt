@@ -46,8 +46,6 @@ import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.MembershipActivity
-import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -63,7 +61,24 @@ class InheritancePlanTypeFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritancePlanTypeScreen(viewModel)
+                val uiState by viewModel.state.collectAsStateWithLifecycle()
+                InheritancePlanTypeScreen(
+                    viewModel = viewModel,
+                    onContinueClicked = {
+                        if (uiState.isPersonal) {
+                            viewModel.onContinueClicked()
+                        } else {
+                            uiState.walletTypeName?.let { walletTypeName ->
+                                findNavController().navigate(
+                                    InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToSelectWalletSetupFragment(
+                                        groupType = walletTypeName,
+                                        inheritancePlanType = uiState.selectedPlanType.name
+                                    )
+                                )
+                            }
+                        }
+                    }
+                )
             }
         }
     }
@@ -73,44 +88,7 @@ class InheritancePlanTypeFragment : MembershipFragment() {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritancePlanTypeEvent.OnContinueClicked -> {
-                    val groupId = args.groupId
-                    val role = args.role ?: AssistedWalletRole.NONE.name
-                    when (event.selectedPlanType) {
-                        InheritancePlanType.ON_CHAIN -> {
-                            if (!groupId.isNullOrEmpty()) {
-                                // Byzantine group wallet flow - navigate to OnChainTimelockByzantineAddKeyFragment
-                                findNavController().navigate(
-                                    InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToOnChainTimelockByzantineAddKeyFragment(
-                                        groupId = groupId,
-                                        isAddOnly = false,
-                                        role = role
-                                    )
-                                )
-                            } else {
-                                // Personal wallet flow - navigate to OnChainTimelockExplanationFragment
-                                findNavController().navigate(
-                                    InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToOnChainTimelockExplanationFragment()
-                                )
-                            }
-                        }
-                        InheritancePlanType.OFF_CHAIN -> {
-                            if (!groupId.isNullOrEmpty()) {
-                                // Byzantine group wallet flow - navigate to AddByzantineKeyListFragment
-                                findNavController().navigate(
-                                    InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToAddByzantineKeyListFragment(
-                                        groupId = groupId,
-                                        isAddOnly = false,
-                                        role = role
-                                    )
-                                )
-                            } else {
-                                // Personal wallet flow - navigate to AddKeyListFragment
-                                findNavController().navigate(
-                                    InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToAddKeyListFragment()
-                                )
-                            }
-                        }
-                    }
+
                 }
             }
         }
@@ -118,12 +96,15 @@ class InheritancePlanTypeFragment : MembershipFragment() {
 }
 
 @Composable
-private fun InheritancePlanTypeScreen(viewModel: InheritancePlanTypeViewModel = viewModel()) {
+private fun InheritancePlanTypeScreen(
+    viewModel: InheritancePlanTypeViewModel = viewModel(),
+    onContinueClicked: () -> Unit = {}
+) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     InheritancePlanTypeContent(
         selectedPlanType = uiState.selectedPlanType,
         onPlanTypeSelected = viewModel::onPlanTypeSelected,
-        onContinueClicked = viewModel::onContinueClicked
+        onContinueClicked = onContinueClicked
     )
 }
 

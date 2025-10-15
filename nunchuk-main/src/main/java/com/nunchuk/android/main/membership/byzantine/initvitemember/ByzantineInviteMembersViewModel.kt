@@ -21,6 +21,7 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.GetContactsUseCase
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetWalletConstraintsUseCase
 import com.nunchuk.android.usecase.membership.CreateGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
@@ -262,6 +263,15 @@ class ByzantineInviteMembersViewModel @Inject constructor(
     fun createGroup() = viewModelScope.launch {
         _event.emit(ByzantineInviteMembersEvent.Loading(true))
         val groupWalletType = args.groupType.toGroupWalletType() ?: return@launch
+        
+        val walletType = args.inheritancePlanType?.let { planType ->
+            when (planType.uppercase()) {
+                "ON_CHAIN" -> WalletType.MINISCRIPT.name
+                "OFF_CHAIN" -> WalletType.MULTI_SIG.name
+                else -> WalletType.MULTI_SIG.name
+            }
+        }
+        
         val result = createGroupWalletUseCase(
             CreateGroupWalletUseCase.Param(
                 members = _state.value.members.map {
@@ -276,6 +286,7 @@ class ByzantineInviteMembersViewModel @Inject constructor(
                 allowInheritance = groupWalletType.allowInheritance,
                 requiredServerKey = groupWalletType.requiredServerKey,
                 setupPreference = args.setupPreference,
+                walletType = walletType
             )
         )
         _event.emit(ByzantineInviteMembersEvent.Loading(false))

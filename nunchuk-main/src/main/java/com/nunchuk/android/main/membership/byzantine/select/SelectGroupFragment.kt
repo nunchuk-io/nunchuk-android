@@ -53,8 +53,6 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.MembershipActivity
-import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.wallet.WalletOption
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -79,24 +77,16 @@ class SelectGroupFragment : MembershipFragment() {
                     onMoreClicked = ::handleShowMore,
                     onContinueClicked = { option ->
                         if (viewModel.checkGroupTypeAvailable(option.slug)) {
-                            if (args.isPersonal) {
-                                navigator.openMembershipActivity(
-                                    activityContext = requireActivity(),
-                                    groupStep = MembershipStage.NONE,
-                                    isPersonalWallet = true,
-                                    walletType = option.walletType,
+                            findNavController().navigate(
+                                SelectGroupFragmentDirections.actionSelectGroupFragmentToInheritancePlanTypeFragment(
+                                    isPersonal = args.isPersonal,
                                     slug = option.slug,
+                                    walletType = option.walletType.name,
                                     walletTypeName = option.walletType.name,
-                                    quickWalletParam = (requireActivity() as? MembershipActivity)?.quickWalletParam
+                                    groupId = null,
+                                    role = null
                                 )
-                                requireActivity().finish()
-                            } else {
-                                findNavController().navigate(
-                                    SelectGroupFragmentDirections.actionSelectGroupFragmentToSelectWalletSetupFragment(
-                                        groupType = option.walletType.name
-                                    )
-                                )
-                            }
+                            )
                         } else {
                             NCInfoDialog(requireActivity()).init(
                                 message = getString(
