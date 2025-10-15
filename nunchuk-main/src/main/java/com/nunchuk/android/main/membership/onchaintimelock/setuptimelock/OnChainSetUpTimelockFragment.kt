@@ -121,7 +121,11 @@ private fun OnChainSetUpTimelockContent(
     onContinueClicked: (Calendar, TimeZoneDetail) -> Unit = { _, _ -> },
 ) {
     // Local state management
-    var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
+    var selectedDate by remember { 
+        mutableStateOf(Calendar.getInstance().apply {
+            add(Calendar.YEAR, 2)
+        })
+    }
     var selectedTimeZone by remember { 
         mutableStateOf(TimeZone.getDefault().id.toTimeZoneDetail() ?: TimeZoneDetail())
     }

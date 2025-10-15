@@ -90,6 +90,7 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
@@ -103,6 +104,7 @@ import com.nunchuk.android.main.membership.model.StepData
 import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
+import com.nunchuk.android.main.membership.onchaintimelock.addkey.AddKeyListEvent.OnVerifySigner
 import com.nunchuk.android.main.membership.plantype.InheritancePlanType
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
@@ -358,15 +360,11 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             when (event) {
                 is AddKeyListEvent.OnAddKey -> handleOnAddKey(event.data)
                 is AddKeyListEvent.OnVerifySigner -> {
-                    navigator.openBackUpSeedPhraseActivity(
-                        requireActivity(),
-                        BackUpSeedPhraseArgs(
-                            type = BackUpSeedPhraseType.INTRO,
-                            signer = event.signer,
-                            groupId = (activity as MembershipActivity).groupId,
-                            walletId = (activity as MembershipActivity).walletId
-                        )
-                    )
+                    if (event.signer.type == SignerType.NFC) {
+                        openVerifyTapSigner(event)
+                    } else {
+                        openVerifyColdCard(event)
+                    }
                 }
 
                 AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
@@ -551,6 +549,28 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 type = PortalDeviceFlow.SETUP,
                 isMembershipFlow = true
             ),
+        )
+    }
+
+    private fun openVerifyTapSigner(event: OnVerifySigner) {
+        navigator.openVerifyBackupTapSigner(
+            activity = requireActivity(),
+            fromMembershipFlow = true,
+            backUpFilePath = event.filePath,
+            masterSignerId = event.signer.id,
+            walletId = (activity as MembershipActivity).walletId,
+        )
+    }
+
+    private fun openVerifyColdCard(event: AddKeyListEvent.OnVerifySigner) {
+        navigator.openBackUpSeedPhraseActivity(
+            requireActivity(),
+            BackUpSeedPhraseArgs(
+                type = BackUpSeedPhraseType.INTRO,
+                signer = event.signer,
+                groupId = (activity as MembershipActivity).groupId,
+                walletId = (activity as MembershipActivity).walletId
+            )
         )
     }
 }
@@ -926,7 +946,7 @@ private fun ConfigItem(
     
     // Check if this is a TIMELOCK step with timelock data configured
     val isTimelockWithData = item.type == MembershipStep.TIMELOCK && 
-                             item.stepDataMap[MembershipStep.TIMELOCK]?.timelock != null
+                             item.stepDataMap[MembershipStep.TIMELOCK]?.timelock.orDefault(0) > 0
     
     Row(
         modifier = Modifier.padding(12.dp),

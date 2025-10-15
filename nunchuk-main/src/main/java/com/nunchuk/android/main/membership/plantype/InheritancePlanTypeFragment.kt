@@ -46,6 +46,8 @@ import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -88,7 +90,14 @@ class InheritancePlanTypeFragment : MembershipFragment() {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritancePlanTypeEvent.OnContinueClicked -> {
-
+                    navigator.openMembershipActivity(
+                        activityContext = requireActivity(),
+                        groupStep = MembershipStage.NONE,
+                        isPersonalWallet = true,
+                        walletType = viewModel.getWalletType(),
+                        quickWalletParam = (requireActivity() as? MembershipActivity)?.quickWalletParam
+                    )
+                    requireActivity().finish()
                 }
             }
         }

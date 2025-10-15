@@ -88,7 +88,9 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
+import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.orDefault
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
@@ -101,7 +103,6 @@ import com.nunchuk.android.main.membership.model.AddKeyOnChainData
 import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
-import com.nunchuk.android.main.membership.plantype.InheritancePlanType
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
@@ -111,8 +112,8 @@ import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.nav.args.AddAirSignerArgs
+import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
-import com.nunchuk.android.share.ColdcardAction
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -242,29 +243,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     }
                 }
             } else {
-                when (data.type) {
-                    SignerType.NFC -> openSetupTapSigner()
-                    SignerType.PORTAL_NFC -> openSetupPortal()
-                    SignerType.AIRGAP -> handleSelectAddAirgapType(selectedSignerTag)
-                    SignerType.COLDCARD_NFC -> {
-                        navigator.openSetupMk4(
-                            activity = requireActivity(),
-                            args = SetupMk4Args(
-                                fromMembershipFlow = true,
-                                groupId = args.groupId,
-                                walletId = (activity as MembershipActivity).walletId,
-                                onChainAddSignerParam = OnChainAddSignerParam(
-                                    flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                                    keyIndex = currentKeyData?.getAllSigners()?.size ?: 0
-                                )
-                            )
-                        )
-                    }
-
-                    SignerType.HARDWARE -> selectedSignerTag?.let { openRequestAddDesktopKey(it) }
-                    SignerType.SOFTWARE -> openAddSoftwareKey()
-                    else -> throw IllegalArgumentException("Signer type invalid ${data.type}")
-                }
+                handleSignerTypeLogic(data.type, null)
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
         }
@@ -485,8 +464,8 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
         // Get the actual next step to determine what UI to show
         val nextStep = data.getNextStepToAdd() ?: data.type
 
-        when {
-            nextStep == MembershipStep.ADD_SEVER_KEY -> {
+        when (nextStep) {
+            MembershipStep.ADD_SEVER_KEY -> {
                 if (!isKeyHolderLimited) {
                     navigator.openConfigGroupServerKeyActivity(
                         activityContext = requireActivity(),
@@ -495,48 +474,51 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     )
                 }
             }
-
-            nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY ||
-                    nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK ||
-                    nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 ||
-                    nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK -> {
-                findNavController().navigate(
-                    OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToInheritanceKeyIntroFragment(
-                        inheritanceType = InheritancePlanType.ON_CHAIN
-                    )
-                )
-            }
-
-            nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 ||
-                    nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK ||
-                    nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 ||
-                    nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK
-                -> handleHardwareKeyAdd(data)
-
+            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK -> handleHardwareKeyAdd(data)
             else -> Unit
         }
     }
 
     private fun handleHardwareKeyAdd(data: AddKeyOnChainData) {
+        currentKeyData = data
+        // Get the next step to determine what to add
+        val nextStep = data.getNextStepToAdd() ?: data.type
         val allSigners = data.getAllSigners()
 
         if (allSigners.isEmpty()) {
-            findNavController().navigate(
-                OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToSignerIntroFragment(
-                    walletId = (activity as MembershipActivity).walletId,
-                    groupId = args.groupId,
-                    supportedSigners = null,
-                    keyFlow = 0,
-                    onChainAddSignerParam = OnChainAddSignerParam(
-                        flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                        keyIndex = allSigners.size,
-                        currentSigner = allSigners.firstOrNull()
+            // No signers exist, check if this is inheritance key or hardware key
+            if (nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY ||
+                nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK ||
+                nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 ||
+                nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK
+            ) {
+                // For inheritance key, navigate to inheritance intro screen
+                findNavController().navigate(
+                    OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToInheritanceKeyIntroFragment(
+                        inheritanceType = com.nunchuk.android.main.membership.plantype.InheritancePlanType.ON_CHAIN
                     )
                 )
-            )
+            } else {
+                // For hardware keys, open signer intro fragment
+                findNavController().navigate(
+                    OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToSignerIntroFragment(
+                        walletId = (activity as MembershipActivity).walletId,
+                        groupId = args.groupId,
+                        supportedSigners = null,
+                        keyFlow = 0,
+                        onChainAddSignerParam = OnChainAddSignerParam(
+                            flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
+                            keyIndex = allSigners.size,
+                            currentSigner = allSigners.firstOrNull()
+                        )
+                    )
+                )
+            }
         } else {
             val firstSigner = allSigners.first()
 
+            // Special handling for TapSigner (SignerType.NFC) to add second signer for Acct 1
             if (firstSigner.type == SignerType.NFC && allSigners.size == 1) {
                 viewModel.handleTapSignerAcct1Addition(
                     data,
@@ -546,6 +528,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 return
             }
 
+            // Signers exist, delegate to ViewModel to handle the logic
             viewModel.handleSignerIndexCheck(
                 data,
                 firstSigner,
@@ -615,17 +598,13 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
     }
 
     private fun openVerifyColdCard(event: OnChainTimelockByzantineAddKeyListEvent.OnVerifySigner) {
-        navigator.openSetupMk4(
-            activity = requireActivity(),
-            args = SetupMk4Args(
-                fromMembershipFlow = true,
-                backUpFilePath = event.filePath,
-                xfp = event.signer.fingerPrint,
-                groupId = args.groupId,
-                action = if (event.backUpFileName.isNotEmpty()) ColdcardAction.VERIFY_KEY else ColdcardAction.UPLOAD_BACKUP,
-                signerType = event.signer.type,
-                keyName = event.signer.name,
-                backUpFileName = event.backUpFileName
+        navigator.openBackUpSeedPhraseActivity(
+            requireActivity(),
+            BackUpSeedPhraseArgs(
+                type = BackUpSeedPhraseType.INTRO,
+                signer = event.signer,
+                groupId = (activity as MembershipActivity).groupId,
+                walletId = (activity as MembershipActivity).walletId
             )
         )
     }
@@ -1038,7 +1017,7 @@ private fun ConfigItem(
     
     // Check if this is a TIMELOCK step with timelock data configured
     val isTimelockWithData = item.type == MembershipStep.TIMELOCK && 
-                             item.stepDataMap[MembershipStep.TIMELOCK]?.timelock != null
+                             item.stepDataMap[MembershipStep.TIMELOCK]?.timelock.orDefault(0) > 0
     
     Row(
         modifier = Modifier.padding(12.dp),

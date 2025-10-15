@@ -93,4 +93,12 @@ class InheritancePlanTypeViewModel @Inject constructor(
             setLocalMembershipPlanFlowUseCase(plan)
         }
     }
+
+    fun getWalletType(): GroupWalletType? {
+        return try {
+            args.walletType?.let { GroupWalletType.valueOf(it) }
+        } catch (e: IllegalArgumentException) {
+            null
+        }
+    }
 }
