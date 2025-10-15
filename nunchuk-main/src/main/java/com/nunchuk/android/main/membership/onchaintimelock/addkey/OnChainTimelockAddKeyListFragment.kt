@@ -173,7 +173,9 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     ::handleShowMore,
                     onConfigTimelockClicked = {
                         findNavController().navigate(
-                            OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToOnChainSetUpTimelockFragment()
+                            OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToOnChainSetUpTimelockFragment(
+                                groupId = (activity as MembershipActivity).groupId
+                            )
                         )
                     })
             }
@@ -402,7 +404,14 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 )
             }
 
-            MembershipStep.HONEY_ADD_INHERITANCE_KEY, MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK, MembershipStep.IRON_ADD_HARDWARE_KEY_1, MembershipStep.IRON_ADD_HARDWARE_KEY_2, MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK, MembershipStep.HONEY_ADD_HARDWARE_KEY_2, MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK -> handleHardwareKeyAdd(
+            MembershipStep.HONEY_ADD_INHERITANCE_KEY,
+            MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK,
+            MembershipStep.IRON_ADD_HARDWARE_KEY_1,
+            MembershipStep.IRON_ADD_HARDWARE_KEY_2,
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK,
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK -> handleHardwareKeyAdd(
                 data
             )
 

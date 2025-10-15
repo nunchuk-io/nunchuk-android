@@ -180,7 +180,9 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     onMoreClicked = ::handleShowMore,
                     onConfigTimelockClicked = {
                         findNavController().navigate(
-                            OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToOnChainSetUpTimelockFragment()
+                            OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToOnChainSetUpTimelockFragment(
+                                groupId = args.groupId
+                            )
                         )
                     }
                 )
@@ -498,7 +500,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK ||
                     nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 ||
                     nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK -> {
-                // For Byzantine on-chain timelock inheritance keys
                 findNavController().navigate(
                     OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToInheritanceKeyIntroFragment(
                         inheritanceType = InheritancePlanType.ON_CHAIN
@@ -509,13 +510,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
             nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 ||
                     nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK ||
                     nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 ||
-                    nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK ||
-                    nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 ||
-                    nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK ||
-                    nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 ||
-                    nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3_TIMELOCK ||
-                    nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 ||
-                    nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4_TIMELOCK
+                    nextStep == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK
                 -> handleHardwareKeyAdd(data)
 
             else -> Unit
@@ -526,7 +521,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
         val allSigners = data.getAllSigners()
 
         if (allSigners.isEmpty()) {
-            // No signers exist, open signer intro fragment
             findNavController().navigate(
                 OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToSignerIntroFragment(
                     walletId = (activity as MembershipActivity).walletId,
@@ -543,7 +537,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
         } else {
             val firstSigner = allSigners.first()
 
-            // Special handling for TapSigner (SignerType.NFC) to add second signer for Acct 1
             if (firstSigner.type == SignerType.NFC && allSigners.size == 1) {
                 viewModel.handleTapSignerAcct1Addition(
                     data,
@@ -553,7 +546,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 return
             }
 
-            // Signers exist, delegate to ViewModel to handle the logic
             viewModel.handleSignerIndexCheck(
                 data,
                 firstSigner,

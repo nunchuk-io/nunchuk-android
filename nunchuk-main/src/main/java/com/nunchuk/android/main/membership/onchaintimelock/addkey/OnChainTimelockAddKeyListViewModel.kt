@@ -529,11 +529,9 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
 
         // After successfully adding signer, handle TapSigner Acct 1 addition if we have the required data
         val nextStep = data?.getNextStepToAdd(currentStep)
-        Timber.tag("tapsigner-onchain").d("processTapSignerWithCompleteData: nextStep=$nextStep after currentStep=$currentStep, walletId=$walletId")
         if (nextStep != null && walletId != null) {
             savedStateHandle[KEY_CURRENT_STEP] = nextStep
             membershipStepManager.setCurrentStep(nextStep)
-            Timber.tag("tapsigner-onchain").d("processTapSignerWithCompleteData: Updated currentStep to $nextStep before handleTapSignerAcct1Addition")
             handleTapSignerAcct1Addition(data, signerModel, walletId)
         }
     }
