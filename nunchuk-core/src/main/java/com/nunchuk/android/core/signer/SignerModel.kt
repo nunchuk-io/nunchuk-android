@@ -49,6 +49,8 @@ data class SignerModel(
     val isNeedBackup: Boolean = false, // hot key
     val xpub: String = "",
     val publicKey: String = "",
+    val externalIndex: Int = 0,
+    val internalIndex: Int = 1
 ) : Parcelable {
     val isEditablePath: Boolean
         get() = type == SignerType.HARDWARE || type == SignerType.SOFTWARE
@@ -64,6 +66,8 @@ data class SignerModel(
         if (derivationPath != other.derivationPath) return false
         if (name != other.name) return false
         if (index != other.index) return false
+        if (externalIndex != other.externalIndex) return false
+        if (internalIndex != other.internalIndex) return false
 
         return true
     }
@@ -99,7 +103,9 @@ fun SingleSigner.toModel(isPrimaryKey: Boolean = false) = SignerModel(
     isMasterSigner = hasMasterSigner,
     index = index,
     xpub = xpub,
-    publicKey = publicKey
+    publicKey = publicKey,
+    externalIndex = externalInternalIndex.first,
+    internalIndex = externalInternalIndex.second
 )
 
 fun JoinKey.toSignerModel() = SignerModel(
@@ -138,7 +144,8 @@ fun SignerModel.toSingleSigner() = SingleSigner(
     descriptor = "",
     tags = tags,
     isVisible = isVisible,
-    index = index
+    index = index,
+    externalInternalIndex = Pair(externalIndex, internalIndex)
 )
 
 data class SignerInput(

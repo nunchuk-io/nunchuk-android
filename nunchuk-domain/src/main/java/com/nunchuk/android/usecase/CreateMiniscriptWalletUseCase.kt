@@ -43,7 +43,7 @@ class CreateMiniscriptWalletUseCase @Inject constructor(
             allowUsedSigner = parameters.allowUsedSigner,
             decoyPin = parameters.decoyPin
         )
-        addWalletBannerStateUseCase(createdWallet.id)
+        addWalletBannerStateUseCase(createdWallet.id).getOrNull()
         return createdWallet
     }
 
