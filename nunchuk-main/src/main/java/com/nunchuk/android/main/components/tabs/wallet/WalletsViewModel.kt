@@ -657,7 +657,9 @@ internal class WalletsViewModel @Inject constructor(
                     if (signer.type == SignerType.NFC) signer.copy(
                         cardId = cardIdManager.getCardId(
                             signer.id
-                        )
+                        ),
+                        internalIndex = signer.internalIndex,
+                        externalIndex = signer.externalIndex
                     ) else signer
                 }.toList()
             var groupWalletUi = GroupWalletUi(

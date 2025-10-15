@@ -50,7 +50,7 @@ data class SignerModel(
     val xpub: String = "",
     val publicKey: String = "",
     val externalIndex: Int = 0,
-    val internalIndex: Int = 1
+    val internalIndex: Int = 1,
 ) : Parcelable {
     val isEditablePath: Boolean
         get() = type == SignerType.HARDWARE || type == SignerType.SOFTWARE
