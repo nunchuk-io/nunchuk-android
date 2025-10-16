@@ -51,9 +51,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -109,21 +107,12 @@ class InheritanceNotificationSettingsFragment : MembershipFragment() {
             )
         )
         if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
-            setFragmentResult(
-                REQUEST_KEY,
-                bundleOf(EXTRA_EMAIL_ME_WALLET_CONFIG to emailMeWalletConfig)
-            )
-            findNavController().popBackStack()
+            findNavController().popBackStack(R.id.inheritanceReviewPlanFragment, false)
         } else {
             findNavController().navigate(
                 InheritanceNotificationSettingsFragmentDirections.actionInheritanceNotificationSettingsFragmentToInheritanceReviewPlanFragment()
             )
         }
-    }
-
-    companion object {
-        const val REQUEST_KEY = "InheritanceNotificationSettingsFragment"
-        const val EXTRA_EMAIL_ME_WALLET_CONFIG = "EXTRA_EMAIL_ME_WALLET_CONFIG"
     }
 }
 
@@ -135,32 +124,35 @@ fun InheritanceNotificationSettingsScreen(
     membershipStepManager: MembershipStepManager
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
+    val sharedUiState by inheritanceViewModel.state.collectAsStateWithLifecycle()
 
     // Internal state for owner's email settings
     val initialSettings = inheritanceViewModel.setupOrReviewParam.notificationSettings
         ?: InheritanceNotificationSettings()
+    val perEmailSettingsMap =
+        remember(inheritanceViewModel.setupOrReviewParam.notificationSettings) {
+            initialSettings.perEmailSettings.associateBy { it.email }
+        }
     var emailMeWalletConfig by remember {
         mutableStateOf(initialSettings.emailMeWalletConfig)
     }
 
-    // Internal state for each beneficiary/trustee email
     val emails = inheritanceViewModel.setupOrReviewParam.emails
     var emailSettingsList by remember {
         mutableStateOf(
-            initialSettings.perEmailSettings.ifEmpty {
-                emails.map { email ->
-                    EmailNotificationSettings(
-                        email = email,
-                        notifyOnTimelockExpiry = true,
-                        notifyOnWalletChanges = true,
-                        includeWalletConfiguration = true
-                    )
-                }
+            emails.map { email ->
+                EmailNotificationSettings(
+                    email = email,
+                    notifyOnTimelockExpiry = perEmailSettingsMap[email]?.notifyOnTimelockExpiry ?: true,
+                    notifyOnWalletChanges = perEmailSettingsMap[email]?.notifyOnWalletChanges ?: true,
+                    includeWalletConfiguration = perEmailSettingsMap[email]?.includeWalletConfiguration ?: true
+                )
             }
         )
     }
 
     InheritanceNotificationSettingsScreenContent(
+        userEmail = sharedUiState.userEmail,
         remainTime = remainTime,
         emailSettingsList = emailSettingsList,
         planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
@@ -182,6 +174,7 @@ fun InheritanceNotificationSettingsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InheritanceNotificationSettingsScreenContent(
+    userEmail: String = "",
     remainTime: Int = 0,
     emailSettingsList: List<EmailNotificationSettings> = emptyList(),
     planFlow: Int = InheritancePlanFlow.NONE,
@@ -189,7 +182,7 @@ fun InheritanceNotificationSettingsScreenContent(
     emailMeWalletConfig: Boolean = true,
     onEmailSettingsChange: (Int, EmailNotificationSettings) -> Unit = { _, _ -> },
     onEmailMeWalletConfigChange: (Boolean) -> Unit = {},
-    onContinueClick: () -> Unit = {}
+    onContinueClick: () -> Unit = {},
 ) {
     val isSetupFlow = planFlow == InheritancePlanFlow.SETUP && isUpdateRequest.not()
 
@@ -253,7 +246,7 @@ fun InheritanceNotificationSettingsScreenContent(
                 ) {
                     // Owner email display
                     Text(
-                        text = "owner123@gmail.com", // TODO: Get from user profile
+                        text = userEmail,
                         style = NunchukTheme.typography.body,
                     )
 
@@ -311,6 +304,5 @@ private fun InheritanceNotificationSettingsScreenPreview() {
                 includeWalletConfiguration = true
             )
         ),
-        emailMeWalletConfig = true
     )
 }

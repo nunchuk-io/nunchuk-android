@@ -50,6 +50,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,7 +66,6 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -91,12 +91,9 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate.InheritanceActivationDateFragment
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiod.InheritanceBufferPeriodFragment
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteFragment
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notificationsettings.EmailNotificationSettings
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.InheritanceNotifyPrefFragment
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
@@ -104,7 +101,6 @@ import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.Utils
-import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import com.nunchuk.android.widget.NCWarningDialog
@@ -224,24 +220,6 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.init(inheritanceViewModel.setupOrReviewParam)
-        setFragmentResultListener(InheritanceActivationDateFragment.REQUEST_KEY) { _, bundle ->
-            val date = bundle.getLong(InheritanceActivationDateFragment.EXTRA_ACTIVATION_DATE)
-            viewModel.updateActivationDate(date)
-        }
-        setFragmentResultListener(InheritanceNoteFragment.REQUEST_KEY) { _, bundle ->
-            val note = bundle.getString(InheritanceNoteFragment.EXTRA_NOTE)
-            viewModel.updateNote(note.orEmpty())
-        }
-        setFragmentResultListener(InheritanceNotifyPrefFragment.REQUEST_KEY) { _, bundle ->
-            val isNotify = bundle.getBoolean(InheritanceNotifyPrefFragment.EXTRA_IS_NOTIFY)
-            val emails = bundle.getStringArrayList(InheritanceNotifyPrefFragment.EXTRA_EMAILS)
-            viewModel.updateNotifyPref(isNotify, emails.orEmpty())
-        }
-        setFragmentResultListener(InheritanceBufferPeriodFragment.REQUEST_KEY) { _, bundle ->
-            val period =
-                bundle.parcelable<Period>(InheritanceBufferPeriodFragment.EXTRA_BUFFER_PERIOD)
-            viewModel.updateBufferPeriod(period)
-        }
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceReviewPlanEvent.CalculateRequiredSignaturesSuccess -> {
@@ -334,25 +312,34 @@ fun InheritanceReviewPlanScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
+    val sharedUiState by inheritanceViewModel.state.collectAsStateWithLifecycle()
+    val setupOrReviewParam = sharedUiState.setupOrReviewParam
+
+    LaunchedEffect(setupOrReviewParam) {
+        viewModel.update(setupOrReviewParam)
+    }
 
     InheritanceReviewPlanScreenContent(
+        isMiniscriptWallet = sharedUiState.isMiniscriptWallet,
+        userEmail = sharedUiState.userEmail,
         remainTime = remainTime,
-        planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
-        magicalPhrase = inheritanceViewModel.setupOrReviewParam.magicalPhrase,
-        groupId = inheritanceViewModel.setupOrReviewParam.groupId,
+        planFlow = setupOrReviewParam.planFlow,
+        magicalPhrase = setupOrReviewParam.magicalPhrase,
+        groupId = setupOrReviewParam.groupId,
         groupWalletType = inheritanceViewModel.getGroupWalletType(),
+        setupOrReviewParam = setupOrReviewParam,
         state = state,
         onContinueClicked = {
             viewModel.calculateRequiredSignatures(flow = InheritanceReviewPlanViewModel.ReviewFlow.CREATE_OR_UPDATE)
         },
         onEditActivationDateClick = {
-            onEditActivationDateClick(state.activationDate)
+            onEditActivationDateClick(setupOrReviewParam.activationDate)
         },
         onEditNoteClick = {
-            onEditNoteClick(state.note)
+            onEditNoteClick(setupOrReviewParam.note)
         },
         onNotifyPrefClick = {
-            onNotifyPrefClick(state.isNotifyToday, state.emails)
+            onNotifyPrefClick(setupOrReviewParam.isNotify, setupOrReviewParam.emails)
         },
         onDiscardChange = onDiscardChange,
         onShareSecretClicked = onShareSecretClicked,
@@ -365,12 +352,17 @@ fun InheritanceReviewPlanScreen(
 
 @Composable
 fun InheritanceReviewPlanScreenContent(
+    isMiniscriptWallet: Boolean = false,
+    userEmail: String = "",
     remainTime: Int = 0,
     planFlow: Int = InheritancePlanFlow.VIEW,
     magicalPhrase: String = "",
     groupId: String = "",
     groupWalletType: GroupWalletType? = null,
     state: InheritanceReviewPlanState = InheritanceReviewPlanState(),
+    setupOrReviewParam: InheritancePlanningParam.SetupOrReview = InheritancePlanningParam.SetupOrReview(
+        walletId = ""
+    ),
     onContinueClicked: () -> Unit = {},
     onShareSecretClicked: () -> Unit = {},
     onDiscardChange: () -> Unit = {},
@@ -380,7 +372,7 @@ fun InheritanceReviewPlanScreenContent(
     onActionTopBarClick: () -> Unit = {},
     onViewClaimingInstruction: () -> Unit = {},
     onEditBufferPeriodClick: (bufferPeriod: Period?) -> Unit = {},
-    onBackUpPasswordInfoClick: () -> Unit = {}
+    onBackUpPasswordInfoClick: () -> Unit = {},
 ) {
     val isEditable = groupId.isEmpty() || state.currentUserRole.toRole.isMasterOrAdmin
     val magicalPhraseMask = if (groupId.isNotEmpty() && magicalPhrase.isEmpty()) {
@@ -554,8 +546,8 @@ fun InheritanceReviewPlanScreenContent(
                                     color = Color.White
                                 )
                                 ActivationDateItem(
-                                    activationDate = Date(state.activationDate).simpleGlobalDateFormat(),
-                                    timeZoneId = state.timeZoneId,
+                                    activationDate = Date(setupOrReviewParam.activationDate).simpleGlobalDateFormat(),
+                                    timeZoneId = setupOrReviewParam.selectedZoneId,
                                     editable = isEditable,
                                     onClick = {
                                         onEditActivationDateClick()
@@ -629,7 +621,7 @@ fun InheritanceReviewPlanScreenContent(
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
-                                text = state.note.ifBlank { stringResource(id = R.string.nc_no_note) },
+                                text = setupOrReviewParam.note.ifBlank { stringResource(id = R.string.nc_no_note) },
                                 style = NunchukTheme.typography.body,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -647,48 +639,49 @@ fun InheritanceReviewPlanScreenContent(
                     )
                 }
 
-                // Buffer Period Section
-                item {
-                    Column(
-                        modifier = Modifier.padding(
-                            start = 16.dp, end = 16.dp, top = 24.dp
-                        )
-                    ) {
-                        Row(horizontalArrangement = Arrangement.Center) {
-                            Text(
-                                text = stringResource(id = R.string.nc_buffer_period),
-                                style = NunchukTheme.typography.title
+                if (!isMiniscriptWallet) {
+                    item {
+                        Column(
+                            modifier = Modifier.padding(
+                                start = 16.dp, end = 16.dp, top = 24.dp
                             )
-                            Spacer(modifier = Modifier.weight(weight = 1f))
-                            if (isEditable) {
+                        ) {
+                            Row(horizontalArrangement = Arrangement.Center) {
                                 Text(
-                                    text = stringResource(id = R.string.nc_edit),
-                                    style = NunchukTheme.typography.title,
-                                    textDecoration = TextDecoration.Underline,
-                                    modifier = Modifier.clickable {
-                                        onEditBufferPeriodClick(state.bufferPeriod)
-                                    }
+                                    text = stringResource(id = R.string.nc_buffer_period),
+                                    style = NunchukTheme.typography.title
+                                )
+                                Spacer(modifier = Modifier.weight(weight = 1f))
+                                if (isEditable) {
+                                    Text(
+                                        text = stringResource(id = R.string.nc_edit),
+                                        style = NunchukTheme.typography.title,
+                                        textDecoration = TextDecoration.Underline,
+                                        modifier = Modifier.clickable {
+                                            onEditBufferPeriodClick(setupOrReviewParam.bufferPeriod)
+                                        }
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Box(
+                                modifier = Modifier.background(
+                                    color = MaterialTheme.colorScheme.greyLight,
+                                    shape = RoundedCornerShape(8.dp)
+                                ),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    text = setupOrReviewParam.bufferPeriod?.displayName.orEmpty()
+                                        .ifBlank { stringResource(id = R.string.nc_no_buffer) },
+                                    style = NunchukTheme.typography.body,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
                                 )
                             }
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Box(
-                            modifier = Modifier.background(
-                                color = MaterialTheme.colorScheme.greyLight,
-                                shape = RoundedCornerShape(8.dp)
-                            ),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = state.bufferPeriod?.displayName.orEmpty()
-                                    .ifBlank { stringResource(id = R.string.nc_no_buffer) },
-                                style = NunchukTheme.typography.body,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                            )
                         }
                     }
                 }
@@ -728,35 +721,27 @@ fun InheritanceReviewPlanScreenContent(
                     }
                 }
 
-                // User Notification Settings (Owner Email)
-                if (state.notificationSettings != null && state.notificationSettings.emailMeWalletConfig && state.notificationSettings.perEmailSettings.isNotEmpty()) {
+                // Provider Notification Settings (Beneficiary/Trustee Emails)
+                if (setupOrReviewParam.notificationSettings != null && setupOrReviewParam.notificationSettings.perEmailSettings.isNotEmpty()) {
+                    // User Notification Settings (Owner Email)
                     item {
                         UserNotificationSettingsContent(
-                            emailSettings = state.notificationSettings.perEmailSettings.first(),
-                            emailMeWalletConfig = state.notificationSettings.emailMeWalletConfig
+                            emailSettings = setupOrReviewParam.notificationSettings.perEmailSettings.first(),
+                            emailMeWalletConfig = setupOrReviewParam.notificationSettings.emailMeWalletConfig,
+                            userEmail = userEmail
                         )
                     }
-                }
 
-                // Provider Notification Settings (Beneficiary/Trustee Emails)
-                if (state.notificationSettings != null && state.notificationSettings.perEmailSettings.isNotEmpty()) {
-                    val beneficiaryEmails = if (state.notificationSettings.emailMeWalletConfig) {
-                        state.notificationSettings.perEmailSettings.drop(1)
-                    } else {
-                        state.notificationSettings.perEmailSettings
-                    }
-
-                    beneficiaryEmails.forEachIndexed { index, emailSettings ->
+                    setupOrReviewParam.notificationSettings.perEmailSettings.forEachIndexed { index, emailSettings ->
                         item {
                             ProviderNotificationSettingsContent(emailSettings = emailSettings)
                         }
                     }
                 } else {
-                    // Fallback to simple notification settings
                     item {
                         SimpleNotificationCard(
-                            emails = state.emails,
-                            isNotifyToday = state.isNotifyToday
+                            emails = setupOrReviewParam.emails,
+                            isNotifyToday = setupOrReviewParam.isNotify
                         )
                     }
                 }
@@ -773,7 +758,8 @@ fun InheritanceReviewPlanScreenContent(
 @Composable
 fun UserNotificationSettingsContent(
     emailSettings: EmailNotificationSettings,
-    emailMeWalletConfig: Boolean
+    emailMeWalletConfig: Boolean,
+    userEmail: String = ""
 ) {
     Box(
         modifier = Modifier
@@ -789,7 +775,7 @@ fun UserNotificationSettingsContent(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = emailSettings.email,
+                text = userEmail.ifEmpty { emailSettings.email },
                 style = NunchukTheme.typography.title
             )
 
@@ -1082,7 +1068,8 @@ private fun UserNotificationSettingsPreview() {
                 notifyOnWalletChanges = true,
                 includeWalletConfiguration = true
             ),
-            emailMeWalletConfig = true
+            emailMeWalletConfig = true,
+            userEmail = "user@example.com"
         )
     }
 }
@@ -1118,7 +1105,15 @@ private fun SimpleNotificationCardPreview() {
 private fun InheritanceReviewPlanScreenPreview() {
     InheritanceReviewPlanScreenContent(
         state = InheritanceReviewPlanState(
-            walletName = "My Wallet",
-        )
+            walletName = "My Wallet"
+        ),
+        setupOrReviewParam = InheritancePlanningParam.SetupOrReview(
+            walletId = "wallet123",
+            activationDate = System.currentTimeMillis(),
+            note = "Sample note",
+            emails = listOf("email1@example.com", "email2@example.com"),
+            isNotify = true,
+            magicalPhrase = "sample magical phrase"
+        ),
     )
 }

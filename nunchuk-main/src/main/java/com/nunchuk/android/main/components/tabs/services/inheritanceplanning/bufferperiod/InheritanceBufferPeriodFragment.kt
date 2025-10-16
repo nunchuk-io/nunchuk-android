@@ -44,9 +44,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -101,10 +99,6 @@ class InheritanceBufferPeriodFragment : MembershipFragment() {
                         )
                     )
                     if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
-                        setFragmentResult(
-                            REQUEST_KEY,
-                            bundleOf(EXTRA_BUFFER_PERIOD to event.period)
-                        )
                         findNavController().popBackStack()
                     } else {
                         findNavController().navigate(
@@ -114,11 +108,6 @@ class InheritanceBufferPeriodFragment : MembershipFragment() {
                 }
             }
         }
-    }
-
-    companion object {
-        const val REQUEST_KEY = "InheritanceBufferPeriodFragment"
-        const val EXTRA_BUFFER_PERIOD = "EXTRA_BUFFER_PERIOD"
     }
 }
 

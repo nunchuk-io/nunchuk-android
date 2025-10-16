@@ -129,11 +129,6 @@ class InheritanceActivationDateFragment : MembershipFragment() {
             }
         }
     }
-
-    companion object {
-        const val REQUEST_KEY = "InheritanceActivationDateFragment"
-        const val EXTRA_ACTIVATION_DATE = "EXTRA_ACTIVATION_DATE"
-    }
 }
 
 @Composable

@@ -32,7 +32,6 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
-import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetWalletUseCase
@@ -83,11 +82,14 @@ class InheritanceReviewPlanViewModel @Inject constructor(
 
     fun init(param: InheritancePlanningParam.SetupOrReview) {
         this.param = param
-        updateDataState()
         getWalletName()
         if (param.groupId.isNotEmpty()) {
             getGroup()
         }
+    }
+
+    fun update(param: InheritancePlanningParam.SetupOrReview) {
+        this.param = param
     }
 
     private fun getGroup() {
@@ -118,19 +120,18 @@ class InheritanceReviewPlanViewModel @Inject constructor(
 
     fun calculateRequiredSignatures(flow: ReviewFlow) = viewModelScope.launch {
         savedStateHandle[EXTRA_REVIEW_FLOW] = flow
-        val stateValue = _state.value
-        val walletId = stateValue.walletId ?: return@launch
+        val walletId = param.walletId
         _event.emit(InheritanceReviewPlanEvent.Loading(true))
         val activationTimeMillis =
-            calculateActivationTimeMillis(stateValue.activationDate, stateValue.timeZoneId)
+            calculateActivationTimeMillis(param.activationDate, param.selectedZoneId)
         val resultCalculate = calculateRequiredSignaturesInheritanceUseCase(
             CalculateRequiredSignaturesInheritanceUseCase.Param(
                 walletId = walletId,
-                note = stateValue.note,
-                notificationEmails = stateValue.emails.toList(),
-                notifyToday = stateValue.isNotifyToday,
+                note = param.note,
+                notificationEmails = param.emails.toList(),
+                notifyToday = param.isNotify,
                 activationTimeMilis = activationTimeMillis,
-                bufferPeriodId = stateValue.bufferPeriod?.id,
+                bufferPeriodId = param.bufferPeriod?.id,
                 action = if (flow == ReviewFlow.CREATE_OR_UPDATE) CalculateRequiredSignaturesAction.CREATE_OR_UPDATE else CalculateRequiredSignaturesAction.CANCEL,
                 groupId = param.groupId
             )
@@ -223,9 +224,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     }
 
     private suspend fun getUserData(): String {
-        val stateValue = state.value
         val activationTimeMillis =
-            calculateActivationTimeMillis(stateValue.activationDate, stateValue.timeZoneId)
+            calculateActivationTimeMillis(param.activationDate, param.selectedZoneId)
         val resultUserData = if (reviewFlow == ReviewFlow.CANCEL) {
             cancelInheritanceUserDataUseCase(
                 CancelInheritanceUserDataUseCase.Param(
@@ -237,11 +237,11 @@ class InheritanceReviewPlanViewModel @Inject constructor(
             getInheritanceUserDataUseCase(
                 GetInheritanceUserDataUseCase.Param(
                     walletId = param.walletId,
-                    note = stateValue.note,
-                    notificationEmails = stateValue.emails.toList(),
-                    notifyToday = stateValue.isNotifyToday,
+                    note = param.note,
+                    notificationEmails = param.emails.toList(),
+                    notifyToday = param.isNotify,
                     activationTimeMilis = activationTimeMillis,
-                    bufferPeriodId = stateValue.bufferPeriod?.id,
+                    bufferPeriodId = param.bufferPeriod?.id,
                     groupId = param.groupId
                 )
             )
@@ -254,36 +254,6 @@ class InheritanceReviewPlanViewModel @Inject constructor(
             )
         }
         return userData
-    }
-
-    private fun updateDataState() {
-        _state.update {
-            it.copy(
-                activationDate = param.activationDate,
-                note = param.note,
-                isNotifyToday = param.isNotify,
-                emails = param.emails.toList(),
-                notificationSettings = param.notificationSettings,
-                bufferPeriod = param.bufferPeriod,
-                timeZoneId = param.selectedZoneId,
-            )
-        }
-    }
-
-    fun updateActivationDate(time: Long) = viewModelScope.launch {
-        _state.update { it.copy(activationDate = time) }
-    }
-
-    fun updateNote(note: String) = viewModelScope.launch {
-        _state.update { it.copy(note = note) }
-    }
-
-    fun updateNotifyPref(isNotify: Boolean, emails: List<String>) = viewModelScope.launch {
-        _state.update { it.copy(isNotifyToday = isNotify, emails = emails) }
-    }
-
-    fun updateBufferPeriod(period: Period?) = viewModelScope.launch {
-        _state.update { it.copy(bufferPeriod = period) }
     }
 
     fun handleFlow(
@@ -339,7 +309,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 verifyToken = param.verifyToken,
                 userData = state.userData.orEmpty(),
                 securityQuestionToken = securityQuestionToken,
-                walletId = state.walletId.orEmpty(),
+                walletId = param.walletId,
                 draft = false
             )
         )

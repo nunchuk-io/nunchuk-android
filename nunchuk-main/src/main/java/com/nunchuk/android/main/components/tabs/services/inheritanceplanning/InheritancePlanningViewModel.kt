@@ -4,6 +4,7 @@ import androidx.annotation.Keep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notificationsettings.EmailNotificationSettings
 import com.nunchuk.android.main.membership.model.toGroupWalletType
@@ -31,6 +32,7 @@ class InheritancePlanningViewModel @Inject constructor(
     private val getGroupUseCase: GetGroupUseCase,
     private val getServerWalletUseCase: GetServerWalletUseCase,
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
+    accountManager: AccountManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val groupId = savedStateHandle.get<String>(MembershipFragment.EXTRA_GROUP_ID).orEmpty()
@@ -41,13 +43,15 @@ class InheritancePlanningViewModel @Inject constructor(
         InheritancePlanningState(
             groupId = savedStateHandle.get<String>(
                 MembershipFragment.EXTRA_GROUP_ID
-            ).orEmpty()
+            ).orEmpty(),
+            userEmail = accountManager.getAccount().email,
+            setupOrReviewParam = InheritancePlanningParam.SetupOrReview(walletId = walletId)
         )
     )
     val state = _state.asStateFlow()
 
-    lateinit var setupOrReviewParam: InheritancePlanningParam.SetupOrReview
-        private set
+    val setupOrReviewParam: InheritancePlanningParam.SetupOrReview
+        get() = state.value.setupOrReviewParam
 
     init {
         if (groupId.isNotEmpty()) {
@@ -89,9 +93,9 @@ class InheritancePlanningViewModel @Inject constructor(
         }
     }
 
-    fun setOrUpdate(param: InheritancePlanningParam) {
-        if (param is InheritancePlanningParam.SetupOrReview) {
-            setupOrReviewParam = param
+    fun setOrUpdate(param: InheritancePlanningParam.SetupOrReview) {
+        _state.update {
+            it.copy(setupOrReviewParam = param)
         }
     }
 
@@ -106,7 +110,9 @@ data class InheritancePlanningState(
     val groupId: String = "",
     val groupWalletType: GroupWalletType? = null,
     val keyTypes: List<InheritanceKeyType> = emptyList(),
-    val walletType: WalletType = WalletType.MULTI_SIG
+    val walletType: WalletType = WalletType.MULTI_SIG,
+    val userEmail: String = "",
+    val setupOrReviewParam: InheritancePlanningParam.SetupOrReview
 ) {
     val isMiniscriptWallet: Boolean
         get() = walletType == WalletType.MINISCRIPT

@@ -46,9 +46,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -97,9 +95,6 @@ class InheritanceNoteFragment : MembershipFragment() {
                         )
                     )
                     if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
-                        setFragmentResult(
-                            REQUEST_KEY, bundleOf(EXTRA_NOTE to event.note)
-                        )
                         findNavController().popBackStack()
                     } else if (inheritanceViewModel.isMiniscriptWallet()) {
                         findNavController().navigate(
@@ -115,11 +110,6 @@ class InheritanceNoteFragment : MembershipFragment() {
                 }
             }
         }
-    }
-
-    companion object {
-        const val REQUEST_KEY = "InheritanceNoteFragment"
-        const val EXTRA_NOTE = "EXTRA_NOTE"
     }
 }
 

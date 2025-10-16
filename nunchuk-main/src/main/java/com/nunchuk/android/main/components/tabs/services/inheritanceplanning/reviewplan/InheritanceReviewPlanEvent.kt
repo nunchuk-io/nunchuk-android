@@ -19,9 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceNotificationSettings
 import com.nunchuk.android.model.CalculateRequiredSignatures
-import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 
 sealed class InheritanceReviewPlanEvent {
@@ -41,17 +39,19 @@ sealed class InheritanceReviewPlanEvent {
 }
 
 data class InheritanceReviewPlanState(
-    val activationDate: Long = 0,
-    val timeZoneId: String = "",
-    val note: String = "",
-    val isNotifyToday: Boolean = false,
-    val emails: List<String> = emptyList(),
-    val notificationSettings: InheritanceNotificationSettings? = null,
+    // Removed duplicated properties that exist in InheritancePlanningParam.SetupOrReview:
+    // - activationDate (use param.activationDate)
+    // - note (use param.note)
+    // - isNotifyToday (use param.isNotify)
+    // - emails (use param.emails)
+    // - notificationSettings (use param.notificationSettings)
+    // - bufferPeriod (use param.bufferPeriod)
+    // - timeZoneId (use param.selectedZoneId)
+    
     val userData: String? = null,
     val walletId: String? = null,
     val walletName: String? = null,
     val isDataChanged: Boolean = false,
-    val bufferPeriod: Period? = null,
     val requiredSignature: CalculateRequiredSignatures = CalculateRequiredSignatures(),
     val dummyTransactionId: String = "",
     val currentUserRole: String = AssistedWalletRole.NONE.name,

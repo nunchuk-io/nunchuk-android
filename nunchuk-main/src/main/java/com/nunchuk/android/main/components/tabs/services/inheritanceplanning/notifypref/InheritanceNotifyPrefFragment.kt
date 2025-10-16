@@ -34,9 +34,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -68,9 +68,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -135,23 +133,24 @@ class InheritanceNotifyPrefFragment : MembershipFragment() {
     }
 
     private fun openReviewPlanScreen(isDiscard: Boolean, emails: List<String>, isNotify: Boolean) {
-        inheritanceViewModel.setOrUpdate(
-            inheritanceViewModel.setupOrReviewParam.copy(
-                isNotify = isNotify,
-                emails = emails
+        if (!isDiscard) {
+            inheritanceViewModel.setOrUpdate(
+                inheritanceViewModel.setupOrReviewParam.copy(
+                    isNotify = isNotify,
+                    emails = emails
+                )
             )
-        )
+        }
         if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
-            if (isDiscard.not()) {
-                setFragmentResult(
-                    REQUEST_KEY,
-                    bundleOf(
-                        EXTRA_IS_NOTIFY to isNotify,
-                        EXTRA_EMAILS to emails
+            if (inheritanceViewModel.isMiniscriptWallet()) {
+                findNavController().navigate(
+                    InheritanceNotifyPrefFragmentDirections.actionInheritanceNotifyPrefFragmentToInheritanceNotificationSettingsFragment(
+                        isUpdateRequest = args.isUpdateRequest
                     )
                 )
+            } else {
+                findNavController().popBackStack()
             }
-            findNavController().popBackStack()
         } else if (inheritanceViewModel.isMiniscriptWallet()) {
             findNavController().navigate(
                 InheritanceNotifyPrefFragmentDirections.actionInheritanceNotifyPrefFragmentToInheritanceNotificationSettingsFragment()
@@ -161,12 +160,6 @@ class InheritanceNotifyPrefFragment : MembershipFragment() {
                 InheritanceNotifyPrefFragmentDirections.actionInheritanceNotifyPrefFragmentToInheritanceReviewPlanFragment()
             )
         }
-    }
-
-    companion object {
-        const val REQUEST_KEY = "InheritanceNotifyPrefFragment"
-        const val EXTRA_IS_NOTIFY = "EXTRA_IS_NOTIFY"
-        const val EXTRA_EMAILS = "EXTRA_EMAILS"
     }
 }
 
@@ -270,7 +263,16 @@ fun InheritanceNotifyPrefScreenContent(
 
     NunchukTheme {
         Scaffold(
-            modifier = Modifier.systemBarsPadding(),
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                val title = if (isSetupFlow) stringResource(
+                    id = R.string.nc_estimate_remain_time,
+                    remainTime
+                ) else ""
+                NcTopAppBar(title = title, actions = {
+                    Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
+                })
+            },
             bottomBar = {
                 val continueBtnText =
                     if (isSetupFlow) stringResource(id = R.string.nc_text_continue) else stringResource(
@@ -314,14 +316,6 @@ fun InheritanceNotifyPrefScreenContent(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                val title = if (isSetupFlow) stringResource(
-                    id = R.string.nc_estimate_remain_time,
-                    remainTime
-                ) else ""
-                NcTopAppBar(title = title, actions = {
-                    Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
-                })
-
                 Text(
                     modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_notification_preferences),
@@ -356,7 +350,7 @@ fun InheritanceNotifyPrefScreenContent(
                             color = MaterialTheme.colorScheme.strokePrimary,
                             shape = RoundedCornerShape(8.dp)
                         )
-                        .padding(16.dp)
+                        .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = if (emails.isEmpty()) 32.dp else 16.dp)
                 ) {
                     // Email chips - vertical layout
                     if (emails.isNotEmpty()) {
@@ -386,6 +380,7 @@ fun InheritanceNotifyPrefScreenContent(
                             keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Done
                         ),
+                        textStyle = NunchukTheme.typography.body,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = if (emails.isNotEmpty()) 8.dp else 0.dp),
