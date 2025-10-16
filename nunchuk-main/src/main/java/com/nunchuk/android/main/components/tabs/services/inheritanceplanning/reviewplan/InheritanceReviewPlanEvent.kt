@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan
 
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceNotificationSettings
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
@@ -45,6 +46,7 @@ data class InheritanceReviewPlanState(
     val note: String = "",
     val isNotifyToday: Boolean = false,
     val emails: List<String> = emptyList(),
+    val notificationSettings: InheritanceNotificationSettings? = null,
     val userData: String? = null,
     val walletId: String? = null,
     val walletName: String? = null,

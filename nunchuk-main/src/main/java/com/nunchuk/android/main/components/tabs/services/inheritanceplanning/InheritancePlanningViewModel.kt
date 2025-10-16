@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.InheritanceSourceFlow
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notificationsettings.EmailNotificationSettings
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.WalletServer
@@ -84,7 +85,7 @@ class InheritancePlanningViewModel @Inject constructor(
                 }
             }
         _state.update {
-            it.copy(keyTypes = keyTypes)
+            it.copy(keyTypes = keyTypes, walletType = WalletType.MINISCRIPT) // TODO Hai
         }
     }
 
@@ -117,10 +118,8 @@ enum class InheritanceKeyType {
 }
 
 data class InheritanceNotificationSettings(
-    val notifyOnTimelockExpiry: Boolean = true,
-    val notifyOnWalletChanges: Boolean = true,
-    val includeWalletConfiguration: Boolean = true,
-    val emailMeWalletConfig: Boolean = true
+    val emailMeWalletConfig: Boolean = true,
+    val perEmailSettings: List<EmailNotificationSettings> = emptyList()
 )
 
 sealed class InheritancePlanningParam {

@@ -447,22 +447,22 @@ fun InheritanceNotifyPrefScreenContent(
                 )
             }
         }
-    }
 
-    if (showSkipConfirmationDialog) {
-        NcConfirmationDialog(
-            message = stringResource(R.string.nc_inheritance_skip_notifications_confirmation),
-            title = stringResource(R.string.nc_confirmation),
-            positiveButtonText = stringResource(R.string.nc_text_continue),
-            negativeButtonText = stringResource(R.string.nc_add_email),
-            onPositiveClick = {
-                showSkipConfirmationDialog = false
-                onSkipClick()
-            },
-            onDismiss = {
-                showSkipConfirmationDialog = false
-            }
-        )
+        if (showSkipConfirmationDialog) {
+            NcConfirmationDialog(
+                message = stringResource(R.string.nc_inheritance_skip_notifications_confirmation),
+                title = stringResource(R.string.nc_confirmation),
+                positiveButtonText = stringResource(R.string.nc_text_continue),
+                negativeButtonText = stringResource(R.string.nc_add_email),
+                onPositiveClick = {
+                    showSkipConfirmationDialog = false
+                    onSkipClick()
+                },
+                onDismiss = {
+                    showSkipConfirmationDialog = false
+                }
+            )
+        }
     }
 }
 

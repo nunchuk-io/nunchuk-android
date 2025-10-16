@@ -230,6 +230,13 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_inheritanceNoteFragment_to_inheritanceNotifyPrefFragment"
+            app:destination="@id/inheritanceNotifyPrefFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <argument
             android:name="is_update_request"
             android:defaultValue="false"
@@ -333,6 +340,13 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_magicalPhraseIntroFragment_to_inheritanceKeyTipFragment"
+            app:destination="@id/inheritanceKeyTipFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
     <fragment
         android:id="@+id/findBackupPasswordFragment"
@@ -376,18 +390,33 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_inheritanceKeyTipFragment_to_inheritanceTimelockInfoFragment"
+            app:destination="@id/inheritanceTimelockInfoFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
         android:id="@+id/inheritanceTimelockInfoFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.timelockinfo.InheritanceTimelockInfoFragment"
-        android:label="InheritanceTimelockInfoFragment" />
+        android:label="InheritanceTimelockInfoFragment">
+        <action
+            android:id="@+id/action_inheritanceTimelockInfoFragment_to_inheritanceNoteFragment"
+            app:destination="@id/inheritanceNoteFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
 
 
     <fragment
         android:id="@+id/inheritanceReviewPlanGroupGroupFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanGroupGroupFragment"
-        android:label="InheritanceReviewPlanGroupGroupFragment"/>
+        android:label="InheritanceReviewPlanGroupGroupFragment" />
 
     <fragment
         android:id="@+id/inheritanceRequestPlanningConfirmFragment"

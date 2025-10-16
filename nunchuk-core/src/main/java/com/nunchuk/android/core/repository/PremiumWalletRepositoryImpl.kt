@@ -191,7 +191,6 @@ import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.SERVER_KEY_NAME
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -223,7 +222,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val serverTransactionCache: LruCache<String, ServerTransaction>,
     private val syncer: ByzantineSyncer,
     private val serverSignerMapper: ServerSignerMapper,
-    applicationScope: CoroutineScope,
+    private val applicationScope: CoroutineScope,
 ) : PremiumWalletRepository {
     private val chain =
         ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
@@ -2198,8 +2197,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         requestAddKeyDao.deleteRequests(groupId)
         updateOrInsertWallet(groupId, listOf(wallet))
         if (slug.isAllowSetupInheritance()) {
-            GlobalScope.launch { // This allows it to run in the background without blocking the return of wallet.toModel()
-                kotlin.runCatching { getInheritance(wallet.localId.orEmpty(), groupId = groupId) }
+            applicationScope.launch { // This allows it to run in the background without blocking the return of wallet.toModel()
+                runCatching { getInheritance(wallet.localId.orEmpty(), groupId = groupId) }
             }
         }
         return wallet.toModel()

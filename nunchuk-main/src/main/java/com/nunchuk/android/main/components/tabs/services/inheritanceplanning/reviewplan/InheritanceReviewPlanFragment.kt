@@ -75,6 +75,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.sheet.BottomSheetOption
@@ -94,6 +95,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.activationdate.InheritanceActivationDateFragment
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.bufferperiod.InheritanceBufferPeriodFragment
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.note.InheritanceNoteFragment
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notificationsettings.EmailNotificationSettings
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notifypref.InheritanceNotifyPrefFragment
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.byzantine.GroupWalletType
@@ -198,11 +200,13 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
                                 isUpdateRequest = true,
                             )
                         )
-                    }, onBackUpPasswordInfoClick = {
+                    },
+                    onBackUpPasswordInfoClick = {
                         findNavController().navigate(
                             InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceBackUpDownloadFragment()
                         )
-                    })
+                    },
+                )
             }
         }
     }
@@ -423,14 +427,44 @@ fun InheritanceReviewPlanScreenContent(
                         }
                     }
                 )
+            },
+            bottomBar = {
+                Column {
+                    val continueText = if (planFlow == InheritancePlanFlow.SETUP) {
+                        stringResource(id = R.string.nc_text_continue)
+                    } else {
+                        stringResource(id = R.string.nc_continue_to_finalize_changes)
+                    }
+                    if (isEditable) {
+                        NcPrimaryDarkButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp), onContinueClicked
+                        ) {
+                            Text(text = continueText)
+                        }
+                        if (planFlow == InheritancePlanFlow.VIEW) {
+                            NcOutlineButton(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                                    .padding(bottom = 16.dp)
+                                    .height(48.dp),
+                                onClick = onDiscardChange,
+                            ) {
+                                Text(text = stringResource(R.string.nc_discard_changes))
+                            }
+                        }
+                    }
+                }
             }
         ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Header Section with Wallet Info
                 item {
                     Column(
                         modifier = Modifier
@@ -559,6 +593,9 @@ fun InheritanceReviewPlanScreenContent(
                             }
                         }
                     }
+                }
+
+                item {
                     Column(
                         modifier = Modifier.padding(
                             start = 16.dp, end = 16.dp, top = 24.dp
@@ -600,12 +637,18 @@ fun InheritanceReviewPlanScreenContent(
                             )
                         }
                     }
+                }
 
+                item(key = "divider_1") {
                     HorizontalDivider(
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
                         thickness = 1.dp,
                         color = MaterialTheme.colorScheme.whisper
                     )
+                }
+
+                // Buffer Period Section
+                item {
                     Column(
                         modifier = Modifier.padding(
                             start = 16.dp, end = 16.dp, top = 24.dp
@@ -648,115 +691,254 @@ fun InheritanceReviewPlanScreenContent(
                             )
                         }
                     }
+                }
 
+                // Divider
+                item(key = "divider_2") {
                     HorizontalDivider(
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
                         thickness = 1.dp,
                         color = MaterialTheme.colorScheme.whisper
                     )
+                }
 
-                    Column(
+                // Notification Preferences Header
+                item(key = "notification_preferences_header") {
+                    Row(
                         modifier = Modifier.padding(
                             start = 16.dp, end = 16.dp, top = 24.dp
+                        ),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.nc_notification_preferences),
+                            style = NunchukTheme.typography.title,
                         )
-                    ) {
-                        Row(horizontalArrangement = Arrangement.Center) {
+                        Spacer(modifier = Modifier.weight(weight = 1f))
+                        if (isEditable) {
                             Text(
-                                text = stringResource(id = R.string.nc_notification_preferences),
+                                text = stringResource(id = R.string.nc_edit),
                                 style = NunchukTheme.typography.title,
+                                textDecoration = TextDecoration.Underline,
+                                modifier = Modifier.clickable {
+                                    onNotifyPrefClick()
+                                }
                             )
-                            Spacer(modifier = Modifier.weight(weight = 1f))
-                            if (isEditable) {
-                                Text(
-                                    text = stringResource(id = R.string.nc_edit),
-                                    style = NunchukTheme.typography.title,
-                                    textDecoration = TextDecoration.Underline,
-                                    modifier = Modifier.clickable {
-                                        onNotifyPrefClick()
-                                    }
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    color = MaterialTheme.colorScheme.greyLight,
-                                    shape = RoundedCornerShape(8.dp)
-                                )
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = stringResource(id = R.string.nc_beneficiary_trustee_email_address),
-                                        style = NunchukTheme.typography.body,
-                                        modifier = Modifier.fillMaxWidth(0.3f),
-                                    )
-                                    Spacer(modifier = Modifier.weight(1f))
-                                    Text(
-                                        text = state.emails.joinToString("\n")
-                                            .ifEmpty { "(${stringResource(id = R.string.nc_none)})" },
-                                        style = NunchukTheme.typography.title
-                                    )
-                                }
-
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(
-                                        start = 16.dp,
-                                        end = 16.dp,
-                                        top = 24.dp,
-                                        bottom = 24.dp
-                                    ),
-                                    thickness = 1.dp,
-                                    color = MaterialTheme.colorScheme.whisper
-                                )
-
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = stringResource(id = R.string.nc_notify_them_today),
-                                        style = NunchukTheme.typography.body,
-                                        modifier = Modifier.fillMaxWidth(0.3f),
-                                    )
-                                    Spacer(modifier = Modifier.weight(1f))
-                                    Text(
-                                        text = if (state.isNotifyToday) stringResource(id = R.string.nc_text_yes) else stringResource(
-                                            id = R.string.nc_text_no
-                                        ), style = NunchukTheme.typography.title
-                                    )
-                                }
-                            }
                         }
                     }
                 }
-            }
-            val continueText = if (planFlow == InheritancePlanFlow.SETUP) {
-                stringResource(id = R.string.nc_text_continue)
-            } else {
-                stringResource(id = R.string.nc_continue_to_finalize_changes)
-            }
-            if (isEditable) {
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp), onContinueClicked
-                ) {
-                    Text(text = continueText)
-                }
-                if (planFlow == InheritancePlanFlow.VIEW) {
-                    NcOutlineButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .padding(bottom = 16.dp)
-                            .height(48.dp),
-                        onClick = onDiscardChange,
-                    ) {
-                        Text(text = stringResource(R.string.nc_discard_changes))
+
+                // User Notification Settings (Owner Email)
+                if (state.notificationSettings != null && state.notificationSettings.emailMeWalletConfig && state.notificationSettings.perEmailSettings.isNotEmpty()) {
+                    item {
+                        UserNotificationSettingsContent(
+                            emailSettings = state.notificationSettings.perEmailSettings.first(),
+                            emailMeWalletConfig = state.notificationSettings.emailMeWalletConfig
+                        )
                     }
                 }
+
+                // Provider Notification Settings (Beneficiary/Trustee Emails)
+                if (state.notificationSettings != null && state.notificationSettings.perEmailSettings.isNotEmpty()) {
+                    val beneficiaryEmails = if (state.notificationSettings.emailMeWalletConfig) {
+                        state.notificationSettings.perEmailSettings.drop(1)
+                    } else {
+                        state.notificationSettings.perEmailSettings
+                    }
+
+                    beneficiaryEmails.forEachIndexed { index, emailSettings ->
+                        item {
+                            ProviderNotificationSettingsContent(emailSettings = emailSettings)
+                        }
+                    }
+                } else {
+                    // Fallback to simple notification settings
+                    item {
+                        SimpleNotificationCard(
+                            emails = state.emails,
+                            isNotifyToday = state.isNotifyToday
+                        )
+                    }
+                }
+
+                // Bottom spacing
+                item(key = "notification_bottom_spacer") {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun UserNotificationSettingsContent(
+    emailSettings: EmailNotificationSettings,
+    emailMeWalletConfig: Boolean
+) {
+    Box(
+        modifier = Modifier
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+            .background(
+                color = MaterialTheme.colorScheme.greyLight,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = emailSettings.email,
+                style = NunchukTheme.typography.title
+            )
+
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.whisper
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(id = com.nunchuk.android.core.R.string.nc_email_me_wallet_config_when_changes),
+                    style = NunchukTheme.typography.body,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = if (emailMeWalletConfig) stringResource(id = R.string.nc_text_yes) else stringResource(
+                        id = R.string.nc_text_no
+                    ),
+                    style = NunchukTheme.typography.title
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ProviderNotificationSettingsContent(
+    emailSettings: EmailNotificationSettings
+) {
+    Box(
+        modifier = Modifier
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+            .background(
+                color = MaterialTheme.colorScheme.greyLight,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = emailSettings.email,
+                style = NunchukTheme.typography.title
+            )
+
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.strokePrimary
+            )
+
+            NotificationSettingRow(
+                label = stringResource(id = com.nunchuk.android.core.R.string.nc_notify_when_timelock_expires),
+                value = emailSettings.notifyOnTimelockExpiry
+            )
+
+            NotificationSettingRow(
+                label = stringResource(id = com.nunchuk.android.core.R.string.nc_notify_when_wallet_changes),
+                value = emailSettings.notifyOnWalletChanges
+            )
+
+            NotificationSettingRow(
+                label = stringResource(id = com.nunchuk.android.core.R.string.nc_also_include_wallet_configuration),
+                value = emailSettings.includeWalletConfiguration
+            )
+        }
+    }
+}
+
+@Composable
+fun NotificationSettingRow(
+    label: String,
+    value: Boolean
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = NunchukTheme.typography.body,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = if (value) stringResource(id = R.string.nc_text_yes) else stringResource(id = R.string.nc_text_no),
+            style = NunchukTheme.typography.title
+        )
+    }
+}
+
+@Composable
+fun SimpleNotificationCard(
+    emails: List<String>,
+    isNotifyToday: Boolean
+) {
+    Box(
+        modifier = Modifier
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+            .background(
+                color = MaterialTheme.colorScheme.greyLight,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(16.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(id = R.string.nc_beneficiary_trustee_email_address),
+                    style = NunchukTheme.typography.body,
+                    modifier = Modifier.fillMaxWidth(0.3f),
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = emails.joinToString("\n")
+                        .ifEmpty { "(${stringResource(id = R.string.nc_none)})" },
+                    style = NunchukTheme.typography.title
+                )
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 24.dp,
+                    bottom = 24.dp
+                ),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.whisper
+            )
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(id = R.string.nc_notify_them_today),
+                    style = NunchukTheme.typography.body,
+                    modifier = Modifier.fillMaxWidth(0.3f),
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = if (isNotifyToday) stringResource(id = R.string.nc_text_yes) else stringResource(
+                        id = R.string.nc_text_no
+                    ), style = NunchukTheme.typography.title
+                )
             }
         }
     }
@@ -889,6 +1071,47 @@ private fun DetailPlanItemPreview() {
     SpecialDetailPlanItem()
 }
 
+@PreviewLightDark
+@Composable
+private fun UserNotificationSettingsPreview() {
+    NunchukTheme {
+        UserNotificationSettingsContent(
+            emailSettings = EmailNotificationSettings(
+                email = "owner@example.com",
+                notifyOnTimelockExpiry = true,
+                notifyOnWalletChanges = true,
+                includeWalletConfiguration = true
+            ),
+            emailMeWalletConfig = true
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun ProviderNotificationSettingsPreview() {
+    NunchukTheme {
+        ProviderNotificationSettingsContent(
+            emailSettings = EmailNotificationSettings(
+                email = "beneficiary@example.com",
+                notifyOnTimelockExpiry = true,
+                notifyOnWalletChanges = false,
+                includeWalletConfiguration = true
+            )
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun SimpleNotificationCardPreview() {
+    NunchukTheme {
+        SimpleNotificationCard(
+            emails = listOf("email1@example.com", "email2@example.com"),
+            isNotifyToday = true
+        )
+    }
+}
 
 @PreviewLightDark
 @Composable

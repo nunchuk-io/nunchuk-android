@@ -23,40 +23,27 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
@@ -69,9 +56,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.border
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
@@ -104,12 +91,22 @@ class InheritanceNoteFragment : MembershipFragment() {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceNoteEvent.ContinueClick -> {
-                    inheritanceViewModel.setOrUpdate(inheritanceViewModel.setupOrReviewParam.copy(note = event.note))
+                    inheritanceViewModel.setOrUpdate(
+                        inheritanceViewModel.setupOrReviewParam.copy(
+                            note = event.note
+                        )
+                    )
                     if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
                         setFragmentResult(
                             REQUEST_KEY, bundleOf(EXTRA_NOTE to event.note)
                         )
                         findNavController().popBackStack()
+                    } else if (inheritanceViewModel.isMiniscriptWallet()) {
+                        findNavController().navigate(
+                            InheritanceNoteFragmentDirections.actionInheritanceNoteFragmentToInheritanceNotifyPrefFragment(
+                                isUpdateRequest = args.isUpdateRequest
+                            )
+                        )
                     } else {
                         findNavController().navigate(
                             InheritanceNoteFragmentDirections.actionInheritanceNoteFragmentToInheritanceBufferPeriodFragment()
@@ -155,23 +152,56 @@ fun InheritanceNoteScreenContent(
     onContinueClick: () -> Unit = {},
     onTextChange: (value: String) -> Unit = {}
 ) {
+    val isSetupFlow = planFlow == InheritancePlanFlow.SETUP && isUpdateRequest.not()
+    val title = if (isSetupFlow) stringResource(
+        id = R.string.nc_estimate_remain_time,
+        remainTime
+    ) else ""
+    val continueBtnText =
+        if (isSetupFlow) stringResource(id = R.string.nc_text_continue) else stringResource(
+            id = R.string.nc_update_message
+        )
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                NcTopAppBar(
+                    title = title,
+                    actions = {
+                        Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
+                    },
+                )
+            },
+            bottomBar = {
+                Column {
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = onContinueClick,
+                    ) {
+                        Text(text = continueBtnText)
+                    }
+                    if (isSetupFlow) {
+                        NcOutlineButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .padding(bottom = 16.dp),
+                            onClick = onContinueClick,
+                        ) {
+                            Text(text = stringResource(R.string.nc_text_skip))
+                        }
+                    }
+                }
+            }
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
+                    .padding(innerPadding)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                val isSetupFlow = planFlow == InheritancePlanFlow.SETUP && isUpdateRequest.not()
-                val title = if (isSetupFlow) stringResource(
-                    id = R.string.nc_estimate_remain_time,
-                    remainTime
-                ) else ""
-                NcTopAppBar(title = title, actions = {
-                    Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
-                })
                 Text(
                     modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_inheritance_leave_message),
@@ -201,66 +231,17 @@ fun InheritanceNoteScreenContent(
                     )
                 }
 
-                val interactionSource: MutableInteractionSource =
-                    remember { MutableInteractionSource() }
-
-                BasicTextField(value = note,
+                NcTextField(
+                    value = note,
                     onValueChange = onTextChange,
-                    keyboardOptions = KeyboardOptions.Default,
+                    title = "",
                     modifier = Modifier
-                        .background(
-                            color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp)
-                        )
-                        .height(145.dp)
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth(),
-                    decorationBox = @Composable { innerTextField ->
-                        TextFieldDefaults.DecorationBox(value = note,
-                            visualTransformation = VisualTransformation.None,
-                            label = null,
-                            innerTextField = innerTextField,
-                            leadingIcon = null,
-                            trailingIcon = null,
-                            enabled = true,
-                            isError = false,
-                            singleLine = false,
-                            interactionSource = interactionSource,
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
-                            container = {
-                                Box(
-                                    Modifier.border(
-                                        width = 1.dp,
-                                        color = MaterialTheme.colorScheme.border,
-                                        shape = RoundedCornerShape(8.dp),
-                                    )
-                                )
-                            })
-                    })
-
-                Spacer(modifier = Modifier.weight(1.0f))
-                val continueBtnText =
-                    if (isSetupFlow) stringResource(id = R.string.nc_text_continue) else stringResource(
-                        id = R.string.nc_update_message
-                    )
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClick,
-                ) {
-                    Text(text = continueBtnText)
-                }
-                if (isSetupFlow) {
-                    NcOutlineButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .padding(bottom = 16.dp),
-                        onClick = onContinueClick,
-                    ) {
-                        Text(text = stringResource(R.string.nc_text_skip))
-                    }
-                }
+                    singleLine = false,
+                    minLines = 5,
+                    keyboardOptions = KeyboardOptions.Default,
+                )
             }
         }
     }

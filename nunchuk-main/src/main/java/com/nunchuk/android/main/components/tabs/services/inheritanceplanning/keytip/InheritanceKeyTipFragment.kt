@@ -24,7 +24,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -42,7 +41,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NcHighlightText
@@ -50,7 +48,7 @@ import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -58,7 +56,6 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class InheritanceKeyTipFragment : MembershipFragment() {
-    private val viewModel: InheritanceKeyTipViewModel by viewModels()
     private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
 
     override fun onCreateView(
@@ -68,26 +65,24 @@ class InheritanceKeyTipFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
+                val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
                 val sharedState by inheritanceViewModel.state.collectAsStateWithLifecycle()
                 InheritanceKeyTipContent(
                     remainTime = remainTime,
                     isMiniscriptWallet = sharedState.isMiniscriptWallet,
-                    onContinueClicked = { viewModel.onContinueClick() }
+                    onContinueClicked = {
+                        if (inheritanceViewModel.isMiniscriptWallet()) {
+                            findNavController().navigate(
+                                InheritanceKeyTipFragmentDirections
+                                    .actionInheritanceKeyTipFragmentToInheritanceTimelockInfoFragment()
+                            )
+                        } else {
+                            findNavController().navigate(
+                                InheritanceKeyTipFragmentDirections.actionInheritanceKeyTipFragmentToInheritanceActivationDateFragment()
+                            )
+                        }
+                    }
                 )
-            }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        flowObserver(viewModel.event) {
-            when (it) {
-                InheritanceKeyTipEvent.ContinueClickEvent -> {
-                    findNavController().navigate(
-                        InheritanceKeyTipFragmentDirections.actionInheritanceKeyTipFragmentToInheritanceActivationDateFragment()
-                    )
-                }
             }
         }
     }
@@ -117,7 +112,7 @@ private fun InheritanceKeyTipContent(
                         NcHintMessage(
                             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                             messages = listOf(
-                                com.nunchuk.android.core.util.ClickAbleText(
+                                ClickAbleText(
                                     stringResource(R.string.nc_inheritance_key_hardware_device_hint)
                                 )
                             )

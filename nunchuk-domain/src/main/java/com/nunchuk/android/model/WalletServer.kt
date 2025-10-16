@@ -1,6 +1,7 @@
 package com.nunchuk.android.model
 
 import com.nunchuk.android.model.signer.SignerServer
+import com.nunchuk.android.type.WalletType
 
 data class WalletServer(
     val id: String,
@@ -15,4 +16,5 @@ data class WalletServer(
     val createdTimeMilis: Long = 0L,
     val primaryMembershipId: String,
     val alias: String,
+    val walletType: WalletType = WalletType.MULTI_SIG,
 )

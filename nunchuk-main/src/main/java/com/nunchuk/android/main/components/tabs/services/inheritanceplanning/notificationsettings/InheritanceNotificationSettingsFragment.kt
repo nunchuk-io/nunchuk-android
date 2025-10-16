@@ -24,10 +24,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,7 +32,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -48,7 +44,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
@@ -63,7 +58,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
-import com.nunchuk.android.compose.NcSwitch
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
@@ -92,13 +86,8 @@ class InheritanceNotificationSettingsFragment : MembershipFragment() {
                     membershipStepManager = membershipStepManager,
                     args = args,
                     inheritanceViewModel = inheritanceViewModel,
-                    onContinueClick = { notifyOnTimelockExpiry, notifyOnWalletChanges, includeWalletConfiguration, emailMeWalletConfig ->
-                        openReviewPlanScreen(
-                            notifyOnTimelockExpiry,
-                            notifyOnWalletChanges,
-                            includeWalletConfiguration,
-                            emailMeWalletConfig
-                        )
+                    onContinueClick = { emailSettings, emailMeWalletConfig ->
+                        openReviewPlanScreen(emailSettings, emailMeWalletConfig)
                     }
                 )
             }
@@ -106,18 +95,14 @@ class InheritanceNotificationSettingsFragment : MembershipFragment() {
     }
 
     private fun openReviewPlanScreen(
-        notifyOnTimelockExpiry: Boolean,
-        notifyOnWalletChanges: Boolean,
-        includeWalletConfiguration: Boolean,
+        emailSettings: List<EmailNotificationSettings>,
         emailMeWalletConfig: Boolean
     ) {
         val notificationSettings = InheritanceNotificationSettings(
-            notifyOnTimelockExpiry = notifyOnTimelockExpiry,
-            notifyOnWalletChanges = notifyOnWalletChanges,
-            includeWalletConfiguration = includeWalletConfiguration,
-            emailMeWalletConfig = emailMeWalletConfig
+            emailMeWalletConfig = emailMeWalletConfig,
+            perEmailSettings = emailSettings
         )
-        
+
         inheritanceViewModel.setOrUpdate(
             inheritanceViewModel.setupOrReviewParam.copy(
                 notificationSettings = notificationSettings
@@ -126,12 +111,7 @@ class InheritanceNotificationSettingsFragment : MembershipFragment() {
         if (args.isUpdateRequest || inheritanceViewModel.setupOrReviewParam.planFlow == InheritancePlanFlow.VIEW) {
             setFragmentResult(
                 REQUEST_KEY,
-                bundleOf(
-                    EXTRA_NOTIFY_ON_TIMELOCK_EXPIRY to notifyOnTimelockExpiry,
-                    EXTRA_NOTIFY_ON_WALLET_CHANGES to notifyOnWalletChanges,
-                    EXTRA_INCLUDE_WALLET_CONFIGURATION to includeWalletConfiguration,
-                    EXTRA_EMAIL_ME_WALLET_CONFIG to emailMeWalletConfig
-                )
+                bundleOf(EXTRA_EMAIL_ME_WALLET_CONFIG to emailMeWalletConfig)
             )
             findNavController().popBackStack()
         } else {
@@ -143,9 +123,6 @@ class InheritanceNotificationSettingsFragment : MembershipFragment() {
 
     companion object {
         const val REQUEST_KEY = "InheritanceNotificationSettingsFragment"
-        const val EXTRA_NOTIFY_ON_TIMELOCK_EXPIRY = "EXTRA_NOTIFY_ON_TIMELOCK_EXPIRY"
-        const val EXTRA_NOTIFY_ON_WALLET_CHANGES = "EXTRA_NOTIFY_ON_WALLET_CHANGES"
-        const val EXTRA_INCLUDE_WALLET_CONFIGURATION = "EXTRA_INCLUDE_WALLET_CONFIGURATION"
         const val EXTRA_EMAIL_ME_WALLET_CONFIG = "EXTRA_EMAIL_ME_WALLET_CONFIG"
     }
 }
@@ -154,46 +131,50 @@ class InheritanceNotificationSettingsFragment : MembershipFragment() {
 fun InheritanceNotificationSettingsScreen(
     args: InheritanceNotificationSettingsFragmentArgs,
     inheritanceViewModel: InheritancePlanningViewModel,
-    onContinueClick: (Boolean, Boolean, Boolean, Boolean) -> Unit,
+    onContinueClick: (List<EmailNotificationSettings>, Boolean) -> Unit,
     membershipStepManager: MembershipStepManager
 ) {
     val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
-    
-    // Internal state for notification settings
-    val initialSettings = inheritanceViewModel.setupOrReviewParam.notificationSettings ?: InheritanceNotificationSettings()
-    var notifyOnTimelockExpiry by remember { 
-        mutableStateOf(initialSettings.notifyOnTimelockExpiry) 
+
+    // Internal state for owner's email settings
+    val initialSettings = inheritanceViewModel.setupOrReviewParam.notificationSettings
+        ?: InheritanceNotificationSettings()
+    var emailMeWalletConfig by remember {
+        mutableStateOf(initialSettings.emailMeWalletConfig)
     }
-    var notifyOnWalletChanges by remember { 
-        mutableStateOf(initialSettings.notifyOnWalletChanges) 
-    }
-    var includeWalletConfiguration by remember { 
-        mutableStateOf(initialSettings.includeWalletConfiguration) 
-    }
-    var emailMeWalletConfig by remember { 
-        mutableStateOf(initialSettings.emailMeWalletConfig) 
+
+    // Internal state for each beneficiary/trustee email
+    val emails = inheritanceViewModel.setupOrReviewParam.emails
+    var emailSettingsList by remember {
+        mutableStateOf(
+            initialSettings.perEmailSettings.ifEmpty {
+                emails.map { email ->
+                    EmailNotificationSettings(
+                        email = email,
+                        notifyOnTimelockExpiry = true,
+                        notifyOnWalletChanges = true,
+                        includeWalletConfiguration = true
+                    )
+                }
+            }
+        )
     }
 
     InheritanceNotificationSettingsScreenContent(
         remainTime = remainTime,
-        emails = inheritanceViewModel.setupOrReviewParam.emails,
+        emailSettingsList = emailSettingsList,
         planFlow = inheritanceViewModel.setupOrReviewParam.planFlow,
         isUpdateRequest = args.isUpdateRequest,
-        notifyOnTimelockExpiry = notifyOnTimelockExpiry,
-        notifyOnWalletChanges = notifyOnWalletChanges,
-        includeWalletConfiguration = includeWalletConfiguration,
         emailMeWalletConfig = emailMeWalletConfig,
-        onNotifyOnTimelockExpiryChange = { notifyOnTimelockExpiry = it },
-        onNotifyOnWalletChangesChange = { notifyOnWalletChanges = it },
-        onIncludeWalletConfigurationChange = { includeWalletConfiguration = it },
+        onEmailSettingsChange = { index, settings ->
+            emailSettingsList = emailSettingsList.toMutableList().apply {
+                set(index, settings)
+            }
+        },
         onEmailMeWalletConfigChange = { emailMeWalletConfig = it },
         onContinueClick = {
-            onContinueClick(
-                notifyOnTimelockExpiry,
-                notifyOnWalletChanges,
-                includeWalletConfiguration,
-                emailMeWalletConfig
-            )
+            // Pass the list of email settings and owner's email config
+            onContinueClick(emailSettingsList, emailMeWalletConfig)
         }
     )
 }
@@ -202,16 +183,11 @@ fun InheritanceNotificationSettingsScreen(
 @Composable
 fun InheritanceNotificationSettingsScreenContent(
     remainTime: Int = 0,
-    emails: List<String> = emptyList(),
+    emailSettingsList: List<EmailNotificationSettings> = emptyList(),
     planFlow: Int = InheritancePlanFlow.NONE,
     isUpdateRequest: Boolean = false,
-    notifyOnTimelockExpiry: Boolean = true,
-    notifyOnWalletChanges: Boolean = true,
-    includeWalletConfiguration: Boolean = true,
     emailMeWalletConfig: Boolean = true,
-    onNotifyOnTimelockExpiryChange: (Boolean) -> Unit = {},
-    onNotifyOnWalletChangesChange: (Boolean) -> Unit = {},
-    onIncludeWalletConfigurationChange: (Boolean) -> Unit = {},
+    onEmailSettingsChange: (Int, EmailNotificationSettings) -> Unit = { _, _ -> },
     onEmailMeWalletConfigChange: (Boolean) -> Unit = {},
     onContinueClick: () -> Unit = {}
 ) {
@@ -257,68 +233,58 @@ fun InheritanceNotificationSettingsScreenContent(
                     style = NunchukTheme.typography.heading
                 )
 
-                // Email addresses section
-                if (emails.isNotEmpty()) {
-                    Text(
-                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                        text = stringResource(R.string.nc_beneficiary_trustee_email_address),
-                        style = NunchukTheme.typography.titleSmall
-                    )
-                    
-                    // Email display box
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.backgroundMidGray,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = emails.joinToString(", "),
-                            style = NunchukTheme.typography.body,
-                        )
-                    }
-                }
+                // Your notifications section
+                Text(
+                    modifier = Modifier.padding(start = 16.dp, top = 24.dp, end = 16.dp),
+                    text = stringResource(R.string.nc_your_notifications),
+                    style = NunchukTheme.typography.body
+                )
 
-                // Notification settings toggles
+                // Owner notifications container
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.backgroundMidGray,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(12.dp)
                 ) {
-                    // Notify on timelock expiry
-                    NotificationToggleItem(
-                        title = "Notify them when timelock expires",
-                        description = "Send an email to the Beneficiary or the Trustee once the timelock has expired.",
-                        checked = notifyOnTimelockExpiry,
-                        onCheckedChange = onNotifyOnTimelockExpiryChange
+                    // Owner email display
+                    Text(
+                        text = "owner123@gmail.com", // TODO: Get from user profile
+                        style = NunchukTheme.typography.body,
                     )
 
-                    // Notify on wallet changes
-                    NotificationToggleItem(
-                        title = "Notify them when wallet changes",
-                        description = "Send an email to the Beneficiary or the Trustee whenever the wallet configuration changes (including today).",
-                        checked = notifyOnWalletChanges,
-                        onCheckedChange = onNotifyOnWalletChangesChange
-                    )
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    // Include wallet configuration
+                    // Owner's email setting
                     NotificationToggleItem(
-                        title = "Include wallet configuration",
-                        description = "Attach the wallet configuration (BSMS file) in the email notifications to the Beneficiary or the Trustee. The wallet configuration is needed to claim without the Nunchuk service.",
-                        checked = includeWalletConfiguration,
-                        onCheckedChange = onIncludeWalletConfigurationChange
-                    )
-
-                    // Email me wallet config
-                    NotificationToggleItem(
-                        title = "Email me a copy of the wallet config when wallet changes",
-                        description = "Automatically get a backup of the wallet config in the owner's email inbox.",
+                        title = stringResource(R.string.nc_email_me_wallet_config_when_changes),
+                        description = stringResource(R.string.nc_email_me_wallet_config_when_changes_desc),
                         checked = emailMeWalletConfig,
                         onCheckedChange = onEmailMeWalletConfigChange
                     )
+                }
+
+                // Beneficiary and Trustee notifications section
+                if (emailSettingsList.isNotEmpty()) {
+                    Text(
+                        modifier = Modifier.padding(start = 16.dp, top = 24.dp, end = 16.dp),
+                        text = stringResource(R.string.nc_beneficiary_trustee_notifications),
+                        style = NunchukTheme.typography.body
+                    )
+
+                    // Display each email with its own settings
+                    emailSettingsList.forEachIndexed { index, emailSettings ->
+                        EmailNotificationSection(
+                            emailSettings = emailSettings,
+                            onSettingsChange = { newSettings ->
+                                onEmailSettingsChange(index, newSettings)
+                            }
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.weight(1.0f))
@@ -327,44 +293,24 @@ fun InheritanceNotificationSettingsScreenContent(
     }
 }
 
-@Composable
-private fun NotificationToggleItem(
-    title: String,
-    description: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Top
-    ) {
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = title,
-                style = NunchukTheme.typography.body
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = description,
-                style = NunchukTheme.typography.bodySmall
-            )
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        NcSwitch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-        )
-    }
-}
-
 @PreviewLightDark
 @Composable
 private fun InheritanceNotificationSettingsScreenPreview() {
     InheritanceNotificationSettingsScreenContent(
-        emails = listOf(
-            "jayce@nunchuk.io"
-        )
+        emailSettingsList = listOf(
+            EmailNotificationSettings(
+                email = "alice@gmail.com",
+                notifyOnTimelockExpiry = true,
+                notifyOnWalletChanges = true,
+                includeWalletConfiguration = true
+            ),
+            EmailNotificationSettings(
+                email = "bob245@gmail.com",
+                notifyOnTimelockExpiry = true,
+                notifyOnWalletChanges = true,
+                includeWalletConfiguration = true
+            )
+        ),
+        emailMeWalletConfig = true
     )
 }

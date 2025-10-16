@@ -109,9 +109,15 @@ class MagicalPhraseIntroFragment : MembershipFragment() {
                                     magicalPhrase = event.magicalPhrase
                                 )
                             )
-                            findNavController().navigate(
-                                MagicalPhraseIntroFragmentDirections.actionMagicalPhraseIntroFragmentToFindBackupPasswordFragment()
-                            )
+                            if (inheritanceViewModel.isMiniscriptWallet()) {
+                                findNavController().navigate(
+                                    MagicalPhraseIntroFragmentDirections.actionMagicalPhraseIntroFragmentToInheritanceKeyTipFragment()
+                                )
+                            } else {
+                                findNavController().navigate(
+                                    MagicalPhraseIntroFragmentDirections.actionMagicalPhraseIntroFragmentToFindBackupPasswordFragment()
+                                )
+                            }
                         }
 
                         is MagicalPhraseIntroEvent.Error -> showError(message = event.message)

@@ -63,9 +63,14 @@ class InheritanceTimelockInfoFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceTimelockInfoContent {
-                    findNavController().popBackStack()
-                }
+                InheritanceTimelockInfoContent(
+                    onContinueClicked = {
+                        findNavController().navigate(
+                            InheritanceTimelockInfoFragmentDirections
+                                .actionInheritanceTimelockInfoFragmentToInheritanceNoteFragment()
+                        )
+                    }
+                )
             }
         }
     }

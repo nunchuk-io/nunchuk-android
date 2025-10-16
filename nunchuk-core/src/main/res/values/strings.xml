@@ -405,7 +405,17 @@
     <string name="nc_backup_password">Backup Password</string>
     <string name="nc_note_to_beneficiary_trustee">Note to Beneficiary or Trustee</string>
     <string name="nc_notification_preferences">Notification preferences</string>
+    <string name="nc_your_notifications">Your notifications</string>
+    <string name="nc_beneficiary_trustee_notifications">Beneficiary and Trustee notifications</string>
     <string name="nc_beneficiary_trustee_email_address">Beneficiary’s or Trustee’s email address</string>
+    <string name="nc_email_me_wallet_config_when_changes">Email me a copy of the wallet config when wallet changes</string>
+    <string name="nc_email_me_wallet_config_when_changes_desc">Automatically send a backup of the wallet config in the owner\'s email inbox.</string>
+    <string name="nc_notify_when_timelock_expires">Notify them when timelock expires</string>
+    <string name="nc_notify_when_timelock_expires_desc">Send them an email once the timelock has expired.</string>
+    <string name="nc_notify_when_wallet_changes">Notify them when wallet changes</string>
+    <string name="nc_notify_when_wallet_changes_desc">Send them an email whenever the wallet configuration changes (including today).</string>
+    <string name="nc_also_include_wallet_configuration">Also include wallet configuration</string>
+    <string name="nc_also_include_wallet_configuration_desc">Attach the wallet configuration (BSMS file) to the emails. This person will be able to view the wallet\'s balance and transaction history. This file is required to claim the inheritance without the Nunchuk service.</string>
     <string name="nc_re_enter_your_password">Re-enter your password</string>
     <string name="nc_re_enter_your_password_dialog_desc">For security, please re-enter your password.</string>
     <string name="nc_confirm_use_biometric_sign_in">To confirm the use of biometric sign in, please re-enter your password.</string>

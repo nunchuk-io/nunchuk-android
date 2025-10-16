@@ -23,6 +23,7 @@ import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.persistence.entity.AssistedWalletEntity
+import com.nunchuk.android.type.WalletType
 
 data class WalletDto(
     @SerializedName("id") val id: String? = null,
@@ -40,6 +41,7 @@ data class WalletDto(
     @SerializedName("replaced_by") val replaceBy: ReplaceByDto? = null,
     @SerializedName("remove_unused_keys") val removeUnusedKeys: Boolean = false,
     @SerializedName("hide_fiat_currency") val hideFiatCurrency: Boolean = false,
+    @SerializedName("wallet_type") val walletType: String? = null,
 )
 
 data class ReplaceByDto(
@@ -60,7 +62,18 @@ internal fun WalletDto.toModel(): WalletServer {
         createdTimeMilis = createdTimeMilis,
         primaryMembershipId = primaryMembershipId ?: "",
         alias = alias ?: "",
+        walletType = walletType?.toWalletType() ?: WalletType.MULTI_SIG,
     )
+}
+
+fun String.toWalletType(): WalletType {
+    return when (this) {
+        "SINGLE_SIG" -> WalletType.SINGLE_SIG
+        "MULTI_SIG" -> WalletType.MULTI_SIG
+        "ESCROW" -> WalletType.ESCROW
+        "MINISCRIPT" -> WalletType.MINISCRIPT
+        else -> WalletType.MULTI_SIG
+    }
 }
 
 fun WalletDto.toEntity() = AssistedWalletEntity(

@@ -263,6 +263,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 note = param.note,
                 isNotifyToday = param.isNotify,
                 emails = param.emails.toList(),
+                notificationSettings = param.notificationSettings,
                 bufferPeriod = param.bufferPeriod,
                 timeZoneId = param.selectedZoneId,
             )
