@@ -97,6 +97,7 @@ class AddKeyStepFragment : MembershipFragment() {
                 AddKeyStepEvent.OpenInheritanceSetup -> handleOpenInheritanceSetup()
                 is AddKeyStepEvent.OpenRegisterAirgap -> handleOpenRegisterAirgap(event.walletId)
                 AddKeyStepEvent.SetupInheritanceSetupDone -> requireActivity().finish()
+                AddKeyStepEvent.OpenOnChainTimelockExplanation -> handleOpenOnChainTimelockExplanation()
             }
         }
     }
@@ -143,6 +144,10 @@ class AddKeyStepFragment : MembershipFragment() {
 
     private fun handleOpenRecoveryQuestion() {
         findNavController().navigate(AddKeyStepFragmentDirections.actionAddKeyListFragmentToRecoveryQuestionFragment())
+    }
+
+    private fun handleOpenOnChainTimelockExplanation() {
+        findNavController().navigate(AddKeyStepFragmentDirections.actionAddKeyStepFragmentToOnChainTimelockExplanationFragment())
     }
 }
 

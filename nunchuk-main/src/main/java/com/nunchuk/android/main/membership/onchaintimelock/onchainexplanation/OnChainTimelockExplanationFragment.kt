@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcHintMessage
@@ -34,9 +35,20 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.main.membership.byzantine.step.AddGroupKeyStepViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
 
 class OnChainTimelockExplanationFragment : MembershipFragment() {
+
+    private val groupViewModel: AddGroupKeyStepViewModel? by lazy {
+        try {
+            val vm: AddGroupKeyStepViewModel by activityViewModels()
+            vm
+        } catch (e: Exception) {
+            null
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -47,9 +59,23 @@ class OnChainTimelockExplanationFragment : MembershipFragment() {
             setContent {
                 OnChainTimelockExplanationScreen(
                     onContinueClicked = {
-                        findNavController().navigate(
-                            OnChainTimelockExplanationFragmentDirections.actionOnChainTimelockExplanationFragmentToOnChainTimelockAddKeyListFragment()
-                        )
+                        val activity = requireActivity() as? MembershipActivity
+                        val groupId = activity?.groupId.orEmpty()
+                        
+                        if (groupId.isNotEmpty()) {
+                            val role = groupViewModel?.getRole()?.name.orEmpty()
+                            findNavController().navigate(
+                                OnChainTimelockExplanationFragmentDirections.actionOnChainTimelockExplanationFragmentToOnChainTimelockByzantineAddKeyFragment(
+                                    groupId = groupId,
+                                    role = role,
+                                    isAddOnly = false
+                                )
+                            )
+                        } else {
+                            findNavController().navigate(
+                                OnChainTimelockExplanationFragmentDirections.actionOnChainTimelockExplanationFragmentToOnChainTimelockAddKeyListFragment()
+                            )
+                        }
                     }
                 )
             }

@@ -86,6 +86,7 @@ class AddGroupKeyStepFragment : MembershipFragment() {
                 AddKeyStepEvent.OpenCreateWallet -> handleOpenCreateWallet()
                 AddKeyStepEvent.OnMoreClicked -> handleShowMore()
                 is AddKeyStepEvent.OpenRegisterAirgap -> handleOpenRegisterAirgap(event.walletId)
+                AddKeyStepEvent.OpenOnChainTimelockExplanation -> handleOpenOnChainTimelockExplanation()
             }
         }
     }
@@ -140,6 +141,10 @@ class AddGroupKeyStepFragment : MembershipFragment() {
                 .init(message = getString(R.string.nc_security_question_set_by_master_warning))
                 .show()
         }
+    }
+
+    private fun handleOpenOnChainTimelockExplanation() {
+        findNavController().navigate(AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToOnChainTimelockExplanationFragment())
     }
 }
 

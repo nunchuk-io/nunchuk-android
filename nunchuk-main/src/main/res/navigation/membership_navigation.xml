@@ -74,6 +74,13 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_addKeyStepFragment_to_onChainTimelockExplanationFragment"
+            app:destination="@id/onChainTimelockExplanationFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
@@ -83,6 +90,13 @@
         <action
             android:id="@+id/action_onChainTimelockExplanationFragment_to_onChainTimelockAddKeyListFragment"
             app:destination="@id/onChainTimelockAddKeyListFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_onChainTimelockExplanationFragment_to_onChainTimelockByzantineAddKeyFragment"
+            app:destination="@id/onChainTimelockByzantineAddKeyFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -734,6 +748,13 @@
         <action
             android:id="@+id/action_addGroupKeyStepFragment_to_onChainTimelockByzantineAddKeyFragment"
             app:destination="@id/onChainTimelockByzantineAddKeyFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_addGroupKeyStepFragment_to_onChainTimelockExplanationFragment"
+            app:destination="@id/onChainTimelockExplanationFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"

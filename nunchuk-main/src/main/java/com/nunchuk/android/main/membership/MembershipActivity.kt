@@ -131,6 +131,11 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
                 intent.getStringExtra(EXTRA_KEY_WALLET_ID).orEmpty()
             }
 
+    val inheritanceType: String?
+            by lazy(LazyThreadSafetyMode.NONE) {
+                intent.getStringExtra(EXTRA_INHERITANCE_TYPE)
+            }
+
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater)
     }
@@ -141,6 +146,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
         const val EXTRA_SLUG = "slug"
         const val EXTRA_WALLET_TYPE_NAME = "wallet_type_name"
         const val EXTRA_QUICK_WALLET_PARAM = "quick_wallet_param"
+        const val EXTRA_INHERITANCE_TYPE = "inheritance_type"
         private const val REQUEST_NFC_TOPUP_XPUBS = 2001
 
 
@@ -153,7 +159,8 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             groupId: String? = null,
             slug: String? = null,
             walletTypeName: String? = null,
-            quickWalletParam: QuickWalletParam?
+            quickWalletParam: QuickWalletParam?,
+            inheritanceType: String? = null
         ) = Intent(activity, MembershipActivity::class.java).apply {
             putExtra(EXTRA_GROUP_STEP, groupStep)
             putExtra(EXTRA_KEY_WALLET_ID, walletId)
@@ -163,6 +170,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             putExtra(EXTRA_SLUG, slug)
             putExtra(EXTRA_WALLET_TYPE_NAME, walletTypeName)
             putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
+            putExtra(EXTRA_INHERITANCE_TYPE, inheritanceType)
         }
 
         fun openRegisterWalletIntent(

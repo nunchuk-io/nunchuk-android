@@ -54,7 +54,8 @@ interface AppNavigator {
         slug: String? = null,
         walletTypeName: String? = null,
         isClearTop: Boolean = false,
-        quickWalletParam: QuickWalletParam? = null
+        quickWalletParam: QuickWalletParam? = null,
+        inheritanceType: String? = null
     )
 
     fun openConfigServerKeyActivity(

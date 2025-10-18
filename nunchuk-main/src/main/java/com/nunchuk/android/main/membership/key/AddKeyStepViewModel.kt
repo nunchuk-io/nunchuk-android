@@ -25,6 +25,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.GetSecurityQuestionUseCase
 import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.main.membership.plantype.InheritancePlanType
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
@@ -58,6 +59,9 @@ class AddKeyStepViewModel @Inject constructor(
 
     private val walletId =
         savedStateHandle.getStateFlow(MembershipActivity.EXTRA_KEY_WALLET_ID, "")
+
+    private val inheritanceType = 
+        savedStateHandle.getStateFlow(MembershipActivity.EXTRA_INHERITANCE_TYPE, null as String?)
 
     private val _event = MutableSharedFlow<AddKeyStepEvent>()
     val event = _event.asSharedFlow()
@@ -147,7 +151,11 @@ class AddKeyStepViewModel @Inject constructor(
                 savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.SETUP_KEY_RECOVERY
                 _event.emit(AddKeyStepEvent.OpenRecoveryQuestion)
             } else {
-                _event.emit(AddKeyStepEvent.OpenAddKeyList(draftWalletType))
+                if (inheritanceType.value == InheritancePlanType.ON_CHAIN.name) {
+                    _event.emit(AddKeyStepEvent.OpenOnChainTimelockExplanation)
+                } else {
+                    _event.emit(AddKeyStepEvent.OpenAddKeyList(draftWalletType))
+                }
             }
         }
     }
@@ -179,4 +187,5 @@ sealed class AddKeyStepEvent {
     object OnMoreClicked : AddKeyStepEvent()
     object OpenInheritanceSetup : AddKeyStepEvent()
     object SetupInheritanceSetupDone : AddKeyStepEvent()
+    object OpenOnChainTimelockExplanation : AddKeyStepEvent()
 }

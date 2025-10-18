@@ -244,7 +244,8 @@ interface AppNavigatorDelegate : AppNavigator {
         slug: String?,
         walletTypeName: String?,
         isClearTop: Boolean,
-        quickWalletParam: QuickWalletParam?
+        quickWalletParam: QuickWalletParam?,
+        inheritanceType: String?
     ) {
         val intent = MembershipActivity.buildIntent(
             activity = activityContext,
@@ -255,7 +256,8 @@ interface AppNavigatorDelegate : AppNavigator {
             walletType = walletType,
             slug = slug,
             walletTypeName = walletTypeName,
-            quickWalletParam = quickWalletParam
+            quickWalletParam = quickWalletParam,
+            inheritanceType = inheritanceType
         ).apply {
             if (isClearTop) {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)

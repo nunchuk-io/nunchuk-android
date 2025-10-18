@@ -203,7 +203,8 @@ class ByzantineInviteMembersFragment : MembershipFragment() {
                         groupId = event.groupId,
                         isPersonalWallet = false,
                         walletType = args.groupType.toGroupWalletType(),
-                        quickWalletParam = (requireActivity() as? MembershipActivity)?.quickWalletParam
+                        quickWalletParam = (requireActivity() as? MembershipActivity)?.quickWalletParam,
+                        inheritanceType = args.inheritancePlanType
                     )
                     requireActivity().finish()
                 }
