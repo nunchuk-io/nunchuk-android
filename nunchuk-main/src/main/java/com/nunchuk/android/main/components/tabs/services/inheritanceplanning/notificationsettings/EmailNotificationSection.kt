@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.inheritance.EmailNotificationSettings
 
 @Composable
 fun EmailNotificationSection(

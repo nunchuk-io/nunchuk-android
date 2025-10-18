@@ -61,8 +61,9 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritanceNotificationSettings
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
+import com.nunchuk.android.model.inheritance.EmailNotificationSettings
+import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -143,9 +144,12 @@ fun InheritanceNotificationSettingsScreen(
             emails.map { email ->
                 EmailNotificationSettings(
                     email = email,
-                    notifyOnTimelockExpiry = perEmailSettingsMap[email]?.notifyOnTimelockExpiry ?: true,
-                    notifyOnWalletChanges = perEmailSettingsMap[email]?.notifyOnWalletChanges ?: true,
-                    includeWalletConfiguration = perEmailSettingsMap[email]?.includeWalletConfiguration ?: true
+                    notifyOnTimelockExpiry = perEmailSettingsMap[email]?.notifyOnTimelockExpiry
+                        ?: true,
+                    notifyOnWalletChanges = perEmailSettingsMap[email]?.notifyOnWalletChanges
+                        ?: true,
+                    includeWalletConfiguration = perEmailSettingsMap[email]?.includeWalletConfiguration
+                        ?: true
                 )
             }
         )

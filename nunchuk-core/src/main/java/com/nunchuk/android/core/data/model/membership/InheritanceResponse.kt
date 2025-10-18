@@ -54,11 +54,42 @@ class InheritanceDto(
     val ownerId: String? = null,
     @SerializedName("pending_requests")
     val pendingRequests: List<InheritancePendingRequestResponse>? = null,
+    @SerializedName("wallet_type")
+    val walletType: String? = null,
+    @SerializedName("notification_preferences")
+    val notificationPreferences: InheritanceNotificationPreferencesDto? = null,
+    @SerializedName("inheritance_keys")
+    val inheritanceKeys: List<InheritanceKeyDto>? = null,
 )
 
 class InheritancePendingRequestResponse(
+    @SerializedName("id")
+    val id: String? = null,
     @SerializedName("membership_id")
     val membershipId: String? = null,
     @SerializedName("dummy_transaction_id")
     val dummyTransactionId: String? = null,
+)
+
+class InheritanceNotificationPreferencesDto(
+    @SerializedName("email_me_wallet_config")
+    val emailMeWalletConfig: Boolean? = null,
+    @SerializedName("beneficiary_notifications")
+    val beneficiaryNotifications: List<BeneficiaryNotificationDto>? = null,
+)
+
+class BeneficiaryNotificationDto(
+    @SerializedName("email")
+    val email: String? = null,
+    @SerializedName("notify_timelock_expires")
+    val notifyTimelockExpires: Boolean? = null,
+    @SerializedName("notify_wallet_changes")
+    val notifyWalletChanges: Boolean? = null,
+    @SerializedName("include_wallet_config")
+    val includeWalletConfig: Boolean? = null,
+)
+
+class InheritanceKeyDto(
+    @SerializedName("xfp")
+    val xfp: String? = null,
 )

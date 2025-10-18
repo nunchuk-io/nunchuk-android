@@ -53,6 +53,7 @@ import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.membership.GroupConfig
 import com.nunchuk.android.model.signer.SignerServer
@@ -235,7 +236,8 @@ interface PremiumWalletRepository {
         activationTimeMilis: Long,
         bufferPeriodId: String?,
         walletId: String,
-        groupId: String?
+        groupId: String?,
+        notificationPreferences: InheritanceNotificationSettings? = null
     ): String
 
     suspend fun generateInheritanceClaimStatusUserData(magic: String): String
@@ -278,7 +280,8 @@ interface PremiumWalletRepository {
         walletId: String,
         bufferPeriodId: String?,
         action: CalculateRequiredSignaturesAction,
-        groupId: String?
+        groupId: String?,
+        notificationPreferences: InheritanceNotificationSettings? = null
     ): CalculateRequiredSignatures
 
     suspend fun createOrUpdateInheritance(

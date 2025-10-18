@@ -70,7 +70,11 @@ fun NcConfirmationDialog(
                     modifier = Modifier.weight(1f),
                     onClick = onDismiss
                 ) {
-                    Text(text = negativeButtonText, color = MaterialTheme.colorScheme.textPrimary)
+                    Text(
+                        text = negativeButtonText,
+                        style = NunchukTheme.typography.title,
+                        color = MaterialTheme.colorScheme.textPrimary
+                    )
                 }
                 NcPrimaryDarkButton(
                     modifier = Modifier.weight(1f),

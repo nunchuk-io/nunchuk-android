@@ -12,7 +12,6 @@ import com.nunchuk.android.core.data.model.campaigns.CampaignResponse
 import com.nunchuk.android.core.data.model.campaigns.ReferrerCodeResponse
 import com.nunchuk.android.core.data.model.campaigns.ReferrerMetaDataResponse
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
-import com.nunchuk.android.core.data.model.membership.InheritanceDto
 import com.nunchuk.android.core.data.model.membership.PeriodResponse
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.util.gson
@@ -22,21 +21,18 @@ import com.nunchuk.android.model.Alert
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.ByzantineMember
-import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.CalculateRequiredSignatureStep
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesExt
 import com.nunchuk.android.model.DummySignature
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
-import com.nunchuk.android.model.Inheritance
-import com.nunchuk.android.model.InheritancePendingRequest
-import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyResponse
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.SavedAddress
 import com.nunchuk.android.model.User
 import com.nunchuk.android.model.UserResponse
+import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
@@ -87,36 +83,6 @@ internal fun CalculateRequiredSignaturesResponse.toCalculateRequiredSignaturesEx
     return CalculateRequiredSignaturesExt(
         data = result?.toCalculateRequiredSignatures(),
         step = step
-    )
-}
-
-internal fun InheritanceDto.toInheritance(): Inheritance {
-    val status = when (this.status) {
-        "ACTIVE" -> InheritanceStatus.ACTIVE
-        "CLAIMED" -> InheritanceStatus.CLAIMED
-        "PENDING_APPROVAL" -> InheritanceStatus.PENDING_APPROVAL
-        else -> InheritanceStatus.PENDING_CREATION
-    }
-    val pendingRequests = pendingRequests?.map {
-        InheritancePendingRequest(
-            membershipId = it.membershipId.orEmpty(),
-            dummyTransactionId = it.dummyTransactionId.orEmpty()
-        )
-    } ?: emptyList()
-
-    return Inheritance(
-        walletId = walletId.orEmpty(),
-        walletLocalId = walletLocalId.orEmpty(),
-        magic = magic.orEmpty(),
-        note = note.orEmpty(),
-        notificationEmails = notificationEmails.orEmpty(),
-        status = status,
-        activationTimeMilis = activationTimeMilis ?: 0,
-        createdTimeMilis = createdTimeMilis ?: 0,
-        lastModifiedTimeMilis = lastModifiedTimeMilis ?: 0,
-        bufferPeriod = bufferPeriod?.toPeriod(),
-        ownerId = ownerId.orEmpty(),
-        pendingRequests = pendingRequests
     )
 }
 

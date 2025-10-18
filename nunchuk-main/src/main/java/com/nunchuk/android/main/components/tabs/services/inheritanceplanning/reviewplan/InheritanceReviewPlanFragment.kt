@@ -93,7 +93,7 @@ import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notificationsettings.EmailNotificationSettings
+import com.nunchuk.android.model.inheritance.EmailNotificationSettings
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
@@ -144,8 +144,8 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
 
             setContent {
                 InheritanceReviewPlanScreen(
-                    viewModel,
-                    inheritanceViewModel,
+                    viewModel = viewModel,
+                    inheritanceViewModel = inheritanceViewModel,
                     onEditActivationDateClick = {
                         findNavController().navigate(
                             InheritanceReviewPlanFragmentDirections.actionInheritanceReviewPlanFragmentToInheritanceActivationDateFragment(
@@ -631,15 +631,15 @@ fun InheritanceReviewPlanScreenContent(
                     }
                 }
 
-                item(key = "divider_1") {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
-                        thickness = 1.dp,
-                        color = MaterialTheme.colorScheme.whisper
-                    )
-                }
-
                 if (!isMiniscriptWallet) {
+                    item(key = "divider_1") {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp),
+                            thickness = 1.dp,
+                            color = MaterialTheme.colorScheme.whisper
+                        )
+                    }
+
                     item {
                         Column(
                             modifier = Modifier.padding(

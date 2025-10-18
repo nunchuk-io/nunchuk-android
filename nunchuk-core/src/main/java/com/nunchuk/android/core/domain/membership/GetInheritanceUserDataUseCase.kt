@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.domain.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -39,7 +40,8 @@ class GetInheritanceUserDataUseCase @Inject constructor(
             notifyToday = parameters.notifyToday,
             bufferPeriodId = parameters.bufferPeriodId,
             activationTimeMilis = parameters.activationTimeMilis,
-            groupId = parameters.groupId
+            groupId = parameters.groupId,
+            notificationPreferences = parameters.notificationPreferences
         )
     }
 
@@ -50,6 +52,7 @@ class GetInheritanceUserDataUseCase @Inject constructor(
         val activationTimeMilis: Long,
         val walletId: String,
         val bufferPeriodId: String?,
-        val groupId: String?
+        val groupId: String?,
+        val notificationPreferences: InheritanceNotificationSettings? = null
     )
 }

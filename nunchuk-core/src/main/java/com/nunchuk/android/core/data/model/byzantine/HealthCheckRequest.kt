@@ -1,7 +1,7 @@
 package com.nunchuk.android.core.data.model.byzantine
 
 import com.google.gson.annotations.SerializedName
-import com.nunchuk.android.core.data.model.CreateUpdateInheritancePlanRequest
+import com.nunchuk.android.core.data.model.inheritance.CreateUpdateInheritancePlanRequest
 
 internal class HealthCheckRequest(
     @SerializedName("nonce")

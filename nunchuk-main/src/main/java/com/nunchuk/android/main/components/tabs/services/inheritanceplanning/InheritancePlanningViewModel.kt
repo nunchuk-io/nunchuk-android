@@ -6,11 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.util.InheritanceSourceFlow
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notificationsettings.EmailNotificationSettings
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -122,11 +122,6 @@ data class InheritancePlanningState(
 enum class InheritanceKeyType {
     TAPSIGNER, COLDCARD
 }
-
-data class InheritanceNotificationSettings(
-    val emailMeWalletConfig: Boolean = true,
-    val perEmailSettings: List<EmailNotificationSettings> = emptyList()
-)
 
 sealed class InheritancePlanningParam {
     data class SetupOrReview(

@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.notificationsettings
+package com.nunchuk.android.model.inheritance
 
 data class EmailNotificationSettings(
     val email: String,
@@ -6,4 +6,3 @@ data class EmailNotificationSettings(
     val notifyOnWalletChanges: Boolean = true,
     val includeWalletConfiguration: Boolean = true
 )
-

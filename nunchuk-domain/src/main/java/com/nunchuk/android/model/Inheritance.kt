@@ -20,6 +20,7 @@
 package com.nunchuk.android.model
 
 import android.os.Parcelable
+import com.nunchuk.android.type.WalletType
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -28,7 +29,7 @@ class Inheritance(
     val walletLocalId: String,
     val magic: String,
     val note: String,
-    val notificationEmails: List<String> = arrayListOf(),
+    val notificationEmails: List<String> = mutableListOf(),
     val status: InheritanceStatus,
     val activationTimeMilis: Long,
     val createdTimeMilis: Long,
@@ -36,10 +37,33 @@ class Inheritance(
     val bufferPeriod: Period? = null,
     val ownerId: String,
     val pendingRequests: List<InheritancePendingRequest> = arrayListOf(),
+    val walletType: WalletType = WalletType.MULTI_SIG,
+    val notificationPreferences: InheritanceNotificationPreferences? = null,
+    val inheritanceKeys: List<InheritanceKey> = mutableListOf(),
 ) : Parcelable
 
 @Parcelize
 class InheritancePendingRequest(
+    val id: String,
     val membershipId: String,
     val dummyTransactionId: String,
+) : Parcelable
+
+@Parcelize
+class InheritanceNotificationPreferences(
+    val emailMeWalletConfig: Boolean = false,
+    val beneficiaryNotifications: List<BeneficiaryNotification> = arrayListOf(),
+) : Parcelable
+
+@Parcelize
+class BeneficiaryNotification(
+    val email: String,
+    val notifyTimelockExpires: Boolean = false,
+    val notifyWalletChanges: Boolean = false,
+    val includeWalletConfig: Boolean = false,
+) : Parcelable
+
+@Parcelize
+class InheritanceKey(
+    val xfp: String,
 ) : Parcelable

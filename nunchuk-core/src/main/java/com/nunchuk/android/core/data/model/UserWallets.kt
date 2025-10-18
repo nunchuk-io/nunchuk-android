@@ -171,30 +171,6 @@ data class ChangeEmailRequest(
     )
 }
 
-data class CreateUpdateInheritancePlanRequest(
-    @SerializedName("nonce")
-    val nonce: String? = null,
-    @SerializedName("body")
-    val body: Body? = null
-) {
-    data class Body(
-        @SerializedName("note")
-        val note: String? = null,
-        @SerializedName("notification_emails")
-        val notificationEmails: List<String>? = null,
-        @SerializedName("notify_today")
-        val notifyToday: Boolean? = null,
-        @SerializedName("activation_time_milis")
-        val activationTimeMilis: Long? = null,
-        @SerializedName("wallet")
-        val walletId: String? = null,
-        @SerializedName("buffer_period_id")
-        val bufferPeriodId: String? = null,
-        @SerializedName("group_id")
-        val groupId: String? = null
-    )
-}
-
 data class InheritanceClaimStatusRequest(
     @SerializedName("nonce")
     val nonce: String? = null,

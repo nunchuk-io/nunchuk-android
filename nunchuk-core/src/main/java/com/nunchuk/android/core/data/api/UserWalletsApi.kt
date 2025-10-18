@@ -28,7 +28,6 @@ import com.nunchuk.android.core.data.model.CreateSecurityQuestionResponse
 import com.nunchuk.android.core.data.model.CreateServerKeyResponse
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
 import com.nunchuk.android.core.data.model.CreateTimelockPayload
-import com.nunchuk.android.core.data.model.CreateUpdateInheritancePlanRequest
 import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
 import com.nunchuk.android.core.data.model.EmptyRequest
 import com.nunchuk.android.core.data.model.InheritanceByzantineRequestPlanning
@@ -39,9 +38,9 @@ import com.nunchuk.android.core.data.model.InheritanceClaimClaimRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimCreateTransactionRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimDownloadBackupRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimStatusRequest
+import com.nunchuk.android.core.data.model.InitWalletConfigRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.MarkRecoverStatusRequest
-import com.nunchuk.android.core.data.model.InitWalletConfigRequest
 import com.nunchuk.android.core.data.model.RequestRecoverKeyRequest
 import com.nunchuk.android.core.data.model.SecurityQuestionDataResponse
 import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
@@ -63,6 +62,7 @@ import com.nunchuk.android.core.data.model.byzantine.SignInDummyTransactionRespo
 import com.nunchuk.android.core.data.model.byzantine.TotalAlertResponse
 import com.nunchuk.android.core.data.model.byzantine.WalletHealthStatusResponse
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
+import com.nunchuk.android.core.data.model.inheritance.CreateUpdateInheritancePlanRequest
 import com.nunchuk.android.core.data.model.membership.BatchTransactionPayload
 import com.nunchuk.android.core.data.model.membership.CalculateRequiredSignaturesResponse
 import com.nunchuk.android.core.data.model.membership.ConfirmationCodeRequest

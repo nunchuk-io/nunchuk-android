@@ -31,7 +31,6 @@ import com.nunchuk.android.core.data.model.ConfigSecurityQuestionPayload
 import com.nunchuk.android.core.data.model.CreateSecurityQuestionRequest
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
 import com.nunchuk.android.core.data.model.CreateTimelockPayload
-import com.nunchuk.android.core.data.model.CreateUpdateInheritancePlanRequest
 import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
 import com.nunchuk.android.core.data.model.EmptyRequest
 import com.nunchuk.android.core.data.model.InheritanceByzantineRequestPlanning
@@ -63,6 +62,9 @@ import com.nunchuk.android.core.data.model.byzantine.toDomainModel
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.byzantine.toSavedAddress
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
+import com.nunchuk.android.core.data.model.inheritance.BeneficiaryNotificationRequest
+import com.nunchuk.android.core.data.model.inheritance.CreateUpdateInheritancePlanRequest
+import com.nunchuk.android.core.data.model.inheritance.NotificationPreferencesRequest
 import com.nunchuk.android.core.data.model.membership.ConfirmationCodeRequest
 import com.nunchuk.android.core.data.model.membership.ConfirmationCodeVerifyRequest
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransactionRequest
@@ -158,6 +160,7 @@ import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.isAllowSetupInheritance
 import com.nunchuk.android.model.membership.AssistedWalletBrief
@@ -802,6 +805,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         bufferPeriodId: String?,
         walletId: String,
         groupId: String?,
+        notificationPreferences: InheritanceNotificationSettings?,
     ): String {
         val body = CreateUpdateInheritancePlanRequest.Body(
             note = note,
@@ -810,7 +814,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             activationTimeMilis = activationTimeMilis,
             bufferPeriodId = bufferPeriodId,
             walletId = walletId,
-            groupId = groupId
+            groupId = groupId,
+            notificationPreferences = notificationPreferences?.let { prefs ->
+                NotificationPreferencesRequest(
+                    emailMeWalletConfig = prefs.emailMeWalletConfig,
+                    beneficiaryNotifications = prefs.perEmailSettings.map { setting ->
+                        BeneficiaryNotificationRequest(
+                            email = setting.email,
+                            notifyTimelockExpires = setting.notifyOnTimelockExpiry,
+                            notifyWalletChanges = setting.notifyOnWalletChanges,
+                            includeWalletConfig = setting.includeWalletConfiguration
+                        )
+                    }
+                )
+            }
         )
         val nonce = getNonce()
         val request = CreateUpdateInheritancePlanRequest(
@@ -941,6 +958,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         bufferPeriodId: String?,
         action: CalculateRequiredSignaturesAction,
         groupId: String?,
+        notificationPreferences: InheritanceNotificationSettings?,
     ): CalculateRequiredSignatures {
         val response =
             if (action == CalculateRequiredSignaturesAction.CANCEL || action == CalculateRequiredSignaturesAction.REQUEST_PLANNING) {
@@ -958,7 +976,20 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         notifyToday = notifyToday,
                         activationTimeMilis = activationTimeMilis,
                         bufferPeriodId = bufferPeriodId,
-                        groupId = groupId
+                        groupId = groupId,
+                        notificationPreferences = notificationPreferences?.let { prefs ->
+                            NotificationPreferencesRequest(
+                                emailMeWalletConfig = prefs.emailMeWalletConfig,
+                                beneficiaryNotifications = prefs.perEmailSettings.map { settings ->
+                                    BeneficiaryNotificationRequest(
+                                        email = settings.email,
+                                        notifyTimelockExpires = settings.notifyOnTimelockExpiry,
+                                        notifyWalletChanges = settings.notifyOnWalletChanges,
+                                        includeWalletConfig = settings.includeWalletConfiguration
+                                    )
+                                }
+                            )
+                        }
                     )
                 )
             }

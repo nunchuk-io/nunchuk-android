@@ -133,7 +133,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                 activationTimeMilis = activationTimeMillis,
                 bufferPeriodId = param.bufferPeriod?.id,
                 action = if (flow == ReviewFlow.CREATE_OR_UPDATE) CalculateRequiredSignaturesAction.CREATE_OR_UPDATE else CalculateRequiredSignaturesAction.CANCEL,
-                groupId = param.groupId
+                groupId = param.groupId,
+                notificationPreferences = param.notificationSettings
             )
         )
         val userData = getUserData()
@@ -242,7 +243,8 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                     notifyToday = param.isNotify,
                     activationTimeMilis = activationTimeMillis,
                     bufferPeriodId = param.bufferPeriod?.id,
-                    groupId = param.groupId
+                    groupId = param.groupId,
+                    notificationPreferences = param.notificationSettings
                 )
             )
         }
