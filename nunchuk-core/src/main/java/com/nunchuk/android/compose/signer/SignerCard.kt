@@ -76,7 +76,7 @@ fun SignerCard(
                 }
                 if (item.isShowAcctX(ignoreIndexCheckForAcctX)) {
                     NcTag(
-                        label = stringResource(R.string.nc_acct_x, item.index),
+                        label = stringResource(R.string.nc_acct_x, if (item.index >= 0) item.index else 0),
                         backgroundColor = colorResource(
                             id = R.color.nc_bg_mid_gray
                         ),

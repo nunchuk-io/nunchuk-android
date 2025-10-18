@@ -594,6 +594,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
             masterSignerId = event.signer.id,
             groupId = args.groupId,
             walletId = (activity as MembershipActivity).walletId,
+            isOnChainBackUp = true,
         )
     }
 

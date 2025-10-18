@@ -168,16 +168,6 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
             }
         }
         getUnBackedUpWallet()
-
-        // Observe requestCacheTapSignerXpubEvent state to handle TapSigner caching
-        viewModelScope.launch {
-            state.collect { state ->
-                if (state.requestCacheTapSignerXpubEvent) {
-                    // Note: This will be triggered, but the actual NFC request is handled in the Fragment
-                    // via MembershipActivity callback
-                }
-            }
-        }
     }
 
     private suspend fun loadSigners() {
@@ -460,7 +450,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                 step = currentStep,
                 masterSignerId = signer.masterFingerprint,
                 plan = MembershipPlan.NONE,
-                verifyType = VerifyType.APP_VERIFIED,
+                verifyType = VerifyType.NONE,
                 extraData = gson.toJson(
                     SignerExtra(
                         derivationPath = signer.derivationPath,
@@ -474,7 +464,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         )
 
         // Update the card with the new signer for the current step
-        updateCardForStep(currentStep, signerModel, VerifyType.APP_VERIFIED)
+        updateCardForStep(currentStep, signerModel, VerifyType.NONE)
 
         // After successfully adding signer, handle TapSigner Acct 1 addition if we have the required data
         val nextStep = data?.getNextStepToAdd(currentStep)
@@ -623,7 +613,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                     step = currentStep,
                     masterSignerId = signer.masterFingerprint,
                     plan = MembershipPlan.NONE,
-                    verifyType = VerifyType.APP_VERIFIED,
+                    verifyType = VerifyType.NONE,
                     extraData = gson.toJson(
                         SignerExtra(
                             derivationPath = signer.derivationPath,
@@ -637,7 +627,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
             )
 
             // Update the card with the new signer for the current step
-            updateCardForStep(currentStep, signer.toModel(), VerifyType.APP_VERIFIED)
+            updateCardForStep(currentStep, signer.toModel(), VerifyType.NONE)
         }
     }
 

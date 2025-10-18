@@ -104,7 +104,6 @@ import com.nunchuk.android.main.membership.model.StepData
 import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
-import com.nunchuk.android.main.membership.onchaintimelock.addkey.AddKeyListEvent.OnVerifySigner
 import com.nunchuk.android.main.membership.plantype.InheritancePlanType
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
@@ -552,13 +551,13 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         )
     }
 
-    private fun openVerifyTapSigner(event: OnVerifySigner) {
-        navigator.openVerifyBackupTapSigner(
+    private fun openVerifyTapSigner(event: AddKeyListEvent.OnVerifySigner) {
+        navigator.openCreateBackUpTapSigner(
             activity = requireActivity(),
             fromMembershipFlow = true,
-            backUpFilePath = event.filePath,
-            masterSignerId = event.signer.id,
-            walletId = (activity as MembershipActivity).walletId,
+            masterSignerId = event.signer.fingerPrint,
+            groupId = (activity as MembershipActivity).groupId,
+            isOnChainBackUp = true,
         )
     }
 

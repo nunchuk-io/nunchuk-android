@@ -94,7 +94,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
         masterSignerId: String,
         groupId: String,
         keyId: String,
-        walletId: String
+        walletId: String,
+        isOnChainBackUp: Boolean
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
@@ -106,6 +107,7 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 groupId = groupId,
                 keyId = keyId,
                 walletId = walletId,
+                isOnChainBackUp = isOnChainBackUp,
             )
         )
     }
@@ -117,7 +119,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
         groupId: String,
         signerIndex: Int,
         replacedXfp: String,
-        walletId: String
+        walletId: String,
+        isOnChainBackUp: Boolean
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
@@ -129,6 +132,7 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 signerIndex = signerIndex,
                 replacedXfp = replacedXfp,
                 walletId = walletId,
+                isOnChainBackUp = isOnChainBackUp,
             )
         )
     }

@@ -1,5 +1,6 @@
 package com.nunchuk.android.repository
 
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.KeyHealthStatus
@@ -8,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface GroupWalletRepository {
     suspend fun syncDraftWallet(groupId: String): DraftWallet
-    suspend fun createDraftWalletTimelock(groupId: String, timelockValue: Long)
+    suspend fun createDraftWalletTimelock(groupId: String, timelockValue: Long, plan: MembershipPlan)
     fun getWalletHealthStatus(groupId: String, walletId: String): Flow<List<KeyHealthStatus>>
     suspend fun getWalletHealthStatusRemote(groupId: String, walletId: String): List<KeyHealthStatus>
     suspend fun requestHealthCheck(groupId: String, walletId: String, xfp: String)

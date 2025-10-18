@@ -20,6 +20,7 @@
 package com.nunchuk.android.usecase.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -33,13 +34,15 @@ class CreateTimelockUseCase @Inject constructor(
     override suspend fun execute(parameters: Param) {
         return premiumWalletRepository.createDraftWalletTimelock(
             groupId = parameters.groupId,
-            timelockValue = parameters.timelockValue
+            timelockValue = parameters.timelockValue,
+            plan = parameters.plan
         )
     }
 
     data class Param(
         val groupId: String?,
-        val timelockValue: Long
+        val timelockValue: Long,
+        val plan: MembershipPlan
     )
 }
 

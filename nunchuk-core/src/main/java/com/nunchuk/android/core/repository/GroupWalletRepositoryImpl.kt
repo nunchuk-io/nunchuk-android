@@ -77,7 +77,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createDraftWalletTimelock(groupId: String, timelockValue: Long) {
+    override suspend fun createDraftWalletTimelock(groupId: String, timelockValue: Long, plan: MembershipPlan) {
         val payload = com.nunchuk.android.core.data.model.CreateTimelockPayload(
             timelock = com.nunchuk.android.core.data.model.TimelockPayload(value = timelockValue)
         )
@@ -85,6 +85,16 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) {
             throw response.error
         }
+        
+        // Save membership step info
+        membershipRepository.saveStepInfo(
+            MembershipStepInfo(
+                step = MembershipStep.TIMELOCK,
+                verifyType = VerifyType.NONE,
+                plan = plan,
+                groupId = groupId
+            )
+        )
     }
 
     private suspend fun deletePersonalSteps() {

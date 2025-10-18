@@ -89,14 +89,14 @@ class CheckBackUpBySelfViewModel @Inject constructor(
         }
     }
 
-    fun setKeyVerified(groupId: String) {
+    fun setKeyVerified(groupId: String, isOnChainBackUp: Boolean) {
         viewModelScope.launch {
             val result =
                 setKeyVerifiedUseCase(
                     SetKeyVerifiedUseCase.Param(
                         groupId,
                         args.masterSignerId,
-                        false
+                        isAppVerified = if (isOnChainBackUp) true else false
                     )
                 )
             if (result.isSuccess) {
@@ -107,13 +107,13 @@ class CheckBackUpBySelfViewModel @Inject constructor(
         }
     }
 
-    fun setReplaceKeyVerified(keyId: String, groupId: String, walletId: String) {
+    fun setReplaceKeyVerified(keyId: String, groupId: String, walletId: String, isOnChainBackUp: Boolean) {
         viewModelScope.launch {
             setReplaceKeyVerifiedUseCase(
                 SetReplaceKeyVerifiedUseCase.Param(
                     keyId = keyId,
                     checkSum = getChecksum(true, groupId = groupId, walletId = walletId),
-                    isAppVerified = false,
+                    isAppVerified = if (isOnChainBackUp) true else false,
                     groupId = groupId,
                     walletId = walletId
                 )

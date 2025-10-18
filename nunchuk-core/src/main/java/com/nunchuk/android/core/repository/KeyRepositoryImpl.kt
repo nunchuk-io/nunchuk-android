@@ -143,7 +143,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                 val signer = existingColdCard
                     ?: (nativeSdk.getSignerByIndex(
                         xfp,
-                        walletType.ordinal,
+                        if (walletType == WalletType.MINISCRIPT) WalletType.MULTI_SIG.ordinal else walletType.ordinal,
                         AddressType.NATIVE_SEGWIT.ordinal,
                         newIndex
                     ) ?: throw NullPointerException("Can not get signer by index $newIndex"))
@@ -205,7 +205,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                     tags = tags,
                     index = step.toIndex(walletType)
                 )
-                if (isRequestAddKey) {
+                if (isRequestAddKey && walletType != WalletType.MINISCRIPT) {
                     Timber.tag("inheritance-add").e("uploadBackupKey - $groupId, $xfp, $payload")
                     val keyResponse = if (groupId.isNotEmpty()) {
                         userWalletApiManager.groupWalletApi.addKeyToServer(

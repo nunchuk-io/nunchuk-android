@@ -1918,7 +1918,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         requestAddKeyDao.deleteRequests(accountManager.getAccount().chatId, chain.value)
     }
 
-    override suspend fun createDraftWalletTimelock(groupId: String?, timelockValue: Long) {
+    override suspend fun createDraftWalletTimelock(groupId: String?, timelockValue: Long, plan: MembershipPlan) {
         val payload = CreateTimelockPayload(
             timelock = TimelockPayload(value = timelockValue)
         )
@@ -1930,6 +1930,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) {
             throw response.error
         }
+        
+        membershipRepository.saveStepInfo(
+            MembershipStepInfo(
+                step = MembershipStep.TIMELOCK,
+                verifyType = VerifyType.SELF_VERIFIED,
+                plan = plan,
+                groupId = groupId.orEmpty()
+            )
+        )
     }
 
     override suspend fun cancelRequestIdIfNeed(groupId: String, step: MembershipStep) {

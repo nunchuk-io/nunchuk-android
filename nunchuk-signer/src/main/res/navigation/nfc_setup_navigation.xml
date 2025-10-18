@@ -247,5 +247,22 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
+    <fragment
+        android:id="@+id/tapSignerBackingUpIntroOnChainFragment"
+        android:name="com.nunchuk.android.signer.tapsigner.backup.onchain.TapSignerBackingUpIntroOnChainFragment"
+        android:label="TapSignerBackingUpIntroOnChainFragment">
+
+        <argument
+            android:name="masterSignerId"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_tapSignerBackingUpIntroOnChainFragment_to_uploadBackUpTapSignerFragment"
+            app:destination="@id/uploadBackUpTapSignerFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
     <include app:graph="@navigation/backup_healthy_navigation" />
 </navigation>

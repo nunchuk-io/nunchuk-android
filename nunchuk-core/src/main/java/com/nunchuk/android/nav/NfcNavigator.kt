@@ -64,6 +64,7 @@ interface NfcNavigator {
         groupId: String = "",
         keyId: String = "",
         walletId: String,
+        isOnChainBackUp: Boolean = false,
     )
 
     fun openCreateBackUpTapSigner(
@@ -74,6 +75,7 @@ interface NfcNavigator {
         signerIndex: Int = 0,
         replacedXfp: String = "",
         walletId: String = "",
+        isOnChainBackUp: Boolean = false,
     )
 
     fun openPortalScreen(

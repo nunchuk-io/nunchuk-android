@@ -70,7 +70,7 @@ class CheckBackUpByAppViewModel @Inject constructor(
 
     private var tryCount = 0
 
-    fun onContinueClicked(groupId: String, masterSignerId: String) {
+    fun onContinueClicked(groupId: String, masterSignerId: String, isOnChainBackUp: Boolean) {
         viewModelScope.launch {
             val newFile = downloadBackupKeyIfNeeded(
                 isReplaceKey = false,
@@ -92,7 +92,7 @@ class CheckBackUpByAppViewModel @Inject constructor(
                         SetKeyVerifiedUseCase.Param(
                             groupId,
                             masterSignerId,
-                            true
+                            isAppVerified = if (isOnChainBackUp) true else true
                         )
                     )
                 if (apiResult.isSuccess) {
@@ -114,7 +114,8 @@ class CheckBackUpByAppViewModel @Inject constructor(
         masterSignerId: String,
         keyId: String,
         groupId: String,
-        walletId: String
+        walletId: String,
+        isOnChainBackUp: Boolean
     ) {
         viewModelScope.launch {
             val newFile = downloadBackupKeyIfNeeded(
@@ -138,7 +139,7 @@ class CheckBackUpByAppViewModel @Inject constructor(
                         SetReplaceKeyVerifiedUseCase.Param(
                             keyId = keyId,
                             checkSum = checkSum,
-                            isAppVerified = true,
+                            isAppVerified = if (isOnChainBackUp) true else true,
                             groupId = groupId,
                             walletId = walletId
                         )

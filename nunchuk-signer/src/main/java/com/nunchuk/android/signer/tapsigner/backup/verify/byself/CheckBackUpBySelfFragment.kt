@@ -111,16 +111,20 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
                                 title = getString(R.string.nc_confirmation),
                                 message = getString(R.string.nc_confirm_verify_backup_by_self_desc),
                                 onYesClick = {
-                                    val keyId = (activity as NfcSetupActivity).keyId
+                                    val activity = requireActivity() as NfcSetupActivity
+                                    val keyId = activity.keyId
+                                    val isOnChainBackUp = activity.isOnChainBackUp
                                     if (keyId.isNotEmpty()) {
                                         viewModel.setReplaceKeyVerified(
                                             keyId = keyId,
-                                            groupId = (requireActivity() as NfcSetupActivity).groupId,
-                                            walletId = (requireActivity() as NfcSetupActivity).walletId
+                                            groupId = activity.groupId,
+                                            walletId = activity.walletId,
+                                            isOnChainBackUp = isOnChainBackUp
                                         )
                                     } else {
                                         viewModel.setKeyVerified(
-                                            (requireActivity() as NfcSetupActivity).groupId,
+                                            groupId = activity.groupId,
+                                            isOnChainBackUp = isOnChainBackUp
                                         )
                                     }
                                 },

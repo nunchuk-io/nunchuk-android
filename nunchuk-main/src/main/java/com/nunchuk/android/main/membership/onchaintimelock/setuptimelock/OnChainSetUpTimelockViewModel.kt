@@ -46,7 +46,8 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
             val result = createTimelockUseCase(
                 CreateTimelockUseCase.Param(
                     groupId = groupId,
-                    timelockValue = timelockValue
+                    timelockValue = timelockValue,
+                    plan = membershipStepManager.localMembershipPlan
                 )
             )
             

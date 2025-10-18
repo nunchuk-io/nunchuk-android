@@ -26,8 +26,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcViewModel.Companion.EXTRA_MASTER_SIGNER_ID
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.signer.R
+import com.nunchuk.android.signer.tapsigner.backup.onchain.TapSignerBackingUpIntroOnChainFragmentArgs
 import com.nunchuk.android.signer.tapsigner.backup.verify.TapSignerVerifyBackUpOptionFragmentArgs
 import com.nunchuk.android.signer.tapsigner.id.TapSignerIdFragmentArgs
 import com.nunchuk.android.signer.tapsigner.intro.AddTapSignerIntroFragmentArgs
@@ -59,7 +61,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             SETUP_SATSCARD -> R.id.setupChainCodeFragment
             RECOVER_NFC -> R.id.recoverNfcKeyGuideFragment
             VERIFY_TAP_SIGNER -> R.id.tapSignerVerifyBackUpOptionFragment
-            CREATE_BACK_UP_KEY -> R.id.tapSignerIdFragment
+            CREATE_BACK_UP_KEY -> if (isOnChainBackUp) R.id.tapSignerBackingUpIntroOnChainFragment else R.id.tapSignerIdFragment
             CHANGE_CVC -> R.id.changeNfcCvcFragment
             else -> R.id.addNfcNameFragment
         }
@@ -71,10 +73,16 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
                 filePath = intent.getStringExtra(EXTRA_BACKUP_FILE_PATH).orEmpty()
             ).toBundle()
 
-            CREATE_BACK_UP_KEY -> TapSignerIdFragmentArgs(
-                masterSignerId = intent.getStringExtra(EXTRA_MASTER_SIGNER_ID).orEmpty(),
-                isMembershipFlow = fromMembershipFlow
-            ).toBundle()
+            CREATE_BACK_UP_KEY -> if (isOnChainBackUp) {
+                TapSignerBackingUpIntroOnChainFragmentArgs(
+                    masterSignerId = intent.getStringExtra(EXTRA_MASTER_SIGNER_ID).orEmpty()
+                ).toBundle()
+            } else {
+                TapSignerIdFragmentArgs(
+                    masterSignerId = intent.getStringExtra(EXTRA_MASTER_SIGNER_ID).orEmpty(),
+                    isMembershipFlow = fromMembershipFlow
+                ).toBundle()
+            }
 
             else -> intent.extras
         }
@@ -121,9 +129,14 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
     val walletId: String
             by lazy(LazyThreadSafetyMode.NONE) { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
 
-    val onChainAddSignerParam: com.nunchuk.android.core.signer.OnChainAddSignerParam?
+    val onChainAddSignerParam: OnChainAddSignerParam?
             by lazy(LazyThreadSafetyMode.NONE) { 
                 intent.getParcelableExtra(EXTRA_ONCHAIN_ADD_SIGNER_PARAM)
+            }
+
+    val isOnChainBackUp: Boolean
+            by lazy(LazyThreadSafetyMode.NONE) {
+                intent.getBooleanExtra(EXTRA_IS_ONCHAIN_BACKUP, false)
             }
 
     var keyId: String = ""
@@ -140,6 +153,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
         const val EXTRA_REPLACED_XFP = "replaced_xfp"
         const val EXTRA_WALLET_ID = "wallet_id"
         private const val EXTRA_ONCHAIN_ADD_SIGNER_PARAM = "onchain_add_signer_param"
+        private const val EXTRA_IS_ONCHAIN_BACKUP = "is_onchain_backup"
 
         /**
          * Setup action
@@ -191,7 +205,8 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             replacedXfp: String = "",
             walletId: String = "",
             keyId: String = "",
-            onChainAddSignerParam: com.nunchuk.android.core.signer.OnChainAddSignerParam? = null,
+            onChainAddSignerParam: OnChainAddSignerParam? = null,
+            isOnChainBackUp: Boolean = false,
         ) = Intent(activity, NfcSetupActivity::class.java).apply {
             putExtra(EXTRA_ACTION, setUpAction)
             putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
@@ -205,6 +220,7 @@ class NfcSetupActivity : BaseNfcActivity<ActivityNavigationBinding>() {
             putExtra(EXTRA_WALLET_ID, walletId)
             putExtra(EXTRA_KEY_ID, keyId)
             putExtra(EXTRA_ONCHAIN_ADD_SIGNER_PARAM, onChainAddSignerParam)
+            putExtra(EXTRA_IS_ONCHAIN_BACKUP, isOnChainBackUp)
         }
     }
 }

@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -127,5 +128,18 @@ private fun UploadBackUpTapSignerScreen(
         remainTime = remainTime,
         title = stringResource(R.string.nc_back_up_tapsigner),
         description = stringResource(R.string.nc_back_up_tap_signer_desc)
+    )
+}
+
+@Preview
+@Composable
+private fun UploadBackUpTapSignerScreenPreview() {
+    BackingUpContent(
+        onContinueClicked = {},
+        percentage = 50,
+        isError = false,
+        remainTime = 300,
+        title = "Back up TAPSIGNER",
+        description = "Back up your TAPSIGNER to the cloud"
     )
 }
