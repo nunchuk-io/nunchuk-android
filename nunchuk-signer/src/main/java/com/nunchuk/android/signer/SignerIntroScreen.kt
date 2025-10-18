@@ -52,13 +52,11 @@ fun SignerIntroScreen(
 ) {
     val isDisableAll = keyFlow != KeyFlow.NONE
     
-    // Use dynamic supported signers from ViewModel if available, otherwise use the passed parameter
     val viewModelSupportedSigners by viewModel?.supportedSigners?.collectAsState() ?: remember { mutableStateOf(emptyList<SupportedSigner>()) }
     val viewModelSupportedSignerConfigs by viewModel?.supportedSignerConfigs?.collectAsState() ?: remember { mutableStateOf(emptyList<SupportedSignerConfig>()) }
     val isAddInheritanceSigner by viewModel?.isAddInheritanceSigner?.collectAsState() ?: remember { mutableStateOf(false) }
     
     val dynamicSupportedSigners = if (viewModel != null) {
-        // Filter based on inheritance requirements if needed
         if (isAddInheritanceSigner) {
             viewModelSupportedSigners.filter { supportedSigner ->
                 val config = viewModelSupportedSignerConfigs.find { config ->

@@ -88,6 +88,7 @@ class NcDataStore @Inject constructor(
     private val firstChatIdKey = stringPreferencesKey("first_create_email")
     private val hasWalletInGuestModeKey = booleanPreferencesKey("has_wallet_in_guest_mode")
     private val walletBannerStatesKey = stringPreferencesKey("wallet_banner_states")
+    private val userWalletConfigsSetupKey = stringPreferencesKey("user_wallet_configs_setup")
 
     /**
      * Current membership plan key
@@ -580,6 +581,18 @@ class NcDataStore @Inject constructor(
         } else {
             // If wallet doesn't exist, add it
             addWalletBannerState(walletId, newState)
+        }
+    }
+
+    // User Wallet Configs Setup functionality
+    val userWalletConfigsSetupFlow: Flow<String>
+        get() = context.dataStore.data.map {
+            it[userWalletConfigsSetupKey].orEmpty()
+        }
+
+    suspend fun setUserWalletConfigsSetup(configsJson: String) {
+        context.dataStore.edit {
+            it[userWalletConfigsSetupKey] = configsJson
         }
     }
 

@@ -15,8 +15,7 @@ import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
-import com.nunchuk.android.usecase.GetIndexFromPathUseCase
-import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
+import com.nunchuk.android.usecase.GetUserWalletConfigsSetupFromCacheUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -32,8 +31,7 @@ class SignerIntroViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val getAllSignersUseCase: GetAllSignersUseCase,
     private val masterSignerMapper: MasterSignerMapper,
-    private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
-    private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
+    private val getUserWalletConfigsSetupFromCacheUseCase: GetUserWalletConfigsSetupFromCacheUseCase,
 ) : ViewModel() {
 
     val remainTime = membershipStepManager.remainingTime
@@ -64,10 +62,12 @@ class SignerIntroViewModel @Inject constructor(
 
     private fun fetchUserWalletConfigs() {
         viewModelScope.launch {
-            getUserWalletConfigsSetupUseCase(Unit).onSuccess { configs ->
-                _supportedSignerConfigs.update { configs.supportedSigners }
-                val supportedSigners = convertToSupportedSigners(configs.supportedSigners)
-                _supportedSigners.update { supportedSigners }
+            getUserWalletConfigsSetupFromCacheUseCase(Unit).onSuccess { configs ->
+                configs?.let { walletConfigs ->
+                    _supportedSignerConfigs.update { walletConfigs.supportedSigners }
+                    val supportedSigners = convertToSupportedSigners(walletConfigs.supportedSigners)
+                    _supportedSigners.update { supportedSigners }
+                }
             }
         }
     }

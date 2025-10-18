@@ -85,4 +85,6 @@ interface SettingRepository {
     suspend fun getWalletBannerState(walletId: String): BannerState?
     suspend fun removeWalletBannerState(walletId: String)
     suspend fun updateWalletBannerState(walletId: String, newState: BannerState)
+    suspend fun setUserWalletConfigsSetup(configsJson: String)
+    fun getUserWalletConfigsSetup(): Flow<String>
 }

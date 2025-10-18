@@ -12,6 +12,7 @@ import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetIndexFromPathUseCase
+import com.nunchuk.android.usecase.GetUserWalletConfigsSetupFromCacheUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -28,6 +29,7 @@ class CheckFirmwareViewModel @Inject constructor(
     private val getAllSignersUseCase: GetAllSignersUseCase,
     private val masterSignerMapper: MasterSignerMapper,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
+    private val getUserWalletConfigsSetupFromCacheUseCase: GetUserWalletConfigsSetupFromCacheUseCase,
 ) : ViewModel() {
 
     val remainTime = membershipStepManager.remainingTime
@@ -37,12 +39,32 @@ class CheckFirmwareViewModel @Inject constructor(
     private val _filteredSigners = MutableStateFlow<List<SignerModel>>(emptyList())
     val filteredSigners = _filteredSigners.asStateFlow()
 
+    private val _firmwareVersion = MutableStateFlow<String>("")
+    val firmwareVersion = _firmwareVersion.asStateFlow()
+
     private val _event = MutableSharedFlow<CheckFirmwareEvent>()
     val event = _event.asSharedFlow()
 
     fun init(args: CheckFirmwareArgs) {
         this.args = args
+        fetchFirmwareVersion()
         fetchAndFilterSigners()
+    }
+
+    private fun fetchFirmwareVersion() {
+        viewModelScope.launch {
+            getUserWalletConfigsSetupFromCacheUseCase(Unit).onSuccess { configs ->
+                configs?.let {
+                    val signerTagString = args.signerTag.name
+                    val firmware = it.miniscriptSupportedFirmwares.find { firmware ->
+                        firmware.signerTag.equals(signerTagString, ignoreCase = true)
+                    }
+                    firmware?.let { fw ->
+                        _firmwareVersion.update { fw.version }
+                    }
+                }
+            }
+        }
     }
 
     private fun fetchAndFilterSigners() {

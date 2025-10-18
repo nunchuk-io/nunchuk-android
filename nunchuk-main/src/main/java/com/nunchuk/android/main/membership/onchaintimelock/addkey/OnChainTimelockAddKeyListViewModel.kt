@@ -53,6 +53,8 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetIndexFromPathUseCase
+import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
+import com.nunchuk.android.usecase.SaveUserWalletConfigsSetupUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.membership.CheckRequestAddDesktopKeyStatusUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
@@ -101,6 +103,8 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase,
     private val singleSignerMapper: SingleSignerMapper,
     private val pushEventManager: com.nunchuk.android.core.push.PushEventManager,
+    private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
+    private val saveUserWalletConfigsSetupUseCase: SaveUserWalletConfigsSetupUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     val state = _state.asStateFlow()
@@ -132,6 +136,11 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     private var pendingTapSignerSignerModel: SignerModel? = null
 
     init {
+        viewModelScope.launch {
+            getUserWalletConfigsSetupUseCase(Unit).onSuccess { configs ->
+                saveUserWalletConfigsSetupUseCase(configs)
+            }
+        }
         viewModelScope.launch {
             currentStep.filterNotNull().collect {
                 membershipStepManager.setCurrentStep(it)

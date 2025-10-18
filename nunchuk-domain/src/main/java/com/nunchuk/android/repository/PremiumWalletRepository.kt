@@ -520,7 +520,7 @@ interface PremiumWalletRepository {
     suspend fun initWallet(
         walletConfig: WalletConfig,
         groupId: String?,
-        walletType: com.nunchuk.android.type.WalletType? = null
+        walletType: WalletType? = null
     )
 
     suspend fun removeKeyReplacement(groupId: String?, walletId: String, xfp: String)

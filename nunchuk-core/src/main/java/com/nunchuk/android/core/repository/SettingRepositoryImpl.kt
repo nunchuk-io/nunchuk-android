@@ -248,4 +248,12 @@ internal class SettingRepositoryImpl @Inject constructor(
     override suspend fun updateWalletBannerState(walletId: String, newState: BannerState) {
         ncDataStore.updateWalletBannerState(walletId, newState)
     }
+
+    override suspend fun setUserWalletConfigsSetup(configsJson: String) {
+        ncDataStore.setUserWalletConfigsSetup(configsJson)
+    }
+
+    override fun getUserWalletConfigsSetup(): Flow<String> {
+        return ncDataStore.userWalletConfigsSetupFlow
+    }
 }

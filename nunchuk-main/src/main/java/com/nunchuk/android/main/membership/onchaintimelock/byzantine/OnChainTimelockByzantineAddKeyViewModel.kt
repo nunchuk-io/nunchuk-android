@@ -55,6 +55,8 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetIndexFromPathUseCase
+import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
+import com.nunchuk.android.usecase.SaveUserWalletConfigsSetupUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
@@ -102,7 +104,9 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
     private val getSignerFromMasterSignerByIndexUseCase: GetSignerFromMasterSignerByIndexUseCase,
     private val getUnusedSignerFromMasterSignerV2UseCase: GetUnusedSignerFromMasterSignerV2UseCase,
     private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase,
-    private val singleSignerMapper: SingleSignerMapper
+    private val singleSignerMapper: SingleSignerMapper,
+    private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
+    private val saveUserWalletConfigsSetupUseCase: SaveUserWalletConfigsSetupUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(OnChainTimelockByzantineAddKeyListState())
     val state = _state.asStateFlow()
@@ -135,6 +139,11 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
     private var pendingTapSignerSignerModel: SignerModel? = null
 
     init {
+        viewModelScope.launch {
+            getUserWalletConfigsSetupUseCase(Unit).onSuccess { configs ->
+                saveUserWalletConfigsSetupUseCase(configs)
+            }
+        }
         if (args.isAddOnly) {
             viewModelScope.launch {
                 pushEventManager.event.filterIsInstance<PushEvent.KeyAddedToGroup>().collect {
