@@ -22,7 +22,6 @@ package com.nunchuk.android.wallet.components.search
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.wallet.R
@@ -38,6 +37,10 @@ class SearchTransactionActivity : BaseActivity<ActivityNavigationBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         setLightStatusBar()
         super.onCreate(savedInstanceState)
+        if (intent.extras == null) {
+            finish()
+            return
+        }
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
         navHostFragment.navController.setGraph(
