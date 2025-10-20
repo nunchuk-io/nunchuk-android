@@ -18,10 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -30,6 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcTopAppBar
@@ -37,7 +36,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.KeyFlow
-import com.nunchuk.android.model.SupportedSignerConfig
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerTag
@@ -47,27 +46,16 @@ import com.nunchuk.android.type.SignerType
 fun SignerIntroScreen(
     keyFlow: Int = KeyFlow.NONE,
     supportedSigners: List<SupportedSigner> = emptyList(),
-    viewModel: SignerIntroViewModel? = null,
+    viewModel: SignerIntroViewModel,
+    onChainAddSignerParam: OnChainAddSignerParam? = null,
     onClick: (KeyType) -> Unit = {}
 ) {
     val isDisableAll = keyFlow != KeyFlow.NONE
     
-    val viewModelSupportedSigners by viewModel?.supportedSigners?.collectAsState() ?: remember { mutableStateOf(emptyList<SupportedSigner>()) }
-    val viewModelSupportedSignerConfigs by viewModel?.supportedSignerConfigs?.collectAsState() ?: remember { mutableStateOf(emptyList<SupportedSignerConfig>()) }
-    val isAddInheritanceSigner by viewModel?.isAddInheritanceSigner?.collectAsState() ?: remember { mutableStateOf(false) }
+    val state by viewModel.state.collectAsStateWithLifecycle()
     
-    val dynamicSupportedSigners = if (viewModel != null) {
-        if (isAddInheritanceSigner) {
-            viewModelSupportedSigners.filter { supportedSigner ->
-                val config = viewModelSupportedSignerConfigs.find { config ->
-                    config.signerType == supportedSigner.type.name &&
-                    config.signerTag == supportedSigner.tag?.name
-                }
-                config?.isInheritanceKey == true
-            }
-        } else {
-            viewModelSupportedSigners
-        }
+    val dynamicSupportedSigners = if (onChainAddSignerParam != null) {
+        state.dynamicSupportedSigners
     } else {
         supportedSigners
     }
@@ -323,6 +311,7 @@ internal fun SignerItem(
 @Composable
 fun SignerIntroScreenContentPreview() {
     SignerIntroScreen(
+        viewModel = hiltViewModel(),
         supportedSigners = listOf(
             SupportedSigner(
                 type = SignerType.SOFTWARE,

@@ -27,26 +27,14 @@ import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
-import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.PrimaryKey
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.args.AddAirSignerArgs
-import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
 interface SignerNavigator {
     fun openSignerIntroScreen(
-        activityContext: Context,
-        walletId: String = "",
-        groupId: String? = null,
-        supportedSigners: List<SupportedSigner>? = null,
-        @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
-        onChainAddSignerParam: OnChainAddSignerParam? = null,
-    )
-
-    fun openSignerIntroScreenForResult(
-        launcher: ActivityResultLauncher<Intent>,
         activityContext: Context,
         walletId: String = "",
         groupId: String? = null,

@@ -496,7 +496,15 @@
     <fragment
         android:id="@+id/importantNoticePassphraseFragment"
         android:name="com.nunchuk.android.main.membership.onchaintimelock.importantpassphrase.ImportantNoticePassphraseFragment"
-        android:label="ImportantNoticePassphraseFragment" />
+        android:label="ImportantNoticePassphraseFragment">
+        <action
+            android:id="@+id/action_importantNoticePassphraseFragment_to_signerIntroFragment"
+            app:destination="@id/signerIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
 
     <fragment
         android:id="@+id/registerWalletToAirgapFragment"

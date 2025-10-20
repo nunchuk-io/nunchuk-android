@@ -26,6 +26,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class SignerIntroState(
+    val filteredTapSigners: List<SignerModel> = emptyList(),
+    val supportedSigners: List<SupportedSigner> = emptyList(),
+    val supportedSignerConfigs: List<SupportedSignerConfig> = emptyList(),
+    val isAddInheritanceSigner: Boolean = false,
+    val dynamicSupportedSigners: List<SupportedSigner> = emptyList()
+)
+
 @HiltViewModel
 class SignerIntroViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
@@ -36,37 +44,35 @@ class SignerIntroViewModel @Inject constructor(
 
     val remainTime = membershipStepManager.remainingTime
 
-    private lateinit var onChainAddSignerParam: OnChainAddSignerParam
+    private var onChainAddSignerParam: OnChainAddSignerParam? = null
 
-    private val _filteredTapSigners = MutableStateFlow<List<SignerModel>>(emptyList())
-    val filteredTapSigners = _filteredTapSigners.asStateFlow()
-
-    private val _supportedSigners = MutableStateFlow<List<SupportedSigner>>(emptyList())
-    val supportedSigners = _supportedSigners.asStateFlow()
-
-    private val _supportedSignerConfigs = MutableStateFlow<List<SupportedSignerConfig>>(emptyList())
-    val supportedSignerConfigs = _supportedSignerConfigs.asStateFlow()
-
-    private val _isAddInheritanceSigner = MutableStateFlow(false)
-    val isAddInheritanceSigner = _isAddInheritanceSigner.asStateFlow()
+    private val _state = MutableStateFlow(SignerIntroState())
+    val state = _state.asStateFlow()
 
     private val _event = MutableSharedFlow<SignerIntroEvent>()
     val event = _event.asSharedFlow()
 
     fun init(onChainAddSignerParam: OnChainAddSignerParam?) {
-        this.onChainAddSignerParam = onChainAddSignerParam ?: return
-        _isAddInheritanceSigner.update { onChainAddSignerParam.isAddInheritanceSigner() }
-        fetchUserWalletConfigs()
-        fetchAndFilterTapSigners()
+        this.onChainAddSignerParam = onChainAddSignerParam
+        if (onChainAddSignerParam != null) {
+            _state.update { it.copy(isAddInheritanceSigner = onChainAddSignerParam.isAddInheritanceSigner()) }
+            fetchUserWalletConfigs()
+            fetchAndFilterTapSigners()
+        }
     }
 
     private fun fetchUserWalletConfigs() {
         viewModelScope.launch {
             getUserWalletConfigsSetupFromCacheUseCase(Unit).onSuccess { configs ->
                 configs?.let { walletConfigs ->
-                    _supportedSignerConfigs.update { walletConfigs.supportedSigners }
                     val supportedSigners = convertToSupportedSigners(walletConfigs.supportedSigners)
-                    _supportedSigners.update { supportedSigners }
+                    _state.update { 
+                        it.copy(
+                            supportedSignerConfigs = walletConfigs.supportedSigners,
+                            supportedSigners = supportedSigners
+                        )
+                    }
+                    updateDynamicSupportedSigners()
                 }
             }
         }
@@ -83,13 +89,28 @@ class SignerIntroViewModel @Inject constructor(
         }
     }
 
+    private fun updateDynamicSupportedSigners() {
+        val currentState = _state.value
+        val dynamicSigners = if (currentState.isAddInheritanceSigner) {
+            currentState.supportedSigners.filter { supportedSigner ->
+                val config = currentState.supportedSignerConfigs.find { config ->
+                    config.signerType == supportedSigner.type.name &&
+                    config.signerTag == supportedSigner.tag?.name
+                }
+                config?.isInheritanceKey == true
+            }
+        } else {
+            currentState.supportedSigners
+        }
+        _state.update { it.copy(dynamicSupportedSigners = dynamicSigners) }
+    }
 
     private fun fetchAndFilterTapSigners() {
         viewModelScope.launch {
             getAllSignersUseCase(true).onSuccess { (masterSigners, singleSigners) ->
                 val allSigners = mapSigners(singleSigners, masterSigners)
                 val filtered = filterTapSignersByTypeAndIndex(allSigners)
-                _filteredTapSigners.update { filtered }
+                _state.update { it.copy(filteredTapSigners = filtered) }
             }
         }
     }
@@ -112,8 +133,8 @@ class SignerIntroViewModel @Inject constructor(
 
     fun onTapSignerContinueClicked() {
         viewModelScope.launch {
-           if (_filteredTapSigners.value.isNotEmpty()) {
-                _event.emit(SignerIntroEvent.ShowFilteredTapSigners(_filteredTapSigners.value))
+           if (_state.value.filteredTapSigners.isNotEmpty()) {
+                _event.emit(SignerIntroEvent.ShowFilteredTapSigners(_state.value.filteredTapSigners))
             } else {
                 _event.emit(SignerIntroEvent.OpenSetupTapSigner)
             }

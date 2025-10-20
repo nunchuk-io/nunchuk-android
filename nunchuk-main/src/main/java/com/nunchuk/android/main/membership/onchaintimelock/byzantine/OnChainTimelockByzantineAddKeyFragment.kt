@@ -103,6 +103,7 @@ import com.nunchuk.android.main.membership.model.AddKeyOnChainData
 import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
+import com.nunchuk.android.main.membership.plantype.InheritancePlanType
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
@@ -496,7 +497,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 // For inheritance key, navigate to inheritance intro screen
                 findNavController().navigate(
                     OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToInheritanceKeyIntroFragment(
-                        inheritanceType = com.nunchuk.android.main.membership.plantype.InheritancePlanType.ON_CHAIN
+                        inheritanceType = InheritancePlanType.ON_CHAIN
                     )
                 )
             } else {

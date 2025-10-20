@@ -102,6 +102,7 @@ class SignerIntroFragment : MembershipFragment() {
                 SignerIntroScreen(
                     keyFlow = args.keyFlow,
                     supportedSigners = args.supportedSigners?.toList() ?: emptyList(),
+                    onChainAddSignerParam = args.onChainAddSignerParam,
                     viewModel = viewModel,
                     onClick = { keyType: KeyType ->
                         when (keyType) {

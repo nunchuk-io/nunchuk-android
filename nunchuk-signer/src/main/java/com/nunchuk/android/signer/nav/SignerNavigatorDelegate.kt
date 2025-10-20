@@ -27,7 +27,6 @@ import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
-import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.PrimaryKey
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.signer.SupportedSigner
@@ -54,7 +53,6 @@ import com.nunchuk.android.signer.software.components.primarykey.manuallyusernam
 import com.nunchuk.android.signer.software.components.primarykey.passphrase.PKeyEnterPassphraseActivity
 import com.nunchuk.android.signer.software.components.primarykey.signin.PKeySignInActivity
 import com.nunchuk.android.signer.software.components.recover.RecoverSeedActivity
-import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 
 interface SignerNavigatorDelegate : SignerNavigator {
@@ -75,26 +73,6 @@ interface SignerNavigatorDelegate : SignerNavigator {
             keyFlow = keyFlow,
             onChainAddSignerParam = onChainAddSignerParam
         )
-    }
-
-    override fun openSignerIntroScreenForResult(
-        launcher: ActivityResultLauncher<Intent>,
-        activityContext: Context,
-        walletId: String,
-        groupId: String?,
-        supportedSigners: List<SupportedSigner>?,
-        keyFlow: Int,
-        onChainAddSignerParam: OnChainAddSignerParam?
-    ) {
-        val intent = SignerIntroActivity.buildIntent(
-            activityContext = activityContext,
-            walletId = walletId,
-            groupId = groupId,
-            supportedSigners = supportedSigners,
-            keyFlow = keyFlow,
-            onChainAddSignerParam = onChainAddSignerParam
-        )
-        launcher.launch(intent)
     }
 
     override fun openSignerInfoScreen(
