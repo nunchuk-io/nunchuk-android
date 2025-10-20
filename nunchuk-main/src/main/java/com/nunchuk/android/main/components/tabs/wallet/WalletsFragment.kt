@@ -225,7 +225,6 @@ internal class WalletsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        navigator.openUploadConfigurationScreen(requireActivity(), "zxfkhaw7")
         observeEvent()
     }
 
