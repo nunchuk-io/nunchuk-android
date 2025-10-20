@@ -49,10 +49,9 @@ class ColdCardVerifyBackupViaAppViewModel @Inject constructor(
         }
     }
 
-    var tryCount = 0
-
     fun onContinueClicked(groupId: String, masterSignerId: String, filePath: String) {
         viewModelScope.launch {
+            _state.update { it.copy(showVerifyError = false) }
             val result =
                 verifyColdCardBackupUseCase(
                     VerifyColdCardBackupUseCase.Data(
@@ -73,13 +72,10 @@ class ColdCardVerifyBackupViaAppViewModel @Inject constructor(
                 if (apiResult.isSuccess) {
                     _event.emit(ColdCardVerifyBackupViaAppEvent.OnVerifyBackUpKeySuccess)
                 } else {
-                    _event.emit(ColdCardVerifyBackupViaAppEvent.ShowError(apiResult.exceptionOrNull()))
+                    _state.update { it.copy(showVerifyError = true) }
                 }
             } else {
-                tryCount++
-                if (tryCount.mod(MAX_TRY) == 0) {
-                    _event.emit(ColdCardVerifyBackupViaAppEvent.OnVerifyFailedTooMuch)
-                }
+                _state.update { it.copy(showVerifyError = true) }
             }
         }
     }
@@ -112,7 +108,7 @@ class ColdCardVerifyBackupViaAppViewModel @Inject constructor(
                 if (apiResult.isSuccess) {
                     _event.emit(ColdCardVerifyBackupViaAppEvent.OnVerifyBackUpKeySuccess)
                 } else {
-                    _event.emit(ColdCardVerifyBackupViaAppEvent.ShowError(apiResult.exceptionOrNull()))
+                    _state.update { it.copy(showVerifyError = true) }
                 }
             } else {
                 _state.update { it.copy(showVerifyError = true) }
@@ -147,16 +143,11 @@ class ColdCardVerifyBackupViaAppViewModel @Inject constructor(
     private suspend fun getChecksum(filePath: String): String = withContext(ioDispatcher) {
         ChecksumUtil.getChecksum(File(filePath).readBytes())
     }
-
-    companion object {
-        private const val MAX_TRY = 5
-    }
 }
 
 sealed class ColdCardVerifyBackupViaAppEvent {
     data object OnVerifyBackUpKeySuccess : ColdCardVerifyBackupViaAppEvent()
     data class ShowError(val throwable: Throwable?) : ColdCardVerifyBackupViaAppEvent()
-    data object OnVerifyFailedTooMuch : ColdCardVerifyBackupViaAppEvent()
 }
 
 data class ColdCardVerifyBackupViaAppState(

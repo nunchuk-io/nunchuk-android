@@ -267,7 +267,7 @@ class AddKeyListViewModel @Inject constructor(
                 _event.emit(
                     AddKeyListEvent.OnVerifySigner(
                         signer = signer,
-                        filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer),
+                        filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer.ifEmpty { data.signer.fingerPrint }),
                         backUpFileName = getBackUpFileName(stepInfo.extraData)
                     )
                 )

@@ -27,12 +27,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
@@ -48,7 +46,6 @@ import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.core.util.showError
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
@@ -56,7 +53,6 @@ import com.nunchuk.android.signer.mk4.Mk4ViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ColdCardVerifyBackupViaAppFragment : MembershipFragment() {
@@ -74,7 +70,6 @@ class ColdCardVerifyBackupViaAppFragment : MembershipFragment() {
                         ColdCardVerifyBackupViaAppEvent.OnVerifyBackUpKeySuccess -> {
                             handleBackUpKeySuccess()
                         }
-                        ColdCardVerifyBackupViaAppEvent.OnVerifyFailedTooMuch -> TODO()
                         is ColdCardVerifyBackupViaAppEvent.ShowError -> {
                             showError(event.throwable?.message)
                         }
@@ -92,6 +87,7 @@ class ColdCardVerifyBackupViaAppFragment : MembershipFragment() {
         val state by viewModel.state.collectAsStateWithLifecycle()
         ColdCardVerifyBackupViaAppScreen(remainTime = remainTime, suggestions = state.suggestions,
             backUpPassword = state._backUpPassword,
+            isShowVerifyError = state.showVerifyError,
             onBackUpPasswordTextChange = {
                 viewModel.handleInputEvent(it)
             }, onSuggestClick = {
