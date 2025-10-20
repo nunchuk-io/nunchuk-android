@@ -29,6 +29,7 @@ sealed class CreateWalletEvent {
         val airgapCount: Int,
         val sendBsmsEmail: Boolean
     ) : CreateWalletEvent()
+    data class OpenUploadConfigurationScreen(val walletId: String) : CreateWalletEvent()
 }
 
 data class CreateWalletState(

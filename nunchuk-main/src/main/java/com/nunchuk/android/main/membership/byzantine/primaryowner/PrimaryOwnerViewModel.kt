@@ -90,23 +90,26 @@ class PrimaryOwnerViewModel @Inject constructor(
             _event.emit(PrimaryOwnerEvent.Loading(true))
             createGroupWalletUseCase(
                 CreateGroupWalletUseCase.Param(
-                    name = args.walletName!!,
+                    name = args.walletName,
                     groupId = groupId,
                     primaryMembershipId = membershipId,
                     sendBsmsEmail = args.sendBsmsEmail
                 )
-            ).onSuccess {
-                savedStateHandle["wallet_id"] = it.id
-                val totalAirgap = it.signers.count { signer -> signer.type == SignerType.AIRGAP && !signer.isColdCard }
+            ).onSuccess { result ->
+                val totalAirgap = result.wallet.signers.count { signer -> signer.type == SignerType.AIRGAP && !signer.isColdCard }
                 if (totalAirgap > 0) {
-                    setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(it.id, totalAirgap))
+                    setRegisterAirgapUseCase(SetRegisterAirgapUseCase.Params(result.wallet.id, totalAirgap))
                 }
-                _event.emit(
-                    PrimaryOwnerEvent.OnCreateWalletSuccess(
-                        wallet = it,
-                        airgapCount = totalAirgap,
+                if (result.requiresRegistration) {
+                    _event.emit(PrimaryOwnerEvent.OpenUploadConfigurationScreen(result.wallet.id))
+                } else {
+                    _event.emit(
+                        PrimaryOwnerEvent.OnCreateWalletSuccess(
+                            wallet = result.wallet,
+                            airgapCount = totalAirgap,
+                        )
                     )
-                )
+                }
             }.onFailure {
                 _event.emit(
                     PrimaryOwnerEvent.Error(it.message.orUnknownError())
@@ -167,4 +170,5 @@ sealed class PrimaryOwnerEvent {
     data class Error(val message: String) : PrimaryOwnerEvent()
     data object UpdatePrimaryOwnerSuccess : PrimaryOwnerEvent()
     data class OnCreateWalletSuccess(val wallet: Wallet, val airgapCount: Int) : PrimaryOwnerEvent()
+    data class OpenUploadConfigurationScreen(val walletId: String) : PrimaryOwnerEvent()
 }

@@ -25,6 +25,7 @@ import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.CalculateRequiredSignaturesExt
+import com.nunchuk.android.model.CreateWalletResult
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.GroupKeyPolicy
@@ -404,12 +405,12 @@ interface PremiumWalletRepository {
         name: String,
         primaryMembershipId: String?,
         sendBsmsEmail: Boolean = false
-    ): Wallet
+    ): CreateWalletResult
 
     suspend fun createPersonalWallet(
         name: String,
         sendBsmsEmail: Boolean = false
-    ): Wallet
+    ): CreateWalletResult
 
     suspend fun groupMemberAcceptRequest(groupId: String)
     suspend fun groupMemberDenyRequest(groupId: String)

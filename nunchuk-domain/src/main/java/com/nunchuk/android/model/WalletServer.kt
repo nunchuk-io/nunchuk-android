@@ -17,4 +17,6 @@ data class WalletServer(
     val primaryMembershipId: String,
     val alias: String,
     val walletType: WalletType = WalletType.MULTI_SIG,
+    val sendBsmsEmail: Boolean = false,
+    val requiresRegistration: Boolean = false,
 )

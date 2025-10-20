@@ -145,8 +145,8 @@ interface WalletNavigatorDelegate : WalletNavigator {
         )
     }
 
-    override fun openUploadConfigurationScreen(activityContext: Context, walletId: String) {
-        UploadConfigurationActivity.start(activityContext, walletId)
+    override fun openUploadConfigurationScreen(activityContext: Context, walletId: String, isOnChainFlow: Boolean) {
+        UploadConfigurationActivity.start(activityContext, walletId, isOnChainFlow)
     }
 
     override fun openWalletConfigScreen(

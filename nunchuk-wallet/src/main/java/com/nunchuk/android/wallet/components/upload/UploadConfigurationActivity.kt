@@ -129,8 +129,8 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
     }
 
     companion object {
-        fun start(activityContext: Context, walletId: String) {
-            activityContext.startActivity(UploadConfigurationArgs(walletId).buildIntent(activityContext))
+        fun start(activityContext: Context, walletId: String, isOnChainFlow: Boolean = false) {
+            activityContext.startActivity(UploadConfigurationArgs(walletId, isOnChainFlow).buildIntent(activityContext))
         }
     }
 }

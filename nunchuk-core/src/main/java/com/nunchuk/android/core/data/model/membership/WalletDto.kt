@@ -42,6 +42,8 @@ data class WalletDto(
     @SerializedName("remove_unused_keys") val removeUnusedKeys: Boolean = false,
     @SerializedName("hide_fiat_currency") val hideFiatCurrency: Boolean = false,
     @SerializedName("wallet_type") val walletType: String? = null,
+    @SerializedName("send_bsms_email") val sendBsmsEmail: Boolean = false,
+    @SerializedName("requires_registration") val requiresRegistration: Boolean = false,
 )
 
 data class ReplaceByDto(
@@ -63,6 +65,8 @@ internal fun WalletDto.toModel(): WalletServer {
         primaryMembershipId = primaryMembershipId ?: "",
         alias = alias ?: "",
         walletType = walletType?.toWalletType() ?: WalletType.MULTI_SIG,
+        sendBsmsEmail = sendBsmsEmail,
+        requiresRegistration = requiresRegistration,
     )
 }
 

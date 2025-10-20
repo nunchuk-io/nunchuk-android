@@ -137,6 +137,9 @@ class PrimaryOwnerFragment : MembershipFragment() {
                     addKeyStepViewModel.requireInheritance(event.wallet.id)
                     handleCreateWalletSuccess(event)
                 }
+                is PrimaryOwnerEvent.OpenUploadConfigurationScreen -> {
+                    navigator.openUploadConfigurationScreen(requireActivity(), event.walletId)
+                }
             }
         }
     }

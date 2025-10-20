@@ -423,7 +423,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     }
                 }
 
-                OnChainTimelockByzantineAddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
+                OnChainTimelockByzantineAddKeyListEvent.OnAddAllKey -> findNavController().popBackStack(R.id.addGroupKeyStepFragment, false)
                 is OnChainTimelockByzantineAddKeyListEvent.ShowError -> showError(event.message)
                 OnChainTimelockByzantineAddKeyListEvent.SelectAirgapType -> {}
                 is OnChainTimelockByzantineAddKeyListEvent.UpdateSignerTag -> findNavController().navigate(

@@ -520,7 +520,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                 step = currentStep,
                 masterSignerId = signer.masterFingerprint,
                 plan = membershipStepManager.localMembershipPlan,
-                verifyType = VerifyType.APP_VERIFIED,
+                verifyType = VerifyType.NONE,
                 extraData = gson.toJson(
                     SignerExtra(
                         derivationPath = signer.derivationPath,
@@ -534,7 +534,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         )
 
         // Update the card with the new signer for the current step
-        updateCardForStep(currentStep, signerModel, VerifyType.APP_VERIFIED)
+        updateCardForStep(currentStep, signerModel, VerifyType.NONE)
 
         // After successfully adding signer, handle TapSigner Acct 1 addition if we have the required data
         val nextStep = data?.getNextStepToAdd(currentStep)

@@ -17,29 +17,9 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.domain.membership
+package com.nunchuk.android.model
 
-import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.CreateWalletResult
-import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.repository.PremiumWalletRepository
-import com.nunchuk.android.usecase.UseCase
-import kotlinx.coroutines.CoroutineDispatcher
-import javax.inject.Inject
-
-class CreatePersonalWalletUseCase @Inject constructor(
-    @IoDispatcher dispatcher: CoroutineDispatcher,
-    private val userWalletsRepository: PremiumWalletRepository,
-) : UseCase<CreatePersonalWalletUseCase.Param, CreateWalletResult>(dispatcher) {
-    override suspend fun execute(parameters: Param): CreateWalletResult {
-        return userWalletsRepository.createPersonalWallet(
-            name = parameters.name,
-            sendBsmsEmail = parameters.sendBsmsEmail
-        )
-    }
-
-    data class Param(
-        val name: String,
-        val sendBsmsEmail: Boolean = false
-    )
-}
+data class CreateWalletResult(
+    val wallet: Wallet,
+    val requiresRegistration: Boolean
+)

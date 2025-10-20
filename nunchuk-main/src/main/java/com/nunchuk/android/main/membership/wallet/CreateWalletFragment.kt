@@ -137,7 +137,9 @@ class CreateWalletFragment : MembershipFragment() {
                     addKeyStepViewModel.requireInheritance(it.wallet.id)
                     handleCreateWalletSuccess(it)
                 }
-
+                is CreateWalletEvent.OpenUploadConfigurationScreen -> {
+                    navigator.openUploadConfigurationScreen(requireActivity(), it.walletId)
+                }
                 is CreateWalletEvent.ShowError -> showError(it.message)
             }
         }

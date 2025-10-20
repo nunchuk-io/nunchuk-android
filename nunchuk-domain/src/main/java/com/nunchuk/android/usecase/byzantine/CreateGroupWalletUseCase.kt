@@ -20,6 +20,7 @@
 package com.nunchuk.android.usecase.byzantine
 
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.CreateWalletResult
 import com.nunchuk.android.model.GroupStatus
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.repository.PremiumWalletRepository
@@ -30,16 +31,16 @@ import javax.inject.Inject
 class CreateGroupWalletUseCase @Inject constructor(
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val userWalletRepository: PremiumWalletRepository,
-) : UseCase<CreateGroupWalletUseCase.Param, Wallet>(dispatcher) {
-    override suspend fun execute(parameters: Param): Wallet {
-        val wallet = userWalletRepository.createGroupWallet(
+) : UseCase<CreateGroupWalletUseCase.Param, CreateWalletResult>(dispatcher) {
+    override suspend fun execute(parameters: Param): CreateWalletResult {
+        val result = userWalletRepository.createGroupWallet(
             groupId = parameters.groupId,
             name = parameters.name,
             primaryMembershipId = parameters.primaryMembershipId,
             sendBsmsEmail = parameters.sendBsmsEmail
         )
         userWalletRepository.updateGroupStatus(parameters.groupId, GroupStatus.ACTIVE.name)
-        return wallet
+        return result
     }
 
     data class Param(

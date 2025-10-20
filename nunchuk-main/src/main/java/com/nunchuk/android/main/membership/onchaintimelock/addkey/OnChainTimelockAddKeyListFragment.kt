@@ -366,7 +366,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     }
                 }
 
-                AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack()
+                AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack(R.id.addKeyStepFragment, false)
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> {
 

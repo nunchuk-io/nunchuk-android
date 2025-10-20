@@ -153,6 +153,7 @@ import com.nunchuk.android.model.VerifiedPasswordTokenRequest
 import com.nunchuk.android.model.VerifyFederatedTokenRequest
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.CreateWalletResult
 import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServer
@@ -2184,7 +2185,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         name: String,
         primaryMembershipId: String?,
         sendBsmsEmail: Boolean
-    ): Wallet {
+    ): CreateWalletResult {
         val response =
             userWalletApiManager.groupWalletApi.createGroupWallet(
                 groupId,
@@ -2203,13 +2204,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
         )
         membershipStepDao.deleteStepByGroupId(groupId)
-        return nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
+        val createdWallet = nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
+        return CreateWalletResult(
+            wallet = createdWallet,
+            requiresRegistration = wallet.requiresRegistration
+        )
     }
 
     override suspend fun createPersonalWallet(
         name: String,
         sendBsmsEmail: Boolean
-    ): Wallet {
+    ): CreateWalletResult {
         val response = userWalletApiManager.walletApi.createWalletFromDraft(
             CreateDraftWalletRequest(
                 name = name,
@@ -2222,7 +2227,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         assistedWalletDao.insert(wallet.toEntity())
         membershipStepDao.deleteStepByChatId(chain.value, chatId)
         requestAddKeyDao.deleteRequests(chatId, chain.value)
-        return nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
+        val createdWallet = nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
+        return CreateWalletResult(
+            wallet = createdWallet,
+            requiresRegistration = wallet.requiresRegistration
+        )
     }
 
     override suspend fun syncGroupWallet(

@@ -134,7 +134,7 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         args: BackUpWalletArgs,
     ) : Intent
 
-    fun openUploadConfigurationScreen(activityContext: Context, walletId: String)
+    fun openUploadConfigurationScreen(activityContext: Context, walletId: String, isOnChainFlow: Boolean = false)
 
     fun openWalletConfigScreen(
         activityContext: Context,

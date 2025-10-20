@@ -24,17 +24,23 @@ import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.util.getStringValue
 
-data class UploadConfigurationArgs(val walletId: String) : ActivityArgs {
+data class UploadConfigurationArgs(
+    val walletId: String,
+    val isOnChainFlow: Boolean = false
+) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, UploadConfigurationActivity::class.java).apply {
         putExtra(EXTRA_WALLET_ID, walletId)
+        putExtra(EXTRA_IS_ON_CHAIN_FLOW, isOnChainFlow)
     }
 
     companion object {
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
+        private const val EXTRA_IS_ON_CHAIN_FLOW = "EXTRA_IS_ON_CHAIN_FLOW"
 
         fun deserializeFrom(intent: Intent): UploadConfigurationArgs = UploadConfigurationArgs(
-            intent.extras.getStringValue(EXTRA_WALLET_ID)
+            walletId = intent.extras.getStringValue(EXTRA_WALLET_ID),
+            isOnChainFlow = intent.getBooleanExtra(EXTRA_IS_ON_CHAIN_FLOW, false)
         )
     }
 }
