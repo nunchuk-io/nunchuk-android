@@ -55,6 +55,11 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        if (intent.parcelable<RecoverWalletData>(EXTRAS_DATA) == null) {
+            finish()
+            return
+        }
+
         setLightStatusBar()
 
         setupViews()
@@ -74,13 +79,25 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
     private fun handleEvent(event: RecoverWalletEvent) {
         when (event) {
             is RecoverWalletEvent.ImportWalletErrorEvent -> NCToastMessage(this).showError(event.message)
-            is RecoverWalletEvent.ImportWalletSuccessEvent -> handleSuccessRecoverEvent(walletName = event.walletName, walletId = event.walletId)
+            is RecoverWalletEvent.ImportWalletSuccessEvent -> handleSuccessRecoverEvent(
+                walletName = event.walletName,
+                walletId = event.walletId
+            )
+
             is RecoverWalletEvent.UpdateWalletErrorEvent -> NCToastMessage(this).showError(event.message)
-            is RecoverWalletEvent.UpdateWalletSuccessEvent -> handleSuccessRecoverEvent(walletName = event.walletName, walletId = event.walletId)
+            is RecoverWalletEvent.UpdateWalletSuccessEvent -> handleSuccessRecoverEvent(
+                walletName = event.walletName,
+                walletId = event.walletId
+            )
+
             is RecoverWalletEvent.WalletSetupDoneEvent -> handleWalletSetupDoneEvent()
             RecoverWalletEvent.WalletNameRequiredEvent -> binding.walletName.setError(getString(R.string.nc_text_required))
             is RecoverWalletEvent.ImportGroupWalletSuccessEvent -> {
-                navigator.openFreeGroupWalletScreen(this, groupId = event.walletId, quickWalletParam = quickWalletParam)
+                navigator.openFreeGroupWalletScreen(
+                    this,
+                    groupId = event.walletId,
+                    quickWalletParam = quickWalletParam
+                )
             }
         }
     }
@@ -101,7 +118,12 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
     }
 
     private fun handleSuccessRecoverEvent(walletId: String, walletName: String) {
-        NcToastManager.scheduleShowMessage(getString(R.string.nc_txt_import_wallet_success, walletName))
+        NcToastManager.scheduleShowMessage(
+            getString(
+                R.string.nc_txt_import_wallet_success,
+                walletName
+            )
+        )
         navigateToSelectWallet(
             navigator = navigator,
             quickWalletParam = quickWalletParam
@@ -164,7 +186,11 @@ class AddRecoverWalletActivity : BaseActivity<ActivityAddRecoverWalletBinding>()
         private const val EXTRAS_DATA = "EXTRAS_DATA"
         private const val QUICK_WALLET_PARAM = "QUICK_WALLET_PARAM"
 
-        fun start(activityContext: Context, data: RecoverWalletData, quickWalletParam: QuickWalletParam?) {
+        fun start(
+            activityContext: Context,
+            data: RecoverWalletData,
+            quickWalletParam: QuickWalletParam?
+        ) {
             val intent = Intent(activityContext, AddRecoverWalletActivity::class.java).apply {
                 putExtra(EXTRAS_DATA, data)
                 putExtra(QUICK_WALLET_PARAM, quickWalletParam)
