@@ -80,6 +80,7 @@ class CreateWalletFragment : MembershipFragment() {
     private val viewModel: CreateWalletViewModel by viewModels()
     private val addKeyStepViewModel: AddKeyStepViewModel by activityViewModels()
     private val groupId: String by lazy { (activity as MembershipActivity).groupId }
+    private val quickWalletParam by lazy { (activity as MembershipActivity).quickWalletParam }
 
     private val launcher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -138,7 +139,17 @@ class CreateWalletFragment : MembershipFragment() {
                     handleCreateWalletSuccess(it)
                 }
                 is CreateWalletEvent.OpenUploadConfigurationScreen -> {
-                    navigator.openUploadConfigurationScreen(requireActivity(), it.walletId)
+                    navigator.openUploadConfigurationScreen(
+                        activityContext = requireActivity(),
+                        walletId = it.walletId,
+                        isOnChainFlow = true,
+                        groupId = groupId.takeIf { it.isNotEmpty() },
+                        replacedWalletId = null,
+                        quickWalletParam = quickWalletParam
+                    )
+                    NavOptions.Builder()
+                        .setPopUpTo(findNavController().graph.startDestinationId, true)
+                        .build()
                 }
                 is CreateWalletEvent.ShowError -> showError(it.message)
             }

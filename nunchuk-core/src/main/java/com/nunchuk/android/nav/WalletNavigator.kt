@@ -29,8 +29,8 @@ import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.AddWalletArgs
+import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.AddressType
@@ -134,7 +134,14 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         args: BackUpWalletArgs,
     ) : Intent
 
-    fun openUploadConfigurationScreen(activityContext: Context, walletId: String, isOnChainFlow: Boolean = false)
+    fun openUploadConfigurationScreen(
+        activityContext: Context,
+        walletId: String,
+        isOnChainFlow: Boolean = false,
+        groupId: String? = null,
+        replacedWalletId: String? = null,
+        quickWalletParam: QuickWalletParam? = null
+    )
 
     fun openWalletConfigScreen(
         activityContext: Context,

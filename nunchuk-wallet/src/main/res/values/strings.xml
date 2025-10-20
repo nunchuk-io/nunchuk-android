@@ -132,4 +132,5 @@
     <string name="nc_banner_backup_and_register">Please back up your wallet configuration. You might also need to register the wallet on your hardware. Do it now.</string>
     <string name="nc_banner_backup_only">Please back up your wallet configuration. Do it now.</string>
     <string name="nc_banner_register_only">You might need to register the wallet on your hardware device. Do it now.</string>
+    <string name="nc_estimate_remain_time">Est. time remaining: %1$d minutes</string>
 </resources>

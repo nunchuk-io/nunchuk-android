@@ -103,6 +103,12 @@
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar"
             android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name="com.nunchuk.android.wallet.components.upload.RegisterColdCardWalletActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/NunchukNoActionBar"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

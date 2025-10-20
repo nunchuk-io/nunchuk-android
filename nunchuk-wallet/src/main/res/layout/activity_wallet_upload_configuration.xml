@@ -94,7 +94,7 @@
         android:background="@android:color/white">
 
         <LinearLayout
-            android:id="@+id/btnQRCode"
+            android:id="@+id/btnExportConfiguration"
             style="@style/NCPrimaryButton.Dark"
             android:layout_width="match_parent"
             android:layout_height="@dimen/nc_height_48"

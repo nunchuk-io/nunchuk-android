@@ -84,6 +84,8 @@ class PrimaryOwnerFragment : MembershipFragment() {
     private val viewModel: PrimaryOwnerViewModel by viewModels()
     private val args: PrimaryOwnerFragmentArgs by navArgs()
     private val addKeyStepViewModel: AddKeyStepViewModel by activityViewModels()
+    private val groupId: String by lazy { args.groupId }
+    private val quickWalletParam by lazy { (activity as com.nunchuk.android.main.membership.MembershipActivity).quickWalletParam }
 
     private val launcher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -138,7 +140,17 @@ class PrimaryOwnerFragment : MembershipFragment() {
                     handleCreateWalletSuccess(event)
                 }
                 is PrimaryOwnerEvent.OpenUploadConfigurationScreen -> {
-                    navigator.openUploadConfigurationScreen(requireActivity(), event.walletId)
+                    navigator.openUploadConfigurationScreen(
+                        activityContext = requireActivity(),
+                        walletId = event.walletId,
+                        isOnChainFlow = true,
+                        groupId = groupId.takeIf { it.isNotEmpty() },
+                        replacedWalletId = null,
+                        quickWalletParam = quickWalletParam
+                    )
+                    NavOptions.Builder()
+                        .setPopUpTo(findNavController().graph.startDestinationId, true)
+                        .build()
                 }
             }
         }

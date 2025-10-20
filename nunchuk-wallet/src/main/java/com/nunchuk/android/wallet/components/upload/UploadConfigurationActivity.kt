@@ -27,6 +27,7 @@ import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.wallet.components.details.WalletDetailsActivity
@@ -48,6 +49,8 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
 
     private val args: UploadConfigurationArgs by lazy { UploadConfigurationArgs.deserializeFrom(intent) }
 
+    private var isColdCardExportFlow = false
+
     override fun initializeBinding() = ActivityWalletUploadConfigurationBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,7 +62,7 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
     }
 
     private fun setupViews() {
-        binding.btnQRCode.setOnDebounceClickListener {
+        binding.btnExportConfiguration.setOnDebounceClickListener {
             showExportOptions()
         }
         binding.btnSkipUpload.setOnDebounceClickListener {
@@ -84,6 +87,19 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
     }
 
     override fun onOptionClicked(option: SheetOption) {
+        if (option.type == SheetOptionType.EXPORT_COLDCARD_VIA_FILE || option.type == SheetOptionType.TYPE_EXPORT_BBQR) {
+            startActivity(
+                RegisterColdCardWalletActivity.createIntent(
+                    context = this,
+                    walletId = args.walletId,
+                    isExportViaFile = option.type == SheetOptionType.EXPORT_COLDCARD_VIA_FILE,
+                    groupId = args.groupId,
+                    replacedWalletId = args.replacedWalletId,
+                    quickWalletParam = args.quickWalletParam
+                )
+            )
+            return
+        }
         super.onOptionClicked(option)
         when (option.type) {
             SheetOptionType.TYPE_EXPORT_QR -> {
@@ -96,23 +112,61 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
             SheetOptionType.TYPE_EXPORT_FILE -> {
                 showSaveShareOption()
             }
+            SheetOptionType.TYPE_EXPORT_BSMS -> {
+                sharedViewModel.handleExportBSMS()
+            }
+            SheetOptionType.TYPE_EXPORT_DESCRIPTOR -> {
+                sharedViewModel.exportDescriptor()
+            }
+            SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> {
+                isColdCardExportFlow = true
+                showExportColdcardOptions()
+            }
         }
     }
 
     fun showExportOptions() {
+        if (args.isOnChainFlow) {
+            showOnChainFlowExportOptions()
+        } else {
+            BottomSheetOption.newInstance(
+                listOf(
+                    SheetOption(
+                        type = SheetOptionType.TYPE_EXPORT_QR,
+                        resId = R.drawable.ic_qr,
+                        stringId = R.string.nc_export_configuration_qr_code
+                    ),
+                    SheetOption(
+                        type = SheetOptionType.TYPE_EXPORT_FILE,
+                        resId = R.drawable.ic_share,
+                        stringId = R.string.nc_wallet_save_configuration
+                    ),
+                )
+            ).show(supportFragmentManager, "BottomSheetOption")
+        }
+    }
+
+    private fun showOnChainFlowExportOptions() {
+        val wallet = sharedViewModel.getWallet() ?: return
+        val isMiniscript = sharedViewModel.getIsMiniscriptWallet()
+        val isMultisig = wallet.signers.size > 1
+        val addressType = wallet.addressType
+        val isSupportedType = addressType == AddressType.LEGACY ||
+                addressType == AddressType.NESTED_SEGWIT ||
+                addressType == AddressType.NATIVE_SEGWIT || addressType == AddressType.TAPROOT
+
+        val options = mutableListOf<SheetOption>()
+        options.add(SheetOption(SheetOptionType.TYPE_EXPORT_BSMS, stringId = R.string.nc_bsms))
+        options.add(SheetOption(SheetOptionType.TYPE_EXPORT_DESCRIPTOR, stringId = R.string.nc_descriptor))
+
+        // Show COLDCARD only for multisig and supported address types
+        if (isMultisig && isSupportedType) {
+            options.add(SheetOption(SheetOptionType.TYPE_EXPORT_TO_COLD_CARD, stringId = R.string.nc_coldcard))
+        }
+
         BottomSheetOption.newInstance(
-            listOf(
-                SheetOption(
-                    type = SheetOptionType.TYPE_EXPORT_QR,
-                    resId = R.drawable.ic_qr,
-                    stringId = R.string.nc_export_configuration_qr_code
-                ),
-                SheetOption(
-                    type = SheetOptionType.TYPE_EXPORT_FILE,
-                    resId = R.drawable.ic_share,
-                    stringId = R.string.nc_wallet_save_configuration
-                ),
-            )
+            title = getString(R.string.nc_select_export_format),
+            options = options
         ).show(supportFragmentManager, "BottomSheetOption")
     }
 
@@ -123,14 +177,47 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
         }
     }
 
+    override fun shareFile() {
+        if (isColdCardExportFlow) {
+            handleColdcardExportToFile(false)
+            isColdCardExportFlow = false
+        } else {
+            super.shareFile()
+        }
+    }
+
+    override fun saveFileToLocal() {
+        if (isColdCardExportFlow) {
+            handleColdcardExportToFile(true)
+            isColdCardExportFlow = false
+        } else {
+            super.saveFileToLocal()
+        }
+    }
+
     private fun goToWalletConfigScreen() {
         navigator.openWalletConfigScreen(this, args.walletId)
         ActivityManager.popUntilRoot()
     }
 
     companion object {
-        fun start(activityContext: Context, walletId: String, isOnChainFlow: Boolean = false) {
-            activityContext.startActivity(UploadConfigurationArgs(walletId, isOnChainFlow).buildIntent(activityContext))
+        fun start(
+            activityContext: Context,
+            walletId: String,
+            isOnChainFlow: Boolean = false,
+            groupId: String? = null,
+            replacedWalletId: String? = null,
+            quickWalletParam: com.nunchuk.android.core.data.model.QuickWalletParam? = null
+        ) {
+            activityContext.startActivity(
+                UploadConfigurationArgs(
+                    walletId = walletId,
+                    isOnChainFlow = isOnChainFlow,
+                    groupId = groupId,
+                    replacedWalletId = replacedWalletId,
+                    quickWalletParam = quickWalletParam
+                ).buildIntent(activityContext)
+            )
         }
     }
 }

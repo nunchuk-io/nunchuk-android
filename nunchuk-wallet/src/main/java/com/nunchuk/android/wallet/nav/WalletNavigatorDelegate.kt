@@ -145,8 +145,22 @@ interface WalletNavigatorDelegate : WalletNavigator {
         )
     }
 
-    override fun openUploadConfigurationScreen(activityContext: Context, walletId: String, isOnChainFlow: Boolean) {
-        UploadConfigurationActivity.start(activityContext, walletId, isOnChainFlow)
+    override fun openUploadConfigurationScreen(
+        activityContext: Context,
+        walletId: String,
+        isOnChainFlow: Boolean,
+        groupId: String?,
+        replacedWalletId: String?,
+        quickWalletParam: com.nunchuk.android.core.data.model.QuickWalletParam?
+    ) {
+        UploadConfigurationActivity.start(
+            activityContext = activityContext,
+            walletId = walletId,
+            isOnChainFlow = isOnChainFlow,
+            groupId = groupId,
+            replacedWalletId = replacedWalletId,
+            quickWalletParam = quickWalletParam
+        )
     }
 
     override fun openWalletConfigScreen(

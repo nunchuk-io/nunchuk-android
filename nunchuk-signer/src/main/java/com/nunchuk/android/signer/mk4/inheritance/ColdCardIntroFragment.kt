@@ -150,7 +150,7 @@ internal fun ColdCardIntroScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = if (mk4Activity?.onChainAddSignerParam != null && isVerifyBackupSeedPhrase == false) {
+                    text = if (mk4Activity?.onChainAddSignerParam != null && !isVerifyBackupSeedPhrase) {
                         "Add COLDCARD (${mk4Activity.onChainAddSignerParam!!.keyIndex + 1}/2)"
                     } else {
                         stringResource(R.string.nc_add_coldcard_mk4)

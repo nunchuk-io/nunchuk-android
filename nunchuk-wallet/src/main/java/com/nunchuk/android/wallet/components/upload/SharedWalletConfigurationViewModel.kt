@@ -82,6 +82,40 @@ class SharedWalletConfigurationViewModel @Inject constructor(
 
     fun getWallet(): Wallet? = wallet
 
+    fun handleExportBSMS() {
+        viewModelScope.launch {
+            when (val event = createShareFileUseCase.execute("${walletId}.bsms")) {
+                is Success -> exportWalletToFile(walletId, event.data, ExportFormat.BSMS)
+                is Error -> {
+                    _event.emit(ShowError(event.exception.message.orUnknownError()))
+                }
+            }
+        }
+    }
+
+    fun exportDescriptor() {
+        viewModelScope.launch {
+            when (val event = createShareFileUseCase.execute("${walletId}_descriptor.txt")) {
+                is Success -> exportWalletToFile(walletId, event.data, ExportFormat.DESCRIPTOR)
+                is Error -> {
+                    _event.emit(ShowError(event.exception.message.orUnknownError()))
+                }
+            }
+        }
+    }
+
+    private fun exportWalletToFile(walletId: String, filePath: String, format: ExportFormat) {
+        viewModelScope.launch {
+            when (val event = exportWalletUseCase.execute(walletId, filePath, format)) {
+                is Success -> {
+                    _event.emit(ExportColdcardSuccess(filePath))
+                    removeBannerState()
+                }
+                is Error -> showError(event.exception)
+            }
+        }
+    }
+
     fun handleColdcardExportNfc(ndef: Ndef) {
         viewModelScope.launch {
             _event.emit(NfcLoading(true))

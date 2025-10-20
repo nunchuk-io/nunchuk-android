@@ -78,6 +78,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             stage == MembershipStage.REPLACE_KEY -> graph.setStartDestination(R.id.replaceKeyIntroFragment)
             stage == MembershipStage.ADD_KEY_ONLY -> graph.setStartDestination(R.id.groupPendingIntroFragment)
             stage == MembershipStage.REGISTER_WALLET -> graph.setStartDestination(R.id.registerWalletToAirgapFragment)
+            stage == MembershipStage.CREATE_WALLET_SUCCESS -> graph.setStartDestination(R.id.createWalletSuccessFragment)
             walletType == null && isPersonalWallet -> graph.setStartDestination(R.id.selectGroupFragment)
             walletType == null && !isPersonalWallet -> graph.setStartDestination(R.id.groupWalletIntroFragment)
             groupId.isEmpty() && stage == MembershipStage.NONE -> graph.setStartDestination(R.id.introAssistedWalletFragment)
@@ -147,6 +148,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
         const val EXTRA_WALLET_TYPE_NAME = "wallet_type_name"
         const val EXTRA_QUICK_WALLET_PARAM = "quick_wallet_param"
         const val EXTRA_INHERITANCE_TYPE = "inheritance_type"
+        const val EXTRA_REPLACED_WALLET_ID = "replaced_wallet_id"
         private const val REQUEST_NFC_TOPUP_XPUBS = 2001
 
 
@@ -181,6 +183,20 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             putExtra(EXTRA_GROUP_STEP, MembershipStage.REGISTER_WALLET)
             putExtra(EXTRA_KEY_WALLET_ID, walletId)
             putExtra(EXTRA_GROUP_ID, groupId)
+        }
+
+        fun openWalletCreatedSuccessIntent(
+            activity: Activity,
+            walletId: String,
+            replacedWalletId: String = "",
+            groupId: String? = null,
+            quickWalletParam: QuickWalletParam? = null
+        ) = Intent(activity, MembershipActivity::class.java).apply {
+            putExtra(EXTRA_GROUP_STEP, MembershipStage.CREATE_WALLET_SUCCESS)
+            putExtra(EXTRA_KEY_WALLET_ID, walletId)
+            putExtra(EXTRA_REPLACED_WALLET_ID, replacedWalletId)
+            putExtra(EXTRA_GROUP_ID, groupId)
+            putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
         }
     }
 }

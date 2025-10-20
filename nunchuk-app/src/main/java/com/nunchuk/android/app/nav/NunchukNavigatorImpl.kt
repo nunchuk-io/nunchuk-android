@@ -245,20 +245,31 @@ interface AppNavigatorDelegate : AppNavigator {
         walletTypeName: String?,
         isClearTop: Boolean,
         quickWalletParam: QuickWalletParam?,
-        inheritanceType: String?
+        inheritanceType: String?,
+        replacedWalletId: String?
     ) {
-        val intent = MembershipActivity.buildIntent(
-            activity = activityContext,
-            groupStep = groupStep,
-            walletId = walletId,
-            groupId = groupId,
-            isPersonalWallet = isPersonalWallet,
-            walletType = walletType,
-            slug = slug,
-            walletTypeName = walletTypeName,
-            quickWalletParam = quickWalletParam,
-            inheritanceType = inheritanceType
-        ).apply {
+        val intent = if (groupStep == MembershipStage.CREATE_WALLET_SUCCESS) {
+            MembershipActivity.openWalletCreatedSuccessIntent(
+                activity = activityContext,
+                walletId = walletId.orEmpty(),
+                replacedWalletId = replacedWalletId.orEmpty(),
+                groupId = groupId,
+                quickWalletParam = quickWalletParam
+            )
+        } else {
+            MembershipActivity.buildIntent(
+                activity = activityContext,
+                groupStep = groupStep,
+                walletId = walletId,
+                groupId = groupId,
+                isPersonalWallet = isPersonalWallet,
+                walletType = walletType,
+                slug = slug,
+                walletTypeName = walletTypeName,
+                quickWalletParam = quickWalletParam,
+                inheritanceType = inheritanceType
+            )
+        }.apply {
             if (isClearTop) {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
