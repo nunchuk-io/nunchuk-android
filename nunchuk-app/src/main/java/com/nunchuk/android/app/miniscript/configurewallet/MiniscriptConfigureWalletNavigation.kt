@@ -51,6 +51,7 @@ import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.core.domain.signer.DuplicateSignerData
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
@@ -156,7 +157,7 @@ fun MiniscriptConfigWalletScreen(
     var showMoreOption by rememberSaveable { mutableStateOf(false) }
     var showBip32Path by rememberSaveable(uiState.reuseSigner) { mutableStateOf(uiState.reuseSigner) }
     var showDuplicateSignerWarning by rememberSaveable { mutableStateOf(false) }
-    var duplicateSignerData by rememberSaveable { mutableStateOf<Pair<SignerModel, String>?>(null) }
+    var duplicateSignerData by rememberSaveable { mutableStateOf<DuplicateSignerData?>(null) }
     var isDuplicateBip32Update by rememberSaveable { mutableStateOf(false) }
     var showRemoveConfirmation by rememberSaveable { mutableStateOf(false) }
     var keyToRemove by rememberSaveable { mutableStateOf("") }
@@ -192,13 +193,13 @@ fun MiniscriptConfigWalletScreen(
             }
             
             is MiniscriptSharedWalletEvent.ShowDuplicateSignerWarning -> {
-                duplicateSignerData = Pair(event.signer, event.keyName)
+                duplicateSignerData = DuplicateSignerData(event.signer, event.keyName)
                 isDuplicateBip32Update = false
                 showDuplicateSignerWarning = true
             }
             
             is MiniscriptSharedWalletEvent.ShowDuplicateSignerUpdateWarning -> {
-                duplicateSignerData = Pair(event.signer, event.keyName)
+                duplicateSignerData = DuplicateSignerData(event.signer, event.keyName)
                 isDuplicateBip32Update = true
                 showDuplicateSignerWarning = true
             }
@@ -372,7 +373,8 @@ fun MiniscriptConfigWalletScreen(
                 message = stringResource(id = R.string.nc_miniscript_duplicate_signer_message),
                 onPositiveClick = {
                     showDuplicateSignerWarning = false
-                    val (signer, keyName) = duplicateSignerData!!
+                    val signer = duplicateSignerData!!.signer
+                    val keyName = duplicateSignerData!!.keyName
 
                     if (isDuplicateBip32Update) {
                         onProceedWithDuplicateBip32Update()

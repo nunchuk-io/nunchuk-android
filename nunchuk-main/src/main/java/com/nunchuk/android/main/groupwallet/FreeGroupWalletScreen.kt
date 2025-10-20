@@ -68,6 +68,7 @@ import com.nunchuk.android.compose.pullrefresh.pullRefresh
 import com.nunchuk.android.compose.pullrefresh.rememberPullRefreshState
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.core.domain.signer.DuplicateSignerData
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.ADD_WALLET_REUSE_SIGNER_RESULT
@@ -230,7 +231,7 @@ fun FreeGroupWalletScreen(
     var showRemoveConfirmation by rememberSaveable { mutableStateOf(false) }
     var keyToRemove by rememberSaveable { mutableStateOf("") }
     var showDuplicateSignerWarning by rememberSaveable { mutableStateOf(false) }
-    var duplicateSignerData by rememberSaveable { mutableStateOf<Pair<SignerModel, String>?>(null) }
+    var duplicateSignerData by rememberSaveable { mutableStateOf<DuplicateSignerData?>(null) }
     
     val isInReplace = state.isInReplaceMode
     val isButtonEnabled = if (state.group != null) {
@@ -244,7 +245,7 @@ fun FreeGroupWalletScreen(
     LaunchedEffect(state.event) {
         when (val event = state.event) {
             is FreeGroupWalletEvent.ShowDuplicateSignerWarning -> {
-                duplicateSignerData = event.signer to event.keyName
+                duplicateSignerData = DuplicateSignerData(event.signer, event.keyName)
                 showDuplicateSignerWarning = true
                 onMarkEventHandled()
             }
@@ -613,9 +614,8 @@ fun FreeGroupWalletScreen(
                 }
             )
         }
-        
+
         if (showDuplicateSignerWarning && duplicateSignerData != null) {
-            val (signer, keyName) = duplicateSignerData!!
             NcInfoDialog(
                 title = stringResource(id = R.string.nc_text_warning),
                 message = stringResource(id = com.nunchuk.android.core.R.string.nc_miniscript_duplicate_signer_message),
