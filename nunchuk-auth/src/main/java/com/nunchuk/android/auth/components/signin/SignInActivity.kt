@@ -383,7 +383,7 @@ class SignInActivity : BaseActivity<ActivitySigninBinding>() {
         clearInputFields()
     }
 
-    private fun signInWithApple() {
+    private fun signInWithApple() = runCatching {
         val authUri = "https://appleid.apple.com/auth/authorize".toUri().buildUpon()
             .appendQueryParameter("response_type", "code")
             .appendQueryParameter(

@@ -73,7 +73,9 @@ import kotlinx.coroutines.delay
 @AndroidEntryPoint
 class WalletSecurityCreatePinFragment : Fragment() {
     private val activityArgs by lazy {
-        WalletSecurityArgs.fromBundle(requireActivity().intent.extras!!)
+        requireActivity().intent.extras?.let { extras ->
+            WalletSecurityArgs.fromBundle(extras)
+        } ?: WalletSecurityArgs()
     }
     private val viewModel: WalletSecurityCreatePinViewModel by viewModels()
     private val args: WalletSecurityCreatePinFragmentArgs by navArgs()

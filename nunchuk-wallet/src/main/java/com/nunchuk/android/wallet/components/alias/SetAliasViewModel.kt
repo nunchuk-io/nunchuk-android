@@ -39,9 +39,7 @@ class SetAliasViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     private val walletId = savedStateHandle.get<String>(walletIdArgument).orEmpty()
-    private val groupId = assistedWalletManager.getGroupId(walletId) ?: throw IllegalStateException(
-        "Group id not found"
-    )
+    private val groupId = assistedWalletManager.getGroupId(walletId).orEmpty()
 
     init {
         viewModelScope.launch {

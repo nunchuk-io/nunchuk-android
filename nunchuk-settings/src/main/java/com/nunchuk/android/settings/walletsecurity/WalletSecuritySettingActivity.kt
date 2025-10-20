@@ -34,7 +34,9 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class WalletSecuritySettingActivity : BaseActivity<ActivityNavigationBinding>() {
     val args: WalletSecurityArgs by lazy {
-        WalletSecurityArgs.fromBundle(intent.extras!!)
+        intent.extras?.let { extras ->
+            WalletSecurityArgs.fromBundle(extras)
+        } ?: WalletSecurityArgs()
     }
 
     override fun initializeBinding() = ActivityNavigationBinding.inflate(layoutInflater).also {
@@ -59,7 +61,7 @@ class WalletSecuritySettingActivity : BaseActivity<ActivityNavigationBinding>() 
                 graph.setStartDestination(R.id.walletSecuritySettingFragment)
             }
         }
-        navHostFragment.navController.setGraph(graph, intent.extras)
+        navHostFragment.navController.setGraph(graph, intent.extras ?: Bundle())
     }
 
     companion object {

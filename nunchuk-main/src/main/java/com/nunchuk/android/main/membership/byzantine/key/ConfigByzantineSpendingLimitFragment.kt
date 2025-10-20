@@ -104,7 +104,8 @@ class ConfigByzantineSpendingLimitFragment : MembershipFragment(), BottomSheetOp
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                ConfigSpendingLimitScreen(viewModel = viewModel,
+                ConfigSpendingLimitScreen(
+                    viewModel = viewModel,
                     args = args,
                     onMoreClicked = ::handleShowMore,
                     onShowCurrencyUnitOption = {
@@ -162,7 +163,7 @@ class ConfigByzantineSpendingLimitFragment : MembershipFragment(), BottomSheetOp
         val policy = viewModel.getPolicyByEmail(email) ?: return
         viewModel.setCurrentEmailInteract(email)
         BottomSheetOption.newInstance(
-            SpendingCurrencyUnit.values().map {
+            SpendingCurrencyUnit.entries.map {
                 SheetOption(
                     type = OFFSET + it.ordinal,
                     label = it.toLabel(requireContext()),
@@ -176,7 +177,7 @@ class ConfigByzantineSpendingLimitFragment : MembershipFragment(), BottomSheetOp
         val policy = viewModel.getPolicyByEmail(email) ?: return
         viewModel.setCurrentEmailInteract(email)
         BottomSheetOption.newInstance(
-            SpendingTimeUnit.values().map {
+            SpendingTimeUnit.entries.map {
                 SheetOption(
                     type = it.ordinal,
                     label = it.toLabel(requireContext()),
@@ -189,11 +190,13 @@ class ConfigByzantineSpendingLimitFragment : MembershipFragment(), BottomSheetOp
     override fun onOptionClicked(option: SheetOption) {
         super.onOptionClicked(option)
         if (option.type >= OFFSET) {
-            val type = SpendingCurrencyUnit.values()[option.type - OFFSET]
-            viewModel.setCurrencyUnit(type.toLabel(requireContext()))
+            SpendingCurrencyUnit.entries.getOrNull(option.type - OFFSET)?.let { type ->
+                viewModel.setCurrencyUnit(type.toLabel(requireContext()))
+            }
         } else {
-            val type = SpendingTimeUnit.values()[option.type]
-            viewModel.setTimeUnit(type)
+            SpendingTimeUnit.entries.getOrNull(option.type)?.let { type ->
+                viewModel.setTimeUnit(type)
+            }
         }
     }
 

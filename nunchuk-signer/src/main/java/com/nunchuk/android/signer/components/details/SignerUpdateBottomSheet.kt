@@ -34,7 +34,7 @@ import com.nunchuk.android.widget.util.addTextChangedCallback
 
 class SignerUpdateBottomSheet : BaseBottomSheet<DialogUpdateSignerBottomSheetBinding>() {
 
-    private lateinit var listener: (String) -> Unit
+    private var listener: ((String) -> Unit)? = null
 
     private val args: SignerUpdateBottomSheetArgs by lazy { SignerUpdateBottomSheetArgs.deserializeFrom(arguments) }
 
@@ -67,7 +67,7 @@ class SignerUpdateBottomSheet : BaseBottomSheet<DialogUpdateSignerBottomSheetBin
     private fun onSaveClicked() {
         val newSignerName = binding.editSignerName.text.toString()
         if (newSignerName != args.signerName) {
-            listener(newSignerName)
+            listener?.invoke(newSignerName)
         }
         dismiss()
     }

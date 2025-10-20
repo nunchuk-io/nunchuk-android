@@ -12,12 +12,14 @@
         <argument
             android:name="group_id"
             app:argType="string"
-            app:nullable="true"/>
+            app:nullable="true"
+            android:defaultValue="@null"/>
 
         <argument
             android:name="wallet_id"
             app:argType="string"
-            app:nullable="true" />
+            app:nullable="true"
+            android:defaultValue="@null"/>
 
         <action
             android:id="@+id/action_groupDashboardFragment_to_groupChatHistoryIntroFragment"

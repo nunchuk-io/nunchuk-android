@@ -23,7 +23,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -129,8 +128,7 @@ internal class UnusedAddressFragment : BaseFragment<FragmentUnusedAddressBinding
         getCurrentAddress()?.let(::copyAddress)
     }
 
-    private fun getCurrentAddress() =
-        if (adapter.items.isNotEmpty()) adapter.items[binding.viewPager.currentItem] else null
+    private fun getCurrentAddress() = adapter.items.getOrNull(binding.viewPager.currentItem)
 
     private fun observeEvent() {
         viewModel.state.observe(viewLifecycleOwner, ::handleState)

@@ -40,7 +40,7 @@ data class BackUpWalletArgs(
         private const val EXTRA_IS_FROM_WALLET_DETAILS = "EXTRA_IS_FROM_WALLET_DETAILS"
 
         fun deserializeFrom(intent: Intent): BackUpWalletArgs = BackUpWalletArgs(
-            wallet = intent.parcelable<Wallet>(EXTRA_WALLET)!!,
+            wallet = intent.parcelable<Wallet>(EXTRA_WALLET) ?: Wallet(),
             isDecoyWallet = intent.getBooleanExtra(EXTRA_IS_DECOY_WALLET, false),
             quickWalletParam = intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM),
             backUpWalletType = intent.getIntExtra(

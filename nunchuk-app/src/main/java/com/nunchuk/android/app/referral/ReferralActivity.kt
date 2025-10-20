@@ -27,7 +27,11 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class ReferralActivity : BaseComposeActivity() {
-    private val args by lazy { ReferralArgs.fromBundle(intent.extras!!) }
+    private val args by lazy { 
+        intent.extras?.let { extras ->
+            ReferralArgs.fromBundle(extras)
+        } ?: ReferralArgs.default
+    }
 
     private val controller: IntentSharingController by lazy {
         IntentSharingController.from(

@@ -146,36 +146,38 @@ class ConfigSpendingLimitFragment : MembershipFragment(), BottomSheetOptionListe
 
     private fun showCurrencyUnitOption() {
         BottomSheetOption.newInstance(
-            SpendingCurrencyUnit.values().map {
+            SpendingCurrencyUnit.entries.map {
                 SheetOption(
                     type = OFFSET + it.ordinal,
                     label = it.toLabel(requireContext()),
                     isSelected = it.toLabel(requireContext()) == viewModel.state.value.currencyUnit
                 )
             }
-        ).show(childFragmentManager, "BottomSheetOption")
+        ).show(childFragmentManager, "SpendingCurrencyUnit")
     }
 
     private fun showTimeUnitOption() {
         BottomSheetOption.newInstance(
-            SpendingTimeUnit.values().map {
+            SpendingTimeUnit.entries.map {
                 SheetOption(
                     type = it.ordinal,
                     label = it.toLabel(requireContext()),
                     isSelected = it == viewModel.state.value.timeUnit
                 )
             }
-        ).show(childFragmentManager, "BottomSheetOption")
+        ).show(childFragmentManager, "SpendingTimeUnit")
     }
 
     override fun onOptionClicked(option: SheetOption) {
         super.onOptionClicked(option)
         if (option.type >= OFFSET) {
-            val type = SpendingCurrencyUnit.values()[option.type - OFFSET]
-            viewModel.setCurrencyUnit(type.toLabel(requireContext()))
+            SpendingCurrencyUnit.entries.getOrNull(option.type - OFFSET)?.let { type ->
+                viewModel.setCurrencyUnit(type.toLabel(requireContext()))
+            }
         } else {
-            val type = SpendingTimeUnit.values()[option.type]
-            viewModel.setTimeUnit(type)
+            SpendingTimeUnit.entries.getOrNull(option.type)?.let { type ->
+                viewModel.setTimeUnit(type)
+            }
         }
     }
 
