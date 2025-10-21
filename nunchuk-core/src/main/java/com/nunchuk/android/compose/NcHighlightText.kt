@@ -32,7 +32,8 @@ import androidx.compose.ui.text.withStyle
 fun NcHighlightText(
     modifier: Modifier = Modifier,
     text: String,
-    style: TextStyle = NunchukTheme.typography.body
+    style: TextStyle = NunchukTheme.typography.body,
+    spanStyle: SpanStyle = SpanStyle(fontWeight = FontWeight.Bold)
 ) {
     var start = 0
     val openBold = "[B]"
@@ -48,7 +49,7 @@ fun NcHighlightText(
                 if (start < startBold) {
                     append(text.substring(start, startBold))
                 }
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                withStyle(style = spanStyle) {
                     append(text.substring(startBold + openBold.length, endBold))
                 }
                 endBold + closedBold.length

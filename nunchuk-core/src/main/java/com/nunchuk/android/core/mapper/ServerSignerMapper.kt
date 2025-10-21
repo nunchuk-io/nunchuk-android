@@ -45,6 +45,8 @@ internal class ServerSignerMapper @Inject constructor(
                 if (isInheritanceKey) {
                     add(SignerTag.INHERITANCE.name)
                     add(SignerTag.COLDCARD.name)
+                } else {
+                    remove(SignerTag.INHERITANCE.name)
                 }
             }.toMutableList(),
         )

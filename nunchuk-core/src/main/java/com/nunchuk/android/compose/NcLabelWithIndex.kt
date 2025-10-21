@@ -94,7 +94,7 @@ fun NCLabelWithIndex(
                 .size(24.dp)
                 .border(
                     width = 2.dp,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.textPrimary,
                     shape = CircleShape
                 ),
             contentAlignment = Alignment.Center

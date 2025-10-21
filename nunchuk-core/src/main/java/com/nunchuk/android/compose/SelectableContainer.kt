@@ -50,7 +50,7 @@ fun SelectableContainerPreview() {
             )
         ) {
             SelectableContainer(
-                isSelected = false,
+                isSelected = true,
                 paddingValues = PaddingValues(16.dp),
                 onClick = {}
             ) {

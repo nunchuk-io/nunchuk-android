@@ -23,21 +23,22 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
@@ -49,7 +50,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.border
+import com.nunchuk.android.compose.SelectableContainer
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -119,12 +120,9 @@ private fun InheritanceShareSecretContent(
     onOptionClick: (Int) -> Unit = {},
     onContinueClicked: () -> Unit = {}
 ) = NunchukTheme {
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .statusBarsPadding()
-                .navigationBarsPadding(),
-        ) {
+    Scaffold(
+        modifier = Modifier.navigationBarsPadding(),
+        topBar = {
             val title = if (planFlow == InheritancePlanFlow.SETUP) {
                 stringResource(
                     id = R.string.nc_estimate_remain_time,
@@ -134,32 +132,8 @@ private fun InheritanceShareSecretContent(
                 ""
             }
             NcTopAppBar(title = title)
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                item {
-                    Text(
-                        modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
-                        text = stringResource(R.string.nc_share_your_secrets),
-                        style = NunchukTheme.typography.heading
-                    )
-                    Text(
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                        text = stringResource(R.string.nc_share_your_secrets_desc),
-                        style = NunchukTheme.typography.body,
-                    )
-                    options.forEach { item ->
-                        OptionItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                            isSelected = item.isSelected,
-                            desc = stringResource(id = item.desc),
-                            title = stringResource(id = item.title)
-                        ) {
-                            onOptionClick(item.type)
-                        }
-                    }
-                }
-            }
+        },
+        bottomBar = {
             NcPrimaryDarkButton(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -168,6 +142,37 @@ private fun InheritanceShareSecretContent(
                 onClick = onContinueClicked,
             ) {
                 Text(text = stringResource(id = R.string.nc_text_continue))
+            }
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+        ) {
+            item {
+                Text(
+                    modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp),
+                    text = stringResource(R.string.nc_share_your_secrets),
+                    style = NunchukTheme.typography.heading
+                )
+                Text(
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                    text = stringResource(R.string.nc_share_your_secrets_desc),
+                    style = NunchukTheme.typography.body,
+                )
+                options.forEach { item ->
+                    OptionItem(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                        isSelected = item.isSelected,
+                        desc = stringResource(id = item.desc),
+                        title = stringResource(id = item.title)
+                    ) {
+                        onOptionClick(item.type)
+                    }
+                }
             }
         }
     }
@@ -181,15 +186,16 @@ private fun OptionItem(
     desc: String,
     onClick: () -> Unit
 ) {
-    Card(
-        modifier = modifier, onClick = onClick,
-        border = BorderStroke(
-            width = 2.dp, color = if(isSelected) colorResource(id = R.color.nc_text_primary) else MaterialTheme.colorScheme.border
-        ),
-        shape = RoundedCornerShape(12.dp)
+    SelectableContainer(
+        modifier = modifier,
+        isSelected = isSelected,
+        onClick = onClick,
     ) {
-        Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            NcRadioButton(selected = isSelected, onClick = onClick)
+        Row {
+            NcRadioButton(
+                modifier = Modifier.size(24.dp),
+                selected = isSelected, onClick = onClick
+            )
             Column(modifier = Modifier.padding(start = 12.dp)) {
                 Text(text = title, style = NunchukTheme.typography.title)
                 Text(text = desc, style = NunchukTheme.typography.body)

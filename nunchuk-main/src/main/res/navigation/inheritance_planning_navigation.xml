@@ -447,6 +447,14 @@
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.backupdownload.InheritanceBackUpDownloadFragment"
         android:label="InheritanceShareSecretSuccessFragment" />
 
+    <fragment
+        android:id="@+id/inheritanceHowItWorksFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.howitworks.InheritanceHowItWorksFragment"
+        android:label="InheritanceHowItWorksFragment">
+        <argument
+            android:name="type"
+            app:argType="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType" />
+    </fragment>
 
     <include app:graph="@navigation/select_wallet_navigation" />
 

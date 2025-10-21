@@ -89,7 +89,7 @@ class InheritancePlanningViewModel @Inject constructor(
                 }
             }
         _state.update {
-            it.copy(keyTypes = keyTypes, walletType = WalletType.MINISCRIPT) // TODO Hai
+            it.copy(keyTypes = keyTypes, walletType = wallet.walletType)
         }
     }
 

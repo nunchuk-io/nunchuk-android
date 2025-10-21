@@ -503,13 +503,13 @@
     <string name="nc_inheritance_notify_pref_hint">To include multiple email addresses, separate them by commas or spaces.</string>
     <string name="nc_inheritance_create_success">The inheritance plan has been set up!</string>
     <string name="nc_share_your_secrets">Share your secrets</string>
-    <string name="nc_share_your_secrets_desc">The Magic Phrase and Backup Password must be shared with the party or parties eligible for the inheritance. Please select your option:</string>
+    <string name="nc_share_your_secrets_desc">The plan’s secrets must be shared with the party or parties eligible for the inheritance. Please select your option:</string>
     <string name="nc_direct_inheritance">Direct inheritance</string>
-    <string name="nc_direct_inheritance_desc">The Beneficiary has full control over the inheritance. Upon the Activation Date, they can claim the inheritance for themselves.</string>
+    <string name="nc_direct_inheritance_desc">The Beneficiary has full control. After the timelock, they can claim the funds themselves.</string>
     <string name="nc_indirect_inheritance">Indirect inheritance</string>
-    <string name="nc_indirect_inheritance_desc">A Trustee has full control over the inheritance. Upon the Activation Date, the Trustee can help the Beneficiary claim the inheritance on their behalf.</string>
+    <string name="nc_indirect_inheritance_desc">A Trustee has full control. After the timelock, the Trustee claims the funds on the Beneficiary’s behalf.</string>
     <string name="nc_joint_control">Joint control</string>
-    <string name="nc_joint_control_desc">The Beneficiary and the Trustee have joint control over the inheritance. Upon the Activation Date, the Beneficiary and Trustee will need to combine their secrets in order to claim the inheritance.</string>
+    <string name="nc_joint_control_desc">The Beneficiary and Trustee share control. After the timelock, they must combine their secrets to claim the funds.</string>
     <string name="nc_plan_magical_phrase">The plan’s Magic Phrase.</string>
     <string name="nc_inheritance_share_secret_info_warning">You are solely responsible for sharing the Magic Phrase and Backup Password with the %s. Failure to share will result in the inheritance being unclaimable.</string>
     <string name="nc_inheritance_share_secret_info_2">The Backup Password for the encrypted backup.</string>
@@ -1024,4 +1024,19 @@
     <string name="nc_key_with_index">Key %1$s</string>
     <string name="nc_sort_by_coin_age">Sort by coin age</string>
     <string name="nc_timelocked">Timelocked</string>
+    
+    <!-- Inheritance How It Works -->
+    <string name="nc_how_it_works">How it works</string>
+    <string name="nc_how_it_works_direct_desc">With the secrets you provided, there are two ways for the Beneficiary to access and claim the funds:</string>
+    <string name="nc_how_it_works_indirect_desc">With the secrets you provided, there are two ways for the Trustee to access and claim the funds:</string>
+    <string name="nc_how_it_works_joint_desc">With the secrets you provided, there are two ways for the Beneficiary and Trustee to access and claim the funds together:</string>
+    <string name="nc_with_nunchuk_service">With Nunchuk service</string>
+    <string name="nc_without_nunchuk_service">Without Nunchuk service (fallback option)</string>
+    <string name="nc_guided_claim_desc">[B]Guided claim[/B] using the Magic Phrase and the inheritance key</string>
+    <string name="nc_self_serve_recovery_desc_beneficiary">Self-serve recovery using the wallet configuration file (BSMS file) and the inheritance key.</string>
+    <string name="nc_self_serve_recovery_desc_trustee">Self-serve recovery using the wallet configuration file (BSMS file) and the inheritance key.</string>
+    <string name="nc_self_serve_recovery_desc_joint">Self-serve recovery using the wallet configuration file (BSMS file) and the inheritance key.</string>
+    <string name="nc_bsms_replaces_magic_phrase_beneficiary">In this method, the BSMS file replaces the Magic Phrase. The Beneficiary does not depend on the Nunchuk service for recovery.</string>
+    <string name="nc_bsms_replaces_magic_phrase_trustee">In this method, the BSMS file replaces the Magic Phrase. The Trustee does not depend on the Nunchuk service for recovery.</string>
+    <string name="nc_bsms_replaces_magic_phrase_joint">In this method, the BSMS file replaces the Magic Phrase. The Beneficiary and Trustee do not depend on the Nunchuk service for recovery.</string>
 </resources>
