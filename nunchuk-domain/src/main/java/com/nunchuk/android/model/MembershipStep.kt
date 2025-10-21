@@ -76,26 +76,26 @@ fun MembershipStep.toIndex(walletType: WalletType) = if (walletType == WalletTyp
     }
 } else {
     when (this) {
-        MembershipStep.HONEY_ADD_INHERITANCE_KEY -> 0
-        MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK -> 1
-        MembershipStep.HONEY_ADD_HARDWARE_KEY_1 -> 2
-        MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK -> 3
-        MembershipStep.HONEY_ADD_HARDWARE_KEY_2 -> 4
-        MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK -> 5
-        MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY -> 0
-        MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK -> 1
-        MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 -> 2
-        MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK -> 3
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> 4
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK -> 5
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> 6
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK -> 7
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 -> 8
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK -> 9
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 -> 10
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3_TIMELOCK -> 11
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 -> 12
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4_TIMELOCK -> 13
+        MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK -> 0
+        MembershipStep.HONEY_ADD_INHERITANCE_KEY, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY -> 1
+        MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK -> 2
+        MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 -> 3
+        MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK -> 4
+        MembershipStep.HONEY_ADD_HARDWARE_KEY_2, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> 5
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK -> 6
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> 7
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK -> 8
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 -> 9
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3_TIMELOCK -> 10
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 -> 11
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4_TIMELOCK -> 12
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 -> 13
         else -> throw IllegalArgumentException()
     }
+}
+
+fun MembershipStep.toPairIndex(walletType: WalletType): List<Int> {
+    val index = this.toIndex(walletType)
+    val pairStart = (index / 2) * 2
+    return listOf(pairStart, pairStart + 1)
 }

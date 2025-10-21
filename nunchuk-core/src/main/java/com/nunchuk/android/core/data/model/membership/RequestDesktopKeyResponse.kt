@@ -6,7 +6,9 @@ internal data class DesktopKeyRequest(
     @SerializedName("tags")
     val tags: List<String>,
     @SerializedName("key_index")
-    val keyIndex: Int? = null
+    val keyIndex: Int? = null,
+    @SerializedName("key_indices")
+    val keyIndices: List<Int>? = null
 )
 
 internal data class RequestDesktopKeyResponse(
@@ -21,4 +23,8 @@ internal data class Request(
     val key: SignerServerDto? = null,
     @SerializedName("status")
     val status: String = "",
+    @SerializedName("keys")
+    val keys: List<SignerServerDto>? = null,
+    @SerializedName("wallet_type")
+    val walletType: String? = null
 )
