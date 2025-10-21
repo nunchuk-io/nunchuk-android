@@ -120,6 +120,7 @@ import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.CalculateRequiredSignaturesExt
+import com.nunchuk.android.model.CreateWalletResult
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.GroupKeyPolicy
@@ -153,7 +154,6 @@ import com.nunchuk.android.model.VerifiedPasswordTokenRequest
 import com.nunchuk.android.model.VerifyFederatedTokenRequest
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.Wallet
-import com.nunchuk.android.model.CreateWalletResult
 import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServer
@@ -170,6 +170,7 @@ import com.nunchuk.android.model.membership.GroupConfig
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.model.toMembershipPlan
+import com.nunchuk.android.model.toPairIndex
 import com.nunchuk.android.model.toVerifyType
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.model.transaction.ServerTransaction
@@ -1833,15 +1834,23 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             }
         }
         return if (localRequest == null) {
+            val desktopKeyRequest = if (walletType == WalletType.MINISCRIPT) {
+                DesktopKeyRequest(
+                    tags = tags.map { it.name },
+                    keyIndex = step.toIndex(walletType),
+                    keyIndices = step.toPairIndex(walletType)
+                )
+            } else {
+                DesktopKeyRequest(
+                    tags = tags.map { it.name },
+                    keyIndex = step.toIndex(walletType)
+                )
+            }
             val response =
                 if (groupId.isNotEmpty()) userWalletApiManager.groupWalletApi.requestAddKey(
-                    groupId, DesktopKeyRequest(tags.map { it.name }, keyIndex = step.toIndex(walletType))
+                    groupId, desktopKeyRequest
                 )
-                else userWalletApiManager.walletApi.requestAddKey(
-                    DesktopKeyRequest(
-                        tags.map { it.name }, keyIndex = step.toIndex(walletType)
-                    )
-                )
+                else userWalletApiManager.walletApi.requestAddKey(desktopKeyRequest)
             val requestId = response.data.request?.id.orEmpty()
             requestAddKeyDao.insert(
                 RequestAddKeyEntity(
@@ -1881,57 +1890,75 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 userWalletApiManager.walletApi.getRequestAddKeyStatus(localRequest.requestId)
             }
             val request = response.data.request
-            val key = request?.key
-            if (request?.status == "COMPLETED" && key != null) {
-                val type = nunchukNativeSdk.signerTypeFromStr(key.type.orEmpty())
-
-                val hasSigner = nunchukNativeSdk.hasSigner(
-                    SingleSigner(
-                        name = key.name.orEmpty(),
-                        xpub = key.xpub.orEmpty(),
-                        publicKey = key.pubkey.orEmpty(),
-                        derivationPath = key.derivationPath.orEmpty(),
-                        masterFingerprint = key.xfp.orEmpty(),
-                    )
-                )
-                if (!hasSigner) {
-                    nunchukNativeSdk.createSigner(
-                        name = key.name.orEmpty(),
-                        xpub = key.xpub.orEmpty(),
-                        publicKey = key.pubkey.orEmpty(),
-                        derivationPath = key.derivationPath.orEmpty(),
-                        masterFingerprint = key.xfp.orEmpty(),
-                        type = type,
-                        tags = key.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() },
-                        replace = false
-                    )
+            if (request?.status == "COMPLETED") {
+                val isMiniscript = request.walletType == WalletType.MINISCRIPT.name
+                val keysToProcess = if (isMiniscript) {
+                    request.keys.orEmpty()
+                } else {
+                    request.key?.let { listOf(it) }.orEmpty()
                 }
-                requestAddKeyDao.delete(localRequest)
-                if (!signerFingerprints.contains(key.xfp.orEmpty())) {
-                    membershipRepository.saveStepInfo(
-                        MembershipStepInfo(
-                            step = localRequest.step,
-                            masterSignerId = key.xfp.orEmpty(),
-                            plan = plan,
-                            verifyType = if (key.tags?.contains(SignerTag.INHERITANCE.name) == true) {
-                                key.userKey?.verificationType.toVerifyType()
-                            } else {
-                                VerifyType.APP_VERIFIED
-                            },
-                            extraData = gson.toJson(
-                                SignerExtra(
-                                    derivationPath = key.derivationPath.orEmpty(),
-                                    isAddNew = false,
-                                    signerType = type,
-                                    userKeyFileName = key.userKey?.fileName.orEmpty()
-                                )
-                            ),
-                            groupId = groupId
+
+                if (keysToProcess.isEmpty()) {
+                    // No keys to process, handle as before
+                    if (request.key == null && request.keys.isNullOrEmpty()) {
+                        requestAddKeyDao.delete(localRequest)
+                        throw RequestAddKeyCancelException
+                    }
+                }
+
+                keysToProcess.forEach { key ->
+                    val type = nunchukNativeSdk.signerTypeFromStr(key.type.orEmpty())
+
+                    val hasSigner = nunchukNativeSdk.hasSigner(
+                        SingleSigner(
+                            name = key.name.orEmpty(),
+                            xpub = key.xpub.orEmpty(),
+                            publicKey = key.pubkey.orEmpty(),
+                            derivationPath = key.derivationPath.orEmpty(),
+                            masterFingerprint = key.xfp.orEmpty(),
                         )
                     )
-                } else {
-                    throw RequestAddSameKeyException
+                    if (!hasSigner) {
+                        nunchukNativeSdk.createSigner(
+                            name = key.name.orEmpty(),
+                            xpub = key.xpub.orEmpty(),
+                            publicKey = key.pubkey.orEmpty(),
+                            derivationPath = key.derivationPath.orEmpty(),
+                            masterFingerprint = key.xfp.orEmpty(),
+                            type = type,
+                            tags = key.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() },
+                            replace = false
+                        )
+                    }
+
+                    if (!signerFingerprints.contains(key.xfp.orEmpty())) {
+                        membershipRepository.saveStepInfo(
+                            MembershipStepInfo(
+                                step = localRequest.step,
+                                masterSignerId = key.xfp.orEmpty(),
+                                plan = plan,
+                                verifyType = if (key.tags?.contains(SignerTag.INHERITANCE.name) == true) {
+                                    key.userKey?.verificationType.toVerifyType(key.verificationType)
+                                } else {
+                                    VerifyType.APP_VERIFIED
+                                },
+                                extraData = gson.toJson(
+                                    SignerExtra(
+                                        derivationPath = key.derivationPath.orEmpty(),
+                                        isAddNew = false,
+                                        signerType = type,
+                                        userKeyFileName = key.userKey?.fileName.orEmpty()
+                                    )
+                                ),
+                                groupId = groupId
+                            )
+                        )
+                    } else {
+                        throw RequestAddSameKeyException
+                    }
                 }
+                
+                requestAddKeyDao.delete(localRequest)
                 if (requestId != null) return true
             } else if (request == null) {
                 requestAddKeyDao.delete(localRequest)

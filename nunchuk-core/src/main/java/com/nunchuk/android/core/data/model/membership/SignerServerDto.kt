@@ -52,7 +52,7 @@ internal fun SignerServerDto.toModel(): SignerServer {
         type = signerType,
         index = index,
         userKeyId = userKey?.keyId,
-        verifyType = if (signerType == SignerType.NFC || tags.orEmpty().contains(SignerTag.INHERITANCE.name)) userKey?.verificationType.toVerifyType() else VerifyType.APP_VERIFIED,
+        verifyType = if (signerType == SignerType.NFC || tags.orEmpty().contains(SignerTag.INHERITANCE.name)) userKey?.verificationType.toVerifyType(verificationType) else VerifyType.APP_VERIFIED,
         isVisible = isVisible,
         tapsigner = tapsigner?.toModel(),
         xpub = xpub,

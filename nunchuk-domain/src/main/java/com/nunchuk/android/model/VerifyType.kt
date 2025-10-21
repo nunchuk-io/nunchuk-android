@@ -26,8 +26,19 @@ enum class VerifyType {
     NONE, APP_VERIFIED, SELF_VERIFIED
 }
 
-fun String?.toVerifyType() = when(this) {
-    VerifyType.APP_VERIFIED.name -> VerifyType.APP_VERIFIED
-    VerifyType.SELF_VERIFIED.name -> VerifyType.SELF_VERIFIED
-    else -> VerifyType.NONE
+fun String?.toVerifyType(keyVerifyType: String? = null): VerifyType {
+    return if (keyVerifyType.isNullOrEmpty()) {
+        when(this) {
+            VerifyType.APP_VERIFIED.name -> VerifyType.APP_VERIFIED
+            VerifyType.SELF_VERIFIED.name -> VerifyType.SELF_VERIFIED
+            else -> VerifyType.NONE
+        }
+    } else {
+        when(keyVerifyType) {
+            VerifyType.APP_VERIFIED.name -> VerifyType.APP_VERIFIED
+            VerifyType.SELF_VERIFIED.name -> VerifyType.SELF_VERIFIED
+            else -> VerifyType.NONE
+        }
+    }
+
 }
