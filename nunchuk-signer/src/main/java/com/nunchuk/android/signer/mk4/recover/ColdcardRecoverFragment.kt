@@ -61,6 +61,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.COLDCARD_GUIDE_URL
@@ -132,6 +133,7 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                 ColdcardRecoverScreen(
                     viewModel = viewModel,
                     onMoreClicked = ::handleShowMore,
+                    onChainAddSignerParam = (activity as Mk4Activity).onChainAddSignerParam,
                     isMembershipFlow = args.isMembershipFlow,
                     isScanQRCode = args.scanQrCode,
                     isReplaceKey = replacedXfp.isNotEmpty()
@@ -157,7 +159,8 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                         }
 
                         is ColdcardRecoverEvent.CreateSignerSuccess -> {
-                            val onChainAddSignerParam = (activity as Mk4Activity).onChainAddSignerParam
+                            val onChainAddSignerParam =
+                                (activity as Mk4Activity).onChainAddSignerParam
                             if (args.isAddInheritanceKey || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
                                 if (onChainAddSignerParam != null) {
                                     if (onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true && onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
@@ -176,10 +179,11 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                                                 requireActivity().setResult(RESULT_OK)
                                                 navigator.returnMembershipScreen()
                                             }
+
                                             1 -> {
                                                 requireActivity().setResult(RESULT_OK)
                                                 navigator.openBackUpSeedPhraseActivity(
-                                                    requireActivity(), 
+                                                    requireActivity(),
                                                     BackUpSeedPhraseArgs(
                                                         type = BackUpSeedPhraseType.INTRO,
                                                         signer = event.signer.toModel(),
@@ -188,6 +192,7 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                                                     )
                                                 )
                                             }
+
                                             else -> {
                                                 requireActivity().setResult(RESULT_OK)
                                                 navigator.returnMembershipScreen()
@@ -344,6 +349,7 @@ private fun ColdcardRecoverScreen(
     isMembershipFlow: Boolean,
     isScanQRCode: Boolean,
     isReplaceKey: Boolean,
+    onChainAddSignerParam: OnChainAddSignerParam? = null,
     onMoreClicked: () -> Unit = {}
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -352,6 +358,7 @@ private fun ColdcardRecoverScreen(
         onContinueClicked = viewModel::onContinueClicked,
         onOpenGuideClicked = viewModel::onOpenGuideClicked,
         isMembershipFlow = isMembershipFlow,
+        onChainAddSignerParam = onChainAddSignerParam,
         isReplaceKey = isReplaceKey,
         isScanQRCode = isScanQRCode,
         onMoreClicked = onMoreClicked,
@@ -364,6 +371,7 @@ private fun ColdcardRecoverContent(
     isMembershipFlow: Boolean = false,
     isScanQRCode: Boolean = false,
     isReplaceKey: Boolean,
+    onChainAddSignerParam: OnChainAddSignerParam? = null,
     onOpenGuideClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
     onContinueClicked: () -> Unit = {}
@@ -442,7 +450,10 @@ private fun ColdcardRecoverContent(
                 ) {
                     Text(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),
-                        text = if (isScanQRCode) stringResource(R.string.nc_export_xpub_coldcard_scan_qr_code_desc)
+                        text = if (isScanQRCode) stringResource(
+                            R.string.nc_export_xpub_coldcard_scan_qr_code_desc,
+                            onChainAddSignerParam?.keyIndex ?: 1
+                        )
                         else stringResource(R.string.nc_export_xpub_coldcard_desc),
                         style = NunchukTheme.typography.body
                     )

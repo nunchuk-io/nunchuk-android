@@ -116,7 +116,7 @@
     <string name="nc_no_add_a_new_one">No, I want to add a new one</string>
     <string name="nc_add_your_coldcard">Add your COLDCARD</string>
     <string name="nc_export_xpub_coldcard_desc">Navigate to Advanced/Tools → Export Wallet → Generic JSON → 1 → Enter Account # (0 if first time) → OK.</string>
-    <string name="nc_export_xpub_coldcard_scan_qr_code_desc">Advanced/Tools → Export Wallet → Generic JSON → 1 → Enter Account # (0 if first time) → Enter → QR</string>
+    <string name="nc_export_xpub_coldcard_scan_qr_code_desc">Advanced/Tools → Export Wallet → Generic JSON → %1$d → Enter Account # (0 if first time) → Enter → QR</string>
     <string name="nc_import_xpub_into_app_desc">Next, import the file from step 3.</string>
     <string name="nc_scan_qr_code_desc">Tap Continue to scan the QR code on the next screen.</string>
     <string name="nc_self_verify_hint">For details on how to use openssl for verification, visit</string>
