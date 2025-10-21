@@ -56,6 +56,24 @@ class SignerIntroFragment : MembershipFragment() {
     
     private val viewModel: SignerIntroViewModel by viewModels()
 
+    private val nfcSetupLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            val signerModel = result.data?.getParcelableExtra<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
+            if (signerModel != null) {
+                setFragmentResult(
+                    REQUEST_KEY,
+                    bundleOf(
+                        GlobalResultKey.EXTRA_SIGNER to signerModel,
+                        EXTRA_IS_FROM_NFC_SETUP to true
+                    )
+                )
+                requireActivity().onBackPressedDispatcher.onBackPressed()
+            }
+        }
+    }
+
     private val checkFirmwareLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -207,7 +225,7 @@ class SignerIntroFragment : MembershipFragment() {
             activity = requireActivity(),
             args = SetupMk4Args(
                 fromMembershipFlow = args.onChainAddSignerParam != null,
-                isFromAddKey = true,
+                isFromAddKey = args.onChainAddSignerParam == null,
                 groupId = args.groupId.orEmpty(),
                 walletId = args.walletId.orEmpty(),
                 onChainAddSignerParam = args.onChainAddSignerParam,
@@ -255,19 +273,35 @@ class SignerIntroFragment : MembershipFragment() {
     }
 
     private fun navigateToSetupTapSigner() {
-        startActivity(
-            NfcSetupActivity.buildIntent(
-                activity = requireActivity(),
-                setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
-                walletId = args.walletId.orEmpty(),
-                groupId = args.groupId.orEmpty(),
+        if (args.onChainAddSignerParam != null) {
+            nfcSetupLauncher.launch(
+                NfcSetupActivity.buildIntent(
+                    activity = requireActivity(),
+                    setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
+                    walletId = args.walletId.orEmpty(),
+                    groupId = args.groupId.orEmpty(),
+                    fromMembershipFlow = true,
+                    onChainAddSignerParam = args.onChainAddSignerParam,
+                )
             )
-        )
-        requireActivity().onBackPressedDispatcher.onBackPressed()
+        } else {
+            startActivity(
+                NfcSetupActivity.buildIntent(
+                    activity = requireActivity(),
+                    setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
+                    walletId = args.walletId.orEmpty(),
+                    groupId = args.groupId.orEmpty(),
+                    fromMembershipFlow = false,
+                    onChainAddSignerParam = null,
+                )
+            )
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
     }
 
     companion object {
         const val REQUEST_KEY = "SignerIntroFragment"
+        const val EXTRA_IS_FROM_NFC_SETUP = "EXTRA_IS_FROM_NFC_SETUP"
     }
 }
 

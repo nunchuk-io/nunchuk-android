@@ -125,7 +125,6 @@ class TapSignerIdFragment : MembershipFragment() {
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == BaseNfcActivity.REQUEST_NFC_VIEW_BACKUP_KEY }) {
             val onChainAddSignerParam = (requireActivity() as NfcSetupActivity).onChainAddSignerParam
             if (onChainAddSignerParam != null) {
-                // OnChain flow: get signer and return to OnChainTimelockAddKeyListFragment
                 viewModel.getSignerForOnChain(
                     isoDep = IsoDep.get(it.tag) ?: return@flowObserver,
                     cvc = nfcViewModel.inputCvc.orEmpty(),

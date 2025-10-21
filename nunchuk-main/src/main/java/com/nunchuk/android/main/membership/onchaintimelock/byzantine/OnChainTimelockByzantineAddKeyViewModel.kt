@@ -397,7 +397,11 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             if (signerModel.isMasterSigner && signerModel.type == SignerType.NFC) {
-                val masterSigner = masterSigners.find { it.id == signerModel.fingerPrint }
+                var masterSigner = masterSigners.find { it.id == signerModel.fingerPrint }
+                if (masterSigner == null) {
+                    loadSigners()
+                    masterSigner = masterSigners.find { it.id == signerModel.fingerPrint }
+                }
                 if (masterSigner == null) {
                     _event.emit(OnChainTimelockByzantineAddKeyListEvent.ShowError("Master signer not found with id=${signerModel.fingerPrint}"))
                     return@launch

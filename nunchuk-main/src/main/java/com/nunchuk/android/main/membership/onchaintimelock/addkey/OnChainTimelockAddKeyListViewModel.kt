@@ -454,7 +454,11 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         viewModelScope.launch {
             Timber.tag("tapsigner-onchain").d("addExistingTapSignerKey: currentStep=${membershipStepManager.currentStep}, data=$data, signerModel=$signerModel, walletId=$walletId")
             if (signerModel.isMasterSigner && signerModel.type == SignerType.NFC) {
-                val masterSigner = masterSigners.find { it.id == signerModel.fingerPrint }
+                var masterSigner = masterSigners.find { it.id == signerModel.fingerPrint }
+                if (masterSigner == null) {
+                    loadSigners()
+                    masterSigner = masterSigners.find { it.id == signerModel.fingerPrint }
+                }
                 if (masterSigner == null) {
                     _event.emit(AddKeyListEvent.ShowError("Master signer not found with id=${signerModel.fingerPrint}"))
                     return@launch

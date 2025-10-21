@@ -104,6 +104,7 @@ import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
 import com.nunchuk.android.main.membership.plantype.InheritancePlanType
+import com.nunchuk.android.main.membership.signer.SignerIntroFragment
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
@@ -274,9 +275,18 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
         setFragmentResultListener("SignerIntroFragment") { _, bundle ->
             val filteredSigners =
                 bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
+            val signerModel = bundle.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
             val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
+            val isFromNfcSetup = bundle.getBoolean(SignerIntroFragment.EXTRA_IS_FROM_NFC_SETUP, false)
             
             when {
+                isFromNfcSetup && signerModel != null -> {
+                    viewModel.addExistingTapSignerKey(
+                        signerModel,
+                        currentKeyData,
+                        (activity as MembershipActivity).walletId
+                    )
+                }
                 !filteredSigners.isNullOrEmpty() -> {
                     findNavController().navigate(
                         OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToTapSignerListBottomSheetFragment(

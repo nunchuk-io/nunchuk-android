@@ -105,6 +105,7 @@ import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
 import com.nunchuk.android.main.membership.plantype.InheritancePlanType
+import com.nunchuk.android.main.membership.signer.SignerIntroFragment
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
@@ -190,11 +191,9 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             val signer = bundle.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)
             val newIndex = bundle.getInt(GlobalResultKey.EXTRA_INDEX, -1)
 
-            // Check if this is a result with newIndex (OnChainAddSignerParam case)
             if (newIndex != -1 && signer?.masterFingerprint?.isNotEmpty() == true) {
                 viewModel.handleCustomKeyAccountResult(signer.masterFingerprint, newIndex)
             } else if (signer != null) {
-                // Original flow for non-OnChainAddSignerParam case
                 viewModel.onSelectedExistingHardwareSigner(signer)
             }
             clearFragmentResult(CustomKeyAccountFragment.REQUEST_KEY)
@@ -256,9 +255,18 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         setFragmentResultListener("SignerIntroFragment") { _, bundle ->
             val filteredSigners =
                 bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
+            val signerModel = bundle.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
             val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
+            val isFromNfcSetup = bundle.getBoolean(SignerIntroFragment.EXTRA_IS_FROM_NFC_SETUP, false)
             
             when {
+                isFromNfcSetup && signerModel != null -> {
+                    viewModel.addExistingTapSignerKey(
+                        signerModel,
+                        currentKeyData,
+                        (activity as MembershipActivity).walletId
+                    )
+                }
                 !filteredSigners.isNullOrEmpty() -> {
                     findNavController().navigate(
                         OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToTapSignerListBottomSheetFragment(
