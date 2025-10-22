@@ -51,6 +51,9 @@ class BackUpSeedPhraseActivity : BaseComposeActivity() {
                         backUpSeedPhraseOptionDestination(
                             onContinue = {
                                 navHostController.navigate(BackUpSeedPhraseVerify)
+                            },
+                            onSkip = {
+                                navigator.returnMembershipScreen()
                             }
                         )
 

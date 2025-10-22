@@ -35,10 +35,14 @@ import kotlinx.serialization.Serializable
 object BackUpSeedPhraseOption
 
 fun NavGraphBuilder.backUpSeedPhraseOptionDestination(
-    onContinue: () -> Unit = {}
+    onContinue: () -> Unit = {},
+    onSkip: () -> Unit = {}
 ) {
     composable<BackUpSeedPhraseOption> {
-        BackUpSeedPhraseOptionScreen(onContinue = onContinue)
+        BackUpSeedPhraseOptionScreen(
+            onContinue = onContinue,
+            onSkip = onSkip
+        )
     }
 }
 
@@ -46,10 +50,12 @@ fun NavGraphBuilder.backUpSeedPhraseOptionDestination(
 private fun BackUpSeedPhraseOptionScreen(
     viewModel: BackUpSeedPhraseSharedViewModel = hiltViewModel(),
     onContinue: () -> Unit = {},
+    onSkip: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     BackUpSeedPhraseOptionContent(
         onContinueClicked = onContinue,
+        onSkipClicked = onSkip,
         remainTime = remainTime
     )
 }
@@ -58,6 +64,7 @@ private fun BackUpSeedPhraseOptionScreen(
 private fun BackUpSeedPhraseOptionContent(
     remainTime: Int = 0,
     onContinueClicked: () -> Unit = {},
+    onSkipClicked: () -> Unit = {},
 ) {
     var verifyNow by remember { mutableStateOf(true) }
     NunchukTheme {
@@ -134,7 +141,13 @@ private fun BackUpSeedPhraseOptionContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    onClick = onContinueClicked,
+                    onClick = {
+                        if (verifyNow) {
+                            onContinueClicked()
+                        } else {
+                            onSkipClicked()
+                        }
+                    },
                 ) {
                     Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
                 }
