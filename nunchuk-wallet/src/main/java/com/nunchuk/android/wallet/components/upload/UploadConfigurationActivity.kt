@@ -40,14 +40,18 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploadConfigurationBinding>() {
 
+    private val args: UploadConfigurationArgs by lazy { UploadConfigurationArgs.deserializeFrom(intent) }
+
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            goToWalletConfigScreen()
+            if (args.isOnChainFlow) {
+                openWalletCreatedSuccess()
+            } else {
+                goToWalletConfigScreen()
+            }
         }
 
     private val sharingController: IntentSharingController by lazy { IntentSharingController.from(this, launcher) }
-
-    private val args: UploadConfigurationArgs by lazy { UploadConfigurationArgs.deserializeFrom(intent) }
 
     private var isColdCardExportFlow = false
 
@@ -197,6 +201,18 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
 
     private fun goToWalletConfigScreen() {
         navigator.openWalletConfigScreen(this, args.walletId)
+        ActivityManager.popUntilRoot()
+    }
+
+    private fun openWalletCreatedSuccess() {
+        navigator.openMembershipActivity(
+            activityContext = this,
+            groupStep = com.nunchuk.android.model.MembershipStage.CREATE_WALLET_SUCCESS,
+            walletId = args.walletId,
+            groupId = args.groupId,
+            replacedWalletId = args.replacedWalletId,
+            quickWalletParam = args.quickWalletParam
+        )
         ActivityManager.popUntilRoot()
     }
 

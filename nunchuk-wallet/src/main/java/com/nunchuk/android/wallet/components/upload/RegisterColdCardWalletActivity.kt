@@ -36,6 +36,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.data.model.QuickWalletParam
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -62,8 +63,13 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
             }
         }
 
+    private val launcherSharing =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            openWalletCreatedSuccess()
+        }
+
     private val sharingController: IntentSharingController by lazy {
-        IntentSharingController.from(this, launcher)
+        IntentSharingController.from(this, launcherSharing)
     }
 
     private val walletId by lazy { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
@@ -185,7 +191,7 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
             replacedWalletId = replacedWalletId,
             quickWalletParam = quickWalletParam
         )
-        finish()
+        ActivityManager.popUntilRoot()
     }
 
     companion object {

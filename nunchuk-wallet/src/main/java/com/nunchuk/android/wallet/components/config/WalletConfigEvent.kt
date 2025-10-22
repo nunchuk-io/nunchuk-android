@@ -19,8 +19,6 @@
 
 package com.nunchuk.android.wallet.components.config
 
-import com.nunchuk.android.core.signer.SignerModel
-
 sealed class WalletConfigEvent {
 
     data object UpdateNameSuccessEvent : WalletConfigEvent()
