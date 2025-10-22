@@ -24,6 +24,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,22 +44,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.HighlightMessageType
-import com.nunchuk.android.compose.LabelNumberAndDesc
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcClickableText
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -69,20 +72,21 @@ import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
-import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class InheritanceShareSecretInfoFragment : MembershipFragment() {
 
     private val args: InheritanceShareSecretInfoFragmentArgs by navArgs()
     private val viewModel: InheritanceShareSecretInfoViewModel by viewModels()
+    private val sharedViewModel: InheritancePlanningViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -91,17 +95,26 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceShareSecretInfoScreen(viewModel, args, onActionClick = {
-                    if (args.planFlow == InheritancePlanFlow.SETUP) {
-                        showDialogInfo()
-                    } else {
-                        handleBack()
+                InheritanceShareSecretInfoScreen(
+                    sharedViewModel = sharedViewModel,
+                    viewModel = viewModel,
+                    args = args,
+                    onActionClick = {
+                        if (args.planFlow == InheritancePlanFlow.SETUP) {
+                            showDialogInfo()
+                        } else {
+                            handleBack()
+                        }
+                    },
+                    onLearnMoreClicked = {
+                        findNavController().navigate(
+                            InheritanceShareSecretInfoFragmentDirections.actionInheritanceShareSecretInfoFragmentToInheritanceBackUpDownloadFragment()
+                        )
+                    },
+                    onSaveBsms = {
+                        (activity as? InheritancePlanningActivity)?.showSaveShareOption()
                     }
-                }, onLearnMoreClicked = {
-                    findNavController().navigate(
-                        InheritanceShareSecretInfoFragmentDirections.actionInheritanceShareSecretInfoFragmentToInheritanceBackUpDownloadFragment()
-                    )
-                })
+                )
             }
         }
     }
@@ -139,24 +152,61 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
 @Composable
 private fun InheritanceShareSecretInfoScreen(
     viewModel: InheritanceShareSecretInfoViewModel = viewModel(),
+    sharedViewModel: InheritancePlanningViewModel = hiltViewModel(),
     args: InheritanceShareSecretInfoFragmentArgs,
     onActionClick: () -> Unit = {},
-    onLearnMoreClicked: () -> Unit = {}
+    onLearnMoreClicked: () -> Unit = {},
+    onSaveBsms: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
+    val sharedUiState by sharedViewModel.state.collectAsStateWithLifecycle()
     InheritanceShareSecretInfoContent(
+        isMiniscriptWallet = sharedUiState.isMiniscriptWallet,
         remainTime = remainTime,
         type = args.type,
         magicalPhrase = args.magicalPhrase,
         planFlow = args.planFlow,
         onActionClick = onActionClick,
-        onLearnMoreClicked = onLearnMoreClicked
+        onLearnMoreClicked = onLearnMoreClicked,
+        onSaveBsms = onSaveBsms
     )
 }
 
 
 @Composable
 private fun InheritanceShareSecretInfoContent(
+    isMiniscriptWallet: Boolean = false,
+    remainTime: Int = 0,
+    magicalPhrase: String = "",
+    type: Int = 0,
+    planFlow: Int = InheritancePlanFlow.NONE,
+    onActionClick: () -> Unit = {},
+    onLearnMoreClicked: () -> Unit = {},
+    onSaveBsms: () -> Unit = {},
+) {
+    if (isMiniscriptWallet) {
+        InheritanceOnChainShareSecretInfoContent(
+            remainTime = remainTime,
+            magicalPhrase = magicalPhrase,
+            type = type,
+            planFlow = planFlow,
+            onActionClick = onActionClick,
+            onSaveBsms = onSaveBsms
+        )
+    } else {
+        InheritanceOffChainShareSecretInfoContent(
+            remainTime = remainTime,
+            magicalPhrase = magicalPhrase,
+            type = type,
+            planFlow = planFlow,
+            onActionClick = onActionClick,
+            onLearnMoreClicked = onLearnMoreClicked
+        )
+    }
+}
+
+@Composable
+private fun InheritanceOffChainShareSecretInfoContent(
     remainTime: Int = 0,
     magicalPhrase: String = "",
     type: Int = 0,
@@ -165,25 +215,29 @@ private fun InheritanceShareSecretInfoContent(
     onLearnMoreClicked: () -> Unit = {}
 ) {
     NunchukTheme {
-        Scaffold { innerPadding ->
+        Scaffold(
+            modifier = Modifier
+                .navigationBarsPadding(),
+            topBar = {
+                val title = if (planFlow == InheritancePlanFlow.SETUP) {
+                    stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    )
+                } else {
+                    ""
+                }
+                NcImageAppBar(
+                    backgroundRes = R.drawable.nc_bg_backup_password_share_secret,
+                    title = title,
+                )
+            }
+        ) { innerPadding ->
             Column(
-                modifier = Modifier
-                    .navigationBarsPadding()
+                modifier = Modifier.padding(innerPadding),
             ) {
                 LazyColumn(modifier = Modifier.weight(1f)) {
                     item {
-                        val title = if (planFlow == InheritancePlanFlow.SETUP) {
-                            stringResource(
-                                id = R.string.nc_estimate_remain_time,
-                                remainTime
-                            )
-                        } else {
-                            ""
-                        }
-                        NcImageAppBar(
-                            backgroundRes = R.drawable.nc_bg_backup_password_share_secret,
-                            title = title,
-                        )
                         val typeDesc = when (type) {
                             InheritanceShareSecretType.DIRECT.ordinal -> stringResource(id = R.string.nc_inheritance_share_secret_info_title_direct)
                             InheritanceShareSecretType.INDIRECT.ordinal -> stringResource(id = R.string.nc_inheritance_share_secret_info_title_indirect)
@@ -206,7 +260,8 @@ private fun InheritanceShareSecretInfoContent(
                             modifier = Modifier
                                 .padding(start = 50.dp, top = 16.dp, end = 16.dp)
                                 .background(
-                                    color = MaterialTheme.colorScheme.greyLight, shape = RoundedCornerShape(12.dp)
+                                    color = MaterialTheme.colorScheme.greyLight,
+                                    shape = RoundedCornerShape(12.dp)
                                 )
                         ) {
                             Row(
@@ -291,10 +346,200 @@ private fun InheritanceShareSecretInfoContent(
     }
 }
 
+@Composable
+private fun InheritanceOnChainShareSecretInfoContent(
+    remainTime: Int = 0,
+    magicalPhrase: String = "",
+    type: Int = 0,
+    planFlow: Int = InheritancePlanFlow.NONE,
+    onActionClick: () -> Unit = {},
+    onSaveBsms: () -> Unit = {},
+) {
+    NunchukTheme {
+        Scaffold(
+            modifier = Modifier
+                .navigationBarsPadding(),
+            topBar = {
+                val title = if (planFlow == InheritancePlanFlow.SETUP) {
+                    stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    )
+                } else {
+                    ""
+                }
+                NcImageAppBar(
+                    backgroundRes = R.drawable.nc_bg_backup_password_share_secret,
+                    title = title,
+                )
+            }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier.padding(innerPadding),
+            ) {
+                LazyColumn(modifier = Modifier.weight(1f)) {
+                    item {
+                        // Title based on type
+                        val titleRes = when (type) {
+                            InheritanceShareSecretType.DIRECT.ordinal -> R.string.nc_onchain_share_secret_title_beneficiary
+                            InheritanceShareSecretType.INDIRECT.ordinal -> R.string.nc_onchain_share_secret_title_trustee
+                            InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_share_secret_title_joint
+                            else -> R.string.nc_onchain_share_secret_title_beneficiary
+                        }
+
+                        Text(
+                            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                            text = stringResource(titleRes),
+                            style = NunchukTheme.typography.body
+                        )
+
+                        // Item 1: Trustee keeps (for JOINT_CONTROL) or Beneficiary keeps (for DIRECT) or Trustee keeps (for INDIRECT)
+                        val item1LabelRes = when (type) {
+                            InheritanceShareSecretType.DIRECT.ordinal -> R.string.nc_onchain_item1_label_beneficiary
+                            InheritanceShareSecretType.INDIRECT.ordinal -> R.string.nc_onchain_item1_label_trustee
+                            InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_item1_label_trustee
+                            else -> R.string.nc_onchain_item1_label_beneficiary
+                        }
+
+                        NCLabelWithIndex(
+                            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                            index = 1,
+                            label = stringResource(item1LabelRes),
+                        )
+
+                        // Magic Phrase box
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 50.dp, top = 16.dp, end = 16.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.greyLight,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    text = magicalPhrase.ifEmpty {
+                                        Utils.maskValue(
+                                            "",
+                                            isMask = true
+                                        )
+                                    },
+                                    style = NunchukTheme.typography.body,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 50.dp, top = 16.dp, end = 16.dp)
+                                .fillMaxWidth()
+                                .clickable(onClick = onSaveBsms)
+                                .background(
+                                    color = MaterialTheme.colorScheme.greyLight,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .padding(16.dp)
+                        ) {
+                            Text(
+                                modifier = Modifier.align(Alignment.Center),
+                                text = stringResource(R.string.nc_fallback_option_bsms_file),
+                                style = NunchukTheme.typography.body
+                            )
+
+                            NcIcon(
+                                modifier = Modifier.align(Alignment.CenterEnd),
+                                painter = painterResource(R.drawable.ic_download),
+                                contentDescription = "Download icon",
+                            )
+                        }
+
+                        // Item 2: Beneficiary keeps (for JOINT_CONTROL) or same person keeps (for DIRECT/INDIRECT)
+                        val item2LabelRes = when (type) {
+                            InheritanceShareSecretType.DIRECT.ordinal -> R.string.nc_onchain_item2_label_beneficiary
+                            InheritanceShareSecretType.INDIRECT.ordinal -> R.string.nc_onchain_item2_label_trustee
+                            InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_item2_label_beneficiary
+                            else -> R.string.nc_onchain_item2_label_beneficiary
+                        }
+
+                        NCLabelWithIndex(
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                            index = 2,
+                            label = stringResource(item2LabelRes),
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+                }
+
+                // Warning message
+                val warningDescRes = when (type) {
+                    InheritanceShareSecretType.DIRECT.ordinal -> R.string.nc_onchain_warning_beneficiary
+                    InheritanceShareSecretType.INDIRECT.ordinal -> R.string.nc_onchain_warning_trustee
+                    InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_warning_joint
+                    else -> R.string.nc_onchain_warning_beneficiary
+                }
+
+                NcHintMessage(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    messages = listOf(
+                        ClickAbleText(
+                            content = stringResource(warningDescRes)
+                        )
+                    ),
+                    type = HighlightMessageType.WARNING,
+                )
+
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = onActionClick,
+                ) {
+                    Text(text = stringResource(id = R.string.nc_text_continue))
+                }
+            }
+        }
+    }
+}
+
 @PreviewLightDark
 @Composable
 private fun InheritanceShareSecretInfoScreenPreview() {
     InheritanceShareSecretInfoContent(
+        isMiniscriptWallet = false
+    )
+}
 
+@PreviewLightDark
+@Composable
+private fun InheritanceOnChainShareSecretInfoDirectPreview() {
+    InheritanceOnChainShareSecretInfoContent(
+        type = InheritanceShareSecretType.DIRECT.ordinal,
+        magicalPhrase = "dolphin concert apple"
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceOnChainShareSecretInfoIndirectPreview() {
+    InheritanceOnChainShareSecretInfoContent(
+        type = InheritanceShareSecretType.INDIRECT.ordinal,
+        magicalPhrase = "dolphin concert apple"
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceOnChainShareSecretInfoJointPreview() {
+    InheritanceOnChainShareSecretInfoContent(
+        type = InheritanceShareSecretType.JOINT_CONTROL.ordinal,
+        magicalPhrase = "dolphin concert apple"
     )
 }

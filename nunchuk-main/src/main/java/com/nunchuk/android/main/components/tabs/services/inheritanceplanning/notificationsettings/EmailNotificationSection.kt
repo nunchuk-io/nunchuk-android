@@ -54,7 +54,7 @@ fun EmailNotificationSection(
         ) {
             Text(
                 text = emailSettings.email,
-                style = NunchukTheme.typography.body
+                style = NunchukTheme.typography.title
             )
             Icon(
                 painter = painterResource(
@@ -95,7 +95,8 @@ fun EmailNotificationSection(
                 NotificationToggleItem(
                     title = stringResource(R.string.nc_also_include_wallet_configuration),
                     description = stringResource(R.string.nc_also_include_wallet_configuration_desc),
-                    checked = emailSettings.includeWalletConfiguration,
+                    checked = emailSettings.includeWalletConfiguration && (emailSettings.notifyOnWalletChanges || emailSettings.notifyOnTimelockExpiry),
+                    enabled = emailSettings.notifyOnWalletChanges || emailSettings.notifyOnTimelockExpiry,
                     onCheckedChange = {
                         onSettingsChange(emailSettings.copy(includeWalletConfiguration = it))
                     }

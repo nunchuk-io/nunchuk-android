@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -66,7 +65,6 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
-import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -194,10 +192,12 @@ private fun InheritanceClaimInputContent(
     NunchukTheme {
         Scaffold(
             modifier = Modifier
-                .statusBarsPadding()
                 .navigationBarsPadding(),
             topBar = {
-
+                NcImageAppBar(
+                    backgroundRes = R.drawable.bg_claim_inheritance_illustration,
+                    title = "",
+                )
             },
             bottomBar = {
                 NcPrimaryDarkButton(
@@ -218,10 +218,6 @@ private fun InheritanceClaimInputContent(
                 state = lazyListState
             ) {
                 item {
-                    NcImageAppBar(
-                        backgroundRes = R.drawable.bg_claim_inheritance_illustration,
-                        title = "",
-                    )
                     Text(
                         modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                         text = stringResource(R.string.nc_claim_inheritance),

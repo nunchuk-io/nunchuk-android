@@ -33,17 +33,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NCLabelWithIndex
-import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcSpannedClickableText
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.SpanIndicator
+import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -88,6 +94,7 @@ private fun InheritanceHowItWorksContent(
     type: InheritanceShareSecretType = InheritanceShareSecretType.DIRECT,
     onDoneClick: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -142,10 +149,19 @@ private fun InheritanceHowItWorksContent(
                         style = NunchukTheme.typography.title
                     )
 
-                    NcHighlightText(
+                    NcSpannedClickableText(
                         modifier = Modifier.padding(start = 50.dp, end = 16.dp, top = 4.dp),
                         text = stringResource(R.string.nc_guided_claim_desc),
-                        style = NunchukTheme.typography.body,
+                        baseStyle = NunchukTheme.typography.body,
+                        styles = mapOf(
+                            SpanIndicator('B') to SpanStyle(
+                                fontWeight = FontWeight.Bold,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        ),
+                        onClick = {
+                            context.openExternalLink("https://nunchuk.io/howtoclaim")
+                        }
                     )
 
                     // Method 2: Without Nunchuk service

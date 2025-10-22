@@ -17,6 +17,7 @@ import com.nunchuk.android.compose.NunchukTheme
 @Composable
 fun NotificationToggleItem(
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     title: String,
     description: String,
     checked: Boolean,
@@ -41,6 +42,7 @@ fun NotificationToggleItem(
         }
         Spacer(modifier = Modifier.width(12.dp))
         NcSwitch(
+            enabled = enabled,
             checked = checked,
             onCheckedChange = onCheckedChange,
         )

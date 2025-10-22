@@ -1039,4 +1039,17 @@
     <string name="nc_bsms_replaces_magic_phrase_beneficiary">In this method, the BSMS file replaces the Magic Phrase. The Beneficiary does not depend on the Nunchuk service for recovery.</string>
     <string name="nc_bsms_replaces_magic_phrase_trustee">In this method, the BSMS file replaces the Magic Phrase. The Trustee does not depend on the Nunchuk service for recovery.</string>
     <string name="nc_bsms_replaces_magic_phrase_joint">In this method, the BSMS file replaces the Magic Phrase. The Beneficiary and Trustee do not depend on the Nunchuk service for recovery.</string>
+    
+    <!-- Inheritance On-Chain Share Secret Info -->
+    <string name="nc_onchain_share_secret_title_beneficiary">Please share the following with the Beneficiary:</string>
+    <string name="nc_onchain_share_secret_title_trustee">Please share the following with the Trustee:</string>
+    <string name="nc_onchain_share_secret_title_joint">Split the secrets between the Beneficiary and the Trustee.</string>
+    <string name="nc_onchain_item1_label_beneficiary">The plan\'s Magic Phrase and the wallet configuration (BSMS file). At least one is required to recover the wallet.</string>
+    <string name="nc_onchain_item1_label_trustee">The plan\'s Magic Phrase and the wallet configuration (BSMS file). At least one is required to recover the wallet.</string>
+    <string name="nc_onchain_item2_label_beneficiary">The seed phrase of the inheritance key.</string>
+    <string name="nc_onchain_item2_label_trustee">The seed phrase of the inheritance key.</string>
+    <string name="nc_fallback_option_bsms_file">Fallback option: BSMS file</string>
+    <string name="nc_onchain_warning_beneficiary">You are solely responsible for sharing these items with the Beneficiary. If you do not share these items, the inheritance cannot be claimed.</string>
+    <string name="nc_onchain_warning_trustee">You are solely responsible for sharing these items with the Trustee. If you do not share these items, the inheritance cannot be claimed.</string>
+    <string name="nc_onchain_warning_joint">You are solely responsible for sharing these items with the Beneficiary and the Trustee. If you do not share these items, the inheritance cannot be claimed.</string>
 </resources>

@@ -27,7 +27,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
-import com.nunchuk.android.core.base.BaseActivity
+import com.nunchuk.android.core.base.BaseShareSaveFileActivity
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.flowObserver
@@ -38,12 +38,13 @@ import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
+class InheritancePlanningActivity : BaseShareSaveFileActivity<ActivityNavigationBinding>() {
 
     @Inject
     internal lateinit var membershipStepManager: MembershipStepManager
@@ -133,6 +134,19 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
             }
         }
         observer()
+        observeEvent()
+    }
+
+    fun showSaveShareOption() {
+        super.showSaveShareOption(false)
+    }
+
+    override fun shareFile() {
+        viewModel.handleShareBsms()
+    }
+
+    override fun saveFileToLocal() {
+        viewModel.saveBSMSToLocal()
     }
 
     private fun observer() {
@@ -141,6 +155,26 @@ class InheritancePlanningActivity : BaseActivity<ActivityNavigationBinding>() {
                 membershipStepManager.initStep(it.groupId, it.groupWalletType)
             }
         }
+    }
+
+    private fun observeEvent() {
+        flowObserver(viewModel.event) { event ->
+            handleEvent(event)
+        }
+    }
+
+    private fun handleEvent(event: InheritancePlanningEvent) {
+        when (event) {
+            is InheritancePlanningEvent.Success -> shareFile(event)
+            is InheritancePlanningEvent.Failure -> NCToastMessage(this).showWarning(event.message)
+            is InheritancePlanningEvent.SaveLocalFile -> {
+                showSaveFileState(event.isSuccess)
+            }
+        }
+    }
+
+    private fun shareFile(event: InheritancePlanningEvent.Success) {
+        controller.shareFile(event.filePath)
     }
 
     override fun initializeBinding(): ActivityNavigationBinding {

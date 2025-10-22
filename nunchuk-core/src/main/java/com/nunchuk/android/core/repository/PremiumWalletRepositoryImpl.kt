@@ -1848,7 +1848,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             }
             val response =
                 if (groupId.isNotEmpty()) userWalletApiManager.groupWalletApi.requestAddKey(
-                    groupId, desktopKeyRequest
+                    groupId,
+                    desktopKeyRequest
                 )
                 else userWalletApiManager.walletApi.requestAddKey(desktopKeyRequest)
             val requestId = response.data.request?.id.orEmpty()
@@ -1957,7 +1958,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         throw RequestAddSameKeyException
                     }
                 }
-                
+
                 requestAddKeyDao.delete(localRequest)
                 if (requestId != null) return true
             } else if (request == null) {
@@ -1977,7 +1978,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         requestAddKeyDao.deleteRequests(accountManager.getAccount().chatId, chain.value)
     }
 
-    override suspend fun createDraftWalletTimelock(groupId: String?, timelockValue: Long, plan: MembershipPlan) {
+    override suspend fun createDraftWalletTimelock(
+        groupId: String?,
+        timelockValue: Long,
+        plan: MembershipPlan
+    ) {
         val payload = CreateTimelockPayload(
             timelock = TimelockPayload(value = timelockValue)
         )
@@ -1989,7 +1994,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) {
             throw response.error
         }
-        
+
         membershipRepository.saveStepInfo(
             MembershipStepInfo(
                 step = MembershipStep.TIMELOCK,
