@@ -684,7 +684,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         options.add(SheetOption(SheetOptionType.TYPE_EXPORT_DESCRIPTOR, stringId = R.string.nc_descriptor))
 
         // Show COLDCARD only for multisig and supported address types
-        if (isMultisig && isSupportedType) {
+        if ((isMiniscript || isMultisig) && isSupportedType) {
             options.add(SheetOption(SheetOptionType.TYPE_EXPORT_TO_COLD_CARD, stringId = R.string.nc_coldcard))
         }
 
