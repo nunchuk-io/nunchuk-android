@@ -34,6 +34,7 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
@@ -76,9 +77,13 @@ class AddKeyStepViewModel @Inject constructor(
 
     val plan = membershipStepManager.localMembershipPlan
 
+    private val _draftWalletType = MutableStateFlow<WalletType?>(null)
+    val draftWalletType: WalletType?
+        get() = _draftWalletType.value
+
     val isConfigKeyDone =
-        membershipStepManager.stepDone.combine(currentStage) { _, stage ->
-            membershipStepManager.isConfigKeyDone() || stage == MembershipStage.SETUP_INHERITANCE
+        combine(membershipStepManager.stepDone, currentStage, _draftWalletType) { _, stage, walletType ->
+            membershipStepManager.isConfigKeyDone(walletType ?: WalletType.MULTI_SIG) || stage == MembershipStage.SETUP_INHERITANCE
         }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val isSetupRecoverKeyDone = membershipStepManager.isConfigRecoverKeyDone
@@ -115,9 +120,6 @@ class AddKeyStepViewModel @Inject constructor(
             )
         }.stateIn(viewModelScope, SharingStarted.Eagerly, IntArray(4))
 
-    var draftWalletType: WalletType? = null
-        private set
-
     init {
         viewModelScope.launch {
             currentStep.filterNotNull().collect {
@@ -128,7 +130,7 @@ class AddKeyStepViewModel @Inject constructor(
             getSecurityQuestionUseCase(GetSecurityQuestionUseCase.Param(isFilterAnswer = false,))
         }
         viewModelScope.launch {
-            draftWalletType = syncDraftWalletUseCase("").getOrNull()?.walletType
+            _draftWalletType.value = syncDraftWalletUseCase("").getOrNull()?.walletType
         }
     }
 

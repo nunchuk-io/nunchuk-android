@@ -371,6 +371,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
 
     fun onContinueClicked() {
         viewModelScope.launch {
+            refresh()
             _event.emit(AddKeyListEvent.OnAddAllKey)
         }
     }

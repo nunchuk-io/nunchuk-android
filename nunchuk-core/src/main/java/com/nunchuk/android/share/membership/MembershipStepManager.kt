@@ -34,6 +34,7 @@ import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.model.isPersonalPlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -269,7 +270,8 @@ class MembershipStepManager @Inject constructor(
 
     fun isNotConfig() = _stepDone.value.none { it != MembershipStep.SETUP_INHERITANCE }
 
-    fun isConfigKeyDone(): Boolean {
+    fun isConfigKeyDone(walletType: WalletType): Boolean {
+        Timber.tag("membership-step-onchain").d("isConfigKeyDone called - stepDone: ${_stepDone.value} - walletType: $walletType")
         val isConfigKeyDone = when (localMembershipPlan) {
             MembershipPlan.IRON_HAND -> {
                 _stepDone.value.containsAll(
@@ -282,14 +284,29 @@ class MembershipStepManager @Inject constructor(
             }
 
             else -> {
-                _stepDone.value.containsAll(
-                    listOf(
-                        MembershipStep.HONEY_ADD_INHERITANCE_KEY,
-                        MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-                        MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
-                        MembershipStep.ADD_SEVER_KEY
+                if (walletType == WalletType.MINISCRIPT) {
+                    _stepDone.value.containsAll(
+                        listOf(
+                            MembershipStep.HONEY_ADD_INHERITANCE_KEY,
+                            MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK,
+                            MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
+                            MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK,
+                            MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
+                            MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK,
+                            MembershipStep.ADD_SEVER_KEY,
+                            MembershipStep.TIMELOCK
+                        )
                     )
-                )
+                } else {
+                    _stepDone.value.containsAll(
+                        listOf(
+                            MembershipStep.HONEY_ADD_INHERITANCE_KEY,
+                            MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
+                            MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
+                            MembershipStep.ADD_SEVER_KEY
+                        )
+                    )
+                }
             }
         }
         return isConfigKeyDone

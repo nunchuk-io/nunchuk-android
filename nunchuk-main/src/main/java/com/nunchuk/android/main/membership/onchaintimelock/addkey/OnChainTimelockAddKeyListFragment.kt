@@ -643,11 +643,11 @@ fun OnChainTimelockAddKeyListContent(
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = onContinueClicked,
-                    enabled = keys.filter { it.type.isAddInheritanceKey }.all { data ->
+                    enabled = keys.all { data ->
                         data.steps.all { step ->
                             data.stepDataMap[step]?.isComplete == true
                         }
-                    }
+                    } && keys.filter { it.type.isAddInheritanceKey }.all { it.verifyType != VerifyType.NONE }
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
                 }
@@ -883,7 +883,7 @@ private fun AddKeyCard(
                                         modifier = Modifier.height(36.dp),
                                         onClick = { onVerifyClicked(item) },
                                     ) {
-                                        Text(text = stringResource(R.string.nc_verify_backup))
+                                        Text(text = stringResource(R.string.nc_verify))
                                     }
                                 }
                             } else {
