@@ -30,7 +30,7 @@ ext {
 
     // Nunchuk dep versions
     nativeSdkVersion = '1.2.3'
-    prebuildNativeSdkVersion = '1.2.2@aar'
+    prebuildNativeSdkVersion = '1.2.3@aar'
 
     // Matrix
     matrixSdkVersion = '1.5.30'
@@ -39,11 +39,11 @@ ext {
     navVersion = "2.6.0"
 
     MAJOR_VERSION = 1
-    MINOR_VERSION = 74
+    MINOR_VERSION = 75
     PATCH_VERSION = 0
     TASK_LABEL = "DEV"
 
-    VERSION_CODE = 297
+    VERSION_CODE = 298
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
