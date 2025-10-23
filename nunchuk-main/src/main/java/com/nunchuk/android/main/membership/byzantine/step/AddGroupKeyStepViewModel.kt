@@ -27,10 +27,12 @@ import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.plantype.InheritancePlanType
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
@@ -150,7 +152,16 @@ class AddGroupKeyStepViewModel @Inject constructor(
 
             _isCreateWalletDone.value = isCreateWallet
             _isSetupRecoverKeyDone.value = draftWallet.isMasterSecurityQuestionSet
-            val isConfigDone = draftWallet.config.n == draftWallet.signers.size
+            val isConfigDone = if (draftWallet.walletType == WalletType.MINISCRIPT) {
+                val isSignerCountCorrect = draftWallet.signers.size == draftWallet.config.n * 2 - 1
+                val isTimelockSet = draftWallet.timelock > 0
+                val areInheritanceSignersVerified = draftWallet.signers.all { signer ->
+                    !signer.tags.contains(SignerTag.INHERITANCE.name) || signer.verifyType != VerifyType.NONE
+                }
+                isSignerCountCorrect && isTimelockSet && areInheritanceSignersVerified
+            } else {
+                draftWallet.config.n == draftWallet.signers.size
+            }
             _isConfigKeyDone.value = isCreateWallet || isConfigDone
             draftWalletType = draftWallet.walletType
         }
