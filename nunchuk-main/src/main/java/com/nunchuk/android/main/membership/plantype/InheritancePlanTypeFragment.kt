@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButtonOption
 import com.nunchuk.android.compose.NcTopAppBar
@@ -166,17 +167,30 @@ private fun InheritancePlanTypeContent(
                     onClick = { onPlanTypeSelected(InheritancePlanType.OFF_CHAIN) }
                 ) {
                     Column {
-                        Text(
-                            text = stringResource(R.string.nc_off_chain_timelock),
-                            style = NunchukTheme.typography.title,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = stringResource(R.string.nc_managed_by_nunchuk),
-                            style = NunchukTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.textSecondary,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
+                        Row(
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            NcIcon(
+                                painter = painterResource(R.drawable.ic_off_chain_timelock),
+                                contentDescription = null,
+                                modifier = Modifier.size(32.dp)
+                            )
+
+                            Column(modifier = Modifier.padding(start = 12.dp)) {
+                                Text(
+                                    text = stringResource(R.string.nc_off_chain_timelock),
+                                    style = NunchukTheme.typography.title,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = stringResource(R.string.nc_managed_by_nunchuk),
+                                    style = NunchukTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.textSecondary,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+                        }
+
 
                         HorizontalDivider(
                             modifier = Modifier
@@ -205,17 +219,29 @@ private fun InheritancePlanTypeContent(
                     onClick = { onPlanTypeSelected(InheritancePlanType.ON_CHAIN) }
                 ) {
                     Column {
-                        Text(
-                            text = stringResource(R.string.nc_on_chain_timelock),
-                            style = NunchukTheme.typography.title,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = stringResource(R.string.nc_enforced_on_bitcoin),
-                            style = NunchukTheme.typography.caption,
-                            color = MaterialTheme.colorScheme.textSecondary,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
+                        Row(
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            NcIcon(
+                                painter = painterResource(R.drawable.ic_on_chain_timelock),
+                                contentDescription = null,
+                                modifier = Modifier.size(32.dp)
+                            )
+
+                            Column(modifier = Modifier.padding(start = 12.dp)) {
+                                Text(
+                                    text = stringResource(R.string.nc_on_chain_timelock),
+                                    style = NunchukTheme.typography.title,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = stringResource(R.string.nc_enforced_on_bitcoin),
+                                    style = NunchukTheme.typography.caption,
+                                    color = MaterialTheme.colorScheme.textSecondary,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+                        }
 
                         HorizontalDivider(
                             modifier = Modifier
