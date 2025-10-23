@@ -63,6 +63,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
@@ -237,7 +238,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                         requireActivity(),
                         BackUpSeedPhraseArgs(
                             type = BackUpSeedPhraseType.INTRO,
-                            signer = null,
+                            signer = signer.toModel(),
                             groupId = activity.groupId,
                             walletId = activity.walletId
                         )

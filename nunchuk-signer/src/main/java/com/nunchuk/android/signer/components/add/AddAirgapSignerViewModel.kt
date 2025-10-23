@@ -230,7 +230,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             if (replacedXfp.isNullOrEmpty() && membershipStepManager.isKeyExisted(signerInput.fingerPrint) && isMembershipFlow) {
                 if (onChainAddSignerParam != null && onChainAddSignerParam?.currentSigner != null) {
                     val signer = signerInput.toSingleSigner(newSignerName, signerTag)
-                    if (signer.isIdentical(onChainAddSignerParam?.currentSigner!!.toSingleSigner()) == true) {
+                    if (signer.isIdentical(onChainAddSignerParam?.currentSigner!!.toSingleSigner())) {
                         setEvent(AddSameKey)
                         setEvent(LoadingEventAirgap(false))
                         return@launch

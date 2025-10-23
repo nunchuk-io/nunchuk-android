@@ -62,6 +62,18 @@ fun SignerIntroScreen(
     
     val isGenericAirgapEnable = (dynamicSupportedSigners.isEmpty()
             || dynamicSupportedSigners.any { it.type == SignerType.AIRGAP && it.tag == null }) && isDisableAll.not()
+    
+    val showSoftwareKey = if (onChainAddSignerParam != null) {
+        dynamicSupportedSigners.isEmpty() || dynamicSupportedSigners.any { it.type == SignerType.SOFTWARE }
+    } else {
+        true
+    }
+    
+    val showGenericAirgap = if (onChainAddSignerParam != null) {
+        isGenericAirgapEnable
+    } else {
+        true
+    }
     NunchukTheme {
         Scaffold(topBar = {
             NcTopAppBar(
@@ -175,7 +187,7 @@ fun SignerIntroScreen(
                         modifier = Modifier.weight(1f),
                         iconRes = R.drawable.ic_ledger_hardware,
                         title = stringResource(id = R.string.nc_ledger),
-                        isDisabled = dynamicSupportedSigners.isNotEmpty()
+                        isDisabled = onChainAddSignerParam == null || dynamicSupportedSigners.isNotEmpty()
                                 && !dynamicSupportedSigners.any { it.type == SignerType.HARDWARE && it.tag == SignerTag.LEDGER } || isDisableAll,
                         subtitle = stringResource(id = R.string.nc_desktop_only),
                         onClick = { onClick(KeyType.LEDGER) }
@@ -192,7 +204,7 @@ fun SignerIntroScreen(
                         modifier = Modifier.weight(1f),
                         iconRes = R.drawable.ic_bitbox_hardware,
                         title = stringResource(id = R.string.nc_bitbox),
-                        isDisabled = dynamicSupportedSigners.isNotEmpty()
+                        isDisabled = onChainAddSignerParam == null || dynamicSupportedSigners.isNotEmpty()
                                 && !dynamicSupportedSigners.any { it.type == SignerType.HARDWARE && it.tag == SignerTag.BITBOX } || isDisableAll,
                         subtitle = stringResource(id = R.string.nc_desktop_only),
                         onClick = { onClick(KeyType.BITBOX) }
@@ -201,7 +213,7 @@ fun SignerIntroScreen(
                         modifier = Modifier.weight(1f),
                         iconRes = R.drawable.ic_trezor_hardware,
                         title = stringResource(id = R.string.nc_trezor),
-                        isDisabled = dynamicSupportedSigners.isNotEmpty()
+                        isDisabled = onChainAddSignerParam == null || dynamicSupportedSigners.isNotEmpty()
                                 && !dynamicSupportedSigners.any { it.type == SignerType.HARDWARE && it.tag == SignerTag.TREZOR } || isDisableAll,
                         subtitle = stringResource(id = R.string.nc_desktop_only),
                         onClick = { onClick(KeyType.TREZOR) }
@@ -212,47 +224,51 @@ fun SignerIntroScreen(
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { onClick(KeyType.SOFTWARE) }
-                ) {
-                    NcCircleImage(
-                        resId = R.drawable.ic_logo_dark_small,
-                    )
+                if (showSoftwareKey) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { onClick(KeyType.SOFTWARE) }
+                    ) {
+                        NcCircleImage(
+                            resId = R.drawable.ic_logo_dark_small,
+                        )
 
-                    Column(modifier = Modifier.padding(start = 12.dp)) {
-                        Text(
-                            text = stringResource(R.string.nc_software),
-                            style = NunchukTheme.typography.body
-                        )
-                        Text(
-                            modifier = Modifier.padding(top = 4.dp),
-                            text = stringResource(R.string.nc_text_ss_desc),
-                            style = NunchukTheme.typography.bodySmall
-                                .copy(color = MaterialTheme.colorScheme.textSecondary)
-                        )
+                        Column(modifier = Modifier.padding(start = 12.dp)) {
+                            Text(
+                                text = stringResource(R.string.nc_software),
+                                style = NunchukTheme.typography.body
+                            )
+                            Text(
+                                modifier = Modifier.padding(top = 4.dp),
+                                text = stringResource(R.string.nc_text_ss_desc),
+                                style = NunchukTheme.typography.bodySmall
+                                    .copy(color = MaterialTheme.colorScheme.textSecondary)
+                            )
+                        }
                     }
                 }
 
-                Row(
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                        .fillMaxWidth()
-                        .alpha(if (isGenericAirgapEnable) 1f else 0.6f)
-                        .clickable(enabled = isGenericAirgapEnable) {
-                            onClick(KeyType.GENERIC_AIRGAP)
-                        },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    NcCircleImage(
-                        resId = R.drawable.ic_split,
-                    )
+                if (showGenericAirgap) {
+                    Row(
+                        modifier = Modifier
+                            .padding(top = 16.dp)
+                            .fillMaxWidth()
+                            .alpha(if (isGenericAirgapEnable) 1f else 0.6f)
+                            .clickable(enabled = isGenericAirgapEnable) {
+                                onClick(KeyType.GENERIC_AIRGAP)
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        NcCircleImage(
+                            resId = R.drawable.ic_split,
+                        )
 
-                    Text(
-                        modifier = Modifier.padding(start = 12.dp),
-                        text = stringResource(R.string.nc_generic_airgap),
-                        style = NunchukTheme.typography.body
-                    )
+                        Text(
+                            modifier = Modifier.padding(start = 12.dp),
+                            text = stringResource(R.string.nc_generic_airgap),
+                            style = NunchukTheme.typography.body
+                        )
+                    }
                 }
             }
         }
