@@ -44,10 +44,15 @@ data class WalletDto(
     @SerializedName("wallet_type") val walletType: String? = null,
     @SerializedName("send_bsms_email") val sendBsmsEmail: Boolean = false,
     @SerializedName("requires_registration") val requiresRegistration: Boolean = false,
+    @SerializedName("timelock") val timelock: TimelockDto? = null,
 )
 
 data class ReplaceByDto(
     @SerializedName("local_id") val walletId: String? = null,
+)
+
+data class TimelockDto(
+    @SerializedName("value") val value: Long = 0L,
 )
 
 internal fun WalletDto.toModel(): WalletServer {
@@ -67,6 +72,7 @@ internal fun WalletDto.toModel(): WalletServer {
         walletType = walletType?.toWalletType() ?: WalletType.MULTI_SIG,
         sendBsmsEmail = sendBsmsEmail,
         requiresRegistration = requiresRegistration,
+        timelockValue = timelock?.value ?: 0L,
     )
 }
 

@@ -19,4 +19,5 @@ data class WalletServer(
     val walletType: WalletType = WalletType.MULTI_SIG,
     val sendBsmsEmail: Boolean = false,
     val requiresRegistration: Boolean = false,
+    val timelockValue: Long = 0L,
 )

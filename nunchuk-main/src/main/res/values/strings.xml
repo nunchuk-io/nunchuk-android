@@ -418,7 +418,8 @@
     <string name="nc_check_jade_firmware_desc">Your JADE must support Miniscript for on-chain timelocks. Please make sure the device is running firmware v1.0.30 or above.\n\nTo check or update JADE firmware, please follow Blockstream\'s instructions.</string>
     <string name="nc_provider_need_these_info_title">The Beneficiary needs the following to claim the inheritance:</string>
     <string name="nc_inheritance_off_chain_timelock_info_title">These can be used after the off-chain timelock:</string>
-    
+    <string name="nc_inheritance_on_chain_timelock_info_title">These can be used after the on-chain timelock:</string>
+
     <!-- About the timelock screen strings -->
     <string name="nc_about_the_timelock_title">About the timelock</string>
     <string name="nc_about_the_timelock_description_1">Your inheritance plan uses an on-chain timelock, a built-in delay that protects your funds. The wallet has two spending paths: before and after the timelock.</string>

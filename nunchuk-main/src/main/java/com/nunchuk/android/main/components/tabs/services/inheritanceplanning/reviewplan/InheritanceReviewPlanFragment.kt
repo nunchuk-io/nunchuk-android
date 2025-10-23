@@ -93,11 +93,11 @@ import com.nunchuk.android.main.BuildConfig
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
-import com.nunchuk.android.model.inheritance.EmailNotificationSettings
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.model.inheritance.EmailNotificationSettings
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.Utils
@@ -540,7 +540,11 @@ fun InheritanceReviewPlanScreenContent(
                                     }
                                 )
                                 Text(
-                                    text = stringResource(R.string.nc_inheritance_off_chain_timelock_info_title),
+                                    text = if (isMiniscriptWallet) {
+                                        stringResource(R.string.nc_inheritance_on_chain_timelock_info_title)
+                                    } else {
+                                        stringResource(R.string.nc_inheritance_off_chain_timelock_info_title)
+                                    },
                                     modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
                                     style = NunchukTheme.typography.title,
                                     color = Color.White

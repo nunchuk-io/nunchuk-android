@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
 class InheritancePlanningViewModel @Inject constructor(
@@ -110,7 +111,13 @@ class InheritancePlanningViewModel @Inject constructor(
                 }
             }
         _state.update {
-            it.copy(keyTypes = keyTypes, walletType = wallet.walletType)
+            it.copy(
+                keyTypes = keyTypes,
+                walletType = wallet.walletType,
+                setupOrReviewParam = it.setupOrReviewParam.copy(
+                    activationDate = if (wallet.walletType == WalletType.MINISCRIPT) wallet.timelockValue.seconds.inWholeMilliseconds else it.setupOrReviewParam.activationDate
+                )
+            )
         }
     }
 
