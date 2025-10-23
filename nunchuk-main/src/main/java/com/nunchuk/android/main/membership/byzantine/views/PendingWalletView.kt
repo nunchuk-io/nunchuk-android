@@ -335,7 +335,7 @@ fun AssistedWalletBottomContent(
                         .weight(1f, fill = true),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    items(signers.filter { it.type != SignerType.SERVER }) {
+                    items(signers.filter { it.type != SignerType.SERVER }.distinctBy { it.fingerPrint }) {
                         NcCircleImage(
                             resId = it.toReadableDrawableResId(),
                             size = 36.dp,
