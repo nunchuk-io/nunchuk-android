@@ -94,7 +94,9 @@ class DummyTransactionIntroFragment : Fragment() {
                             activityViewModel.finalizeDummyTransaction(false)
                         } else {
                             findNavController().navigate(
-                                DummyTransactionIntroFragmentDirections.actionDummyTransactionIntroToDummyTransactionDetailsFragment()
+                                DummyTransactionIntroFragmentDirections.actionDummyTransactionIntroToDummyTransactionDetailsFragment(
+                                    activityViewModel.getWalletId()
+                                )
                             )
                         }
                     },
@@ -121,7 +123,7 @@ class DummyTransactionIntroFragment : Fragment() {
                     requireActivity().finish()
                 } else {
                     findNavController().navigate(
-                        DummyTransactionIntroFragmentDirections.actionDummyTransactionIntroToDummyTransactionDetailsFragment()
+                        DummyTransactionIntroFragmentDirections.actionDummyTransactionIntroToDummyTransactionDetailsFragment(activityViewModel.getWalletId())
                     )
                 }
             }

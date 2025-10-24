@@ -61,6 +61,7 @@ import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.miniscript.MiniscriptUtil
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getFormatDate
@@ -98,6 +99,7 @@ import java.util.Date
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionDetailView(
+    inheritanceClaimTxDetailInfo: InheritanceClaimTxDetailInfo? = null,
     args: TransactionDetailsArgs,
     state: TransactionDetailsState = TransactionDetailsState(),
     miniscriptUiState: TransactionMiniscriptUiState = TransactionMiniscriptUiState(),
@@ -119,7 +121,7 @@ fun TransactionDetailView(
     var preImageScriptMode by rememberSaveable { mutableStateOf<ScriptNode?>(null) }
     val preimageBottomSheetState = rememberModalBottomSheetState()
     val transaction =
-        if (args.inheritanceClaimTxDetailInfo != null) state.transaction.copy(changeIndex = args.inheritanceClaimTxDetailInfo.changePos) else state.transaction
+        if (inheritanceClaimTxDetailInfo != null) state.transaction.copy(changeIndex = inheritanceClaimTxDetailInfo.changePos) else state.transaction
     val outputs = if (transaction.isReceive) {
         transaction.receiveOutputs
     } else {
@@ -164,7 +166,7 @@ fun TransactionDetailView(
             },
             bottomBar = {
                 if ((transaction.status.canBroadCast() || transaction.status.isRejected())
-                    && args.inheritanceClaimTxDetailInfo == null && state.userRole.isObserver.not()
+                    && inheritanceClaimTxDetailInfo == null && state.userRole.isObserver.not()
                     && isServerBroadcastTime(transaction, state.serverTransaction).not()
                 ) {
                     NcPrimaryDarkButton(
@@ -201,7 +203,7 @@ fun TransactionDetailView(
             ) {
                 item {
                     TransactionHeader(
-                        args = args,
+                        inheritanceClaimTxDetailInfo = inheritanceClaimTxDetailInfo,
                         isTimelockedActive = miniscriptUiState.isTimelockedActive,
                         transaction = state.transaction,
                         serverTransaction = state.serverTransaction,
@@ -263,7 +265,7 @@ fun TransactionDetailView(
                         }
                     }
 
-                    if (hasChange && args.inheritanceClaimTxDetailInfo == null) {
+                    if (hasChange && inheritanceClaimTxDetailInfo == null) {
                         item {
                             Box(
                                 modifier = Modifier
@@ -392,7 +394,7 @@ fun TransactionDetailView(
                     }
                 }
 
-                if (!state.transaction.isReceive && miniscriptUiState.isMiniscriptWallet && state.signerMap.isNotEmpty() && !isMiniscriptTaprootSingleKeyPathTransaction) {
+                if (!state.transaction.isReceive && miniscriptUiState.isMiniscriptWallet && miniscriptUiState.signerMap.isNotEmpty() && !isMiniscriptTaprootSingleKeyPathTransaction) {
                     item {
                         Column(
                             modifier = Modifier.padding(16.dp)
@@ -410,7 +412,7 @@ fun TransactionDetailView(
                                 node = scriptNode,
                                 data = ScriptNodeData(
                                     mode = ScriptMode.SIGN,
-                                    signers = state.signerMap,
+                                    signers = miniscriptUiState.signerMap,
                                     showBip32Path = false,
                                     signedSigners = signedSigner,
                                     signedXfp = miniscriptUiState.signedSigners.ifEmpty { transaction.signers },
@@ -497,7 +499,7 @@ fun TransactionDetailView(
                     }
                 }
                 // normal transaction signer view
-                else if (!transaction.isReceive && args.inheritanceClaimTxDetailInfo == null && state.signers.isNotEmpty()) {
+                else if (!transaction.isReceive && inheritanceClaimTxDetailInfo == null && state.signers.isNotEmpty()) {
                     item {
                         PendingSignatureStatusView(
                             isTaproot = addressType.isTaproot(),
@@ -575,7 +577,7 @@ fun TransactionDetailView(
 
 @Composable
 private fun TransactionHeader(
-    args: TransactionDetailsArgs,
+    inheritanceClaimTxDetailInfo: InheritanceClaimTxDetailInfo?,
     isTimelockedActive: Boolean,
     transaction: Transaction,
     serverTransaction: ServerTransaction?,
@@ -705,7 +707,7 @@ private fun TransactionHeader(
             modifier = Modifier.padding(top = 4.dp),
         )
 
-        if (args.inheritanceClaimTxDetailInfo == null) {
+        if (inheritanceClaimTxDetailInfo == null) {
             Text(
                 text = transaction.getFormatDate(),
                 style = NunchukTheme.typography.body,
@@ -821,7 +823,6 @@ private fun TransactionDetailViewPreview() {
         args = TransactionDetailsArgs(
             walletId = "walletId",
             txId = "txId",
-            inheritanceClaimTxDetailInfo = null
         ),
         state = TransactionDetailsState(
             transaction = Transaction(

@@ -83,6 +83,7 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -152,6 +153,9 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<FragmentDummyT
     }
 
     private fun observeEvent() {
+        flowObserver(walletAuthenticationViewModel.state.mapNotNull { it.transaction }) {
+            viewModel.loadWallet(it)
+        }
         flowObserver(walletAuthenticationViewModel.state, ::handleState)
         flowObserver(viewModel.state) {
             handleViewMore(it.viewMore)

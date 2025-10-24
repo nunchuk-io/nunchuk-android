@@ -12,7 +12,11 @@
     <fragment
         android:id="@+id/dummyTransactionDetailsFragment"
         android:name="com.nunchuk.android.main.membership.authentication.dummytx.DummyTransactionDetailsFragment"
-        android:label="DummyTransactionDetailsFragment" />
+        android:label="DummyTransactionDetailsFragment">
+        <argument
+            android:name="wallet_id"
+            app:argType="string" />
+    </fragment>
     <activity
         android:id="@+id/walletAuthenticationActivity"
         android:name="com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivity"
@@ -24,15 +28,15 @@
 
         <argument
             android:name="group_id"
+            android:defaultValue="@null"
             app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null"/>
+            app:nullable="true" />
 
         <argument
             android:name="dummy_transaction_id"
+            android:defaultValue="@null"
             app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null"/>
+            app:nullable="true" />
 
         <argument
             android:name="user_data"
@@ -48,15 +52,15 @@
 
         <argument
             android:name="action"
+            android:defaultValue="@null"
             app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null"/>
+            app:nullable="true" />
 
         <argument
             android:name="new_email"
+            android:defaultValue="@null"
             app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null"/>
+            app:nullable="true" />
     </activity>
     <fragment
         android:id="@+id/answerSecurityQuestionFragment2"
@@ -80,5 +84,5 @@
     <fragment
         android:id="@+id/confirmationCodeFragment"
         android:name="com.nunchuk.android.main.membership.authentication.confirmationcode.ConfirmationCodeFragment"
-        android:label="ConfirmationCodeFragment"/>
+        android:label="ConfirmationCodeFragment" />
 </navigation>

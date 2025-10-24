@@ -295,6 +295,21 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 }
         }
         viewModelScope.launch {
+            state.filter { it.transaction.txId.isNotEmpty() && it.wallet.id.isNotEmpty() }
+                .map { it.transaction.txId }
+                .distinctUntilChanged()
+                .collect {
+                    val wallet = getState().wallet
+                    getMiniscriptInfo(
+                        transaction = getTransaction(),
+                        wallet = wallet,
+                        isValueKeySetDisable = wallet.isValueKeySetDisable,
+                        addressType = wallet.addressType,
+                        defaultKeySetIndex = getState().defaultKeySetIndex
+                    )
+                }
+        }
+        viewModelScope.launch {
             getSavedAddressListLocalUseCase(Unit)
                 .map { it.getOrThrow() }
                 .collect { savedAddresses ->
@@ -482,14 +497,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                         defaultKeySetIndex = defaultKeySetIndex,
                     )
                 }
-                if (wallet.wallet.miniscript.isNotEmpty()) {
-                    getMiniscriptInfo(
-                        wallet = wallet.wallet,
-                        isValueKeySetDisable = wallet.wallet.isValueKeySetDisable,
-                        addressType = wallet.wallet.addressType,
-                        defaultKeySetIndex = defaultKeySetIndex
-                    )
-                } else {
+                if (wallet.wallet.miniscript.isEmpty()) {
                     val signers = wallet.wallet.signers.map { signer ->
                         singleSignerMapper(signer)
                     }
@@ -510,6 +518,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private suspend fun getMiniscriptInfo(
+        transaction: Transaction,
         wallet: Wallet,
         isValueKeySetDisable: Boolean,
         addressType: AddressType,
@@ -525,6 +534,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     signers = signers,
+                )
+            }
+            _minscriptState.update {
+                it.copy(
                     signerMap = signers.mapIndexed { index, model -> "$MusigKeyPrefix$index" to model }
                         .toMap(),
                 )
@@ -532,15 +545,15 @@ internal class TransactionDetailsViewModel @Inject constructor(
         } else {
             getTransactionTimeLock(walletId)
             getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
-                val signerMap = parseSignersFromScriptNode(result.scriptNode)
+                val signerMap = parseSignersFromScriptNode(result.scriptNode, transaction)
                 _state.update {
                     it.copy(
-                        signerMap = signerMap,
                         signers = signerMap.values.toList(),
                     )
                 }
                 _minscriptState.update {
                     it.copy(
+                        signerMap = signerMap,
                         scriptNode = result.scriptNode,
                         satisfiableMap = satisfiableMap,
                         signedHash = signedHash,
@@ -622,13 +635,16 @@ internal class TransactionDetailsViewModel @Inject constructor(
         return null
     }
 
-    private suspend fun parseSignersFromScriptNode(node: ScriptNode): Map<String, SignerModel> {
+    private suspend fun parseSignersFromScriptNode(
+        node: ScriptNode,
+        transaction: Transaction
+    ): Map<String, SignerModel> {
         if (!satisfiableMap.containsKey(node.idString)) {
             satisfiableMap[node.idString] = isScriptNodeSatisfiableUseCase(
                 IsScriptNodeSatisfiableUseCase.Params(
                     nodeId = node.id.toIntArray(),
                     walletId = walletId,
-                    txId = txId
+                    psbt = transaction.psbt
                 )
             ).getOrDefault(false)
         }
@@ -668,7 +684,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 IsScriptNodeSatisfiableUseCase.Params(
                     nodeId = node.subs[0].id.toIntArray(),
                     walletId = walletId,
-                    txId = txId
+                    psbt = transaction.psbt
                 )
             ).getOrDefault(false)
             if (isSatisfiable) {
@@ -688,7 +704,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
             }
         }
         node.subs.forEach { subNode ->
-            signerMap.putAll(parseSignersFromScriptNode(subNode))
+            signerMap.putAll(parseSignersFromScriptNode(subNode, transaction))
         }
         return signerMap
     }

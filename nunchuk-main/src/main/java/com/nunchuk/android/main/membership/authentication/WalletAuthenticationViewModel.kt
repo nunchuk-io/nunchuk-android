@@ -53,7 +53,6 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
-import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.SendSignerPassphrase
 import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.FinalizeDummyTransactionUseCase
@@ -66,6 +65,7 @@ import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbt
 import com.nunchuk.android.usecase.membership.GetTxToSignMessage
 import com.nunchuk.android.usecase.network.NetworkStatusFlowUseCase
 import com.nunchuk.android.usecase.signer.ClearSignerPassphraseUseCase
+import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -76,7 +76,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -84,7 +83,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WalletAuthenticationViewModel @Inject constructor(
-    private val getWalletUseCase: GetWalletUseCase,
+    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val checkSignMessageUseCase: CheckSignMessageUseCase,
     private val checkSignMessageTapsignerUseCase: CheckSignMessageTapsignerUseCase,
     private val parsePendingHealthCheckPayloadUseCase: ParsePendingHealthCheckPayloadUseCase,
@@ -132,7 +131,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                     GetGroupDummyTransactionUseCase.Param(
                         groupId = args.groupId.orEmpty(),
                         walletId = args.walletId,
-                        transactionId = args.dummyTransactionId.orEmpty()
+                        transactionId = args.dummyTransactionId
                     )
                 ).onSuccess { dummyTransaction ->
                     dataToSign.value = dummyTransaction.psbt
@@ -498,27 +497,24 @@ class WalletAuthenticationViewModel @Inject constructor(
 
     private fun getWalletDetails() {
         viewModelScope.launch {
-            getWalletUseCase.execute(args.walletId)
-                .onStart { _event.emit(WalletAuthenticationEvent.Loading(true)) }
-                .flowOn(Dispatchers.IO)
-                .onException { _event.emit(WalletAuthenticationEvent.ProcessFailure(it.message.orUnknownError())) }
-                .flowOn(Dispatchers.Main)
-                .collect { walletExtended ->
-                    _event.emit(WalletAuthenticationEvent.Loading(false))
-                    val signerModels =
-                        walletExtended.wallet.signers.filter {
-                            isValidSigner(it.type, args.type)
-                        }.map {
-                            if (it.type == SignerType.NFC) it.toModel()
-                                .copy(cardId = cardIdManager.getCardId(it.masterSignerId)) else it.toModel()
-                        }
-                    _state.update {
-                        it.copy(
-                            walletSigner = signerModels,
-                            singleSigners = walletExtended.wallet.signers
-                        )
+            _event.emit(WalletAuthenticationEvent.Loading(true))
+            getWalletDetail2UseCase(args.walletId).onSuccess { wallet ->
+                val signerModels =
+                    wallet.signers.filter {
+                        isValidSigner(it.type, args.type)
+                    }.map {
+                        if (it.type == SignerType.NFC) it.toModel()
+                            .copy(cardId = cardIdManager.getCardId(it.masterSignerId)) else it.toModel()
                     }
+                _state.update {
+                    it.copy(
+                        walletSigner = signerModels,
+                        singleSigners = wallet.signers,
+                    )
                 }
+            }.onFailure {
+                _event.emit(WalletAuthenticationEvent.ProcessFailure(it.message.orUnknownError()))
+            }
         }
     }
 

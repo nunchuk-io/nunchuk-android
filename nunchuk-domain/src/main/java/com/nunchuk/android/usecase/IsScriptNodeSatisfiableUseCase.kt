@@ -32,13 +32,13 @@ class IsScriptNodeSatisfiableUseCase @Inject constructor(
         return nativeSdk.isSatisfiable(
             walletId = parameters.walletId,
             nodeId = parameters.nodeId,
-            txId = parameters.txId
+            psbt = parameters.psbt
         )
     }
 
     class Params(
         val walletId: String,
         val nodeId: IntArray,
-        val txId: String,
+        val psbt: String,
     )
 } 

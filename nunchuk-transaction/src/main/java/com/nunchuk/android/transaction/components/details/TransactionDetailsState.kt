@@ -45,10 +45,10 @@ data class TransactionDetailsState(
     val defaultKeySetIndex: Int = 0,
     val savedAddress: Map<String, String> = emptyMap(),
     val hideFiatCurrency: Boolean = false,
-    val signerMap: Map<String, SignerModel?> = emptyMap(),
 )
 
 data class TransactionMiniscriptUiState(
+    val signerMap: Map<String, SignerModel?> = emptyMap(),
     val isMiniscriptWallet: Boolean = false,
     val scriptNode: ScriptNode? = null,
     val satisfiableMap: Map<String, Boolean> = emptyMap(),
