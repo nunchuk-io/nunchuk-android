@@ -40,6 +40,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcDatePickerDialog
+import com.nunchuk.android.compose.NcHintMessage
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTimePickerDialog
@@ -49,6 +51,7 @@ import com.nunchuk.android.compose.timezone.NcTimeZoneField
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.ui.TimeZoneDetail
 import com.nunchuk.android.core.ui.toTimeZoneDetail
+import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -69,7 +72,7 @@ class OnChainSetUpTimelockFragment : MembershipFragment(), BottomSheetOptionList
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                OnChainSetUpTimelockScreen(viewModel, args.groupId)
+                OnChainSetUpTimelockScreen(viewModel, args.groupId, args.timelock)
             }
         }
     }
@@ -101,6 +104,7 @@ class OnChainSetUpTimelockFragment : MembershipFragment(), BottomSheetOptionList
 private fun OnChainSetUpTimelockScreen(
     viewModel: OnChainSetUpTimelockViewModel = viewModel(),
     groupId: String? = null,
+    timelock: Long = 0L,
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -110,21 +114,31 @@ private fun OnChainSetUpTimelockScreen(
         onContinueClicked = { selectedDate, selectedTimeZone ->
             viewModel.onContinueClick(selectedDate, selectedTimeZone, groupId = groupId)
         },
-        remainTime = remainTime
+        remainTime = remainTime,
+        timelock = timelock
     )
 }
 
 @Composable
 private fun OnChainSetUpTimelockContent(
     remainTime: Int = 0,
+    timelock: Long = 0L,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: (Calendar, TimeZoneDetail) -> Unit = { _, _ -> },
 ) {
     // Local state management
     var selectedDate by remember { 
-        mutableStateOf(Calendar.getInstance().apply {
-            add(Calendar.YEAR, 2)
-        })
+        mutableStateOf(
+            if (timelock > 0) {
+                Calendar.getInstance().apply {
+                    timeInMillis = timelock * 1000 // Convert seconds to milliseconds
+                }
+            } else {
+                Calendar.getInstance().apply {
+                    add(Calendar.YEAR, 2)
+                }
+            }
+        )
     }
     var selectedTimeZone by remember { 
         mutableStateOf(TimeZone.getDefault().id.toTimeZoneDetail() ?: TimeZoneDetail())
@@ -203,7 +217,7 @@ private fun OnChainSetUpTimelockContent(
                             datePickerDialog = true
                         },
                         rightContent = {
-                            Icon(
+                            NcIcon(
                                 modifier = Modifier
                                     .padding(end = 12.dp)
                                     .clickable {
@@ -227,7 +241,7 @@ private fun OnChainSetUpTimelockContent(
                             timePickerDialog = true
                         },
                         rightContent = {
-                            Icon(
+                            NcIcon(
                                 modifier = Modifier
                                     .padding(end = 12.dp)
                                     .clickable {
@@ -278,6 +292,12 @@ private fun OnChainSetUpTimelockContent(
 
                 
                 Spacer(modifier = Modifier.weight(1.0f))
+
+                NcHintMessage(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    messages = listOf(ClickAbleText(content = "Even with the inheritance key, the Beneficiary cannot claim funds before the timelock expires."))
+                )
+                
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -298,6 +318,7 @@ private fun OnChainSetUpTimelockContent(
 private fun OnChainSetUpTimelockScreenPreview() {
     OnChainSetUpTimelockContent(
         remainTime = 0,
+        timelock = 0L,
         onMoreClicked = {},
         onContinueClicked = { _, _ -> }
     )

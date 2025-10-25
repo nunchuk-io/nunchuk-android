@@ -173,10 +173,12 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     viewModel,
                     membershipStepManager,
                     ::handleShowMore,
-                    onConfigTimelockClicked = {
+                    onConfigTimelockClicked = { data ->
+                        val timelock = data.stepDataMap[MembershipStep.TIMELOCK]?.timelock ?: 0L
                         findNavController().navigate(
                             OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToOnChainSetUpTimelockFragment(
-                                groupId = (activity as MembershipActivity).groupId
+                                groupId = (activity as MembershipActivity).groupId,
+                                timelock = timelock
                             )
                         )
                     })

@@ -181,10 +181,12 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     membershipStepManager = membershipStepManager,
                     role = args.role.toRole,
                     onMoreClicked = ::handleShowMore,
-                    onConfigTimelockClicked = {
+                    onConfigTimelockClicked = { data ->
+                        val timelock = data.stepDataMap[MembershipStep.TIMELOCK]?.timelock ?: 0L
                         findNavController().navigate(
                             OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToOnChainSetUpTimelockFragment(
-                                groupId = args.groupId
+                                groupId = args.groupId,
+                                timelock = timelock
                             )
                         )
                     }

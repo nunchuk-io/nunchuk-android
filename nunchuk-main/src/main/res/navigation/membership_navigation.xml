@@ -216,6 +216,11 @@
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
+        
+        <argument
+            android:name="timelock"
+            android:defaultValue="0L"
+            app:argType="long" />
     </fragment>
 
     <fragment
