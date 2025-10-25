@@ -90,8 +90,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@android:color/white">
+        android:orientation="vertical">
 
         <LinearLayout
             android:id="@+id/btnExportConfiguration"
@@ -112,17 +111,18 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/nc_padding_6"
                 android:text="Export configuration"
-                android:textColor="@color/nc_white_color" />
+                android:textColor="@color/nc_control_text_primary" />
         </LinearLayout>
 
         <com.nunchuk.android.widget.NCFontTextView
             android:id="@+id/btnSkipUpload"
             style="@style/NCPrimaryButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="@dimen/nc_height_48"
             android:layout_margin="@dimen/nc_padding_16"
+            android:fontFamily="@font/lato_semibold"
             android:text="@string/nc_text_do_this_later"
-            android:textColor="@color/nc_primary_color" />
+            android:textColor="@color/nc_text_primary" />
 
     </LinearLayout>
 
