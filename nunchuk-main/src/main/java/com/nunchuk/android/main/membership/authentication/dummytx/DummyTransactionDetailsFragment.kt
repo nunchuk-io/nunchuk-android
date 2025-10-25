@@ -27,13 +27,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
+import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.domain.membership.TargetAction
@@ -46,27 +49,18 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
-import com.nunchuk.android.core.sheet.BottomSheetTooltip
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.core.util.bindTransactionStatus
 import com.nunchuk.android.core.util.flowObserver
-import com.nunchuk.android.core.util.getBTCAmount
-import com.nunchuk.android.core.util.getCurrencyAmount
-import com.nunchuk.android.core.util.hadBroadcast
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.core.util.showWarning
-import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.databinding.FragmentDummyTransactionDetailsBinding
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivityArgs
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationEvent
-import com.nunchuk.android.main.membership.authentication.WalletAuthenticationState
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationViewModel
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
@@ -74,9 +68,10 @@ import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.transaction.components.details.TransactionDetailView
+import com.nunchuk.android.transaction.components.details.TransactionDetailsState
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
@@ -88,7 +83,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<FragmentDummyTransactionDetailsBinding>(),
+class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>(),
     BottomSheetOptionListener {
 
     @Inject
@@ -115,9 +110,45 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<FragmentDummyT
             }
         }
 
+    override fun initializeBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+    ): ViewBinding = ViewBinding {
+        ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                val walletAuthenticationUiState by walletAuthenticationViewModel.state.collectAsStateWithLifecycle()
+                val miniscriptUiState by viewModel.miniscriptState.collectAsStateWithLifecycle()
+
+                val transaction = walletAuthenticationUiState.transaction
+                if (transaction != null) {
+                    TransactionDetailView(
+                        walletId = viewModel.args.walletId,
+                        txId = "",
+                        state = TransactionDetailsState(
+                            transaction = transaction.copy(
+                                signers = walletAuthenticationUiState.signatures.mapValues { true },
+                                // fake number of required signatures
+                                m = walletAuthenticationUiState.pendingSignature + walletAuthenticationUiState.signatures.size
+                            ),
+                            signers = walletAuthenticationUiState.walletSigner,
+                            enabledSigners = walletAuthenticationUiState.enabledSigners
+                        ),
+                        miniscriptUiState = miniscriptUiState.copy(
+                            signedSigners = transaction.signers
+                        ),
+                        onSignClick = {
+                            walletAuthenticationViewModel.onSignerSelect(it)
+                        },
+                        onShowMore = viewModel::handleViewMoreEvent
+                    )
+                }
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupViews()
         observeEvent()
     }
 
@@ -155,10 +186,6 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<FragmentDummyT
     private fun observeEvent() {
         flowObserver(walletAuthenticationViewModel.state.mapNotNull { it.transaction }) {
             viewModel.loadWallet(it)
-        }
-        flowObserver(walletAuthenticationViewModel.state, ::handleState)
-        flowObserver(viewModel.state) {
-            handleViewMore(it.viewMore)
         }
         flowObserver(viewModel.event) {
             when (it) {
@@ -233,17 +260,24 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<FragmentDummyT
                             )
                         }
 
-                        is WalletAuthenticationEvent.NoInternetConnectionToSign -> showWarning(getString(R.string.nc_no_internet_connection_sign_dummy_tx))
-                        is WalletAuthenticationEvent.NoInternetConnectionForceSync -> showError(getString(R.string.nc_no_internet_connection_force_sync))
+                        is WalletAuthenticationEvent.NoInternetConnectionToSign -> showWarning(
+                            getString(R.string.nc_no_internet_connection_sign_dummy_tx)
+                        )
+
+                        is WalletAuthenticationEvent.NoInternetConnectionForceSync -> showError(
+                            getString(R.string.nc_no_internet_connection_force_sync)
+                        )
+
                         is WalletAuthenticationEvent.SignFailed -> {
                             if (!nfcViewModel.handleNfcError(event.e)) {
                                 handleSignedFailed(event.singleSigner)
                             }
                         }
+
                         is WalletAuthenticationEvent.Loading,
                         is WalletAuthenticationEvent.FinalizeDummyTxSuccess,
                         is WalletAuthenticationEvent.ShowError,
-                        -> Unit
+                            -> Unit
 
                         WalletAuthenticationEvent.NoSignatureDetected -> showWarning(getString(R.string.nc_no_new_signatures_detected))
                     }
@@ -339,31 +373,6 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<FragmentDummyT
         showSuccess(getString(com.nunchuk.android.transaction.R.string.nc_transaction_exported))
     }
 
-    private fun setupViews() {
-        binding.viewMore.setOnClickListener {
-            viewModel.handleViewMoreEvent()
-        }
-        binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
-        }
-        binding.toolbar.setOnMenuItemClickListener { menu ->
-            when (menu.itemId) {
-                R.id.menu_more -> {
-                    handleMenuMore()
-                    true
-                }
-
-                else -> false
-            }
-        }
-        binding.estimatedFeeLabel.setOnClickListener {
-            BottomSheetTooltip.newInstance(
-                title = getString(R.string.nc_text_info),
-                message = getString(R.string.nc_estimated_fee_tooltip),
-            ).show(childFragmentManager, "BottomSheetTooltip")
-        }
-    }
-
     private fun handleMenuMore() {
         val args by requireActivity().navArgs<WalletAuthenticationActivityArgs>()
         val options = mutableListOf(
@@ -388,118 +397,6 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<FragmentDummyT
             )
         }
         BottomSheetOption.newInstance(options).show(childFragmentManager, "BottomSheetOption")
-    }
-
-    private fun handleState(state: WalletAuthenticationState) {
-        val transaction = state.transaction ?: return
-        bindTransaction(transaction, state.pendingSignature)
-        bindSigners(
-            signerMap = state.signatures.mapValues { true },
-            signers = state.walletSigner.sortedByDescending(SignerModel::localKey),
-            status = transaction.status,
-            enabledSigners = state.enabledSigners,
-        )
-        hideLoading()
-    }
-
-    private fun handleViewMore(viewMore: Boolean) {
-        binding.viewMore.setCompoundDrawablesWithIntrinsicBounds(
-            null,
-            null,
-            if (viewMore) ContextCompat.getDrawable(
-                requireContext(),
-                R.drawable.ic_collapse
-            ) else ContextCompat.getDrawable(requireContext(), R.drawable.ic_expand),
-            null
-        )
-        binding.viewMore.text = if (viewMore) {
-            getString(R.string.nc_transaction_less_details)
-        } else {
-            getString(R.string.nc_transaction_more_details)
-        }
-
-        binding.transactionDetailsContainer.isVisible = viewMore
-    }
-
-    private fun bindSigners(
-        signerMap: Map<String, Boolean>,
-        signers: List<SignerModel>,
-        status: TransactionStatus,
-        enabledSigners: Set<String>,
-    ) {
-        TransactionSignersViewBinder(
-            container = binding.signerListView,
-            signerMap = signerMap,
-            signers = signers,
-            txStatus = status,
-            listener = { signer ->
-                walletAuthenticationViewModel.onSignerSelect(signer)
-            },
-            enabledSigners = enabledSigners
-        ).bindItems()
-    }
-
-    private fun bindTransaction(transaction: Transaction, pendingSigners: Int) {
-        val output = if (transaction.isReceive) {
-            transaction.receiveOutputs.firstOrNull()
-        } else {
-            transaction.outputs.firstOrNull()
-        }
-        binding.sendingTo.text = output?.first.orEmpty().truncatedAddress()
-        binding.signatureStatus.isVisible = !transaction.status.hadBroadcast()
-        binding.signatureStatus.setCompoundDrawablesWithIntrinsicBounds(
-            R.drawable.ic_pending_signatures,
-            0,
-            0,
-            0
-        )
-        binding.signatureStatus.text = resources.getQuantityString(
-            R.plurals.nc_transaction_pending_signature,
-            pendingSigners,
-            pendingSigners
-        )
-        binding.status.bindTransactionStatus(transaction)
-        binding.sendingBTC.text = transaction.totalAmount.getBTCAmount()
-        binding.signersContainer.isVisible = !transaction.isReceive
-
-        bindAddress(transaction)
-        bindTransactionFee(transaction)
-        bindingTotalAmount(transaction)
-        bindViewSendOrReceive(transaction)
-    }
-
-    private fun bindViewSendOrReceive(transaction: Transaction) {
-        binding.divider.isVisible = !transaction.isReceive
-        binding.estimatedFeeBTC.isVisible = !transaction.isReceive
-        binding.estimatedFeeUSD.isVisible = !transaction.isReceive
-        binding.estimatedFeeLabel.isVisible = !transaction.isReceive
-        binding.totalAmountLabel.isVisible = !transaction.isReceive
-        binding.totalAmountBTC.isVisible = !transaction.isReceive
-        binding.totalAmountUSD.isVisible = !transaction.isReceive
-    }
-
-    private fun bindAddress(transaction: Transaction) {
-        val output = if (transaction.isReceive) {
-            transaction.receiveOutputs.firstOrNull()
-        } else {
-            transaction.outputs.firstOrNull()
-        }
-        binding.sendAddressLabel.text = output?.first.orEmpty()
-        binding.sendAddressBTC.text = output?.second?.getBTCAmount().orEmpty()
-        binding.sendAddressUSD.text = output?.second?.getCurrencyAmount().orEmpty()
-
-        binding.sendingToLabel.text = getString(R.string.nc_transaction_sending_to)
-        binding.sendToAddress.text = getString(R.string.nc_transaction_send_to_address)
-    }
-
-    private fun bindingTotalAmount(transaction: Transaction) {
-        binding.totalAmountBTC.text = transaction.totalAmount.getBTCAmount()
-        binding.totalAmountUSD.text = transaction.totalAmount.getCurrencyAmount()
-    }
-
-    private fun bindTransactionFee(transaction: Transaction) {
-        binding.estimatedFeeBTC.text = transaction.fee.getBTCAmount()
-        binding.estimatedFeeUSD.text = transaction.fee.getCurrencyAmount()
     }
 
     private fun openExportTransactionScreen(isBBQR: Boolean) {
@@ -564,12 +461,5 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<FragmentDummyT
     private fun showError(message: String) {
         hideLoading()
         NCToastMessage(requireActivity()).showError(message)
-    }
-
-    override fun initializeBinding(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-    ): FragmentDummyTransactionDetailsBinding {
-        return FragmentDummyTransactionDetailsBinding.inflate(inflater, container, false)
     }
 }

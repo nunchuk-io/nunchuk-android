@@ -45,6 +45,7 @@ data class TransactionDetailsState(
     val defaultKeySetIndex: Int = 0,
     val savedAddress: Map<String, String> = emptyMap(),
     val hideFiatCurrency: Boolean = false,
+    val enabledSigners: Set<String> = emptySet(), // TODO Hai
 )
 
 data class TransactionMiniscriptUiState(

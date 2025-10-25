@@ -178,7 +178,9 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             val state by viewModel.state.collectAsStateWithLifecycle()
             val miniscriptUiState by viewModel.miniscriptState.collectAsStateWithLifecycle()
             TransactionDetailView(
-                args = args,
+                inheritanceClaimTxDetailInfo = args.inheritanceClaimTxDetailInfo,
+                walletId = args.walletId,
+                txId = args.txId,
                 state = state,
                 miniscriptUiState = miniscriptUiState,
                 onShowMore = { handleMenuMore() },

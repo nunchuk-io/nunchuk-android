@@ -41,7 +41,6 @@ import com.nunchuk.android.transaction.components.details.TransactionMiniscriptU
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
-import com.nunchuk.android.usecase.IsPreimageRevealedUseCase
 import com.nunchuk.android.usecase.IsScriptNodeSatisfiableUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbtByteArrayUseCase
@@ -74,12 +73,11 @@ internal class DummyTransactionDetailsViewModel @Inject constructor(
     private val parseSignerStringUseCase: ParseSignerStringUseCase,
     private val isScriptNodeSatisfiableUseCase: IsScriptNodeSatisfiableUseCase,
     private val getChainTipUseCase: GetChainTipUseCase,
-    private val isPreimageRevealedUseCase: IsPreimageRevealedUseCase,
     private val getTransactionSignersUseCase: GetTransactionSignersUseCase,
     private val singleSignerMapper: SingleSignerMapper,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val args = DummyTransactionDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
+    val args = DummyTransactionDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
     private val walletId = args.walletId
     private val _state = MutableStateFlow(DummyTransactionState())
     val state = _state.asStateFlow()
@@ -118,9 +116,6 @@ internal class DummyTransactionDetailsViewModel @Inject constructor(
             _event.emit(DummyTransactionDetailEvent.LoadingEvent(false))
             if (result.isSuccess) {
                 val transaction = result.getOrThrow()
-                if (isMiniscriptWallet() && transaction != null) {
-                    getSignedSigners(transaction)
-                }
                 _event.emit(DummyTransactionDetailEvent.ImportTransactionSuccess(transaction))
             } else {
                 _event.emit(DummyTransactionDetailEvent.TransactionError(result.exceptionOrNull()?.message.orUnknownError()))
@@ -257,14 +252,6 @@ internal class DummyTransactionDetailsViewModel @Inject constructor(
             signerMap.putAll(parseSignersFromScriptNode(subNode, transaction))
         }
         return signerMap
-    }
-
-    private fun getSignedSigners(tx: Transaction) {
-        viewModelScope.launch {
-            if (tx.raw.isNotEmpty()) {
-                // TODO Hai
-            }
-        }
     }
 
     fun isMiniscriptWallet(): Boolean {

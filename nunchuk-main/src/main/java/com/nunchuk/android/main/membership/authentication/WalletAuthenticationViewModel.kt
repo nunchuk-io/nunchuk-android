@@ -185,7 +185,7 @@ class WalletAuthenticationViewModel @Inject constructor(
                 getDummyTxRequestTokenUseCase(
                     GetDummyTxRequestTokenUseCase.Param(
                         walletId = args.walletId,
-                        transactionId = args.dummyTransactionId.orEmpty()
+                        transactionId = args.dummyTransactionId
                     )
                 ).onSuccess { tokens ->
                     val signatures = _state.value.signatures.toMutableMap()

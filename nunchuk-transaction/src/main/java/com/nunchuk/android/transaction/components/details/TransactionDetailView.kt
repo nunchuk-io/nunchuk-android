@@ -100,7 +100,8 @@ import java.util.Date
 @Composable
 fun TransactionDetailView(
     inheritanceClaimTxDetailInfo: InheritanceClaimTxDetailInfo? = null,
-    args: TransactionDetailsArgs,
+    walletId: String,
+    txId: String,
     state: TransactionDetailsState = TransactionDetailsState(),
     miniscriptUiState: TransactionMiniscriptUiState = TransactionMiniscriptUiState(),
     onShowMore: () -> Unit = {},
@@ -303,35 +304,41 @@ fun TransactionDetailView(
                         }
                     }
 
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .padding(top = if (transaction.isReceive) 0.dp else 16.dp)
-                                .fillMaxWidth()
-                                .background(color = MaterialTheme.colorScheme.backgroundMidGray)
-                                .padding(16.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.nc_transaction_note),
-                                style = NunchukTheme.typography.titleSmall,
-                            )
-
-                            Text(
-                                text = stringResource(R.string.nc_edit),
-                                style = NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
+                    if (txId.isNotEmpty()) {
+                        item {
+                            Box(
                                 modifier = Modifier
-                                    .align(Alignment.CenterEnd)
-                                    .clickable(onClick = onEditNote),
+                                    .padding(top = if (transaction.isReceive) 0.dp else 16.dp)
+                                    .fillMaxWidth()
+                                    .background(color = MaterialTheme.colorScheme.backgroundMidGray)
+                                    .padding(16.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.nc_transaction_note),
+                                    style = NunchukTheme.typography.titleSmall,
+                                )
+
+                                Text(
+                                    text = stringResource(R.string.nc_edit),
+                                    style = NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
+                                    modifier = Modifier
+                                        .align(Alignment.CenterEnd)
+                                        .clickable(onClick = onEditNote),
+                                )
+                            }
+                        }
+
+                        item {
+                            Text(
+                                text = transaction.memo.ifBlank { stringResource(R.string.nc_none) },
+                                style = NunchukTheme.typography.body,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
                             )
                         }
-                    }
-
-                    item {
-                        Text(
-                            text = transaction.memo.ifBlank { stringResource(R.string.nc_none) },
-                            style = NunchukTheme.typography.body,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
-                        )
+                    } else {
+                        item {
+                            Spacer(modifier = Modifier.padding(bottom = 16.dp))
+                        }
                     }
 
                     if (state.txInputCoins.isNotEmpty()) {
@@ -516,7 +523,9 @@ fun TransactionDetailView(
                             signer = signer,
                             showValueKey = index < transaction.m && addressType.isTaproot() && !isValueKeySetDisable && !miniscriptUiState.isMiniscriptWallet,
                             isSigned = transaction.signers.isNotEmpty() && transaction.signers[signer.fingerPrint] ?: false,
-                            canSign = !transaction.status.signDone(),
+                            canSign = !transaction.status.signDone() && (state.enabledSigners.isEmpty() || state.enabledSigners.contains(
+                                signer.fingerPrint
+                            )),
                             onSignClick = onSignClick,
                         ) {
                             val isSigned =
@@ -560,8 +569,8 @@ fun TransactionDetailView(
         if (preImageScriptMode != null) {
             NcPreimageBottomSheet(
                 sheetState = preimageBottomSheetState,
-                walletId = args.walletId,
-                txId = args.txId,
+                walletId = walletId,
+                txId = txId,
                 node = preImageScriptMode!!,
                 onSuccess = { scriptNodeId ->
                     onPreimageSuccess(scriptNodeId)
@@ -820,10 +829,8 @@ private fun isServerBroadcastTime(
 @Composable
 private fun TransactionDetailViewPreview() {
     TransactionDetailView(
-        args = TransactionDetailsArgs(
-            walletId = "walletId",
-            txId = "txId",
-        ),
+        walletId = "walletId",
+        txId = "txId",
         state = TransactionDetailsState(
             transaction = Transaction(
                 txId = "txId",
