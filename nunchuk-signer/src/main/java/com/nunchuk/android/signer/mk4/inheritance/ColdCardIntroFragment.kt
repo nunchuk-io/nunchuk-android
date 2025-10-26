@@ -19,8 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
-import androidx.fragment.app.setFragmentResult
 import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
@@ -29,7 +27,6 @@ import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.share.membership.MembershipFragment
-import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.type.SignerTag
@@ -77,13 +74,6 @@ class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
                             .showDialog(
                                 message = getString(R.string.nc_info_hardware_key_not_supported),
                             )
-                    } else if (mk4Activity.onChainAddSignerParam != null && mk4Activity.onChainAddSignerParam!!.isVerifyBackupSeedPhrase().not()) {
-                        // Return hardware signer tag to parent fragment (OnChainTimelockAddKeyListFragment/OnChainTimelockByzantineAddKeyFragment)
-                        setFragmentResult(
-                            REQUEST_KEY,
-                            bundleOf(GlobalResultKey.EXTRA_SIGNER_TAG to SignerTag.COLDCARD)
-                        )
-                        requireActivity().onBackPressedDispatcher.onBackPressed()
                     } else {
                         membershipStepManager.currentStep?.let { step ->
                             navigator.openAddDesktopKey(
@@ -91,10 +81,11 @@ class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                 signerTag = SignerTag.COLDCARD,
                                 groupId = (requireActivity() as Mk4Activity).groupId,
                                 step = step,
-                                isInheritanceKey = true
+                                isInheritanceKey = isAddInheritanceKey
                             )
                         }
                     }
+                    requireActivity().finish()
                 }
 
                 ColdCardAction.QR, ColdCardAction.FILE -> {
@@ -203,7 +194,7 @@ internal fun ColdCardIntroScreen(
                     title = stringResource(R.string.nc_add_coldcard_via_usb),
                     iconId = R.drawable.ic_usb,
                     onClick = { onColdCardAction(ColdCardAction.USB) },
-                    isEnable = isFromAddKey.not() || (mk4Activity?.onChainAddSignerParam != null && isVerifyBackupSeedPhrase == false),
+                    isEnable = isFromAddKey.not() || (mk4Activity?.onChainAddSignerParam != null && !isVerifyBackupSeedPhrase),
                     subtitle = if (isFromAddKey) stringResource(R.string.nc_desktop_only) else ""
                 )
             }

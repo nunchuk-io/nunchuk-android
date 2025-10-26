@@ -865,7 +865,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                                     _event.emit(
                                         AddKeyListEvent.HandleSignerTypeLogic(
                                             firstSigner.type,
-                                            firstSigner.tags.firstOrNull()
+                                            firstSigner.tags.first { it != SignerTag.INHERITANCE }
                                         )
                                     )
                                 }

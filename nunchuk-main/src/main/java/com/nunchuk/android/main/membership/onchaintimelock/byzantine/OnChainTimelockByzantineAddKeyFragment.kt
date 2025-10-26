@@ -556,6 +556,11 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
 
             SignerType.PORTAL_NFC -> openSetupPortal()
 
+            SignerType.COLDCARD_NFC -> {
+                selectedSignerTag = SignerTag.COLDCARD
+                openSetupColdCard()
+            }
+
             SignerType.AIRGAP -> {
                 selectedSignerTag = tag
                 if (selectedSignerTag == SignerTag.COLDCARD) {

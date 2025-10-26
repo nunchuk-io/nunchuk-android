@@ -833,7 +833,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                                     _event.emit(
                                         OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic(
                                             firstSigner.type,
-                                            firstSigner.tags.firstOrNull()
+                                            firstSigner.tags.first { it != SignerTag.INHERITANCE }
                                         )
                                     )
                                 }
@@ -844,7 +844,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                                 _event.emit(
                                     OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic(
                                         firstSigner.type,
-                                        firstSigner.tags.firstOrNull()
+                                        firstSigner.tags.first { it != SignerTag.INHERITANCE }
                                     )
                                 )
                             }
