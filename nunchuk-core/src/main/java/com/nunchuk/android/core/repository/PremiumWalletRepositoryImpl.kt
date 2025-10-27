@@ -414,15 +414,33 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val deleteCount =
             assistedWalletDao.deleteAllPersonalWalletsExcept(wallets.map { it.localId.orEmpty() })
         if (wallets.isNotEmpty()) {
-            assistedWalletDao.updateOrInsert(wallets.map { wallet ->
-                wallet.toEntity()
-            })
+            updateOrInsertWallet(wallets = wallets)
         }
         ncDataStore.setAssistedKey(assistedKeys)
         result.data.wallets.forEach { planWalletCreated[it.slug.orEmpty()] = it.localId.orEmpty() }
         return WalletServerSync(
             keyPolicyMap = keyPolicyMap, isNeedReload = isNeedReload || deleteCount > 0
         )
+    }
+
+    private suspend fun updateOrInsertWallet(
+        groupId: String? = null,
+        wallets: List<WalletDto>
+    ) {
+        val existingWallets =
+            assistedWalletDao.getAssistedWallets().associateBy { it.localId }
+        val walletEntities = wallets.map { walletDto ->
+            val existingWallet = existingWallets[walletDto.localId.orEmpty()]
+            walletDto.toEntity().copy(
+                groupId = groupId.orEmpty(),
+                isSetupInheritance = existingWallet?.isSetupInheritance.orFalse(),
+                registerColdcardCount = existingWallet?.registerColdcardCount ?: 0,
+                registerAirgapCount = existingWallet?.registerAirgapCount ?: 0,
+                ext = existingWallet?.ext,
+                replaceSignerTypes = existingWallet?.replaceSignerTypes.orEmpty(),
+            )
+        }
+        assistedWalletDao.updateOrInsert(walletEntities)
     }
 
     private suspend fun saveWalletToLib(
@@ -2155,7 +2173,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         saveWalletToLib(wallet, groupAssistedKeys)
         membershipStepDao.deleteStepByGroupId(groupId)
         requestAddKeyDao.deleteRequests(groupId)
-        assistedWalletDao.updateOrInsert(wallet.toEntity().copy(groupId = groupId))
+        updateOrInsertWallet(groupId, listOf(wallet))
         if (slug.isAllowSetupInheritance()) {
             GlobalScope.launch { // This allows it to run in the background without blocking the return of wallet.toModel()
                 kotlin.runCatching { getInheritance(wallet.localId.orEmpty(), groupId = groupId) }
