@@ -431,4 +431,20 @@
     <string name="nc_an_off_chain_timelock">An off-chain timelock</string>
     <string name="nc_an_on_chain_timelock">An on-chain timelock</string>
     <string name="nc_12_or_24_word_inheritance_key_backup">12-word or 24-word seed phrase of inheritance key %1$d you backed up earlier</string>
+    
+    <!-- Add inheritance key screen -->
+    <string name="nc_your_plan_requires">Your plan requires %1$d inheritance keys</string>
+    <string name="nc_add_first_key_desc">To unlock this inheritance plan, you must add 2 inheritance keys that belong to this plan. Start by adding the first inheritance key.</string>
+    <string name="nc_successfully_added_the_first">You\'ve successfully added the first inheritance key.</string>
+    <string name="nc_add_second_key_desc">To unlock your plan, please add the second inheritance key.</string>
+    <string name="nc_add_the_first_inheritance_key">Add the first inheritance key</string>
+    <string name="nc_add_the_second_inheritance_key">Add the second inheritance key</string>
+    
+    <!-- Recover inheritance key screen -->
+    <string name="nc_recover_inheritance_key">Recover inheritance key</string>
+    <string name="nc_recover_inheritance_key_desc_hardware">For best security, import the seed phrase into a hardware signing device before verification. This keeps the private key offline and secure during the claiming process.</string>
+    <string name="nc_recover_inheritance_key_desc_direct">If you do not have a hardware device, you can import the seed phrase directly into Nunchuk. Only do this on a clean, malware-free device, and make sure Nunchuk was downloaded from the official app stores or repository.</string>
+    <string name="nc_use_hardware_device">Use hardware device</string>
+    <string name="nc_enter_seed_phrase_directly">Enter seed phrase directly</string>
+    <string name="nc_recommended">Recommended</string>
 </resources>
