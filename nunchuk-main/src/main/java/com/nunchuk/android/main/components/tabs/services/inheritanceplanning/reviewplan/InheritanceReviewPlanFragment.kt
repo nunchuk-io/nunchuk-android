@@ -522,23 +522,37 @@ fun InheritanceReviewPlanScreenContent(
                                 )
                                 SpecialDetailPlanItem(
                                     iconId = R.drawable.ic_star_light,
-                                    titleId = R.string.nc_magical_phrase,
+                                    title = stringResource(R.string.nc_magical_phrase),
                                     content = magicalPhraseMask,
                                     editable = false
                                 )
-                                Spacer(modifier = Modifier.height(12.dp))
-                                SpecialDetailPlanItem(
-                                    iconId = R.drawable.ic_password_light,
-                                    titleId = R.string.nc_backup_password,
-                                    actionText = stringResource(id = R.string.nc_text_info),
-                                    content = if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) stringResource(
-                                        id = R.string.nc_backup_passwords_desc
-                                    ) else stringResource(id = R.string.nc_backup_password_desc),
-                                    editable = true,
-                                    onClick = {
-                                        onBackUpPasswordInfoClick()
+                                if (isMiniscriptWallet) {
+                                    setupOrReviewParam.inheritanceKeys.forEachIndexed { index, key ->
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        SpecialDetailPlanItem(
+                                            iconId = R.drawable.ic_key,
+                                            title = "Inheritance Key ${index + 1}",
+                                            subTitle = "XFP: ${key.uppercase()}",
+                                            content = stringResource(R.string.nc_12_or_24_word_inheritance_key_backup, index.inc()),
+                                            editable = false
+                                        )
                                     }
-                                )
+                                } else {
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    val isSingleKey = setupOrReviewParam.inheritanceKeys.size == 1
+                                    SpecialDetailPlanItem(
+                                        iconId = R.drawable.ic_password_light,
+                                        title = stringResource(if (isSingleKey)  R.string.nc_backup_password else R.string.nc_two_backup_password),
+                                        actionText = stringResource(id = R.string.nc_text_info),
+                                        content = if (!isSingleKey) stringResource(
+                                            id = R.string.nc_backup_passwords_desc
+                                        ) else stringResource(id = R.string.nc_backup_password_desc),
+                                        editable = true,
+                                        onClick = {
+                                            onBackUpPasswordInfoClick()
+                                        }
+                                    )
+                                }
                                 Text(
                                     text = if (isMiniscriptWallet) {
                                         stringResource(R.string.nc_inheritance_on_chain_timelock_info_title)
@@ -936,8 +950,9 @@ fun SimpleNotificationCard(
 
 @Composable
 fun SpecialDetailPlanItem(
+    title: String,
+    subTitle: String = "",
     iconId: Int = R.drawable.ic_nc_star_dark,
-    titleId: Int = R.string.nc_text_continue,
     content: String = "dolphin concert apple",
     editable: Boolean = false,
     actionText: String = stringResource(id = R.string.nc_edit),
@@ -955,15 +970,28 @@ fun SpecialDetailPlanItem(
             Icon(
                 modifier = Modifier.size(24.dp),
                 painter = painterResource(id = iconId),
-                tint = colorResource(id = R.color.cl_031F2B),
+                tint = colorResource(id = R.color.nc_grey_g7),
                 contentDescription = ""
             )
-            Text(
-                modifier = Modifier.padding(start = 8.dp),
-                text = stringResource(id = titleId),
-                color = colorResource(id = R.color.cl_031F2B),
-                style = NunchukTheme.typography.title
-            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Text(
+                    modifier = Modifier.padding(start = 8.dp),
+                    text = title,
+                    color = colorResource(id = R.color.nc_grey_g7),
+                    style = NunchukTheme.typography.title
+                )
+
+                if (subTitle.isNotEmpty()) {
+                    Text(
+                        text = "($subTitle)",
+                        color = colorResource(id = R.color.nc_grey_g7),
+                        style = NunchukTheme.typography.bodySmall
+                    )
+                }
+            }
             Spacer(modifier = Modifier.weight(weight = 1f))
             if (editable) {
                 Text(
@@ -971,7 +999,7 @@ fun SpecialDetailPlanItem(
                         onClick()
                     },
                     text = actionText,
-                    color = colorResource(id = R.color.cl_031F2B),
+                    color = colorResource(id = R.color.nc_grey_g7),
                     style = NunchukTheme.typography.title,
                     textDecoration = TextDecoration.Underline,
                 )
@@ -983,7 +1011,7 @@ fun SpecialDetailPlanItem(
         Text(
             text = content,
             style = NunchukTheme.typography.body,
-            color = colorResource(id = R.color.cl_031F2B),
+            color = colorResource(id = R.color.nc_grey_g7),
             modifier = Modifier
                 .padding(start = 32.dp)
                 .fillMaxWidth()
@@ -1058,7 +1086,13 @@ fun ActivationDateItem(
 @PreviewLightDark
 @Composable
 private fun DetailPlanItemPreview() {
-    SpecialDetailPlanItem()
+    SpecialDetailPlanItem(
+        title = "Magical Phrase",
+        iconId = R.drawable.ic_star_light,
+        content = "dolphin concert apple",
+        editable = true,
+        onClick = {}
+    )
 }
 
 @PreviewLightDark

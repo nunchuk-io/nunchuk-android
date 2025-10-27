@@ -101,7 +101,9 @@ class InheritancePlanningActivity : BaseShareSaveFileActivity<ActivityNavigation
                         sourceFlow = intent.getIntExtra(EXTRA_SOURCE_FLOW, InheritanceSourceFlow.NONE),
                         groupId = groupId,
                         dummyTransactionId = intent.getStringExtra(EXTRA_DUMMY_TRANSACTION_ID)
-                            .orEmpty()
+                            .orEmpty(),
+                        notificationSettings = inheritance.notificationPreferences,
+                        inheritanceKeys = inheritance.inheritanceKeys.map { it.xfp }
                     )
                 )
             }

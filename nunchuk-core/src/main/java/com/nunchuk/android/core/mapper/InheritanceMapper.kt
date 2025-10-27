@@ -5,12 +5,12 @@ import com.nunchuk.android.core.data.model.membership.BeneficiaryNotificationDto
 import com.nunchuk.android.core.data.model.membership.InheritanceDto
 import com.nunchuk.android.core.data.model.membership.InheritanceKeyDto
 import com.nunchuk.android.core.data.model.membership.InheritanceNotificationPreferencesDto
-import com.nunchuk.android.model.BeneficiaryNotification
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceKey
-import com.nunchuk.android.model.InheritanceNotificationPreferences
 import com.nunchuk.android.model.InheritancePendingRequest
 import com.nunchuk.android.model.InheritanceStatus
+import com.nunchuk.android.model.inheritance.EmailNotificationSettings
+import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.type.WalletType
 
 internal fun InheritanceDto.toInheritance(): Inheritance {
@@ -28,7 +28,7 @@ internal fun InheritanceDto.toInheritance(): Inheritance {
         )
     } ?: emptyList()
 
-    val notificationPreferences = notificationPreferences?.toInheritanceNotificationPreferences()
+    val notificationSettings = notificationPreferences?.toInheritanceNotificationSettings()
     val inheritanceKeys = inheritanceKeys?.map { it.toInheritanceKey() } ?: emptyList()
 
     return Inheritance(
@@ -45,26 +45,26 @@ internal fun InheritanceDto.toInheritance(): Inheritance {
         ownerId = ownerId.orEmpty(),
         pendingRequests = pendingRequests,
         walletType = walletType.toWalletType() ?: WalletType.MULTI_SIG,
-        notificationPreferences = notificationPreferences,
+        notificationPreferences = notificationSettings,
         inheritanceKeys = inheritanceKeys
     )
 }
 
-private fun InheritanceNotificationPreferencesDto.toInheritanceNotificationPreferences(): InheritanceNotificationPreferences {
-    val beneficiaryNotifications = beneficiaryNotifications?.map { it.toBeneficiaryNotification() } ?: emptyList()
+private fun InheritanceNotificationPreferencesDto.toInheritanceNotificationSettings(): InheritanceNotificationSettings {
+    val perEmailSettings = beneficiaryNotifications?.map { it.toEmailNotificationSettings() } ?: emptyList()
     
-    return InheritanceNotificationPreferences(
+    return InheritanceNotificationSettings(
         emailMeWalletConfig = emailMeWalletConfig ?: false,
-        beneficiaryNotifications = beneficiaryNotifications
+        perEmailSettings = perEmailSettings
     )
 }
 
-private fun BeneficiaryNotificationDto.toBeneficiaryNotification(): BeneficiaryNotification {
-    return BeneficiaryNotification(
+private fun BeneficiaryNotificationDto.toEmailNotificationSettings(): EmailNotificationSettings {
+    return EmailNotificationSettings(
         email = email.orEmpty(),
-        notifyTimelockExpires = notifyTimelockExpires ?: false,
-        notifyWalletChanges = notifyWalletChanges ?: false,
-        includeWalletConfig = includeWalletConfig ?: false
+        notifyOnTimelockExpiry = notifyTimelockExpires ?: false,
+        notifyOnWalletChanges = notifyWalletChanges ?: false,
+        includeWalletConfiguration = includeWalletConfig ?: false
     )
 }
 

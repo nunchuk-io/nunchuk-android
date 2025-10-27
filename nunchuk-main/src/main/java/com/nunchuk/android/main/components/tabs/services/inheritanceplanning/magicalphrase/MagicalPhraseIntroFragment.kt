@@ -106,7 +106,8 @@ class MagicalPhraseIntroFragment : MembershipFragment() {
                         is MagicalPhraseIntroEvent.OnContinueClicked -> {
                             inheritanceViewModel.setOrUpdate(
                                 inheritanceViewModel.setupOrReviewParam.copy(
-                                    magicalPhrase = event.magicalPhrase
+                                    magicalPhrase = event.magicalPhrase,
+                                    inheritanceKeys = event.inheritanceKeys
                                 )
                             )
                             if (inheritanceViewModel.isMiniscriptWallet()) {

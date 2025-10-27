@@ -222,7 +222,8 @@ sealed class InheritancePlanningParam {
         val planFlow: Int = 0,
         val sourceFlow: Int = InheritanceSourceFlow.NONE,
         val groupId: String = "",
-        val dummyTransactionId: String = ""
+        val dummyTransactionId: String = "",
+        val inheritanceKeys: List<String> = emptyList(),
     ) : InheritancePlanningParam()
 }
 

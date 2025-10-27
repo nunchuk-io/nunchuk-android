@@ -51,29 +51,50 @@ class MagicalPhraseIntroViewModel @Inject constructor(
         getInheritance(param)
     }
 
-    private fun getInheritance(param: InheritancePlanningParam.SetupOrReview) = viewModelScope.launch {
-        _event.emit(MagicalPhraseIntroEvent.Loading(true))
-        val result = getInheritanceUseCase(GetInheritanceUseCase.Param(walletId = param.walletId, groupId = param.groupId))
-        _event.emit(MagicalPhraseIntroEvent.Loading(false))
-        if (result.isSuccess) {
-            _state.update { it.copy(magicalPhrase = result.getOrThrow().magic) }
-        } else {
-            _event.emit(MagicalPhraseIntroEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+    private fun getInheritance(param: InheritancePlanningParam.SetupOrReview) =
+        viewModelScope.launch {
+            _event.emit(MagicalPhraseIntroEvent.Loading(true))
+            val result = getInheritanceUseCase(
+                GetInheritanceUseCase.Param(
+                    walletId = param.walletId,
+                    groupId = param.groupId
+                )
+            )
+            _event.emit(MagicalPhraseIntroEvent.Loading(false))
+            if (result.isSuccess) {
+                val inheritance = result.getOrThrow()
+                _state.update {
+                    it.copy(
+                        magicalPhrase = inheritance.magic,
+                        inheritanceKeys = inheritance.inheritanceKeys.map { key -> key.xfp }
+                    )
+                }
+            } else {
+                _event.emit(MagicalPhraseIntroEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
+            }
         }
-    }
 
     fun onContinueClicked() = viewModelScope.launch {
         if (_state.value.magicalPhrase.isNullOrBlank()) return@launch
-        _event.emit(MagicalPhraseIntroEvent.OnContinueClicked(_state.value.magicalPhrase.orEmpty()))
+        _event.emit(
+            MagicalPhraseIntroEvent.OnContinueClicked(
+                magicalPhrase = _state.value.magicalPhrase.orEmpty(),
+                inheritanceKeys = _state.value.inheritanceKeys
+            )
+        )
     }
 }
 
 sealed class MagicalPhraseIntroEvent {
     data class Loading(val loading: Boolean) : MagicalPhraseIntroEvent()
     data class Error(val message: String) : MagicalPhraseIntroEvent()
-    data class OnContinueClicked(val magicalPhrase: String) : MagicalPhraseIntroEvent()
+    data class OnContinueClicked(
+        val magicalPhrase: String,
+        val inheritanceKeys: List<String>
+    ) : MagicalPhraseIntroEvent()
 }
 
 data class MagicalPhraseIntroState(
-    val magicalPhrase: String? = null
+    val magicalPhrase: String? = null,
+    val inheritanceKeys: List<String> = emptyList(),
 )
