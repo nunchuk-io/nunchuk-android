@@ -89,42 +89,6 @@ class TapSignerBackingUpIntroOnChainViewModel @Inject constructor(
         }
     }
 
-    fun getSignerFromTapsignerMasterSigner(isoDep: IsoDep, cvc: String, index: Int, walletId: String) {
-        viewModelScope.launch {
-            if (walletId.isNotEmpty()) {
-                getWalletDetail2UseCase(walletId).onSuccess {
-                    val walletType =
-                        if (it.signers.size > 1) WalletType.MULTI_SIG else WalletType.SINGLE_SIG
-                    getSignerSigner(isoDep, cvc, index, walletType)
-                }
-            } else {
-                getSignerSigner(isoDep, cvc, index, WalletType.MULTI_SIG)
-            }
-        }
-    }
-
-    private suspend fun getSignerSigner(
-        isoDep: IsoDep,
-        cvc: String,
-        index: Int,
-        walletType: WalletType
-    ) {
-        getSignerFromTapsignerMasterSignerUseCase(
-            GetSignerFromTapsignerMasterSignerUseCase.Data(
-                isoDep = isoDep,
-                cvc = cvc,
-                masterSignerId = args.masterSignerId,
-                index = index,
-                walletType = walletType
-            )
-        ).onSuccess { singleSigner ->
-            singleSigner?.let {
-                pushEventManager.push(PushEvent.LocalUserSignerAdded(singleSigner))
-            }
-            _event.emit(TapSignerBackingUpIntroOnChainEvent.OnGetSingleWalletDone)
-        }
-    }
-
     fun getSignerForOnChain(isoDep: IsoDep, cvc: String, index: Int) {
         viewModelScope.launch {
             _event.emit(TapSignerBackingUpIntroOnChainEvent.NfcLoading(true))

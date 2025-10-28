@@ -31,11 +31,13 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.main.R
 import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
@@ -69,7 +71,7 @@ class SignerIntroFragment : MembershipFragment() {
                         EXTRA_IS_FROM_NFC_SETUP to true
                     )
                 )
-                requireActivity().onBackPressedDispatcher.onBackPressed()
+                popUpToOnChainTimelockFragment()
             }
         }
     }
@@ -84,9 +86,9 @@ class SignerIntroFragment : MembershipFragment() {
                     REQUEST_KEY,
                     bundleOf(GlobalResultKey.EXTRA_SIGNERS to ArrayList(filteredSigners))
                 )
-                requireActivity().onBackPressedDispatcher.onBackPressed()
+                popUpToOnChainTimelockFragment()
             } else {
-                requireActivity().onBackPressedDispatcher.onBackPressed()
+                popUpToOnChainTimelockFragment()
             }
         }
     }
@@ -174,6 +176,7 @@ class SignerIntroFragment : MembershipFragment() {
         } else {
             openSetupMk4()
         }
+        popUpToOnChainTimelockFragment()
     }
 
     private fun handleJadeSelection() {
@@ -217,7 +220,7 @@ class SignerIntroFragment : MembershipFragment() {
                 onChainAddSignerParam = args.onChainAddSignerParam,
             )
         )
-        requireActivity().onBackPressedDispatcher.onBackPressed()
+        popUpToOnChainTimelockFragment()
     }
 
     private fun openSetupMk4() {
@@ -231,7 +234,6 @@ class SignerIntroFragment : MembershipFragment() {
                 onChainAddSignerParam = args.onChainAddSignerParam,
             )
         )
-        requireActivity().onBackPressedDispatcher.onBackPressed()
     }
 
     private fun openPortalScreen() {
@@ -244,7 +246,7 @@ class SignerIntroFragment : MembershipFragment() {
                 groupId = args.groupId.orEmpty(),
             )
         )
-        requireActivity().onBackPressedDispatcher.onBackPressed()
+        popUpToOnChainTimelockFragment()
     }
 
     private fun openAddAirSignerIntroScreen() {
@@ -257,7 +259,7 @@ class SignerIntroFragment : MembershipFragment() {
                 onChainAddSignerParam = args.onChainAddSignerParam,
             )
         )
-        requireActivity().onBackPressedDispatcher.onBackPressed()
+        popUpToOnChainTimelockFragment()
     }
 
     private fun openAddSoftwareSignerScreen() {
@@ -269,7 +271,7 @@ class SignerIntroFragment : MembershipFragment() {
             groupId = args.groupId.orEmpty(),
             walletId = args.walletId.orEmpty(),
         )
-        requireActivity().onBackPressedDispatcher.onBackPressed()
+        popUpToOnChainTimelockFragment()
     }
 
     private fun navigateToSetupTapSigner() {
@@ -295,6 +297,19 @@ class SignerIntroFragment : MembershipFragment() {
                     onChainAddSignerParam = null,
                 )
             )
+        }
+        popUpToOnChainTimelockFragment()
+    }
+
+    private fun popUpToOnChainTimelockFragment() {
+        if (args.onChainAddSignerParam != null) {
+            val targetFragmentId = if (args.groupId.isNullOrEmpty()) {
+                R.id.onChainTimelockAddKeyListFragment
+            } else {
+                R.id.onChainTimelockByzantineAddKeyFragment
+            }
+            findNavController().popBackStack(targetFragmentId, false)
+        } else {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
     }
