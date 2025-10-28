@@ -68,7 +68,18 @@ class InheritancePlanTypeFragment : MembershipFragment() {
                 InheritancePlanTypeScreen(
                     viewModel = viewModel,
                     onContinueClicked = {
-                        if (uiState.isPersonal) {
+                        if (uiState.changeTimelockFlow != null) {
+                            findNavController().navigate(
+                                InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToChangeTimeLockFragment(
+                                    walletId = uiState.walletId ?: "",
+                                    groupId = uiState.groupId,
+                                    slug = uiState.slug,
+                                    walletType = uiState.walletType,
+                                    isPersonal = uiState.isPersonal,
+                                    setupPreference = uiState.setupPreference
+                                )
+                            )
+                        } else if (uiState.isPersonal) {
                             viewModel.onContinueClicked()
                         } else {
                             uiState.walletType?.let { walletType ->
@@ -104,11 +115,6 @@ class InheritancePlanTypeFragment : MembershipFragment() {
                         inheritanceType = event.selectedPlanType.name
                     )
                     requireActivity().finish()
-                }
-                is InheritancePlanTypeEvent.NavigateToChangeTimelock -> {
-                    findNavController().navigate(
-                        InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToChangeTimeLockFragment()
-                    )
                 }
             }
         }

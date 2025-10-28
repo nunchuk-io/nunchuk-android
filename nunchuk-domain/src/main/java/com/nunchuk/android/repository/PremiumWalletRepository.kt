@@ -529,4 +529,6 @@ interface PremiumWalletRepository {
     suspend fun removeKeyReplacement(groupId: String?, walletId: String, xfp: String)
     
     suspend fun getUserWalletConfigsSetup(): UserWalletConfigsSetup
+
+    suspend fun changeTimelockType(groupId: String?, walletId: String)
 }

@@ -42,6 +42,8 @@ class InheritancePlanTypeViewModel @Inject constructor(
                 slug = args.slug,
                 walletType = args.walletType,
                 setupPreference = args.setupPreference,
+                walletId = args.walletId,
+                groupId = args.groupId,
                 changeTimelockFlow = when (args.changeTimelockFlow) {
                     0 -> true  // off-chain to on-chain
                     1 -> false // on-chain to off-chain
@@ -59,13 +61,6 @@ class InheritancePlanTypeViewModel @Inject constructor(
 
     fun onContinueClicked() {
         viewModelScope.launch {
-            // If changeTimelockFlow is true, navigate to ChangeTimeLockFragment
-            if (_state.value.changeTimelockFlow == true) {
-                _event.emit(InheritancePlanTypeEvent.NavigateToChangeTimelock)
-                return@launch
-            }
-            
-            // Call setLocalMembershipPlan when user continues
             args.slug?.let { slug ->
                 args.walletType?.let { walletTypeStr ->
                     // Convert String to GroupWalletType

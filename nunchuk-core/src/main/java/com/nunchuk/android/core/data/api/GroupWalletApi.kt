@@ -667,4 +667,10 @@ internal interface GroupWalletApi {
 
     @GET("/v1.1/group-wallets/wallets/deleted")
     suspend fun getDeletedGroupWallets(): Data<DeletedGroupWalletsResponse>
+
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/change-timelock-type")
+    suspend fun changeTimelockType(
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String
+    ): Data<DraftWalletResponse>
 }

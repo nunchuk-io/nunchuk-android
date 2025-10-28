@@ -309,6 +309,22 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 )
             }
 
+            SheetOptionType.TYPE_CHANGE_ON_CHAIN_TIMELOCK -> {
+                val changeTimelockFlow = if (isMiniscriptWallet()) {
+                    1 // on-chain → off-chain
+                } else {
+                    0 // off-chain → on-chain
+                }
+                navigator.openMembershipActivity(
+                    activityContext = this,
+                    groupStep = MembershipStage.NONE,
+                    isPersonalWallet = true,
+                    walletId = args.walletId,
+                    groupId = viewModel.getGroupId().orEmpty(),
+                    changeTimelockFlow = changeTimelockFlow
+                )
+            }
+
             SheetOptionType.TYPE_ARCHIVE -> viewModel.archiveWallet()
         }
     }
@@ -632,6 +648,16 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                         )
                     )
                 }
+            }
+
+            if (viewModel.isAssistedWallet()) {
+                options.add(
+                    SheetOption(
+                        SheetOptionType.TYPE_CHANGE_ON_CHAIN_TIMELOCK,
+                        R.drawable.ic_on_chain_timelock,
+                        R.string.nc_change_on_chain_timelock,
+                    ),
+                )
             }
 
             if (!viewModel.isAssistedWallet()) {

@@ -745,4 +745,9 @@ internal interface UserWalletsApi {
 
     @GET("/v1.1/user-wallets/configs/setup")
     suspend fun getUserWalletConfigsSetup(): Data<UserWalletConfigsSetupResponse>
+
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/change-timelock-type")
+    suspend fun changeTimelockType(
+        @Path("wallet_id_or_local_id") walletId: String
+    ): Data<DraftWalletResponse>
 }

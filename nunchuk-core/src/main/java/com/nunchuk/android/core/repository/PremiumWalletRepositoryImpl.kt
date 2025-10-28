@@ -2955,6 +2955,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.toDomain()
     }
 
+    override suspend fun changeTimelockType(groupId: String?, walletId: String) {
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.changeTimelockType(groupId, walletId)
+        } else {
+            userWalletApiManager.walletApi.changeTimelockType(walletId)
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+    }
+
     private fun getHeaders(
         authorizations: List<String>,
         verifyToken: String,

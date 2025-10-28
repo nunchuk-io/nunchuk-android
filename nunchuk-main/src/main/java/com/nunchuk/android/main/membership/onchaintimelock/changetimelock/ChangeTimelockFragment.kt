@@ -1,4 +1,4 @@
-package com.nunchuk.android.main.membership.onchaintimelock
+package com.nunchuk.android.main.membership.onchaintimelock.changetimelock
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,22 +14,32 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
+import dagger.hilt.android.AndroidEntryPoint
 
-class ChangeTimeLockFragment : MembershipFragment() {
+@AndroidEntryPoint
+class ChangeTimelockFragment : MembershipFragment() {
+
+    private val viewModel: ChangeTimelockViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,9 +50,11 @@ class ChangeTimeLockFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                ChangeTimeLockScreen(
+                val uiState by viewModel.state.collectAsStateWithLifecycle()
+                ChangeTimelockScreen(
+                    isLoading = uiState.isLoading,
                     onContinueClicked = {
-                        // TODO: Navigate to next screen
+                        viewModel.onContinueClicked()
                     },
                     onReadMoreClicked = {
                         // TODO: Open read more screen or dialog
@@ -51,21 +63,40 @@ class ChangeTimeLockFragment : MembershipFragment() {
             }
         }
     }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        flowObserver(viewModel.event) { event ->
+            when (event) {
+                is ChangeTimelockEvent.ChangeTimelockSuccess -> {
+                    findNavController().navigate(
+                        ChangeTimelockFragmentDirections.actionChangeTimeLockFragmentToIntroAssistedWalletFragment()
+                    )
+                }
+                is ChangeTimelockEvent.ShowError -> {
+                    showError(event.message)
+                }
+            }
+        }
+    }
 }
 
 @Composable
-private fun ChangeTimeLockScreen(
+private fun ChangeTimelockScreen(
+    isLoading: Boolean = false,
     onContinueClicked: () -> Unit = {},
     onReadMoreClicked: () -> Unit = {}
 ) {
-    ChangeTimeLockContent(
+    ChangeTimelockContent(
+        isLoading = isLoading,
         onContinueClicked = onContinueClicked,
         onReadMoreClicked = onReadMoreClicked
     )
 }
 
 @Composable
-private fun ChangeTimeLockContent(
+private fun ChangeTimelockContent(
+    isLoading: Boolean = false,
     onContinueClicked: () -> Unit = {},
     onReadMoreClicked: () -> Unit = {}
 ) {
@@ -89,7 +120,7 @@ private fun ChangeTimeLockContent(
                     text = "Change to on-chain timelock",
                     style = NunchukTheme.typography.heading
                 )
-                
+
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     text = "Your current assisted wallet uses an off-chain timelock. To change to an on-chain timelock, here are the steps:",
@@ -101,13 +132,13 @@ private fun ChangeTimeLockContent(
                     index = 1,
                     label = "Create a new assisted wallet and set up a new inheritance plan with an on-chain timelock",
                 )
-                
+
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 2,
                     label = "Transfer funds to the new wallet",
                 )
-                
+
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 3,
@@ -132,6 +163,7 @@ private fun ChangeTimeLockContent(
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = onContinueClicked,
+                    enabled = !isLoading,
                 ) {
                     Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
                 }
@@ -142,7 +174,6 @@ private fun ChangeTimeLockContent(
 
 @Preview
 @Composable
-private fun ChangeTimeLockScreenPreview() {
-    ChangeTimeLockContent()
+private fun ChangeTimelockScreenPreview() {
+    ChangeTimelockContent()
 }
-

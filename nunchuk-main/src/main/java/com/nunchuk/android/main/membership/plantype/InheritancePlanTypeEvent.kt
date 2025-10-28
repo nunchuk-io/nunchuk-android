@@ -2,7 +2,6 @@ package com.nunchuk.android.main.membership.plantype
 
 sealed class InheritancePlanTypeEvent {
     data class OnContinueClicked(val selectedPlanType: InheritancePlanType) : InheritancePlanTypeEvent()
-    object NavigateToChangeTimelock : InheritancePlanTypeEvent()
 }
 
 enum class InheritancePlanType {
@@ -16,5 +15,7 @@ data class InheritancePlanTypeUiState(
     val slug: String? = null,
     val walletType: String? = null,
     val changeTimelockFlow: Boolean? = null,
-    val setupPreference: String? = null
+    val setupPreference: String? = null,
+    val walletId: String? = null,
+    val groupId: String? = null
 )
