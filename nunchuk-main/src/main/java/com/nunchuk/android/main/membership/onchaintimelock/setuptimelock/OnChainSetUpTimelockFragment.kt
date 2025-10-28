@@ -40,6 +40,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcDatePickerDialog
+import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -180,9 +181,9 @@ private fun OnChainSetUpTimelockContent(
                     text = "Set up an on-chain timelock",
                     style = NunchukTheme.typography.heading
                 )
-                Text(
+                NcHighlightText(
                     modifier = Modifier.padding(16.dp),
-                    text = "Your inheritance plan includes an on-chain timelock that protects your funds. After it expires, the Beneficiary can claim the funds using the Magic Phrase and the inheritance key.\n" +
+                    text = "Your inheritance plan includes an on-chain timelock that protects your funds. [B]After it expires[/B], the Beneficiary can claim the funds using the Magic Phrase and the inheritance key.\n" +
                             "\n" +
                             "You can change the timelock later in the Services tab by creating a new wallet and transferring the funds. The process will be guided automatically.\n" +
                             "\n" +
@@ -268,7 +269,8 @@ private fun OnChainSetUpTimelockContent(
                             }
                             selectedDate = newCalendar
                             datePickerDialog = false
-                        }
+                        },
+                        defaultDate = selectedDate.timeInMillis
                     )
                 }
 
@@ -306,7 +308,7 @@ private fun OnChainSetUpTimelockContent(
                         onContinueClicked(selectedDate, selectedTimeZone)
                     },
                 ) {
-                    Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
+                    Text(text = stringResource(id = R.string.nc_text_save))
                 }
             }
         }

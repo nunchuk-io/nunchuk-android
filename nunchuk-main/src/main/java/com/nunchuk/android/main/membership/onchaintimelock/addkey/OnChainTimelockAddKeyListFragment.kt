@@ -967,7 +967,10 @@ private fun ConfigItem(
                 .padding(start = 8.dp)
         ) {
             Text(
-                text = item.type.getLabel(context = LocalContext.current, isStandard = isStandard),
+                text = if (item.type == MembershipStep.TIMELOCK && isTimelockWithData) "After" else item.type.getLabel(
+                    context = LocalContext.current,
+                    isStandard = isStandard
+                ),
                 style = NunchukTheme.typography.body
             )
             if (item.shouldShowAcctXBadge()) {

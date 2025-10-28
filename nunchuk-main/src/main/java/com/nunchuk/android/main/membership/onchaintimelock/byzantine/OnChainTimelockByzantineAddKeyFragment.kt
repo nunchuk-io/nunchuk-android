@@ -279,8 +279,9 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
             val signerModel = bundle.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
             val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
-            val isFromNfcSetup = bundle.getBoolean(SignerIntroFragment.EXTRA_IS_FROM_NFC_SETUP, false)
-            
+            val isFromNfcSetup =
+                bundle.getBoolean(SignerIntroFragment.EXTRA_IS_FROM_NFC_SETUP, false)
+
             when {
                 isFromNfcSetup && signerModel != null -> {
                     viewModel.addExistingTapSignerKey(
@@ -289,6 +290,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                         (activity as MembershipActivity).walletId
                     )
                 }
+
                 !filteredSigners.isNullOrEmpty() -> {
                     findNavController().navigate(
                         OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToTapSignerListBottomSheetFragment(
@@ -306,13 +308,14 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                         )
                     )
                 }
+
                 signerTag != null -> {
                     handleHardwareSignerTag(signerTag)
                 }
             }
             clearFragmentResult("SignerIntroFragment")
         }
-        
+
         setFragmentResultListener("ColdCardIntroFragment") { _, bundle ->
             val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
             if (signerTag != null) {
@@ -435,7 +438,11 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     }
                 }
 
-                OnChainTimelockByzantineAddKeyListEvent.OnAddAllKey -> findNavController().popBackStack(R.id.addGroupKeyStepFragment, false)
+                OnChainTimelockByzantineAddKeyListEvent.OnAddAllKey -> findNavController().popBackStack(
+                    R.id.addGroupKeyStepFragment,
+                    false
+                )
+
                 is OnChainTimelockByzantineAddKeyListEvent.ShowError -> showError(event.message)
                 OnChainTimelockByzantineAddKeyListEvent.SelectAirgapType -> {}
                 is OnChainTimelockByzantineAddKeyListEvent.UpdateSignerTag -> findNavController().navigate(
@@ -487,8 +494,12 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     )
                 }
             }
+
             MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK,
-            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK -> handleHardwareKeyAdd(data)
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK -> handleHardwareKeyAdd(
+                data
+            )
+
             else -> Unit
         }
     }
@@ -736,7 +747,8 @@ fun OnChainTimelockByzantineAddKeyListContent(
                             data.steps.all { step ->
                                 data.stepDataMap[step]?.isComplete == true
                             }
-                        } && keys.filter { it.type.isAddInheritanceKey }.all { it.verifyType != VerifyType.NONE }
+                        } && keys.filter { it.type.isAddInheritanceKey }
+                            .all { it.verifyType != VerifyType.NONE }
                     ) {
                         Text(text = stringResource(id = R.string.nc_text_continue))
                     }
@@ -906,7 +918,10 @@ private fun AddKeyCard(
                                     )
                                     val firstAcctLabel = signers.firstOrNull()?.let { firstSigner ->
                                         if (firstSigner.isShowAcctX(true)) {
-                                            stringResource(R.string.nc_acct_x, if (firstSigner.index >= 0) firstSigner.index else 0)
+                                            stringResource(
+                                                R.string.nc_acct_x,
+                                                if (firstSigner.index >= 0) firstSigner.index else 0
+                                            )
                                         } else {
                                             "Acct X"
                                         }
@@ -924,7 +939,8 @@ private fun AddKeyCard(
                                         signers.getOrNull(1)?.let { secondSigner ->
                                             if (secondSigner.isShowAcctX(true)) {
                                                 stringResource(
-                                                    R.string.nc_acct_x, if (secondSigner.index >= 0) secondSigner.index else 0
+                                                    R.string.nc_acct_x,
+                                                    if (secondSigner.index >= 0) secondSigner.index else 0
                                                 )
                                             } else {
                                                 "Acct Y"
@@ -993,7 +1009,11 @@ private fun AddKeyCard(
                             ),
                         contentAlignment = Alignment.Center,
                     ) {
-                        ConfigItem(item, isDisabled = isDisabled, onChangeTimelockClicked = onChangeTimelockClicked)
+                        ConfigItem(
+                            item,
+                            isDisabled = isDisabled,
+                            onChangeTimelockClicked = onChangeTimelockClicked
+                        )
                     }
                 } else {
                     NcDashLineBox(modifier = modifier) {
@@ -1032,11 +1052,11 @@ private fun ConfigItem(
     onChangeTimelockClicked: (data: AddKeyOnChainData) -> Unit = {}
 ) {
     val signers = item.signers ?: emptyList()
-    
+
     // Check if this is a TIMELOCK step with timelock data configured
-    val isTimelockWithData = item.type == MembershipStep.TIMELOCK && 
-                             item.stepDataMap[MembershipStep.TIMELOCK]?.timelock.orDefault(0) > 0
-    
+    val isTimelockWithData = item.type == MembershipStep.TIMELOCK &&
+            item.stepDataMap[MembershipStep.TIMELOCK]?.timelock.orDefault(0) > 0
+
     Row(
         modifier = Modifier.padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -1048,7 +1068,10 @@ private fun ConfigItem(
                 .padding(start = 8.dp)
         ) {
             Text(
-                text = item.type.getLabel(context = LocalContext.current, isStandard = isStandard),
+                text = if (item.type == MembershipStep.TIMELOCK && isTimelockWithData) "After" else item.type.getLabel(
+                    context = LocalContext.current,
+                    isStandard = isStandard
+                ),
                 style = NunchukTheme.typography.body
             )
             if (item.shouldShowAcctXBadge()) {
@@ -1109,7 +1132,6 @@ private fun ConfigItem(
                 )
             }
         } else if (isTimelockWithData) {
-            // Show "Change" button for configured timelock
             NcOutlineButton(
                 modifier = Modifier.height(36.dp),
                 enabled = isDisabled.not(),

@@ -22,10 +22,11 @@ fun NcDatePickerDialog(
     onDismissRequest: () -> Unit,
     onConfirm: (Long) -> Unit,
     dateValidator: (Long) -> Boolean = { it > System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1) },
+    defaultDate: Long? = null,
 ) {
     val calendar = Calendar.getInstance()
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = calendar.timeInMillis,
+        initialSelectedDateMillis = defaultDate ?: calendar.timeInMillis,
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
                 return dateValidator(utcTimeMillis)
