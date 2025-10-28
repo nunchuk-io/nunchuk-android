@@ -77,16 +77,21 @@ class SelectGroupFragment : MembershipFragment() {
                     onMoreClicked = ::handleShowMore,
                     onContinueClicked = { option ->
                         if (viewModel.checkGroupTypeAvailable(option.slug)) {
-                            findNavController().navigate(
-                                SelectGroupFragmentDirections.actionSelectGroupFragmentToInheritancePlanTypeFragment(
-                                    isPersonal = args.isPersonal,
-                                    slug = option.slug,
-                                    walletType = option.walletType.name,
-                                    walletTypeName = option.walletType.name,
-                                    groupId = null,
-                                    role = null
+                            if (args.isPersonal) {
+                                findNavController().navigate(
+                                    SelectGroupFragmentDirections.actionSelectGroupFragmentToInheritancePlanTypeFragment(
+                                        isPersonal = args.isPersonal,
+                                        slug = option.slug,
+                                        walletType = option.walletType.name
+                                    )
                                 )
-                            )
+                            } else {
+                                findNavController().navigate(
+                                    SelectGroupFragmentDirections.actionSelectGroupFragmentToSelectWalletSetupFragment(
+                                        groupType = option.walletType.name,
+                                    )
+                                )
+                            }
                         } else {
                             NCInfoDialog(requireActivity()).init(
                                 message = getString(

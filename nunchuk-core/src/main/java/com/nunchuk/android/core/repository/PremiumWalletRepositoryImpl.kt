@@ -2906,35 +2906,19 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
     override suspend fun initWallet(
         walletConfig: WalletConfig,
-        groupId: String?,
         walletType: WalletType?
     ) {
-        val response = if (groupId.isNullOrEmpty()) {
-            userWalletApiManager.walletApi.initDraftWallet(
-                InitWalletConfigRequest(
-                    walletConfig = WalletConfigDto(
-                        m = walletConfig.m,
-                        n = walletConfig.n,
-                        requiredServerKey = walletConfig.requiredServerKey,
-                        allowInheritance = walletConfig.allowInheritance
-                    ),
-                    walletType = walletType?.name
-                )
+        val response = userWalletApiManager.walletApi.initDraftWallet(
+            InitWalletConfigRequest(
+                walletConfig = WalletConfigDto(
+                    m = walletConfig.m,
+                    n = walletConfig.n,
+                    requiredServerKey = walletConfig.requiredServerKey,
+                    allowInheritance = walletConfig.allowInheritance
+                ),
+                walletType = walletType?.name
             )
-        } else {
-            userWalletApiManager.groupWalletApi.initDraftWallet(
-                groupId,
-                InitWalletConfigRequest(
-                    walletConfig = WalletConfigDto(
-                        m = walletConfig.m,
-                        n = walletConfig.n,
-                        requiredServerKey = walletConfig.requiredServerKey,
-                        allowInheritance = walletConfig.allowInheritance
-                    ),
-                    walletType = walletType?.name
-                )
-            )
-        }
+        )
         if (response.isSuccess.not()) {
             throw response.error
         }

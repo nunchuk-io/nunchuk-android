@@ -40,7 +40,13 @@ class InheritancePlanTypeViewModel @Inject constructor(
             _state.emit(_state.value.copy(
                 isPersonal = args.isPersonal,
                 slug = args.slug,
-                walletTypeName = args.walletTypeName
+                walletType = args.walletType,
+                setupPreference = args.setupPreference,
+                changeTimelockFlow = when (args.changeTimelockFlow) {
+                    0 -> true  // off-chain to on-chain
+                    1 -> false // on-chain to off-chain
+                    else -> null // -1 or any other value = normal flow
+                }
             ))
         }
     }
@@ -53,6 +59,12 @@ class InheritancePlanTypeViewModel @Inject constructor(
 
     fun onContinueClicked() {
         viewModelScope.launch {
+            // If changeTimelockFlow is true, navigate to ChangeTimeLockFragment
+            if (_state.value.changeTimelockFlow == true) {
+                _event.emit(InheritancePlanTypeEvent.NavigateToChangeTimelock)
+                return@launch
+            }
+            
             // Call setLocalMembershipPlan when user continues
             args.slug?.let { slug ->
                 args.walletType?.let { walletTypeStr ->
@@ -63,7 +75,7 @@ class InheritancePlanTypeViewModel @Inject constructor(
                         null
                     }
                     groupWalletType?.let { walletType ->
-                        setLocalMembershipPlan(slug, walletType, args.groupId)
+                        setLocalMembershipPlan(slug, walletType)
                     }
                 }
             }
@@ -71,7 +83,7 @@ class InheritancePlanTypeViewModel @Inject constructor(
         }
     }
 
-    private fun setLocalMembershipPlan(slug: String, type: GroupWalletType, groupId: String?) {
+    private fun setLocalMembershipPlan(slug: String, type: GroupWalletType) {
         applicationScope.launch {
             val plan = slug.toMembershipPlan()
             val walletType = when (_state.value.selectedPlanType) {
@@ -86,7 +98,6 @@ class InheritancePlanTypeViewModel @Inject constructor(
                         n = type.n,
                         requiredServerKey = type.requiredServerKey
                     ),
-                    groupId = groupId,
                     walletType = walletType
                 )
             )

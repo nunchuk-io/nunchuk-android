@@ -26,6 +26,7 @@ fun NcRadioButtonOption(
     isSelected: Boolean = false,
     enabled: Boolean = true,
     onClick: () -> Unit = {},
+    showRadioButton: Boolean = true,
     content: @Composable () -> Unit
 ) {
     Card(
@@ -48,12 +49,14 @@ fun NcRadioButtonOption(
                 .clickable(enabled = enabled, onClick = onClick)
                 .padding(16.dp),
         ) {
-            NcRadioButton(
-                modifier = Modifier.size(24.dp).align(Alignment.TopEnd),
-                selected = isSelected,
-                enabled = enabled,
-                onClick = if (enabled) onClick else null
-            )
+            if (showRadioButton) {
+                NcRadioButton(
+                    modifier = Modifier.size(24.dp).align(Alignment.TopEnd),
+                    selected = isSelected,
+                    enabled = enabled,
+                    onClick = if (enabled) onClick else null
+                )
+            }
             content()
         }
     }

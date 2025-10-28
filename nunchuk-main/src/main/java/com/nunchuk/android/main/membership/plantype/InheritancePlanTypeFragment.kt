@@ -37,7 +37,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButtonOption
@@ -46,8 +45,10 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.main.MembershipNavigationDirections
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -55,7 +56,6 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class InheritancePlanTypeFragment : MembershipFragment() {
     private val viewModel: InheritancePlanTypeViewModel by viewModels()
-    private val args: InheritancePlanTypeFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -71,10 +71,14 @@ class InheritancePlanTypeFragment : MembershipFragment() {
                         if (uiState.isPersonal) {
                             viewModel.onContinueClicked()
                         } else {
-                            uiState.walletTypeName?.let { walletTypeName ->
+                            uiState.walletType?.let { walletType ->
                                 findNavController().navigate(
-                                    InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToSelectWalletSetupFragment(
-                                        groupType = walletTypeName,
+                                    MembershipNavigationDirections.actionGlobalByzantineInviteMembersFragment(
+                                        groupId = "",
+                                        members = emptyArray(),
+                                        flow = ByzantineMemberFlow.SETUP,
+                                        setupPreference = uiState.setupPreference ?: "",
+                                        groupType = walletType,
                                         inheritancePlanType = uiState.selectedPlanType.name
                                     )
                                 )
@@ -101,6 +105,11 @@ class InheritancePlanTypeFragment : MembershipFragment() {
                     )
                     requireActivity().finish()
                 }
+                is InheritancePlanTypeEvent.NavigateToChangeTimelock -> {
+                    findNavController().navigate(
+                        InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToChangeTimeLockFragment()
+                    )
+                }
             }
         }
     }
@@ -115,7 +124,8 @@ private fun InheritancePlanTypeScreen(
     InheritancePlanTypeContent(
         selectedPlanType = uiState.selectedPlanType,
         onPlanTypeSelected = viewModel::onPlanTypeSelected,
-        onContinueClicked = onContinueClicked
+        onContinueClicked = onContinueClicked,
+        changeTimelockFlow = uiState.changeTimelockFlow
     )
 }
 
@@ -123,7 +133,8 @@ private fun InheritancePlanTypeScreen(
 private fun InheritancePlanTypeContent(
     selectedPlanType: InheritancePlanType = InheritancePlanType.OFF_CHAIN,
     onPlanTypeSelected: (InheritancePlanType) -> Unit = {},
-    onContinueClicked: () -> Unit = {}
+    onContinueClicked: () -> Unit = {},
+    changeTimelockFlow: Boolean? = null
 ) {
     NunchukTheme {
         Scaffold(
@@ -164,7 +175,12 @@ private fun InheritancePlanTypeContent(
                 NcRadioButtonOption(
                     modifier = Modifier.fillMaxWidth(),
                     isSelected = selectedPlanType == InheritancePlanType.OFF_CHAIN,
-                    onClick = { onPlanTypeSelected(InheritancePlanType.OFF_CHAIN) }
+                    onClick = { 
+                        if (changeTimelockFlow == null) {
+                            onPlanTypeSelected(InheritancePlanType.OFF_CHAIN)
+                        }
+                    },
+                    showRadioButton = changeTimelockFlow == null
                 ) {
                     Column {
                         Row(
@@ -216,7 +232,12 @@ private fun InheritancePlanTypeContent(
                 NcRadioButtonOption(
                     modifier = Modifier.fillMaxWidth(),
                     isSelected = selectedPlanType == InheritancePlanType.ON_CHAIN,
-                    onClick = { onPlanTypeSelected(InheritancePlanType.ON_CHAIN) }
+                    onClick = { 
+                        if (changeTimelockFlow == null) {
+                            onPlanTypeSelected(InheritancePlanType.ON_CHAIN)
+                        }
+                    },
+                    showRadioButton = changeTimelockFlow == null
                 ) {
                     Column {
                         Row(

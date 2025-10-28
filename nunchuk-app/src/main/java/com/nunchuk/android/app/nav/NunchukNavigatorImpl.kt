@@ -36,6 +36,7 @@ import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.referral.ReferralArgs
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
+import com.nunchuk.android.nav.args.MembershipArgs
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
@@ -246,28 +247,32 @@ interface AppNavigatorDelegate : AppNavigator {
         isClearTop: Boolean,
         quickWalletParam: QuickWalletParam?,
         inheritanceType: String?,
-        replacedWalletId: String?
+        replacedWalletId: String?,
+        changeTimelockFlow: Int
     ) {
+        val args = MembershipArgs(
+            groupStep = groupStep,
+            walletId = walletId,
+            groupId = groupId,
+            isPersonalWallet = isPersonalWallet,
+            walletType = walletType,
+            slug = slug,
+            walletTypeName = walletTypeName,
+            quickWalletParam = quickWalletParam,
+            inheritanceType = inheritanceType,
+            replacedWalletId = replacedWalletId,
+            changeTimelockFlow = changeTimelockFlow
+        )
+        
         val intent = if (groupStep == MembershipStage.CREATE_WALLET_SUCCESS) {
             MembershipActivity.openWalletCreatedSuccessIntent(
                 activity = activityContext,
-                walletId = walletId.orEmpty(),
-                replacedWalletId = replacedWalletId.orEmpty(),
-                groupId = groupId,
-                quickWalletParam = quickWalletParam
+                args = args
             )
         } else {
             MembershipActivity.buildIntent(
                 activity = activityContext,
-                groupStep = groupStep,
-                walletId = walletId,
-                groupId = groupId,
-                isPersonalWallet = isPersonalWallet,
-                walletType = walletType,
-                slug = slug,
-                walletTypeName = walletTypeName,
-                quickWalletParam = quickWalletParam,
-                inheritanceType = inheritanceType
+                args = args
             )
         }.apply {
             if (isClearTop) {

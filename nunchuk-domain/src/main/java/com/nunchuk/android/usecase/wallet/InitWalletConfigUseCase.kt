@@ -14,12 +14,11 @@ class InitWalletConfigUseCase @Inject constructor(
 ) : UseCase<InitWalletConfigUseCase.Param, Unit>(dispatcher) {
 
     override suspend fun execute(parameters: Param) {
-        repository.initWallet(parameters.walletConfig, parameters.groupId, parameters.walletType)
+        repository.initWallet(parameters.walletConfig, parameters.walletType)
     }
 
     data class Param(
         val walletConfig: WalletConfig,
-        val groupId: String? = null,
         val walletType: WalletType? = null
     )
 }

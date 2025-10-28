@@ -60,6 +60,8 @@ import com.nunchuk.android.core.util.showWarning
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivityArgs
+import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.nav.args.MembershipArgs
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationEvent
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationViewModel
 import com.nunchuk.android.model.SingleSigner
@@ -352,8 +354,11 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                         startActivity(
                             MembershipActivity.openRegisterWalletIntent(
                                 activity = requireActivity(),
-                                walletId = activityArgs.walletId,
-                                groupId = activityArgs.groupId.orEmpty(),
+                                args = MembershipArgs(
+                                    groupStep = MembershipStage.REGISTER_WALLET,
+                                    walletId = activityArgs.walletId,
+                                    groupId = activityArgs.groupId.orEmpty()
+                                )
                             )
                         )
                     },

@@ -38,9 +38,7 @@ import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
-import com.nunchuk.android.main.MembershipNavigationDirections
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.model.byzantine.ByzantinePreferenceSetup
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -57,14 +55,12 @@ class SelectWalletSetupFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 SelectWalletSetupScreen(
-                    onContinueClicked = {
+                    onContinueClicked = { setupPreference ->
                         findNavController().navigate(
-                            MembershipNavigationDirections.actionGlobalByzantineInviteMembersFragment(
-                                setupPreference = it,
-                                groupType = args.groupType,
-                                members = emptyArray(),
-                                flow = ByzantineMemberFlow.SETUP,
-                                inheritancePlanType = args.inheritancePlanType
+                            SelectWalletSetupFragmentDirections.actionSelectWalletSetupFragmentToInheritancePlanTypeFragment(
+                                isPersonal = false,
+                                walletType = args.groupType,
+                                setupPreference = setupPreference
                             )
                         )
                     },

@@ -523,7 +523,6 @@ interface PremiumWalletRepository {
 
     suspend fun initWallet(
         walletConfig: WalletConfig,
-        groupId: String?,
         walletType: WalletType? = null
     )
 

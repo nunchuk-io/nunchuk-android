@@ -132,12 +132,6 @@ internal interface GroupWalletApi {
         @Query("derivation_path") derivationPath: String,
     ): Data<CreateServerKeyResponse>
 
-    @POST("/v1.1/group-wallets/groups/{group_id}/draft-wallets/init")
-    suspend fun initDraftWallet(
-        @Path("group_id") groupId: String,
-        @Body config: InitWalletConfigRequest
-    ): Data<DraftWalletResponse>
-
     @GET("/v1.1/group-wallets/groups/{group_id}/draft-wallets/current")
     suspend fun getDraftWallet(@Path("group_id") groupId: String): Data<DraftWalletResponse>
 

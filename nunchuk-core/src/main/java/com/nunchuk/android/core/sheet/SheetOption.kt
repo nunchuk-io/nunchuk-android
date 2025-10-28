@@ -168,4 +168,5 @@ object SheetOptionType {
     const val TYPE_RECOVER_GROUP_WALLET_BSMS = 101
     const val TYPE_EXPORT_DESCRIPTOR = 102
     const val TYPE_EXPORT_QR_DESCRIPTOR = 103
+    const val TYPE_CHANGE_ON_CHAIN_TIMELOCK = 104
 }

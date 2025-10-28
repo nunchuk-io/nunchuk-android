@@ -311,18 +311,6 @@
         android:id="@+id/inheritancePlanTypeFragment"
         android:name="com.nunchuk.android.main.membership.plantype.InheritancePlanTypeFragment"
         android:label="InheritancePlanTypeFragment">
-        
-        <argument
-            android:name="group_id"
-            android:defaultValue="@null"
-            app:argType="string"
-            app:nullable="true" />
-        
-        <argument
-            android:name="role"
-            android:defaultValue="@null"
-            app:argType="string"
-            app:nullable="true" />
 
         <argument
             android:name="slug"
@@ -342,46 +330,29 @@
             app:argType="boolean" />
 
         <argument
-            android:name="wallet_type_name"
+            android:name="change_timelock_flow"
+            android:defaultValue="-1"
+            app:argType="integer" />
+
+        <argument
+            android:name="setup_preference"
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
 
         <action
-            android:id="@+id/action_inheritancePlanTypeFragment_to_addKeyListFragment"
-            app:destination="@id/addKeyListFragment"
+            android:id="@+id/action_inheritancePlanTypeFragment_to_changeTimeLockFragment"
+            app:destination="@id/changeTimeLockFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <action
-            android:id="@+id/action_inheritancePlanTypeFragment_to_onChainTimelockExplanationFragment"
-            app:destination="@id/onChainTimelockExplanationFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <action
-            android:id="@+id/action_inheritancePlanTypeFragment_to_selectWalletSetupFragment"
-            app:destination="@id/selectWalletSetupFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <action
-            android:id="@+id/action_inheritancePlanTypeFragment_to_addByzantineKeyListFragment"
-            app:destination="@id/addByzantineKeyListFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <action
-            android:id="@+id/action_inheritancePlanTypeFragment_to_onChainTimelockByzantineAddKeyFragment"
-            app:destination="@id/onChainTimelockByzantineAddKeyFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/changeTimeLockFragment"
+        android:name="com.nunchuk.android.main.membership.onchaintimelock.ChangeTimeLockFragment"
+        android:label="ChangeTimeLockFragment">
     </fragment>
 
     <fragment
@@ -643,6 +614,13 @@
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
+        <action
+            android:id="@+id/action_selectWalletSetupFragment_to_inheritancePlanTypeFragment"
+            app:destination="@id/inheritancePlanTypeFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment

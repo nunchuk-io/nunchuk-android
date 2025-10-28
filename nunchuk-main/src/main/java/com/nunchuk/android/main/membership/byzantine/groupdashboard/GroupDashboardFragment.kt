@@ -45,6 +45,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessState
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
+import com.nunchuk.android.nav.args.MembershipArgs
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentActivity
 import com.nunchuk.android.main.membership.model.toGroupWalletType
@@ -381,8 +382,11 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                     registerWalletLauncher.launch(
                         MembershipActivity.openRegisterWalletIntent(
                             activity = requireActivity(),
-                            groupId = viewModel.getGroupId(),
-                            walletId = viewModel.getWalletId(),
+                            args = MembershipArgs(
+                                groupStep = MembershipStage.REGISTER_WALLET,
+                                groupId = viewModel.getGroupId(),
+                                walletId = viewModel.getWalletId()
+                            )
                         )
                     )
                 }
