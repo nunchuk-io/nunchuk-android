@@ -109,7 +109,6 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
         }
     }
 
-    // Public methods for Fragment to interact with NFC functionality
     fun requestTapSignerCaching() {
         startNfcFlow(REQUEST_NFC_TOPUP_XPUBS, "Please rescan your TAPSIGNER to get a new XPUB")
     }

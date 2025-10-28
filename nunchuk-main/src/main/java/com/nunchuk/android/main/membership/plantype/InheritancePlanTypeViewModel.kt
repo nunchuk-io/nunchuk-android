@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.SetLocalMembershipPlanFlowUseCase
+import com.nunchuk.android.core.util.InheritancePlanType
 import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.toMembershipPlan

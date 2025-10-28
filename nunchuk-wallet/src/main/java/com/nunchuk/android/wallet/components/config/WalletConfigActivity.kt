@@ -39,6 +39,7 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.ExportWalletQRCodeType
+import com.nunchuk.android.core.util.InheritancePlanType
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
 import com.nunchuk.android.core.util.RollOverWalletFlow
 import com.nunchuk.android.core.util.RollOverWalletSource
@@ -55,6 +56,7 @@ import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
 import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isKeyHolderWithoutKeyHolderLimited
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
+import com.nunchuk.android.model.byzantine.isNone
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.utils.parcelable
@@ -318,10 +320,11 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 navigator.openMembershipActivity(
                     activityContext = this,
                     groupStep = MembershipStage.NONE,
-                    isPersonalWallet = true,
+                    isPersonalWallet = viewModel.getRole().isNone,
                     walletId = args.walletId,
                     groupId = viewModel.getGroupId().orEmpty(),
-                    changeTimelockFlow = changeTimelockFlow
+                    changeTimelockFlow = changeTimelockFlow,
+                    inheritanceType = if (changeTimelockFlow == 0) InheritancePlanType.ON_CHAIN.name else InheritancePlanType.OFF_CHAIN.name
                 )
             }
 

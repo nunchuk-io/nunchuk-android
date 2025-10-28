@@ -42,6 +42,8 @@ class ChangeTimelockViewModel @Inject constructor(
 
     fun onContinueClicked() {
         viewModelScope.launch {
+            _event.emit(ChangeTimelockEvent.ChangeTimelockSuccess)
+            return@launch
             _state.update { it.copy(isLoading = true) }
             changeTimelockTypeUseCase(
                 ChangeTimelockTypeUseCase.Param(
