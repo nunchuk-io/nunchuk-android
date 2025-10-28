@@ -287,9 +287,6 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         }
     }
 
-    private fun isSignerExist(masterSignerId: String) =
-        membershipStepManager.isKeyExisted(masterSignerId)
-
     fun onVerifyClicked(data: AddKeyOnChainData) {
         viewModelScope.launch {
             // Find the first step that needs verification (has signer but needs verification)
@@ -645,7 +642,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
     }
 
     private fun getStepInfo(step: MembershipStep) =
-        membershipStepState.value.find { it.step == step } ?: run {
+        membershipStepState.value.filter { it.plan == MembershipPlan.BYZANTINE }.find { it.step == step } ?: run {
             MembershipStepInfo(step = step, groupId = args.groupId)
         }
 
@@ -709,45 +706,6 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         return runCatching {
             gson.fromJson(extra, SignerExtra::class.java).userKeyFileName
         }.getOrDefault("")
-    }
-
-    suspend fun filterSignersByTypeAndIndex(
-        signers: List<SignerModel>,
-        signerTag: SignerTag
-    ): List<SignerModel> {
-        return signers.filter { signer ->
-            // Filter by signer type and tag based on the selected SignerTag
-            val matchesType = when (signerTag) {
-                SignerTag.COLDCARD -> signer.type == SignerType.COLDCARD_NFC || signer.tags.contains(
-                    SignerTag.COLDCARD
-                )
-
-                SignerTag.JADE -> signer.type == SignerType.AIRGAP && signer.tags.contains(SignerTag.JADE)
-                SignerTag.LEDGER -> signer.type == SignerType.HARDWARE && signer.tags.contains(
-                    SignerTag.LEDGER
-                )
-
-                SignerTag.TREZOR -> signer.type == SignerType.HARDWARE && signer.tags.contains(
-                    SignerTag.TREZOR
-                )
-
-                SignerTag.BITBOX -> signer.type == SignerType.HARDWARE && signer.tags.contains(
-                    SignerTag.BITBOX
-                )
-
-                else -> false
-            }
-
-            if (!matchesType) return@filter false
-
-            // Filter by derivation path index = 1
-            try {
-                val index = getIndexFromPathUseCase(signer.derivationPath).getOrThrow()
-                index == 1
-            } catch (e: Exception) {
-                false
-            }
-        }
     }
 
     suspend fun getCurrentIndexFromMasterSigner(fingerPrint: String): Result<Int> {

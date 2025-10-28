@@ -32,7 +32,6 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.main.membership.model.AddKeyOnChainData
@@ -677,15 +676,6 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
             )
         }
 
-    fun getTapSigners() =
-        _state.value.signers.filter { it.type == SignerType.NFC && isSignerExist(it.fingerPrint).not() }
-
-    fun getColdcard() = _state.value.signers.filter {
-        isSignerExist(it.fingerPrint).not()
-                && ((it.type == SignerType.COLDCARD_NFC && it.derivationPath.isRecommendedMultiSigPath)
-                || (it.type == SignerType.AIRGAP && (it.tags.isEmpty() || it.tags.contains(SignerTag.COLDCARD))))
-    }
-
     fun getHardwareSigners(tag: SignerTag) =
         _state.value.signers.filter {
             isSignerExist(it.fingerPrint).not() && it.type == SignerType.HARDWARE && it.tags.contains(
@@ -693,88 +683,10 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
             )
         }
 
-    fun getAirgap(tag: SignerTag?): List<SignerModel> {
-        return if (tag == null) {
-            _state.value.signers.filter {
-                it.type == SignerType.AIRGAP
-                        && isSignerExist(it.fingerPrint).not()
-            }
-        } else {
-            _state.value.signers.filter {
-                it.type == SignerType.AIRGAP
-                        && isSignerExist(it.fingerPrint).not()
-                        && (it.tags.contains(tag) || it.tags.isEmpty())
-            }
-        }
-    }
-
-    fun getPortal(): List<SignerModel> =
-        _state.value.signers.filter { it.type == SignerType.PORTAL_NFC && isSignerExist(it.fingerPrint).not() }
-
     private fun getBackUpFileName(extra: String): String {
         return runCatching {
             gson.fromJson(extra, SignerExtra::class.java).userKeyFileName
         }.getOrDefault("")
-    }
-
-    suspend fun filterSignersByTypeAndIndex(
-        signers: List<SignerModel>,
-        signerTag: SignerTag
-    ): List<SignerModel> {
-        return signers.filter { signer ->
-            // Filter by signer type and tag based on the selected SignerTag
-            val matchesType = when (signerTag) {
-                SignerTag.COLDCARD -> signer.type == SignerType.COLDCARD_NFC || signer.tags.contains(
-                    SignerTag.COLDCARD
-                )
-
-                SignerTag.JADE -> signer.type == SignerType.AIRGAP && signer.tags.contains(SignerTag.JADE)
-                SignerTag.LEDGER -> signer.type == SignerType.HARDWARE && signer.tags.contains(
-                    SignerTag.LEDGER
-                )
-
-                SignerTag.TREZOR -> signer.type == SignerType.HARDWARE && signer.tags.contains(
-                    SignerTag.TREZOR
-                )
-
-                SignerTag.BITBOX -> signer.type == SignerType.HARDWARE && signer.tags.contains(
-                    SignerTag.BITBOX
-                )
-
-                else -> false
-            }
-
-            if (!matchesType) return@filter false
-
-            // Filter by derivation path index = 1
-            try {
-                val index = getIndexFromPathUseCase(signer.derivationPath).getOrThrow()
-                index == 1
-            } catch (e: Exception) {
-                false
-            }
-        }
-    }
-
-    /**
-     * Checks whether index = 1 of a given SignerModel has already been used in any Assisted Wallet.
-     * @param signer The SignerModel to check
-     * @return true if index = 1 of this signer's fingerprint is already used in an assisted wallet, false otherwise
-     */
-    suspend fun isIndex1UsedInAssistedWallet(signer: SignerModel): Boolean {
-        return _state.value.signers
-            .filter { it.fingerPrint == signer.fingerPrint }
-            .any { signerWithSameFingerprint ->
-                try {
-                    val index =
-                        getIndexFromPathUseCase(signerWithSameFingerprint.derivationPath).getOrThrow()
-                    index == 1 && checkAssistedSignerExistenceHelper.isInAssistedWallet(
-                        signerWithSameFingerprint
-                    )
-                } catch (e: Exception) {
-                    false
-                }
-            }
     }
 
     /**

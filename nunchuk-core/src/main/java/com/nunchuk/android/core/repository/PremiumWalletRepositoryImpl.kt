@@ -1999,6 +1999,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             MembershipStepInfo(
                 step = MembershipStep.TIMELOCK,
                 verifyType = VerifyType.SELF_VERIFIED,
+                extraData = timelockValue.toString(),
                 plan = plan,
                 groupId = groupId.orEmpty()
             )

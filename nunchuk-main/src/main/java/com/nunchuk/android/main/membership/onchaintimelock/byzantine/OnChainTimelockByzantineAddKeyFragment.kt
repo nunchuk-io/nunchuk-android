@@ -906,7 +906,7 @@ private fun AddKeyCard(
                                     )
                                     val firstAcctLabel = signers.firstOrNull()?.let { firstSigner ->
                                         if (firstSigner.isShowAcctX(true)) {
-                                            stringResource(R.string.nc_acct_x, firstSigner.index)
+                                            stringResource(R.string.nc_acct_x, if (firstSigner.index >= 0) firstSigner.index else 0)
                                         } else {
                                             "Acct X"
                                         }
@@ -924,8 +924,7 @@ private fun AddKeyCard(
                                         signers.getOrNull(1)?.let { secondSigner ->
                                             if (secondSigner.isShowAcctX(true)) {
                                                 stringResource(
-                                                    R.string.nc_acct_x,
-                                                    secondSigner.index
+                                                    R.string.nc_acct_x, if (secondSigner.index >= 0) secondSigner.index else 0
                                                 )
                                             } else {
                                                 "Acct Y"

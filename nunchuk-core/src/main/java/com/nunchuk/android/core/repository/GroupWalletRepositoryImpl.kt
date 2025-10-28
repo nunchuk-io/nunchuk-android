@@ -91,6 +91,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             MembershipStepInfo(
                 step = MembershipStep.TIMELOCK,
                 verifyType = VerifyType.NONE,
+                extraData = timelockValue.toString(),
                 plan = plan,
                 groupId = groupId
             )
