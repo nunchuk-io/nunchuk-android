@@ -29,14 +29,18 @@ import com.nunchuk.android.main.membership.plantype.InheritancePlanType
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
@@ -81,10 +85,8 @@ class AddKeyStepViewModel @Inject constructor(
     val draftWalletType: WalletType?
         get() = _draftWalletType.value
 
-    val isConfigKeyDone =
-        combine(membershipStepManager.stepDone, currentStage, _draftWalletType) { _, stage, walletType ->
-            membershipStepManager.isConfigKeyDone(walletType ?: WalletType.MULTI_SIG) || stage == MembershipStage.SETUP_INHERITANCE
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    private val _isConfigKeyDone = MutableStateFlow(false)
+    val isConfigKeyDone = _isConfigKeyDone.asStateFlow()
 
     val isSetupRecoverKeyDone = membershipStepManager.isConfigRecoverKeyDone
 
@@ -120,6 +122,8 @@ class AddKeyStepViewModel @Inject constructor(
             )
         }.stateIn(viewModelScope, SharingStarted.Eagerly, IntArray(4))
 
+    private var refreshJob: Job? = null
+
     init {
         viewModelScope.launch {
             currentStep.filterNotNull().collect {
@@ -129,8 +133,26 @@ class AddKeyStepViewModel @Inject constructor(
         viewModelScope.launch {
             getSecurityQuestionUseCase(GetSecurityQuestionUseCase.Param(isFilterAnswer = false,))
         }
-        viewModelScope.launch {
-            _draftWalletType.value = syncDraftWalletUseCase("").getOrNull()?.walletType
+        refresh()
+    }
+
+    fun refresh() {
+        if (refreshJob?.isActive == true) return
+        refreshJob = viewModelScope.launch {
+            val draftWallet = syncDraftWalletUseCase("").getOrNull() ?: return@launch
+            _draftWalletType.value = draftWallet.walletType
+            
+            val isConfigDone = if (draftWallet.walletType == WalletType.MINISCRIPT) {
+                val isSignerCountCorrect = draftWallet.signers.size == draftWallet.config.n * 2 - 1
+                val isTimelockSet = draftWallet.timelock > 0
+                val areInheritanceSignersVerified = draftWallet.signers.all { signer ->
+                    !signer.tags.contains(SignerTag.INHERITANCE.name) || signer.verifyType != VerifyType.NONE
+                }
+                isSignerCountCorrect && isTimelockSet && areInheritanceSignersVerified
+            } else {
+                draftWallet.config.n == draftWallet.signers.size
+            }
+            _isConfigKeyDone.value = membershipStepManager.isCreatedAssistedWalletDone() || isConfigDone || currentStage.value == MembershipStage.SETUP_INHERITANCE
         }
     }
 

@@ -102,6 +102,11 @@ class AddKeyStepFragment : MembershipFragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.refresh()
+    }
+
     private fun handleOpenRegisterAirgap(walletId: String) {
         findNavController().navigate(
             AddKeyStepFragmentDirections.actionAddKeyStepFragmentToRegisterWalletToAirgapFragment(
