@@ -447,4 +447,20 @@
     <string name="nc_use_hardware_device">Use hardware device</string>
     <string name="nc_enter_seed_phrase_directly">Enter seed phrase directly</string>
     <string name="nc_recommended">Recommended</string>
+    
+    <!-- Prepare inheritance key screen -->
+    <string name="nc_prepare_inheritance_key">Prepare inheritance key</string>
+    <string name="nc_prepare_inheritance_key_desc">As part of your inheritance plan, you should have received either:\n\n• A hardware signing device initialized with the inheritance key, or\n• A seed phrase backup (12 or 24 English words) for the inheritance key.\n\nOr you might have both.</string>
+    <string name="nc_inheritance_key_how_proceed">How would you like to proceed?</string>
+    <string name="nc_i_have_hardware_device">I have a hardware device initialized with the inheritance key</string>
+    <string name="nc_i_have_seed_phrase_backup">I have a seed phrase backup for the inheritance key</string>
+    
+    <!-- Restore seed phrase to hardware device screen -->
+    <string name="nc_restore_seed_phrase_hardware_device">Restore seed phrase to hardware device</string>
+    <string name="nc_restore_hardware_step_1">Make sure your hardware and firmware are Miniscript-compatible</string>
+    <string name="nc_restore_hardware_step_2">Turn on your hardware signing device</string>
+    <string name="nc_restore_hardware_step_3">Refer to your device\'s instruction manual and locate the Restore from BIP39 seed phrase option</string>
+    <string name="nc_restore_hardware_step_4">Enter the seed phrase carefully on the device</string>
+    <string name="nc_restore_hardware_step_5">Confirm the device is ready and continue to verification</string>
+    <string name="nc_restore_seed_phrase_warning">Only enter your seed phrase on a trusted hardware device you control.</string>
 </resources>

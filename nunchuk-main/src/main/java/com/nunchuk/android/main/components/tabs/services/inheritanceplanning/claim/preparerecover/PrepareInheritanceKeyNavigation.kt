@@ -6,20 +6,21 @@ import androidx.navigation.compose.composable
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object PrepareRecoverInheritanceKeyRoute
+data object PrepareInheritanceKeyRoute
 
-fun NavGraphBuilder.recoverInheritanceKey(
+fun NavGraphBuilder.prepareInheritanceKey(
     onBackPressed: () -> Unit = {},
-    onContinue: (Boolean) -> Unit = {},
+    onContinue: (InheritanceOption) -> Unit = {},
 ) {
-    composable<PrepareRecoverInheritanceKeyRoute> {
-        RecoverInheritanceKeyScreen(
+    composable<PrepareInheritanceKeyRoute> {
+        PrepareInheritanceKeyScreen(
             onBackPressed = onBackPressed,
             onContinue = onContinue,
         )
     }
 }
 
-fun NavController.navigateToRecoverInheritanceKey() {
-    navigate(PrepareRecoverInheritanceKeyRoute)
+fun NavController.navigateToPrepareInheritanceKey() {
+    navigate(PrepareInheritanceKeyRoute)
 }
+
