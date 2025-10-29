@@ -50,7 +50,7 @@ internal fun InheritanceDto.toInheritance(): Inheritance {
     )
 }
 
-private fun InheritanceNotificationPreferencesDto.toInheritanceNotificationSettings(): InheritanceNotificationSettings {
+internal fun InheritanceNotificationPreferencesDto.toInheritanceNotificationSettings(): InheritanceNotificationSettings {
     val perEmailSettings = beneficiaryNotifications?.map { it.toEmailNotificationSettings() } ?: emptyList()
     
     return InheritanceNotificationSettings(
@@ -59,7 +59,7 @@ private fun InheritanceNotificationPreferencesDto.toInheritanceNotificationSetti
     )
 }
 
-private fun BeneficiaryNotificationDto.toEmailNotificationSettings(): EmailNotificationSettings {
+internal fun BeneficiaryNotificationDto.toEmailNotificationSettings(): EmailNotificationSettings {
     return EmailNotificationSettings(
         email = email.orEmpty(),
         notifyOnTimelockExpiry = notifyTimelockExpires ?: false,

@@ -79,7 +79,12 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
                         }
 
                         getWalletDetail2UseCase(param.walletId).onSuccess { wallet ->
-                            _state.update { it.copy(walletName = wallet.name) }
+                            _state.update {
+                                it.copy(
+                                    walletName = wallet.name,
+                                    isMiniscriptWallet = wallet.miniscript.isNotEmpty()
+                                )
+                            }
                         }
                     }
                 }.onFailure {
@@ -92,9 +97,11 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
 
     private fun loadMembers() {
         viewModelScope.launch {
+            val myEmail = accountManager.getAccount().email
+            _state.update { it.copy(userEmail = myEmail) }
             getGroupRemoteUseCase(GetGroupRemoteUseCase.Params(param.groupId)).onSuccess { group ->
                 val myEmail = accountManager.getAccount().email
-                val members = group?.members.orEmpty().mapNotNull { member ->
+                val members = group.members.mapNotNull { member ->
                     if (member.role.toRole.isKeyHolder) {
                         AssistedMember(
                             role = member.role,
@@ -175,10 +182,12 @@ data class InheritanceReviewPlanGroupState(
     val members: List<AssistedMember> = emptyList(),
     val dummyTransactionId: String = "",
     val walletName: String = "",
+    val isMiniscriptWallet: Boolean = false,
     val requestByUserId: String = "",
     val requiredSignature: CalculateRequiredSignatures = CalculateRequiredSignatures(),
     val pendingSignatures: Int = 0,
     val myRole: AssistedWalletRole = AssistedWalletRole.NONE,
     val type: DummyTransactionType = DummyTransactionType.NONE,
+    val userEmail: String = "",
 )
 

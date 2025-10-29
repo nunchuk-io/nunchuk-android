@@ -75,15 +75,12 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
-import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.ui.TimeZoneDetail
-import com.nunchuk.android.core.ui.toTimeZoneDetail
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.openExternalLink
@@ -106,7 +103,6 @@ import com.nunchuk.android.utils.simpleGlobalDateFormat
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Date
-import java.util.TimeZone
 
 @AndroidEntryPoint
 class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionListener {
@@ -744,7 +740,6 @@ fun InheritanceReviewPlanScreenContent(
                     // User Notification Settings (Owner Email)
                     item {
                         UserNotificationSettingsContent(
-                            emailSettings = setupOrReviewParam.notificationSettings.perEmailSettings.first(),
                             emailMeWalletConfig = setupOrReviewParam.notificationSettings.emailMeWalletConfig,
                             userEmail = userEmail
                         )
@@ -770,123 +765,6 @@ fun InheritanceReviewPlanScreenContent(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun UserNotificationSettingsContent(
-    emailSettings: EmailNotificationSettings,
-    emailMeWalletConfig: Boolean,
-    userEmail: String = ""
-) {
-    Box(
-        modifier = Modifier
-            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-            .background(
-                color = MaterialTheme.colorScheme.greyLight,
-                shape = RoundedCornerShape(8.dp)
-            )
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                text = userEmail.ifEmpty { emailSettings.email },
-                style = NunchukTheme.typography.title
-            )
-
-            HorizontalDivider(
-                thickness = 1.dp,
-                color = MaterialTheme.colorScheme.whisper
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(id = com.nunchuk.android.core.R.string.nc_email_me_wallet_config_when_changes),
-                    style = NunchukTheme.typography.body,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = if (emailMeWalletConfig) stringResource(id = R.string.nc_text_yes) else stringResource(
-                        id = R.string.nc_text_no
-                    ),
-                    style = NunchukTheme.typography.title
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ProviderNotificationSettingsContent(
-    emailSettings: EmailNotificationSettings
-) {
-    Box(
-        modifier = Modifier
-            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-            .background(
-                color = MaterialTheme.colorScheme.greyLight,
-                shape = RoundedCornerShape(8.dp)
-            )
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                text = emailSettings.email,
-                style = NunchukTheme.typography.title
-            )
-
-            HorizontalDivider(
-                thickness = 1.dp,
-                color = MaterialTheme.colorScheme.strokePrimary
-            )
-
-            NotificationSettingRow(
-                label = stringResource(id = com.nunchuk.android.core.R.string.nc_notify_when_timelock_expires),
-                value = emailSettings.notifyOnTimelockExpiry
-            )
-
-            NotificationSettingRow(
-                label = stringResource(id = com.nunchuk.android.core.R.string.nc_notify_when_wallet_changes),
-                value = emailSettings.notifyOnWalletChanges
-            )
-
-            NotificationSettingRow(
-                label = stringResource(id = com.nunchuk.android.core.R.string.nc_also_include_wallet_configuration),
-                value = emailSettings.includeWalletConfiguration
-            )
-        }
-    }
-}
-
-@Composable
-fun NotificationSettingRow(
-    label: String,
-    value: Boolean
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = NunchukTheme.typography.body,
-            modifier = Modifier.weight(1f)
-        )
-        Text(
-            text = if (value) stringResource(id = R.string.nc_text_yes) else stringResource(id = R.string.nc_text_no),
-            style = NunchukTheme.typography.title
-        )
     }
 }
 
@@ -1019,70 +897,6 @@ fun SpecialDetailPlanItem(
     }
 }
 
-@Composable
-fun ActivationDateItem(
-    activationDate: String = "January 1, 2024",
-    timeZoneId: String = "",
-    editable: Boolean = false,
-    onClick: () -> Unit = {}
-) {
-    val timeZoneDetail = if (timeZoneId.isNotEmpty()) {
-        timeZoneId.toTimeZoneDetail()
-    } else {
-        TimeZone.getDefault().id.toTimeZoneDetail()
-    } ?: TimeZoneDetail()
-
-    val timeZoneDisplay =
-        if (timeZoneDetail.city.isNotEmpty() && timeZoneDetail.offset.isNotEmpty()) {
-            "${timeZoneDetail.city} (${timeZoneDetail.offset})"
-        } else {
-            timeZoneDetail.id.ifEmpty { TimeZone.getDefault().id }
-        }
-
-    Row(
-        modifier = Modifier
-            .background(
-                color = Color.Black.copy(alpha = 0.2f),
-                shape = RoundedCornerShape(12.dp)
-            )
-            .padding(12.dp)
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_calendar_light),
-            tint = Color.White,
-            contentDescription = ""
-        )
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = activationDate,
-                style = NunchukTheme.typography.title,
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = timeZoneDisplay,
-                style = NunchukTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.8f)
-            )
-        }
-        if (editable) {
-            Text(
-                modifier = Modifier.clickable {
-                    onClick()
-                },
-                text = stringResource(id = R.string.nc_change),
-                color = colorResource(id = R.color.nc_white_color),
-                style = NunchukTheme.typography.title,
-                textDecoration = TextDecoration.Underline,
-            )
-        }
-    }
-}
-
 @PreviewLightDark
 @Composable
 private fun DetailPlanItemPreview() {
@@ -1100,12 +914,6 @@ private fun DetailPlanItemPreview() {
 private fun UserNotificationSettingsPreview() {
     NunchukTheme {
         UserNotificationSettingsContent(
-            emailSettings = EmailNotificationSettings(
-                email = "owner@example.com",
-                notifyOnTimelockExpiry = true,
-                notifyOnWalletChanges = true,
-                includeWalletConfiguration = true
-            ),
             emailMeWalletConfig = true,
             userEmail = "user@example.com"
         )

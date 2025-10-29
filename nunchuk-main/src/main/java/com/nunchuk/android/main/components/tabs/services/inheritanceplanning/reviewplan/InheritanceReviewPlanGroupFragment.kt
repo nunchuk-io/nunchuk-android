@@ -15,10 +15,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -43,7 +42,6 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlFillPrimary
 import com.nunchuk.android.compose.greyLight
-import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.util.flowObserver
@@ -54,16 +52,15 @@ import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.model.byzantine.DummyTransactionType
-import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.simpleGlobalDateFormat
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Date
-import javax.inject.Inject
 
 @AndroidEntryPoint
-class InheritanceReviewPlanGroupGroupFragment : MembershipFragment(), BottomSheetOptionListener {
+class InheritanceReviewPlanGroupFragment : MembershipFragment(), BottomSheetOptionListener {
 
     private val viewModel: InheritanceReviewPlanGroupViewModel by viewModels()
     private val inheritanceViewModel: InheritancePlanningViewModel by activityViewModels()
@@ -209,136 +206,191 @@ fun InheritanceReviewPlanGroupScreenContent(
     }
 
     NunchukTheme {
-        Scaffold { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
-                    .fillMaxSize()
-            ) {
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
                 NcTopAppBar(title = "")
-                LazyColumn(
-                    modifier = Modifier.weight(1.0f),
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp), onContinueClicked
                 ) {
-                    item {
-                        if (uiState.dummyTransactionId.isNotEmpty() && uiState.walletName.isNotEmpty()) {
+                    Text(
+                        text = stringResource(
+                            id = R.string.nc_text_continue_signature_pending,
+                            uiState.pendingSignatures
+                        )
+                    )
+                }
+            }
+        ) { innerPadding ->
+            LazyColumn(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+            ) {
+                item {
+                    if (uiState.dummyTransactionId.isNotEmpty() && uiState.walletName.isNotEmpty()) {
+                        Text(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            text = title,
+                            style = NunchukTheme.typography.heading
+                        )
+                        if (desc.isNotEmpty()) {
                             Text(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                text = title,
-                                style = NunchukTheme.typography.heading
+                                text = desc,
+                                style = NunchukTheme.typography.body,
+                                modifier = Modifier.padding(
+                                    top = 16.dp,
+                                    start = 16.dp,
+                                    end = 16.dp
+                                )
                             )
-                            if (desc.isNotEmpty()) {
+                        }
+                        if (uiState.type == DummyTransactionType.CANCEL_INHERITANCE_PLAN) return@item
+                        Column(
+                            modifier = Modifier.padding(
+                                start = 16.dp, end = 16.dp, top = 24.dp
+                            )
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.nc_activation_date),
+                                style = NunchukTheme.typography.title
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 12.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.greyLight,
+                                        shape = RoundedCornerShape(8.dp)
+                                    ),
+                                contentAlignment = Alignment.Center,
+                            ) {
                                 Text(
-                                    text = desc,
-                                    style = NunchukTheme.typography.body,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    text = Date(newData?.activationTimeMilis.orDefault(0L)).simpleGlobalDateFormat(),
+                                    style = NunchukTheme.typography.body.copy(
+                                        color = onTextColor(
+                                            newData?.activationTimeMilis != oldData?.activationTimeMilis
+                                        )
+                                    ),
+                                )
+                            }
+                        }
+
+                        Column(
+                            modifier = Modifier.padding(
+                                start = 16.dp, end = 16.dp, top = 24.dp
+                            )
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.nc_note_to_beneficiary_trustee),
+                                style = NunchukTheme.typography.title
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 12.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.greyLight,
+                                        shape = RoundedCornerShape(8.dp)
+                                    ),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    text = newData?.note.orEmpty()
+                                        .ifBlank { stringResource(id = R.string.nc_no_note) },
+                                    style = NunchukTheme.typography.body.copy(
+                                        color = onTextColor(
+                                            newData?.note != oldData?.note
+                                        )
+                                    ),
+                                )
+                            }
+                        }
+                        Column(
+                            modifier = Modifier.padding(
+                                start = 16.dp, end = 16.dp, top = 24.dp
+                            )
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.nc_buffer_period),
+                                style = NunchukTheme.typography.title
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 12.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.greyLight,
+                                        shape = RoundedCornerShape(8.dp)
+                                    ),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    text = newData?.bufferPeriod?.displayName.orEmpty()
+                                        .ifBlank { stringResource(id = R.string.nc_no_buffer) },
+                                    style = NunchukTheme.typography.body.copy(
+                                        color = onTextColor(
+                                            newData?.bufferPeriod?.id != oldData?.bufferPeriod?.id
+                                        )
+                                    ),
+                                )
+                            }
+                        }
+
+                        // Notification Preferences Section
+                        val newNotificationPreferences = newData?.notificationPreferences
+                        if (newNotificationPreferences != null && newNotificationPreferences.perEmailSettings.isNotEmpty()) {
+                            Column {
+                                Text(
                                     modifier = Modifier.padding(
-                                        top = 16.dp,
-                                        start = 16.dp,
-                                        end = 16.dp
-                                    )
-                                )
-                            }
-                            if (uiState.type == DummyTransactionType.CANCEL_INHERITANCE_PLAN) return@item
-                            Column(
-                                modifier = Modifier.padding(
-                                    start = 16.dp, end = 16.dp, top = 24.dp
-                                )
-                            ) {
-                                Text(
-                                    text = stringResource(id = R.string.nc_activation_date),
-                                    style = NunchukTheme.typography.title
+                                        start = 16.dp, end = 16.dp, top = 24.dp
+                                    ),
+                                    text = stringResource(id = R.string.nc_notification_preferences),
+                                    style = NunchukTheme.typography.title,
                                 )
 
-                                Box(
-                                    modifier = Modifier
-                                        .padding(top = 12.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.greyLight,
-                                            shape = RoundedCornerShape(8.dp)
-                                        ),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Text(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp),
-                                        text = Date(newData?.activationTimeMilis.orDefault(0L)).simpleGlobalDateFormat(),
-                                        style = NunchukTheme.typography.body.copy(
-                                            color = onTextColor(
-                                                newData?.activationTimeMilis != oldData?.activationTimeMilis
+                                // User Notification Settings (Owner Email)
+                                if (uiState.userEmail.isNotEmpty()) {
+                                    UserNotificationSettingsContent(
+                                        emailMeWalletConfig = newNotificationPreferences.emailMeWalletConfig,
+                                        userEmail = uiState.userEmail,
+                                        textColor = onTextColor(
+                                            !notificationPreferencesEqual(
+                                                newNotificationPreferences,
+                                                oldData?.notificationPreferences
                                             )
-                                        ),
+                                        )
+                                    )
+                                }
+
+                                // Provider Notification Settings (Beneficiary/Trustee Emails)
+                                newNotificationPreferences.perEmailSettings.forEach { emailSettings ->
+                                    ProviderNotificationSettingsContent(
+                                        emailSettings = emailSettings,
+                                        textColor = onTextColor(
+                                            !notificationPreferencesEqual(
+                                                newNotificationPreferences,
+                                                oldData?.notificationPreferences
+                                            )
+                                        )
                                     )
                                 }
                             }
-
-                            Column(
-                                modifier = Modifier.padding(
-                                    start = 16.dp, end = 16.dp, top = 24.dp
-                                )
-                            ) {
-                                Text(
-                                    text = stringResource(id = R.string.nc_note_to_beneficiary_trustee),
-                                    style = NunchukTheme.typography.title
-                                )
-
-                                Box(
-                                    modifier = Modifier
-                                        .padding(top = 12.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.greyLight,
-                                            shape = RoundedCornerShape(8.dp)
-                                        ),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Text(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp),
-                                        text = newData?.note.orEmpty()
-                                            .ifBlank { stringResource(id = R.string.nc_no_note) },
-                                        style = NunchukTheme.typography.body.copy(
-                                            color = onTextColor(
-                                                newData?.note != oldData?.note
-                                            )
-                                        ),
-                                    )
-                                }
-                            }
-                            Column(
-                                modifier = Modifier.padding(
-                                    start = 16.dp, end = 16.dp, top = 24.dp
-                                )
-                            ) {
-                                Text(
-                                    text = stringResource(id = R.string.nc_buffer_period),
-                                    style = NunchukTheme.typography.title
-                                )
-
-                                Box(
-                                    modifier = Modifier
-                                        .padding(top = 12.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.greyLight,
-                                            shape = RoundedCornerShape(8.dp)
-                                        ),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Text(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp),
-                                        text = newData?.bufferPeriod?.displayName.orEmpty()
-                                            .ifBlank { stringResource(id = R.string.nc_no_buffer) },
-                                        style = NunchukTheme.typography.body.copy(
-                                            color = onTextColor(
-                                                newData?.bufferPeriod?.id != oldData?.bufferPeriod?.id
-                                            )
-                                        ),
-                                    )
-                                }
-                            }
-
+                        } else {
+                            // Fallback to old format
                             Column(
                                 modifier = Modifier.padding(
                                     start = 16.dp, end = 16.dp, top = 24.dp
@@ -378,7 +430,7 @@ fun InheritanceReviewPlanGroupScreenContent(
                                             )
                                         }
 
-                                        Divider(
+                                        HorizontalDivider(
                                             modifier = Modifier.padding(
                                                 start = 16.dp,
                                                 end = 16.dp,
@@ -414,19 +466,25 @@ fun InheritanceReviewPlanGroupScreenContent(
                         }
                     }
                 }
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp), onContinueClicked
-                ) {
-                    Text(
-                        text = stringResource(
-                            id = R.string.nc_text_continue_signature_pending,
-                            uiState.pendingSignatures
-                        )
-                    )
-                }
             }
+        }
+    }
+}
+
+private fun notificationPreferencesEqual(
+    new: InheritanceNotificationSettings?,
+    old: InheritanceNotificationSettings?
+): Boolean {
+    if (new == null && old == null) return true
+    if (new == null || old == null) return false
+    if (new.emailMeWalletConfig != old.emailMeWalletConfig) return false
+    if (new.perEmailSettings.size != old.perEmailSettings.size) return false
+    return new.perEmailSettings.all { newSettings ->
+        old.perEmailSettings.any { oldSettings ->
+            oldSettings.email == newSettings.email &&
+                    oldSettings.notifyOnTimelockExpiry == newSettings.notifyOnTimelockExpiry &&
+                    oldSettings.notifyOnWalletChanges == newSettings.notifyOnWalletChanges &&
+                    oldSettings.includeWalletConfiguration == newSettings.includeWalletConfiguration
         }
     }
 }

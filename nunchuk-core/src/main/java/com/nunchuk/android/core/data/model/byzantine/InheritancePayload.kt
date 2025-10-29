@@ -1,10 +1,13 @@
 package com.nunchuk.android.core.data.model.byzantine
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.core.data.model.membership.InheritanceNotificationPreferencesDto
 import com.nunchuk.android.core.data.model.membership.PeriodResponse
+import com.nunchuk.android.core.mapper.toInheritanceNotificationSettings
 import com.nunchuk.android.core.mapper.toPeriod
 import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 
 class InheritancePayloadDto(
     @SerializedName("group_id")
@@ -33,7 +36,9 @@ class InheritanceDataExtendedDto(
     @SerializedName("group_id")
     val groupId: String? = null,
     @SerializedName("buffer_period")
-    val bufferPeriod: PeriodResponse.Data? = null
+    val bufferPeriod: PeriodResponse.Data? = null,
+    @SerializedName("notification_preferences")
+    val notificationPreferences: InheritanceNotificationPreferencesDto? = null
 )
 
 class InheritancePayload(
@@ -51,7 +56,8 @@ class InheritanceDataExtended(
     val notifyToday: Boolean,
     val activationTimeMilis: Long,
     val groupId: String,
-    val bufferPeriod: Period?
+    val bufferPeriod: Period?,
+    val notificationPreferences: InheritanceNotificationSettings? = null
 )
 
 fun InheritancePayloadDto.toInheritancePayload(): InheritancePayload {
@@ -72,6 +78,7 @@ fun InheritanceDataExtendedDto.toInheritanceDataExtended(): InheritanceDataExten
         notifyToday = notifyToday.orFalse(),
         activationTimeMilis = activationTimeMilis ?: 0,
         groupId = groupId.orEmpty(),
-        bufferPeriod = bufferPeriod?.toPeriod()
+        bufferPeriod = bufferPeriod?.toPeriod(),
+        notificationPreferences = notificationPreferences?.toInheritanceNotificationSettings()
     )
 }

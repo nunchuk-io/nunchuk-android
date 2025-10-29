@@ -415,7 +415,7 @@
 
     <fragment
         android:id="@+id/inheritanceReviewPlanGroupGroupFragment"
-        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanGroupGroupFragment"
+        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanGroupFragment"
         android:label="InheritanceReviewPlanGroupGroupFragment" />
 
     <fragment
