@@ -149,12 +149,14 @@ class TapSignerBackingUpIntroOnChainFragment : MembershipFragment() {
             val onChainAddSignerParam =
                 (requireActivity() as NfcSetupActivity).onChainAddSignerParam
             if (onChainAddSignerParam != null) {
+                // OnChain flow: get signer and return to OnChainTimelockAddKeyListFragment
                 viewModel.getSignerForOnChain(
                     isoDep = IsoDep.get(it.tag) ?: return@flowObserver,
                     cvc = nfcViewModel.inputCvc.orEmpty(),
                     index = (requireActivity() as NfcSetupActivity).signerIndex
                 )
             } else {
+                // Regular or manual backup flow - get backup file
                 viewModel.getTapSignerBackup(
                     isoDep = IsoDep.get(it.tag) ?: return@flowObserver,
                     cvc = nfcViewModel.inputCvc.orEmpty(),
