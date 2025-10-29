@@ -9,5 +9,6 @@ data class DraftWallet(
     val isMasterSecurityQuestionSet: Boolean,
     val signers: List<SignerServer>,
     val walletType: WalletType?,
-    val timelock: Int = 0
+    val timelock: Int = 0,
+    val replaceWallet: ReplaceWallet? = null
 )

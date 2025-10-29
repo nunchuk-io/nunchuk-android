@@ -45,11 +45,8 @@ class InheritancePlanTypeViewModel @Inject constructor(
                 setupPreference = args.setupPreference,
                 walletId = args.walletId,
                 groupId = args.groupId,
-                changeTimelockFlow = when (args.changeTimelockFlow) {
-                    0 -> true  // off-chain to on-chain
-                    1 -> false // on-chain to off-chain
-                    else -> null // -1 or any other value = normal flow
-                }
+                changeTimelockFlow = args.changeTimelockFlow != -1,
+                selectedPlanType = if (args.changeTimelockFlow == -1) InheritancePlanType.OFF_CHAIN else null
             ))
         }
     }
@@ -62,6 +59,7 @@ class InheritancePlanTypeViewModel @Inject constructor(
 
     fun onContinueClicked() {
         viewModelScope.launch {
+            val selectedPlanType = _state.value.selectedPlanType ?: return@launch
             args.slug?.let { slug ->
                 args.walletType?.let { walletTypeStr ->
                     // Convert String to GroupWalletType
@@ -75,7 +73,7 @@ class InheritancePlanTypeViewModel @Inject constructor(
                     }
                 }
             }
-            _event.emit(InheritancePlanTypeEvent.OnContinueClicked(_state.value.selectedPlanType))
+            _event.emit(InheritancePlanTypeEvent.OnContinueClicked(selectedPlanType))
         }
     }
 
@@ -85,6 +83,7 @@ class InheritancePlanTypeViewModel @Inject constructor(
             val walletType = when (_state.value.selectedPlanType) {
                 InheritancePlanType.OFF_CHAIN -> WalletType.MULTI_SIG
                 InheritancePlanType.ON_CHAIN -> WalletType.MINISCRIPT
+                null -> return@launch
             }
             initWalletConfigUseCase(
                 InitWalletConfigUseCase.Param(

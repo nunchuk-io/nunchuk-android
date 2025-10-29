@@ -127,7 +127,14 @@ class CreateWalletSuccessFragment : MembershipFragment() {
         flowObserver(viewModel.event) {
             when (it) {
                 is CreateWalletSuccessEvent.ContinueStepEvent -> {
-                    if (args.replacedWalletId.isNotEmpty()) {
+                    val activity = requireActivity() as? MembershipActivity
+                    val replacedWalletId = if (activity != null && activity.onChainReplaceWalletId.isNotEmpty()) {
+                        activity.onChainReplaceWalletId
+                    } else {
+                        args.replacedWalletId
+                    }
+                    
+                    if (replacedWalletId.isNotEmpty()) {
                         val wallet = viewModel.state.value.replacedWallet
                         if (wallet.balance.pureBTC() == 0.0) {
                             navigator.returnToMainScreen(requireActivity())
@@ -142,7 +149,7 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                                     onYesClick = {
                                         navigator.openRollOverWalletScreen(
                                             activityContext = requireActivity(),
-                                            oldWalletId = args.replacedWalletId,
+                                            oldWalletId = replacedWalletId,
                                             newWalletId = args.walletId,
                                             startScreen = RollOverWalletFlow.REFUND,
                                             source = RollOverWalletSource.REPLACE_KEY
@@ -161,7 +168,7 @@ class CreateWalletSuccessFragment : MembershipFragment() {
                                 .build()
                         )
                     } else {
-                        val quickWalletParam = (requireActivity() as? MembershipActivity)?.quickWalletParam
+                        val quickWalletParam = activity?.quickWalletParam
                         requireActivity().navigateToSelectWallet(
                             navigator = navigator,
                             quickWalletParam = quickWalletParam

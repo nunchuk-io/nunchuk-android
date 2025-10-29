@@ -63,6 +63,7 @@ import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.sendEmail
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.WalletType
@@ -98,6 +99,7 @@ class AddKeyStepFragment : MembershipFragment() {
                 is AddKeyStepEvent.OpenRegisterAirgap -> handleOpenRegisterAirgap(event.walletId)
                 AddKeyStepEvent.SetupInheritanceSetupDone -> requireActivity().finish()
                 AddKeyStepEvent.OpenOnChainTimelockExplanation -> handleOpenOnChainTimelockExplanation()
+                is AddKeyStepEvent.UpdateReplaceWalletId -> (requireActivity() as? MembershipActivity)?.setOnChainReplaceWalletId(event.walletId)
             }
         }
     }

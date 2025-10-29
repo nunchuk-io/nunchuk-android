@@ -134,6 +134,18 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
                 intent.getStringExtra(MembershipArgs.INHERITANCE_TYPE)
             }
 
+    val changeTimelockFlow: Int
+            by lazy(LazyThreadSafetyMode.NONE) {
+                intent.getIntExtra(MembershipArgs.CHANGE_TIMELOCK_FLOW, -1)
+            }
+
+    var onChainReplaceWalletId: String = ""
+        private set
+
+    fun setOnChainReplaceWalletId(walletId: String) {
+        onChainReplaceWalletId = walletId
+    }
+
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater)
     }

@@ -411,20 +411,6 @@ internal class WalletsViewModel @Inject constructor(
                 }
             }
         }
-//        viewModelScope.launch {
-//            updateGroupSandboxConfigUseCase(
-//                UpdateGroupSandboxConfigUseCase.Params(
-//                    groupId = "024b8d2f-ce19-4e0f-a421-3c2291e75254",
-//                    name = "Group wallet",
-//                    m = 3,
-//                    n = 6,
-//                    addressType = AddressType.TAPROOT,
-//                    scriptTmpl = "tr(A,{and_v(v:multi_a(2,B,C,D),older(6)),multi_a(2,B,E)})"
-//                )
-//            ).onFailure {
-//                _event.emit(ShowErrorEvent(it))
-//            }
-//        }
     }
 
     private fun listenGroupSandbox() {

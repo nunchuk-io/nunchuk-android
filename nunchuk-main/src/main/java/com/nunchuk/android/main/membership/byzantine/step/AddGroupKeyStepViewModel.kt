@@ -150,6 +150,10 @@ class AddGroupKeyStepViewModel @Inject constructor(
             val isCreateWallet = walletDeferred.await().isSuccess
             val draftWallet = draftWalletDeferred.await().getOrNull() ?: return@launch
 
+            draftWallet.replaceWallet?.localId?.let { localId ->
+                _event.emit(AddKeyStepEvent.UpdateReplaceWalletId(localId))
+            }
+
             _isCreateWalletDone.value = isCreateWallet
             _isSetupRecoverKeyDone.value = draftWallet.isMasterSecurityQuestionSet
             val isConfigDone = if (draftWallet.walletType == WalletType.MINISCRIPT) {
@@ -214,4 +218,5 @@ sealed class AddKeyStepEvent {
     data class OpenRegisterAirgap(val walletId: String) : AddKeyStepEvent()
     object OnMoreClicked : AddKeyStepEvent()
     object OpenOnChainTimelockExplanation : AddKeyStepEvent()
+    data class UpdateReplaceWalletId(val walletId: String) : AddKeyStepEvent()
 }

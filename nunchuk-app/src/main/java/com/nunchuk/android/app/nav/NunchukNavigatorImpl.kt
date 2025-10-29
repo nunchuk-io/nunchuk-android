@@ -34,9 +34,6 @@ import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.referral.ReferralArgs
-import com.nunchuk.android.core.util.BackUpSeedPhraseType
-import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
-import com.nunchuk.android.nav.args.MembershipArgs
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
@@ -67,8 +64,10 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
 import com.nunchuk.android.nav.args.MainComposeArgs
+import com.nunchuk.android.nav.args.MembershipArgs
 import com.nunchuk.android.nav.args.MiniscriptArgs
 import com.nunchuk.android.settings.nav.SettingNavigatorDelegate
 import com.nunchuk.android.signer.nav.NfcNavigatorDelegate

@@ -33,6 +33,7 @@ import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -69,6 +70,8 @@ class ChangeTimelockFragment : MembershipFragment() {
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is ChangeTimelockEvent.ChangeTimelockSuccess -> {
+                    val replaceWalletId = event.draftWallet.replaceWallet?.localId.orEmpty()
+                    (requireActivity() as? MembershipActivity)?.setOnChainReplaceWalletId(replaceWalletId)
                     findNavController().navigate(
                         ChangeTimelockFragmentDirections.actionChangeTimeLockFragmentToIntroAssistedWalletFragment()
                     )
@@ -177,3 +180,5 @@ private fun ChangeTimelockContent(
 private fun ChangeTimelockScreenPreview() {
     ChangeTimelockContent()
 }
+
+

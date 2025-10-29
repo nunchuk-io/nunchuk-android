@@ -69,7 +69,7 @@ class InheritancePlanTypeFragment : MembershipFragment() {
                 InheritancePlanTypeScreen(
                     viewModel = viewModel,
                     onContinueClicked = {
-                        if (uiState.changeTimelockFlow != null) {
+                        if (uiState.changeTimelockFlow) {
                             findNavController().navigate(
                                 InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToChangeTimeLockFragment(
                                     walletId = uiState.walletId ?: "",
@@ -84,16 +84,18 @@ class InheritancePlanTypeFragment : MembershipFragment() {
                             viewModel.onContinueClicked()
                         } else {
                             uiState.walletType?.let { walletType ->
-                                findNavController().navigate(
-                                    MembershipNavigationDirections.actionGlobalByzantineInviteMembersFragment(
-                                        groupId = "",
-                                        members = emptyArray(),
-                                        flow = ByzantineMemberFlow.SETUP,
-                                        setupPreference = uiState.setupPreference ?: "",
-                                        groupType = walletType,
-                                        inheritancePlanType = uiState.selectedPlanType.name
+                                uiState.selectedPlanType?.let { planType ->
+                                    findNavController().navigate(
+                                        MembershipNavigationDirections.actionGlobalByzantineInviteMembersFragment(
+                                            groupId = "",
+                                            members = emptyArray(),
+                                            flow = ByzantineMemberFlow.SETUP,
+                                            setupPreference = uiState.setupPreference ?: "",
+                                            groupType = walletType,
+                                            inheritancePlanType = planType.name
+                                        )
                                     )
-                                )
+                                }
                             }
                         }
                     }
@@ -138,10 +140,10 @@ private fun InheritancePlanTypeScreen(
 
 @Composable
 private fun InheritancePlanTypeContent(
-    selectedPlanType: InheritancePlanType = InheritancePlanType.OFF_CHAIN,
+    selectedPlanType: InheritancePlanType? = InheritancePlanType.OFF_CHAIN,
     onPlanTypeSelected: (InheritancePlanType) -> Unit = {},
     onContinueClicked: () -> Unit = {},
-    changeTimelockFlow: Boolean? = null
+    changeTimelockFlow: Boolean = false
 ) {
     NunchukTheme {
         Scaffold(
@@ -183,11 +185,11 @@ private fun InheritancePlanTypeContent(
                     modifier = Modifier.fillMaxWidth(),
                     isSelected = selectedPlanType == InheritancePlanType.OFF_CHAIN,
                     onClick = { 
-                        if (changeTimelockFlow == null) {
+                        if (changeTimelockFlow.not()) {
                             onPlanTypeSelected(InheritancePlanType.OFF_CHAIN)
                         }
                     },
-                    showRadioButton = changeTimelockFlow == null
+                    showRadioButton = changeTimelockFlow.not()
                 ) {
                     Column {
                         Row(
@@ -240,11 +242,11 @@ private fun InheritancePlanTypeContent(
                     modifier = Modifier.fillMaxWidth(),
                     isSelected = selectedPlanType == InheritancePlanType.ON_CHAIN,
                     onClick = { 
-                        if (changeTimelockFlow == null) {
+                        if (changeTimelockFlow.not()) {
                             onPlanTypeSelected(InheritancePlanType.ON_CHAIN)
                         }
                     },
-                    showRadioButton = changeTimelockFlow == null
+                    showRadioButton = changeTimelockFlow.not()
                 ) {
                     Column {
                         Row(

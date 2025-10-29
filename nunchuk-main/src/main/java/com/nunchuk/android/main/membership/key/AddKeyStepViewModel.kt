@@ -142,6 +142,10 @@ class AddKeyStepViewModel @Inject constructor(
             val draftWallet = syncDraftWalletUseCase("").getOrNull() ?: return@launch
             _draftWalletType.value = draftWallet.walletType
             
+            draftWallet.replaceWallet?.localId?.let { localId ->
+                _event.emit(AddKeyStepEvent.UpdateReplaceWalletId(localId))
+            }
+            
             val isConfigDone = if (draftWallet.walletType == WalletType.MINISCRIPT) {
                 val isSignerCountCorrect = draftWallet.signers.size == draftWallet.config.n * 2 - 1
                 val isTimelockSet = draftWallet.timelock > 0
@@ -212,4 +216,5 @@ sealed class AddKeyStepEvent {
     object OpenInheritanceSetup : AddKeyStepEvent()
     object SetupInheritanceSetupDone : AddKeyStepEvent()
     object OpenOnChainTimelockExplanation : AddKeyStepEvent()
+    data class UpdateReplaceWalletId(val walletId: String) : AddKeyStepEvent()
 }

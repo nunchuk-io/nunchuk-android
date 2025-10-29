@@ -202,7 +202,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
             signers = draftWallet.signers.map { it.toModel() },
             walletType = draftWallet.walletType.toWalletType(),
-            timelock = draftWallet.timelock?.value ?: 0
+            timelock = draftWallet.timelock?.value ?: 0,
+            replaceWallet = draftWallet.replaceWallet.toModel()
         )
     }
 
@@ -331,7 +332,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
             signers = draftWallet.signers.map { it.toModel() },
             walletType = draftWallet.walletType.toWalletType(),
-            timelock = draftWallet.timelock?.value ?: 0
+            timelock = draftWallet.timelock?.value ?: 0,
+            replaceWallet = draftWallet.replaceWallet.toModel()
         )
     }
 

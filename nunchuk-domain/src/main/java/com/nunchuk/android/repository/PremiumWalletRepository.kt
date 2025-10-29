@@ -530,5 +530,5 @@ interface PremiumWalletRepository {
     
     suspend fun getUserWalletConfigsSetup(): UserWalletConfigsSetup
 
-    suspend fun changeTimelockType(groupId: String?, walletId: String)
+    suspend fun changeTimelockType(groupId: String?, walletId: String): com.nunchuk.android.model.byzantine.DraftWallet
 }

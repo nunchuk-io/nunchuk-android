@@ -42,17 +42,15 @@ class ChangeTimelockViewModel @Inject constructor(
 
     fun onContinueClicked() {
         viewModelScope.launch {
-            _event.emit(ChangeTimelockEvent.ChangeTimelockSuccess)
-            return@launch
             _state.update { it.copy(isLoading = true) }
             changeTimelockTypeUseCase(
                 ChangeTimelockTypeUseCase.Param(
                     groupId = args.groupId,
                     walletId = args.walletId
                 )
-            ).onSuccess {
+            ).onSuccess { draftWallet ->
                 _state.update { it.copy(isLoading = false) }
-                _event.emit(ChangeTimelockEvent.ChangeTimelockSuccess)
+                _event.emit(ChangeTimelockEvent.ChangeTimelockSuccess(draftWallet))
             }.onFailure { throwable ->
                 _state.update { it.copy(isLoading = false) }
                 _event.emit(ChangeTimelockEvent.ShowError(throwable.message.orUnknownError()))
@@ -72,7 +70,7 @@ data class ChangeTimelockUiState(
 )
 
 sealed class ChangeTimelockEvent {
-    object ChangeTimelockSuccess : ChangeTimelockEvent()
+    data class ChangeTimelockSuccess(val draftWallet: com.nunchuk.android.model.byzantine.DraftWallet) : ChangeTimelockEvent()
     data class ShowError(val message: String) : ChangeTimelockEvent()
 }
 

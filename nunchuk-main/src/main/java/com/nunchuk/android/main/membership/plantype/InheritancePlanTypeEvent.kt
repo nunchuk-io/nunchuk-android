@@ -7,11 +7,11 @@ sealed class InheritancePlanTypeEvent {
 }
 
 data class InheritancePlanTypeUiState(
-    val selectedPlanType: InheritancePlanType = InheritancePlanType.OFF_CHAIN,
+    val selectedPlanType: InheritancePlanType? = null,
     val isPersonal: Boolean = false,
     val slug: String? = null,
     val walletType: String? = null,
-    val changeTimelockFlow: Boolean? = null,
+    val changeTimelockFlow: Boolean = false,
     val setupPreference: String? = null,
     val walletId: String? = null,
     val groupId: String? = null

@@ -61,6 +61,7 @@ import com.nunchuk.android.core.data.model.byzantine.WalletConfigRequest
 import com.nunchuk.android.core.data.model.byzantine.toDomainModel
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.byzantine.toSavedAddress
+import com.nunchuk.android.core.data.model.byzantine.toWalletType
 import com.nunchuk.android.core.data.model.coin.CoinDataContent
 import com.nunchuk.android.core.data.model.inheritance.BeneficiaryNotificationRequest
 import com.nunchuk.android.core.data.model.inheritance.CreateUpdateInheritancePlanRequest
@@ -2955,7 +2956,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.toDomain()
     }
 
-    override suspend fun changeTimelockType(groupId: String?, walletId: String) {
+    override suspend fun changeTimelockType(groupId: String?, walletId: String): com.nunchuk.android.model.byzantine.DraftWallet {
         val response = if (!groupId.isNullOrEmpty()) {
             userWalletApiManager.groupWalletApi.changeTimelockType(groupId, walletId)
         } else {
@@ -2964,6 +2965,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) {
             throw response.error
         }
+        val draftWallet = response.data.draftWallet ?: throw NullPointerException("draftWallet null")
+        return com.nunchuk.android.model.byzantine.DraftWallet(
+            config = draftWallet.walletConfig.toModel(),
+            isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
+            signers = draftWallet.signers.map { it.toModel() },
+            walletType = draftWallet.walletType.toWalletType(),
+            timelock = draftWallet.timelock?.value ?: 0,
+            replaceWallet = draftWallet.replaceWallet.toModel()
+        )
     }
 
     private fun getHeaders(

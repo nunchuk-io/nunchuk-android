@@ -87,6 +87,7 @@ class AddGroupKeyStepFragment : MembershipFragment() {
                 AddKeyStepEvent.OnMoreClicked -> handleShowMore()
                 is AddKeyStepEvent.OpenRegisterAirgap -> handleOpenRegisterAirgap(event.walletId)
                 AddKeyStepEvent.OpenOnChainTimelockExplanation -> handleOpenOnChainTimelockExplanation()
+                is AddKeyStepEvent.UpdateReplaceWalletId -> (requireActivity() as? MembershipActivity)?.setOnChainReplaceWalletId(event.walletId)
             }
         }
     }

@@ -17,7 +17,8 @@ internal data class DraftWalletDto(
     @SerializedName("server_key_id") val serverKeyId: String? = null,
     @SerializedName("signers") val signers: ArrayList<SignerServerDto> = arrayListOf(),
     @SerializedName("wallet_type") val walletType: String? = null,
-    @SerializedName("timelock") val timelock: TimelockDto? = null
+    @SerializedName("timelock") val timelock: TimelockDto? = null,
+    @SerializedName("replace_wallet") val replaceWallet: ReplaceWalletDto? = null
 )
 
 internal data class WalletConfigDto(
@@ -29,6 +30,11 @@ internal data class WalletConfigDto(
 
 internal data class TimelockDto(
     @SerializedName("value") val value: Int = 0
+)
+
+internal data class ReplaceWalletDto(
+    @SerializedName("id") val id: String? = null,
+    @SerializedName("local_id") val localId: String? = null
 )
 
 internal fun WalletConfigDto?.toModel(): WalletConfig = WalletConfig(
@@ -45,5 +51,14 @@ internal fun String?.toWalletType(): WalletType? {
         "ESCROW" -> WalletType.ESCROW
         "SINGLE_SIG", "SINGLESIG" -> WalletType.SINGLE_SIG
         else -> null
+    }
+}
+
+internal fun ReplaceWalletDto?.toModel(): com.nunchuk.android.model.byzantine.ReplaceWallet? {
+    return this?.let {
+        com.nunchuk.android.model.byzantine.ReplaceWallet(
+            id = it.id.orEmpty(),
+            localId = it.localId.orEmpty()
+        )
     }
 }
