@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -99,8 +100,14 @@ class InheritanceShareSecretInfoFragment : MembershipFragment() {
                     sharedViewModel = sharedViewModel,
                     viewModel = viewModel,
                     args = args,
-                    onActionClick = {
-                        if (args.planFlow == InheritancePlanFlow.SETUP) {
+                    onContinue = {
+                        if (sharedViewModel.isMiniscriptWallet()) {
+                            findNavController().navigate(
+                                InheritanceShareSecretInfoFragmentDirections.actionInheritanceShareSecretInfoFragmentToInheritanceHowItWorksFragment(
+                                    type = InheritanceShareSecretType.entries[args.type]
+                                )
+                            )
+                        } else if (args.planFlow == InheritancePlanFlow.SETUP) {
                             showDialogInfo()
                         } else {
                             handleBack()
@@ -154,7 +161,7 @@ private fun InheritanceShareSecretInfoScreen(
     viewModel: InheritanceShareSecretInfoViewModel = viewModel(),
     sharedViewModel: InheritancePlanningViewModel = hiltViewModel(),
     args: InheritanceShareSecretInfoFragmentArgs,
-    onActionClick: () -> Unit = {},
+    onContinue: () -> Unit = {},
     onLearnMoreClicked: () -> Unit = {},
     onSaveBsms: () -> Unit = {},
 ) {
@@ -166,7 +173,7 @@ private fun InheritanceShareSecretInfoScreen(
         type = args.type,
         magicalPhrase = args.magicalPhrase,
         planFlow = args.planFlow,
-        onActionClick = onActionClick,
+        onContinue = onContinue,
         onLearnMoreClicked = onLearnMoreClicked,
         onSaveBsms = onSaveBsms
     )
@@ -180,7 +187,7 @@ private fun InheritanceShareSecretInfoContent(
     magicalPhrase: String = "",
     type: Int = 0,
     planFlow: Int = InheritancePlanFlow.NONE,
-    onActionClick: () -> Unit = {},
+    onContinue: () -> Unit = {},
     onLearnMoreClicked: () -> Unit = {},
     onSaveBsms: () -> Unit = {},
 ) {
@@ -190,7 +197,7 @@ private fun InheritanceShareSecretInfoContent(
             magicalPhrase = magicalPhrase,
             type = type,
             planFlow = planFlow,
-            onActionClick = onActionClick,
+            onContinue = onContinue,
             onSaveBsms = onSaveBsms
         )
     } else {
@@ -199,7 +206,7 @@ private fun InheritanceShareSecretInfoContent(
             magicalPhrase = magicalPhrase,
             type = type,
             planFlow = planFlow,
-            onActionClick = onActionClick,
+            onActionClick = onContinue,
             onLearnMoreClicked = onLearnMoreClicked
         )
     }
@@ -352,7 +359,7 @@ private fun InheritanceOnChainShareSecretInfoContent(
     magicalPhrase: String = "",
     type: Int = 0,
     planFlow: Int = InheritancePlanFlow.NONE,
-    onActionClick: () -> Unit = {},
+    onContinue: () -> Unit = {},
     onSaveBsms: () -> Unit = {},
 ) {
     NunchukTheme {
@@ -372,137 +379,137 @@ private fun InheritanceOnChainShareSecretInfoContent(
                     backgroundRes = R.drawable.nc_bg_backup_password_share_secret,
                     title = title,
                 )
+            }, bottomBar = {
+                Column {
+                    // Warning message
+                    val warningDescRes = when (type) {
+                        InheritanceShareSecretType.DIRECT.ordinal -> R.string.nc_onchain_warning_beneficiary
+                        InheritanceShareSecretType.INDIRECT.ordinal -> R.string.nc_onchain_warning_trustee
+                        InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_warning_joint
+                        else -> R.string.nc_onchain_warning_beneficiary
+                    }
+
+                    NcHintMessage(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        messages = listOf(
+                            ClickAbleText(
+                                content = stringResource(warningDescRes)
+                            )
+                        ),
+                        type = HighlightMessageType.WARNING,
+                    )
+
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = onContinue,
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_text_continue))
+                    }
+                }
             }
         ) { innerPadding ->
-            Column(
-                modifier = Modifier.padding(innerPadding),
+            LazyColumn(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
             ) {
-                LazyColumn(modifier = Modifier.weight(1f)) {
-                    item {
-                        // Title based on type
-                        val titleRes = when (type) {
-                            InheritanceShareSecretType.DIRECT.ordinal -> R.string.nc_onchain_share_secret_title_beneficiary
-                            InheritanceShareSecretType.INDIRECT.ordinal -> R.string.nc_onchain_share_secret_title_trustee
-                            InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_share_secret_title_joint
-                            else -> R.string.nc_onchain_share_secret_title_beneficiary
-                        }
+                item {
+                    // Title based on type
+                    val titleRes = when (type) {
+                        InheritanceShareSecretType.DIRECT.ordinal -> R.string.nc_onchain_share_secret_title_beneficiary
+                        InheritanceShareSecretType.INDIRECT.ordinal -> R.string.nc_onchain_share_secret_title_trustee
+                        InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_share_secret_title_joint
+                        else -> R.string.nc_onchain_share_secret_title_beneficiary
+                    }
 
+                    Text(
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        text = stringResource(titleRes),
+                        style = NunchukTheme.typography.body
+                    )
+
+                    // Item 1: Trustee keeps (for JOINT_CONTROL) or Beneficiary keeps (for DIRECT) or Trustee keeps (for INDIRECT)
+                    val item1LabelRes = when (type) {
+                        InheritanceShareSecretType.DIRECT.ordinal -> R.string.nc_onchain_item1_label_beneficiary
+                        InheritanceShareSecretType.INDIRECT.ordinal -> R.string.nc_onchain_item1_label_trustee
+                        InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_item1_label_trustee
+                        else -> R.string.nc_onchain_item1_label_beneficiary
+                    }
+
+                    NCLabelWithIndex(
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        index = 1,
+                        label = stringResource(item1LabelRes),
+                    )
+
+                    // Magic Phrase box
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 50.dp, top = 16.dp, end = 16.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.greyLight,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = magicalPhrase.ifEmpty {
+                                    Utils.maskValue(
+                                        "",
+                                        isMask = true
+                                    )
+                                },
+                                style = NunchukTheme.typography.body,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 50.dp, top = 16.dp, end = 16.dp)
+                            .fillMaxWidth()
+                            .clickable(onClick = onSaveBsms)
+                            .background(
+                                color = MaterialTheme.colorScheme.greyLight,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .padding(16.dp)
+                    ) {
                         Text(
-                            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                            text = stringResource(titleRes),
+                            modifier = Modifier.align(Alignment.Center),
+                            text = stringResource(R.string.nc_fallback_option_bsms_file),
                             style = NunchukTheme.typography.body
                         )
 
-                        // Item 1: Trustee keeps (for JOINT_CONTROL) or Beneficiary keeps (for DIRECT) or Trustee keeps (for INDIRECT)
-                        val item1LabelRes = when (type) {
-                            InheritanceShareSecretType.DIRECT.ordinal -> R.string.nc_onchain_item1_label_beneficiary
-                            InheritanceShareSecretType.INDIRECT.ordinal -> R.string.nc_onchain_item1_label_trustee
-                            InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_item1_label_trustee
-                            else -> R.string.nc_onchain_item1_label_beneficiary
-                        }
-
-                        NCLabelWithIndex(
-                            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                            index = 1,
-                            label = stringResource(item1LabelRes),
+                        NcIcon(
+                            modifier = Modifier.align(Alignment.CenterEnd),
+                            painter = painterResource(R.drawable.ic_download),
+                            contentDescription = "Download icon",
                         )
-
-                        // Magic Phrase box
-                        Box(
-                            modifier = Modifier
-                                .padding(start = 50.dp, top = 16.dp, end = 16.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.greyLight,
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    text = magicalPhrase.ifEmpty {
-                                        Utils.maskValue(
-                                            "",
-                                            isMask = true
-                                        )
-                                    },
-                                    style = NunchukTheme.typography.body,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .padding(start = 50.dp, top = 16.dp, end = 16.dp)
-                                .fillMaxWidth()
-                                .clickable(onClick = onSaveBsms)
-                                .background(
-                                    color = MaterialTheme.colorScheme.greyLight,
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                                .padding(16.dp)
-                        ) {
-                            Text(
-                                modifier = Modifier.align(Alignment.Center),
-                                text = stringResource(R.string.nc_fallback_option_bsms_file),
-                                style = NunchukTheme.typography.body
-                            )
-
-                            NcIcon(
-                                modifier = Modifier.align(Alignment.CenterEnd),
-                                painter = painterResource(R.drawable.ic_download),
-                                contentDescription = "Download icon",
-                            )
-                        }
-
-                        // Item 2: Beneficiary keeps (for JOINT_CONTROL) or same person keeps (for DIRECT/INDIRECT)
-                        val item2LabelRes = when (type) {
-                            InheritanceShareSecretType.DIRECT.ordinal -> R.string.nc_onchain_item2_label_beneficiary
-                            InheritanceShareSecretType.INDIRECT.ordinal -> R.string.nc_onchain_item2_label_trustee
-                            InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_item2_label_beneficiary
-                            else -> R.string.nc_onchain_item2_label_beneficiary
-                        }
-
-                        NCLabelWithIndex(
-                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                            index = 2,
-                            label = stringResource(item2LabelRes),
-                        )
-
-                        Spacer(modifier = Modifier.height(20.dp))
                     }
-                }
 
-                // Warning message
-                val warningDescRes = when (type) {
-                    InheritanceShareSecretType.DIRECT.ordinal -> R.string.nc_onchain_warning_beneficiary
-                    InheritanceShareSecretType.INDIRECT.ordinal -> R.string.nc_onchain_warning_trustee
-                    InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_warning_joint
-                    else -> R.string.nc_onchain_warning_beneficiary
-                }
+                    // Item 2: Beneficiary keeps (for JOINT_CONTROL) or same person keeps (for DIRECT/INDIRECT)
+                    val item2LabelRes = when (type) {
+                        InheritanceShareSecretType.JOINT_CONTROL.ordinal -> R.string.nc_onchain_item2_label_beneficiary
+                        else -> R.string.nc_onchain_item2_label
+                    }
 
-                NcHintMessage(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    messages = listOf(
-                        ClickAbleText(
-                            content = stringResource(warningDescRes)
-                        )
-                    ),
-                    type = HighlightMessageType.WARNING,
-                )
+                    NCLabelWithIndex(
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                        index = 2,
+                        label = stringResource(item2LabelRes),
+                    )
 
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onActionClick,
-                ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
+                    Spacer(modifier = Modifier.height(20.dp))
                 }
             }
         }

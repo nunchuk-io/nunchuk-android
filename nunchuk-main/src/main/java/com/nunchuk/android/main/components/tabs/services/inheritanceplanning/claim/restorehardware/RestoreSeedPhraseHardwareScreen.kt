@@ -4,29 +4,24 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcImageAppBar
-import com.nunchuk.android.compose.NcLabelWithIndex
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.R
+import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.main.R as MainR
 
 @Composable
@@ -73,23 +68,23 @@ fun RestoreSeedPhraseHardwareScreen(
                     .padding(top = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                NcLabelWithIndex(
-                    index = 1,
+                NCLabelWithIndex(
+                    index = 0,
                     label = stringResource(MainR.string.nc_restore_hardware_step_1)
                 )
-                NcLabelWithIndex(
+                NCLabelWithIndex(
                     index = 2,
                     label = stringResource(MainR.string.nc_restore_hardware_step_2)
                 )
-                NcLabelWithIndex(
+                NCLabelWithIndex(
                     index = 3,
                     label = stringResource(MainR.string.nc_restore_hardware_step_3)
                 )
-                NcLabelWithIndex(
+                NCLabelWithIndex(
                     index = 4,
                     label = stringResource(MainR.string.nc_restore_hardware_step_4)
                 )
-                NcLabelWithIndex(
+                NCLabelWithIndex(
                     index = 5,
                     label = stringResource(MainR.string.nc_restore_hardware_step_5)
                 )

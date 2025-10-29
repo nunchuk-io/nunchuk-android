@@ -430,7 +430,7 @@
     <string name="nc_add_email">Add email</string>
     <string name="nc_an_off_chain_timelock">An off-chain timelock</string>
     <string name="nc_an_on_chain_timelock">An on-chain timelock</string>
-    <string name="nc_12_or_24_word_inheritance_key_backup">12-word or 24-word seed phrase of inheritance key %1$d you backed up earlier</string>
+    <string name="nc_12_or_24_word_inheritance_key_backup">Seed phrase of inheritance key you backed up earlier</string>
     
     <!-- Add inheritance key screen -->
     <string name="nc_your_plan_requires">Your plan requires %1$d inheritance keys</string>

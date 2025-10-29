@@ -60,14 +60,14 @@ import com.nunchuk.android.core.util.showWarning
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationActivityArgs
-import com.nunchuk.android.model.MembershipStage
-import com.nunchuk.android.nav.args.MembershipArgs
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationEvent
 import com.nunchuk.android.main.membership.authentication.WalletAuthenticationViewModel
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isInheritanceFlow
+import com.nunchuk.android.nav.args.MembershipArgs
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.components.details.TransactionDetailView
@@ -80,7 +80,6 @@ import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -137,7 +136,7 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                             enabledSigners = walletAuthenticationUiState.enabledSigners
                         ),
                         miniscriptUiState = miniscriptUiState.copy(
-                            signedSigners = transaction.signers
+                            signedSigners = walletAuthenticationUiState.signatures.mapValues { true }
                         ),
                         onSignClick = {
                             walletAuthenticationViewModel.onSignerSelect(it)
@@ -186,8 +185,8 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
     }
 
     private fun observeEvent() {
-        flowObserver(walletAuthenticationViewModel.state.mapNotNull { it.transaction }) {
-            viewModel.loadWallet(it)
+        flowObserver(walletAuthenticationViewModel.state.filter { it.transaction != null }) {
+            viewModel.loadWallet(it.transaction!!, it.enabledSigners)
         }
         flowObserver(viewModel.event) {
             when (it) {

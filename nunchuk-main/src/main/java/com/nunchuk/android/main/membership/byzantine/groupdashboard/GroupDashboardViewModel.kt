@@ -12,8 +12,6 @@ import com.nunchuk.android.core.domain.byzantine.SetRoomRetentionUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
 import com.nunchuk.android.core.domain.membership.RecoverKeyUseCase
 import com.nunchuk.android.core.domain.membership.SetLocalMembershipPlanFlowUseCase
-import com.nunchuk.android.core.domain.membership.TargetAction
-
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.profile.SendSignOutUseCase
 import com.nunchuk.android.core.push.PushEvent
@@ -62,7 +60,6 @@ import com.nunchuk.android.usecase.membership.RestartWizardUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.usecase.user.SetRegisterAirgapUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
-
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -336,7 +333,7 @@ class GroupDashboardViewModel @Inject constructor(
     private fun getWallet(walletId: String) {
         viewModelScope.launch {
             getWalletDetail2UseCase(walletId).onSuccess { wallet ->
-                val signers = wallet.signers
+                val signers = wallet.signers.distinctBy { it.masterFingerprint }
                     .map { signer -> signer.toModel() }
                     .map { signer ->
                         if (signer.type == SignerType.NFC) signer.copy(

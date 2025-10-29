@@ -461,7 +461,7 @@ internal fun CreateKeyItem(
                     NcPrimaryDarkButton(
                         height = 36.dp,
                         onClick = { onActionKey(nodeId, signer) },
-                        enabled = isSatisfiable
+                        enabled = true
                     ) {
                         if (keySetStatus != null && keySetStatus.status == TransactionStatus.PENDING_NONCE) {
                             Text(stringResource(R.string.nc_commit))

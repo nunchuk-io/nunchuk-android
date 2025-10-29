@@ -44,7 +44,6 @@ import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
 import com.nunchuk.android.usecase.IsScriptNodeSatisfiableUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.membership.GetDummyTxFromPsbtByteArrayUseCase
-import com.nunchuk.android.usecase.transaction.GetTransactionSignersUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -73,7 +72,6 @@ internal class DummyTransactionDetailsViewModel @Inject constructor(
     private val parseSignerStringUseCase: ParseSignerStringUseCase,
     private val isScriptNodeSatisfiableUseCase: IsScriptNodeSatisfiableUseCase,
     private val getChainTipUseCase: GetChainTipUseCase,
-    private val getTransactionSignersUseCase: GetTransactionSignersUseCase,
     private val singleSignerMapper: SingleSignerMapper,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -176,16 +174,27 @@ internal class DummyTransactionDetailsViewModel @Inject constructor(
     private suspend fun getMiniscriptInfo(
         wallet: Wallet,
         transaction: Transaction,
+        enabledSigners: Set<String>,
     ) {
         clearMiniscriptMaps()
         getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
             val signerMap = parseSignersFromScriptNode(result.scriptNode, transaction)
+            val transform = if (enabledSigners.isNotEmpty()) {
+                // only show signed button for enabled signers and we set isVisible
+                signerMap.mapValues {
+                    if (enabledSigners.contains(it.value.fingerPrint)) it.value.copy(isVisible = true) else it.value.copy(
+                        isVisible = false
+                    )
+                }
+            } else {
+                signerMap
+            }
             _minscriptState.update {
                 it.copy(
                     scriptNode = result.scriptNode,
                     satisfiableMap = satisfiableMap,
                     coinGroups = coinIdsGroups,
-                    signerMap = signerMap
+                    signerMap = transform
                 )
             }
         }
@@ -205,7 +214,10 @@ internal class DummyTransactionDetailsViewModel @Inject constructor(
         }
     }
 
-    private suspend fun parseSignersFromScriptNode(node: ScriptNode, transaction: Transaction): Map<String, SignerModel> {
+    private suspend fun parseSignersFromScriptNode(
+        node: ScriptNode,
+        transaction: Transaction
+    ): Map<String, SignerModel> {
         if (!satisfiableMap.containsKey(node.idString)) {
             satisfiableMap[node.idString] = isScriptNodeSatisfiableUseCase(
                 IsScriptNodeSatisfiableUseCase.Params(
@@ -258,7 +270,7 @@ internal class DummyTransactionDetailsViewModel @Inject constructor(
         return _minscriptState.value.isMiniscriptWallet
     }
 
-    fun loadWallet(transaction: Transaction) {
+    fun loadWallet(transaction: Transaction, enabledSigners: Set<String>) {
         if (walletId.isEmpty()) return
         viewModelScope.launch {
             getWalletDetail2UseCase(walletId).onSuccess { wallet ->
@@ -266,7 +278,8 @@ internal class DummyTransactionDetailsViewModel @Inject constructor(
                 if (wallet.miniscript.isNotEmpty()) {
                     getMiniscriptInfo(
                         wallet = wallet,
-                        transaction = transaction
+                        transaction = transaction,
+                        enabledSigners = enabledSigners
                     )
                 }
             }

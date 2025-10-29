@@ -533,7 +533,7 @@ fun InheritanceReviewPlanScreenContent(
                                             iconId = R.drawable.ic_key,
                                             title = "Inheritance Key ${index + 1}",
                                             subTitle = "XFP: ${key.uppercase()}",
-                                            content = stringResource(R.string.nc_12_or_24_word_inheritance_key_backup, index.inc()),
+                                            content = stringResource(R.string.nc_12_or_24_word_inheritance_key_backup),
                                             editable = false
                                         )
                                     }

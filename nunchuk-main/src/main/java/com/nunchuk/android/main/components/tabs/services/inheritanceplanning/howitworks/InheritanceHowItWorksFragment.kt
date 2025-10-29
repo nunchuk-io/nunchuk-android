@@ -41,7 +41,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcImageAppBar
@@ -70,7 +69,7 @@ class InheritanceHowItWorksFragment : MembershipFragment() {
                 InheritanceHowItWorksScreen(
                     type = args.type,
                     onDoneClick = {
-                        findNavController().popBackStack()
+                        activity?.finish()
                     }
                 )
             }
