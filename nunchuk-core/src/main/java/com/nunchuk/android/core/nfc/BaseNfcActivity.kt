@@ -66,18 +66,22 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
         NfcScanDialog(this).apply {
             setOnShowListener {
                 if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                    nfcAdapter?.enableForegroundDispatch(
-                        this@BaseNfcActivity,
-                        getNfcPendingIntent(requestCode),
-                        null,
-                        null
-                    )
+                    runCatching {
+                        nfcAdapter?.enableForegroundDispatch(
+                            this@BaseNfcActivity,
+                            getNfcPendingIntent(requestCode),
+                            null,
+                            null
+                        )
+                    }
                 }
             }
 
             setOnDismissListener {
                 if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                    nfcAdapter?.enableForegroundDispatch(this@BaseNfcActivity, getNfcPendingIntent(0), null, null)
+                    runCatching {
+                        nfcAdapter?.enableForegroundDispatch(this@BaseNfcActivity, getNfcPendingIntent(0), null, null)
+                    }
                 }
             }
         }
@@ -135,11 +139,15 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
     override fun onResume() {
         super.onResume()
         val requestCode = if (askScanNfcDialog.isShowing) requestCode else 0
-        nfcAdapter?.enableForegroundDispatch(this, getNfcPendingIntent(requestCode), null, null)
+        runCatching {
+            nfcAdapter?.enableForegroundDispatch(this, getNfcPendingIntent(requestCode), null, null)
+        }
     }
 
     override fun onPause() {
-        nfcAdapter?.disableForegroundDispatch(this)
+        runCatching {
+            nfcAdapter?.disableForegroundDispatch(this)
+        }
         super.onPause()
     }
 
