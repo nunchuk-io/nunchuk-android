@@ -120,10 +120,17 @@ class CheckFirmwareActivity : ComponentActivity() {
                 // Handle other signer types if needed
             }
         }
+            // Return result to SignerIntroFragment to handle navigation
+        val resultIntent = Intent().apply {
+            putExtra(EXTRA_OPEN_NEXT_SCREEN, true)
+        }
+        setResult(RESULT_OK, resultIntent)
         finish()
     }
 
     companion object {
+        const val EXTRA_OPEN_NEXT_SCREEN = "EXTRA_OPEN_NEXT_SCREEN"
+        
         fun navigate(
             context: Context,
             launcher: ActivityResultLauncher<Intent>?,
