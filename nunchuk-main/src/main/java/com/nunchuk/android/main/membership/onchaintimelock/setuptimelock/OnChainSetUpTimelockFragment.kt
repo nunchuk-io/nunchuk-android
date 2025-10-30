@@ -137,6 +137,10 @@ private fun OnChainSetUpTimelockContent(
             } else {
                 Calendar.getInstance().apply {
                     add(Calendar.YEAR, 2)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
                 }
             }
         )
