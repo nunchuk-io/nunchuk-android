@@ -394,6 +394,7 @@
     <!-- Inheritance plan type selection strings -->
     <string name="nc_select_inheritance_plan_type">Select inheritance plan type</string>
     <string name="nc_off_chain_timelock">Off-chain timelock</string>
+    <string name="nc_change_timelock_type">Change timelock type</string>
     <string name="nc_on_chain_timelock">On-chain timelock</string>
     <string name="nc_managed_by_nunchuk">Managed by Nunchuk</string>
     <string name="nc_enforced_on_bitcoin">Enforced on Bitcoin</string>

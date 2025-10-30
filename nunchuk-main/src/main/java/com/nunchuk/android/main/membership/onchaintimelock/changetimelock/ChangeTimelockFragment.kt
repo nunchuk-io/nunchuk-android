@@ -58,7 +58,6 @@ class ChangeTimelockFragment : MembershipFragment() {
                         viewModel.onContinueClicked()
                     },
                     onReadMoreClicked = {
-                        // TODO: Open read more screen or dialog
                     }
                 )
             }

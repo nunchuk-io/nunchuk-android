@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
@@ -27,6 +28,7 @@ fun NcRadioButtonOption(
     enabled: Boolean = true,
     onClick: () -> Unit = {},
     showRadioButton: Boolean = true,
+    customBackgroundColor: Color? = null,
     content: @Composable () -> Unit
 ) {
     Card(
@@ -39,7 +41,7 @@ fun NcRadioButtonOption(
         ),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = customBackgroundColor ?: MaterialTheme.colorScheme.background,
         ),
     ) {
         Box(

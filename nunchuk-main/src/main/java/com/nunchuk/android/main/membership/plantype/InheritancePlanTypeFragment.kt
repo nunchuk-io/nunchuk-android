@@ -42,6 +42,7 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioButtonOption
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.util.InheritancePlanType
@@ -176,20 +177,28 @@ private fun InheritancePlanTypeContent(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.nc_select_inheritance_plan_type),
+                    text = stringResource(if (changeTimelockFlow) R.string.nc_change_timelock_type else R.string.nc_select_inheritance_plan_type),
                     style = NunchukTheme.typography.heading
                 )
+
+                if (changeTimelockFlow) {
+                    Text(
+                        text = "Please review the differences between off-chain and on-chain options before changing the timelock.",
+                        style = NunchukTheme.typography.body,
+                    )
+                }
 
                 // Off-chain timelock option
                 NcRadioButtonOption(
                     modifier = Modifier.fillMaxWidth(),
                     isSelected = selectedPlanType == InheritancePlanType.OFF_CHAIN,
-                    onClick = { 
+                    onClick = {
                         if (changeTimelockFlow.not()) {
                             onPlanTypeSelected(InheritancePlanType.OFF_CHAIN)
                         }
                     },
-                    showRadioButton = changeTimelockFlow.not()
+                    showRadioButton = changeTimelockFlow.not(),
+                    customBackgroundColor = if (changeTimelockFlow) MaterialTheme.colorScheme.lightGray else null
                 ) {
                     Column {
                         Row(
@@ -241,12 +250,13 @@ private fun InheritancePlanTypeContent(
                 NcRadioButtonOption(
                     modifier = Modifier.fillMaxWidth(),
                     isSelected = selectedPlanType == InheritancePlanType.ON_CHAIN,
-                    onClick = { 
+                    onClick = {
                         if (changeTimelockFlow.not()) {
                             onPlanTypeSelected(InheritancePlanType.ON_CHAIN)
                         }
                     },
-                    showRadioButton = changeTimelockFlow.not()
+                    showRadioButton = changeTimelockFlow.not(),
+                    customBackgroundColor = if (changeTimelockFlow) MaterialTheme.colorScheme.lightGray else null
                 ) {
                     Column {
                         Row(
