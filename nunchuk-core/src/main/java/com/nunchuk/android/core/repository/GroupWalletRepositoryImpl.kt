@@ -1,6 +1,8 @@
 package com.nunchuk.android.core.repository
 
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.data.model.CreateTimelockPayload
+import com.nunchuk.android.core.data.model.TimelockPayload
 import com.nunchuk.android.core.data.model.byzantine.DraftWalletDto
 import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
 import com.nunchuk.android.core.data.model.byzantine.toDomainModel
@@ -78,8 +80,8 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun createDraftWalletTimelock(groupId: String, timelockValue: Long, plan: MembershipPlan) {
-        val payload = com.nunchuk.android.core.data.model.CreateTimelockPayload(
-            timelock = com.nunchuk.android.core.data.model.TimelockPayload(value = timelockValue)
+        val payload = CreateTimelockPayload(
+            timelock = TimelockPayload(value = timelockValue)
         )
         val response = userWalletApiManager.groupWalletApi.createGroupDraftWalletTimelock(groupId, payload)
         if (response.isSuccess.not()) {
@@ -111,6 +113,18 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         val plan =
             if (draftWallet.walletConfig?.allowInheritance == true) MembershipPlan.HONEY_BADGER else MembershipPlan.IRON_HAND
         val walletType = draftWallet.walletType.toWalletType()
+        
+        // Save a placeholder step to indicate draft wallet exists, even if no signers yet
+        if (draftWallet.signers.isEmpty()) {
+            membershipRepository.saveStepInfo(
+                MembershipStepInfo(
+                    step = MembershipStep.SETUP_STARTED,
+                    verifyType = VerifyType.NONE,
+                    plan = plan,
+                    groupId = groupId
+                )
+            )
+        }
         
         draftWallet.signers.forEach { key ->
             val signerType = key.type.toSignerType()

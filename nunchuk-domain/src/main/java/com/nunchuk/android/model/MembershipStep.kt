@@ -52,6 +52,7 @@ enum class MembershipStep {
     BYZANTINE_ADD_INHERITANCE_KEY_1,
     BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK,
     TIMELOCK,
+    SETUP_STARTED, // Placeholder step to indicate draft wallet exists even if no signers yet
 }
 
 val MembershipStep.isAddInheritanceKey: Boolean
