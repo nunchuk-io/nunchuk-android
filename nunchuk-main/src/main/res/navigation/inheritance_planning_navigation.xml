@@ -5,82 +5,6 @@
     app:startDestination="@id/inheritanceReviewPlanFragment">
 
     <fragment
-        android:id="@+id/inheritanceClaimNoteFragment"
-        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claimnote.InheritanceClaimNoteFragment"
-        android:label="InheritanceClaimNoteFragment">
-
-        <argument
-            android:name="signers"
-            app:argType="com.nunchuk.android.core.signer.SignerModel[]" />
-        <argument
-            android:name="magic"
-            app:argType="string" />
-        <argument
-            android:name="inheritance_additional"
-            app:argType="com.nunchuk.android.model.InheritanceAdditional" />
-        <argument
-            android:name="derivation_paths"
-            app:argType="string[]" />
-
-        <action
-            android:id="@+id/action_inheritanceClaimNoteFragment_to_inheritanceClaimWithdrawBitcoinFragment"
-            app:destination="@id/inheritanceClaimWithdrawBitcoinFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/inheritanceClaimWithdrawBitcoinFragment"
-        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.withdrawbitcoin.InheritanceClaimWithdrawBitcoinFragment"
-        android:label="InheritanceClaimWithdrawBitcoinFragment">
-
-        <argument
-            android:name="signers"
-            app:argType="com.nunchuk.android.core.signer.SignerModel[]" />
-        <argument
-            android:name="magic"
-            app:argType="string" />
-        <argument
-            android:name="derivation_paths"
-            app:argType="string[]" />
-
-        <argument
-            android:name="wallet_balance"
-            android:defaultValue="0"
-            app:argType="float" />
-
-        <action
-            android:id="@+id/action_inheritanceClaimWithdrawBitcoinFragment_to_selectWalletFragment"
-            app:destination="@id/select_wallet_navigation"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:launchSingleTop="true"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim">
-
-            <argument
-                android:name="slots"
-                app:argType="com.nunchuk.android.model.SatsCardSlot[]" />
-            <argument
-                android:name="type"
-                app:argType="integer" />
-
-            <argument
-                android:name="wallet_balance"
-                android:defaultValue="0"
-                app:argType="float" />
-
-            <argument
-                android:name="claim_param"
-                android:defaultValue="@null"
-                app:argType="com.nunchuk.android.core.data.model.ClaimInheritanceTxParam"
-                app:nullable="true" />
-        </action>
-    </fragment>
-
-    <fragment
         android:id="@+id/inheritanceReviewPlanFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.InheritanceReviewPlanFragment"
         android:label="InheritanceReviewPlanFragment">
@@ -426,8 +350,6 @@
             android:name="type"
             app:argType="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType" />
     </fragment>
-
-    <include app:graph="@navigation/select_wallet_navigation" />
 
     <include app:graph="@navigation/inheritance_planning_success_navigation" />
     <include app:graph="@navigation/inheritance_planning_secret_navigation" />

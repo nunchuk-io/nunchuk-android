@@ -63,7 +63,6 @@ data class InheritanceClaimWithdrawBitcoinState(
 )
 
 sealed class InheritanceClaimWithdrawBitcoinEvent {
-    data class Loading(val isLoading: Boolean) : InheritanceClaimWithdrawBitcoinEvent()
     data class Error(val message: String) : InheritanceClaimWithdrawBitcoinEvent()
     data class CheckHasWallet(val isHasWallet: Boolean) : InheritanceClaimWithdrawBitcoinEvent()
     data class CheckNewWallet(val isNewWallet: Boolean) : InheritanceClaimWithdrawBitcoinEvent()
