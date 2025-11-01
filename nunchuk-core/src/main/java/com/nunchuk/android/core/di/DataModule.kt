@@ -26,6 +26,7 @@ import com.nunchuk.android.core.repository.CampaignsRepositoryImpl
 import com.nunchuk.android.core.repository.DummyTransactionRepositoryImpl
 import com.nunchuk.android.core.repository.GroupWalletRepositoryImpl
 import com.nunchuk.android.core.repository.HandledEventRepositoryImpl
+import com.nunchuk.android.core.repository.InheritanceRepositoryImpl
 import com.nunchuk.android.core.repository.KeyRepositoryImpl
 import com.nunchuk.android.core.repository.NotificationRepositoryImpl
 import com.nunchuk.android.core.repository.PremiumWalletRepositoryImpl
@@ -37,6 +38,7 @@ import com.nunchuk.android.repository.CampaignsRepository
 import com.nunchuk.android.repository.DummyTransactionRepository
 import com.nunchuk.android.repository.GroupWalletRepository
 import com.nunchuk.android.repository.HandledEventRepository
+import com.nunchuk.android.repository.InheritanceRepository
 import com.nunchuk.android.repository.KeyRepository
 import com.nunchuk.android.repository.NotificationRepository
 import com.nunchuk.android.repository.PremiumWalletRepository
@@ -99,4 +101,8 @@ internal interface DataModule {
     @Binds
     @Singleton
     fun bindCampaignsRepository(repository: CampaignsRepositoryImpl): CampaignsRepository
+
+    @Binds
+    @Singleton
+    fun bindInheritanceRepository(repository: InheritanceRepositoryImpl): InheritanceRepository
 }

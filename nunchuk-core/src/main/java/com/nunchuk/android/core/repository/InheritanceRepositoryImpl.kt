@@ -17,26 +17,28 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claiminput
+package com.nunchuk.android.core.repository
 
-import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.model.InheritanceAdditional
+import com.nunchuk.android.core.data.model.InheritanceClaimingInitRequest
+import com.nunchuk.android.core.manager.UserWalletApiManager
+import com.nunchuk.android.core.mapper.toInheritanceClaimingInit
+import com.nunchuk.android.model.InheritanceClaimingInit
+import com.nunchuk.android.repository.InheritanceRepository
+import javax.inject.Inject
 
-sealed class InheritanceClaimInputEvent {
-    data class Loading(val isLoading: Boolean) : InheritanceClaimInputEvent()
-    data class Error(val message: String) : InheritanceClaimInputEvent()
-    data object NoInheritanceClaimFound : InheritanceClaimInputEvent()
-    data class GetInheritanceStatusSuccess(
-        val inheritanceAdditional: InheritanceAdditional,
-        val signers: List<SignerModel>,
-        val magic: String,
-        val derivationPaths: List<String>
-    ) : InheritanceClaimInputEvent()
+internal class InheritanceRepositoryImpl @Inject constructor(
+    private val userWalletApiManager: UserWalletApiManager,
+) : InheritanceRepository {
+
+    override suspend fun inheritanceClaimingInit(magic: String): InheritanceClaimingInit {
+        val request = InheritanceClaimingInitRequest(magic = magic)
+        val response = userWalletApiManager.claimInheritanceApi.inheritanceClaimingInit(request)
+
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+
+        return response.data.toInheritanceClaimingInit()
+    }
 }
 
-data class InheritanceClaimInputState(
-    val backupPasswords: List<String> = arrayListOf("",""),
-) {
-    val formattedBackupPasswords: List<String>
-        get() = backupPasswords.filter { it.isNotBlank() }.map { it.trim() }
-}

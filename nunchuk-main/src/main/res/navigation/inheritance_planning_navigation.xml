@@ -5,35 +5,6 @@
     app:startDestination="@id/inheritanceReviewPlanFragment">
 
     <fragment
-        android:id="@+id/inheritanceClaimInputFragment"
-        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claiminput.InheritanceClaimInputFragment"
-        android:label="InheritanceClaimInputFragment">
-        <action
-            android:id="@+id/action_inheritanceClaimInputFragment_to_inheritanceClaimNoteFragment"
-            app:destination="@id/inheritanceClaimNoteFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <action
-            android:id="@+id/action_inheritanceClaimInputFragment_to_inheritanceClaimBufferPeriodFragment"
-            app:destination="@id/inheritanceClaimBufferPeriodFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/inheritanceClaimBufferPeriodFragment"
-        android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claimbufferperiod.InheritanceClaimBufferPeriodFragment"
-        android:label="InheritanceClaimBufferPeriodFragment">
-        <argument
-            android:name="countdown_buffer_period"
-            app:argType="com.nunchuk.android.model.BufferPeriodCountdown" />
-    </fragment>
-
-    <fragment
         android:id="@+id/inheritanceClaimNoteFragment"
         android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claimnote.InheritanceClaimNoteFragment"
         android:label="InheritanceClaimNoteFragment">

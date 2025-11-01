@@ -2,10 +2,12 @@ package com.nunchuk.android.core.mapper
 
 import com.nunchuk.android.core.data.model.byzantine.toWalletType
 import com.nunchuk.android.core.data.model.membership.BeneficiaryNotificationDto
+import com.nunchuk.android.core.data.model.membership.InheritanceClaimingInitResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceDto
 import com.nunchuk.android.core.data.model.membership.InheritanceKeyDto
 import com.nunchuk.android.core.data.model.membership.InheritanceNotificationPreferencesDto
 import com.nunchuk.android.model.Inheritance
+import com.nunchuk.android.model.InheritanceClaimingInit
 import com.nunchuk.android.model.InheritanceKey
 import com.nunchuk.android.model.InheritancePendingRequest
 import com.nunchuk.android.model.InheritanceStatus
@@ -56,6 +58,14 @@ internal fun InheritanceNotificationPreferencesDto.toInheritanceNotificationSett
     return InheritanceNotificationSettings(
         emailMeWalletConfig = emailMeWalletConfig ?: false,
         perEmailSettings = perEmailSettings
+    )
+}
+
+internal fun InheritanceClaimingInitResponse.toInheritanceClaimingInit(): InheritanceClaimingInit {
+    return InheritanceClaimingInit(
+        walletType = walletType.toWalletType() ?: WalletType.MULTI_SIG,
+        walletLocalId = walletLocalId.orEmpty(),
+        inheritanceKeyCount = inheritanceKeyCount ?: 0
     )
 }
 

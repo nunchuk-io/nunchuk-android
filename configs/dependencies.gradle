@@ -47,7 +47,7 @@ ext {
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
-            compileSdkVersion: 35,
+            compileSdkVersion: 36,
             targetSdkVersion : 35,
             minSdkVersion    : 24,
             versionName      : "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}",
@@ -193,7 +193,7 @@ ext {
             'composeUiTool'          : "androidx.compose.ui:ui-tooling",
             'composeFoundation'      : "androidx.compose.foundation:foundation",
             'composeMaterial'        : "androidx.compose.material3:material3",
-            'composeActivity'        : "androidx.activity:activity-compose",
+            'composeActivity'        : "androidx.activity:activity-compose:1.11.0",
             'composeFragment'        : "androidx.fragment:fragment-compose:1.8.3",
             'composeViewModel'       : "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1",
             'composeSystemUi'        : "com.google.accompanist:accompanist-systemuicontroller:0.17.0",

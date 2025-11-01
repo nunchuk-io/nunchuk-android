@@ -89,6 +89,10 @@ interface AppNavigator {
         walletId: String? = null
     )
 
+    fun openClaimInheritanceScreen(
+        activityContext: Context,
+    )
+
     /**
      * @param verifyToken for view/update inheritance [InheritancePlanFlow.VIEW]
      * @param inheritance for view/update inheritance [InheritancePlanFlow.VIEW]

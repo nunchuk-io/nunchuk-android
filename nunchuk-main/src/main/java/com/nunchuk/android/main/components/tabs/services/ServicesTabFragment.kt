@@ -25,8 +25,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.constants.Constants
+import com.nunchuk.android.core.domain.membership.PasswordVerificationHelper
+import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
@@ -53,9 +56,6 @@ import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCVerticalInputDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
-import com.nunchuk.android.core.domain.membership.PasswordVerificationHelper
-import com.nunchuk.android.core.domain.membership.TargetAction
-import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -112,9 +112,8 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
 
                 is ServicesTabEvent.CheckInheritance -> {
                     if (event.inheritanceCheck.isPaid) {
-                        navigator.openInheritancePlanningScreen(
+                        navigator.openClaimInheritanceScreen(
                             activityContext = requireContext(),
-                            flowInfo = InheritancePlanFlow.CLAIM
                         )
                     } else {
                         showUnPaid()

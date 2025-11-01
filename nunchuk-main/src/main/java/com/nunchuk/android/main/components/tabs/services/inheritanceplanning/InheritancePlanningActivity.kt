@@ -69,7 +69,6 @@ class InheritancePlanningActivity : BaseShareSaveFileActivity<ActivityNavigation
         when (planFlow) {
             InheritancePlanFlow.SETUP -> graph.setStartDestination(R.id.inheritanceSetupIntroFragment)
             InheritancePlanFlow.VIEW -> graph.setStartDestination(R.id.inheritanceReviewPlanFragment)
-            InheritancePlanFlow.CLAIM -> graph.setStartDestination(R.id.inheritanceClaimInputFragment)
             InheritancePlanFlow.SIGN_DUMMY_TX -> graph.setStartDestination(R.id.inheritanceReviewPlanGroupGroupFragment)
             InheritancePlanFlow.REQUEST -> graph.setStartDestination(R.id.inheritanceRequestPlanningConfirmFragment)
         }

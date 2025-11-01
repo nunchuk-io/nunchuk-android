@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.core.manager
 
+import com.nunchuk.android.core.data.api.ClaimInheritanceApi
 import com.nunchuk.android.core.data.api.GroupWalletApi
 import com.nunchuk.android.core.data.api.UserWalletsApi
 import com.nunchuk.android.core.persistence.NcDataStore
@@ -39,6 +40,9 @@ internal class UserWalletApiManager @Inject constructor(
     private val _groupWalletApi: GroupWalletApi,
     @Named(TEST_NET_USER_WALLET_API)
     private val _testNetGroupWalletApi: GroupWalletApi,
+    private val _claimInheritanceApi: ClaimInheritanceApi,
+    @Named(TEST_NET_USER_WALLET_API)
+    private val _testNetClaimInheritanceApi: ClaimInheritanceApi,
     applicationScope: CoroutineScope,
     ncDataStore: NcDataStore,
 ) {
@@ -50,4 +54,7 @@ internal class UserWalletApiManager @Inject constructor(
 
     val groupWalletApi: GroupWalletApi
         get() = if (chain.value == Chain.MAIN) _groupWalletApi else _testNetGroupWalletApi
+
+    val claimInheritanceApi: ClaimInheritanceApi
+        get() = if (chain.value == Chain.MAIN) _claimInheritanceApi else _testNetClaimInheritanceApi
 }

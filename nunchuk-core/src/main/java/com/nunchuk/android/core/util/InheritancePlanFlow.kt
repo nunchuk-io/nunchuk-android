@@ -26,7 +26,6 @@ object InheritancePlanFlow {
     const val NONE = 0
     const val SETUP = 1
     const val VIEW = 2
-    const val CLAIM = 3
     const val SIGN_DUMMY_TX = 4
     const val REQUEST = 5
 
@@ -34,7 +33,6 @@ object InheritancePlanFlow {
         NONE,
         SETUP,
         VIEW,
-        CLAIM,
         SIGN_DUMMY_TX,
         REQUEST
     )

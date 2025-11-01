@@ -42,6 +42,7 @@ import com.nunchuk.android.main.MainActivity
 import com.nunchuk.android.main.MainComposeActivity
 import com.nunchuk.android.main.components.tabs.services.emergencylockdown.EmergencyLockdownActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimInheritanceActivity
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoveryActivity
 import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
 import com.nunchuk.android.main.membership.MembershipActivity
@@ -262,7 +263,7 @@ interface AppNavigatorDelegate : AppNavigator {
             replacedWalletId = replacedWalletId,
             changeTimelockFlow = changeTimelockFlow
         )
-        
+
         val intent = if (groupStep == MembershipStage.CREATE_WALLET_SUCCESS) {
             MembershipActivity.openWalletCreatedSuccessIntent(
                 activity = activityContext,
@@ -354,6 +355,10 @@ interface AppNavigatorDelegate : AppNavigator {
         walletId: String?,
     ) {
         EmergencyLockdownActivity.navigate(activityContext, verifyToken, groupId, walletId)
+    }
+
+    override fun openClaimInheritanceScreen(activityContext: Context) {
+        activityContext.startActivity(Intent(activityContext, ClaimInheritanceActivity::class.java))
     }
 
     override fun openInheritancePlanningScreen(

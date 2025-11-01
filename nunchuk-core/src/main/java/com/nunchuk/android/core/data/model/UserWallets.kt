@@ -197,6 +197,11 @@ data class InheritanceClaimClaimRequest(
     val psbt: String? = null
 )
 
+data class InheritanceClaimingInitRequest(
+    @SerializedName("magic")
+    val magic: String? = null
+)
+
 data class InheritanceCancelRequest(
     @SerializedName("nonce")
     val nonce: String? = null,

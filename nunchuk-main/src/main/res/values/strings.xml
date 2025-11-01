@@ -464,4 +464,12 @@
     <string name="nc_restore_hardware_step_4">Enter the seed phrase carefully on the device</string>
     <string name="nc_restore_hardware_step_5">Confirm the device is ready and continue to verification</string>
     <string name="nc_restore_seed_phrase_warning">Only enter your seed phrase on a trusted hardware device you control.</string>
+    
+    <!-- Claim magic phrase screen -->
+    <string name="nc_enter_magic_phrase_to_look_up">Enter your Magic Phrase to look up your inheritance plan.</string>
+    <string name="nc_invalid_magic_phrase_words">Invalid Magic Phrase. Please try again.</string>
+    
+    <!-- No inheritance plan found screen -->
+    <string name="nc_no_inheritance_plan_found">No inheritance plan found</string>
+    <string name="nc_no_inheritance_plan_found_desc">No matching inheritance plan found for the magic phrase and key you provided. Please try again later.</string>
 </resources>
