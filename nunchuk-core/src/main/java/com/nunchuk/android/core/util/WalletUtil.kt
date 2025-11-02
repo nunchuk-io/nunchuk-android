@@ -27,6 +27,7 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletTemplate
+import com.nunchuk.android.type.WalletType
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.roundToLong
@@ -102,3 +103,5 @@ val Wallet.isValueKeySetDisable: Boolean
     get() = walletTemplate == WalletTemplate.DISABLE_KEY_PATH || signers.size == 1
 
 const val MusigKeyPrefix = "key_musig_"
+
+fun WalletType.isMiniscript() = this == WalletType.MINISCRIPT

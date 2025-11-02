@@ -2,10 +2,10 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -61,7 +61,6 @@ fun ClaimBackupPasswordScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-    val lazyListState = rememberLazyListState()
 
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -117,7 +116,6 @@ fun ClaimBackupPasswordScreen(
         onContinueClick = {
             viewModel.downloadBackupKey(magicPhrase)
         },
-        lazyListState = lazyListState,
     )
 }
 
@@ -130,14 +128,13 @@ private fun ClaimBackupPasswordContent(
     isLoading: Boolean = false,
     onContinueClick: () -> Unit = {},
     onBackupPasswordTextChange: (String, Int) -> Unit = { _, _ -> },
-    lazyListState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState(),
 ) {
     if (isLoading) {
         NcLoadingDialog()
     }
 
     NcScaffold(
-        modifier = modifier.navigationBarsPadding(),
+        modifier = modifier.navigationBarsPadding().imePadding(),
         topBar = {
             NcImageAppBar(
                 backgroundRes = MainR.drawable.bg_claim_inheritance_illustration,
@@ -161,7 +158,6 @@ private fun ClaimBackupPasswordContent(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
-            state = lazyListState
         ) {
             item {
                 Text(

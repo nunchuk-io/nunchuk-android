@@ -26,6 +26,7 @@ import com.nunchuk.android.core.domain.ImportBackupKeyContentUseCase
 import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCase
 import com.nunchuk.android.core.domain.membership.InheritanceClaimDownloadBackupUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.BackupKey
 import com.nunchuk.android.model.MasterSigner
@@ -103,7 +104,16 @@ class InheritanceClaimInputViewModel @Inject constructor(
             }
             getStatus(importMasterSigners, passphrase, backupKeys)
         } else {
-            _event.emit(InheritanceClaimInputEvent.NoInheritanceClaimFound)
+            val e = result.exceptionOrNull()
+            if (e is NunchukApiException && e.code == 831) {
+                _event.emit(InheritanceClaimInputEvent.NoInheritanceClaimFound)
+            } else {
+                _event.emit(
+                    InheritanceClaimInputEvent.Error(
+                        result.exceptionOrNull()?.message.orUnknownError()
+                    )
+                )
+            }
         }
     }
 
@@ -111,33 +121,32 @@ class InheritanceClaimInputViewModel @Inject constructor(
         masterSigners: List<MasterSigner>,
         magic: String,
         backupKeys: List<BackupKey>
-    ) =
-        viewModelScope.launch {
-            _event.emit(InheritanceClaimInputEvent.Loading(true))
-            val signers = masterSigners.map { masterSignerMapper(it) }
-            val derivationPaths = backupKeys.map { it.derivationPath }
+    ) = viewModelScope.launch {
+        _event.emit(InheritanceClaimInputEvent.Loading(true))
+        val signers = masterSigners.map { masterSignerMapper(it) }
+        val derivationPaths = backupKeys.map { it.derivationPath }
 
-            val result = getInheritanceClaimStateUseCase(
-                GetInheritanceClaimStateUseCase.Param(
-                    signerModels = signers,
+        val result = getInheritanceClaimStateUseCase(
+            GetInheritanceClaimStateUseCase.Param(
+                signerModels = signers,
+                magic = magic,
+                derivationPaths = derivationPaths
+            )
+        )
+        _event.emit(InheritanceClaimInputEvent.Loading(false))
+        if (result.isSuccess) {
+            _event.emit(
+                InheritanceClaimInputEvent.GetInheritanceStatusSuccess(
+                    inheritanceAdditional = result.getOrThrow(),
+                    signers = signers,
                     magic = magic,
                     derivationPaths = derivationPaths
                 )
             )
-            _event.emit(InheritanceClaimInputEvent.Loading(false))
-            if (result.isSuccess) {
-                _event.emit(
-                    InheritanceClaimInputEvent.GetInheritanceStatusSuccess(
-                        inheritanceAdditional = result.getOrThrow(),
-                        signers = signers,
-                        magic = magic,
-                        derivationPaths = derivationPaths
-                    )
-                )
-            } else {
-                _event.emit(InheritanceClaimInputEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
-            }
+        } else {
+            _event.emit(InheritanceClaimInputEvent.Error(result.exceptionOrNull()?.message.orUnknownError()))
         }
+    }
 
     fun updateBackupPassword(password: String, index: Int) {
         val updatedPasswords = _state.value.backupPasswords.toMutableList()

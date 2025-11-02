@@ -4,11 +4,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
@@ -23,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -100,12 +104,14 @@ fun ClaimMagicPhraseScreen(
                     onNegativeClick = { viewModel.clearDialog() }
                 )
             }
+
             is ClaimMagicPhraseDialog.InActivated -> {
                 NcInfoDialog(
                     message = dialog.message,
                     onDismiss = { viewModel.clearDialog() }
                 )
             }
+
             is ClaimMagicPhraseDialog.PleaseComeLater -> {
                 NcInfoDialog(
                     title = stringResource(MainR.string.nc_please_come_back_later),
@@ -114,6 +120,7 @@ fun ClaimMagicPhraseScreen(
                     onDismiss = { viewModel.clearDialog() }
                 )
             }
+
             is ClaimMagicPhraseDialog.SecurityDepositRequired -> {
                 NcInfoDialog(
                     title = stringResource(MainR.string.nc_security_deposit_required),
@@ -162,8 +169,17 @@ private fun ClaimMagicPhraseContent(
     onSuggestClick: (String) -> Unit = {},
     onMagicalPhraseTextChange: (String) -> Unit = {},
 ) {
+    val state: LazyListState = rememberLazyListState()
+    val keyboardController = LocalSoftwareKeyboardController.current
+    LaunchedEffect(suggestions) {
+        if (suggestions.isNotEmpty()) {
+            state.animateScrollToItem(1)
+        }
+    }
     NcScaffold(
-        modifier = modifier.navigationBarsPadding(),
+        modifier = modifier
+            .navigationBarsPadding()
+            .imePadding(),
         topBar = {
             NcImageAppBar(
                 backgroundRes = MainR.drawable.bg_claim_inheritance_illustration,
@@ -177,7 +193,10 @@ private fun ClaimMagicPhraseContent(
                     .fillMaxWidth()
                     .padding(16.dp),
                 enabled = magicalPhrase.countWords() >= 1 && !isLoading,
-                onClick = onContinueClick,
+                onClick = {
+                    keyboardController?.hide()
+                    onContinueClick()
+                },
             ) {
                 Text(text = stringResource(id = SignerR.string.nc_text_continue))
             }
@@ -187,6 +206,7 @@ private fun ClaimMagicPhraseContent(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
+            state = state
         ) {
             item {
                 Text(
@@ -215,32 +235,34 @@ private fun ClaimMagicPhraseContent(
                     },
                 )
             }
-            item {
-                LazyRow(
-                    modifier = Modifier
-                        .padding(top = 16.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(suggestions) {
-                        Card(
-                            modifier = Modifier,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.backgroundPrimary
-                            ),
-                            elevation = CardDefaults.cardElevation(
-                                defaultElevation = 8.dp
-                            ),
-                            onClick = {
-                                onSuggestClick(it)
+            if (suggestions.isNotEmpty()) {
+                item {
+                    LazyRow(
+                        modifier = Modifier
+                            .padding(top = 16.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(suggestions) {
+                            Card(
+                                modifier = Modifier,
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.backgroundPrimary
+                                ),
+                                elevation = CardDefaults.cardElevation(
+                                    defaultElevation = 8.dp
+                                ),
+                                onClick = {
+                                    onSuggestClick(it)
+                                }
+                            ) {
+                                Text(
+                                    text = it,
+                                    style = NunchukTheme.typography.body,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                                )
                             }
-                        ) {
-                            Text(
-                                text = it,
-                                style = NunchukTheme.typography.body,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                            )
                         }
                     }
                 }

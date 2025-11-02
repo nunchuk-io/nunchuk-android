@@ -93,7 +93,8 @@
             android:name=".membership.onchaintimelock.backupseedphrase.BackUpSeedPhraseActivity"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
-        <activity android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimInheritanceActivity" />
+        <activity android:name="com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimInheritanceActivity"
+            android:windowSoftInputMode="adjustResize"/>
 
     </application>
 

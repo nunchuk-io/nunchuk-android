@@ -15,8 +15,10 @@ import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.BTC_SATOSHI_EXCHANGE_RATE
 import com.nunchuk.android.core.util.SelectWalletType
+import com.nunchuk.android.core.util.isMiniscript
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.addkey.addInheritanceKey
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.addkey.navigateToAddInheritanceKey
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.backuppassword.claimBackupPassword
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.backuppassword.navigateToClaimBackupPassword
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.bufferperiod.claimBufferPeriod
@@ -120,7 +122,15 @@ private fun ClaimInheritanceGraph(
                     activity?.finish()
                 },
                 onContinue = { magicPhrase, initResult ->
-                    navController.navigateToClaimBackupPassword(magicPhrase)
+                    if (initResult.walletType.isMiniscript()) {
+                        if (initResult.inheritanceKeyCount > 1) {
+                            navController.navigateToAddInheritanceKey()
+                        } else {
+                            navController.navigateToPrepareInheritanceKey()
+                        }
+                    } else {
+                        navController.navigateToClaimBackupPassword(magicPhrase)
+                    }
                 },
             )
             claimBackupPassword(
