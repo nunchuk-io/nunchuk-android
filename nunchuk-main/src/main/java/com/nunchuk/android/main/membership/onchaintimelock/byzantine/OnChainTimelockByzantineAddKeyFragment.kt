@@ -104,7 +104,8 @@ import com.nunchuk.android.main.membership.model.AddKeyOnChainData
 import com.nunchuk.android.main.membership.model.getButtonText
 import com.nunchuk.android.main.membership.model.getLabel
 import com.nunchuk.android.main.membership.model.resId
-import com.nunchuk.android.main.membership.signer.SignerIntroFragment
+import com.nunchuk.android.main.membership.onchaintimelock.importantpassphrase.ImportantNoticePassphraseFragment
+import com.nunchuk.android.main.membership.signer.OnChainSignerIntroFragment
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
@@ -119,6 +120,7 @@ import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.mk4.inheritance.ColdCardIntroFragment
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -252,7 +254,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
         }
 
-        setFragmentResultListener("ImportantNoticePassphraseFragment") { _, bundle ->
+        setFragmentResultListener(ImportantNoticePassphraseFragment.REQUEST_KEY) { _, bundle ->
             val filteredSigners =
                 bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
             if (!filteredSigners.isNullOrEmpty()) {
@@ -272,15 +274,15 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     )
                 )
             }
-            clearFragmentResult("ImportantNoticePassphraseFragment")
+            clearFragmentResult(ImportantNoticePassphraseFragment.REQUEST_KEY)
         }
-        setFragmentResultListener("SignerIntroFragment") { _, bundle ->
+        setFragmentResultListener(OnChainSignerIntroFragment.REQUEST_KEY) { _, bundle ->
             val filteredSigners =
                 bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
             val signerModel = bundle.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
             val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
             val isFromNfcSetup =
-                bundle.getBoolean(SignerIntroFragment.EXTRA_IS_FROM_NFC_SETUP, false)
+                bundle.getBoolean(OnChainSignerIntroFragment.EXTRA_IS_FROM_NFC_SETUP, false)
 
             when {
                 isFromNfcSetup && signerModel != null -> {
@@ -313,15 +315,15 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     handleHardwareSignerTag(signerTag)
                 }
             }
-            clearFragmentResult("SignerIntroFragment")
+            clearFragmentResult(OnChainSignerIntroFragment.REQUEST_KEY)
         }
 
-        setFragmentResultListener("ColdCardIntroFragment") { _, bundle ->
+        setFragmentResultListener(ColdCardIntroFragment.REQUEST_KEY) { _, bundle ->
             val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
             if (signerTag != null) {
                 handleHardwareSignerTag(signerTag)
             }
-            clearFragmentResult("ColdCardIntroFragment")
+            clearFragmentResult(ColdCardIntroFragment.REQUEST_KEY)
         }
 
         if (args.role.toRole.isFacilitatorAdmin) {

@@ -1011,7 +1011,7 @@
 
     <fragment
         android:id="@+id/signerIntroFragment"
-        android:name="com.nunchuk.android.main.membership.signer.SignerIntroFragment"
+        android:name="com.nunchuk.android.main.membership.signer.OnChainSignerIntroFragment"
         android:label="SignerIntroFragment">
         
         <argument

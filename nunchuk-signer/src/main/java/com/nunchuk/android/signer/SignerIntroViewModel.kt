@@ -91,18 +91,10 @@ class SignerIntroViewModel @Inject constructor(
 
     private fun updateDynamicSupportedSigners() {
         val currentState = _state.value
-        val dynamicSigners = if (currentState.isAddInheritanceSigner) {
-            currentState.supportedSigners.filter { supportedSigner ->
-                val config = currentState.supportedSignerConfigs.find { config ->
-                    config.signerType == supportedSigner.type.name &&
-                    config.signerTag == supportedSigner.tag?.name
-                }
-                config?.isInheritanceKey == true
-            }
-        } else {
-            currentState.supportedSigners
+        val dynamicSigners = currentState.supportedSignerConfigs.filter {
+            it.isInheritanceKey == currentState.isAddInheritanceSigner
         }
-        _state.update { it.copy(dynamicSupportedSigners = dynamicSigners) }
+        _state.update { it.copy(dynamicSupportedSigners = convertToSupportedSigners(dynamicSigners)) }
     }
 
     private fun fetchAndFilterTapSigners() {

@@ -592,14 +592,10 @@ class NcDataStore @Inject constructor(
 
     suspend fun setUserWalletConfigsSetup(configsJson: String) {
         context.dataStore.edit {
+            it.remove(userWalletConfigsSetupKey)
             it[userWalletConfigsSetupKey] = configsJson
         }
     }
-
-
-
-
-
 
 
     suspend fun clear() {

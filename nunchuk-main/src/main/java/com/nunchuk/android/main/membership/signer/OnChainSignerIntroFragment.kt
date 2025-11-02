@@ -53,9 +53,9 @@ import com.nunchuk.android.type.SignerTag
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SignerIntroFragment : MembershipFragment() {
+class OnChainSignerIntroFragment : MembershipFragment() {
     
-    private val args: SignerIntroFragmentArgs by navArgs()
+    private val args: OnChainSignerIntroFragmentArgs by navArgs()
     
     private val viewModel: SignerIntroViewModel by viewModels()
 
@@ -321,7 +321,7 @@ class SignerIntroFragment : MembershipFragment() {
         }
     }
 
-    companion object {
+    companion object Companion {
         const val REQUEST_KEY = "SignerIntroFragment"
         const val EXTRA_IS_FROM_NFC_SETUP = "EXTRA_IS_FROM_NFC_SETUP"
     }
