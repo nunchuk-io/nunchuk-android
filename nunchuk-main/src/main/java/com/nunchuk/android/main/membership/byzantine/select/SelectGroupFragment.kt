@@ -53,6 +53,8 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.wallet.WalletOption
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -78,13 +80,25 @@ class SelectGroupFragment : MembershipFragment() {
                     onContinueClicked = { option ->
                         if (viewModel.checkGroupTypeAvailable(option.slug)) {
                             if (args.isPersonal) {
-                                findNavController().navigate(
-                                    SelectGroupFragmentDirections.actionSelectGroupFragmentToInheritancePlanTypeFragment(
-                                        isPersonal = args.isPersonal,
-                                        slug = option.slug,
-                                        walletType = option.walletType.name
+                                if (option.walletType == GroupWalletType.TWO_OF_FOUR_MULTISIG) {
+                                    findNavController().navigate(
+                                        SelectGroupFragmentDirections.actionSelectGroupFragmentToInheritancePlanTypeFragment(
+                                            isPersonal = args.isPersonal,
+                                            slug = option.slug,
+                                            walletType = option.walletType.name
+                                        )
                                     )
-                                )
+                                } else {
+                                    viewModel.setLocalMembershipPlan(option.slug, option.walletType)
+                                    navigator.openMembershipActivity(
+                                        activityContext = requireActivity(),
+                                        groupStep = MembershipStage.NONE,
+                                        isPersonalWallet = true,
+                                        walletType = option.walletType,
+                                        quickWalletParam = (requireActivity() as? MembershipActivity)?.quickWalletParam
+                                    )
+                                    requireActivity().finish()
+                                }
                             } else {
                                 findNavController().navigate(
                                     SelectGroupFragmentDirections.actionSelectGroupFragmentToSelectWalletSetupFragment(

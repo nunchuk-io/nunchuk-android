@@ -38,8 +38,12 @@ import com.nunchuk.android.compose.NcTag
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.util.ClickAbleText
+import com.nunchuk.android.main.MembershipNavigationDirections
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.model.byzantine.ByzantinePreferenceSetup
+import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.byzantine.toGroupWalletType
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -56,13 +60,24 @@ class SelectWalletSetupFragment : MembershipFragment() {
             setContent {
                 SelectWalletSetupScreen(
                     onContinueClicked = { setupPreference ->
-                        findNavController().navigate(
-                            SelectWalletSetupFragmentDirections.actionSelectWalletSetupFragmentToInheritancePlanTypeFragment(
-                                isPersonal = false,
-                                walletType = args.groupType,
-                                setupPreference = setupPreference
+                        if (args.groupType.toGroupWalletType() == GroupWalletType.THREE_OF_FIVE_INHERITANCE) {
+                            findNavController().navigate(
+                                SelectWalletSetupFragmentDirections.actionSelectWalletSetupFragmentToInheritancePlanTypeFragment(
+                                    isPersonal = false,
+                                    walletType = args.groupType,
+                                    setupPreference = setupPreference
+                                )
                             )
-                        )
+                        } else {
+                            findNavController().navigate(
+                                MembershipNavigationDirections.actionGlobalByzantineInviteMembersFragment(
+                                    setupPreference = setupPreference,
+                                    groupType = args.groupType,
+                                    members = emptyArray(),
+                                    flow = ByzantineMemberFlow.SETUP
+                                )
+                            )
+                        }
                     },
                     onMoreClicked = ::handleShowMore,
                 )

@@ -4,10 +4,17 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
+import com.nunchuk.android.core.domain.membership.SetLocalMembershipPlanFlowUseCase
+import com.nunchuk.android.model.WalletConfig
+import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.isPersonalPlan
 import com.nunchuk.android.model.slug
+import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.model.wallet.WalletOption
 import com.nunchuk.android.usecase.membership.GetGroupAssistedWalletConfigUseCase
+import com.nunchuk.android.usecase.wallet.InitWalletConfigUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -21,6 +28,9 @@ import javax.inject.Inject
 @HiltViewModel
 class SelectGroupViewModel @Inject constructor(
     private val getGroupAssistedWalletConfigUseCase: GetGroupAssistedWalletConfigUseCase,
+    private val setLocalMembershipPlanFlowUseCase: SetLocalMembershipPlanFlowUseCase,
+    private val initWalletConfigUseCase: InitWalletConfigUseCase,
+    private val applicationScope: CoroutineScope,
     private val getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -54,6 +64,25 @@ class SelectGroupViewModel @Inject constructor(
                     }
                 }
             _event.emit(SelectGroupEvent.Loading(false))
+        }
+    }
+
+    fun setLocalMembershipPlan(slug: String, type: GroupWalletType) {
+        applicationScope.launch {
+            val plan = slug.toMembershipPlan()
+            if (plan.isPersonalPlan()) {
+                initWalletConfigUseCase(
+                    InitWalletConfigUseCase.Param(
+                        WalletConfig(
+                            allowInheritance = type.allowInheritance,
+                            m = type.m,
+                            n = type.n,
+                            requiredServerKey = type.requiredServerKey
+                        )
+                    )
+                )
+                setLocalMembershipPlanFlowUseCase(slug.toMembershipPlan())
+            }
         }
     }
 
