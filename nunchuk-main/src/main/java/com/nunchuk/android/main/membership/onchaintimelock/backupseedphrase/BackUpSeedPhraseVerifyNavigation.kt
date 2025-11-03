@@ -15,8 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.nunchuk.android.compose.NCLabelWithIndex
@@ -79,12 +79,12 @@ private fun BackUpSeedPhraseVerifyContent(
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 1,
-                    label = "Refer to your inheritance key device’s instruction manual and locate the option to Wipe the seed or Set a temporary seed. If you choose to wipe the seed, make sure the existing seed has also been backed up.",
+                    label = "Refer to your inheritance key device's instruction manual and locate the option to [B]Wipe the seed[/B] or [B]Set a temporary seed.[/B] If you choose to wipe the seed, make sure the existing seed has also been backed up.",
                 )
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 2,
-                    label = "Locate the option to Restore from a BIP39 seed phrase",
+                    label = "Locate the option to [B]Restore from a BIP39 seed phrase[/B]",
                 )
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
@@ -93,8 +93,8 @@ private fun BackUpSeedPhraseVerifyContent(
                 )
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    index = 3,
-                    label = "Once the device is loaded with the seed phrase, re-add the restored key to the Nunchuk app to verify that its public key matches the public key of your inheritance key",
+                    index = 4,
+                    label = "Once the device is loaded with the seed phrase, [B]re-add the restored key[/B] to the Nunchuk app to verify that its public key matches the public key of your inheritance key",
                 )
 
 

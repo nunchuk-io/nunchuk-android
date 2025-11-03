@@ -13,10 +13,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.nunchuk.android.compose.NCLabelWithIndex
@@ -77,7 +81,12 @@ private fun BackUpSeedPhraseIntroContent(
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
-                    text = "Please back up the inheritance key seed phrase on a steel plate, or a durable format that is non-digital. You will need to share this seed phrase backup with your Beneficiary so they can access the inheritance.",
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("Please back up the inheritance key seed phrase on a steel plate, or a durable format that is non-digital.")
+                        }
+                        append(" You will need to share this seed phrase backup with your Beneficiary so they can access the inheritance.")
+                    },
                     style = NunchukTheme.typography.body
                 )
 
@@ -105,7 +114,7 @@ private fun BackUpSeedPhraseIntroContent(
                         .padding(16.dp),
                     onClick = onContinueClicked,
                 ) {
-                    Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
+                    Text(text = "I have backed it up")
                 }
             }
         }
