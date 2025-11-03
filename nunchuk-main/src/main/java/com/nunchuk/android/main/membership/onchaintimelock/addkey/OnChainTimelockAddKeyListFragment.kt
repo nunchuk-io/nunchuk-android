@@ -569,6 +569,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             fromMembershipFlow = true,
             masterSignerId = event.signer.fingerPrint,
             groupId = (activity as MembershipActivity).groupId,
+            walletId = (activity as MembershipActivity).walletId,
             isOnChainBackUp = true,
         )
     }

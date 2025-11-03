@@ -86,11 +86,6 @@ fun MembershipStep.toIndex(walletType: WalletType) = if (walletType == WalletTyp
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK -> 6
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> 7
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK -> 8
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 -> 9
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3_TIMELOCK -> 10
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 -> 11
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4_TIMELOCK -> 12
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 -> 13
         else -> throw IllegalArgumentException()
     }
 }

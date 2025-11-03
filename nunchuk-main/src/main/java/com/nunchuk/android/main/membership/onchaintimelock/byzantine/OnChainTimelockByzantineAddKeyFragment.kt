@@ -618,12 +618,11 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
 
 
     private fun openVerifyTapSigner(event: OnChainTimelockByzantineAddKeyListEvent.OnVerifySigner) {
-        navigator.openVerifyBackupTapSigner(
+        navigator.openCreateBackUpTapSigner(
             activity = requireActivity(),
             fromMembershipFlow = true,
-            backUpFilePath = event.filePath,
-            masterSignerId = event.signer.id,
-            groupId = args.groupId,
+            masterSignerId = event.signer.fingerPrint,
+            groupId = (activity as MembershipActivity).groupId,
             walletId = (activity as MembershipActivity).walletId,
             isOnChainBackUp = true,
         )

@@ -79,15 +79,20 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createDraftWalletTimelock(groupId: String, timelockValue: Long, plan: MembershipPlan) {
+    override suspend fun createDraftWalletTimelock(
+        groupId: String,
+        timelockValue: Long,
+        plan: MembershipPlan
+    ) {
         val payload = CreateTimelockPayload(
             timelock = TimelockPayload(value = timelockValue)
         )
-        val response = userWalletApiManager.groupWalletApi.createGroupDraftWalletTimelock(groupId, payload)
+        val response =
+            userWalletApiManager.groupWalletApi.createGroupDraftWalletTimelock(groupId, payload)
         if (response.isSuccess.not()) {
             throw response.error
         }
-        
+
         // Save membership step info
         membershipRepository.saveStepInfo(
             MembershipStepInfo(
@@ -113,7 +118,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         val plan =
             if (draftWallet.walletConfig?.allowInheritance == true) MembershipPlan.HONEY_BADGER else MembershipPlan.IRON_HAND
         val walletType = draftWallet.walletType.toWalletType()
-        
+
         // Save a placeholder step to indicate draft wallet exists, even if no signers yet
         if (draftWallet.signers.isEmpty()) {
             membershipRepository.saveStepInfo(
@@ -125,7 +130,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 )
             )
         }
-        
+
         draftWallet.signers.forEach { key ->
             val signerType = key.type.toSignerType()
             newSigner[key.xfp.orEmpty()] = !saveServerSignerIfNeed(key)
@@ -151,7 +156,10 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             } else {
                 val step = if (walletType == WalletType.MINISCRIPT) {
                     when (key.index) {
-                        0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK else throw IllegalArgumentException("Iron Hand doesn't support timelock at index 1")
+                        0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK else throw IllegalArgumentException(
+                            "Iron Hand doesn't support timelock at index 1"
+                        )
+
                         1 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_INHERITANCE_KEY else MembershipStep.IRON_ADD_HARDWARE_KEY_1
                         2 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK
                         3 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_HARDWARE_KEY_1 else MembershipStep.IRON_ADD_HARDWARE_KEY_2
@@ -228,7 +236,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         val chatId = accountManager.getAccount().chatId
         val newSigner = mutableMapOf<String, Boolean>()
         val walletType = draftWallet.walletType.toWalletType()
-        
+
         draftWallet.signers.forEach { key ->
             val signerType = key.type.toSignerType()
             newSigner[key.xfp.orEmpty()] = !saveServerSignerIfNeed(key)
@@ -259,28 +267,14 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             } else {
                 val step = if (walletType == WalletType.MINISCRIPT) {
                     when (key.index) {
-                        0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK
-                        1 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY else MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
-                        2 -> if (draftWallet.walletConfig?.n == GroupWalletType.THREE_OF_FIVE_INHERITANCE.n && draftWallet.walletConfig.allowInheritance) {
-                            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK
-                        } else {
-                            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK
-                        }
-                        3 -> if (draftWallet.walletConfig?.n == GroupWalletType.THREE_OF_FIVE_INHERITANCE.n && draftWallet.walletConfig.allowInheritance) {
-                            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1
-                        } else {
-                            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
-                        }
-                        4 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK
-                        5 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2
+                        0 -> MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK
+                        1 -> MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY
+                        2 -> MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK
+                        3 -> MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1
+                        4 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK
+                        5 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
                         6 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK
                         7 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
-                        8 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK
-                        9 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2
-                        10 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3_TIMELOCK
-                        11 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3
-                        12 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4_TIMELOCK
-                        13 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4
                         else -> throw IllegalArgumentException("Unexpected index ${key.index} for MINISCRIPT")
                     }
                 } else {
@@ -307,10 +301,13 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                         }
                     }
                 }
-                if (info == null || info.masterSignerId != key.xfp || info.verifyType != verifyType) {
+                val shouldSave = walletType == WalletType.MINISCRIPT || 
+                    info == null || info.masterSignerId != key.xfp || info.verifyType != verifyType
+                
+                if (shouldSave) {
                     membershipRepository.saveStepInfo(
                         MembershipStepInfo(
-                            id = info?.id ?: 0L,
+                            id = if (walletType == WalletType.MINISCRIPT) 0L else info?.id ?: 0L,
                             step = step,
                             masterSignerId = key.xfp.orEmpty(),
                             plan = MembershipPlan.BYZANTINE,
