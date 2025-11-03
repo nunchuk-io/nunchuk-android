@@ -39,6 +39,7 @@ class GetInheritanceClaimStateUseCase @Inject constructor(
     override suspend fun execute(parameters: Param): InheritanceAdditional {
         val userData = userWalletRepository.generateInheritanceClaimStatusUserData(
             magic = parameters.magic,
+            bsms = parameters.bsms
         )
         val signatures = arrayListOf<String>()
         val singleSigners = arrayListOf<SingleSigner>()
@@ -59,8 +60,9 @@ class GetInheritanceClaimStateUseCase @Inject constructor(
     }
 
     data class Param(
-        val signerModels: List<SignerModel>,
+        val signerModels: List<SignerModel> = emptyList(),
         val magic: String,
-        val derivationPaths: List<String>,
+        val derivationPaths: List<String> = emptyList(),
+        val bsms: String? = null
     )
 }

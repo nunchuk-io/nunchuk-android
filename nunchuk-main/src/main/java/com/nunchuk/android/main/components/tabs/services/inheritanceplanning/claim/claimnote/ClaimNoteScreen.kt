@@ -28,7 +28,6 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.montserratMedium
 import com.nunchuk.android.core.R
-import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.toAmount
@@ -37,32 +36,17 @@ import com.nunchuk.android.main.R as MainR
 
 @Composable
 fun ClaimNoteScreen(
-    signers: List<SignerModel>,
-    magic: String,
     inheritanceAdditional: InheritanceAdditional,
-    derivationPaths: List<String>,
     modifier: Modifier = Modifier,
     onDoneClick: () -> Unit = {},
-    onWithdrawClick: (
-        balance: Double,
-        signers: List<SignerModel>,
-        magic: String,
-        derivationPaths: List<String>
-    ) -> Unit = { _, _, _, _ -> },
+    onWithdrawClick: () -> Unit = { },
 ) {
 
     ClaimNoteContent(
         modifier = modifier,
         note = inheritanceAdditional.inheritance?.note.orEmpty(),
         balance = inheritanceAdditional.balance,
-        onWithdrawClick = {
-            onWithdrawClick(
-                inheritanceAdditional.balance,
-                signers,
-                magic,
-                derivationPaths
-            )
-        },
+        onWithdrawClick = onWithdrawClick,
         onDoneClick = onDoneClick,
     )
 }
@@ -149,6 +133,7 @@ private fun ClaimNoteContent(
                             Box(
                                 modifier = Modifier
                                     .padding(top = 12.dp, start = 16.dp, end = 16.dp)
+                                    .fillMaxWidth()
                                     .background(
                                         color = colorResource(
                                             id = MainR.color.nc_grey_light

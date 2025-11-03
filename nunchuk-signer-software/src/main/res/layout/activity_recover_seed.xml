@@ -20,7 +20,7 @@
             style="@style/NCToolbar.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/nc_ssigner_recover_seed" />
+            android:text="@string/nc_recover_key_via_seed" />
     </androidx.appcompat.widget.Toolbar>
 
     <com.nunchuk.android.widget.NCFontTextView

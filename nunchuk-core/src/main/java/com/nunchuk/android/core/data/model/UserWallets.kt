@@ -24,6 +24,7 @@ import com.nunchuk.android.core.data.model.byzantine.DummyTransactionDto
 import com.nunchuk.android.core.data.model.byzantine.WalletConfigDto
 import com.nunchuk.android.core.data.model.membership.KeyPoliciesDto
 import com.nunchuk.android.core.data.model.membership.ServerKeyDto
+import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.TransactionServerDto
 
 internal data class CreateServerKeysPayload(
@@ -179,7 +180,9 @@ data class InheritanceClaimStatusRequest(
 ) {
     data class Body(
         @SerializedName("magic")
-        val magic: String? = null
+        val magic: String? = null,
+        @SerializedName("bsms")
+        val bsms: String? = null
     )
 }
 
@@ -200,6 +203,13 @@ data class InheritanceClaimClaimRequest(
 data class InheritanceClaimingInitRequest(
     @SerializedName("magic")
     val magic: String? = null
+)
+
+data class InheritanceClaimingDownloadWalletRequest(
+    @SerializedName("magic")
+    val magic: String? = null,
+    @SerializedName("keys")
+    val keys: List<SignerServerDto> = emptyList()
 )
 
 data class InheritanceCancelRequest(
@@ -239,6 +249,8 @@ data class InheritanceClaimCreateTransactionRequest(
     data class Body(
         @SerializedName("magic")
         val magic: String? = null,
+        @SerializedName("bsms")
+        val bsms: String? = null,
         @SerializedName("address")
         val address: String? = null,
         @SerializedName("fee_rate")

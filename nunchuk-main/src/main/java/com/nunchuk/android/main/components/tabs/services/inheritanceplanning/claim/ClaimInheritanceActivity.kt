@@ -1,11 +1,17 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim
 
+import android.app.Activity
 import android.os.Bundle
 import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NunchukTheme
@@ -13,6 +19,8 @@ import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.core.signer.KeyFlow
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.util.BTC_SATOSHI_EXCHANGE_RATE
 import com.nunchuk.android.core.util.SelectWalletType
 import com.nunchuk.android.core.util.isMiniscript
@@ -40,6 +48,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.withdrawbitcoin.navigateToClaimWithdrawBitcoin
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.result.GlobalResultKey
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -52,9 +61,7 @@ class ClaimInheritanceActivity : BaseComposeActivity() {
         setContentView(
             ComposeView(this).apply {
                 setContent {
-                    ClaimInheritanceGraph(
-                        navigator = navigator
-                    )
+                    ClaimInheritanceGraph(navigator = navigator)
                 }
             }
         )
@@ -68,6 +75,25 @@ private fun ClaimInheritanceGraph(
 ) {
     val navController = rememberNavController()
     val activity = LocalActivity.current
+    val importSeedLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            val mnemonic = it.data?.getStringExtra(GlobalResultKey.MNEMONIC).orEmpty()
+            if (mnemonic.isNotEmpty()) {
+                activityViewModel.createSoftwareSignerFromMnemonic(mnemonic)
+            }
+        }
+    }
+
+    val sharedUiState by activityViewModel.claimData.collectAsStateWithLifecycle()
+
+    LaunchedEffect(sharedUiState.inheritanceAdditional) {
+        val inheritanceAdditional = sharedUiState.inheritanceAdditional
+        if (inheritanceAdditional != null) {
+            navController.navigateToClaimNote()
+        }
+    }
     NunchukTheme {
         NavHost(
             navController = navController,
@@ -88,7 +114,14 @@ private fun ClaimInheritanceGraph(
                 onContinue = { option ->
                     when (option) {
                         InheritanceOption.HARDWARE_DEVICE -> {
-
+                            activity?.let { activityContext ->
+                                navigator.openSignerIntroScreen(
+                                    activityContext = activity,
+                                    onChainAddSignerParam = OnChainAddSignerParam(
+                                        flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
+                                    )
+                                )
+                            }
                         }
 
                         InheritanceOption.SEED_PHRASE -> {
@@ -101,11 +134,17 @@ private fun ClaimInheritanceGraph(
                 onBackPressed = {
                     navController.popBackStack()
                 },
-                onContinue = { isUseDevice ->
-                    if (isUseDevice) {
+                onContinue = { isUseHardwareDevice ->
+                    if (isUseHardwareDevice) {
                         navController.navigateToRestoreSeedPhraseHardware()
                     } else {
-
+                        activity?.let {
+                            navigator.openRecoverSeedScreen(
+                                launcher = importSeedLauncher,
+                                activityContext = activity,
+                                keyFlow = KeyFlow.ADD_AND_RETURN
+                            )
+                        }
                     }
                 },
             )
@@ -122,6 +161,7 @@ private fun ClaimInheritanceGraph(
                     activity?.finish()
                 },
                 onContinue = { magicPhrase, initResult ->
+                    activityViewModel.updateClaimInit(magicPhrase, initResult)
                     if (initResult.walletType.isMiniscript()) {
                         if (initResult.inheritanceKeyCount > 1) {
                             navController.navigateToAddInheritanceKey()
@@ -143,12 +183,11 @@ private fun ClaimInheritanceGraph(
                 onSuccess = { signers, magic, inheritanceAdditional, derivationPaths ->
                     val bufferPeriodCountdown = inheritanceAdditional.bufferPeriodCountdown
                     if (bufferPeriodCountdown == null) {
-                        navController.navigateToClaimNote(
-                            signers = signers,
-                            magic = magic,
-                            inheritanceAdditional = inheritanceAdditional,
-                            derivationPaths = derivationPaths,
-                            activityViewModel = activityViewModel
+                        activityViewModel.setClaimNoteData(
+                            signers,
+                            magic,
+                            inheritanceAdditional,
+                            derivationPaths
                         )
                     } else {
                         navController.navigateToClaimBufferPeriod(bufferPeriodCountdown)
@@ -172,14 +211,8 @@ private fun ClaimInheritanceGraph(
                 onDoneClick = {
                     activity?.finish()
                 },
-                onWithdrawClick = { balance, signers, magic, derivationPaths ->
-                    navController.navigateToClaimWithdrawBitcoin(
-                        walletBalance = balance,
-                        signers = signers,
-                        magic = magic,
-                        derivationPaths = derivationPaths,
-                        activityViewModel = activityViewModel
-                    )
+                onWithdrawClick = {
+                    navController.navigateToClaimWithdrawBitcoin()
                 },
             )
             claimWithdrawBitcoin(

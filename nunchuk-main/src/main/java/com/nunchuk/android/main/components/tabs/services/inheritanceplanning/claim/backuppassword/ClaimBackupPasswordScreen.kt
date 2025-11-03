@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -58,6 +59,7 @@ fun ClaimBackupPasswordScreen(
     ) -> Unit = { _, _, _, _ -> },
     viewModel: InheritanceClaimInputViewModel = hiltViewModel(),
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -114,6 +116,7 @@ fun ClaimBackupPasswordScreen(
             viewModel.updateBackupPassword(text, index)
         },
         onContinueClick = {
+            keyboardController?.hide()
             viewModel.downloadBackupKey(magicPhrase)
         },
     )

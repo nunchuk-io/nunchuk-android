@@ -241,14 +241,15 @@ interface PremiumWalletRepository {
         notificationPreferences: InheritanceNotificationSettings? = null
     ): String
 
-    suspend fun generateInheritanceClaimStatusUserData(magic: String): String
+    suspend fun generateInheritanceClaimStatusUserData(magic: String, bsms: String? = null): String
 
     suspend fun generateInheritanceClaimCreateTransactionUserData(
         magic: String,
         address: String,
         feeRate: String,
         amount: String,
-        antiFeeSniping: Boolean
+        antiFeeSniping: Boolean,
+        bsms: String? = null
     ): String
 
     suspend fun inheritanceClaimStatus(

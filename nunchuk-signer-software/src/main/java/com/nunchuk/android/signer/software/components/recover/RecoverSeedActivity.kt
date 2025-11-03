@@ -29,7 +29,7 @@ import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.KeyFlow
-import com.nunchuk.android.core.signer.KeyFlow.isAddPortalFlow
+import com.nunchuk.android.core.signer.KeyFlow.isAddAndReturnFlow
 import com.nunchuk.android.core.signer.KeyFlow.isSignInFlow
 import com.nunchuk.android.core.util.bindEnableState
 import com.nunchuk.android.core.util.navigateToSelectWallet
@@ -124,7 +124,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                         )
                     }
 
-                    primaryKeyFlow.isAddPortalFlow() -> {
+                    primaryKeyFlow.isAddAndReturnFlow() -> {
                         setResult(
                             RESULT_OK,
                             Intent().apply {

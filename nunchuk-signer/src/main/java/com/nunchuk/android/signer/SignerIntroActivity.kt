@@ -42,6 +42,7 @@ import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -52,7 +53,7 @@ class SignerIntroActivity : BaseComposeActivity() {
     }
     private val keyFlow by lazy { intent.getIntExtra(EXTRA_KEY_FLOW, KeyFlow.NONE) }
     private val onChainAddSignerParam by lazy { 
-        intent.getParcelableExtra<OnChainAddSignerParam>(EXTRA_ONCHAIN_ADD_SIGNER_PARAM)
+        intent.parcelable<OnChainAddSignerParam>(EXTRA_ONCHAIN_ADD_SIGNER_PARAM)
     }
     
     private val viewModel: SignerIntroViewModel by viewModels()

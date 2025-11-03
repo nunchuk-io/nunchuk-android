@@ -1,19 +1,45 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim
 
+import android.os.Parcelable
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.base.MutableSaveStateFlow
+import com.nunchuk.android.core.base.update
+import com.nunchuk.android.core.domain.membership.DownloadWalletForClaimUseCase
+import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCase
+import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.model.InheritanceAdditional
+import com.nunchuk.android.model.InheritanceClaimingInit
+import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
+import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class ClaimInheritanceViewModel @Inject constructor() : ViewModel() {
+class ClaimInheritanceViewModel @Inject constructor(
+    private val createSoftwareSignerUseCase: CreateSoftwareSignerUseCase,
+    private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase,
+    private val downloadWalletForClaimUseCase: DownloadWalletForClaimUseCase,
+    private val getInheritanceClaimStateUseCase: GetInheritanceClaimStateUseCase,
+    private val singleSignerMapper: SingleSignerMapper,
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
 
-    private val _claimData = MutableStateFlow<ClaimData?>(null)
-    val claimData = _claimData.asStateFlow()
+    private val _claimData = MutableSaveStateFlow(
+        savedStateHandle = savedStateHandle,
+        key = KEY_CLAIM_DATA,
+        defaultValue = ClaimData()
+    )
+    val claimData: StateFlow<ClaimData> = _claimData.asStateFlow()
 
     fun setClaimNoteData(
         signers: List<SignerModel>,
@@ -22,39 +48,105 @@ class ClaimInheritanceViewModel @Inject constructor() : ViewModel() {
         derivationPaths: List<String>
     ) {
         _claimData.update {
-            ClaimData(
+            it.copy(
                 signers = signers,
                 magic = magic,
                 derivationPaths = derivationPaths,
                 inheritanceAdditional = inheritanceAdditional,
-                walletBalance = null
             )
         }
     }
 
-    fun setWithdrawData(
-        walletBalance: Double,
-        signers: List<SignerModel>,
-        magic: String,
-        derivationPaths: List<String>
-    ) {
+    fun updateClaimInit(magicPhrase: String, init: InheritanceClaimingInit) {
         _claimData.update {
-            ClaimData(
-                signers = signers,
-                magic = magic,
-                derivationPaths = derivationPaths,
-                inheritanceAdditional = null,
-                walletBalance = walletBalance
+            it.copy(
+                magic = magicPhrase,
+                requiredKeyCount = init.inheritanceKeyCount,
+                walletType = init.walletType
             )
         }
+    }
+
+    fun createSoftwareSignerFromMnemonic(mnemonic: String) {
+        viewModelScope.launch {
+            val currentData = _claimData.value
+            val signerName = "$INHERITED_KEY_NAME #${currentData.signers.size + 1}"
+
+            createSoftwareSignerUseCase(
+                CreateSoftwareSignerUseCase.Param(
+                    name = signerName,
+                    mnemonic = mnemonic,
+                )
+            ).map {
+                getDefaultSignerFromMasterSignerUseCase(
+                    GetDefaultSignerFromMasterSignerUseCase.Params(
+                        masterSignerId = it.id,
+                        walletType = WalletType.MULTI_SIG,
+                        addressType = AddressType.NATIVE_SEGWIT
+                    )
+                ).onFailure {
+                    Timber.e(it)
+                }.getOrNull()
+            }.onSuccess { signer ->
+                signer?.let {
+                    _claimData.update {
+                        it.copy(signers = it.signers + singleSignerMapper(signer))
+                    }
+
+                }
+            }.onFailure {
+                Timber.e(it)
+            }
+
+            if (claimData.value.signers.size == claimData.value.requiredKeyCount) {
+                downloadWalletForClaim()
+            }
+        }
+    }
+
+    private suspend fun downloadWalletForClaim() {
+        val currentData = _claimData.value
+        downloadWalletForClaimUseCase(
+            DownloadWalletForClaimUseCase.Param(
+                magic = currentData.magic,
+                keys = currentData.signers.map { it.toSingleSigner() },
+            )
+        ).map { wallet ->
+            getInheritanceClaimStateUseCase(
+                GetInheritanceClaimStateUseCase.Param(
+                    magic = currentData.magic,
+                    bsms = wallet.bsms
+                )
+            ).onFailure {
+
+            }.getOrNull()
+        }.onSuccess { inheritanceAdditional ->
+            inheritanceAdditional?.let {
+                _claimData.update {
+                    it.copy(
+                        inheritanceAdditional = inheritanceAdditional,
+                    )
+                }
+            }
+        }.onFailure {
+            // show noInheritancePlanFound
+        }
+    }
+
+    private companion object {
+        private const val KEY_CLAIM_DATA = "claim_data"
+        private const val INHERITED_KEY_NAME = "Inheritance key"
     }
 }
 
+@Parcelize
 data class ClaimData(
-    val signers: List<SignerModel>,
-    val magic: String,
-    val derivationPaths: List<String>,
+    val signers: List<SignerModel> = emptyList(),
+    val magic: String = "",
+    val derivationPaths: List<String> = emptyList(),
     val inheritanceAdditional: InheritanceAdditional? = null,
-    val walletBalance: Double? = null
-)
+    val requiredKeyCount: Int = 1,
+    val walletType: WalletType = WalletType.MULTI_SIG,
+    val bsms: String? = null,
+) : Parcelable
 

@@ -50,10 +50,10 @@ class CreateSoftwareSignerUseCase @Inject constructor(
     data class Param(
         val name: String,
         val mnemonic: String,
-        val passphrase: String,
-        val isPrimaryKey: Boolean,
+        val passphrase: String = "",
+        val isPrimaryKey: Boolean = false,
         val replace: Boolean = false,
-        val isBackupNow: Boolean,
+        val isBackupNow: Boolean = true,
         val primaryDecoyPin: String = "",
     )
 }

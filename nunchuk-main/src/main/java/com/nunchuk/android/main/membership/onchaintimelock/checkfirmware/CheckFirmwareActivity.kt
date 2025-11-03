@@ -6,12 +6,13 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
@@ -67,6 +68,7 @@ class CheckFirmwareActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         viewModel.init(args)
 
+        enableEdgeToEdge()
         setContent {
             ColdCardCheckFirmwareScreen(
                 viewModel = viewModel,
@@ -120,7 +122,7 @@ class CheckFirmwareActivity : ComponentActivity() {
                 // Handle other signer types if needed
             }
         }
-            // Return result to SignerIntroFragment to handle navigation
+        // Return result to SignerIntroFragment to handle navigation
         val resultIntent = Intent().apply {
             putExtra(EXTRA_OPEN_NEXT_SCREEN, true)
         }
@@ -130,7 +132,7 @@ class CheckFirmwareActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_OPEN_NEXT_SCREEN = "EXTRA_OPEN_NEXT_SCREEN"
-        
+
         fun navigate(
             context: Context,
             launcher: ActivityResultLauncher<Intent>?,
@@ -196,26 +198,39 @@ private fun ColdCardCheckFirmwareContent(
         else -> signerTag.name
     }
     NunchukTheme {
-        Scaffold(topBar = {
-            NcImageAppBar(
-                backgroundRes = when (signerTag) {
-                    SignerTag.JADE -> R.drawable.bg_add_jade
-                    else -> R.drawable.bg_check_coldcard_firmware_illustration
-                },
-                title = stringResource(
-                    id = R.string.nc_estimate_remain_time,
-                    remainTime
-                ),
-                actions = {
-                    IconButton(onClick = onMoreClicked) {
-                        Icon(
-                            painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
-                            contentDescription = "More icon"
-                        )
+        Scaffold(
+            modifier = Modifier.navigationBarsPadding(),
+            topBar = {
+                NcImageAppBar(
+                    backgroundRes = when (signerTag) {
+                        SignerTag.JADE -> R.drawable.bg_add_jade
+                        else -> R.drawable.bg_check_coldcard_firmware_illustration
+                    },
+                    title = stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ),
+                    actions = {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = com.nunchuk.android.signer.R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
                     }
+                )
+            },
+            bottomBar = {
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = onContinueClicked,
+                ) {
+                    Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
                 }
-            )
-        }) { innerPadding ->
+            },
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -279,15 +294,6 @@ private fun ColdCardCheckFirmwareContent(
                         }
                     }
                 )
-                Spacer(modifier = Modifier.weight(1.0f))
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClicked,
-                ) {
-                    Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
-                }
             }
         }
     }

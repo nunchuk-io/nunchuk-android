@@ -20,7 +20,14 @@
 package com.nunchuk.android.repository
 
 import com.nunchuk.android.model.InheritanceClaimingInit
+import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.WalletServer
 
 interface InheritanceRepository {
     suspend fun inheritanceClaimingInit(magic: String): InheritanceClaimingInit
+    
+    suspend fun downloadWallet(
+        magic: String,
+        keys: List<SingleSigner>
+    ): WalletServer
 }

@@ -93,7 +93,7 @@ fun SelectSetupSeedPhraseScreen(
                     if (selectedType == SeedPhraseType.IMPORT) {
                         importSeedLauncher.launch(
                             RecoverSeedActivity.buildIntent(
-                                keyFlow = KeyFlow.ADD_PORTAL,
+                                keyFlow = KeyFlow.ADD_AND_RETURN,
                                 activityContext = context,
                             )
                         )

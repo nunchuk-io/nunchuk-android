@@ -172,6 +172,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
 
     override fun openRecoverSeedScreen(
         activityContext: Context,
+        launcher: ActivityResultLauncher<Intent>?,
         passphrase: String,
         keyFlow: Int,
         isRecoverHotWallet: Boolean,
@@ -180,7 +181,18 @@ interface SignerNavigatorDelegate : SignerNavigator {
         replacedXfp: String?,
         quickWalletParam: QuickWalletParam?
     ) {
-        RecoverSeedActivity.start(
+        launcher?.launch(
+            RecoverSeedActivity.buildIntent(
+                activityContext = activityContext,
+                keyFlow = keyFlow,
+                passphrase = passphrase,
+                isRecoverHotWallet = isRecoverHotWallet,
+                groupId = groupId,
+                replacedXfp = replacedXfp,
+                walletId = walletId,
+                quickWalletParam = quickWalletParam
+            )
+        ) ?: RecoverSeedActivity.start(
             activityContext = activityContext,
             passphrase = passphrase,
             primaryKeyFlow = keyFlow,
@@ -322,8 +334,16 @@ interface SignerNavigatorDelegate : SignerNavigator {
         PKeyReplaceKeyIntroActivity.start(activityContext)
     }
 
-    override fun openScanQrCodeScreen(activityContext: Context, isGroupWalletFlow: Boolean, quickWalletParam: QuickWalletParam?) {
-        ScanDynamicQRActivity.buildIntent(activityContext, isGroupWalletFlow, quickWalletParam = quickWalletParam).let {
+    override fun openScanQrCodeScreen(
+        activityContext: Context,
+        isGroupWalletFlow: Boolean,
+        quickWalletParam: QuickWalletParam?
+    ) {
+        ScanDynamicQRActivity.buildIntent(
+            activityContext,
+            isGroupWalletFlow,
+            quickWalletParam = quickWalletParam
+        ).let {
             activityContext.startActivity(it)
         }
     }

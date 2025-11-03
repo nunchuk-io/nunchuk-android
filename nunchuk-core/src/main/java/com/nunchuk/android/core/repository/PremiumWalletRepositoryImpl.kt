@@ -839,9 +839,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return gson.toJson(request)
     }
 
-    override suspend fun generateInheritanceClaimStatusUserData(magic: String): String {
+    override suspend fun generateInheritanceClaimStatusUserData(magic: String, bsms: String?): String {
         val body = InheritanceClaimStatusRequest.Body(
             magic = magic,
+            bsms = bsms
         )
         val nonce = getNonce()
         val request = InheritanceClaimStatusRequest(
@@ -851,14 +852,15 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun generateInheritanceClaimCreateTransactionUserData(
-        magic: String, address: String, feeRate: String, amount: String, antiFeeSniping: Boolean
+        magic: String, address: String, feeRate: String, amount: String, antiFeeSniping: Boolean, bsms: String?
     ): String {
         val amountVal = amount.toDoubleOrNull() ?: 0.0
         val body = InheritanceClaimCreateTransactionRequest.Body(
             magic = magic,
+            bsms = bsms,
             address = address,
             feeRate = feeRate,
-            amount = if (amountVal == 0.0) null else amount.toString(),
+            amount = if (amountVal == 0.0) null else amount,
             antiFeeSniping = antiFeeSniping
         )
         val nonce = getNonce()

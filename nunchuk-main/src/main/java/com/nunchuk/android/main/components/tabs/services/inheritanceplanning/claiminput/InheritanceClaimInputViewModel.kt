@@ -155,6 +155,6 @@ class InheritanceClaimInputViewModel @Inject constructor(
     }
 
     companion object {
-        private const val INHERITED_KEY_NAME = "Inherited key"
+        const val INHERITED_KEY_NAME = "Inheritance key"
     }
 }

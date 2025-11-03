@@ -17,21 +17,31 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.data.model.membership
+package com.nunchuk.android.core.domain.membership
 
-import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.WalletServer
+import com.nunchuk.android.repository.InheritanceRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-class InheritanceClaimingInitResponse(
-    @SerializedName("wallet_type")
-    val walletType: String? = null,
-    @SerializedName("wallet_local_id")
-    val walletLocalId: String? = null,
-    @SerializedName("inheritance_key_count")
-    val inheritanceKeyCount: Int? = null
-)
+class DownloadWalletForClaimUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val inheritanceRepository: InheritanceRepository,
+) : UseCase<DownloadWalletForClaimUseCase.Param, WalletServer>(dispatcher) {
 
-class InheritanceClaimingDownloadWalletResponse(
-    @SerializedName("wallet")
-    val wallet: WalletDto? = null
-)
+    override suspend fun execute(parameters: Param): WalletServer {
+        return inheritanceRepository.downloadWallet(
+            magic = parameters.magic,
+            keys = parameters.keys
+        )
+    }
+
+    data class Param(
+        val magic: String,
+        val keys: List<SingleSigner>
+    )
+}
 

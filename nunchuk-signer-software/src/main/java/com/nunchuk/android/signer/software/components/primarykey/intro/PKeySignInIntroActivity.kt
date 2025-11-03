@@ -46,7 +46,7 @@ class PKeySignInIntroActivity : BaseActivity<ActivityPkeySignInIntroBinding>() {
             navigator.openPrimaryKeyManuallyUsernameScreen(this)
         }
         binding.btnImport.setOnDebounceClickListener {
-            navigator.openRecoverSeedScreen(this, keyFlow = KeyFlow.SIGN_IN)
+            navigator.openRecoverSeedScreen(activityContext = this, keyFlow = KeyFlow.SIGN_IN)
         }
         binding.toolbar.setNavigationOnClickListener {
             finish()

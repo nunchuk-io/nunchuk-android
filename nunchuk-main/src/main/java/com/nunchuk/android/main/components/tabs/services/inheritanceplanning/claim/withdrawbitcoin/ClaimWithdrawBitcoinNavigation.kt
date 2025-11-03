@@ -43,59 +43,52 @@ fun NavGraphBuilder.claimWithdrawBitcoin(
 ) {
     composable<ClaimWithdrawBitcoinRoute> {
         val activity = LocalActivity.current as ComponentActivity
-        val activityViewModel: ClaimInheritanceViewModel = hiltViewModel(viewModelStoreOwner = activity)
+        val activityViewModel: ClaimInheritanceViewModel =
+            hiltViewModel(viewModelStoreOwner = activity)
         val claimData by activityViewModel.claimData.collectAsStateWithLifecycle()
 
-        claimData?.let { data ->
-            data.walletBalance?.let { walletBalance ->
-                ClaimWithdrawBitcoinScreen(
-                    balance = walletBalance,
-                    onNavigateToInputAmount = {
-                        onNavigateToInputAmount(
-                            walletBalance,
-                            data.signers,
-                            data.magic,
-                            data.derivationPaths
-                        )
-                    },
-                    onNavigateToSelectWallet = {
-                        onNavigateToSelectWallet(
-                            walletBalance,
-                            data.signers,
-                            data.magic,
-                            data.derivationPaths
-                        )
-                    },
-                    onNavigateToWalletIntermediary = {
-                        onNavigateToWalletIntermediary(
-                            walletBalance,
-                            data.signers,
-                            data.magic,
-                            data.derivationPaths
-                        )
-                    },
-                    onNavigateToAddReceipt = {
-                        onNavigateToAddReceipt(
-                            walletBalance,
-                            data.signers,
-                            data.magic,
-                            data.derivationPaths
-                        )
-                    },
-                )
-            }
+        val walletBalance = claimData.inheritanceAdditional?.balance
+        walletBalance?.let { walletBalance ->
+            ClaimWithdrawBitcoinScreen(
+                balance = walletBalance,
+                onNavigateToInputAmount = {
+                    onNavigateToInputAmount(
+                        walletBalance,
+                        claimData.signers,
+                        claimData.magic,
+                        claimData.derivationPaths
+                    )
+                },
+                onNavigateToSelectWallet = {
+                    onNavigateToSelectWallet(
+                        walletBalance,
+                        claimData.signers,
+                        claimData.magic,
+                        claimData.derivationPaths
+                    )
+                },
+                onNavigateToWalletIntermediary = {
+                    onNavigateToWalletIntermediary(
+                        walletBalance,
+                        claimData.signers,
+                        claimData.magic,
+                        claimData.derivationPaths
+                    )
+                },
+                onNavigateToAddReceipt = {
+                    onNavigateToAddReceipt(
+                        walletBalance,
+                        claimData.signers,
+                        claimData.magic,
+                        claimData.derivationPaths
+                    )
+                },
+            )
         }
     }
 }
 
-fun NavController.navigateToClaimWithdrawBitcoin(
-    walletBalance: Double,
-    signers: List<SignerModel>,
-    magic: String,
-    derivationPaths: List<String>,
-    activityViewModel: ClaimInheritanceViewModel
-) {
-    activityViewModel.setWithdrawData(walletBalance, signers, magic, derivationPaths)
+fun NavController.navigateToClaimWithdrawBitcoin() {
     navigate(ClaimWithdrawBitcoinRoute)
 }
 

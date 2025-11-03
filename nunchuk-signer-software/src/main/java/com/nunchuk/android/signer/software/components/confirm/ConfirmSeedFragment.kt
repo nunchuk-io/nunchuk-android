@@ -32,7 +32,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.manager.NcToastManager
-import com.nunchuk.android.core.signer.KeyFlow.isAddPortalFlow
+import com.nunchuk.android.core.signer.KeyFlow.isAddAndReturnFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.share.membership.MembershipStepManager
@@ -125,7 +125,7 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
     }
 
     private fun openSetPassphrase() {
-        if (args.primaryKeyFlow.isAddPortalFlow()) {
+        if (args.primaryKeyFlow.isAddAndReturnFlow()) {
             requireActivity().apply {
                 setResult(Activity.RESULT_OK)
                 finish()

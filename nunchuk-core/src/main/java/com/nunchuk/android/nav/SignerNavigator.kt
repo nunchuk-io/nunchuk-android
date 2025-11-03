@@ -100,6 +100,7 @@ interface SignerNavigator {
      */
     fun openRecoverSeedScreen(
         activityContext: Context,
+        launcher: ActivityResultLauncher<Intent>? = null,
         passphrase: String = "",
         @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
         isRecoverHotWallet: Boolean = false,

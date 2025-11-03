@@ -99,7 +99,7 @@ fun SelectNumberWordScreen(
                             generateSeedLauncher.launch(
                                 CreateNewSeedActivity.buildIntent(
                                     activityContext = context,
-                                    keyFlow = KeyFlow.ADD_PORTAL,
+                                    keyFlow = KeyFlow.ADD_AND_RETURN,
                                     numberOfWords = numberOfWords,
                                 )
                             )
