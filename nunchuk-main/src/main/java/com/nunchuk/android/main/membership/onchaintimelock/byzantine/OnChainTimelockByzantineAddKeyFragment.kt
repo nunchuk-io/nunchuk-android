@@ -347,11 +347,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.refresh()
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         // Clear TapSigner caching callback when fragment is destroyed
