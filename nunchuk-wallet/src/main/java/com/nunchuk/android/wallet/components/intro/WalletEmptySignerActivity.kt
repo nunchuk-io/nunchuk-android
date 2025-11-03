@@ -48,7 +48,7 @@ class WalletEmptySignerActivity : BaseActivity<ActivityWalletEmptySignerBinding>
 
     private fun openAddSignerScreen() {
         finish()
-        navigator.openSignerIntroScreen(this)
+        navigator.openSignerIntroScreen(activityContext = this)
     }
 
     companion object {

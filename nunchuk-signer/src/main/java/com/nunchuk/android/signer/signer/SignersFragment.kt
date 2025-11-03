@@ -54,6 +54,6 @@ class SignersFragment : Fragment() {
     }
 
     private fun openSignerIntroScreen() {
-        navigator.openSignerIntroScreen(requireActivity())
+        navigator.openSignerIntroScreen(activityContext = requireActivity())
     }
 }

@@ -357,7 +357,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<ViewBinding>(),
             btnYes = getString(R.string.nc_add_key),
             btnInfo = getString(R.string.nc_cancel),
             onYesClick = {
-                navigator.openSignerIntroScreen(requireActivity())
+                navigator.openSignerIntroScreen(activityContext = requireActivity())
             }
         ).show()
     }

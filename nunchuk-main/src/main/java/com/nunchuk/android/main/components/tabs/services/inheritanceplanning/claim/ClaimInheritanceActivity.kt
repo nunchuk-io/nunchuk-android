@@ -19,8 +19,12 @@ import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.nfc.SweepType
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BTC_SATOSHI_EXCHANGE_RATE
 import com.nunchuk.android.core.util.SelectWalletType
 import com.nunchuk.android.core.util.isMiniscript
@@ -49,7 +53,9 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.parcelableArrayList
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 
 @AndroidEntryPoint
 class ClaimInheritanceActivity : BaseComposeActivity() {
@@ -61,7 +67,7 @@ class ClaimInheritanceActivity : BaseComposeActivity() {
         setContentView(
             ComposeView(this).apply {
                 setContent {
-                    ClaimInheritanceGraph(navigator = navigator)
+                    ClaimInheritanceGraph(navigator = navigator, pushEventManager = pushEventManager)
                 }
             }
         )
@@ -71,7 +77,8 @@ class ClaimInheritanceActivity : BaseComposeActivity() {
 @Composable
 private fun ClaimInheritanceGraph(
     activityViewModel: ClaimInheritanceViewModel = hiltViewModel(),
-    navigator: NunchukNavigator
+    navigator: NunchukNavigator,
+    pushEventManager: PushEventManager
 ) {
     val navController = rememberNavController()
     val activity = LocalActivity.current
@@ -81,15 +88,46 @@ private fun ClaimInheritanceGraph(
         if (it.resultCode == Activity.RESULT_OK) {
             val mnemonic = it.data?.getStringExtra(GlobalResultKey.MNEMONIC).orEmpty()
             if (mnemonic.isNotEmpty()) {
+                navController.popBackStack<ClaimMagicPhraseRoute>(false)
                 activityViewModel.createSoftwareSignerFromMnemonic(mnemonic)
             }
         }
     }
 
-    val sharedUiState by activityViewModel.claimData.collectAsStateWithLifecycle()
+    val signerIntroLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            val signers = it.data?.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
+            if (!signers.isNullOrEmpty()) {
+                navController.popBackStack<ClaimMagicPhraseRoute>(false)
+                activityViewModel.addSigner(signers.first())
+            }
+        }
+    }
 
-    LaunchedEffect(sharedUiState.inheritanceAdditional) {
-        val inheritanceAdditional = sharedUiState.inheritanceAdditional
+    val claimData by activityViewModel.claimData.collectAsStateWithLifecycle()
+    val sharedUiState by activityViewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(sharedUiState.isInheritanceNotFound) {
+        if (sharedUiState.isInheritanceNotFound) {
+            navController.navigateToNoInheritancePlanFound()
+            activityViewModel.handledInheritanceNotFound()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        pushEventManager.event.collectLatest { event ->
+            if (event is PushEvent.LocalUserSignerAdded) {
+                val signer = event.signer
+                navController.popBackStack<ClaimMagicPhraseRoute>(false)
+                activityViewModel.addSigner(signer.toModel())
+            }
+        }
+    }
+
+    LaunchedEffect(claimData.inheritanceAdditional) {
+        val inheritanceAdditional = claimData.inheritanceAdditional
         if (inheritanceAdditional != null) {
             navController.navigateToClaimNote()
         }
@@ -116,9 +154,11 @@ private fun ClaimInheritanceGraph(
                         InheritanceOption.HARDWARE_DEVICE -> {
                             activity?.let { activityContext ->
                                 navigator.openSignerIntroScreen(
+                                    launcher = signerIntroLauncher,
                                     activityContext = activity,
                                     onChainAddSignerParam = OnChainAddSignerParam(
                                         flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
+                                        isClaiming = true
                                     )
                                 )
                             }
@@ -157,6 +197,7 @@ private fun ClaimInheritanceGraph(
                 },
             )
             claimMagicPhrase(
+                sharedViewModel = activityViewModel,
                 onBackPressed = {
                     activity?.finish()
                 },

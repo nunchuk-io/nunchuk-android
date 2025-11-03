@@ -163,7 +163,9 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                                 (activity as Mk4Activity).onChainAddSignerParam
                             if (args.isAddInheritanceKey || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
                                 if (onChainAddSignerParam != null) {
-                                    if (onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true && onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
+                                    if (onChainAddSignerParam.isClaiming) {
+                                        requireActivity().finish()
+                                    } else if (onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true && onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
                                         if (event.signer.masterFingerprint == onChainAddSignerParam.currentSigner?.fingerPrint) {
                                             viewModel.setKeyVerified(
                                                 groupId = (activity as Mk4Activity).groupId,

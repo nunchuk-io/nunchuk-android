@@ -158,7 +158,9 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                     val onChainAddSignerParam = (activity as Mk4Activity).onChainAddSignerParam
                     if (args.isAddInheritanceKey || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
                         if (onChainAddSignerParam != null) {
-                            if (onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true && onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
+                            if (onChainAddSignerParam.isClaiming) {
+                                requireActivity().finish()
+                            } else if (onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true && onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
                                 if (it.signer.masterFingerprint == onChainAddSignerParam.currentSigner?.fingerPrint) {
                                     viewModel.setKeyVerified(
                                         groupId = (activity as Mk4Activity).groupId,

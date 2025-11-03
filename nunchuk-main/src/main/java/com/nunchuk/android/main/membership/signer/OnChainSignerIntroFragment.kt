@@ -50,6 +50,7 @@ import com.nunchuk.android.signer.SignerIntroScreen
 import com.nunchuk.android.signer.SignerIntroViewModel
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.utils.parcelableArrayList
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -89,7 +90,7 @@ class OnChainSignerIntroFragment : MembershipFragment() {
             if (shouldOpenNextScreen) {
                 popUpToOnChainTimelockFragment()
             } else {
-                val filteredSigners = result.data?.getParcelableArrayListExtra<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
+                val filteredSigners = result.data?.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
                 if (!filteredSigners.isNullOrEmpty()) {
                     setFragmentResult(
                         REQUEST_KEY,

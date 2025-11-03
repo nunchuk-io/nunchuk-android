@@ -63,7 +63,6 @@ class BackUpSeedPhraseActivity : BaseComposeActivity() {
                                     activityContext = this@BackUpSeedPhraseActivity,
                                     walletId = args.walletId,
                                     groupId = args.groupId,
-                                    supportedSigners = null,
                                     onChainAddSignerParam = OnChainAddSignerParam(
                                         flags = OnChainAddSignerParam.FLAG_VERIFY_BACKUP_SEED_PHRASE,
                                         currentSigner = args.signer

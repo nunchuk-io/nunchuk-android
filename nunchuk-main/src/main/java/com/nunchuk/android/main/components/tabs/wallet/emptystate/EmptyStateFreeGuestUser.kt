@@ -34,7 +34,7 @@ class EmptyStateFreeGuestUser(
             ),
             buttonText = activityContext.getString(R.string.nc_add_key),
             buttonAction = {
-                navigator.openSignerIntroScreen(activityContext)
+                navigator.openSignerIntroScreen(activityContext = activityContext)
             },
             imageResId = if (isDark) R.drawable.bg_empty_state_free_account_dark else R.drawable.bg_empty_state_free_account,
             backgroundColor = ContextCompat.getColor(activityContext, R.color.nc_fill_beewax)
@@ -48,7 +48,7 @@ class EmptyStateFreeGuestUser(
                 KeyWalletEntryData(
                     title = activityContext.getString(R.string.nc_add_another_key),
                     buttonAction = {
-                        navigator.openSignerIntroScreen(activityContext)
+                        navigator.openSignerIntroScreen(activityContext = activityContext)
                     },
                     iconResId = R.drawable.ic_signer_empty_state
                 )

@@ -57,12 +57,12 @@ import com.nunchuk.android.signer.R as SignerR
 @Composable
 fun ClaimMagicPhraseScreen(
     modifier: Modifier = Modifier,
+    snackState: SnackbarHostState = remember { SnackbarHostState() },
     onBackPressed: () -> Unit = {},
     onContinue: (String, InheritanceClaimingInit) -> Unit = { _, _ -> },
     viewModel: ClaimMagicPhraseViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val snackState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 

@@ -35,6 +35,7 @@ import com.nunchuk.android.type.SignerType
 
 interface SignerNavigator {
     fun openSignerIntroScreen(
+        launcher: ActivityResultLauncher<Intent>? = null,
         activityContext: Context,
         walletId: String = "",
         groupId: String? = null,

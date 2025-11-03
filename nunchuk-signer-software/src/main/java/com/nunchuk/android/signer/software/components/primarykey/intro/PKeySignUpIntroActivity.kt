@@ -52,7 +52,7 @@ class PKeySignUpIntroActivity : BaseActivity<ActivityPkeySignUpIntroBinding>() {
         binding.btnGotIt.setOnDebounceClickListener {
             if (isNetworkConnectedUseCase()) {
                 navigator.openSignerIntroScreen(
-                    this,
+                    activityContext = this,
                     keyFlow = KeyFlow.SIGN_UP
                 )
                 finish()

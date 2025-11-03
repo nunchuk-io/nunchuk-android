@@ -58,6 +58,7 @@ import com.nunchuk.android.type.SignerType
 interface SignerNavigatorDelegate : SignerNavigator {
 
     override fun openSignerIntroScreen(
+        launcher: ActivityResultLauncher<Intent>?,
         activityContext: Context,
         walletId: String,
         groupId: String?,
@@ -65,7 +66,16 @@ interface SignerNavigatorDelegate : SignerNavigator {
         keyFlow: Int,
         onChainAddSignerParam: OnChainAddSignerParam?
     ) {
-        SignerIntroActivity.start(
+        launcher?.launch(
+            SignerIntroActivity.buildIntent(
+                activityContext = activityContext,
+                walletId = walletId,
+                groupId = groupId,
+                supportedSigners = supportedSigners,
+                keyFlow = keyFlow,
+                onChainAddSignerParam = onChainAddSignerParam
+            )
+        ) ?: SignerIntroActivity.start(
             activityContext = activityContext,
             walletId = walletId,
             groupId = groupId,

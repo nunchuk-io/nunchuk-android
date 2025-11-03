@@ -8,6 +8,7 @@ data class OnChainAddSignerParam(
     val flags: Int = 0,
     val keyIndex: Int = -1,
     val currentSigner: SignerModel? = null,
+    val isClaiming: Boolean = false,
 ) : Parcelable {
     
     companion object {

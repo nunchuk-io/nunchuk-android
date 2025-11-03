@@ -31,6 +31,9 @@ import com.nunchuk.android.core.domain.coldcard.ExtractWalletsFromColdCard
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.domain.wallet.ParseMk4WalletUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.DEFAULT_COLDCARD_WALLET_NAME
@@ -85,6 +88,7 @@ class Mk4IntroViewModel @Inject constructor(
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
+    private val pushEventManager: PushEventManager,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<Mk4IntroViewEvent>()
@@ -117,7 +121,7 @@ class Mk4IntroViewModel @Inject constructor(
         xfp: String?,
         replacedXfp: String?,
         walletId: String?,
-        onChainAddSignerParam: com.nunchuk.android.core.signer.OnChainAddSignerParam? = null
+        onChainAddSignerParam: OnChainAddSignerParam? = null
     ) {
         viewModelScope.launch {
             _event.emit(Mk4IntroViewEvent.Loading(true))
@@ -192,7 +196,9 @@ class Mk4IntroViewModel @Inject constructor(
                     val coldcardSigner = createSignerResult.getOrThrow()
                     if (createSignerResult.isSuccess) {
                         // force type coldcard nfc in case we import hardware key first
-                        if (replacedXfp.isNullOrEmpty()) {
+                        if (onChainAddSignerParam?.isClaiming == true) {
+                            pushEventManager.push(PushEvent.LocalUserSignerAdded(signer))
+                        } else if (replacedXfp.isNullOrEmpty()) {
                             val coldcardSigner =
                                 createSignerResult.getOrThrow()
                                     .copy(type = SignerType.COLDCARD_NFC)

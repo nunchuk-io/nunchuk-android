@@ -61,13 +61,13 @@ class SignerIntroActivity : BaseComposeActivity() {
     private val checkFirmwareLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-            val filteredSigners = result.data?.getParcelableArrayListExtra<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            val filteredSigners = result.data?.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
             if (!filteredSigners.isNullOrEmpty()) {
                 val intent = Intent().apply {
                     putParcelableArrayListExtra(GlobalResultKey.EXTRA_SIGNERS, ArrayList(filteredSigners))
                 }
-                setResult(Activity.RESULT_OK, intent)
+                setResult(RESULT_OK, intent)
                 finish()
             } else {
                 finish()

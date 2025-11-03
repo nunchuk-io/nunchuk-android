@@ -9,8 +9,10 @@ import com.nunchuk.android.core.base.update
 import com.nunchuk.android.core.domain.membership.DownloadWalletForClaimUseCase
 import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
+import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.model.InheritanceClaimingInit
 import com.nunchuk.android.type.AddressType
@@ -18,7 +20,9 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
 import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import timber.log.Timber
@@ -41,6 +45,9 @@ class ClaimInheritanceViewModel @Inject constructor(
     )
     val claimData: StateFlow<ClaimData> = _claimData.asStateFlow()
 
+    private val _uiState = MutableStateFlow(ClaimUiState())
+    val uiState: StateFlow<ClaimUiState> = _uiState
+
     fun setClaimNoteData(
         signers: List<SignerModel>,
         magic: String,
@@ -49,7 +56,7 @@ class ClaimInheritanceViewModel @Inject constructor(
     ) {
         _claimData.update {
             it.copy(
-                signers = signers,
+                signers = signers.toSet(),
                 magic = magic,
                 derivationPaths = derivationPaths,
                 inheritanceAdditional = inheritanceAdditional,
@@ -84,23 +91,39 @@ class ClaimInheritanceViewModel @Inject constructor(
                         walletType = WalletType.MULTI_SIG,
                         addressType = AddressType.NATIVE_SEGWIT
                     )
-                ).onFailure {
-                    Timber.e(it)
+                ).onFailure { e ->
+                    Timber.e(e)
+                    _uiState.update {
+                        it.copy(
+                            message = e.message.orUnknownError(),
+                        )
+                    }
                 }.getOrNull()
             }.onSuccess { signer ->
                 signer?.let {
-                    _claimData.update {
-                        it.copy(signers = it.signers + singleSignerMapper(signer))
-                    }
-
+                    addSigner(singleSignerMapper(signer))
                 }
             }.onFailure {
                 Timber.e(it)
+                _uiState.update {
+                    it.copy(
+                        message = it.message.orUnknownError(),
+                    )
+                }
             }
+        }
+    }
 
-            if (claimData.value.signers.size == claimData.value.requiredKeyCount) {
+    fun addSigner(signer: SignerModel) {
+        _claimData.update {
+            it.copy(signers = it.signers + signer)
+        }
+        if (claimData.value.signers.size == claimData.value.requiredKeyCount) {
+            viewModelScope.launch {
                 downloadWalletForClaim()
             }
+        } else {
+            // TODO Hai add more signers UI state
         }
     }
 
@@ -117,8 +140,13 @@ class ClaimInheritanceViewModel @Inject constructor(
                     magic = currentData.magic,
                     bsms = wallet.bsms
                 )
-            ).onFailure {
-
+            ).onFailure { e ->
+                Timber.e(e)
+                _uiState.update {
+                    it.copy(
+                        message = e.message.orUnknownError(),
+                    )
+                }
             }.getOrNull()
         }.onSuccess { inheritanceAdditional ->
             inheritanceAdditional?.let {
@@ -128,9 +156,30 @@ class ClaimInheritanceViewModel @Inject constructor(
                     )
                 }
             }
-        }.onFailure {
-            // show noInheritancePlanFound
+        }.onFailure { e ->
+            if (e is NunchukApiException && e.code == 831) {
+                _uiState.update {
+                    it.copy(
+                        isInheritanceNotFound = true,
+                    )
+                }
+            } else {
+                Timber.e(e)
+                _uiState.update {
+                    it.copy(
+                        message = e.message.orUnknownError(),
+                    )
+                }
+            }
         }
+    }
+
+    fun handledInheritanceNotFound() {
+        _uiState.update { it.copy(isInheritanceNotFound = false,) }
+    }
+
+    fun handledMessageShown() {
+        _uiState.update { it.copy(message = "",) }
     }
 
     private companion object {
@@ -139,9 +188,14 @@ class ClaimInheritanceViewModel @Inject constructor(
     }
 }
 
+data class ClaimUiState(
+    val message: String = "",
+    val isInheritanceNotFound: Boolean = false,
+)
+
 @Parcelize
 data class ClaimData(
-    val signers: List<SignerModel> = emptyList(),
+    val signers: Set<SignerModel> = emptySet(),
     val magic: String = "",
     val derivationPaths: List<String> = emptyList(),
     val inheritanceAdditional: InheritanceAdditional? = null,

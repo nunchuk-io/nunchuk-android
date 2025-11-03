@@ -18,25 +18,25 @@ data object ClaimWithdrawBitcoinRoute
 fun NavGraphBuilder.claimWithdrawBitcoin(
     onNavigateToInputAmount: (
         walletBalance: Double,
-        signers: List<SignerModel>,
+        signers: Set<SignerModel>,
         magic: String,
         derivationPaths: List<String>
     ) -> Unit = { _, _, _, _ -> },
     onNavigateToSelectWallet: (
         walletBalance: Double,
-        signers: List<SignerModel>,
+        signers: Set<SignerModel>,
         magic: String,
         derivationPaths: List<String>
     ) -> Unit = { _, _, _, _ -> },
     onNavigateToWalletIntermediary: (
         walletBalance: Double,
-        signers: List<SignerModel>,
+        signers: Set<SignerModel>,
         magic: String,
         derivationPaths: List<String>
     ) -> Unit = { _, _, _, _ -> },
     onNavigateToAddReceipt: (
         walletBalance: Double,
-        signers: List<SignerModel>,
+        signers: Set<SignerModel>,
         magic: String,
         derivationPaths: List<String>
     ) -> Unit = { _, _, _, _ -> },

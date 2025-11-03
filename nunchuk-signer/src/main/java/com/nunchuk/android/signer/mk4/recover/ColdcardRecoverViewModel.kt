@@ -26,6 +26,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSingleSigner
@@ -83,6 +85,7 @@ class ColdcardRecoverViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
+    private val pushEventManager: PushEventManager,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<ColdcardRecoverEvent>()
     val event = _event.asSharedFlow()
@@ -234,7 +237,11 @@ class ColdcardRecoverViewModel @Inject constructor(
                     return@launch
                 }
                 val coldcardSigner = createSignerResult.getOrThrow()
-                if (replacedXfp.isNullOrEmpty()) {
+                if (onChainAddSignerParam?.isClaiming == true) {
+                    pushEventManager.push(
+                        PushEvent.LocalUserSignerAdded(coldcardSigner)
+                    )
+                } else if (replacedXfp.isNullOrEmpty()) {
                     val walletType = syncDraftWalletUseCase(groupId).getOrNull()?.walletType
                         ?: WalletType.MULTI_SIG
                     syncKeyUseCase(
