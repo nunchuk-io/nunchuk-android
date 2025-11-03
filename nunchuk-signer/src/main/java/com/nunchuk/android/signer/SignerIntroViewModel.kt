@@ -55,7 +55,7 @@ class SignerIntroViewModel @Inject constructor(
     fun init(onChainAddSignerParam: OnChainAddSignerParam?) {
         this.onChainAddSignerParam = onChainAddSignerParam
         if (onChainAddSignerParam != null) {
-            _state.update { it.copy(isAddInheritanceSigner = onChainAddSignerParam.isAddInheritanceSigner()) }
+            _state.update { it.copy(isAddInheritanceSigner = onChainAddSignerParam.isAddInheritanceSigner() || onChainAddSignerParam.isVerifyBackupSeedPhrase()) }
             fetchUserWalletConfigs()
             fetchAndFilterTapSigners()
         }

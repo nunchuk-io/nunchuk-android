@@ -144,6 +144,8 @@
     <string name="nc_add_coldcard_mk4">Add COLDCARD</string>
     <string name="nc_add_coldcard_mk4_desc">You can add COLDCARD via NFC, QR code or by importing a file.</string>
     <string name="nc_add_key">Add key</string>
+    <string name="nc_add_inheritance_key">Add inheritance key</string>
+    <string name="nc_re_add_restored_key">Re-add the restored key</string>
     <string name="nc_select_your_key_type">Select your key type:</string>
     <string name="nc_export_via_nfc">Export via NFC</string>
     <string name="nc_export_via_file">Export via file</string>

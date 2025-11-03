@@ -103,6 +103,7 @@ class SignerIntroActivity : BaseComposeActivity() {
                     keyFlow = keyFlow,
                     supportedSigners = supportedSigners,
                     viewModel = viewModel,
+                    onChainAddSignerParam = onChainAddSignerParam,
                     onClick = { keyType: KeyType ->
                         when (keyType) {
                             KeyType.TAPSIGNER -> handleTapSignerSelection()

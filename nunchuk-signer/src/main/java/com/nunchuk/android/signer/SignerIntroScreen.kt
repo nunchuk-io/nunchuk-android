@@ -71,7 +71,13 @@ fun SignerIntroScreen(
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(
-                    text = stringResource(R.string.nc_add_key),
+                    text = if (onChainAddSignerParam?.isAddInheritanceSigner() == true) stringResource(
+                        R.string.nc_add_inheritance_key
+                    ) else if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) stringResource(
+                        R.string.nc_re_add_restored_key
+                    ) else stringResource(
+                        R.string.nc_add_key
+                    ),
                     style = NunchukTheme.typography.heading
                 )
                 Text(
@@ -295,7 +301,7 @@ internal fun DynamicSignerSelection(
                     isDisabled = false
                 )
             }
-            
+
             // Add invisible spacer if odd number in last row
             if (rowItems.size == 1) {
                 Spacer(modifier = Modifier.weight(1f))
@@ -321,12 +327,14 @@ private fun mapSupportedSignerToItemData(signer: SupportedSigner): SignerItemDat
             keyType = KeyType.TAPSIGNER,
             isDisabled = false
         )
+
         SignerType.COLDCARD_NFC -> SignerItemData(
             iconRes = R.drawable.ic_coldcard_small,
             title = stringResource(id = R.string.nc_coldcard),
             keyType = KeyType.COLDCARD,
             isDisabled = false
         )
+
         SignerType.AIRGAP -> {
             when (signer.tag) {
                 SignerTag.JADE -> SignerItemData(
@@ -335,33 +343,39 @@ private fun mapSupportedSignerToItemData(signer: SupportedSigner): SignerItemDat
                     keyType = KeyType.JADE,
                     isDisabled = false
                 )
+
                 SignerTag.SEEDSIGNER -> SignerItemData(
                     iconRes = R.drawable.ic_air_gapped_seedsigner,
                     title = stringResource(id = R.string.nc_seedsigner),
                     keyType = KeyType.SEEDSIGNER,
                     isDisabled = false
                 )
+
                 SignerTag.KEYSTONE -> SignerItemData(
                     iconRes = R.drawable.ic_air_gapped_keystone,
                     title = stringResource(id = R.string.nc_keystone),
                     keyType = KeyType.KEYSTONE,
                     isDisabled = false
                 )
+
                 SignerTag.PASSPORT -> SignerItemData(
                     iconRes = R.drawable.ic_air_gapped_passport,
                     title = stringResource(id = R.string.nc_foundation),
                     keyType = KeyType.FOUNDATION,
                     isDisabled = false
                 )
+
                 else -> null
             }
         }
+
         SignerType.PORTAL_NFC -> SignerItemData(
             iconRes = R.drawable.ic_portal_nfc,
             title = stringResource(id = R.string.nc_portal),
             keyType = KeyType.PORTAL,
             isDisabled = false
         )
+
         SignerType.HARDWARE -> {
             when (signer.tag) {
                 SignerTag.LEDGER -> SignerItemData(
@@ -371,6 +385,7 @@ private fun mapSupportedSignerToItemData(signer: SupportedSigner): SignerItemDat
                     keyType = KeyType.LEDGER,
                     isDisabled = true
                 )
+
                 SignerTag.TREZOR -> SignerItemData(
                     iconRes = R.drawable.ic_trezor_hardware,
                     title = stringResource(id = R.string.nc_trezor),
@@ -378,6 +393,7 @@ private fun mapSupportedSignerToItemData(signer: SupportedSigner): SignerItemDat
                     keyType = KeyType.TREZOR,
                     isDisabled = true
                 )
+
                 SignerTag.BITBOX -> SignerItemData(
                     iconRes = R.drawable.ic_bitbox_hardware,
                     title = stringResource(id = R.string.nc_bitbox),
@@ -385,15 +401,18 @@ private fun mapSupportedSignerToItemData(signer: SupportedSigner): SignerItemDat
                     keyType = KeyType.BITBOX,
                     isDisabled = true
                 )
+
                 else -> null
             }
         }
+
         SignerType.SOFTWARE -> SignerItemData(
             iconRes = R.drawable.ic_logo_dark_small,
             title = stringResource(id = R.string.nc_software),
             keyType = KeyType.SOFTWARE,
             isDisabled = false
         )
+
         else -> null
     }
 }

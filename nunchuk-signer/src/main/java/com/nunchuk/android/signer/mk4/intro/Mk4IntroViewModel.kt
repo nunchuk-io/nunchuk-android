@@ -162,7 +162,7 @@ class Mk4IntroViewModel @Inject constructor(
                     }
                     if (membershipStepManager.isKeyExisted(signer.masterFingerprint)) {
                         if (onChainAddSignerParam != null && onChainAddSignerParam.currentSigner != null) {
-                            if (signer.isIdentical(onChainAddSignerParam.currentSigner!!.toSingleSigner()) == true) {
+                            if (signer.isIdentical(onChainAddSignerParam.currentSigner!!.toSingleSigner())) {
                                 _event.emit(Mk4IntroViewEvent.OnSignerExistInAssistedWallet)
                                 _event.emit(Mk4IntroViewEvent.Loading(false))
                                 return@launch
