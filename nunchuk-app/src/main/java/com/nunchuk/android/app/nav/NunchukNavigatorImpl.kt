@@ -490,4 +490,11 @@ interface AppNavigatorDelegate : AppNavigator {
     override fun returnMembershipScreen() {
         ActivityManager.popUntil(MembershipActivity::class.java)
     }
+
+    override fun returnToClaimScreen(activityContext: Context) {
+        returnToPreviousScreen(
+            activityClass = ClaimInheritanceActivity::class.java,
+            activityContext = activityContext,
+        )
+    }
 }

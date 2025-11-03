@@ -29,6 +29,7 @@ import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.InvalidSignerFormatException
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerInput
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSigner
@@ -119,7 +120,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private var replacedXfp: String? = null
     private var walletId: String = ""
     private var walletType = WalletType.MULTI_SIG
-    private var onChainAddSignerParam: com.nunchuk.android.core.signer.OnChainAddSignerParam? = null
+    private var onChainAddSignerParam: OnChainAddSignerParam? = null
 
     private val _state = MutableStateFlow(AddAirgapSignerState())
     val uiState = _state.asStateFlow()
@@ -288,7 +289,13 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                 val airgap = result.getOrThrow()
                 pushEventManager.push(PushEvent.LocalUserSignerAdded(airgap))
                 if (isMembershipFlow) {
-                    if (walletId.isNotEmpty() && !replacedXfp.isNullOrEmpty()) {
+                    if (onChainAddSignerParam?.isClaiming == true) {
+                        pushEventManager.push(
+                            PushEvent.LocalUserSignerAdded(
+                                airgap
+                            )
+                        )
+                    } else if (walletId.isNotEmpty() && !replacedXfp.isNullOrEmpty()) {
                         replaceKeyUseCase(
                             ReplaceKeyUseCase.Param(
                                 groupId = groupId,

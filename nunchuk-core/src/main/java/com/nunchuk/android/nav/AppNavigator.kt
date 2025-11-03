@@ -192,4 +192,12 @@ interface AppNavigator {
     )
 
     fun returnMembershipScreen()
+
+    fun returnToClaimScreen(activityContext: Context)
+
+    fun returnToPreviousScreen(activityClass: Class<*>, activityContext: Context) {
+        val intent = Intent(activityContext, activityClass)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        activityContext.startActivity(intent)
+    }
 }

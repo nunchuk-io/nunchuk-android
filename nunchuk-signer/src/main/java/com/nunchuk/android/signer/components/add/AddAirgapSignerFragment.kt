@@ -215,7 +215,10 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
         val activity = requireActivity() as AddAirgapSignerActivity
         val onChainAddSignerParam = activity.onChainAddSignerParam
 
-         if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true && onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true) {
+         if (onChainAddSignerParam?.isClaiming == true) {
+             activity.finish()
+             navigator.returnToClaimScreen(requireActivity())
+         } else if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true && onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true) {
              if (signer.masterFingerprint == onChainAddSignerParam.currentSigner?.fingerPrint) {
                  viewModel.setKeyVerified(
                      groupId = activity.groupId,
