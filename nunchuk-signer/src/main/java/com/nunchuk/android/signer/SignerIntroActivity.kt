@@ -19,14 +19,11 @@
 
 package com.nunchuk.android.signer
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.nunchuk.android.core.base.BaseComposeActivity
@@ -34,12 +31,9 @@ import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
-import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.args.AddAirSignerArgs
-import com.nunchuk.android.nav.args.CheckFirmwareArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
-import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.utils.parcelable
@@ -58,23 +52,6 @@ class SignerIntroActivity : BaseComposeActivity() {
     
     private val viewModel: SignerIntroViewModel by viewModels()
 
-    private val checkFirmwareLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == RESULT_OK && result.data != null) {
-            val filteredSigners = result.data?.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
-            if (!filteredSigners.isNullOrEmpty()) {
-                val intent = Intent().apply {
-                    putParcelableArrayListExtra(GlobalResultKey.EXTRA_SIGNERS, ArrayList(filteredSigners))
-                }
-                setResult(RESULT_OK, intent)
-                finish()
-            } else {
-                finish()
-            }
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -85,21 +62,6 @@ class SignerIntroActivity : BaseComposeActivity() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                // Handle ViewModel events
-                LaunchedEffect(Unit) {
-                    viewModel.event.collect { event ->
-                        when (event) {
-                            is SignerIntroEvent.ShowFilteredTapSigners -> {
-                                onFilteredTapSignersReady(event.signers)
-                            }
-
-                            SignerIntroEvent.OpenSetupTapSigner -> {
-                                navigateToSetupTapSigner()
-                            }
-                        }
-                    }
-                }
-
                 SignerIntroScreen(
                     keyFlow = keyFlow,
                     supportedSigners = supportedSigners,
@@ -107,9 +69,9 @@ class SignerIntroActivity : BaseComposeActivity() {
                     onChainAddSignerParam = onChainAddSignerParam,
                     onClick = { keyType: KeyType ->
                         when (keyType) {
-                            KeyType.TAPSIGNER -> handleTapSignerSelection()
-                            KeyType.COLDCARD -> handleColdCardSelection()
-                            KeyType.JADE -> handleJadeSelection()
+                            KeyType.TAPSIGNER -> navigateToSetupTapSigner()
+                            KeyType.COLDCARD -> openSetupMk4()
+                            KeyType.JADE -> handleSelectAddAirgapType(SignerTag.JADE)
                             KeyType.PORTAL -> openPortalScreen()
                             KeyType.SEEDSIGNER -> handleSelectAddAirgapType(SignerTag.SEEDSIGNER)
                             KeyType.KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
@@ -122,56 +84,6 @@ class SignerIntroActivity : BaseComposeActivity() {
                 )
             }
         })
-    }
-
-    private fun onFilteredTapSignersReady(filteredSigners: List<SignerModel>) {
-        val intent = Intent().apply {
-            putParcelableArrayListExtra(GlobalResultKey.EXTRA_SIGNERS, ArrayList(filteredSigners))
-        }
-        setResult(Activity.RESULT_OK, intent)
-        finish()
-    }
-
-    private fun handleTapSignerSelection() {
-        if (onChainAddSignerParam != null) {
-            viewModel.onTapSignerContinueClicked()
-        } else {
-            navigateToSetupTapSigner()
-        }
-    }
-
-    private fun handleColdCardSelection() {
-        if (onChainAddSignerParam != null) {
-            navigator.openCheckFirmwareActivity(
-                activityContext = this,
-                launcher = checkFirmwareLauncher,
-                args = CheckFirmwareArgs(
-                    signerTag = SignerTag.COLDCARD,
-                    onChainAddSignerParam = onChainAddSignerParam,
-                    walletId = walletId,
-                    groupId = groupId
-                )
-            )
-        } else {
-            openSetupMk4()
-        }
-    }
-
-    private fun handleJadeSelection() {
-        if (onChainAddSignerParam != null) {
-            navigator.openCheckFirmwareActivity(
-                activityContext = this,
-                launcher = checkFirmwareLauncher,
-                args = CheckFirmwareArgs(
-                    signerTag = SignerTag.JADE,
-                    onChainAddSignerParam = onChainAddSignerParam,
-                    walletId = walletId,
-                    groupId = groupId
-                )
-            )
-        } else {
-            handleSelectAddAirgapType(SignerTag.JADE)
-        }
     }
 
     private fun handleSelectAddAirgapType(tag: SignerTag?) {
