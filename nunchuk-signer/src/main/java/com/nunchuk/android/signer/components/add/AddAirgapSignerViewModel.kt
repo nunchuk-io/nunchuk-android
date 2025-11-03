@@ -302,24 +302,6 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                             return@launch
                         }
                     } else {
-                        saveMembershipStepUseCase(
-                            MembershipStepInfo(
-                                step = membershipStepManager.currentStep
-                                    ?: throw IllegalArgumentException("Current step empty"),
-                                masterSignerId = airgap.masterFingerprint,
-                                plan = membershipStepManager.localMembershipPlan,
-                                verifyType = VerifyType.APP_VERIFIED,
-                                extraData = gson.toJson(
-                                    SignerExtra(
-                                        derivationPath = airgap.derivationPath,
-                                        isAddNew = true,
-                                        signerType = airgap.type,
-                                        userKeyFileName = ""
-                                    )
-                                ),
-                                groupId = groupId
-                            )
-                        )
                         syncKeyUseCase(
                             SyncKeyUseCase.Param(
                                 step = membershipStepManager.currentStep
@@ -328,7 +310,30 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                                 signer = airgap,
                                 walletType = walletType
                             )
-                        )
+                        ).onSuccess {
+                            saveMembershipStepUseCase(
+                                MembershipStepInfo(
+                                    step = membershipStepManager.currentStep
+                                        ?: throw IllegalArgumentException("Current step empty"),
+                                    masterSignerId = airgap.masterFingerprint,
+                                    plan = membershipStepManager.localMembershipPlan,
+                                    verifyType = VerifyType.APP_VERIFIED,
+                                    extraData = gson.toJson(
+                                        SignerExtra(
+                                            derivationPath = airgap.derivationPath,
+                                            isAddNew = true,
+                                            signerType = airgap.type,
+                                            userKeyFileName = ""
+                                        )
+                                    ),
+                                    groupId = groupId
+                                )
+                            )
+                        }.onFailure {
+                            setEvent(AddAirgapSignerErrorEvent(it.message.orUnknownError()))
+                            setEvent(LoadingEventAirgap(false))
+                            return@launch
+                        }
                     }
                     setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
                 } else {

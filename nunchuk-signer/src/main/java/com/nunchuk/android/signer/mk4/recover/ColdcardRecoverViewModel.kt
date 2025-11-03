@@ -193,7 +193,7 @@ class ColdcardRecoverViewModel @Inject constructor(
                 }
                 if (membershipStepManager.isKeyExisted(signer.masterFingerprint)) {
                     if (onChainAddSignerParam != null && onChainAddSignerParam.currentSigner != null) {
-                        if (signer.isIdentical(onChainAddSignerParam.currentSigner!!.toSingleSigner()) == true) {
+                        if (signer.isIdentical(onChainAddSignerParam.currentSigner!!.toSingleSigner())) {
                             _event.emit(ColdcardRecoverEvent.AddSameKey)
                             _event.emit(ColdcardRecoverEvent.LoadingEvent(false))
                             return@launch
@@ -235,24 +235,6 @@ class ColdcardRecoverViewModel @Inject constructor(
                 }
                 val coldcardSigner = createSignerResult.getOrThrow()
                 if (replacedXfp.isNullOrEmpty()) {
-                    saveMembershipStepUseCase(
-                        MembershipStepInfo(
-                            step = membershipStepManager.currentStep
-                                ?: throw IllegalArgumentException("Current step empty"),
-                            masterSignerId = coldcardSigner.masterFingerprint,
-                            plan = membershipStepManager.localMembershipPlan,
-                            verifyType = if (args.isAddInheritanceKey.not()) VerifyType.APP_VERIFIED else VerifyType.NONE,
-                            extraData = gson.toJson(
-                                SignerExtra(
-                                    derivationPath = coldcardSigner.derivationPath,
-                                    isAddNew = true,
-                                    signerType = coldcardSigner.type,
-                                    userKeyFileName = ""
-                                )
-                            ),
-                            groupId = groupId
-                        )
-                    )
                     val walletType = syncDraftWalletUseCase(groupId).getOrNull()?.walletType
                         ?: WalletType.MULTI_SIG
                     syncKeyUseCase(
@@ -263,8 +245,28 @@ class ColdcardRecoverViewModel @Inject constructor(
                             signer = coldcardSigner,
                             walletType = walletType
                         )
-                    ).onFailure {
+                    ).onSuccess {
+                        saveMembershipStepUseCase(
+                            MembershipStepInfo(
+                                step = membershipStepManager.currentStep
+                                    ?: throw IllegalArgumentException("Current step empty"),
+                                masterSignerId = coldcardSigner.masterFingerprint,
+                                plan = membershipStepManager.localMembershipPlan,
+                                verifyType = if (args.isAddInheritanceKey.not()) VerifyType.APP_VERIFIED else VerifyType.NONE,
+                                extraData = gson.toJson(
+                                    SignerExtra(
+                                        derivationPath = coldcardSigner.derivationPath,
+                                        isAddNew = true,
+                                        signerType = coldcardSigner.type,
+                                        userKeyFileName = ""
+                                    )
+                                ),
+                                groupId = groupId
+                            )
+                        )
+                    }.onFailure {
                         _event.emit(ColdcardRecoverEvent.ShowError(it.message.orUnknownError()))
+                        return@launch
                     }
                 } else {
                     if (args.isAddInheritanceKey.not()) {
@@ -277,6 +279,7 @@ class ColdcardRecoverViewModel @Inject constructor(
                             )
                         ).onFailure {
                             _event.emit(ColdcardRecoverEvent.ShowError(it.message.orUnknownError()))
+                            return@launch
                         }
                     }
                 }
