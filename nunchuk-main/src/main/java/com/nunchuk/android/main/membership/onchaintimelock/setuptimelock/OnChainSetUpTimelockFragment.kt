@@ -55,6 +55,7 @@ import com.nunchuk.android.core.ui.toTimeZoneDetail
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.main.R
 import com.nunchuk.android.share.membership.MembershipFragment
+import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -73,7 +74,7 @@ class OnChainSetUpTimelockFragment : MembershipFragment(), BottomSheetOptionList
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                OnChainSetUpTimelockScreen(viewModel, args.groupId, args.timelock)
+                OnChainSetUpTimelockScreen(viewModel, args.groupId, args.timelock, onMoreClicked = ::handleShowMore)
             }
         }
     }
@@ -92,7 +93,7 @@ class OnChainSetUpTimelockFragment : MembershipFragment(), BottomSheetOptionList
                             requireActivity().onBackPressedDispatcher.onBackPressed()
                         }
                         is OnChainSetUpTimelockEvent.Error -> {
-//                            NCToastMessage(requireContext()).showError(event.message)
+                            NCToastMessage(requireActivity()).showError(event.message)
                         }
                     }
                 }
