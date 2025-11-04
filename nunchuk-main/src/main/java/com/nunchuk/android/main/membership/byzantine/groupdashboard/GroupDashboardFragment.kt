@@ -45,7 +45,6 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoverySuccessState
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
-import com.nunchuk.android.nav.args.MembershipArgs
 import com.nunchuk.android.main.membership.byzantine.groupdashboard.action.AlertActionIntroFragment
 import com.nunchuk.android.main.membership.byzantine.payment.RecurringPaymentActivity
 import com.nunchuk.android.main.membership.model.toGroupWalletType
@@ -64,6 +63,7 @@ import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.isMasterOrAdminOrFacilitatorAdmin
+import com.nunchuk.android.nav.args.MembershipArgs
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.network.IsNetworkConnectedUseCase

@@ -93,16 +93,28 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             throw response.error
         }
 
-        // Save membership step info
         membershipRepository.saveStepInfo(
             MembershipStepInfo(
+                id = getTimelockStepId(groupId),
                 step = MembershipStep.TIMELOCK,
-                verifyType = VerifyType.NONE,
+                verifyType = VerifyType.APP_VERIFIED,
                 extraData = timelockValue.toString(),
                 plan = plan,
                 groupId = groupId
             )
         )
+    }
+
+    private suspend fun getTimelockStepId(groupId: String): Long {
+        val chatId = accountManager.getAccount().chatId
+        return if (groupId.isNotEmpty()) {
+            membershipStepDao.getStep(chatId, chain.value, MembershipStep.TIMELOCK, groupId)?.id ?: 0
+        } else {
+            membershipStepDao.getStep(chatId, chain.value, MembershipStep.TIMELOCK, groupId)?.let {
+                membershipStepDao.delete(it)
+            }
+            0
+        }
     }
 
     private suspend fun deletePersonalSteps() {
@@ -210,6 +222,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         draftWallet.timelock?.let { timelock ->
             membershipRepository.saveStepInfo(
                 MembershipStepInfo(
+                    id = getTimelockStepId(groupId),
                     step = MembershipStep.TIMELOCK,
                     verifyType = VerifyType.APP_VERIFIED,
                     extraData = timelock.value.toString(),
@@ -301,13 +314,12 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                         }
                     }
                 }
-                val shouldSave = walletType == WalletType.MINISCRIPT || 
-                    info == null || info.masterSignerId != key.xfp || info.verifyType != verifyType
+                val shouldSave = info == null || info.masterSignerId != key.xfp || info.verifyType != verifyType
                 
                 if (shouldSave) {
                     membershipRepository.saveStepInfo(
                         MembershipStepInfo(
-                            id = if (walletType == WalletType.MINISCRIPT) 0L else info?.id ?: 0L,
+                            id = info?.id ?: 0,
                             step = step,
                             masterSignerId = key.xfp.orEmpty(),
                             plan = MembershipPlan.BYZANTINE,
@@ -329,6 +341,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         draftWallet.timelock?.let { timelock ->
             membershipRepository.saveStepInfo(
                 MembershipStepInfo(
+                    id = getTimelockStepId(groupId),
                     step = MembershipStep.TIMELOCK,
                     verifyType = VerifyType.APP_VERIFIED,
                     extraData = timelock.value.toString(),

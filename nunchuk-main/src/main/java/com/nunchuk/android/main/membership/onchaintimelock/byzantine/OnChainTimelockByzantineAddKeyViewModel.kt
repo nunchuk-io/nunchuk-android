@@ -459,7 +459,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
             MembershipStepInfo(
                 step = currentStep,
                 masterSignerId = signer.masterFingerprint,
-                plan = MembershipPlan.NONE,
+                plan = membershipStepManager.localMembershipPlan,
                 verifyType = VerifyType.NONE,
                 extraData = gson.toJson(
                     SignerExtra(
@@ -529,7 +529,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
 
                             is Result.Error -> {
                                 val error = signerByIndexResult.exception
-                                if (error is NCNativeException && error.message.contains("-1009") == true) {
+                                if (error is NCNativeException && error.message.contains("-1009")) {
                                     // Store context for TapSigner caching - using index 1 for second account
                                     savedStateHandle[KEY_TAPSIGNER_MASTER_ID] =
                                         firstSigner.fingerPrint
@@ -622,7 +622,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                 MembershipStepInfo(
                     step = currentStep,
                     masterSignerId = signer.masterFingerprint,
-                    plan = MembershipPlan.NONE,
+                    plan = membershipStepManager.localMembershipPlan,
                     verifyType = VerifyType.NONE,
                     extraData = gson.toJson(
                         SignerExtra(
@@ -642,7 +642,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
     }
 
     private fun getStepInfo(step: MembershipStep) =
-        membershipStepState.value.filter { it.plan == MembershipPlan.BYZANTINE }.find { it.step == step } ?: run {
+        membershipStepState.value.find { it.step == step } ?: run {
             MembershipStepInfo(step = step, groupId = args.groupId)
         }
 

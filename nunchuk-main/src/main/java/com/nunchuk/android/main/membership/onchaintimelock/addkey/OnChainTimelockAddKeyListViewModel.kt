@@ -668,7 +668,9 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     }
 
     private fun getStepInfo(step: MembershipStep) =
-        membershipStepState.value.find { it.step == step } ?: run {
+        membershipStepState.value.filter {
+            it.plan == membershipStepManager.localMembershipPlan
+        }.find { it.step == step } ?: run {
             MembershipStepInfo(
                 step = step,
                 plan = membershipStepManager.localMembershipPlan,
