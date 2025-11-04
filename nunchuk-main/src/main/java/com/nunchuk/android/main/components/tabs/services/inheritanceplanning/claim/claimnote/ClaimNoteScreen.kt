@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
@@ -36,6 +38,7 @@ import com.nunchuk.android.main.R as MainR
 
 @Composable
 fun ClaimNoteScreen(
+    snackState: SnackbarHostState,
     inheritanceAdditional: InheritanceAdditional,
     modifier: Modifier = Modifier,
     onDoneClick: () -> Unit = {},
@@ -44,6 +47,7 @@ fun ClaimNoteScreen(
 
     ClaimNoteContent(
         modifier = modifier,
+        snackState = snackState,
         note = inheritanceAdditional.inheritance?.note.orEmpty(),
         balance = inheritanceAdditional.balance,
         onWithdrawClick = onWithdrawClick,
@@ -54,6 +58,7 @@ fun ClaimNoteScreen(
 @Composable
 private fun ClaimNoteContent(
     modifier: Modifier = Modifier,
+    snackState: SnackbarHostState = remember { SnackbarHostState() },
     note: String = "",
     balance: Double = 0.0,
     onWithdrawClick: () -> Unit = {},
@@ -63,6 +68,7 @@ private fun ClaimNoteContent(
     NunchukTheme {
         NcScaffold(
             modifier = modifier.navigationBarsPadding(),
+            snackState = snackState,
             topBar = {
                 NcTopAppBar(
                     backgroundColor = colorResource(id = MainR.color.nc_fill_denim),

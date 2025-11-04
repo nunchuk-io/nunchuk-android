@@ -67,6 +67,7 @@ class ClaimInheritanceViewModel @Inject constructor(
     fun updateClaimInit(magicPhrase: String, init: InheritanceClaimingInit) {
         _claimData.update {
             it.copy(
+                signers = emptySet(),
                 magic = magicPhrase,
                 requiredKeyCount = init.inheritanceKeyCount,
                 walletType = init.walletType

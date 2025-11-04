@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -25,6 +27,7 @@ import com.nunchuk.android.main.R as MainR
 
 @Composable
 fun ClaimBufferPeriodScreen(
+    snackState: SnackbarHostState,
     countdown: BufferPeriodCountdown,
     modifier: Modifier = Modifier,
     onBackPressed: () -> Unit = {},
@@ -32,6 +35,7 @@ fun ClaimBufferPeriodScreen(
 ) {
     ClaimBufferPeriodContent(
         modifier = modifier,
+        snackState = snackState,
         countdown = countdown,
         onBackPressed = onBackPressed,
         onGotItClick = onGotItClick,
@@ -41,12 +45,14 @@ fun ClaimBufferPeriodScreen(
 @Composable
 private fun ClaimBufferPeriodContent(
     modifier: Modifier = Modifier,
+    snackState: SnackbarHostState,
     countdown: BufferPeriodCountdown,
     onBackPressed: () -> Unit = {},
     onGotItClick: () -> Unit = {},
 ) {
     NcScaffold(
         modifier = modifier.navigationBarsPadding(),
+        snackState = snackState,
         topBar = {
             NcImageAppBar(
                 backgroundRes = MainR.drawable.bg_buffer_period_illustration,
@@ -93,6 +99,7 @@ private fun ClaimBufferPeriodContent(
 private fun ClaimBufferPeriodScreenPreview() {
     NunchukTheme {
         ClaimBufferPeriodContent(
+            snackState = remember { SnackbarHostState() },
             countdown = BufferPeriodCountdown(0, "0", 0, 0, "0")
         )
     }

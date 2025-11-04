@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.addkey
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -10,17 +11,17 @@ import kotlinx.serialization.Serializable
 data class AddInheritanceKeyRoute(
     val index: Int,
     val totalKeys: Int,
-    val isShowKeyAdded: Boolean = false,
 )
 
 fun NavGraphBuilder.addInheritanceKey(
+    snackState: SnackbarHostState,
     onBackPressed: () -> Unit = {},
     onAddKeyClick: () -> Unit = {},
 ) {
     composable<AddInheritanceKeyRoute> {
         val args = it.toRoute<AddInheritanceKeyRoute>()
         AddInheritanceKeyScreen(
-            isShowKeyAdded = args.isShowKeyAdded,
+            snackState = snackState,
             isFirstKey = args.index == 1,
             totalKeys = args.totalKeys,
             onBackPressed = onBackPressed,
@@ -30,7 +31,7 @@ fun NavGraphBuilder.addInheritanceKey(
 }
 
 fun NavController.navigateToAddInheritanceKey(
-    index: Int, totalKeys: Int, isShowKeyAdded: Boolean = false
+    index: Int, totalKeys: Int
 ) {
-    navigate(AddInheritanceKeyRoute(index, totalKeys, isShowKeyAdded))
+    navigate(AddInheritanceKeyRoute(index, totalKeys))
 }

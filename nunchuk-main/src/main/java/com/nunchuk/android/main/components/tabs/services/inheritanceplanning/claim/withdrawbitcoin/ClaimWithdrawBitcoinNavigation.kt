@@ -2,6 +2,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -15,6 +16,7 @@ import kotlinx.serialization.Serializable
 data object ClaimWithdrawBitcoinRoute
 
 fun NavGraphBuilder.claimWithdrawBitcoin(
+    snackState: SnackbarHostState,
     onNavigateToInputAmount: () -> Unit = {},
     onNavigateToSelectWallet: () -> Unit = {},
     onNavigateToWalletIntermediary: () -> Unit = {},
@@ -29,6 +31,7 @@ fun NavGraphBuilder.claimWithdrawBitcoin(
         val walletBalance = claimData.inheritanceAdditional?.balance
         walletBalance?.let { walletBalance ->
             ClaimWithdrawBitcoinScreen(
+                snackState = snackState,
                 balance = walletBalance,
                 onNavigateToInputAmount = onNavigateToInputAmount,
                 onNavigateToSelectWallet = onNavigateToSelectWallet,

@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.bufferperiod
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -27,12 +28,14 @@ data class ClaimBufferPeriodRoute(
 }
 
 fun NavGraphBuilder.claimBufferPeriod(
+    snackState: SnackbarHostState,
     onBackPressed: () -> Unit = {},
     onGotItClick: () -> Unit = {},
 ) {
     composable<ClaimBufferPeriodRoute> {
         val route = it.toRoute<ClaimBufferPeriodRoute>()
         ClaimBufferPeriodScreen(
+            snackState = snackState,
             countdown = route.toBufferPeriodCountdown(),
             onBackPressed = onBackPressed,
             onGotItClick = onGotItClick,

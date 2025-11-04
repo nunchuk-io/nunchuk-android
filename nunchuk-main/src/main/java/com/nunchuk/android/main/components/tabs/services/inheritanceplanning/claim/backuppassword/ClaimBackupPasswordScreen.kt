@@ -47,6 +47,7 @@ import com.nunchuk.android.signer.R as SignerR
 
 @Composable
 fun ClaimBackupPasswordScreen(
+    snackState: SnackbarHostState,
     magicPhrase: String,
     modifier: Modifier = Modifier,
     onBackPressed: () -> Unit = {},
@@ -61,7 +62,6 @@ fun ClaimBackupPasswordScreen(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val snackState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
     var isLoading by remember { mutableStateOf(false) }
@@ -125,7 +125,7 @@ fun ClaimBackupPasswordScreen(
 @Composable
 private fun ClaimBackupPasswordContent(
     modifier: Modifier = Modifier,
-    snackState: SnackbarHostState = remember { SnackbarHostState() },
+    snackState: SnackbarHostState,
     onBackPressed: () -> Unit = {},
     backupPasswords: List<String> = listOf("", ""),
     isLoading: Boolean = false,
@@ -208,7 +208,9 @@ private fun ClaimBackupPasswordContent(
 @Composable
 private fun ClaimBackupPasswordScreenPreview() {
     NunchukTheme {
-        ClaimBackupPasswordContent()
+        ClaimBackupPasswordContent(
+            snackState = remember { SnackbarHostState() }
+        )
     }
 }
 

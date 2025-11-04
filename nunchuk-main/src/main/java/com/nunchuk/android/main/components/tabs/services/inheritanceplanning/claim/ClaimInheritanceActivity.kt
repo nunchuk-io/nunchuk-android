@@ -5,15 +5,20 @@ import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.QuickWalletParam
@@ -28,6 +33,7 @@ import com.nunchuk.android.core.util.BTC_SATOSHI_EXCHANGE_RATE
 import com.nunchuk.android.core.util.SelectWalletType
 import com.nunchuk.android.core.util.isMiniscript
 import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.addkey.addInheritanceKey
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.addkey.navigateToAddInheritanceKey
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.backuppassword.claimBackupPassword
@@ -85,6 +91,7 @@ private fun ClaimInheritanceGraph(
     pushEventManager: PushEventManager
 ) {
     val navController = rememberNavController()
+    val snackbarHostState = remember { SnackbarHostState() }
     val importSeedLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
@@ -109,6 +116,7 @@ private fun ClaimInheritanceGraph(
         }
     }
 
+    val context = LocalContext.current
     val claimData by activityViewModel.claimData.collectAsStateWithLifecycle()
     val sharedUiState by activityViewModel.uiState.collectAsStateWithLifecycle()
 
@@ -117,25 +125,34 @@ private fun ClaimInheritanceGraph(
             when (event) {
                 is ClaimInheritanceEvent.NavigateToNoInheritanceFound -> {
                     navController.navigateToNoInheritancePlanFound()
-                    activityViewModel.onEventHandled()
                 }
+
                 is ClaimInheritanceEvent.AddMoreSigners -> {
                     navController.navigateToAddInheritanceKey(
                         index = claimData.signers.size.inc(),
                         totalKeys = claimData.requiredKeyCount
                     )
-                    activityViewModel.onEventHandled()
                 }
+
                 is ClaimInheritanceEvent.KeyAlreadyAdded -> {
                     navController.navigateToAddInheritanceKey(
                         index = claimData.signers.size.inc(),
                         totalKeys = claimData.requiredKeyCount,
-                        isShowKeyAdded = true
                     )
-                    activityViewModel.onEventHandled()
+                    snackbarHostState.showNunchukSnackbar(
+                        message = context.getString(R.string.nc_error_add_same_key),
+                        type = NcToastType.ERROR
+                    )
                 }
-                else -> Unit
+
+                is ClaimInheritanceEvent.ShowError -> {
+                    snackbarHostState.showNunchukSnackbar(
+                        message = event.message,
+                        type = NcToastType.ERROR
+                    )
+                }
             }
+            activityViewModel.onEventHandled()
         }
     }
 
@@ -162,6 +179,7 @@ private fun ClaimInheritanceGraph(
             startDestination = ClaimMagicPhraseRoute
         ) {
             addInheritanceKey(
+                snackState = snackbarHostState,
                 onBackPressed = {
                     navController.popBackStack()
                 },
@@ -170,6 +188,7 @@ private fun ClaimInheritanceGraph(
                 },
             )
             prepareInheritanceKey(
+                snackState = snackbarHostState,
                 onBackPressed = {
                     navController.popBackStack()
                 },
@@ -193,6 +212,7 @@ private fun ClaimInheritanceGraph(
                 },
             )
             recoverInheritanceKey(
+                snackState = snackbarHostState,
                 onBackPressed = {
                     navController.popBackStack()
                 },
@@ -209,6 +229,7 @@ private fun ClaimInheritanceGraph(
                 },
             )
             restoreSeedPhraseHardware(
+                snackState = snackbarHostState,
                 onBackPressed = {
                     navController.popBackStack()
                 },
@@ -224,7 +245,7 @@ private fun ClaimInheritanceGraph(
                 },
             )
             claimMagicPhrase(
-                sharedViewModel = activityViewModel,
+                snackState = snackbarHostState,
                 onBackPressed = {
                     activity.finish()
                 },
@@ -245,6 +266,7 @@ private fun ClaimInheritanceGraph(
                 },
             )
             claimBackupPassword(
+                snackState = snackbarHostState,
                 onBackPressed = {
                     navController.popBackStack()
                 },
@@ -266,6 +288,7 @@ private fun ClaimInheritanceGraph(
                 },
             )
             claimBufferPeriod(
+                snackState = snackbarHostState,
                 onBackPressed = {
                     navController.popBackStack()
                 },
@@ -274,11 +297,13 @@ private fun ClaimInheritanceGraph(
                 },
             )
             noInheritancePlanFound(
+                snackState = snackbarHostState,
                 onCloseClick = {
                     activity.finish()
                 },
             )
             claimNote(
+                snackState = snackbarHostState,
                 onDoneClick = {
                     activity.finish()
                 },
@@ -287,6 +312,7 @@ private fun ClaimInheritanceGraph(
                 },
             )
             claimWithdrawBitcoin(
+                snackState = snackbarHostState,
                 onNavigateToInputAmount = {
                     claimData.inheritanceAdditional?.balance?.let { walletBalance ->
                         navigator.openInputAmountScreen(

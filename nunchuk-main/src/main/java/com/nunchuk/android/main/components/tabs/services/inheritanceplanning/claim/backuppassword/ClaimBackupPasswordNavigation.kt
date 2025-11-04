@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.backuppassword
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -12,6 +13,7 @@ data class ClaimBackupPasswordRoute(
 )
 
 fun NavGraphBuilder.claimBackupPassword(
+    snackState: SnackbarHostState,
     onBackPressed: () -> Unit = {},
     onNoInheritancePlanFound: () -> Unit = {},
     onSuccess: (
@@ -24,6 +26,7 @@ fun NavGraphBuilder.claimBackupPassword(
     composable<ClaimBackupPasswordRoute> {
         val route = it.toRoute<ClaimBackupPasswordRoute>()
         ClaimBackupPasswordScreen(
+            snackState = snackState,
             magicPhrase = route.magicPhrase,
             onBackPressed = onBackPressed,
             onNoInheritancePlanFound = onNoInheritancePlanFound,

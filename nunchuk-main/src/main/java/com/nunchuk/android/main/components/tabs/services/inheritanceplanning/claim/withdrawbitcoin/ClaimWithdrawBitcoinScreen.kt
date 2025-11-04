@@ -51,6 +51,7 @@ import com.nunchuk.android.main.R as MainR
 
 @Composable
 fun ClaimWithdrawBitcoinScreen(
+    snackState: SnackbarHostState,
     balance: Double,
     modifier: Modifier = Modifier,
     onNavigateToInputAmount: () -> Unit = {},
@@ -60,7 +61,6 @@ fun ClaimWithdrawBitcoinScreen(
     viewModel: InheritanceClaimWithdrawBitcoinViewModel = hiltViewModel(),
 ) {
     var showSweepOptions by remember { mutableStateOf(false) }
-    val snackState = remember { SnackbarHostState() }
 
     // Check for new wallets on resume
     LifecycleResumeEffect(Unit) {

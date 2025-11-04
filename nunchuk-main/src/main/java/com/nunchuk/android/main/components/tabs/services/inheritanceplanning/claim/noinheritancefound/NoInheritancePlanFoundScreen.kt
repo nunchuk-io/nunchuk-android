@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -25,11 +27,13 @@ import com.nunchuk.android.widget.R as WidgetR
 
 @Composable
 fun NoInheritancePlanFoundScreen(
+    snackState: SnackbarHostState,
     modifier: Modifier = Modifier,
     onCloseClick: () -> Unit = {},
 ) {
     NoInheritancePlanFoundContent(
         modifier = modifier,
+        snackState = snackState,
         onCloseClick = onCloseClick,
     )
 }
@@ -37,10 +41,12 @@ fun NoInheritancePlanFoundScreen(
 @Composable
 private fun NoInheritancePlanFoundContent(
     modifier: Modifier = Modifier,
+    snackState: SnackbarHostState = remember { SnackbarHostState() },
     onCloseClick: () -> Unit = {},
 ) {
     NcScaffold(
         modifier = modifier.navigationBarsPadding(),
+        snackState = snackState,
         topBar = {
             NcTopAppBar(
                 title = "",

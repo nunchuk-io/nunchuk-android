@@ -57,7 +57,7 @@ import com.nunchuk.android.signer.R as SignerR
 @Composable
 fun ClaimMagicPhraseScreen(
     modifier: Modifier = Modifier,
-    snackState: SnackbarHostState = remember { SnackbarHostState() },
+    snackState: SnackbarHostState,
     onBackPressed: () -> Unit = {},
     onContinue: (String, InheritanceClaimingInit) -> Unit = { _, _ -> },
     viewModel: ClaimMagicPhraseViewModel = hiltViewModel(),

@@ -2,6 +2,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -15,6 +16,7 @@ import kotlinx.serialization.Serializable
 data object ClaimNoteRoute
 
 fun NavGraphBuilder.claimNote(
+    snackState: SnackbarHostState,
     onDoneClick: () -> Unit = {},
     onWithdrawClick: () -> Unit = {},
 ) {
@@ -26,6 +28,7 @@ fun NavGraphBuilder.claimNote(
 
         claimData.inheritanceAdditional?.let { inheritanceAdditional ->
             ClaimNoteScreen(
+                snackState = snackState,
                 inheritanceAdditional = inheritanceAdditional,
                 onDoneClick = {
                     onDoneClick()

@@ -11,7 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcRadioOption
+import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.main.R
@@ -33,12 +34,15 @@ import com.nunchuk.android.main.R
 @Composable
 fun RecoverInheritanceKeyScreen(
     modifier: Modifier = Modifier,
+    snackState: SnackbarHostState = remember { SnackbarHostState() },
     onBackPressed: () -> Unit = {},
     onContinue: (Boolean) -> Unit = {},
 ) {
+    // snackState is accepted for API consistency but not used since this screen uses Scaffold, not NcScaffold
     var selectedOption by remember { mutableStateOf(RecoveryOption.HARDWARE_DEVICE) }
 
-    Scaffold(
+    NcScaffold(
+        snackState = snackState,
         modifier = modifier.navigationBarsPadding(),
         topBar = {
             NcImageAppBar(
