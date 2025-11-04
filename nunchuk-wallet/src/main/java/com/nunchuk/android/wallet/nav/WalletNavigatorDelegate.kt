@@ -30,8 +30,8 @@ import com.nunchuk.android.model.RoomWalletData
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nav.WalletNavigator
-import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.AddWalletArgs
+import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.nav.args.ReviewWalletArgs
 import com.nunchuk.android.type.AddressType
@@ -151,7 +151,7 @@ interface WalletNavigatorDelegate : WalletNavigator {
         isOnChainFlow: Boolean,
         groupId: String?,
         replacedWalletId: String?,
-        quickWalletParam: com.nunchuk.android.core.data.model.QuickWalletParam?
+        quickWalletParam: QuickWalletParam?
     ) {
         UploadConfigurationActivity.start(
             activityContext = activityContext,

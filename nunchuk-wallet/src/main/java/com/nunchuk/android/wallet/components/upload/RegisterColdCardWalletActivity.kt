@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,16 +46,28 @@ import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.ExportWalletQRCodeType
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.share.membership.MembershipEvent
+import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.share.membership.MembershipViewModel
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.ExportColdcardSuccess
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
+    @Inject
+    lateinit var membershipStepManager: MembershipStepManager
+
+    private val membershipViewModel by viewModels<MembershipViewModel>()
+
     private val viewModel by viewModels<SharedWalletConfigurationViewModel>()
+    
+    private var isWaitingForShareDismissal = false
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -86,6 +100,22 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
             return
         }
 
+        flowObserver(membershipViewModel.event) {
+            if (it is MembershipEvent.RestartWizardSuccess) {
+                navigator.openMembershipActivity(
+                    activityContext = this,
+                    groupStep = MembershipStage.NONE,
+                    isPersonalWallet = membershipStepManager.isPersonalWallet(),
+                    isClearTop = true,
+                    quickWalletParam = null
+                )
+                setResult(RESULT_OK)
+                finish()
+            } else if (it is MembershipEvent.Error) {
+                NCToastMessage(this).showError(it.message)
+            }
+        }
+
         viewModel.init(walletId)
         observer()
 
@@ -100,11 +130,21 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
                             } else {
                                 openDynamicQRScreen(walletId, ExportWalletQRCodeType.BBQR)
                             }
+                        }, onMoreClicked = {
+                            membershipViewModel.resetWizard(membershipStepManager.localMembershipPlan)
                         }
                     )
                 }
             },
         )
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (isWaitingForShareDismissal) {
+            isWaitingForShareDismissal = false
+            openWalletCreatedSuccess()
+        }
     }
 
     private fun openDynamicQRScreen(walletId: String, qrCodeType: Int) {
@@ -169,7 +209,8 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
 
     private fun shareConfigurationFile(filePath: String?) {
         if (filePath.isNullOrEmpty().not()) {
-            sharingController.shareFile(filePath.orEmpty())
+            isWaitingForShareDismissal = true
+            sharingController.shareFile(filePath)
         }
     }
 
@@ -185,7 +226,7 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
     private fun openWalletCreatedSuccess() {
         navigator.openMembershipActivity(
             activityContext = this,
-            groupStep = com.nunchuk.android.model.MembershipStage.CREATE_WALLET_SUCCESS,
+            groupStep = MembershipStage.CREATE_WALLET_SUCCESS,
             walletId = walletId,
             groupId = groupId,
             replacedWalletId = replacedWalletId,
@@ -226,6 +267,7 @@ internal fun RegisterColdCardWalletScreen(
     isExportViaFile: Boolean = false,
     onDownloadClick: () -> Unit = {},
     onContinueClick: () -> Unit = {},
+    onMoreClicked: () -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold(
@@ -237,7 +279,15 @@ internal fun RegisterColdCardWalletScreen(
                         stringResource(
                             id = R.string.nc_estimate_remain_time,
                             remainTime
-                        )
+                        ),
+                    actions = {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
+                    }
                 )
             },
             bottomBar = {
