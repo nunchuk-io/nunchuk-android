@@ -23,6 +23,7 @@ import com.nunchuk.android.app.miniscript.intro.MiniscriptIntro
 import com.nunchuk.android.app.miniscript.intro.miniscriptIntroDestination
 import com.nunchuk.android.app.miniscript.reviewwallet.MiniscriptReviewWallet
 import com.nunchuk.android.app.miniscript.reviewwallet.miniscriptReviewWalletDestination
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.miniscript.MultisignType
 import com.nunchuk.android.core.nfc.BaseComposeNfcActivity
 import com.nunchuk.android.core.util.flowObserver
@@ -184,7 +185,7 @@ class MiniscriptActivity : BaseComposeNfcActivity(), InputBipPathBottomSheetList
                                 activityContext = this@MiniscriptActivity,
                                 walletId = wallet.id
                             )
-                            finish()
+                            ActivityManager.popUntilRoot()
                         }
 
                         miniscriptSelectTimeZoneDestination(navController = navHostController)

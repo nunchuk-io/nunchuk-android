@@ -71,7 +71,7 @@ data class AddKeyOnChainData(
      * Checks if any step in this card has been verified
      */
     val isVerifyOrAddKey: Boolean
-        get() = stepDataMap.values.any { it.verifyType == VerifyType.APP_VERIFIED }
+        get() = stepDataMap.values.any { it.verifyType != VerifyType.NONE }
 
     /**
      * Gets the next step that needs to be added (timelock first, then regular)
