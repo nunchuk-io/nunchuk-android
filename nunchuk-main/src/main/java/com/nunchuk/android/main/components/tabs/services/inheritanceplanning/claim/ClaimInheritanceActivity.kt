@@ -112,10 +112,30 @@ private fun ClaimInheritanceGraph(
     val claimData by activityViewModel.claimData.collectAsStateWithLifecycle()
     val sharedUiState by activityViewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(sharedUiState.isInheritanceNotFound) {
-        if (sharedUiState.isInheritanceNotFound) {
-            navController.navigateToNoInheritancePlanFound()
-            activityViewModel.handledInheritanceNotFound()
+    LaunchedEffect(sharedUiState.event) {
+        sharedUiState.event?.let { event ->
+            when (event) {
+                is ClaimInheritanceEvent.NavigateToNoInheritanceFound -> {
+                    navController.navigateToNoInheritancePlanFound()
+                    activityViewModel.onEventHandled()
+                }
+                is ClaimInheritanceEvent.AddMoreSigners -> {
+                    navController.navigateToAddInheritanceKey(
+                        index = claimData.signers.size.inc(),
+                        totalKeys = claimData.requiredKeyCount
+                    )
+                    activityViewModel.onEventHandled()
+                }
+                is ClaimInheritanceEvent.KeyAlreadyAdded -> {
+                    navController.navigateToAddInheritanceKey(
+                        index = claimData.signers.size.inc(),
+                        totalKeys = claimData.requiredKeyCount,
+                        isShowKeyAdded = true
+                    )
+                    activityViewModel.onEventHandled()
+                }
+                else -> Unit
+            }
         }
     }
 
@@ -133,15 +153,6 @@ private fun ClaimInheritanceGraph(
         val inheritanceAdditional = claimData.inheritanceAdditional
         if (inheritanceAdditional != null) {
             navController.navigateToClaimNote()
-        }
-    }
-    LaunchedEffect(sharedUiState.addMoreSigners) {
-        if (sharedUiState.addMoreSigners) {
-            navController.navigateToAddInheritanceKey(
-                index = claimData.signers.size.inc(),
-                totalKeys = claimData.requiredKeyCount
-            )
-            activityViewModel.handledAddMoreSigners()
         }
     }
 

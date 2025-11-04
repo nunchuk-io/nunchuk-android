@@ -95,7 +95,7 @@ class ClaimInheritanceViewModel @Inject constructor(
                     Timber.e(e)
                     _uiState.update {
                         it.copy(
-                            message = e.message.orUnknownError(),
+                            event = ClaimInheritanceEvent.ShowError(e.message.orUnknownError()),
                         )
                     }
                 }.getOrNull()
@@ -103,11 +103,11 @@ class ClaimInheritanceViewModel @Inject constructor(
                 signer?.let {
                     addSigner(singleSignerMapper(signer))
                 }
-            }.onFailure {
-                Timber.e(it)
+            }.onFailure { e ->
+                Timber.e(e)
                 _uiState.update {
                     it.copy(
-                        message = it.message.orUnknownError(),
+                        event = ClaimInheritanceEvent.ShowError(e.message.orUnknownError()),
                     )
                 }
             }
@@ -115,15 +115,19 @@ class ClaimInheritanceViewModel @Inject constructor(
     }
 
     fun addSigner(signer: SignerModel) {
-        _claimData.update {
-            it.copy(signers = it.signers + signer)
-        }
-        if (claimData.value.signers.size == claimData.value.requiredKeyCount) {
-            viewModelScope.launch {
-                downloadWalletForClaim()
-            }
+        if (_claimData.value.signers.contains(signer)) {
+            _uiState.update { it.copy(event = ClaimInheritanceEvent.KeyAlreadyAdded) }
         } else {
-            _uiState.update { it.copy(addMoreSigners = true) }
+            _claimData.update {
+                it.copy(signers = it.signers + signer)
+            }
+            if (claimData.value.signers.size == claimData.value.requiredKeyCount) {
+                viewModelScope.launch {
+                    downloadWalletForClaim()
+                }
+            } else {
+                _uiState.update { it.copy(event = ClaimInheritanceEvent.AddMoreSigners) }
+            }
         }
     }
 
@@ -144,7 +148,7 @@ class ClaimInheritanceViewModel @Inject constructor(
                 Timber.e(e)
                 _uiState.update {
                     it.copy(
-                        message = e.message.orUnknownError(),
+                        event = ClaimInheritanceEvent.ShowError(e.message.orUnknownError()),
                     )
                 }
             }.getOrNull()
@@ -160,30 +164,22 @@ class ClaimInheritanceViewModel @Inject constructor(
             if (e is NunchukApiException && e.code == 831) {
                 _uiState.update {
                     it.copy(
-                        isInheritanceNotFound = true,
+                        event = ClaimInheritanceEvent.NavigateToNoInheritanceFound,
                     )
                 }
             } else {
                 Timber.e(e)
                 _uiState.update {
                     it.copy(
-                        message = e.message.orUnknownError(),
+                        event = ClaimInheritanceEvent.ShowError(e.message.orUnknownError()),
                     )
                 }
             }
         }
     }
 
-    fun handledInheritanceNotFound() {
-        _uiState.update { it.copy(isInheritanceNotFound = false,) }
-    }
-
-    fun handledMessageShown() {
-        _uiState.update { it.copy(message = "",) }
-    }
-
-    fun handledAddMoreSigners() {
-        _uiState.update { it.copy(addMoreSigners = false,) }
+    fun onEventHandled() {
+        _uiState.update { it.copy(event = null) }
     }
 
     private companion object {
@@ -193,10 +189,15 @@ class ClaimInheritanceViewModel @Inject constructor(
 }
 
 data class ClaimUiState(
-    val message: String = "",
-    val isInheritanceNotFound: Boolean = false,
-    val addMoreSigners: Boolean = false,
+    val event: ClaimInheritanceEvent? = null,
 )
+
+sealed class ClaimInheritanceEvent {
+    data class ShowError(val message: String) : ClaimInheritanceEvent()
+    data object NavigateToNoInheritanceFound : ClaimInheritanceEvent()
+    data object AddMoreSigners : ClaimInheritanceEvent()
+    data object KeyAlreadyAdded : ClaimInheritanceEvent()
+}
 
 @Parcelize
 data class ClaimData(

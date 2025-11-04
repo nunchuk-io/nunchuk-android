@@ -9,6 +9,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.showNunchukSnackbar
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimInheritanceEvent
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimInheritanceViewModel
 import com.nunchuk.android.model.InheritanceClaimingInit
 import kotlinx.serialization.Serializable
@@ -25,13 +26,15 @@ fun NavGraphBuilder.claimMagicPhrase(
         val sharedUiState by sharedViewModel.uiState.collectAsStateWithLifecycle()
         val snackbarHostState = remember { SnackbarHostState() }
 
-        LaunchedEffect(sharedUiState.message) {
-            if (sharedUiState.message.isNotEmpty()) {
-                snackbarHostState.showNunchukSnackbar(
-                    message = sharedUiState.message,
-                    type = NcToastType.ERROR
-                )
-                sharedViewModel.handledMessageShown()
+        LaunchedEffect(sharedUiState.event) {
+            sharedUiState.event?.let { event ->
+                if (event is ClaimInheritanceEvent.ShowError) {
+                    snackbarHostState.showNunchukSnackbar(
+                        message = event.message,
+                        type = NcToastType.ERROR
+                    )
+                    sharedViewModel.onEventHandled()
+                }
             }
         }
 

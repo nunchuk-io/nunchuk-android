@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 data class AddInheritanceKeyRoute(
     val index: Int,
     val totalKeys: Int,
+    val isShowKeyAdded: Boolean = false,
 )
 
 fun NavGraphBuilder.addInheritanceKey(
@@ -19,6 +20,7 @@ fun NavGraphBuilder.addInheritanceKey(
     composable<AddInheritanceKeyRoute> {
         val args = it.toRoute<AddInheritanceKeyRoute>()
         AddInheritanceKeyScreen(
+            isShowKeyAdded = args.isShowKeyAdded,
             isFirstKey = args.index == 1,
             totalKeys = args.totalKeys,
             onBackPressed = onBackPressed,
@@ -28,7 +30,7 @@ fun NavGraphBuilder.addInheritanceKey(
 }
 
 fun NavController.navigateToAddInheritanceKey(
-    index: Int, totalKeys: Int
+    index: Int, totalKeys: Int, isShowKeyAdded: Boolean = false
 ) {
-    navigate(AddInheritanceKeyRoute(index, totalKeys))
+    navigate(AddInheritanceKeyRoute(index, totalKeys, isShowKeyAdded))
 }
