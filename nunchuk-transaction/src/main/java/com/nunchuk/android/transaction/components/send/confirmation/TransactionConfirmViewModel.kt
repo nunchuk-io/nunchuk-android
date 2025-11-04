@@ -295,6 +295,7 @@ class TransactionConfirmViewModel @Inject constructor(
                     derivationPaths = claimInheritanceTxParam?.derivationPaths.orEmpty(),
                     isDraft = true,
                     amount = claimInheritanceTxParam?.customAmount ?: 0.0,
+                    bsms = claimInheritanceTxParam?.bsms,
                     antiFeeSniping = antiFeeSniping
                 )
             )
@@ -516,6 +517,7 @@ class TransactionConfirmViewModel @Inject constructor(
                 derivationPaths = claimInheritanceTxParam?.derivationPaths.orEmpty(),
                 isDraft = false,
                 amount = claimInheritanceTxParam?.customAmount ?: 0.0,
+                bsms = claimInheritanceTxParam?.bsms,
                 antiFeeSniping = antiFeeSniping
             )
         )

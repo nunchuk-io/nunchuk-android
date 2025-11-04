@@ -123,7 +123,7 @@ class ClaimInheritanceViewModel @Inject constructor(
                 downloadWalletForClaim()
             }
         } else {
-            // TODO Hai add more signers UI state
+            _uiState.update { it.copy(addMoreSigners = true) }
         }
     }
 
@@ -182,6 +182,10 @@ class ClaimInheritanceViewModel @Inject constructor(
         _uiState.update { it.copy(message = "",) }
     }
 
+    fun handledAddMoreSigners() {
+        _uiState.update { it.copy(addMoreSigners = false,) }
+    }
+
     private companion object {
         private const val KEY_CLAIM_DATA = "claim_data"
         private const val INHERITED_KEY_NAME = "Inheritance key"
@@ -191,6 +195,7 @@ class ClaimInheritanceViewModel @Inject constructor(
 data class ClaimUiState(
     val message: String = "",
     val isInheritanceNotFound: Boolean = false,
+    val addMoreSigners: Boolean = false,
 )
 
 @Parcelize
@@ -202,5 +207,8 @@ data class ClaimData(
     val requiredKeyCount: Int = 1,
     val walletType: WalletType = WalletType.MULTI_SIG,
     val bsms: String? = null,
-) : Parcelable
+) : Parcelable {
+    val requiredSigners: List<SignerModel>
+        get() = signers.takeIf { bsms.isNullOrEmpty() }.orEmpty().toList()
+}
 

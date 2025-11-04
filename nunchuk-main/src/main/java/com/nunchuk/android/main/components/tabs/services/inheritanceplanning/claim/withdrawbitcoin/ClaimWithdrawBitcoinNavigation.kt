@@ -8,7 +8,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimInheritanceViewModel
 import kotlinx.serialization.Serializable
 
@@ -16,30 +15,10 @@ import kotlinx.serialization.Serializable
 data object ClaimWithdrawBitcoinRoute
 
 fun NavGraphBuilder.claimWithdrawBitcoin(
-    onNavigateToInputAmount: (
-        walletBalance: Double,
-        signers: Set<SignerModel>,
-        magic: String,
-        derivationPaths: List<String>
-    ) -> Unit = { _, _, _, _ -> },
-    onNavigateToSelectWallet: (
-        walletBalance: Double,
-        signers: Set<SignerModel>,
-        magic: String,
-        derivationPaths: List<String>
-    ) -> Unit = { _, _, _, _ -> },
-    onNavigateToWalletIntermediary: (
-        walletBalance: Double,
-        signers: Set<SignerModel>,
-        magic: String,
-        derivationPaths: List<String>
-    ) -> Unit = { _, _, _, _ -> },
-    onNavigateToAddReceipt: (
-        walletBalance: Double,
-        signers: Set<SignerModel>,
-        magic: String,
-        derivationPaths: List<String>
-    ) -> Unit = { _, _, _, _ -> },
+    onNavigateToInputAmount: () -> Unit = {},
+    onNavigateToSelectWallet: () -> Unit = {},
+    onNavigateToWalletIntermediary: () -> Unit = {},
+    onNavigateToAddReceipt: () -> Unit = {},
 ) {
     composable<ClaimWithdrawBitcoinRoute> {
         val activity = LocalActivity.current as ComponentActivity
@@ -51,38 +30,10 @@ fun NavGraphBuilder.claimWithdrawBitcoin(
         walletBalance?.let { walletBalance ->
             ClaimWithdrawBitcoinScreen(
                 balance = walletBalance,
-                onNavigateToInputAmount = {
-                    onNavigateToInputAmount(
-                        walletBalance,
-                        claimData.signers,
-                        claimData.magic,
-                        claimData.derivationPaths
-                    )
-                },
-                onNavigateToSelectWallet = {
-                    onNavigateToSelectWallet(
-                        walletBalance,
-                        claimData.signers,
-                        claimData.magic,
-                        claimData.derivationPaths
-                    )
-                },
-                onNavigateToWalletIntermediary = {
-                    onNavigateToWalletIntermediary(
-                        walletBalance,
-                        claimData.signers,
-                        claimData.magic,
-                        claimData.derivationPaths
-                    )
-                },
-                onNavigateToAddReceipt = {
-                    onNavigateToAddReceipt(
-                        walletBalance,
-                        claimData.signers,
-                        claimData.magic,
-                        claimData.derivationPaths
-                    )
-                },
+                onNavigateToInputAmount = onNavigateToInputAmount,
+                onNavigateToSelectWallet = onNavigateToSelectWallet,
+                onNavigateToWalletIntermediary = onNavigateToWalletIntermediary,
+                onNavigateToAddReceipt = onNavigateToAddReceipt,
             )
         }
     }

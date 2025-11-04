@@ -141,6 +141,7 @@ class SelectWalletViewModel @Inject constructor(
                 derivationPaths = claimInheritanceTxParam?.derivationPaths.orEmpty(),
                 isDraft = false,
                 amount = claimInheritanceTxParam?.customAmount ?: 0.0,
+                bsms = claimInheritanceTxParam?.bsms,
                 antiFeeSniping = false
             )
         )

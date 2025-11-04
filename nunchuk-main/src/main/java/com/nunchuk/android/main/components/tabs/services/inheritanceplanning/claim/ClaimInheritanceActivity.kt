@@ -2,7 +2,6 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 
 import android.app.Activity
 import android.os.Bundle
-import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -67,7 +66,11 @@ class ClaimInheritanceActivity : BaseComposeActivity() {
         setContentView(
             ComposeView(this).apply {
                 setContent {
-                    ClaimInheritanceGraph(navigator = navigator, pushEventManager = pushEventManager)
+                    ClaimInheritanceGraph(
+                        activity = this@ClaimInheritanceActivity,
+                        navigator = navigator,
+                        pushEventManager = pushEventManager
+                    )
                 }
             }
         )
@@ -76,12 +79,12 @@ class ClaimInheritanceActivity : BaseComposeActivity() {
 
 @Composable
 private fun ClaimInheritanceGraph(
+    activity: Activity,
     activityViewModel: ClaimInheritanceViewModel = hiltViewModel(),
     navigator: NunchukNavigator,
     pushEventManager: PushEventManager
 ) {
     val navController = rememberNavController()
-    val activity = LocalActivity.current
     val importSeedLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
@@ -132,6 +135,16 @@ private fun ClaimInheritanceGraph(
             navController.navigateToClaimNote()
         }
     }
+    LaunchedEffect(sharedUiState.addMoreSigners) {
+        if (sharedUiState.addMoreSigners) {
+            navController.navigateToAddInheritanceKey(
+                index = claimData.signers.size.inc(),
+                totalKeys = claimData.requiredKeyCount
+            )
+            activityViewModel.handledAddMoreSigners()
+        }
+    }
+
     NunchukTheme {
         NavHost(
             navController = navController,
@@ -152,16 +165,14 @@ private fun ClaimInheritanceGraph(
                 onContinue = { option ->
                     when (option) {
                         InheritanceOption.HARDWARE_DEVICE -> {
-                            activity?.let { activityContext ->
-                                navigator.openSignerIntroScreen(
-                                    launcher = signerIntroLauncher,
-                                    activityContext = activity,
-                                    onChainAddSignerParam = OnChainAddSignerParam(
-                                        flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
-                                        isClaiming = true
-                                    )
+                            navigator.openSignerIntroScreen(
+                                launcher = signerIntroLauncher,
+                                activityContext = activity,
+                                onChainAddSignerParam = OnChainAddSignerParam(
+                                    flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
+                                    isClaiming = true
                                 )
-                            }
+                            )
                         }
 
                         InheritanceOption.SEED_PHRASE -> {
@@ -178,13 +189,11 @@ private fun ClaimInheritanceGraph(
                     if (isUseHardwareDevice) {
                         navController.navigateToRestoreSeedPhraseHardware()
                     } else {
-                        activity?.let {
-                            navigator.openRecoverSeedScreen(
-                                launcher = importSeedLauncher,
-                                activityContext = activity,
-                                keyFlow = KeyFlow.ADD_AND_RETURN
-                            )
-                        }
+                        navigator.openRecoverSeedScreen(
+                            launcher = importSeedLauncher,
+                            activityContext = activity,
+                            keyFlow = KeyFlow.ADD_AND_RETURN
+                        )
                     }
                 },
             )
@@ -193,19 +202,29 @@ private fun ClaimInheritanceGraph(
                     navController.popBackStack()
                 },
                 onContinue = {
-                    // TODO: Handle continue action
+                    navigator.openSignerIntroScreen(
+                        launcher = signerIntroLauncher,
+                        activityContext = activity,
+                        onChainAddSignerParam = OnChainAddSignerParam(
+                            flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
+                            isClaiming = true
+                        )
+                    )
                 },
             )
             claimMagicPhrase(
                 sharedViewModel = activityViewModel,
                 onBackPressed = {
-                    activity?.finish()
+                    activity.finish()
                 },
                 onContinue = { magicPhrase, initResult ->
                     activityViewModel.updateClaimInit(magicPhrase, initResult)
                     if (initResult.walletType.isMiniscript()) {
                         if (initResult.inheritanceKeyCount > 1) {
-                            navController.navigateToAddInheritanceKey()
+                            navController.navigateToAddInheritanceKey(
+                                index = 1,
+                                totalKeys = initResult.inheritanceKeyCount
+                            )
                         } else {
                             navController.navigateToPrepareInheritanceKey()
                         }
@@ -240,89 +259,93 @@ private fun ClaimInheritanceGraph(
                     navController.popBackStack()
                 },
                 onGotItClick = {
-                    activity?.finish()
+                    activity.finish()
                 },
             )
             noInheritancePlanFound(
                 onCloseClick = {
-                    activity?.finish()
+                    activity.finish()
                 },
             )
             claimNote(
                 onDoneClick = {
-                    activity?.finish()
+                    activity.finish()
                 },
                 onWithdrawClick = {
                     navController.navigateToClaimWithdrawBitcoin()
                 },
             )
             claimWithdrawBitcoin(
-                onNavigateToInputAmount = { walletBalance, signers, magic, derivationPaths ->
-                    activity?.let { act ->
+                onNavigateToInputAmount = {
+                    claimData.inheritanceAdditional?.balance?.let { walletBalance ->
                         navigator.openInputAmountScreen(
-                            activityContext = act,
+                            activityContext = activity,
                             walletId = "",
                             availableAmount = walletBalance,
                             claimInheritanceTxParam = ClaimInheritanceTxParam(
-                                masterSignerIds = signers.map { it.id },
-                                magicalPhrase = magic.trim(),
-                                derivationPaths = derivationPaths,
-                                totalAmount = walletBalance
+                                masterSignerIds = claimData.requiredSigners.map { it.id },
+                                magicalPhrase = claimData.magic.trim(),
+                                derivationPaths = claimData.derivationPaths,
+                                totalAmount = walletBalance,
+                                bsms = claimData.bsms
                             )
                         )
                     }
                 },
-                onNavigateToSelectWallet = { walletBalance, signers, magic, derivationPaths ->
-                    activity?.let { act ->
+                onNavigateToSelectWallet = {
+                    claimData.inheritanceAdditional?.balance?.let { walletBalance ->
                         navigator.openSelectWalletScreen(
-                            activityContext = act,
+                            activityContext = activity,
                             slots = emptyList(),
                             type = SelectWalletType.TYPE_INHERITANCE_WALLET,
                             claimInheritanceTxParam = ClaimInheritanceTxParam(
-                                masterSignerIds = signers.map { it.id },
-                                magicalPhrase = magic.trim(),
-                                derivationPaths = derivationPaths,
+                                masterSignerIds = claimData.requiredSigners.map { it.id },
+                                magicalPhrase = claimData.magic.trim(),
+                                derivationPaths = claimData.derivationPaths,
                                 totalAmount = walletBalance,
-                                isUseWallet = true
+                                isUseWallet = true,
+                                bsms = claimData.bsms
                             )
                         )
                     }
                 },
-                onNavigateToWalletIntermediary = { walletBalance, signers, magic, derivationPaths ->
-                    activity?.let { act ->
+                onNavigateToWalletIntermediary = {
+                    claimData.inheritanceAdditional?.balance?.let { walletBalance ->
                         navigator.openWalletIntermediaryScreen(
-                            activityContext = act,
+                            activityContext = activity,
                             quickWalletParam = QuickWalletParam(
                                 claimInheritanceTxParam = ClaimInheritanceTxParam(
-                                    masterSignerIds = signers.map { it.id },
-                                    magicalPhrase = magic.trim(),
-                                    derivationPaths = derivationPaths,
+                                    masterSignerIds = claimData.requiredSigners.map { it.id },
+                                    magicalPhrase = claimData.magic.trim(),
+                                    derivationPaths = claimData.derivationPaths,
                                     totalAmount = walletBalance,
-                                    isUseWallet = true
+                                    isUseWallet = true,
+                                    bsms = claimData.bsms
                                 ),
                                 type = SelectWalletType.TYPE_INHERITANCE_WALLET
                             )
                         )
                     }
                 },
-                onNavigateToAddReceipt = { walletBalance, signers, magic, derivationPaths ->
-                    activity?.let { act ->
+                onNavigateToAddReceipt = {
+                    claimData.inheritanceAdditional?.balance?.let { walletBalance ->
                         val sweepType = SweepType.SWEEP_TO_EXTERNAL_ADDRESS
                         val totalBalance = walletBalance * BTC_SATOSHI_EXCHANGE_RATE
                         val totalInBtc = Amount(value = totalBalance.toLong()).pureBTC()
                         navigator.openAddReceiptScreen(
-                            activityContext = act,
+                            activityContext = activity,
                             walletId = "",
                             outputAmount = totalInBtc,
                             availableAmount = totalInBtc,
                             subtractFeeFromAmount = true,
                             sweepType = sweepType,
                             claimInheritanceTxParam = ClaimInheritanceTxParam(
-                                masterSignerIds = signers.map { it.id },
-                                magicalPhrase = magic.trim(),
-                                derivationPaths = derivationPaths,
+                                masterSignerIds = claimData.requiredSigners.map { it.id },
+                                magicalPhrase = claimData.magic.trim(),
+                                derivationPaths = claimData.derivationPaths,
                                 totalAmount = walletBalance,
-                                isUseWallet = false
+                                isUseWallet = false,
+                                bsms = claimData.bsms
                             )
                         )
                     }
