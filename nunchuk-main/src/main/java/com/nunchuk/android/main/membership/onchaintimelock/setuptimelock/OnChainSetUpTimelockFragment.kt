@@ -137,7 +137,7 @@ private fun OnChainSetUpTimelockContent(
                 }
             } else {
                 Calendar.getInstance().apply {
-                    add(Calendar.YEAR, 2)
+                    add(Calendar.YEAR, 5)
                     set(Calendar.HOUR_OF_DAY, 0)
                     set(Calendar.MINUTE, 0)
                     set(Calendar.SECOND, 0)
@@ -188,11 +188,11 @@ private fun OnChainSetUpTimelockContent(
                 )
                 NcHighlightText(
                     modifier = Modifier.padding(16.dp),
-                    text = "Your inheritance plan includes an on-chain timelock that protects your funds. [B]After it expires[/B], the Beneficiary can claim the funds using the Magic Phrase and the inheritance key.\n" +
+                    text = "Your inheritance plan includes an on-chain timelock enforced by the Bitcoin network. After it expires, the Beneficiary can claim the funds autonomously using the required secrets.\n" +
                             "\n" +
-                            "You can change the timelock later in the Services tab by creating a new wallet and transferring the funds. The process will be guided automatically.\n" +
+                            "[B]On-chain timelocks are immutable.[/B] Once set, the date cannot be changed. To adjust the date later, you must create a new wallet and migrate your funds. A guided feature is available in the Wallet Config screen.\n" +
                             "\n" +
-                            "We recommend configuring a timelock of one to three years for security and flexibility. Review the plan annually and adjust the date if necessary to avoid long-term uncertainties.",
+                            "[B]Recommendation: Choose a longer timeframe.[/B] To minimize the need for future migrations, we recommend setting the timelock further into the future (e.g., 5 to 10 years).",
                     style = NunchukTheme.typography.body
                 )
 
