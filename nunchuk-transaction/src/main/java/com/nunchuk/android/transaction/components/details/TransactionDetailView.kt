@@ -60,6 +60,7 @@ import com.nunchuk.android.compose.miniscript.ScriptNodeTree
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.miniscript.MiniscriptUtil
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.canBroadCast
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getFormatDate
@@ -138,6 +139,10 @@ fun TransactionDetailView(
     val firstKeySet = if (!isValueKeySetDisable) keySetMap[state.defaultKeySetIndex] else null
     val isMiniscriptTaprootSingleKeyPathTransaction =
         addressType.isTaproot() && miniscriptUiState.isMiniscriptWallet && state.defaultKeySetIndex == 0 && state.wallet.totalRequireSigns == 1
+
+    val signedSigner = remember(transaction.signedSigner.size) {
+        transaction.signedSigner.map { it.toModel() }.toSet()
+    }
 
     NunchukTheme {
         NcScaffold(
@@ -407,7 +412,8 @@ fun TransactionDetailView(
                                     mode = ScriptMode.SIGN,
                                     signers = state.signerMap,
                                     showBip32Path = false,
-                                    signedSigners = miniscriptUiState.signedSigners.ifEmpty { transaction.signers },
+                                    signedSigners = signedSigner,
+                                    signedXfp = miniscriptUiState.signedSigners.ifEmpty { transaction.signers },
                                     satisfiableMap = miniscriptUiState.satisfiableMap,
                                     signedHash = miniscriptUiState.signedHash,
                                     collapsedNode = miniscriptUiState.collapsedNode,
@@ -476,18 +482,18 @@ fun TransactionDetailView(
                             keySetMap.filter { it.key != state.defaultKeySetIndex }
                         }
                         finalKeySet.forEach { (index, keySetStatus) ->
-                                item {
-                                    KeySetView(
-                                        signers = signerMap,
-                                        keySetIndex = index,
-                                        requiredSignatures = transaction.m,
-                                        keySet = keySetStatus,
-                                        onSignClick = onSignClick,
-                                        showDivider = index < finalKeySet.size.dec(),
-                                        isValueKeySetDisable = isValueKeySetDisable
-                                    )
-                                }
+                            item {
+                                KeySetView(
+                                    signers = signerMap,
+                                    keySetIndex = index,
+                                    requiredSignatures = transaction.m,
+                                    keySet = keySetStatus,
+                                    onSignClick = onSignClick,
+                                    showDivider = index < finalKeySet.size.dec(),
+                                    isValueKeySetDisable = isValueKeySetDisable
+                                )
                             }
+                        }
                     }
                 }
                 // normal transaction signer view

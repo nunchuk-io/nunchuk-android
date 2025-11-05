@@ -829,6 +829,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     val signedSignersMap = signers.associate { signer ->
                         signer.masterFingerprint to true
                     }
+                    _state.update {
+                        it.copy(
+                            transaction = tx.copy(signedSigner = signers)
+                        )
+                    }
                     _minscriptState.update { it.copy(signedSigners = signedSignersMap) }
                 }.onFailure {
                     Timber.e(it, "Failed to get transaction signers")

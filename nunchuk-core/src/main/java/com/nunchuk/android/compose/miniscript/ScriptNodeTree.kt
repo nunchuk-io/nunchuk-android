@@ -354,8 +354,10 @@ internal fun CreateKeyItem(
     val isSigned: Boolean =
         data.mode == ScriptMode.SIGN && signer != null && if (keySetStatus != null) {
             keySetStatus.signerStatus[signer.fingerPrint] == true || keySetStatus.status.signDone()
+        } else if (data.signedSigners.isNotEmpty()) {
+            data.signedSigners.any { it.fingerPrint == signer.fingerPrint && it.derivationPath == signer.derivationPath }
         } else {
-            data.signedSigners[signer.fingerPrint] == true
+            data.signedXfp[signer.fingerPrint] == true
         }
     val title = when {
         signer?.name.isNullOrEmpty() -> key
@@ -581,7 +583,8 @@ data class ScriptNodeData(
     val mode: ScriptMode = ScriptMode.CONFIG,
     val signers: Map<String, SignerModel?> = emptyMap(),
     val showBip32Path: Boolean = false,
-    val signedSigners: Map<String, Boolean> = emptyMap(),
+    val signedSigners: Set<SignerModel> = emptySet(),
+    val signedXfp: Map<String, Boolean> = emptyMap(),
     val duplicateSignerKeys: Set<String> = emptySet(),
     val signingPath: SigningPath = SigningPath(path = emptyList()),
     val satisfiableMap: Map<String, Boolean> = emptyMap(),
@@ -917,9 +920,12 @@ private fun calculateMultiSigned(
     data: ScriptNodeData
 ): Int {
     return node.keys.count { key ->
-        val signer = data.signers[key]
-        val xfp = signer?.fingerPrint
-        xfp != null && data.signedSigners[xfp] == true
+        val signer = data.signers[key] ?: return@count false
+        if (data.signedSigners.isNotEmpty()) {
+            data.signedSigners.any { it.fingerPrint == signer.fingerPrint && it.derivationPath == signer.derivationPath }
+        } else {
+            data.signedXfp[signer.fingerPrint] == true
+        }
     }
 }
 
