@@ -92,6 +92,7 @@ class MembershipRepositoryImpl @Inject constructor(
             listOf(MembershipPlan.IRON_HAND, MembershipPlan.HONEY_BADGER)
         ).map {
             it.map { entity -> entity.toModel() }
+                .filter { stepInfo -> stepInfo.groupId.isEmpty() }
         }
     }
 
