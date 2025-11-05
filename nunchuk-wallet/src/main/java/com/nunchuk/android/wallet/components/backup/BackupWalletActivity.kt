@@ -25,6 +25,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseShareSaveFileActivity
+import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.util.navigateToSelectWallet
 import com.nunchuk.android.core.wallet.WalletSecurityArgs
 import com.nunchuk.android.core.wallet.WalletSecurityType
@@ -43,7 +44,7 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalletBinding>() {
-
+    
     private var isShared: Boolean = false
 
     private val args: BackUpWalletArgs by lazy { BackUpWalletArgs.deserializeFrom(intent) }
@@ -88,6 +89,13 @@ class BackupWalletActivity : BaseShareSaveFileActivity<ActivityWalletBackupWalle
     }
 
     private fun navigateToNextScreen(isBackupSuccessful: Boolean = false) {
+        // Trigger DismissCurrentAlert event if backup is successful and from alert
+        if (isBackupSuccessful && args.isFromAlert) {
+            lifecycleScope.launch {
+                pushEventManager.push(PushEvent.DismissCurrentAlert)
+            }
+        }
+        
         if (args.backUpWalletType == BackUpWalletType.ASSISTED_CREATED) {
             setResult(RESULT_OK)
             finish()

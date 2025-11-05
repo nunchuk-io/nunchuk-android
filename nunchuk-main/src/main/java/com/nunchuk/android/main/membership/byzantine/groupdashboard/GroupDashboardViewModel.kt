@@ -35,6 +35,7 @@ import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.HistoryPeriod
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.DummyTransactionType
@@ -192,7 +193,7 @@ class GroupDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             walletId.collect { walletId ->
                 if (!walletId.isNullOrEmpty()) {
-                    getWallet(walletId)
+                    getWalletDetail(walletId)
                     getKeysStatus()
                 }
             }
@@ -249,6 +250,10 @@ class GroupDashboardViewModel @Inject constructor(
                         if (groupWalletSetupAlert != null && getWalletId().isNotEmpty()) {
                             dismissAlert(groupWalletSetupAlert.id, silentLoading = true)
                         }
+                    }
+
+                    PushEvent.DismissCurrentAlert -> {
+                        dismissCurrentAlert(silentLoading = true)
                     }
 
                     is PushEvent.SignedTxSuccess -> {
@@ -330,7 +335,7 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
-    private fun getWallet(walletId: String) {
+    private fun getWalletDetail(walletId: String) {
         viewModelScope.launch {
             getWalletDetail2UseCase(walletId).onSuccess { wallet ->
                 val signers = wallet.signers.distinctBy { it.masterFingerprint }
@@ -353,6 +358,10 @@ class GroupDashboardViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun getWallet(): Wallet {
+        return state.value.wallet
     }
 
     private suspend fun getGroupUseCase() {

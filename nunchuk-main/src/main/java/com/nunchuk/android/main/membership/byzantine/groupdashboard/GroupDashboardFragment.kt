@@ -63,6 +63,8 @@ import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.model.byzantine.isInheritanceType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.isMasterOrAdminOrFacilitatorAdmin
+import com.nunchuk.android.nav.args.BackUpWalletArgs
+import com.nunchuk.android.nav.args.BackUpWalletType
 import com.nunchuk.android.nav.args.MembershipArgs
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerType
@@ -607,6 +609,14 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                 newWalletId = alert.payload.newWalletId,
                 startScreen = RollOverWalletFlow.REFUND,
                 source = RollOverWalletSource.REPLACE_KEY
+            )
+        } else if (alert.type == AlertType.BACKUP_WALLET) {
+            navigator.openBackupWalletScreen(
+                requireActivity(),
+                BackUpWalletArgs(
+                    wallet = viewModel.getWallet(),
+                    backUpWalletType = BackUpWalletType.NORMAL
+                )
             )
         }
     }

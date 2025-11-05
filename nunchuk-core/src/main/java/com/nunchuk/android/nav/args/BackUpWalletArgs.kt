@@ -21,6 +21,7 @@ data class BackUpWalletArgs(
     val isDecoyWallet: Boolean = false,
     val backUpWalletType: Int = BackUpWalletType.NORMAL,
     val isFromWalletDetails: Boolean = false,
+    val isFromAlert: Boolean = false,
 ) : Parcelable, ActivityArgs {
 
     override fun buildIntent(activityContext: Context) =
@@ -30,6 +31,7 @@ data class BackUpWalletArgs(
             putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
             putExtra(EXTRA_BACKUP_WALLET_TYPE, backUpWalletType)
             putExtra(EXTRA_IS_FROM_WALLET_DETAILS, isFromWalletDetails)
+            putExtra(EXTRA_IS_FROM_ALERT, isFromAlert)
         }
 
     companion object {
@@ -38,6 +40,7 @@ data class BackUpWalletArgs(
         private const val EXTRA_QUICK_WALLET_PARAM = "EXTRA_QUICK_WALLET_PARAM"
         private const val EXTRA_BACKUP_WALLET_TYPE = "EXTRA_BACKUP_WALLET_TYPE"
         private const val EXTRA_IS_FROM_WALLET_DETAILS = "EXTRA_IS_FROM_WALLET_DETAILS"
+        private const val EXTRA_IS_FROM_ALERT = "EXTRA_IS_FROM_ALERT"
 
         fun deserializeFrom(intent: Intent): BackUpWalletArgs = BackUpWalletArgs(
             wallet = intent.parcelable<Wallet>(EXTRA_WALLET) ?: Wallet(),
@@ -48,6 +51,7 @@ data class BackUpWalletArgs(
                 BackUpWalletType.NORMAL
             ),
             isFromWalletDetails = intent.getBooleanExtra(EXTRA_IS_FROM_WALLET_DETAILS, false),
+            isFromAlert = intent.getBooleanExtra(EXTRA_IS_FROM_ALERT, false),
         )
     }
 }
