@@ -156,7 +156,7 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
         nfcAdapter?.let {
             if (it.isEnabled) {
                 if (shouldShowInputCvcFirst(requestCode)) {
-                    showInputCvcDialog()
+                    showInputCvcDialog(descMessage = desctiption)
                 } else {
                     askToScan()
                 }

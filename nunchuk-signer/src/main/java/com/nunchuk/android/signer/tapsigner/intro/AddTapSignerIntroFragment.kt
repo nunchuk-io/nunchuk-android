@@ -116,14 +116,10 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
     override fun onBackUpFileReady(path: String) {
         nameNfcViewModel.getMasterSigner()?.let { signer ->
             nfcViewModel.updateMasterSigner(signer)
-            
-            // Check if this is from OnChain flow with onChainAddSignerParam
             val onChainAddSignerParam = (activity as NfcSetupActivity).onChainAddSignerParam
             if (onChainAddSignerParam != null) {
-                // Return the signer to OnChainTimelockAddKeyListFragment
                 viewModel.getSignerModel(signer.id, (activity as NfcSetupActivity).signerIndex)
             } else {
-                // Normal flow: navigate to upload backup
                 findNavController().navigate(
                     AddTapSignerIntroFragmentDirections.actionAddTapSignerIntroFragmentToUploadBackUpTapSignerFragment(
                         path, signer.id
@@ -160,8 +156,9 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                         val walletId = (activity as NfcSetupActivity).walletId
                         // free group wallet case
                         val groupId = (activity as NfcSetupActivity).groupId
+                        val onChainAddSignerParam = (activity as NfcSetupActivity).onChainAddSignerParam
                         if (args.isMembershipFlow) {
-                            if (viewModel.isKeyAddedToAssistedWallet(it.status.masterSignerId.orEmpty())) {
+                            if (viewModel.isKeyAddedToAssistedWallet(it.status.masterSignerId.orEmpty()) && onChainAddSignerParam == null) {
                                 showError(getString(R.string.nc_error_add_same_key))
                             } else {
                                 findNavController().navigate(
