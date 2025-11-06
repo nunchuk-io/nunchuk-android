@@ -213,7 +213,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
 
                 // If step has a master signer ID and extra data, try to find and add the signer
                 if (info.masterSignerId.isNotEmpty() && extra != null) {
-                    val signer = signers.find { it.fingerPrint == info.masterSignerId }
+                    val signer = signers.find { it.fingerPrint == info.masterSignerId && it.derivationPath == extra.derivationPath }
                         ?.copy(
                             index = getIndexFromPathUseCase(extra.derivationPath)
                                 .getOrDefault(0)

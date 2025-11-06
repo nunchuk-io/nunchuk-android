@@ -168,7 +168,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                             if (info.masterSignerId.isNotEmpty() && extra != null) {
                                 loadSigners()
                                 val signer =
-                                    _state.value.signers.find { it.fingerPrint == info.masterSignerId }
+                                    _state.value.signers.find { it.fingerPrint == info.masterSignerId && it.derivationPath == extra.derivationPath }
                                         ?.copy(
                                             index = getIndexFromPathUseCase(extra.derivationPath)
                                                 .getOrDefault(0)
