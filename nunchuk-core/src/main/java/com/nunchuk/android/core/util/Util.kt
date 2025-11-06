@@ -82,6 +82,7 @@ const val ONE_HOUR_TO_SECONDS = 60 * 60
 private const val MULTI_SIG_SIGNER_PATH_PREFIX = "m/48h"
 private const val SINGLE_SIG_SIGNER_PATH_PREFIX = "m/84h"
 const val COLDCARD_GUIDE_URL = "https://coldcard.com/docs/quick"
+const val JADE_GUIDE_URL = "https://help.blockstream.com/hc/en-us/articles/19629901272345-Set-up-Jade"
 const val COLDCARD_DEFAULT_KEY_NAME = "COLDCARD"
 const val INHERITANCE_KEY_NAME_EXT = "inh."
 const val TAPSIGNER_DEFAULT_KEY_NAME = "TAPSIGNER"

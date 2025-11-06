@@ -17,6 +17,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.compose.content
@@ -52,9 +56,15 @@ class AirgapActionIntroFragment : MembershipFragment() {
         ) { jadeAction ->
             when (jadeAction) {
                 JADEAction.QR -> {
-                    findNavController().navigate(
-                        AirgapActionIntroFragmentDirections.actionAirgapActionIntroFragmentToAirgapIntroFragment()
-                    )
+                    if (onChainAddSignerParam != null) {
+                        findNavController().navigate(
+                            AirgapActionIntroFragmentDirections.actionAirgapActionIntroFragmentToAirgapQRIntroFragment()
+                        )
+                    } else {
+                        findNavController().navigate(
+                            AirgapActionIntroFragmentDirections.actionAirgapActionIntroFragmentToAirgapIntroFragment()
+                        )
+                    }
                 }
 
                 JADEAction.USB -> {
@@ -105,9 +115,18 @@ internal fun AirgapActionIntroScreen(
                     Spacer(modifier = Modifier.padding(top = 16.dp))
                     Text(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        text = "Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths. \n" +
-                                "\n" +
-                                "Please add a key for the spending path after the timelock. On your device, select account 0 for this spending path.",
+                        text = buildAnnotatedString {
+                            append("Each hardware device must be added twice, with both keys (")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("before the timelock")
+                            }
+                            append(") coming from the same device but using different derivation paths. \n\n")
+                            append("Please add a key for the spending path after the timelock. On your device, select ")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("account ${onChainAddSignerParam.keyIndex}")
+                            }
+                            append(" for this spending path.")
+                        },
                         style = NunchukTheme.typography.body
                     )
                 }
@@ -145,7 +164,8 @@ internal fun AirgapActionIntroScreen(
 @Composable
 private fun AirgapActionIntroScreenPreview() {
     AirgapActionIntroScreen(
-        isMembershipFlow = false
+        isMembershipFlow = false,
+        onChainAddSignerParam = OnChainAddSignerParam(keyIndex = 1)
     )
 }
 
