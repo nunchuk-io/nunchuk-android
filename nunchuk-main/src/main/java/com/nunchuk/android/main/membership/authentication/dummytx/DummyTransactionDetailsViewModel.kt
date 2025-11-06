@@ -38,6 +38,7 @@ import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.transaction.components.details.TransactionMiniscriptUiState
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.GetScriptNodeFromMiniscriptTemplateUseCase
@@ -178,13 +179,23 @@ internal class DummyTransactionDetailsViewModel @Inject constructor(
     ) {
         clearMiniscriptMaps()
         getScriptNodeFromMiniscriptTemplateUseCase(wallet.miniscript).onSuccess { result ->
-            val signerMap = parseSignersFromScriptNode(result.scriptNode, transaction)
+            val signerMap = parseSignersFromScriptNode(result.scriptNode, transaction).mapValues {
+                if (it.value.type == SignerType.SERVER) {
+                    it.value.copy(isVisible = false)
+                } else {
+                    it.value
+                }
+            }
             val transform = if (enabledSigners.isNotEmpty()) {
                 // only show signed button for enabled signers and we set isVisible
                 signerMap.mapValues {
-                    if (enabledSigners.contains(it.value.fingerPrint)) it.value.copy(isVisible = true) else it.value.copy(
-                        isVisible = false
-                    )
+                    if (enabledSigners.contains(it.value.fingerPrint)) {
+                        it.value.copy(isVisible = true)
+                    } else {
+                        it.value.copy(
+                            isVisible = false
+                        )
+                    }
                 }
             } else {
                 signerMap

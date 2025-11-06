@@ -46,7 +46,7 @@ import java.io.FileOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
-internal class DummyTransactionDetailsViewModel @Inject constructor(
+internal class SignInDummyTransactionDetailsViewModel @Inject constructor(
     private val getDummyTxFromPsbtByteArrayUseCase: GetSignInDummyTxFromPsbtByteArrayUseCase,
     private val createShareFileUseCase: CreateShareFileUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,

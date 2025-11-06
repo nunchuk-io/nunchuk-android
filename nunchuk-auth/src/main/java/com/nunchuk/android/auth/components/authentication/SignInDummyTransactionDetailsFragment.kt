@@ -75,7 +75,7 @@ class SignInDummyTransactionDetailsFragment :
     @Inject
     lateinit var pushEventManager: PushEventManager
 
-    private val viewModel: DummyTransactionDetailsViewModel by viewModels()
+    private val viewModel: SignInDummyTransactionDetailsViewModel by viewModels()
     private val signInAuthenticationViewModel: SignInAuthenticationViewModel by activityViewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
 

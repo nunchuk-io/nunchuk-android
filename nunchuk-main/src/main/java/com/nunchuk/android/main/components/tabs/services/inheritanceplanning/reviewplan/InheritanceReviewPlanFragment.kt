@@ -562,7 +562,7 @@ fun InheritanceReviewPlanScreenContent(
                                 ActivationDateItem(
                                     activationDate = Date(setupOrReviewParam.activationDate).simpleGlobalDateFormat(),
                                     timeZoneId = setupOrReviewParam.selectedZoneId,
-                                    editable = isEditable,
+                                    editable = isEditable && !isMiniscriptWallet,
                                     onClick = {
                                         onEditActivationDateClick()
                                     }
