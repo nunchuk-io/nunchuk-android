@@ -176,10 +176,9 @@ class TapSignerBackingUpIntroOnChainFragment : MembershipFragment() {
 
     private fun handleBackUpKeySuccess(filePath: String) {
         findNavController().navigate(
-            TapSignerBackingUpIntroOnChainFragmentDirections.actionTapSignerBackingUpIntroOnChainFragmentToUploadBackUpTapSignerFragment(
+            TapSignerBackingUpIntroOnChainFragmentDirections.actionTapSignerBackingUpIntroOnChainFragmentToTapSignerVerifyBackUpOptionFragment(
                 filePath = filePath,
-                masterSignerId = args.masterSignerId,
-                isOldKey = true
+                masterSignerId = args.masterSignerId
             )
         )
     }

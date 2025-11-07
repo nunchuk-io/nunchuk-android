@@ -167,12 +167,13 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                             // If step has a master signer ID and extra data, try to find and add the signer
                             if (info.masterSignerId.isNotEmpty() && extra != null) {
                                 loadSigners()
-                                val signer =
-                                    _state.value.signers.find { it.fingerPrint == info.masterSignerId && it.derivationPath == extra.derivationPath }
-                                        ?.copy(
-                                            index = getIndexFromPathUseCase(extra.derivationPath)
-                                                .getOrDefault(0)
-                                        )
+                                var signer =
+                                    _state.value.signers.find { it.fingerPrint == info.masterSignerId }
+                                signer = signer?.copy(
+                                    index = getIndexFromPathUseCase(extra.derivationPath)
+                                        .getOrDefault(0),
+                                    derivationPath = extra.derivationPath.ifEmpty { signer.derivationPath }
+                                )
 
                                 if (signer != null) {
                                     updatedCard =
@@ -206,6 +207,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                     is PushEvent.DraftWalletTimelockSet -> {
                         refresh()
                     }
+
                     else -> {}
                 }
             }
@@ -391,7 +393,8 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         isoDep ?: return
 
         viewModelScope.launch {
-            Timber.tag("tapsigner-onchain").d("cacheTapSignerXpub: currentStep=${membershipStepManager.currentStep}, pendingTapSignerData=$pendingTapSignerData, masterSignerId=$masterSignerId, path=$path, context=$contextName")
+            Timber.tag("tapsigner-onchain")
+                .d("cacheTapSignerXpub: currentStep=${membershipStepManager.currentStep}, pendingTapSignerData=$pendingTapSignerData, masterSignerId=$masterSignerId, path=$path, context=$contextName")
             getSignerFromTapsignerMasterSignerByPathUseCase(
                 GetSignerFromTapsignerMasterSignerByPathUseCase.Data(
                     isoDep = isoDep,
@@ -452,7 +455,8 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         walletId: String? = null
     ) {
         viewModelScope.launch {
-            Timber.tag("tapsigner-onchain").d("addExistingTapSignerKey: currentStep=${membershipStepManager.currentStep}, data=$data, signerModel=$signerModel, walletId=$walletId")
+            Timber.tag("tapsigner-onchain")
+                .d("addExistingTapSignerKey: currentStep=${membershipStepManager.currentStep}, data=$data, signerModel=$signerModel, walletId=$walletId")
             if (signerModel.isMasterSigner && signerModel.type == SignerType.NFC) {
                 var masterSigner = masterSigners.find { it.id == signerModel.fingerPrint }
                 if (masterSigner == null) {
@@ -501,7 +505,8 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         data: AddKeyOnChainData? = null,
         walletId: String? = null
     ) {
-        Timber.tag("tapsigner-onchain").d("processTapSignerWithCompleteData: currentStep=${membershipStepManager.currentStep}, data=$data, signer=$signer, signerModel=$signerModel, walletId=$walletId")
+        Timber.tag("tapsigner-onchain")
+            .d("processTapSignerWithCompleteData: currentStep=${membershipStepManager.currentStep}, data=$data, signer=$signer, signerModel=$signerModel, walletId=$walletId")
         // Sync the signer to the membership system
         syncKeyUseCase(
             SyncKeyUseCase.Param(
@@ -555,7 +560,8 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         walletId: String
     ) {
         viewModelScope.launch {
-            Timber.tag("tapsigner-onchain").d("handleTapSignerAcct1Addition: currentStep=${membershipStepManager.currentStep}, data=$data, firstSigner=$firstSigner, walletId=$walletId")
+            Timber.tag("tapsigner-onchain")
+                .d("handleTapSignerAcct1Addition: currentStep=${membershipStepManager.currentStep}, data=$data, firstSigner=$firstSigner, walletId=$walletId")
             // Get current index from master signer
             val currentIndexResult = getCurrentIndexFromMasterSigner(firstSigner.fingerPrint)
 

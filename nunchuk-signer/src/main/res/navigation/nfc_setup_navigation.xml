@@ -256,8 +256,8 @@
             android:name="masterSignerId"
             app:argType="string" />
         <action
-            android:id="@+id/action_tapSignerBackingUpIntroOnChainFragment_to_uploadBackUpTapSignerFragment"
-            app:destination="@id/uploadBackUpTapSignerFragment"
+            android:id="@+id/action_tapSignerBackingUpIntroOnChainFragment_to_tapSignerVerifyBackUpOptionFragment"
+            app:destination="@id/tapSignerVerifyBackUpOptionFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"

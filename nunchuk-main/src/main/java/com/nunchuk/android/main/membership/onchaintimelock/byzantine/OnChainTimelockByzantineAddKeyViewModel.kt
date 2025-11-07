@@ -213,11 +213,13 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
 
                 // If step has a master signer ID and extra data, try to find and add the signer
                 if (info.masterSignerId.isNotEmpty() && extra != null) {
-                    val signer = signers.find { it.fingerPrint == info.masterSignerId && it.derivationPath == extra.derivationPath }
-                        ?.copy(
-                            index = getIndexFromPathUseCase(extra.derivationPath)
-                                .getOrDefault(0)
-                        )
+                    var signer =
+                        _state.value.signers.find { it.fingerPrint == info.masterSignerId }
+                    signer = signer?.copy(
+                        index = getIndexFromPathUseCase(extra.derivationPath)
+                            .getOrDefault(0),
+                        derivationPath = extra.derivationPath.ifEmpty { signer.derivationPath }
+                    )
 
                     if (signer != null) {
                         updatedCard = updatedCard.updateStep(step, signer, info.verifyType)
