@@ -61,6 +61,7 @@ import com.nunchuk.android.usecase.ChangeKeyTypeUseCase
 import com.nunchuk.android.usecase.CheckExistingKeyUseCase
 import com.nunchuk.android.usecase.CreatePassportSignersUseCase
 import com.nunchuk.android.usecase.CreateSignerUseCase
+import com.nunchuk.android.usecase.GetIndexFromPathUseCase
 import com.nunchuk.android.usecase.ParseJsonSignerUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
@@ -110,6 +111,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
     private val pushEventManager: PushEventManager,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
 ) : NunchukViewModel<Unit, AddAirgapSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
@@ -215,6 +217,30 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             if (onChainAddSignerParam != null ) {
                 val signer = signerInput.toSingleSigner(newSignerName, signerTag)
                 if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
+                    val currentSigner = onChainAddSignerParam!!.currentSigner
+                    if (currentSigner != null) {
+                        if (signer.masterSignerId != currentSigner.fingerPrint) {
+                            setEvent(
+                                AddAirgapSignerErrorEvent(
+                                    "The key you just added (XFP:${signer.masterSignerId.uppercase()}) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}). Please try again."
+                                )
+                            )
+                            setEvent(LoadingEventAirgap(false))
+                            return@launch
+                        }
+                        
+                        val newAccountIndex = getIndexFromPathUseCase(signer.derivationPath).getOrElse { 0 }
+                        
+                        if (newAccountIndex != 0) {
+                            setEvent(
+                                AddAirgapSignerErrorEvent(
+                                    "The key you just added (XFP:${signer.masterSignerId.uppercase()}, Account $newAccountIndex) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}, Account 0). Please try again."
+                                )
+                            )
+                            setEvent(LoadingEventAirgap(false))
+                            return@launch
+                        }
+                    }
                     setEvent(AddAirgapSignerSuccessEvent(signer))
                     setEvent(LoadingEventAirgap(false))
                     return@launch

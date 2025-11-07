@@ -52,6 +52,7 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CheckExistingKeyUseCase
+import com.nunchuk.android.usecase.GetIndexFromPathUseCase
 import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
@@ -89,6 +90,7 @@ class Mk4IntroViewModel @Inject constructor(
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
     private val pushEventManager: PushEventManager,
+    private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<Mk4IntroViewEvent>()
@@ -160,6 +162,30 @@ class Mk4IntroViewModel @Inject constructor(
                         return@launch
                     }
                     if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
+                        val currentSigner = onChainAddSignerParam.currentSigner
+                        if (currentSigner != null) {
+                            if (signer.masterFingerprint != currentSigner.fingerPrint) {
+                                _event.emit(
+                                    Mk4IntroViewEvent.ShowError(
+                                        "The key you just added (XFP:${signer.masterFingerprint.uppercase()}) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}). Please try again."
+                                    )
+                                )
+                                _event.emit(Mk4IntroViewEvent.Loading(false))
+                                return@launch
+                            }
+                            
+                            val newAccountIndex = getIndexFromPathUseCase(signer.derivationPath).getOrElse { 0 }
+                            
+                            if (newAccountIndex != 0) {
+                                _event.emit(
+                                    Mk4IntroViewEvent.ShowError(
+                                        "The key you just added (XFP:${signer.masterFingerprint.uppercase()}, Account $newAccountIndex) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}, Account 0). Please try again."
+                                    )
+                                )
+                                _event.emit(Mk4IntroViewEvent.Loading(false))
+                                return@launch
+                            }
+                        }
                         _event.emit(Mk4IntroViewEvent.OnCreateSignerSuccess(signer))
                         _event.emit(Mk4IntroViewEvent.Loading(false))
                         return@launch

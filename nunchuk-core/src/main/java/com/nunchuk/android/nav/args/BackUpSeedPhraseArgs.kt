@@ -24,7 +24,6 @@ import android.os.Bundle
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.utils.parcelable
-import com.nunchuk.android.utils.serializable
 
 data class BackUpSeedPhraseArgs(
     val type: BackUpSeedPhraseType,

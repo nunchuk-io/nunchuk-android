@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.ui.platform.ComposeView
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -20,8 +19,6 @@ class BackUpSeedPhraseActivity : BaseComposeActivity() {
     private val args: BackUpSeedPhraseArgs by lazy {
         BackUpSeedPhraseArgs.deserializeFrom(intent)
     }
-
-    private val sharedViewModel: BackUpSeedPhraseSharedViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
