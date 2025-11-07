@@ -162,7 +162,7 @@ private fun InheritancePlanTypeContent(
                     onClick = onContinueClicked
                 ) {
                     Text(
-                        text = stringResource(id = R.string.nc_text_continue),
+                        text = if (changeTimelockFlow) "Change to on-chain timelock" else stringResource(id = R.string.nc_text_continue),
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -316,7 +316,7 @@ private fun InheritancePlanTypeContent(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = stringResource(R.string.nc_change_plan_later),
+                        text = if (changeTimelockFlow) "Read the in-depth comparison." else stringResource(R.string.nc_change_plan_later),
                         style = NunchukTheme.typography.titleSmall,
                         modifier = Modifier.weight(1f)
                     )
@@ -335,5 +335,7 @@ private fun InheritancePlanTypeContent(
 @PreviewLightDark
 @Composable
 private fun InheritancePlanTypeScreenPreview() {
-    InheritancePlanTypeContent()
+    InheritancePlanTypeContent(
+        changeTimelockFlow = true
+    )
 }
