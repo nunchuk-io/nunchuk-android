@@ -89,6 +89,7 @@ class NcDataStore @Inject constructor(
     private val hasWalletInGuestModeKey = booleanPreferencesKey("has_wallet_in_guest_mode")
     private val walletBannerStatesKey = stringPreferencesKey("wallet_banner_states")
     private val userWalletConfigsSetupKey = stringPreferencesKey("user_wallet_configs_setup")
+    private val claimWallets = stringSetPreferencesKey("claim_wallets")
 
     /**
      * Current membership plan key
@@ -323,6 +324,17 @@ class NcDataStore @Inject constructor(
     val groupWalletBackUpBannerKeys: Flow<Set<String>>
         get() = context.dataStore.data.map {
             it[groupWalletBackupBannerKeysPreferenceKey] ?: emptySet()
+        }
+
+    suspend fun setClaimWallets(walletIds: Set<String>) {
+        context.dataStore.edit {
+            it[claimWallets] = walletIds
+        }
+    }
+
+    val claimWalletsFlow: Flow<Set<String>>
+        get() = context.dataStore.data.map {
+            it[claimWallets] ?: emptySet()
         }
 
     suspend fun setFeeJsonString(feeJson: String) {
@@ -611,6 +623,7 @@ class NcDataStore @Inject constructor(
             it.remove(groupAssistedKeysPreferenceKey)
             it.remove(membershipPlansKey)
             it.remove(walletBannerStatesKey)
+            it.remove(claimWallets)
         }
     }
 }

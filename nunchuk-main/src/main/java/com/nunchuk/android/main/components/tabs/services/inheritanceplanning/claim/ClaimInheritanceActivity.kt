@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,10 +15,12 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
@@ -40,6 +43,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.backuppassword.navigateToClaimBackupPassword
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.bufferperiod.claimBufferPeriod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.bufferperiod.navigateToClaimBufferPeriod
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.claimnote.ClaimNoteRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.claimnote.claimNote
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.claimnote.navigateToClaimNote
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.magicphrase.ClaimMagicPhraseRoute
@@ -57,6 +61,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.withdrawbitcoin.navigateToClaimWithdrawBitcoin
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.nav.args.ClaimArgs
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.parcelableArrayList
 import dagger.hilt.android.AndroidEntryPoint
@@ -64,18 +69,26 @@ import kotlinx.coroutines.flow.collectLatest
 
 @AndroidEntryPoint
 class ClaimInheritanceActivity : BaseComposeActivity() {
+    private val viewModel: ClaimInheritanceViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        val args = ClaimArgs.deserializeFrom(intent)
+
+        if (args.bsms != null) {
+            viewModel.getInheritanceStatus(bsms = args.bsms)
+        }
+
         setContentView(
             ComposeView(this).apply {
                 setContent {
                     ClaimInheritanceGraph(
+                        args = args,
                         activity = this@ClaimInheritanceActivity,
                         navigator = navigator,
-                        pushEventManager = pushEventManager
+                        pushEventManager = pushEventManager,
                     )
                 }
             }
@@ -85,13 +98,21 @@ class ClaimInheritanceActivity : BaseComposeActivity() {
 
 @Composable
 private fun ClaimInheritanceGraph(
+    args: ClaimArgs,
     activity: Activity,
     activityViewModel: ClaimInheritanceViewModel = hiltViewModel(),
     navigator: NunchukNavigator,
-    pushEventManager: PushEventManager
+    pushEventManager: PushEventManager,
 ) {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val startScreen = if (args.bsms.isNullOrEmpty()) {
+        ClaimMagicPhraseRoute
+    } else {
+        ClaimNoteRoute
+    }
+
     val importSeedLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
@@ -169,14 +190,21 @@ private fun ClaimInheritanceGraph(
     LaunchedEffect(claimData.inheritanceAdditional) {
         val inheritanceAdditional = claimData.inheritanceAdditional
         if (inheritanceAdditional != null) {
-            navController.navigateToClaimNote()
+            navController.navigateToClaimNote(
+                navOptions = NavOptions.Builder()
+                    .setPopUpTo<ClaimMagicPhraseRoute>(inclusive = true)
+                    .build()
+            )
         }
     }
 
     NunchukTheme {
+        if (sharedUiState.isLoading) {
+            NcLoadingDialog()
+        }
         NavHost(
             navController = navController,
-            startDestination = ClaimMagicPhraseRoute
+            startDestination = startScreen
         ) {
             addInheritanceKey(
                 snackState = snackbarHostState,

@@ -91,7 +91,6 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.model.Period
-import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
@@ -322,7 +321,6 @@ fun InheritanceReviewPlanScreen(
         planFlow = setupOrReviewParam.planFlow,
         magicalPhrase = setupOrReviewParam.magicalPhrase,
         groupId = setupOrReviewParam.groupId,
-        groupWalletType = inheritanceViewModel.getGroupWalletType(),
         setupOrReviewParam = setupOrReviewParam,
         state = state,
         onContinueClicked = {
@@ -354,7 +352,6 @@ fun InheritanceReviewPlanScreenContent(
     planFlow: Int = InheritancePlanFlow.VIEW,
     magicalPhrase: String = "",
     groupId: String = "",
-    groupWalletType: GroupWalletType? = null,
     state: InheritanceReviewPlanState = InheritanceReviewPlanState(),
     setupOrReviewParam: InheritancePlanningParam.SetupOrReview = InheritancePlanningParam.SetupOrReview(
         walletId = ""

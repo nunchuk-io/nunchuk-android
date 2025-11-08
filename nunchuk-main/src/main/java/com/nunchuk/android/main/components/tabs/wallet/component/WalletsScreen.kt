@@ -60,6 +60,7 @@ import com.nunchuk.android.model.byzantine.isKeyHolderLimited
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.nav.args.ClaimArgs
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -196,6 +197,21 @@ internal fun WalletsScreen(
                         .padding(top = padding.calculateTopPadding())
                         .fillMaxSize()
                 ) {
+                    // Show banner if there is at least one claim wallets
+                    if (state.claimWallet != null) {
+                        ClaimWalletBanner(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            onClick = {
+                                navigator.openClaimInheritanceScreen(
+                                    activityContext = activity,
+                                    args = ClaimArgs(bsms = state.claimWallet.bsms)
+                                )
+                            }
+                        )
+                    }
+                    // Show banner if there is at least one claim wallets
                     if (banner != null && state.plans?.isEmpty() == true) {
                         NonSubscriberBanner(
                             modifier = Modifier

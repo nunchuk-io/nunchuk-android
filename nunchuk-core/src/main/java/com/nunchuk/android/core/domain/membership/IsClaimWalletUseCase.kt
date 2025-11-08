@@ -14,25 +14,23 @@
  *                                                                        *
  * You should have received a copy of the GNU General Public License      *
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.  *
- *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.core.domain.membership
 
-import com.nunchuk.android.model.InheritanceClaimingInit
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.WalletServer
-import kotlinx.coroutines.flow.Flow
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.InheritanceRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-interface InheritanceRepository {
-    suspend fun inheritanceClaimingInit(magic: String): InheritanceClaimingInit
-    
-    suspend fun downloadWallet(
-        magic: String,
-        keys: List<SingleSigner>
-    ): WalletServer
-    
-    suspend fun isClaimWallet(walletId: String): Boolean
-    
-    fun getClaimWalletsFlow(): Flow<Set<String>>
+class IsClaimWalletUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val inheritanceRepository: InheritanceRepository,
+) : UseCase<String, Boolean>(dispatcher) {
+
+    override suspend fun execute(parameters: String): Boolean {
+        return inheritanceRepository.isClaimWallet(parameters)
+    }
 }
+

@@ -37,6 +37,7 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
+import com.nunchuk.android.nav.args.ClaimArgs
 import com.nunchuk.android.nav.args.MiniscriptArgs
 
 interface AppNavigator {
@@ -91,6 +92,7 @@ interface AppNavigator {
 
     fun openClaimInheritanceScreen(
         activityContext: Context,
+        args: ClaimArgs = ClaimArgs()
     )
 
     /**

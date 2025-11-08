@@ -8,6 +8,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimInheritanceViewModel
 import kotlinx.serialization.Serializable
@@ -39,7 +40,7 @@ fun NavGraphBuilder.claimNote(
     }
 }
 
-fun NavController.navigateToClaimNote() {
-    navigate(ClaimNoteRoute)
+fun NavController.navigateToClaimNote(navOptions: NavOptions? = null) {
+    navigate(ClaimNoteRoute, navOptions)
 }
 

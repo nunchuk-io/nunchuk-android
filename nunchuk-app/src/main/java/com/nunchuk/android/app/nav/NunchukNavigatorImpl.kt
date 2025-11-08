@@ -67,6 +67,7 @@ import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
+import com.nunchuk.android.nav.args.ClaimArgs
 import com.nunchuk.android.nav.args.MainComposeArgs
 import com.nunchuk.android.nav.args.MembershipArgs
 import com.nunchuk.android.nav.args.MiniscriptArgs
@@ -357,8 +358,13 @@ interface AppNavigatorDelegate : AppNavigator {
         EmergencyLockdownActivity.navigate(activityContext, verifyToken, groupId, walletId)
     }
 
-    override fun openClaimInheritanceScreen(activityContext: Context) {
-        activityContext.startActivity(Intent(activityContext, ClaimInheritanceActivity::class.java))
+    override fun openClaimInheritanceScreen(
+        activityContext: Context,
+        args: ClaimArgs
+    ) {
+        val intent = Intent(activityContext, ClaimInheritanceActivity::class.java)
+        intent.putExtras(args.buildBundle())
+        activityContext.startActivity(intent)
     }
 
     override fun openInheritancePlanningScreen(

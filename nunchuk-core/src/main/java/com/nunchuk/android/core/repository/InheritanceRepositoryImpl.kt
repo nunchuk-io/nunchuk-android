@@ -25,18 +25,22 @@ import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.ServerSignerMapper
 import com.nunchuk.android.core.mapper.toInheritanceClaimingInit
+import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.InheritanceClaimingInit
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.InheritanceRepository
 import com.nunchuk.android.type.SignerTag
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 internal class InheritanceRepositoryImpl @Inject constructor(
     private val userWalletApiManager: UserWalletApiManager,
     private val serverSignerMapper: ServerSignerMapper,
     private val nunchukNativeSdk: NunchukNativeSdk,
+    private val ncDataStore: NcDataStore,
 ) : InheritanceRepository {
 
     override suspend fun inheritanceClaimingInit(magic: String): InheritanceClaimingInit {
@@ -62,7 +66,8 @@ internal class InheritanceRepositoryImpl @Inject constructor(
             userWalletApiManager.claimInheritanceApi.inheritanceClaimingDownloadWallet(request)
         val walletServer = response.data.wallet
             ?: throw IllegalStateException("Wallet data is missing in response")
-        if (nunchukNativeSdk.hasWallet(walletServer.localId.orEmpty()).not()) {
+        val walletLocalId = walletServer.localId.orEmpty()
+        if (nunchukNativeSdk.hasWallet(walletLocalId).not()) {
             val wallet = nunchukNativeSdk.parseWalletDescriptor(walletServer.bsms.orEmpty()).apply {
                 name = walletServer.name.orEmpty()
                 description = walletServer.description.orEmpty()
@@ -71,7 +76,21 @@ internal class InheritanceRepositoryImpl @Inject constructor(
             nunchukNativeSdk.createWallet2(wallet)
         }
 
+        // Add wallet to claim wallets set
+        val currentClaimWallets = ncDataStore.claimWalletsFlow.first().toMutableSet()
+        currentClaimWallets.add(walletLocalId)
+        ncDataStore.setClaimWallets(currentClaimWallets)
+
         return walletServer.toModel()
+    }
+
+    override suspend fun isClaimWallet(walletId: String): Boolean {
+        val claimWallets = ncDataStore.claimWalletsFlow.first()
+        return claimWallets.contains(walletId)
+    }
+
+    override fun getClaimWalletsFlow(): Flow<Set<String>> {
+        return ncDataStore.claimWalletsFlow
     }
 }
 

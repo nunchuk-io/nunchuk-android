@@ -140,27 +140,7 @@ class ClaimInheritanceViewModel @Inject constructor(
                 keys = currentData.signers.map { it.toSingleSigner() },
             )
         ).map { wallet ->
-            getInheritanceClaimStateUseCase(
-                GetInheritanceClaimStateUseCase.Param(
-                    magic = currentData.magic,
-                    bsms = wallet.bsms
-                )
-            ).onFailure { e ->
-                Timber.e(e)
-                _uiState.update {
-                    it.copy(
-                        event = ClaimInheritanceEvent.ShowError(e.message.orUnknownError()),
-                    )
-                }
-            }.getOrNull()
-        }.onSuccess { inheritanceAdditional ->
-            inheritanceAdditional?.let {
-                _claimData.update {
-                    it.copy(
-                        inheritanceAdditional = inheritanceAdditional,
-                    )
-                }
-            }
+            getInheritanceStatus(currentData.magic, wallet.bsms)
         }.onFailure { e ->
             if (e is NunchukApiException && e.code == 831) {
                 _uiState.update {
@@ -179,6 +159,34 @@ class ClaimInheritanceViewModel @Inject constructor(
         }
     }
 
+    fun getInheritanceStatus(magic: String = "", bsms: String?) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            getInheritanceClaimStateUseCase(
+                GetInheritanceClaimStateUseCase.Param(
+                    magic = magic,
+                    bsms = bsms
+                )
+            ).onFailure { e ->
+                Timber.e(e)
+                _uiState.update {
+                    it.copy(
+                        event = ClaimInheritanceEvent.ShowError(e.message.orUnknownError()),
+                    )
+                }
+            }.onSuccess { inheritanceAdditional ->
+                inheritanceAdditional.let {
+                    _claimData.update {
+                        it.copy(
+                            inheritanceAdditional = inheritanceAdditional,
+                        )
+                    }
+                }
+            }
+            _uiState.update { it.copy(isLoading = false) }
+        }
+    }
+
     fun onEventHandled() {
         _uiState.update { it.copy(event = null) }
     }
@@ -191,6 +199,7 @@ class ClaimInheritanceViewModel @Inject constructor(
 
 data class ClaimUiState(
     val event: ClaimInheritanceEvent? = null,
+    val isLoading: Boolean = false,
 )
 
 sealed class ClaimInheritanceEvent {

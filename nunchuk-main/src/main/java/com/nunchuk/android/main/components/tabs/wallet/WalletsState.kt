@@ -69,7 +69,13 @@ internal data class WalletsState(
     val hasSigner: Boolean = false,
     val totalArchivedWallet: Int = 0,
     val stage: MembershipStage = MembershipStage.NONE,
-    val inheritances: Map<String, InheritanceStatus> = mutableMapOf()
+    val inheritances: Map<String, InheritanceStatus> = mutableMapOf(),
+    val claimWallet: ClaimWalletInfo? = null
+)
+
+internal data class ClaimWalletInfo(
+    val walletId: String,
+    val bsms: String
 )
 
 internal sealed class WalletsEvent {

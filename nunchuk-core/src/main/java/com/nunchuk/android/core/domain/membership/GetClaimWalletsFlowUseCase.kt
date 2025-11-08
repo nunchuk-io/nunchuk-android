@@ -17,22 +17,21 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.core.domain.membership
 
-import com.nunchuk.android.model.InheritanceClaimingInit
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.WalletServer
+import com.nunchuk.android.FlowUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.InheritanceRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-interface InheritanceRepository {
-    suspend fun inheritanceClaimingInit(magic: String): InheritanceClaimingInit
-    
-    suspend fun downloadWallet(
-        magic: String,
-        keys: List<SingleSigner>
-    ): WalletServer
-    
-    suspend fun isClaimWallet(walletId: String): Boolean
-    
-    fun getClaimWalletsFlow(): Flow<Set<String>>
+class GetClaimWalletsFlowUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val inheritanceRepository: InheritanceRepository,
+) : FlowUseCase<Unit, Set<String>>(dispatcher) {
+    override fun execute(parameters: Unit): Flow<Set<String>> {
+        return inheritanceRepository.getClaimWalletsFlow()
+    }
 }
+

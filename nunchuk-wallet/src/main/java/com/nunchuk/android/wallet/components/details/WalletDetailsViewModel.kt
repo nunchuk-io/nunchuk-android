@@ -30,6 +30,8 @@ import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
 import com.nunchuk.android.core.domain.GetListMessageFreeGroupWalletUseCase
 import com.nunchuk.android.core.domain.GetWalletBannerStateUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
+import com.nunchuk.android.core.domain.membership.IsClaimWalletUseCase
+import com.nunchuk.android.core.domain.wallet.GetWalletBsmsUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
@@ -154,6 +156,8 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val getChainTipUseCase: GetChainTipUseCase,
     private val getSpendableNowAmountUseCase: GetSpendableNowAmountUseCase,
     private val getTimelockedUntilUseCase: GetTimelockedUntilUseCase,
+    private val isClaimWalletUseCase: IsClaimWalletUseCase,
+    private val getWalletBsmsUseCase: GetWalletBsmsUseCase,
 ) : NunchukViewModel<WalletDetailsState, WalletDetailsEvent>() {
     private val args: WalletDetailsFragmentArgs =
         WalletDetailsFragmentArgs.fromSavedStateHandle(savedStateHandle)
@@ -289,6 +293,17 @@ internal class WalletDetailsViewModel @Inject constructor(
         getGroupWalletMessageUnreadCount()
         listenGroupWalletReplace()
         getWalletBannerState()
+        checkClaimWallet()
+    }
+
+    private fun checkClaimWallet() {
+        viewModelScope.launch {
+            isClaimWalletUseCase(args.walletId).onSuccess { isClaimWallet ->
+                updateState {
+                    copy(isClaimWallet = isClaimWallet)
+                }
+            }
+        }
     }
 
     fun checkDeprecatedGroupWallet() {
@@ -476,6 +491,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                     }
                     getFreeGroupWalletConfig()
                     getWalletBannerState()
+                    checkClaimWallet()
                 }
         }
     }
@@ -758,4 +774,6 @@ internal class WalletDetailsViewModel @Inject constructor(
             }
         }
     }
+
+    suspend fun getWalletBsms(): String? = getWalletBsmsUseCase(getWallet()).getOrNull()
 }

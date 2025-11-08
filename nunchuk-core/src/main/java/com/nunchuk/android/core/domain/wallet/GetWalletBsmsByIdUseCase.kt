@@ -17,22 +17,20 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.core.domain.wallet
 
-import com.nunchuk.android.model.InheritanceClaimingInit
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.WalletServer
-import kotlinx.coroutines.flow.Flow
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-interface InheritanceRepository {
-    suspend fun inheritanceClaimingInit(magic: String): InheritanceClaimingInit
-    
-    suspend fun downloadWallet(
-        magic: String,
-        keys: List<SingleSigner>
-    ): WalletServer
-    
-    suspend fun isClaimWallet(walletId: String): Boolean
-    
-    fun getClaimWalletsFlow(): Flow<Set<String>>
+class GetWalletBsmsByIdUseCase @Inject constructor(
+    private val nunchukNativeSdk: NunchukNativeSdk,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<String, String>(ioDispatcher) {
+
+    override suspend fun execute(parameters: String): String {
+        return nunchukNativeSdk.exportWalletToBsmsById(parameters)
+    }
 }

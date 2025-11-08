@@ -63,4 +63,5 @@ data class WalletDetailsState(
     val nearestTimeLock: Pair<MiniscriptTimelockBased, Long>? = null,
     val noTimelockCoinsAmount: Amount = Amount(),
     val currentBlock: Int = 0,
+    val isClaimWallet: Boolean = false,
 )

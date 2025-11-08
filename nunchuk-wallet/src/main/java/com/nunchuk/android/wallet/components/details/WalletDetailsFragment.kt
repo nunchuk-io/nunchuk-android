@@ -81,6 +81,7 @@ import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.BackUpWalletType
+import com.nunchuk.android.nav.args.ClaimArgs
 import com.nunchuk.android.share.wallet.bindWalletConfiguration
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.utils.Utils
@@ -111,6 +112,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.math.ceil
+
 
 @AndroidEntryPoint
 class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBinding>(),
@@ -464,22 +466,25 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         binding.ivViewCoin.isEnabled = state.isHasCoin && viewModel.isFacilitatorAdmin().not()
         binding.ivViewCoin.alpha =
             if (state.isHasCoin && viewModel.isFacilitatorAdmin().not()) 1.0f else 0.7f
-        // Handle wallet warnings with priority: backup warnings > banner state
+        // Handle wallet warnings with priority: claim wallet > backup warnings > banner state
         val needsBackup =
             state.walletExtended.wallet.needBackup || (state.isNeedBackUpGroupWallet && state.isFreeGroupWallet && state.isDeprecatedGroupWallet.not())
         val bannerState = state.bannerState
 
-        binding.tvWalletWarning.isVisible = needsBackup || bannerState != null
+        binding.tvWalletWarning.isVisible =
+            state.isClaimWallet || needsBackup || bannerState != null
 
         if (binding.tvWalletWarning.isVisible) {
             when {
+                state.isClaimWallet && state.walletExtended.wallet.balance.value > 0 -> {
+                    handleClaimWalletWarning()
+                }
+
                 needsBackup -> {
-                    // Priority 1: Show backup warning (highest priority)
                     handleNeedBackupWallet(state.isFreeGroupWallet)
                 }
 
                 bannerState != null -> {
-                    // Priority 2: Show banner state warning
                     handleBannerStateWarning(bannerState)
                 }
             }
@@ -821,6 +826,34 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_rounded_whisper_background)
     }
 
+    private fun handleClaimWalletWarning() {
+        binding.tvWalletWarning.makeTextLink(
+            getString(R.string.nc_inheritance_unlocked_warning),
+            ClickAbleText(content = getString(R.string.nc_do_it_now), onClick = {
+                navigator.openClaimInheritanceScreen(requireActivity())
+            })
+        )
+
+        binding.tvWalletWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
+            R.drawable.ic_claim_warning, 0, 0,0
+        )
+        binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_rounded_beeswax_background)
+        binding.tvWalletWarning.setTextColor(
+            ContextCompat.getColor(
+                requireContext(),
+                R.color.nc_text_primary
+            )
+        )
+        TextViewCompat.setCompoundDrawableTintList(binding.tvWalletWarning, null)
+        binding.tvWalletWarning.setOnClickListener {
+            lifecycleScope.launch {
+                viewModel.getWalletBsms()?.let { bsms ->
+                    navigator.openClaimInheritanceScreen(requireActivity(), args = ClaimArgs(bsms = bsms))
+                }
+            }
+        }
+    }
+
     private fun handleNeedBackupWallet(isFreeGroupWallet: Boolean) {
         binding.tvWalletWarning.makeTextLink(
             if (isFreeGroupWallet) getString(R.string.nc_save_bsms_file_warning) else getString(R.string.nc_write_down_the_seed_pharse_warning),
@@ -837,7 +870,8 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                 R.color.cl_031F2B
             )
         )
-        binding.tvWalletWarning.setCompoundDrawableTintList(
+        TextViewCompat.setCompoundDrawableTintList(
+            binding.tvWalletWarning,
             ContextCompat.getColorStateList(
                 requireContext(),
                 R.color.cl_031F2B
@@ -881,7 +915,8 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
                 R.color.cl_031F2B
             )
         )
-        binding.tvWalletWarning.setCompoundDrawableTintList(
+        TextViewCompat.setCompoundDrawableTintList(
+            binding.tvWalletWarning,
             ContextCompat.getColorStateList(
                 requireContext(),
                 R.color.cl_031F2B

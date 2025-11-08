@@ -31,10 +31,12 @@ import com.nunchuk.android.core.domain.GetNfcCardStatusUseCase
 import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
 import com.nunchuk.android.core.domain.JoinFreeGroupWalletByIdUseCase
+import com.nunchuk.android.core.domain.membership.GetClaimWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
 import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
+import com.nunchuk.android.core.domain.wallet.GetWalletBsmsByIdUseCase
 import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.guestmode.isGuestMode
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -67,6 +69,7 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SatsCardStatus
 import com.nunchuk.android.model.TapSignerStatus
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletExtended
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.campaigns.Campaign
@@ -101,7 +104,6 @@ import com.nunchuk.android.usecase.campaign.GetLocalReferrerCodeUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetDeprecatedGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetPendingGroupsSandboxUseCase
-import com.nunchuk.android.usecase.free.groupwallet.UpdateGroupSandboxConfigUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.GetPendingWalletNotifyCountUseCase
 import com.nunchuk.android.usecase.membership.GetPersonalMembershipStepUseCase
@@ -126,9 +128,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -187,7 +191,8 @@ internal class WalletsViewModel @Inject constructor(
     private val insertWalletOrderListUseCase: InsertWalletOrderListUseCase,
     private val setHasWalletInGuestModeUseCase: SetHasWalletInGuestModeUseCase,
     private val signInModeHolder: SignInModeHolder,
-    private val updateGroupSandboxConfigUseCase: UpdateGroupSandboxConfigUseCase,
+    private val getClaimWalletsFlowUseCase: GetClaimWalletsFlowUseCase,
+    private val getWalletBsmsByIdUseCase: GetWalletBsmsByIdUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _state = MutableStateFlow(WalletsState())
@@ -411,6 +416,14 @@ internal class WalletsViewModel @Inject constructor(
                 }
             }
         }
+        viewModelScope.launch {
+            combine(
+                getClaimWalletsFlowUseCase(Unit).map { it.getOrThrow() },
+                state.map { it.wallets.map { walletExtended -> walletExtended.wallet } }
+            ) { claimWalletIds, wallets ->
+                updateClaimWallet(claimWalletIds, wallets)
+            }.launchIn(viewModelScope)
+        }
     }
 
     private fun listenGroupSandbox() {
@@ -500,12 +513,12 @@ internal class WalletsViewModel @Inject constructor(
     private fun checkInheritance(wallets: List<AssistedWalletBrief>) = viewModelScope.launch {
         val walletsUnSetupInheritance =
             wallets.filter { it.status == WalletStatus.ACTIVE.name && it.plan.isAllowSetupInheritance() }
-        
+
         if (walletsUnSetupInheritance.isEmpty()) {
             _state.update { it.copy(inheritances = emptyMap()) }
             return@launch
         }
-        
+
         supervisorScope {
             val inheritanceResults = walletsUnSetupInheritance.map { wallet ->
                 async {
@@ -521,13 +534,13 @@ internal class WalletsViewModel @Inject constructor(
                     }
                 }
             }.awaitAll()
-            
+
             // Check if any call failed and reset key if needed
             val hasFailure = inheritanceResults.any { it.isFailure }
             if (hasFailure) {
                 walletsRequestKey = ""
             }
-            
+
             val inheritances = inheritanceResults.mapNotNull { it.getOrNull() }
                 .associate { it.walletLocalId to it.status }
 
@@ -914,8 +927,25 @@ internal class WalletsViewModel @Inject constructor(
     private fun checkWalletsRequestKey(wallets: List<AssistedWalletBrief>, onConsumed: () -> Unit) {
         val key = wallets.joinToString(separator = "|") { "${it.localId}_${it.groupId}" }
         if (walletsRequestKey == key) return
-        
+
         walletsRequestKey = key
         onConsumed()
+    }
+
+    private suspend fun updateClaimWallet(claimWalletIds: Set<String>, wallets: List<Wallet>) {
+        if (claimWalletIds.isEmpty() || wallets.isEmpty()) {
+            _state.update { it.copy(claimWallet = null) }
+        } else {
+            val claimWallet = wallets
+                .firstOrNull { wallet ->
+                    wallet.balance.value > 0 && claimWalletIds.contains(wallet.id)
+                }?.let { wallet ->
+                    getWalletBsmsByIdUseCase(wallet.id).getOrNull()?.let { bsms ->
+                        ClaimWalletInfo(walletId = wallet.id, bsms = bsms)
+                    }
+                }
+
+            _state.update { it.copy(claimWallet = claimWallet) }
+        }
     }
 }
