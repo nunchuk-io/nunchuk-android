@@ -71,7 +71,6 @@
     <string name="nc_more_address">"%1$d more address"</string>
     <string name="nc_transaction_include_unconfirmed_coins">This transaction includes unconfirmed coins.</string>
     <string name="nc_transaction_anti_fee_sniping_desc">Adds the latest block height to the PSBT to prevent fee sniping attacks.</string>
-    <string name="nc_co_signing_in_progress">Co-signing in progress…</string>
     <string name="nc_request_signature_dialog_title">Whom do you like to request signature from?</string>
     <string name="nc_request_signature_sent">Signature request sent</string>
     <string name="nc_customize_destination">Customize destination</string>

@@ -1,5 +1,6 @@
 package com.nunchuk.android.compose.miniscript
 
+import android.text.format.DateUtils
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -44,6 +45,7 @@ import com.nunchuk.android.compose.NcBadgeOutline
 import com.nunchuk.android.compose.NcCheckBox
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcColor
+import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -69,11 +71,15 @@ import com.nunchuk.android.model.ScriptNode
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.contains
+import com.nunchuk.android.model.transaction.ServerTransaction
 import com.nunchuk.android.share.groupwallet.avatarColors
 import com.nunchuk.android.share.miniscript.rememberBlockHeightManager
 import com.nunchuk.android.type.MiniscriptTimelockBased
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.utils.dateTimeFormat
+import com.nunchuk.android.utils.formatByHour
+import com.nunchuk.android.utils.formatByWeek
 import java.util.Date
 import java.util.Locale
 
@@ -373,7 +379,7 @@ internal fun CreateKeyItem(
         data = data,
         avatarColor = avatarColor,
         isOccupied = data.isSlotOccupied(signer?.name ?: key),
-        bip32PathContent = {
+        bottomContent = {
             if (data.showBip32Path && signer != null) {
                 val isDuplicateSigner =
                     data.duplicateSignerKeys.contains("${signer.fingerPrint}:${signer.derivationPath}")
@@ -416,6 +422,39 @@ internal fun CreateKeyItem(
                             }
                         )
                     }
+                }
+            }
+            
+            if (signer?.type == SignerType.SERVER && data.mode == ScriptMode.SIGN) {
+                val serverTransaction = data.serverTransaction
+                val spendingLimitMessage = serverTransaction?.spendingLimitMessage.orEmpty()
+                val cosignedTime = serverTransaction?.signedInMilis ?: 0L
+                
+                if (serverTransaction?.isCosigning == true) {
+                    Text(
+                        text = stringResource(R.string.nc_co_signing_in_progress),
+                        style = NunchukTheme.typography.bodySmall,
+                        color = colorResource(R.color.nc_beeswax_dark),
+                    )
+                } else if (spendingLimitMessage.isNotEmpty()) {
+                    Text(
+                        text = serverTransaction?.spendingLimitMessage.orEmpty(),
+                        style = NunchukTheme.typography.bodySmall,
+                        color = colorResource(R.color.nc_beeswax_dark),
+                    )
+                } else if (cosignedTime > 0L && !isSigned && data.transactionStatus.isPendingSignatures()) {
+                    val cosignDate = Date(cosignedTime)
+                    val content = if (DateUtils.isToday(cosignedTime)) {
+                        "${stringResource(R.string.nc_cosign_at)} [B]${cosignDate.formatByHour()}[/B]"
+                    } else {
+                        "${stringResource(R.string.nc_cosign_at)} [B]${cosignDate.formatByHour()} ${cosignDate.formatByWeek()}[/B]"
+                    }
+                    NcHighlightText(
+                        text = content,
+                        style = NunchukTheme.typography.bodySmall.copy(
+                            color = colorResource(R.color.nc_beeswax_dark)
+                        ),
+                    )
                 }
             }
         },
@@ -602,7 +641,8 @@ data class ScriptNodeData(
     val transactionStatus: TransactionStatus = TransactionStatus.PENDING_SIGNATURES,
     val rootNode: ScriptNode? = null,
     val onPathSelectionChange: (List<Int>, Boolean) -> Unit = { _, _ -> },
-    val disabledPaths: Set<List<Int>> = emptySet()
+    val disabledPaths: Set<List<Int>> = emptySet(),
+    val serverTransaction: ServerTransaction? = null
 ) {
     fun isSlotOccupied(position: String): Boolean {
         return occupiedSlots.contains(position)
@@ -1215,7 +1255,7 @@ fun KeyItem(
     showThreadCurve: Boolean = true,
     avatarColor: Color = avatarColors[0],
     isOccupied: Boolean = false,
-    bip32PathContent: @Composable () -> Unit = {},
+    bottomContent: @Composable ColumnScope.() -> Unit = {},
     actionContent: @Composable RowScope.() -> Unit = {}
 ) {
     Row(
@@ -1279,7 +1319,7 @@ fun KeyItem(
                             color = MaterialTheme.colorScheme.beeswaxDark
                         )
                     }
-                    bip32PathContent.invoke()
+                    bottomContent()
                 }
                 actionContent()
             }

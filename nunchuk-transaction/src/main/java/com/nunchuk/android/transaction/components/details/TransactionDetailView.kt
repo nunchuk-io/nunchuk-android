@@ -435,6 +435,7 @@ fun TransactionDetailView(
                                     lockBased = miniscriptUiState.lockedBase,
                                     inputCoins = state.txInputCoins,
                                     transactionStatus = state.transaction.status,
+                                    serverTransaction = state.serverTransaction,
                                 ),
                                 onChangeBip32Path = { _, _ -> },
                                 onActionKey = { nodeId, signer ->
