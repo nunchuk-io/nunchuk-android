@@ -2,11 +2,14 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
@@ -17,6 +20,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -180,12 +184,9 @@ private fun ClaimMagicPhraseContent(
         modifier = modifier
             .navigationBarsPadding()
             .imePadding(),
-        topBar = {
-            NcImageAppBar(
-                backgroundRes = MainR.drawable.bg_claim_inheritance_illustration,
-                onClosedClicked = onBackPressed,
-            )
-        },
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(
+            WindowInsets.statusBars
+        ),
         snackState = snackState,
         bottomBar = {
             NcPrimaryDarkButton(
@@ -208,6 +209,12 @@ private fun ClaimMagicPhraseContent(
                 .fillMaxSize(),
             state = state
         ) {
+            item {
+                NcImageAppBar(
+                    backgroundRes = MainR.drawable.bg_claim_inheritance_illustration,
+                    onClosedClicked = onBackPressed,
+                )
+            }
             item {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
