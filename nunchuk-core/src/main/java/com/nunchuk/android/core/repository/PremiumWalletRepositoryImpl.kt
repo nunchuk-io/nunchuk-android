@@ -464,7 +464,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (nunchukNativeSdk.hasWallet(walletServer.localId.orEmpty()).not()) {
             isNeedReload = true
             if (!isRemoveKey) {
-                walletServer.signerServerDtos.forEach { signer ->
+                walletServer.signerServerDtos?.forEach { signer ->
                     newSignerMap[signer.xfp.orEmpty()] = !saveServerSignerIfNeed(signer)
                 }
             }
@@ -476,7 +476,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             }
             nunchukNativeSdk.createWallet2(wallet)
         } else if (!isRemoveKey) {
-            walletServer.signerServerDtos.forEach { signer ->
+            walletServer.signerServerDtos?.forEach { signer ->
                 saveServerSignerIfNeed(signer)
             }
         }
@@ -491,7 +491,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
 
         if (isRemoveKey) return isNeedReload
-        walletServer.signerServerDtos.forEach { signer ->
+        walletServer.signerServerDtos?.forEach { signer ->
             val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
             val tags = signer.tags.orEmpty().mapNotNull { it.toSignerTag() }
             if (type != SignerType.SERVER) {

@@ -19,16 +19,19 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
@@ -56,7 +59,9 @@ class RollOverCoinControlIntroFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
+                val sharedUiState by rollOverWalletViewModel.uiState.collectAsStateWithLifecycle()
                 RollOverCoinControlIntroView(
+                    hasCoin = sharedUiState.coins.isNotEmpty(),
                     onContinueClicked = {
                         val address = rollOverWalletViewModel.getAddress()
                         navigator.openEstimatedFeeScreen(
@@ -86,10 +91,12 @@ class RollOverCoinControlIntroFragment : Fragment() {
 
 @Composable
 private fun RollOverCoinControlIntroView(
+    hasCoin: Boolean = true,
     onContinueClicked: () -> Unit = { },
     onAddTagOrCollectionClicked: () -> Unit = { },
 ) {
     RollOverCoinControlIntroContent(
+        hasCoin = hasCoin,
         onContinueClicked = onContinueClicked,
         onAddTagOrCollectionClicked = onAddTagOrCollectionClicked
     )
@@ -97,6 +104,7 @@ private fun RollOverCoinControlIntroView(
 
 @Composable
 private fun RollOverCoinControlIntroContent(
+    hasCoin: Boolean = true,
     onContinueClicked: () -> Unit = { },
     onAddTagOrCollectionClicked: () -> Unit = { },
 ) {
@@ -137,7 +145,13 @@ private fun RollOverCoinControlIntroContent(
                             modifier = Modifier.clickable {
                                 onAddTagOrCollectionClicked()
                             },
-                            text = "I’ll add coin tags or collections",
+                            text = if (hasCoin) {
+                                stringResource(R.string.nc_keep_coin_tags_and_collections)
+                            } else {
+                                stringResource(
+                                    R.string.nc_add_coin_tags_or_collections
+                                )
+                            },
                             style = NunchukTheme.typography.title,
                         )
                     }

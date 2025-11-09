@@ -321,7 +321,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                 userWalletApiManager.walletApi.getWallet(walletId)
             }.data.wallet ?: throw NullPointerException("Can not get wallet $walletId")
             val isInheritance =
-                wallet.signerServerDtos.find { it.xfp == replacedXfp }?.tags?.contains(
+                wallet.signerServerDtos?.find { it.xfp == replacedXfp }?.tags?.contains(
                     SignerTag.INHERITANCE.name
                 ) == true
             val tags = if (isInheritance) {
