@@ -193,13 +193,22 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             is CreateTxErrorEvent -> showCreateTransactionError(event.message)
             is CreateTxSuccessEvent -> {
                 navigator.returnToMainScreen(this)
-                openTransactionDetailScreen(
-                    event.transaction.txId,
-                    args.walletId,
-                    sessionHolder.getActiveRoomIdSafe(),
-                    viewModel.isInheritanceClaimingFlow(),
-                    transaction = if (viewModel.isInheritanceClaimingFlow()) event.transaction else null
-                )
+                if (event.walletId.isNullOrEmpty()) {
+                    openTransactionDetailScreen(
+                        txId = event.transaction.txId,
+                        walletId = args.walletId,
+                        roomId = sessionHolder.getActiveRoomIdSafe(),
+                        isInheritanceClaimingFlow = viewModel.isInheritanceClaimingFlow(),
+                        transaction = if (viewModel.isInheritanceClaimingFlow()) event.transaction else null
+                    )
+                } else {
+                    openTransactionDetailScreen(
+                        walletId = event.walletId,
+                        txId = event.transaction.txId,
+                        roomId = sessionHolder.getActiveRoomIdSafe(),
+                        isInheritanceClaimingFlow = false
+                    )
+                }
             }
 
             is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
