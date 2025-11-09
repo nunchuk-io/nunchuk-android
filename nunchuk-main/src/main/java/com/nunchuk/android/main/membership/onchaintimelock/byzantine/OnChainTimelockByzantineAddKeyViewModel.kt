@@ -191,7 +191,6 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
 
     private suspend fun updateKeyData() {
         if (key.value.isEmpty()) return
-        val signers = _state.value.signers
         val updatedKeys = key.value.map { addKeyData ->
             var updatedCard = addKeyData
 

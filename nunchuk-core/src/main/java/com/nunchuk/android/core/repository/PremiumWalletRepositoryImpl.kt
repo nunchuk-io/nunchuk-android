@@ -2015,10 +2015,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return if (groupId.isNotEmpty()) {
             membershipStepDao.getStep(chatId, chain.value, MembershipStep.TIMELOCK, groupId)?.id ?: 0
         } else {
-            membershipStepDao.getStep(chatId, chain.value, MembershipStep.TIMELOCK, groupId)?.let {
-                membershipStepDao.delete(it)
-            }
-            0
+            membershipStepDao.getStep(chatId, chain.value, MembershipStep.TIMELOCK, "")?.id ?: 0
         }
     }
 

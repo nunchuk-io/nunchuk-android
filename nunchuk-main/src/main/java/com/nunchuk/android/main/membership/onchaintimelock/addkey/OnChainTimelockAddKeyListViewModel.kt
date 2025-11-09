@@ -52,7 +52,6 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetIndexFromPathUseCase
-import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.membership.CheckRequestAddDesktopKeyStatusUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
@@ -641,7 +640,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
 
                 is Result.Error -> {
                     val error = signerByIndexResult.exception
-                    if (error is NCNativeException && error.message.contains("-1009") == true) {
+                    if (error is NCNativeException && error.message.contains("-1009")) {
                         // Store context for TapSigner caching - using the custom newIndex
                         savedStateHandle[KEY_TAPSIGNER_MASTER_ID] = signerFingerPrint
                         savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(newIndex)

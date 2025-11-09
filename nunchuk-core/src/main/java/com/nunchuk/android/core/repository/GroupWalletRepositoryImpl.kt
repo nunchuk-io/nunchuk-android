@@ -1,8 +1,6 @@
 package com.nunchuk.android.core.repository
 
 import com.nunchuk.android.core.account.AccountManager
-import com.nunchuk.android.core.data.model.CreateTimelockPayload
-import com.nunchuk.android.core.data.model.TimelockPayload
 import com.nunchuk.android.core.data.model.byzantine.DraftWalletDto
 import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
 import com.nunchuk.android.core.data.model.byzantine.toDomainModel
@@ -73,36 +71,10 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         val draftWallet =
             response.data.draftWallet ?: throw NullPointerException("draftWallet null")
         return if (groupId.isEmpty()) {
-            handlePersonalDraftWallet(draftWallet, groupId)
+            handlePersonalDraftWallet(draftWallet)
         } else {
             handleDraftWallet(draftWallet, groupId)
         }
-    }
-
-    override suspend fun createDraftWalletTimelock(
-        groupId: String,
-        timelockValue: Long,
-        plan: MembershipPlan
-    ) {
-        val payload = CreateTimelockPayload(
-            timelock = TimelockPayload(value = timelockValue)
-        )
-        val response =
-            userWalletApiManager.groupWalletApi.createGroupDraftWalletTimelock(groupId, payload)
-        if (response.isSuccess.not()) {
-            throw response.error
-        }
-
-        membershipRepository.saveStepInfo(
-            MembershipStepInfo(
-                id = getTimelockStepId(groupId),
-                step = MembershipStep.TIMELOCK,
-                verifyType = VerifyType.APP_VERIFIED,
-                extraData = timelockValue.toString(),
-                plan = plan,
-                groupId = groupId
-            )
-        )
     }
 
     private suspend fun getTimelockStepId(groupId: String): Long {
@@ -110,10 +82,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         return if (groupId.isNotEmpty()) {
             membershipStepDao.getStep(chatId, chain.value, MembershipStep.TIMELOCK, groupId)?.id ?: 0
         } else {
-            membershipStepDao.getStep(chatId, chain.value, MembershipStep.TIMELOCK, groupId)?.let {
-                membershipStepDao.delete(it)
-            }
-            0
+            membershipStepDao.getStep(chatId, chain.value, MembershipStep.TIMELOCK, "")?.id ?: 0
         }
     }
 
@@ -124,7 +93,6 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
 
     private suspend fun handlePersonalDraftWallet(
         draftWallet: DraftWalletDto,
-        groupId: String,
     ): DraftWallet {
         val newSigner = mutableMapOf<String, Boolean>()
         val chatId = accountManager.getAccount().chatId
@@ -132,7 +100,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             if (draftWallet.walletConfig?.allowInheritance == true) MembershipPlan.HONEY_BADGER else MembershipPlan.IRON_HAND
         val walletType = draftWallet.walletType.toWalletType()
 
-        handleSetupStartedPlaceholder(draftWallet, groupId, plan, walletType, chatId)
+        handleSetupStartedPlaceholder(draftWallet, "", plan, walletType, chatId)
 
         draftWallet.signers.forEach { key ->
             val signerType = key.type.toSignerType()
@@ -153,7 +121,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                         ),
                         plan = plan,
                         keyIdInServer = draftWallet.serverKeyId.orEmpty(),
-                        groupId = groupId
+                        groupId = ""
                     )
                 )
             } else {
@@ -205,7 +173,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                                 userKeyFileName = key.userKey?.fileName.orEmpty()
                             )
                         ),
-                        groupId = groupId
+                        groupId = ""
                     )
                 )
             }
@@ -213,12 +181,12 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         draftWallet.timelock?.let { timelock ->
             membershipRepository.saveStepInfo(
                 MembershipStepInfo(
-                    id = getTimelockStepId(groupId),
+                    id = getTimelockStepId(""),
                     step = MembershipStep.TIMELOCK,
                     verifyType = VerifyType.APP_VERIFIED,
                     extraData = timelock.value.toString(),
                     plan = plan,
-                    groupId = groupId
+                    groupId = ""
                 )
             )
         }
