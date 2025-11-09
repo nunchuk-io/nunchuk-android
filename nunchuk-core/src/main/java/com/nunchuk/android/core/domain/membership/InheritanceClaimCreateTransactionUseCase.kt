@@ -23,9 +23,9 @@ import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
+import com.nunchuk.android.share.model.ExtendTransaction
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -34,10 +34,10 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val userWalletRepository: PremiumWalletRepository,
     private val nunchukNativeSdk: NunchukNativeSdk
-) : UseCase<InheritanceClaimCreateTransactionUseCase.Param, Transaction>(
+) : UseCase<InheritanceClaimCreateTransactionUseCase.Param, ExtendTransaction>(
     dispatcher
 ) {
-    override suspend fun execute(parameters: Param): Transaction {
+    override suspend fun execute(parameters: Param): ExtendTransaction {
         val userData = userWalletRepository.generateInheritanceClaimCreateTransactionUserData(
             magic = parameters.magic,
             address = parameters.address,
@@ -70,13 +70,31 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
             fee = transactionResponse.fee.toString(),
             feeRate = transactionResponse.feeRate.toString(),
             isDraft = parameters.isDraft,
+            bsms = parameters.bsms
         )
-        if (parameters.isDraft) return transaction.copy(changeIndex = transactionResponse.changePos)
-        val transactionAdditional = userWalletRepository.inheritanceClaimingClaim(
-            magic = parameters.magic,
-            psbt = transaction.psbt
-        )
-        return transaction.copy(status = transactionAdditional.status, changeIndex = transactionResponse.changePos)
+        if (parameters.isDraft) return ExtendTransaction(transaction.copy(changeIndex = transactionResponse.changePos))
+        if (parameters.bsms.isNullOrEmpty()) {
+            val transactionAdditional = userWalletRepository.inheritanceClaimingClaim(
+                magic = parameters.magic,
+                psbt = transaction.psbt,
+                bsms = parameters.bsms
+            )
+            return ExtendTransaction(
+                transaction = transaction.copy(
+                    status = transactionAdditional.status,
+                    changeIndex = transactionResponse.changePos
+                )
+            )
+        } else {
+            val wallet = nunchukNativeSdk.parseWalletDescriptor(parameters.bsms)
+            return ExtendTransaction(
+                transaction = transaction.copy(changeIndex = transactionResponse.changePos)
+                    .also { tx ->
+                        nunchukNativeSdk.importPsbt(walletId = wallet.id, psbt = tx.psbt)
+                    },
+                walletId = wallet.id
+            )
+        }
     }
 
     data class Param(

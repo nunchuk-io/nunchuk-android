@@ -45,7 +45,7 @@ import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.Amount
-import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.share.model.ExtendTransaction
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
 import com.nunchuk.android.signer.R
@@ -158,29 +158,36 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
                 }
             }
             is SelectWalletEvent.CreateTransactionSuccessEvent -> {
-                navigateToTransactionDetail(event.transaction)
+                navigateToTransactionDetail(event.extendTransaction)
             }
         }
     }
 
-    private fun navigateToTransactionDetail(transaction: Transaction) {
+    private fun navigateToTransactionDetail(extendTransaction: ExtendTransaction) {
         ActivityManager.popUntilRoot()
-        if (viewModel.selectedWalletId.isNotEmpty()) {
-            navigator.openWalletDetailsScreen(requireContext(), viewModel.selectedWalletId)
+        val transaction = extendTransaction.transaction
+        if (extendTransaction.walletId.isNullOrEmpty()) {
+            if (viewModel.selectedWalletId.isNotEmpty()) {
+                navigator.openWalletDetailsScreen(requireContext(), viewModel.selectedWalletId)
+            }
+            navigator.openTransactionDetailsScreen(
+                activityContext = requireActivity(),
+                walletId = viewModel.selectedWalletId,
+                txId = transaction.txId,
+                transaction = transaction,
+                inheritanceClaimTxDetailInfo = if (args.claimParam.isInheritanceClaimFlow()) {
+                    InheritanceClaimTxDetailInfo(
+                        changePos = transaction.changeIndex,
+                    )
+                } else null,
+            )
+        } else {
+            navigator.openTransactionDetailsScreen(
+                activityContext = requireActivity(),
+                walletId = extendTransaction.walletId.orEmpty(),
+                txId = transaction.txId
+            )
         }
-        navigator.openTransactionDetailsScreen(
-            activityContext = requireActivity(),
-            walletId = viewModel.selectedWalletId,
-            txId = transaction.txId,
-            initEventId = "",
-            roomId = "",
-            transaction = transaction,
-            inheritanceClaimTxDetailInfo = if (args.claimParam.isInheritanceClaimFlow()) {
-                InheritanceClaimTxDetailInfo(
-                    changePos = transaction.changeIndex,
-                )
-            } else null,
-        )
     }
 
     private fun navigateToEstimateFee(address: String) {

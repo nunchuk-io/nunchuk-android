@@ -328,7 +328,7 @@ class EstimatedFeeViewModel @Inject constructor(
         )
         _event.emit(EstimatedFeeEvent.Loading(false))
         if (result.isSuccess) {
-            _state.update { it.copy(estimatedFee = result.getOrThrow().fee) }
+            _state.update { it.copy(estimatedFee = result.getOrThrow().transaction.fee) }
         } else {
             if (result.exceptionOrNull() !is CancellationException) {
                 _event.emit(EstimatedFeeErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))

@@ -28,7 +28,12 @@ import com.nunchuk.android.transaction.components.send.receipt.TimelockCoin
 
 sealed class TransactionConfirmEvent {
     data class LoadingEvent(val isClaimInheritance: Boolean = false) : TransactionConfirmEvent()
-    data class CreateTxSuccessEvent(val transaction: Transaction) : TransactionConfirmEvent()
+
+    /**
+     * @param transaction The created transaction
+     * @param walletId The wallet ID associated with the on chain claim transaction (optional)
+     */
+    data class CreateTxSuccessEvent(val transaction: Transaction, val walletId: String? = null) : TransactionConfirmEvent()
     data class AssignTagEvent(
         val walletId: String,
         val txId: String,

@@ -25,8 +25,8 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.EstimateFeeRates
-import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.defaultRate
+import com.nunchuk.android.share.model.ExtendTransaction
 import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.GetAddressesUseCase
 import com.nunchuk.android.usecase.GetWalletsUseCase
@@ -168,7 +168,7 @@ sealed class SelectWalletEvent {
     data class GetFeeRateSuccess(val estimateFeeRates: EstimateFeeRates) : SelectWalletEvent()
     data class Loading(val isLoading: Boolean, val isClaimInheritance: Boolean = false) : SelectWalletEvent()
     data class Error(val e: Throwable?) : SelectWalletEvent()
-    data class CreateTransactionSuccessEvent(val transaction: Transaction) : SelectWalletEvent()
+    data class CreateTransactionSuccessEvent(val extendTransaction: ExtendTransaction) : SelectWalletEvent()
 }
 
 data class SelectWalletState(

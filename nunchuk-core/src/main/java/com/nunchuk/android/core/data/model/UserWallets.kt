@@ -197,7 +197,9 @@ data class InheritanceClaimClaimRequest(
     @SerializedName("magic")
     val magic: String? = null,
     @SerializedName("psbt")
-    val psbt: String? = null
+    val psbt: String? = null,
+    @SerializedName("bsms")
+    val bsms: String? = null
 )
 
 data class InheritanceClaimingInitRequest(

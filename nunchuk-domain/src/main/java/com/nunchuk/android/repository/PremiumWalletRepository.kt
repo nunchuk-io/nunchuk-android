@@ -316,7 +316,7 @@ interface PremiumWalletRepository {
         hashedBps: List<String>
     ): List<BackupKey>
 
-    suspend fun inheritanceClaimingClaim(magic: String, psbt: String): TransactionAdditional
+    suspend fun inheritanceClaimingClaim(magic: String, psbt: String, bsms: String?): TransactionAdditional
 
     suspend fun inheritanceCheck(): InheritanceCheck
 

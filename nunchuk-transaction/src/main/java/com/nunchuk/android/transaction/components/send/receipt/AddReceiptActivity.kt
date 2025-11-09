@@ -373,17 +373,23 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 hideLoading()
                 if (transactionConfirmViewModel.isInheritanceClaimingFlow()) {
                     ActivityManager.popUntilRoot()
-                    navigator.openTransactionDetailsScreen(
-                        activityContext = this,
-                        walletId = "",
-                        txId = event.transaction.txId,
-                        initEventId = "",
-                        roomId = "",
-                        transaction = event.transaction,
-                        inheritanceClaimTxDetailInfo = InheritanceClaimTxDetailInfo(
-                            changePos = event.transaction.changeIndex
+                    if (event.walletId.isNullOrEmpty()) {
+                        navigator.openTransactionDetailsScreen(
+                            activityContext = this,
+                            walletId = "",
+                            txId = event.transaction.txId,
+                            transaction = event.transaction,
+                            inheritanceClaimTxDetailInfo = InheritanceClaimTxDetailInfo(
+                                changePos = event.transaction.changeIndex
+                            )
                         )
-                    )
+                    } else {
+                        navigator.openTransactionDetailsScreen(
+                            activityContext = this,
+                            walletId = event.walletId,
+                            txId = event.transaction.txId,
+                        )
+                    }
                 } else {
                     navigator.returnToMainScreen(this)
                     openTransactionDetailScreen(

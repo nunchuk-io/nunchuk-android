@@ -300,7 +300,7 @@ class TransactionConfirmViewModel @Inject constructor(
                 )
             )
             if (result.isSuccess) {
-                onDraftTransactionSuccess(result.getOrThrow())
+                onDraftTransactionSuccess(result.getOrThrow().transaction)
             } else {
                 _event.emit(CreateTxErrorEvent(result.exceptionOrNull()?.message.orEmpty()))
             }
@@ -522,7 +522,7 @@ class TransactionConfirmViewModel @Inject constructor(
             )
         )
         if (result.isSuccess) {
-            _event.emit(CreateTxSuccessEvent(result.getOrThrow()))
+            _event.emit(CreateTxSuccessEvent(result.getOrThrow().transaction, result.getOrThrow().walletId))
         } else {
             _event.emit(CreateTxErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
         }

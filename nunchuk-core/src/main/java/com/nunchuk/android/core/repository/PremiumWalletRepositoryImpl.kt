@@ -1084,16 +1084,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun inheritanceClaimingClaim(
-        magic: String, psbt: String,
+        magic: String, psbt: String, bsms: String?,
     ): TransactionAdditional {
         val response = userWalletApiManager.walletApi.inheritanceClaimingClaim(
-            InheritanceClaimClaimRequest(magic = magic, psbt = psbt)
+            InheritanceClaimClaimRequest(magic = magic, psbt = psbt, bsms = bsms)
         )
         val transaction =
             response.data.transaction ?: throw NullPointerException("transaction from server null")
         return TransactionAdditional(
             psbt = transaction.psbt.orEmpty(),
-            status = transaction.status.toTransactionStatus()
+            status = transaction.status.toTransactionStatus(),
         )
     }
 

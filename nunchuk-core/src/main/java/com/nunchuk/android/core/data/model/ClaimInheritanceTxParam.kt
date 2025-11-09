@@ -20,5 +20,6 @@ data class ClaimInheritanceTxParam(
 
 fun ClaimInheritanceTxParam?.isInheritanceClaimFlow() : Boolean {
     if (this == null) return false
+    if (!bsms.isNullOrEmpty()) return true
     return masterSignerIds.isNotEmpty() && magicalPhrase.isNotEmpty() && derivationPaths.isNotEmpty()
 }

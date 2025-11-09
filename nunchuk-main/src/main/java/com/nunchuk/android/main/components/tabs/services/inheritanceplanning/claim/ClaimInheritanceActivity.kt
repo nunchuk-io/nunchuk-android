@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavOptions
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NcToastType
@@ -189,12 +189,9 @@ private fun ClaimInheritanceGraph(
 
     LaunchedEffect(claimData.inheritanceAdditional) {
         val inheritanceAdditional = claimData.inheritanceAdditional
-        if (inheritanceAdditional != null) {
-            navController.navigateToClaimNote(
-                navOptions = NavOptions.Builder()
-                    .setPopUpTo<ClaimMagicPhraseRoute>(inclusive = true)
-                    .build()
-            )
+        val isShowingClaimNote = navController.currentDestination?.hasRoute<ClaimNoteRoute>() == true
+        if (inheritanceAdditional != null && !isShowingClaimNote) {
+            navController.navigateToClaimNote()
         }
     }
 

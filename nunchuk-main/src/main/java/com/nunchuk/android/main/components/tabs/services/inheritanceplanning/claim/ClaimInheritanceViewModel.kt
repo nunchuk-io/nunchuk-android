@@ -179,6 +179,7 @@ class ClaimInheritanceViewModel @Inject constructor(
                     _claimData.update {
                         it.copy(
                             inheritanceAdditional = inheritanceAdditional,
+                            bsms = bsms
                         )
                     }
                 }

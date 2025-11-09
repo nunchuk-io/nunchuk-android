@@ -835,7 +835,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         )
 
         binding.tvWalletWarning.setCompoundDrawablesRelativeWithIntrinsicBounds(
-            R.drawable.ic_claim_warning, 0, 0,0
+            R.drawable.ic_claim_warning, 0, 0, 0
         )
         binding.tvWalletWarning.setBackgroundResource(R.drawable.nc_rounded_beeswax_background)
         binding.tvWalletWarning.setTextColor(
@@ -845,9 +845,6 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
             )
         )
         TextViewCompat.setCompoundDrawableTintList(binding.tvWalletWarning, null)
-        binding.tvWalletWarning.setOnClickListener {
-            openClaiInheritance()
-        }
     }
 
     private fun openClaiInheritance() {
