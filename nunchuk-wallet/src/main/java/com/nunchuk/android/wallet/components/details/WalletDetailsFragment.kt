@@ -830,7 +830,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         binding.tvWalletWarning.makeTextLink(
             getString(R.string.nc_inheritance_unlocked_warning),
             ClickAbleText(content = getString(R.string.nc_do_it_now), onClick = {
-                navigator.openClaimInheritanceScreen(requireActivity())
+                openClaiInheritance()
             })
         )
 
@@ -846,10 +846,17 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         )
         TextViewCompat.setCompoundDrawableTintList(binding.tvWalletWarning, null)
         binding.tvWalletWarning.setOnClickListener {
-            lifecycleScope.launch {
-                viewModel.getWalletBsms()?.let { bsms ->
-                    navigator.openClaimInheritanceScreen(requireActivity(), args = ClaimArgs(bsms = bsms))
-                }
+            openClaiInheritance()
+        }
+    }
+
+    private fun openClaiInheritance() {
+        lifecycleScope.launch {
+            viewModel.getWalletBsms()?.let { bsms ->
+                navigator.openClaimInheritanceScreen(
+                    requireActivity(),
+                    args = ClaimArgs(bsms = bsms)
+                )
             }
         }
     }
