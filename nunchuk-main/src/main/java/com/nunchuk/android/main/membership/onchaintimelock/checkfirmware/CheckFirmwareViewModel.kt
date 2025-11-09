@@ -13,6 +13,7 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetIndexFromPathUseCase
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupFromCacheUseCase
+import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -30,6 +31,7 @@ class CheckFirmwareViewModel @Inject constructor(
     private val masterSignerMapper: MasterSignerMapper,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
     private val getUserWalletConfigsSetupFromCacheUseCase: GetUserWalletConfigsSetupFromCacheUseCase,
+    private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
 ) : ViewModel() {
 
     val remainTime = membershipStepManager.remainingTime
@@ -53,10 +55,10 @@ class CheckFirmwareViewModel @Inject constructor(
 
     private fun fetchFirmwareVersion() {
         viewModelScope.launch {
-            getUserWalletConfigsSetupFromCacheUseCase(Unit).onSuccess { configs ->
-                configs?.let {
+            getUserWalletConfigsSetupFromCacheUseCase(Unit).collect { result ->
+                result.getOrNull()?.let { configs ->
                     val signerTagString = args.signerTag.name
-                    val firmware = it.miniscriptSupportedFirmwares.find { firmware ->
+                    val firmware = configs.miniscriptSupportedFirmwares.find { firmware ->
                         firmware.signerTag.equals(signerTagString, ignoreCase = true)
                     }
                     firmware?.let { fw ->

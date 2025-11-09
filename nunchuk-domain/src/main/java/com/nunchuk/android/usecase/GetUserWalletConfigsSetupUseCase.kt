@@ -27,10 +27,13 @@ import javax.inject.Inject
 
 class GetUserWalletConfigsSetupUseCase @Inject constructor(
     private val repository: PremiumWalletRepository,
+    private val saveUserWalletConfigsSetupUseCase: SaveUserWalletConfigsSetupUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : UseCase<Unit, UserWalletConfigsSetup>(ioDispatcher) {
 
     override suspend fun execute(parameters: Unit): UserWalletConfigsSetup {
-        return repository.getUserWalletConfigsSetup()
+        val configs = repository.getUserWalletConfigsSetup()
+        saveUserWalletConfigsSetupUseCase(configs)
+        return configs
     }
 }

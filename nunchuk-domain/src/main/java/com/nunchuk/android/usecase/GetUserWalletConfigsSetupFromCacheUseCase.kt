@@ -20,26 +20,28 @@
 package com.nunchuk.android.usecase
 
 import com.google.gson.Gson
+import com.nunchuk.android.FlowUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.UserWalletConfigsSetup
 import com.nunchuk.android.repository.SettingRepository
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class GetUserWalletConfigsSetupFromCacheUseCase @Inject constructor(
     private val repository: SettingRepository,
     private val gson: Gson,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : UseCase<Unit, UserWalletConfigsSetup?>(ioDispatcher) {
+) : FlowUseCase<Unit, UserWalletConfigsSetup?>(ioDispatcher) {
 
-    override suspend fun execute(parameters: Unit): UserWalletConfigsSetup? {
-        val configsJson = repository.getUserWalletConfigsSetup().first()
-        return if (configsJson.isNotEmpty()) {
-            gson.fromJson(configsJson, UserWalletConfigsSetup::class.java)
-        } else {
-            null
+    override fun execute(parameters: Unit): Flow<UserWalletConfigsSetup?> =
+        repository.getUserWalletConfigsSetup().map { configsJson ->
+            if (configsJson.isNotEmpty()) {
+                gson.fromJson(configsJson, UserWalletConfigsSetup::class.java)
+            } else {
+                null
+            }
         }
-    }
 }
 
