@@ -99,7 +99,8 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
                     isExportViaFile = option.type == SheetOptionType.EXPORT_COLDCARD_VIA_FILE,
                     groupId = args.groupId,
                     replacedWalletId = args.replacedWalletId,
-                    quickWalletParam = args.quickWalletParam
+                    quickWalletParam = args.quickWalletParam,
+                    isMembershipFlow = args.isOnChainFlow
                 )
             )
             return

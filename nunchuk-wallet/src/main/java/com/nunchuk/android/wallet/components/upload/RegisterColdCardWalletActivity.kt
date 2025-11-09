@@ -90,6 +90,7 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
     private val groupId by lazy { intent.getStringExtra(EXTRA_GROUP_ID) }
     private val replacedWalletId by lazy { intent.getStringExtra(EXTRA_REPLACED_WALLET_ID).orEmpty() }
     private val quickWalletParam by lazy { intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM) }
+    private val isMembershipFlow by lazy { intent.getBooleanExtra(EXTRA_IS_MEMBERSHIP_FLOW, false) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -127,6 +128,7 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
                         onDownloadClick = { showSaveShareOption() },
                         onContinueClick = {
                             if (isExportViaFile) {
+                                openWalletCreatedSuccess()
                             } else {
                                 openDynamicQRScreen(walletId, ExportWalletQRCodeType.BBQR)
                             }
@@ -224,15 +226,20 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
     }
 
     private fun openWalletCreatedSuccess() {
-        navigator.openMembershipActivity(
-            activityContext = this,
-            groupStep = MembershipStage.CREATE_WALLET_SUCCESS,
-            walletId = walletId,
-            groupId = groupId,
-            replacedWalletId = replacedWalletId,
-            quickWalletParam = quickWalletParam
-        )
-        ActivityManager.popUntilRoot()
+        if (isMembershipFlow) {
+            navigator.openMembershipActivity(
+                activityContext = this,
+                groupStep = MembershipStage.CREATE_WALLET_SUCCESS,
+                walletId = walletId,
+                groupId = groupId,
+                replacedWalletId = replacedWalletId,
+                quickWalletParam = quickWalletParam
+            )
+            ActivityManager.popUntilRoot()
+        } else {
+            setResult(RESULT_OK)
+            finish()
+        }
     }
 
     companion object {
@@ -241,6 +248,29 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
         const val EXTRA_GROUP_ID = "group_id"
         const val EXTRA_REPLACED_WALLET_ID = "replaced_wallet_id"
         const val EXTRA_QUICK_WALLET_PARAM = "quick_wallet_param"
+        const val EXTRA_IS_MEMBERSHIP_FLOW = "is_membership_flow"
+
+        fun start(
+            context: Context,
+            walletId: String,
+            isExportViaFile: Boolean,
+            groupId: String? = null,
+            replacedWalletId: String? = null,
+            quickWalletParam: QuickWalletParam? = null,
+            isMembershipFlow: Boolean = false,
+        ) {
+            context.startActivity(
+                createIntent(
+                    context = context,
+                    walletId = walletId,
+                    isExportViaFile = isExportViaFile,
+                    groupId = groupId,
+                    replacedWalletId = replacedWalletId,
+                    quickWalletParam = quickWalletParam,
+                    isMembershipFlow = isMembershipFlow
+                )
+            )
+        }
 
         fun createIntent(
             context: Context,
@@ -248,7 +278,8 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
             isExportViaFile: Boolean,
             groupId: String? = null,
             replacedWalletId: String? = null,
-            quickWalletParam: QuickWalletParam? = null
+            quickWalletParam: QuickWalletParam? = null,
+            isMembershipFlow: Boolean = false,
         ): Intent {
             return Intent(context, RegisterColdCardWalletActivity::class.java).apply {
                 putExtra(EXTRA_WALLET_ID, walletId)
@@ -256,6 +287,7 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
                 putExtra(EXTRA_GROUP_ID, groupId)
                 putExtra(EXTRA_REPLACED_WALLET_ID, replacedWalletId)
                 putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
+                putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
             }
         }
     }

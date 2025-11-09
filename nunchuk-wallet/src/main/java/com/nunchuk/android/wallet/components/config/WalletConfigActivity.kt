@@ -572,6 +572,36 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
         }
     }
 
+    override fun openExportColdcardViaFileFlow() {
+        isColdCardExportFlow = false
+        if (isMiniscriptWallet()) {
+            navigator.openRegisterColdCardWalletScreen(
+                activityContext = this,
+                walletId = args.walletId,
+                isExportViaFile = true,
+                groupId = viewModel.getGroupId(),
+                isMembershipFlow = false
+            )
+        } else {
+            super.openExportColdcardViaFileFlow()
+        }
+    }
+
+    override fun openExportBbqrFlow() {
+        isColdCardExportFlow = false
+        if (isMiniscriptWallet()) {
+            navigator.openRegisterColdCardWalletScreen(
+                activityContext = this,
+                walletId = args.walletId,
+                isExportViaFile = false,
+                groupId = viewModel.getGroupId(),
+                isMembershipFlow = false
+            )
+        } else {
+            super.openExportBbqrFlow()
+        }
+    }
+
     private fun showMoreOptions() {
         var options = mutableListOf<SheetOption>()
         if (viewModel.getRole().isFacilitatorAdmin) {

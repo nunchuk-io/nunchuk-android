@@ -143,6 +143,16 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         quickWalletParam: QuickWalletParam? = null
     )
 
+    fun openRegisterColdCardWalletScreen(
+        activityContext: Context,
+        walletId: String,
+        isExportViaFile: Boolean,
+        groupId: String? = null,
+        replacedWalletId: String? = null,
+        quickWalletParam: QuickWalletParam? = null,
+        isMembershipFlow: Boolean = false,
+    )
+
     fun openWalletConfigScreen(
         activityContext: Context,
         walletId: String,

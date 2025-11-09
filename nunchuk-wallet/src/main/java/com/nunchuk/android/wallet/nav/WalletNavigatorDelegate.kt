@@ -43,6 +43,7 @@ import com.nunchuk.android.wallet.components.details.WalletDetailsActivity
 import com.nunchuk.android.wallet.components.intro.WalletEmptySignerActivity
 import com.nunchuk.android.wallet.components.review.ReviewWalletActivity
 import com.nunchuk.android.wallet.components.search.SearchTransactionActivity
+import com.nunchuk.android.wallet.components.upload.RegisterColdCardWalletActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationActivity
 import com.nunchuk.android.wallet.personal.components.WalletIntermediaryActivity
 import com.nunchuk.android.wallet.personal.components.add.AddWalletActivity
@@ -160,6 +161,26 @@ interface WalletNavigatorDelegate : WalletNavigator {
             groupId = groupId,
             replacedWalletId = replacedWalletId,
             quickWalletParam = quickWalletParam
+        )
+    }
+
+    override fun openRegisterColdCardWalletScreen(
+        activityContext: Context,
+        walletId: String,
+        isExportViaFile: Boolean,
+        groupId: String?,
+        replacedWalletId: String?,
+        quickWalletParam: QuickWalletParam?,
+        isMembershipFlow: Boolean,
+    ) {
+        RegisterColdCardWalletActivity.start(
+            context = activityContext,
+            walletId = walletId,
+            isExportViaFile = isExportViaFile,
+            groupId = groupId,
+            replacedWalletId = replacedWalletId,
+            quickWalletParam = quickWalletParam,
+            isMembershipFlow = isMembershipFlow
         )
     }
 

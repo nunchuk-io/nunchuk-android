@@ -25,7 +25,6 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerByPathUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
-import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.push.PushEvent
@@ -93,7 +92,6 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     private val syncKeyUseCase: SyncKeyUseCase,
     private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
-    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val getCurrentIndexFromMasterSignerUseCase: GetCurrentIndexFromMasterSignerUseCase,
     private val getSignerFromMasterSignerByIndexUseCase: GetSignerFromMasterSignerByIndexUseCase,
     private val getUnusedSignerFromMasterSignerV2UseCase: GetUnusedSignerFromMasterSignerV2UseCase,
@@ -470,7 +468,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                     // Process the signer with complete data
                     processTapSignerWithCompleteData(singleSigner, signerModel, data, walletId)
                 }.onFailure { error ->
-                    if (error is NCNativeException && error.message.contains("-1009") == true) {
+                    if (error is NCNativeException && error.message.contains("-1009")) {
                         // Store context for TapSigner caching - using index 0 for first account
                         savedStateHandle[KEY_TAPSIGNER_MASTER_ID] = signerModel.fingerPrint
                         savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(0)
