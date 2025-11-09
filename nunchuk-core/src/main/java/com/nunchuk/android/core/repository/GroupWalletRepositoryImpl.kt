@@ -127,21 +127,12 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         groupId: String,
     ): DraftWallet {
         val newSigner = mutableMapOf<String, Boolean>()
+        val chatId = accountManager.getAccount().chatId
         val plan =
             if (draftWallet.walletConfig?.allowInheritance == true) MembershipPlan.HONEY_BADGER else MembershipPlan.IRON_HAND
         val walletType = draftWallet.walletType.toWalletType()
 
-        // Save a placeholder step to indicate draft wallet exists, even if no signers yet
-        if (draftWallet.signers.isEmpty()) {
-            membershipRepository.saveStepInfo(
-                MembershipStepInfo(
-                    step = MembershipStep.SETUP_STARTED,
-                    verifyType = VerifyType.NONE,
-                    plan = plan,
-                    groupId = groupId
-                )
-            )
-        }
+        handleSetupStartedPlaceholder(draftWallet, groupId, plan, walletType, chatId)
 
         draftWallet.signers.forEach { key ->
             val signerType = key.type.toSignerType()
@@ -447,6 +438,38 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             )
         }
         return false
+    }
+
+    private suspend fun handleSetupStartedPlaceholder(
+        draftWallet: DraftWalletDto,
+        groupId: String,
+        plan: MembershipPlan,
+        walletType: WalletType?,
+        chatId: String,
+    ) {
+        if (draftWallet.signers.isEmpty()) {
+            val shouldSaveSetupStarted =
+                walletType != WalletType.MINISCRIPT || (draftWallet.timelock?.value ?: 0L) == 0L
+            if (shouldSaveSetupStarted) {
+                membershipRepository.saveStepInfo(
+                    MembershipStepInfo(
+                        step = MembershipStep.SETUP_STARTED,
+                        verifyType = VerifyType.NONE,
+                        plan = plan,
+                        groupId = groupId
+                    )
+                )
+            }
+        } else {
+            membershipStepDao.getStep(
+                chatId,
+                chain.value,
+                MembershipStep.SETUP_STARTED,
+                groupId
+            )?.let {
+                membershipStepDao.delete(it)
+            }
+        }
     }
 
     override fun getWalletHealthStatus(
