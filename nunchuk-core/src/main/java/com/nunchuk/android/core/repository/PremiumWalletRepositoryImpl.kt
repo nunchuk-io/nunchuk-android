@@ -2000,13 +2000,26 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
         membershipRepository.saveStepInfo(
             MembershipStepInfo(
+                id = getTimelockStepId(groupId.orEmpty()),
                 step = MembershipStep.TIMELOCK,
-                verifyType = VerifyType.SELF_VERIFIED,
+                verifyType = VerifyType.APP_VERIFIED,
                 extraData = timelockValue.toString(),
                 plan = plan,
                 groupId = groupId.orEmpty()
             )
         )
+    }
+
+    private suspend fun getTimelockStepId(groupId: String): Long {
+        val chatId = accountManager.getAccount().chatId
+        return if (groupId.isNotEmpty()) {
+            membershipStepDao.getStep(chatId, chain.value, MembershipStep.TIMELOCK, groupId)?.id ?: 0
+        } else {
+            membershipStepDao.getStep(chatId, chain.value, MembershipStep.TIMELOCK, groupId)?.let {
+                membershipStepDao.delete(it)
+            }
+            0
+        }
     }
 
     override suspend fun cancelRequestIdIfNeed(groupId: String, step: MembershipStep) {
