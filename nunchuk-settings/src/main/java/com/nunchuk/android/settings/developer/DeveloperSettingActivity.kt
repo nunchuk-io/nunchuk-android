@@ -93,6 +93,9 @@ class DeveloperSettingActivity : BaseActivity<ActivityDeveloperSettingBinding>()
         binding.btnShareLog.setOnClickListener {
             IntentSharingController.from(this).shareFile(FileLogTree.getLogFile(this).absolutePath)
         }
+        binding.btnClearMembershipStep.setOnClickListener {
+            viewModel.clearMembershipSteps()
+        }
     }
 
     private fun updateSetting(
