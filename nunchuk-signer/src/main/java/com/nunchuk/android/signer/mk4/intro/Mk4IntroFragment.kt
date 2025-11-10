@@ -171,28 +171,8 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                     navigator.returnMembershipScreen()
                                 }
                             } else {
-                                when (onChainAddSignerParam.keyIndex) {
-                                    0 -> {
-                                        requireActivity().setResult(Activity.RESULT_OK)
-                                        navigator.returnMembershipScreen()
-                                    }
-                                    1 -> {
-                                        requireActivity().setResult(Activity.RESULT_OK)
-                                        navigator.openBackUpSeedPhraseActivity(
-                                            requireActivity(), 
-                                            BackUpSeedPhraseArgs(
-                                                type = BackUpSeedPhraseType.INTRO,
-                                                signer = null,
-                                                groupId = (activity as Mk4Activity).groupId,
-                                                walletId = (activity as Mk4Activity).walletId.orEmpty()
-                                            )
-                                        )
-                                    }
-                                    else -> {
-                                        requireActivity().setResult(Activity.RESULT_OK)
-                                        navigator.returnMembershipScreen()
-                                    }
-                                }
+                                requireActivity().setResult(Activity.RESULT_OK)
+                                navigator.returnMembershipScreen()
                             }
                         } else {
                             mk4ViewModel.setOrUpdate(

@@ -63,7 +63,6 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
@@ -215,44 +214,22 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
         val activity = requireActivity() as AddAirgapSignerActivity
         val onChainAddSignerParam = activity.onChainAddSignerParam
 
-         if (onChainAddSignerParam?.isClaiming == true) {
-             activity.finish()
-             navigator.returnToClaimScreen(requireActivity())
-         } else if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true && onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true) {
-             if (signer.masterFingerprint == onChainAddSignerParam.currentSigner?.fingerPrint) {
-                 viewModel.setKeyVerified(
-                     groupId = activity.groupId,
-                     masterSignerId = signer.masterFingerprint
-                 )
-             } else {
-                 activity.setResult(Activity.RESULT_OK)
-                 navigator.returnMembershipScreen()
-             }
-         } else if (onChainAddSignerParam != null) {
-            when (onChainAddSignerParam.keyIndex) {
-                0 -> {
-                    activity.setResult(Activity.RESULT_OK)
-                    navigator.returnMembershipScreen()
-                }
-
-                1 -> {
-                    activity.setResult(Activity.RESULT_OK)
-                    navigator.openBackUpSeedPhraseActivity(
-                        requireActivity(),
-                        BackUpSeedPhraseArgs(
-                            type = BackUpSeedPhraseType.INTRO,
-                            signer = signer.toModel(),
-                            groupId = activity.groupId,
-                            walletId = activity.walletId
-                        )
-                    )
-                }
-
-                else -> {
-                    activity.setResult(Activity.RESULT_OK)
-                    navigator.returnMembershipScreen()
-                }
+        if (onChainAddSignerParam?.isClaiming == true) {
+            activity.finish()
+            navigator.returnToClaimScreen(requireActivity())
+        } else if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true && onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true) {
+            if (signer.masterFingerprint == onChainAddSignerParam.currentSigner?.fingerPrint) {
+                viewModel.setKeyVerified(
+                    groupId = activity.groupId,
+                    masterSignerId = signer.masterFingerprint
+                )
+            } else {
+                activity.setResult(Activity.RESULT_OK)
+                navigator.returnMembershipScreen()
             }
+        } else if (onChainAddSignerParam != null) {
+            activity.setResult(Activity.RESULT_OK)
+            navigator.returnMembershipScreen()
         } else {
             openSignerInfo(signer)
         }

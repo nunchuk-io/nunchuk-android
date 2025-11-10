@@ -402,7 +402,7 @@
     <string name="nc_off_chain_cons">Claiming the inheritance depends on Nunchuk services being available.</string>
     <string name="nc_on_chain_pros">Your Beneficiary can claim the inheritance with or without Nunchuk\'s assistance once the timelock expires.</string>
     <string name="nc_on_chain_cons">Changing the timelock requires creating a new wallet and moving funds, though Nunchuk can help automate this.</string>
-    <string name="nc_change_plan_later">You can change the plan later (new wallet required). Not sure which to choose? Read our in-depth comparison.</string>
+    <string name="nc_change_plan_later">You can change the timelock type later (new wallet required).</string>
     <string name="nc_change_to_on_chain_timelock_title">Change to on-chain timelock</string>
     <string name="nc_change_to_on_chain_timelock_desc">Your current assisted wallet uses an off-chain timelock. To change to an on-chain timelock, here are the steps:</string>
     <string name="nc_change_to_on_chain_timelock_step_one">Create a new assisted wallet and set up a new inheritance plan with an on-chain timelock</string>

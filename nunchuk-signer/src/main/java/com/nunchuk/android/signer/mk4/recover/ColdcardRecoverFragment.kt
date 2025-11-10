@@ -62,7 +62,6 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.COLDCARD_GUIDE_URL
 import com.nunchuk.android.core.util.ClickAbleText
@@ -176,30 +175,8 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                                             navigator.returnMembershipScreen()
                                         }
                                     } else {
-                                        when (onChainAddSignerParam.keyIndex) {
-                                            0 -> {
-                                                requireActivity().setResult(RESULT_OK)
-                                                navigator.returnMembershipScreen()
-                                            }
-
-                                            1 -> {
-                                                requireActivity().setResult(RESULT_OK)
-                                                navigator.openBackUpSeedPhraseActivity(
-                                                    requireActivity(),
-                                                    BackUpSeedPhraseArgs(
-                                                        type = BackUpSeedPhraseType.INTRO,
-                                                        signer = event.signer.toModel(),
-                                                        groupId = (activity as Mk4Activity).groupId,
-                                                        walletId = (activity as Mk4Activity).walletId.orEmpty()
-                                                    )
-                                                )
-                                            }
-
-                                            else -> {
-                                                requireActivity().setResult(RESULT_OK)
-                                                navigator.returnMembershipScreen()
-                                            }
-                                        }
+                                        requireActivity().setResult(RESULT_OK)
+                                        navigator.returnMembershipScreen()
                                     }
                                 } else {
                                     mk4ViewModel.setOrUpdate(
