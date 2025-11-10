@@ -72,6 +72,11 @@ class ChangeTimelockFragment : MembershipFragment() {
                 is ChangeTimelockEvent.ChangeTimelockSuccess -> {
                     val replaceWalletId = event.draftWallet.replaceWallet?.localId.orEmpty()
                     (requireActivity() as? MembershipActivity)?.setOnChainReplaceWalletId(replaceWalletId)
+                    val groupId = event.draftWallet.groupId.orEmpty()
+                    (requireActivity() as? MembershipActivity)?.apply {
+                        setOnChainReplaceWalletId(replaceWalletId)
+                        setGroupId(groupId)
+                    }
                     findNavController().navigate(
                         ChangeTimelockFragmentDirections.actionChangeTimeLockFragmentToIntroAssistedWalletFragment()
                     )

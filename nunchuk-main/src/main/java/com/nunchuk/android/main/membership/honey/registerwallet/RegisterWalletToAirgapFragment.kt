@@ -76,9 +76,11 @@ class RegisterWalletToAirgapFragment : MembershipFragment() {
         ActivityResultContracts.StartActivityForResult()
     ) {
         if (it.resultCode == Activity.RESULT_OK) {
+            val replacedWalletId = (activity as? com.nunchuk.android.main.membership.MembershipActivity)?.onChainReplaceWalletId.orEmpty()
             findNavController().navigate(
                 RegisterWalletToAirgapFragmentDirections.actionRegisterWalletToAirgapFragmentToCreateWalletSuccessFragment(
-                    args.walletId
+                    walletId = args.walletId,
+                    replacedWalletId = replacedWalletId
                 ),
                 NavOptions.Builder()
                     .setPopUpTo(findNavController().graph.startDestinationId, true)
@@ -123,9 +125,11 @@ class RegisterWalletToAirgapFragment : MembershipFragment() {
             if (it == UploadConfigurationEvent.DoneScanQr) {
                 viewModel.setRegisterAirgapSuccess(args.walletId)
                 if (args.sendBsmsEmail) {
+                    val replacedWalletId = (activity as? com.nunchuk.android.main.membership.MembershipActivity)?.onChainReplaceWalletId.orEmpty()
                     findNavController().navigate(
                         RegisterWalletToAirgapFragmentDirections.actionRegisterWalletToAirgapFragmentToCreateWalletSuccessFragment(
-                            args.walletId
+                            args.walletId,
+                            replacedWalletId
                         )
                     )
                 } else if (wallet != null) {

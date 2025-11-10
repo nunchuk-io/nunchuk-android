@@ -193,6 +193,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         }
         handleUpdateServerSigners(draftWallet.signers, newSigner)
         return DraftWallet(
+            groupId = draftWallet.groupId,
             config = draftWallet.walletConfig.toModel(),
             isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
             signers = draftWallet.signers.map { it.toModel() },
@@ -312,6 +313,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
         }
         handleUpdateServerSigners(draftWallet.signers, newSigner)
         return DraftWallet(
+            groupId = draftWallet.groupId,
             config = draftWallet.walletConfig.toModel(),
             isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
             signers = draftWallet.signers.map { it.toModel() },

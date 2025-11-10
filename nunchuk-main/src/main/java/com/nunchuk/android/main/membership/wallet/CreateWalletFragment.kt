@@ -86,9 +86,11 @@ class CreateWalletFragment : MembershipFragment() {
         ActivityResultContracts.StartActivityForResult()
     ) {
         if (it.resultCode == Activity.RESULT_OK) {
+            val replacedWalletId = (activity as? MembershipActivity)?.onChainReplaceWalletId.orEmpty()
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToCreateWalletSuccessFragment(
-                    viewModel.walletId
+                    walletId = viewModel.walletId,
+                    replacedWalletId = replacedWalletId
                 ),
                 NavOptions.Builder()
                     .setPopUpTo(findNavController().graph.startDestinationId, true)
@@ -179,9 +181,11 @@ class CreateWalletFragment : MembershipFragment() {
                 )
             )
         } else {
+            val replacedWalletId = (activity as? MembershipActivity)?.onChainReplaceWalletId.orEmpty()
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToCreateWalletSuccessFragment(
-                    event.wallet.id
+                    event.wallet.id,
+                    replacedWalletId
                 ),
                 NavOptions.Builder()
                     .setPopUpTo(findNavController().graph.startDestinationId, true)

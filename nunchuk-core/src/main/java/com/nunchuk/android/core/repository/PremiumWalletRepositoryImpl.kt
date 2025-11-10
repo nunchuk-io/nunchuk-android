@@ -160,6 +160,7 @@ import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.WalletServerSync
 import com.nunchuk.android.model.byzantine.AssistedMember
+import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
@@ -2941,7 +2942,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             throw response.error
         }
         val draftWallet = response.data.draftWallet ?: throw NullPointerException("draftWallet null")
-        return com.nunchuk.android.model.byzantine.DraftWallet(
+        return DraftWallet(
+            groupId = draftWallet.groupId,
             config = draftWallet.walletConfig.toModel(),
             isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
             signers = draftWallet.signers.map { it.toModel() },

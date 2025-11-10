@@ -91,9 +91,11 @@ class PrimaryOwnerFragment : MembershipFragment() {
         ActivityResultContracts.StartActivityForResult()
     ) {
         if (it.resultCode == Activity.RESULT_OK) {
+            val replacedWalletId = (activity as? com.nunchuk.android.main.membership.MembershipActivity)?.onChainReplaceWalletId.orEmpty()
             findNavController().navigate(
                 PrimaryOwnerFragmentDirections.actionPrimaryOwnerFragmentToCreateWalletSuccessFragment(
-                    viewModel.walletId
+                    walletId = viewModel.walletId,
+                    replacedWalletId = replacedWalletId
                 ),
                 NavOptions.Builder()
                     .setPopUpTo(findNavController().graph.startDestinationId, true)
@@ -178,9 +180,11 @@ class PrimaryOwnerFragment : MembershipFragment() {
                 )
             )
         } else {
+            val replacedWalletId = (activity as? com.nunchuk.android.main.membership.MembershipActivity)?.onChainReplaceWalletId.orEmpty()
             findNavController().navigate(
                 PrimaryOwnerFragmentDirections.actionPrimaryOwnerFragmentToCreateWalletSuccessFragment(
-                    event.wallet.id
+                    event.wallet.id,
+                    replacedWalletId
                 ),
                 NavOptions.Builder()
                     .setPopUpTo(findNavController().graph.startDestinationId, true)

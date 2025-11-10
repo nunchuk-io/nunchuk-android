@@ -146,6 +146,10 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
         onChainReplaceWalletId = walletId
     }
 
+    fun setGroupId(groupId: String) {
+        intent.putExtra(MembershipArgs.GROUP_ID, groupId)
+    }
+
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater)
     }

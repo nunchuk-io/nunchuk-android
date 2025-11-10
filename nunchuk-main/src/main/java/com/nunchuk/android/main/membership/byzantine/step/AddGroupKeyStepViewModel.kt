@@ -34,6 +34,7 @@ import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
 import com.nunchuk.android.usecase.byzantine.SyncGroupWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
@@ -60,6 +61,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
     private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
     private val getGroupUseCase: GetGroupUseCase,
+    private val getGroupRemoteUseCase: GetGroupRemoteUseCase,
     getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val accountManager: AccountManager,
 ) : ViewModel() {
@@ -123,6 +125,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
+            getGroupRemoteUseCase(GetGroupRemoteUseCase.Params(groupId.value))
             getGroupUseCase(GetGroupUseCase.Params(groupId.value)).collect {
                 if (it.isSuccess) {
                     val email = accountManager.getAccount().email
