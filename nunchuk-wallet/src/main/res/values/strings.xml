@@ -43,6 +43,7 @@
     <string name="nc_export_transaction_note_and_coin_tag">Export transaction notes and coin tags</string>
     <string name="nc_roll_funds_over_another_wallet">Roll funds over to another wallet</string>
     <string name="nc_change_on_chain_timelock">Change to on-chain timelock</string>
+    <string name="nc_change_off_chain_timelock">Change to off-chain timelock</string>
 
     <string name="nc_wallet_select_file">Please select your transaction file</string>
     <string name="nc_wallet_psbt_imported">PSBT imported successfully</string>

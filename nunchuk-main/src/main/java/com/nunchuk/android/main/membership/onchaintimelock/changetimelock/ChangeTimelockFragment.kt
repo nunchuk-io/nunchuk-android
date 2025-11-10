@@ -53,11 +53,12 @@ class ChangeTimelockFragment : MembershipFragment() {
             setContent {
                 val uiState by viewModel.state.collectAsStateWithLifecycle()
                 ChangeTimelockScreen(
-                    isLoading = uiState.isLoading,
+                    changeTimelockFlow = uiState.changeTimelockFlow,
                     onContinueClicked = {
                         viewModel.onContinueClicked()
                     },
                     onReadMoreClicked = {
+
                     }
                 )
             }
@@ -85,12 +86,12 @@ class ChangeTimelockFragment : MembershipFragment() {
 
 @Composable
 private fun ChangeTimelockScreen(
-    isLoading: Boolean = false,
+    changeTimelockFlow: Int = -1,
     onContinueClicked: () -> Unit = {},
     onReadMoreClicked: () -> Unit = {}
 ) {
     ChangeTimelockContent(
-        isLoading = isLoading,
+        changeTimelockFlow = changeTimelockFlow,
         onContinueClicked = onContinueClicked,
         onReadMoreClicked = onReadMoreClicked
     )
@@ -98,10 +99,38 @@ private fun ChangeTimelockScreen(
 
 @Composable
 private fun ChangeTimelockContent(
-    isLoading: Boolean = false,
+    changeTimelockFlow: Int = -1,
     onContinueClicked: () -> Unit = {},
     onReadMoreClicked: () -> Unit = {}
 ) {
+    val titleRes = when (changeTimelockFlow) {
+        1 -> R.string.nc_change_to_off_chain_timelock_title
+        else -> R.string.nc_change_to_on_chain_timelock_title
+    }
+    val descriptionRes = when (changeTimelockFlow) {
+        1 -> R.string.nc_change_to_off_chain_timelock_desc
+        else -> R.string.nc_change_to_on_chain_timelock_desc
+    }
+    val steps = when (changeTimelockFlow) {
+        1 -> listOf(
+            R.string.nc_change_to_off_chain_timelock_step_one,
+            R.string.nc_change_to_off_chain_timelock_step_two,
+            R.string.nc_change_to_off_chain_timelock_step_three,
+        )
+        else -> listOf(
+            R.string.nc_change_to_on_chain_timelock_step_one,
+            R.string.nc_change_to_on_chain_timelock_step_two,
+            R.string.nc_change_to_on_chain_timelock_step_three,
+        )
+    }
+    val hintMessages = when (changeTimelockFlow) {
+        0 -> listOf(
+            ClickAbleText(stringResource(R.string.nc_change_to_on_chain_timelock_hint)),
+            ClickAbleText(stringResource(R.string.nc_read_more), onClick = onReadMoreClicked),
+        )
+        else -> emptyList()
+    }
+
     NunchukTheme {
         Scaffold(
             topBar = {
@@ -119,53 +148,40 @@ private fun ChangeTimelockContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = "Change to on-chain timelock",
+                    text = stringResource(id = titleRes),
                     style = NunchukTheme.typography.heading
                 )
 
                 Text(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = "Your current assisted wallet uses an off-chain timelock. To change to an on-chain timelock, here are the steps:",
+                    text = stringResource(id = descriptionRes),
                     style = NunchukTheme.typography.body
                 )
 
-                NCLabelWithIndex(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    index = 1,
-                    label = "Create a new assisted wallet and set up a new inheritance plan with an on-chain timelock",
-                )
-
-                NCLabelWithIndex(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    index = 2,
-                    label = "Transfer funds to the new wallet",
-                )
-
-                NCLabelWithIndex(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    index = 3,
-                    label = "After a successful transfer, the new assisted wallet will be activated. The existing wallet will be downgraded to a free wallet.",
-                )
+                steps.forEachIndexed { index, stepRes ->
+                    NCLabelWithIndex(
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        index = index + 1,
+                        label = stringResource(id = stepRes),
+                    )
+                }
 
                 Spacer(modifier = Modifier.weight(1.0f))
 
-                NcHintMessage(
-                    modifier = Modifier
-                        .padding(top = 24.dp, start = 16.dp, end = 16.dp)
-                        .fillMaxWidth(),
-                    messages = listOf(
-                        ClickAbleText("You might need new hardware keys for on-chain timelock."),
-                        ClickAbleText("Read more", onClick = onReadMoreClicked),
-                        ClickAbleText(".")
+                if (hintMessages.isNotEmpty()) {
+                    NcHintMessage(
+                        modifier = Modifier
+                            .padding(top = 24.dp, start = 16.dp, end = 16.dp)
+                            .fillMaxWidth(),
+                        messages = hintMessages
                     )
-                )
+                }
 
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = onContinueClicked,
-                    enabled = !isLoading,
                 ) {
                     Text(text = stringResource(id = com.nunchuk.android.signer.R.string.nc_text_continue))
                 }
@@ -179,5 +195,3 @@ private fun ChangeTimelockContent(
 private fun ChangeTimelockScreenPreview() {
     ChangeTimelockContent()
 }
-
-

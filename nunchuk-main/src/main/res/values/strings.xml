@@ -403,6 +403,18 @@
     <string name="nc_on_chain_pros">Your Beneficiary can claim the inheritance with or without Nunchuk\'s assistance once the timelock expires.</string>
     <string name="nc_on_chain_cons">Changing the timelock requires creating a new wallet and moving funds, though Nunchuk can help automate this.</string>
     <string name="nc_change_plan_later">You can change the plan later (new wallet required). Not sure which to choose? Read our in-depth comparison.</string>
+    <string name="nc_change_to_on_chain_timelock_title">Change to on-chain timelock</string>
+    <string name="nc_change_to_on_chain_timelock_desc">Your current assisted wallet uses an off-chain timelock. To change to an on-chain timelock, here are the steps:</string>
+    <string name="nc_change_to_on_chain_timelock_step_one">Create a new assisted wallet and set up a new inheritance plan with an on-chain timelock</string>
+    <string name="nc_change_to_on_chain_timelock_step_two">Transfer funds to the new wallet</string>
+    <string name="nc_change_to_on_chain_timelock_step_three">After a successful transfer, the new assisted wallet will be activated. The existing wallet will be downgraded to a free wallet.</string>
+    <string name="nc_change_to_on_chain_timelock_hint">You might need new hardware keys for on-chain timelock.</string>
+    <string name="nc_change_to_off_chain_timelock_title">Change to off-chain timelock</string>
+    <string name="nc_change_to_off_chain_timelock_desc">Your current assisted wallet uses an on-chain timelock. To change to an off-chain timelock, here are the steps:</string>
+    <string name="nc_change_to_off_chain_timelock_step_one">Create a new assisted wallet and set up a new inheritance plan with an off-chain timelock</string>
+    <string name="nc_change_to_off_chain_timelock_step_two">Transfer funds to the new wallet</string>
+    <string name="nc_change_to_off_chain_timelock_step_three">After a successful transfer, the new assisted wallet will be activated. The existing wallet will be downgraded to a free wallet.</string>
+    <string name="nc_read_more">Read more</string>
     
     <!-- On-chain timelock explanation strings -->
     <string name="nc_how_onchain_timelock_works">How on-chain timelock works</string>

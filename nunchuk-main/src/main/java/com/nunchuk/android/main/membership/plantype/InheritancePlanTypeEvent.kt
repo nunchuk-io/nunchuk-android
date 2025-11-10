@@ -11,7 +11,7 @@ data class InheritancePlanTypeUiState(
     val isPersonal: Boolean = false,
     val slug: String? = null,
     val walletType: String? = null,
-    val changeTimelockFlow: Boolean = false,
+    val changeTimelockFlow: Int = -1,
     val setupPreference: String? = null,
     val walletId: String? = null,
     val groupId: String? = null

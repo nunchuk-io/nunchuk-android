@@ -70,7 +70,7 @@ class InheritancePlanTypeFragment : MembershipFragment() {
                 InheritancePlanTypeScreen(
                     viewModel = viewModel,
                     onContinueClicked = {
-                        if (uiState.changeTimelockFlow) {
+                        if (uiState.changeTimelockFlow != -1) {
                             findNavController().navigate(
                                 InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToChangeTimeLockFragment(
                                     walletId = uiState.walletId ?: "",
@@ -78,7 +78,8 @@ class InheritancePlanTypeFragment : MembershipFragment() {
                                     slug = uiState.slug,
                                     walletType = uiState.walletType,
                                     isPersonal = uiState.isPersonal,
-                                    setupPreference = uiState.setupPreference
+                                    setupPreference = uiState.setupPreference,
+                                    changeTimelockFlow = uiState.changeTimelockFlow
                                 )
                             )
                         } else if (uiState.isPersonal) {
@@ -144,8 +145,15 @@ private fun InheritancePlanTypeContent(
     selectedPlanType: InheritancePlanType? = InheritancePlanType.OFF_CHAIN,
     onPlanTypeSelected: (InheritancePlanType) -> Unit = {},
     onContinueClicked: () -> Unit = {},
-    changeTimelockFlow: Boolean = false
+    changeTimelockFlow: Int = -1
 ) {
+    val isChangeTimelockFlow = changeTimelockFlow != -1
+    val buttonText = when (changeTimelockFlow) {
+        0 -> stringResource(R.string.nc_change_to_on_chain_timelock_title)
+        1 -> stringResource(R.string.nc_change_to_off_chain_timelock_title)
+        else -> stringResource(id = R.string.nc_text_continue)
+    }
+
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
@@ -162,7 +170,7 @@ private fun InheritancePlanTypeContent(
                     onClick = onContinueClicked
                 ) {
                     Text(
-                        text = if (changeTimelockFlow) "Change to on-chain timelock" else stringResource(id = R.string.nc_text_continue),
+                        text = buttonText,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -177,11 +185,11 @@ private fun InheritancePlanTypeContent(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = stringResource(if (changeTimelockFlow) R.string.nc_change_timelock_type else R.string.nc_select_inheritance_plan_type),
+                    text = stringResource(if (isChangeTimelockFlow) R.string.nc_change_timelock_type else R.string.nc_select_inheritance_plan_type),
                     style = NunchukTheme.typography.heading
                 )
 
-                if (changeTimelockFlow) {
+                if (isChangeTimelockFlow) {
                     Text(
                         text = "Please review the differences between off-chain and on-chain options before changing the timelock.",
                         style = NunchukTheme.typography.body,
@@ -193,12 +201,12 @@ private fun InheritancePlanTypeContent(
                     modifier = Modifier.fillMaxWidth(),
                     isSelected = selectedPlanType == InheritancePlanType.OFF_CHAIN,
                     onClick = {
-                        if (changeTimelockFlow.not()) {
+                        if (isChangeTimelockFlow.not()) {
                             onPlanTypeSelected(InheritancePlanType.OFF_CHAIN)
                         }
                     },
-                    showRadioButton = changeTimelockFlow.not(),
-                    customBackgroundColor = if (changeTimelockFlow) MaterialTheme.colorScheme.lightGray else null
+                    showRadioButton = isChangeTimelockFlow.not(),
+                    customBackgroundColor = if (isChangeTimelockFlow) MaterialTheme.colorScheme.lightGray else null
                 ) {
                     Column {
                         Row(
@@ -251,12 +259,12 @@ private fun InheritancePlanTypeContent(
                     modifier = Modifier.fillMaxWidth(),
                     isSelected = selectedPlanType == InheritancePlanType.ON_CHAIN,
                     onClick = {
-                        if (changeTimelockFlow.not()) {
+                        if (isChangeTimelockFlow.not()) {
                             onPlanTypeSelected(InheritancePlanType.ON_CHAIN)
                         }
                     },
-                    showRadioButton = changeTimelockFlow.not(),
-                    customBackgroundColor = if (changeTimelockFlow) MaterialTheme.colorScheme.lightGray else null
+                    showRadioButton = isChangeTimelockFlow.not(),
+                    customBackgroundColor = if (isChangeTimelockFlow) MaterialTheme.colorScheme.lightGray else null
                 ) {
                     Column {
                         Row(
@@ -316,7 +324,9 @@ private fun InheritancePlanTypeContent(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = if (changeTimelockFlow) "Read the in-depth comparison." else stringResource(R.string.nc_change_plan_later),
+                        text = if (isChangeTimelockFlow) "Read the in-depth comparison." else stringResource(
+                            R.string.nc_change_plan_later
+                        ),
                         style = NunchukTheme.typography.titleSmall,
                         modifier = Modifier.weight(1f)
                     )
@@ -336,6 +346,6 @@ private fun InheritancePlanTypeContent(
 @Composable
 private fun InheritancePlanTypeScreenPreview() {
     InheritancePlanTypeContent(
-        changeTimelockFlow = true
+        changeTimelockFlow = 0
     )
 }

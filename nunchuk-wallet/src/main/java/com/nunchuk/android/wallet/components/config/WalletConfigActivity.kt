@@ -684,11 +684,16 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
 
             if (viewModel.isAssistedWallet()) {
+                val changeTimelockStringId = if (isMiniscriptWallet()) {
+                    R.string.nc_change_off_chain_timelock
+                } else {
+                    R.string.nc_change_on_chain_timelock
+                }
                 options.add(
                     SheetOption(
                         SheetOptionType.TYPE_CHANGE_ON_CHAIN_TIMELOCK,
                         R.drawable.ic_on_chain_timelock,
-                        R.string.nc_change_on_chain_timelock,
+                        changeTimelockStringId,
                     ),
                 )
             }

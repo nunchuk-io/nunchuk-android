@@ -45,7 +45,7 @@ class InheritancePlanTypeViewModel @Inject constructor(
                 setupPreference = args.setupPreference,
                 walletId = args.walletId,
                 groupId = args.groupId,
-                changeTimelockFlow = args.changeTimelockFlow != -1,
+                changeTimelockFlow = args.changeTimelockFlow,
                 selectedPlanType = if (args.changeTimelockFlow == -1) InheritancePlanType.OFF_CHAIN else null
             ))
         }

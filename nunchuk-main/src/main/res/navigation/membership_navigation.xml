@@ -398,6 +398,10 @@
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
+        <argument
+            android:name="change_timelock_flow"
+            android:defaultValue="-1"
+            app:argType="integer" />
         
         <action
             android:id="@+id/action_changeTimeLockFragment_to_introAssistedWalletFragment"

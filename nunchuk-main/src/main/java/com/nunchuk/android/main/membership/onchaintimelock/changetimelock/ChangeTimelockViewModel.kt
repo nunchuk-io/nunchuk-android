@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.usecase.wallet.ChangeTimelockTypeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -36,7 +37,8 @@ class ChangeTimelockViewModel @Inject constructor(
             slug = args.slug,
             walletType = args.walletType,
             isPersonal = args.isPersonal,
-            setupPreference = args.setupPreference
+            setupPreference = args.setupPreference,
+            changeTimelockFlow = args.changeTimelockFlow
         )}
     }
 
@@ -66,11 +68,12 @@ data class ChangeTimelockUiState(
     val walletType: String? = null,
     val isPersonal: Boolean = false,
     val setupPreference: String? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val changeTimelockFlow: Int = -1
 )
 
 sealed class ChangeTimelockEvent {
-    data class ChangeTimelockSuccess(val draftWallet: com.nunchuk.android.model.byzantine.DraftWallet) : ChangeTimelockEvent()
+    data class ChangeTimelockSuccess(val draftWallet: DraftWallet) : ChangeTimelockEvent()
     data class ShowError(val message: String) : ChangeTimelockEvent()
 }
 
