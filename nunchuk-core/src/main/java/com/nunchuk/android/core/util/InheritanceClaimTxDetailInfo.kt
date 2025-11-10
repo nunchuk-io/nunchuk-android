@@ -5,5 +5,6 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class InheritanceClaimTxDetailInfo(
-    val changePos: Int
+    val changePos: Int,
+    val selectedWalletId: String? = null
 ) : Parcelable

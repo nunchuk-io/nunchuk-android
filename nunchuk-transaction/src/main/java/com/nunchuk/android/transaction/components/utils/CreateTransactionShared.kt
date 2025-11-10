@@ -34,7 +34,7 @@ fun BaseComposeActivity.openTransactionDetailScreen(
     txId: String,
     walletId: String,
     roomId: String,
-    isInheritanceClaimingFlow: Boolean,
+    inheritanceClaimTxDetailInfo: InheritanceClaimTxDetailInfo? = null,
     transaction: Transaction? = null
 ) {
     hideLoading()
@@ -43,10 +43,7 @@ fun BaseComposeActivity.openTransactionDetailScreen(
         walletId = walletId,
         txId = txId,
         roomId = roomId,
-        inheritanceClaimTxDetailInfo = if (isInheritanceClaimingFlow)
-            InheritanceClaimTxDetailInfo(
-                changePos = transaction?.changeIndex ?: -1,
-            ) else null,
+        inheritanceClaimTxDetailInfo = inheritanceClaimTxDetailInfo,
         transaction = transaction
     )
     NCToastMessage(this).showMessage("Transaction created::$txId")

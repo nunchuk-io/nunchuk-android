@@ -388,6 +388,9 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                             activityContext = this,
                             walletId = event.walletId,
                             txId = event.transaction.txId,
+                            inheritanceClaimTxDetailInfo = InheritanceClaimTxDetailInfo(
+                                changePos = event.transaction.changeIndex,
+                            )
                         )
                     }
                 } else {
@@ -396,7 +399,6 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                         event.transaction.txId,
                         args.walletId,
                         sessionHolder.getActiveRoomIdSafe(),
-                        isInheritanceClaimingFlow = false
                     )
                 }
             }
@@ -423,7 +425,6 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                     event.txId,
                     args.walletId,
                     sessionHolder.getActiveRoomIdSafe(),
-                    transactionConfirmViewModel.isInheritanceClaimingFlow()
                 )
             }
 

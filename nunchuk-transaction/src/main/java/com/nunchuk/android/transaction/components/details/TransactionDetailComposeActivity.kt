@@ -170,7 +170,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             initEventId = args.initEventId,
             roomId = args.roomId,
             transaction = args.transaction,
-            isClaimingInheritance = args.inheritanceClaimTxDetailInfo != null
+            isClaimingInheritance = args.inheritanceClaimTxDetailInfo != null && args.transaction != null
         )
 
         enableEdgeToEdge()
@@ -248,7 +248,7 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
             )
         }
 
-        if (args.inheritanceClaimTxDetailInfo != null) {
+        if (args.inheritanceClaimTxDetailInfo != null && args.transaction != null) {
             showInheritanceClaimingDialog()
         }
         if (args.errorMessage.isBlank().not()) {
@@ -280,6 +280,15 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         NCInfoDialog(this).showDialog(
             title = getString(R.string.nc_congratulation),
             message = getString(R.string.nc_your_inheritance_has_been_claimed),
+            onYesClick = {
+                args.inheritanceClaimTxDetailInfo?.selectedWalletId?.let {
+                    navigator.openWalletDetailsScreen(
+                        activityContext = this,
+                        walletId = it
+                    )
+                    finish()
+                }
+            }
         ).show()
     }
 
@@ -567,18 +576,22 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
 
     private fun showBroadcastTransactionSuccess(event: BroadcastTransactionSuccess) {
         hideLoading()
-        NCToastMessage(this).show(getString(R.string.nc_transaction_broadcast_successful))
-        val callback: () -> Unit = {
-            if (event.roomId.isEmpty()) {
-                finish()
-            } else {
-                returnActiveRoom()
-            }
-        }
-        if (event.reviewInfo != null) {
-            viewModel.showReview(this, event.reviewInfo, callback)
+        if (!args.inheritanceClaimTxDetailInfo?.selectedWalletId.isNullOrEmpty()) {
+            showInheritanceClaimingDialog()
         } else {
-            callback()
+            NCToastMessage(this).show(getString(R.string.nc_transaction_broadcast_successful))
+            val callback: () -> Unit = {
+                if (event.roomId.isEmpty()) {
+                    finish()
+                } else {
+                    returnActiveRoom()
+                }
+            }
+            if (event.reviewInfo != null) {
+                viewModel.showReview(this, event.reviewInfo, callback)
+            } else {
+                callback()
+            }
         }
     }
 

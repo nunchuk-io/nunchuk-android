@@ -34,6 +34,7 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.sheet.BottomSheetTooltip
+import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.copyToClipboard
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
@@ -193,22 +194,19 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             is CreateTxErrorEvent -> showCreateTransactionError(event.message)
             is CreateTxSuccessEvent -> {
                 navigator.returnToMainScreen(this)
-                if (event.walletId.isNullOrEmpty()) {
-                    openTransactionDetailScreen(
-                        txId = event.transaction.txId,
-                        walletId = args.walletId,
-                        roomId = sessionHolder.getActiveRoomIdSafe(),
-                        isInheritanceClaimingFlow = viewModel.isInheritanceClaimingFlow(),
-                        transaction = if (viewModel.isInheritanceClaimingFlow()) event.transaction else null
-                    )
-                } else {
-                    openTransactionDetailScreen(
-                        walletId = event.walletId,
-                        txId = event.transaction.txId,
-                        roomId = sessionHolder.getActiveRoomIdSafe(),
-                        isInheritanceClaimingFlow = false
-                    )
-                }
+                val openedWalletId = event.walletId ?: args.walletId
+                openTransactionDetailScreen(
+                    txId = event.transaction.txId,
+                    walletId = openedWalletId,
+                    roomId = sessionHolder.getActiveRoomIdSafe(),
+                    inheritanceClaimTxDetailInfo = takeIf { viewModel.isInheritanceClaimingFlow() }?.let {
+                        InheritanceClaimTxDetailInfo(
+                            changePos = event.transaction.changeIndex,
+                            selectedWalletId = args.walletId,
+                        )
+                    },
+                    transaction = event.transaction.takeIf { viewModel.isInheritanceClaimingFlow() }
+                )
             }
 
             is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
@@ -226,7 +224,6 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                                     event.txId,
                                     args.walletId,
                                     sessionHolder.getActiveRoomIdSafe(),
-                                    viewModel.isInheritanceClaimingFlow()
                                 )
                             }
                         })

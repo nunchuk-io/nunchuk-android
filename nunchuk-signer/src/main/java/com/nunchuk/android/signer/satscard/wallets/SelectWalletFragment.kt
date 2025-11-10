@@ -185,7 +185,13 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
             navigator.openTransactionDetailsScreen(
                 activityContext = requireActivity(),
                 walletId = extendTransaction.walletId.orEmpty(),
-                txId = transaction.txId
+                txId = transaction.txId,
+                inheritanceClaimTxDetailInfo = if (args.claimParam.isInheritanceClaimFlow()) {
+                    InheritanceClaimTxDetailInfo(
+                        changePos = transaction.changeIndex,
+                        selectedWalletId = viewModel.selectedWalletId
+                    )
+                } else null,
             )
         }
     }
