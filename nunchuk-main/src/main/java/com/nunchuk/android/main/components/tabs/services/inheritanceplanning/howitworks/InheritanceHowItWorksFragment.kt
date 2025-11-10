@@ -134,10 +134,19 @@ private fun InheritanceHowItWorksContent(
                         InheritanceShareSecretType.JOINT_CONTROL -> R.string.nc_how_it_works_joint_desc
                     }
 
-                    Text(
+                    NcSpannedClickableText(
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                         text = stringResource(descRes),
-                        style = NunchukTheme.typography.body
+                        baseStyle = NunchukTheme.typography.body,
+                        styles = mapOf(
+                            SpanIndicator('A') to SpanStyle(
+                                fontWeight = FontWeight.Bold,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        ),
+                        onClick = {
+                            context.openExternalLink("https://nunchuk.io/howtoclaim")
+                        }
                     )
 
                     // Method 1: With Nunchuk service
@@ -148,19 +157,10 @@ private fun InheritanceHowItWorksContent(
                         style = NunchukTheme.typography.title
                     )
 
-                    NcSpannedClickableText(
+                    Text(
                         modifier = Modifier.padding(start = 50.dp, end = 16.dp, top = 4.dp),
                         text = stringResource(R.string.nc_guided_claim_desc),
-                        baseStyle = NunchukTheme.typography.body,
-                        styles = mapOf(
-                            SpanIndicator('B') to SpanStyle(
-                                fontWeight = FontWeight.Bold,
-                                textDecoration = TextDecoration.Underline
-                            )
-                        ),
-                        onClick = {
-                            context.openExternalLink("https://nunchuk.io/howtoclaim")
-                        }
+                        style = NunchukTheme.typography.body
                     )
 
                     // Method 2: Without Nunchuk service

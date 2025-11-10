@@ -1032,15 +1032,15 @@
     
     <!-- Inheritance How It Works -->
     <string name="nc_how_it_works">How it works</string>
-    <string name="nc_how_it_works_direct_desc">With the secrets you provided, there are two ways for the Beneficiary to access and claim the funds:</string>
-    <string name="nc_how_it_works_indirect_desc">With the secrets you provided, there are two ways for the Trustee to access and claim the funds:</string>
-    <string name="nc_how_it_works_joint_desc">With the secrets you provided, there are two ways for the Beneficiary and Trustee to access and claim the funds together:</string>
+    <string name="nc_how_it_works_direct_desc">With the secrets you provided, there are [A]two ways[/A] for the Beneficiary to access and claim the funds:</string>
+    <string name="nc_how_it_works_indirect_desc">With the secrets you provided, there are [A]two ways[/A] for the Trustee to access and claim the funds:</string>
+    <string name="nc_how_it_works_joint_desc">With the secrets you provided, there are [A]two ways[/A] for the Beneficiary and Trustee to access and claim the funds together:</string>
     <string name="nc_with_nunchuk_service">With Nunchuk service</string>
     <string name="nc_without_nunchuk_service">Without Nunchuk service (fallback option)</string>
-    <string name="nc_guided_claim_desc">[B]Guided claim[/B] using the Magic Phrase and the inheritance key</string>
-    <string name="nc_self_serve_recovery_desc_beneficiary">Self-serve recovery using the wallet configuration file (BSMS file) and the inheritance key.</string>
-    <string name="nc_self_serve_recovery_desc_trustee">Self-serve recovery using the wallet configuration file (BSMS file) and the inheritance key.</string>
-    <string name="nc_self_serve_recovery_desc_joint">Self-serve recovery using the wallet configuration file (BSMS file) and the inheritance key.</string>
+    <string name="nc_guided_claim_desc">Guided claim using the Magic Phrase and the inheritance key</string>
+    <string name="nc_self_serve_recovery_desc_beneficiary">Self-serve claim using the wallet configuration file (BSMS file) and the inheritance key.</string>
+    <string name="nc_self_serve_recovery_desc_trustee">Self-serve claim using the wallet configuration file (BSMS file) and the inheritance key.</string>
+    <string name="nc_self_serve_recovery_desc_joint">Self-serve claim using the wallet configuration file (BSMS file) and the inheritance key.</string>
     <string name="nc_bsms_replaces_magic_phrase_beneficiary">In this method, the BSMS file replaces the Magic Phrase. The Beneficiary does not depend on the Nunchuk service for recovery.</string>
     <string name="nc_bsms_replaces_magic_phrase_trustee">In this method, the BSMS file replaces the Magic Phrase. The Trustee does not depend on the Nunchuk service for recovery.</string>
     <string name="nc_bsms_replaces_magic_phrase_joint">In this method, the BSMS file replaces the Magic Phrase. The Beneficiary and Trustee do not depend on the Nunchuk service for recovery.</string>
