@@ -323,6 +323,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
     }
 
     private fun onContinueClicked() {
+        val mk4Activity = requireActivity() as Mk4Activity
         val type = when (action) {
             ColdcardAction.RECOVER_MULTI_SIG_WALLET,
             ColdcardAction.PARSE_MULTISIG_WALLET,
@@ -334,7 +335,16 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
 
             else -> BaseNfcActivity.REQUEST_MK4_ADD_KEY
         }
-        (requireActivity() as NfcActionListener).startNfcFlow(type)
+        val customHint = if (type == BaseNfcActivity.REQUEST_MK4_ADD_KEY) {
+            mk4Activity.onChainAddSignerParam?.let {
+                val accountIndex = it.keyIndex.takeIf { index -> index >= 0 } ?: 0
+                getString(R.string.nc_hint_add_mk4_with_account, accountIndex)
+            }
+        } else {
+            null
+        }
+        mk4Activity.setMk4HintOverride(customHint)
+        (mk4Activity as NfcActionListener).startNfcFlow(type)
     }
 
     private fun openSignerSheet(signer: List<SingleSigner>) {

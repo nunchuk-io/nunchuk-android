@@ -87,6 +87,8 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
         }
     }
 
+    private var mk4HintOverride: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (savedInstanceState != null) {
@@ -170,7 +172,11 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
 
     private fun askToScan() {
         if (isMk4Request(requestCode)) {
-            askScanNfcDialog.update(message = getString(R.string.nc_hold_device_near_the_coldcard), hint = getMk4Hint(this, requestCode))
+            val hint = mk4HintOverride ?: getMk4Hint(this, requestCode)
+            askScanNfcDialog.update(
+                message = getString(R.string.nc_hold_device_near_the_coldcard),
+                hint = hint
+            )
         } else {
             askScanNfcDialog.update(message = getString(R.string.nc_hold_your_device_near_the_nfc))
         }
@@ -217,6 +223,10 @@ abstract class BaseNfcActivity<Binding : ViewBinding> : BaseShareSaveFileActivit
     }
 
     protected fun isNfcIntent(intent: Intent) = NfcAdapter.ACTION_NDEF_DISCOVERED == intent.action || NfcAdapter.ACTION_TAG_DISCOVERED == intent.action
+
+    fun setMk4HintOverride(hint: String?) {
+        mk4HintOverride = hint
+    }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
