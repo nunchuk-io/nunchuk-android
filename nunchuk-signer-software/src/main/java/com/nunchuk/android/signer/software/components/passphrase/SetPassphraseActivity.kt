@@ -22,6 +22,7 @@ package com.nunchuk.android.signer.software.components.passphrase
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.commit
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.signer.software.R
@@ -48,6 +49,7 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
 
     companion object {
         fun start(
+            launcher: ActivityResultLauncher<Intent>?,
             activityContext: Context,
             mnemonic: String,
             signerName: String,
@@ -57,19 +59,18 @@ class SetPassphraseActivity : BaseActivity<ActivitySetPassphraseBinding>() {
             replacedXfp: String? = null,
             walletId: String = "",
         ) {
-            activityContext.startActivity(
-                Intent(activityContext, SetPassphraseActivity::class.java).putExtras(
-                    SetPassphraseFragmentArgs(
-                        mnemonic = mnemonic,
-                        signerName = signerName,
-                        primaryKeyFlow = primaryKeyFlow,
-                        passphrase = passphrase,
-                        groupId = groupId,
-                        replacedXfp = replacedXfp.orEmpty(),
-                        walletId = walletId,
-                    ).toBundle()
-                )
+            val intent = Intent(activityContext, SetPassphraseActivity::class.java).putExtras(
+                SetPassphraseFragmentArgs(
+                    mnemonic = mnemonic,
+                    signerName = signerName,
+                    primaryKeyFlow = primaryKeyFlow,
+                    passphrase = passphrase,
+                    groupId = groupId,
+                    replacedXfp = replacedXfp.orEmpty(),
+                    walletId = walletId,
+                ).toBundle()
             )
+            launcher?.launch(intent) ?: activityContext.startActivity(intent)
         }
     }
 

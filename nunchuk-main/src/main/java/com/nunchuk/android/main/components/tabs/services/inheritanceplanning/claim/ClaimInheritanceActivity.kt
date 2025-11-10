@@ -118,9 +118,10 @@ private fun ClaimInheritanceGraph(
     ) {
         if (it.resultCode == Activity.RESULT_OK) {
             val mnemonic = it.data?.getStringExtra(GlobalResultKey.MNEMONIC).orEmpty()
+            val passphrase = it.data?.getStringExtra(GlobalResultKey.PASSPHRASE).orEmpty()
             if (mnemonic.isNotEmpty()) {
                 navController.popBackStack<ClaimMagicPhraseRoute>(false)
-                activityViewModel.createSoftwareSignerFromMnemonic(mnemonic)
+                activityViewModel.createSoftwareSignerFromMnemonic(mnemonic, passphrase)
             }
         }
     }
@@ -248,7 +249,7 @@ private fun ClaimInheritanceGraph(
                         navigator.openRecoverSeedScreen(
                             launcher = importSeedLauncher,
                             activityContext = activity,
-                            keyFlow = KeyFlow.ADD_AND_RETURN
+                            keyFlow = KeyFlow.ADD_AND_RETURN_PASSPHRASE
                         )
                     }
                 },

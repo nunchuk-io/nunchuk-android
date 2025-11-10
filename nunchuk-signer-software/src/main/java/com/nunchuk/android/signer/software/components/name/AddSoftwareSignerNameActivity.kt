@@ -172,8 +172,8 @@ class AddSoftwareSignerNameActivity : BaseActivity<ActivityAddNameBinding>() {
             signerName = signerName,
             passphrase = passphrase,
             keyFlow = args.primaryKeyFlow,
-            walletId = args.walletId.orEmpty(),
             groupId = args.groupId.orEmpty(),
+            walletId = args.walletId.orEmpty(),
         )
     }
 

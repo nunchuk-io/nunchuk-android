@@ -20,6 +20,7 @@
 package com.nunchuk.android.signer.software.components.passphrase
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -28,11 +29,13 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
+import com.nunchuk.android.core.signer.KeyFlow.isAddAndReturnWithPassphraseFlow
 import com.nunchuk.android.core.signer.KeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.util.getHtmlText
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.software.R
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.ConfirmPassPhraseNotMatchedEvent
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.ConfirmPassPhraseRequiredEvent
@@ -95,7 +98,22 @@ class SetPassphraseFragment : BaseFragment<FragmentSetPassphraseBinding>() {
             )
 
             is CreateSoftwareSignerErrorEvent -> onCreateSignerError(event)
-            PassPhraseValidEvent -> removeValidationError()
+            PassPhraseValidEvent -> {
+                removeValidationError()
+                if (args.primaryKeyFlow.isAddAndReturnWithPassphraseFlow()) {
+                    requireActivity().apply {
+                        setResult(
+                            Activity.RESULT_OK,
+                            Intent().putExtra(
+                                GlobalResultKey.PASSPHRASE,
+                                binding.passphrase.getEditText()
+                            )
+                        )
+                    }
+                    requireActivity().finish()
+                }
+            }
+
             is LoadingEvent -> showOrHideLoading(loading = event.loading)
             is CreateWalletErrorEvent -> showError(event.message)
             is CreateWalletSuccessEvent -> {

@@ -27,6 +27,7 @@ import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.ChangePrimaryKeyUseCase
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.signer.KeyFlow.isAddAndReturnWithPassphraseFlow
 import com.nunchuk.android.core.signer.KeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.signer.KeyFlow.isReplaceFlow
 import com.nunchuk.android.core.signer.KeyFlow.isReplaceKeyInFreeWalletFlow
@@ -107,17 +108,17 @@ internal class SetPassphraseViewModel @Inject constructor(
         updateState { copy(confirmPassphrase = confirmPassphrase) }
     }
 
-    fun skipPassphraseEvent() {
-        updatePassphrase("")
+    fun skipPassphraseEvent(isSkip: Boolean = true) {
+        if (isSkip) updatePassphrase("")
+        event(PassPhraseValidEvent)
         if (args.primaryKeyFlow.isSignUpFlow()) {
-            event(CreateSoftwareSignerCompletedEvent(skipPassphrase = true))
-            return
+            event(CreateSoftwareSignerCompletedEvent(skipPassphrase = isSkip))
         } else if (args.primaryKeyFlow.isReplaceFlow()) {
             replacePrimaryKey()
-            return
+        } else if (!args.primaryKeyFlow.isAddAndReturnWithPassphraseFlow()) {
+            updateState { copy(skipPassphrase = isSkip) }
+            createSoftwareSigner(isReplaceKey = false)
         }
-        updateState { copy(skipPassphrase = true) }
-        createSoftwareSigner(isReplaceKey = false)
     }
 
     fun confirmPassphraseEvent() {
@@ -128,18 +129,7 @@ internal class SetPassphraseViewModel @Inject constructor(
             passphrase.isEmpty() -> event(PassPhraseRequiredEvent)
             confirmPassphrase.isEmpty() -> event(ConfirmPassPhraseRequiredEvent)
             passphrase != confirmPassphrase -> event(ConfirmPassPhraseNotMatchedEvent)
-            else -> {
-                event(PassPhraseValidEvent)
-                if (args.primaryKeyFlow.isSignUpFlow()) {
-                    event(CreateSoftwareSignerCompletedEvent(skipPassphrase = false))
-                    return
-                } else if (args.primaryKeyFlow.isReplaceFlow()) {
-                    replacePrimaryKey()
-                    return
-                }
-                updateState { copy(skipPassphrase = false) }
-                createSoftwareSigner(isReplaceKey = false)
-            }
+            else -> skipPassphraseEvent(false)
         }
     }
 

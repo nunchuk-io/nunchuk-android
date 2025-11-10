@@ -266,6 +266,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
     }
 
     override fun openSetPassphraseScreen(
+        launcher: ActivityResultLauncher<Intent>?,
         activityContext: Context,
         mnemonic: String,
         signerName: String,
@@ -276,6 +277,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         walletId: String
     ) {
         SetPassphraseActivity.start(
+            launcher = launcher,
             activityContext = activityContext,
             mnemonic = mnemonic,
             signerName = signerName,

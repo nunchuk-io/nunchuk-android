@@ -148,6 +148,7 @@ interface SignerNavigator {
      * @param passphrase only need for replacing primary key
      */
     fun openSetPassphraseScreen(
+        launcher: ActivityResultLauncher<Intent>? = null,
         activityContext: Context,
         mnemonic: String = "",
         signerName: String,

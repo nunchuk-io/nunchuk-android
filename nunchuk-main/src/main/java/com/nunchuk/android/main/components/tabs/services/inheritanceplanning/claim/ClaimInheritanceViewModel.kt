@@ -18,6 +18,8 @@ import com.nunchuk.android.model.InheritanceClaimingInit
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
+import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
+import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +36,8 @@ class ClaimInheritanceViewModel @Inject constructor(
     private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase,
     private val downloadWalletForClaimUseCase: DownloadWalletForClaimUseCase,
     private val getInheritanceClaimStateUseCase: GetInheritanceClaimStateUseCase,
+    private val getMasterFingerprintUseCase: GetMasterFingerprintUseCase,
+    private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val singleSignerMapper: SingleSignerMapper,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -75,20 +79,32 @@ class ClaimInheritanceViewModel @Inject constructor(
         }
     }
 
-    fun createSoftwareSignerFromMnemonic(mnemonic: String) {
+    fun createSoftwareSignerFromMnemonic(mnemonic: String, passphrase: String) {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             val currentData = _claimData.value
             val signerName = "$INHERITED_KEY_NAME #${currentData.signers.size + 1}"
 
-            createSoftwareSignerUseCase(
-                CreateSoftwareSignerUseCase.Param(
-                    name = signerName,
+            val masterFingerprint = getMasterFingerprintUseCase(
+                GetMasterFingerprintUseCase.Param(
                     mnemonic = mnemonic,
+                    passphrase = passphrase
                 )
-            ).map {
+            ).getOrNull()
+
+            if (!masterFingerprint.isNullOrEmpty()) {
+                getMasterSignerUseCase(masterFingerprint)
+            } else {
+                createSoftwareSignerUseCase(
+                    CreateSoftwareSignerUseCase.Param(
+                        name = signerName,
+                        mnemonic = mnemonic,
+                    )
+                )
+            }.map { signer ->
                 getDefaultSignerFromMasterSignerUseCase(
                     GetDefaultSignerFromMasterSignerUseCase.Params(
-                        masterSignerId = it.id,
+                        masterSignerId = signer.id,
                         walletType = WalletType.MULTI_SIG,
                         addressType = AddressType.NATIVE_SEGWIT
                     )
@@ -97,6 +113,7 @@ class ClaimInheritanceViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             event = ClaimInheritanceEvent.ShowError(e.message.orUnknownError()),
+                            isLoading = false
                         )
                     }
                 }.getOrNull()
@@ -109,6 +126,7 @@ class ClaimInheritanceViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         event = ClaimInheritanceEvent.ShowError(e.message.orUnknownError()),
+                        isLoading = false
                     )
                 }
             }

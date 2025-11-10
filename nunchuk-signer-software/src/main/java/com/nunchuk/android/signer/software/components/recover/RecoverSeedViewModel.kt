@@ -155,6 +155,8 @@ internal class RecoverSeedViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
+    fun getMnemonic() = getState().mnemonic
+
     companion object {
         private const val MAX_ACCEPTED_NUM_WORDS = 24
         private const val MIN_ACCEPTED_NUM_WORDS = 12

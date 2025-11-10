@@ -22,6 +22,7 @@ package com.nunchuk.android.signer.software.components.recover
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -30,6 +31,7 @@ import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.KeyFlow.isAddAndReturnFlow
+import com.nunchuk.android.core.signer.KeyFlow.isAddAndReturnWithPassphraseFlow
 import com.nunchuk.android.core.signer.KeyFlow.isSignInFlow
 import com.nunchuk.android.core.util.bindEnableState
 import com.nunchuk.android.core.util.navigateToSelectWallet
@@ -86,6 +88,20 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
         intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM)
     }
 
+    private val setPassphraseLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            setResult(
+                RESULT_OK,
+                Intent().apply {
+                    putExtra(GlobalResultKey.MNEMONIC, viewModel.getMnemonic())
+                },
+            )
+            finish()
+        }
+    }
+
     override fun initializeBinding() = ActivityRecoverSeedBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -134,6 +150,16 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                         finish()
                     }
 
+                    primaryKeyFlow.isAddAndReturnWithPassphraseFlow() -> {
+                        navigator.openSetPassphraseScreen(
+                            launcher = setPassphraseLauncher,
+                            activityContext = this,
+                            mnemonic = event.mnemonic,
+                            signerName = "",
+                            keyFlow = primaryKeyFlow,
+                        )
+                    }
+
                     assistedWalletManager.isGroupAssistedWallet(groupId) || replacedXfp.isNotEmpty() -> {
                         val signerName = if (replacedXfp.isNotEmpty()) {
                             viewModel.state.value?.replaceSignerName.orEmpty()
@@ -144,6 +170,7 @@ class RecoverSeedActivity : BaseActivity<ActivityRecoverSeedBinding>() {
                             activityContext = this,
                             mnemonic = event.mnemonic,
                             signerName = signerName,
+                            keyFlow = primaryKeyFlow,
                             groupId = groupId,
                             replacedXfp = replacedXfp,
                             walletId = walletId,
