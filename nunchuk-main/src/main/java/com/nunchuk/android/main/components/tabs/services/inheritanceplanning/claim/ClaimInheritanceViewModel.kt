@@ -135,17 +135,15 @@ class ClaimInheritanceViewModel @Inject constructor(
 
     fun addSigner(signer: SignerModel) {
         if (_claimData.value.signers.contains(signer)) {
-            _uiState.update { it.copy(event = ClaimInheritanceEvent.KeyAlreadyAdded) }
+            _uiState.update { it.copy(event = ClaimInheritanceEvent.KeyAlreadyAdded, isLoading = false) }
         } else {
-            _claimData.update {
-                it.copy(signers = it.signers + signer)
-            }
+            _claimData.update { it.copy(signers = it.signers + signer) }
             if (claimData.value.signers.size == claimData.value.requiredKeyCount) {
                 viewModelScope.launch {
                     downloadWalletForClaim()
                 }
             } else {
-                _uiState.update { it.copy(event = ClaimInheritanceEvent.AddMoreSigners) }
+                _uiState.update { it.copy(event = ClaimInheritanceEvent.AddMoreSigners, isLoading = false) }
             }
         }
     }
