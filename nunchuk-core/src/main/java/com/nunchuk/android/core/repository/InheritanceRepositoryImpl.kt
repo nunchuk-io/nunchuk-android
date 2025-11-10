@@ -22,9 +22,11 @@ package com.nunchuk.android.core.repository
 import com.nunchuk.android.core.data.model.InheritanceClaimingDownloadWalletRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimingInitRequest
 import com.nunchuk.android.core.data.model.membership.toModel
+import com.nunchuk.android.core.gateway.SignerGateway
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.ServerSignerMapper
 import com.nunchuk.android.core.mapper.toInheritanceClaimingInit
+import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.InheritanceClaimingInit
 import com.nunchuk.android.model.SingleSigner
@@ -41,6 +43,7 @@ internal class InheritanceRepositoryImpl @Inject constructor(
     private val serverSignerMapper: ServerSignerMapper,
     private val nunchukNativeSdk: NunchukNativeSdk,
     private val ncDataStore: NcDataStore,
+    private val signerGateway: SignerGateway,
 ) : InheritanceRepository {
 
     override suspend fun inheritanceClaimingInit(magic: String): InheritanceClaimingInit {
@@ -64,8 +67,7 @@ internal class InheritanceRepositoryImpl @Inject constructor(
         )
         val response =
             userWalletApiManager.claimInheritanceApi.inheritanceClaimingDownloadWallet(request)
-        val walletServer = response.data.wallet
-            ?: throw IllegalStateException("Wallet data is missing in response")
+        val walletServer = response.data.wallet ?: throw NunchukApiException(code = 831) // inheritance not found
         val walletLocalId = walletServer.localId.orEmpty()
         if (nunchukNativeSdk.hasWallet(walletLocalId).not()) {
             val wallet = nunchukNativeSdk.parseWalletDescriptor(walletServer.bsms.orEmpty()).apply {
@@ -74,6 +76,10 @@ internal class InheritanceRepositoryImpl @Inject constructor(
                 createDate = System.currentTimeMillis() / 1000
             }
             nunchukNativeSdk.createWallet2(wallet)
+        }
+
+        walletServer.signerServerDtos?.forEach { signer ->
+            signerGateway.saveServerSignerIfNeed(signer)
         }
 
         // Add wallet to claim wallets set

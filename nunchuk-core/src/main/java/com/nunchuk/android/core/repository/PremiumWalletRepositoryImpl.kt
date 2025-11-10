@@ -75,7 +75,6 @@ import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
 import com.nunchuk.android.core.data.model.membership.RequestSignatureTransactionRequest
 import com.nunchuk.android.core.data.model.membership.ScheduleTransactionRequest
 import com.nunchuk.android.core.data.model.membership.SignServerTransactionRequest
-import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.TransactionServerDto
 import com.nunchuk.android.core.data.model.membership.UpdatePrimaryOwnerRequest
 import com.nunchuk.android.core.data.model.membership.WalletDto
@@ -90,6 +89,7 @@ import com.nunchuk.android.core.data.model.membership.toWalletOption
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
 import com.nunchuk.android.core.exception.RequestAddSameKeyException
+import com.nunchuk.android.core.gateway.SignerGateway
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.ServerSignerMapper
 import com.nunchuk.android.core.mapper.toAlert
@@ -229,6 +229,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     private val syncer: ByzantineSyncer,
     private val serverSignerMapper: ServerSignerMapper,
     private val applicationScope: CoroutineScope,
+    private val signerGateway: SignerGateway,
 ) : PremiumWalletRepository {
     private val chain =
         ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
@@ -465,7 +466,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             isNeedReload = true
             if (!isRemoveKey) {
                 walletServer.signerServerDtos?.forEach { signer ->
-                    newSignerMap[signer.xfp.orEmpty()] = !saveServerSignerIfNeed(signer)
+                    newSignerMap[signer.xfp.orEmpty()] = !signerGateway.saveServerSignerIfNeed(signer)
                 }
             }
 
@@ -477,7 +478,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             nunchukNativeSdk.createWallet2(wallet)
         } else if (!isRemoveKey) {
             walletServer.signerServerDtos?.forEach { signer ->
-                saveServerSignerIfNeed(signer)
+                signerGateway.saveServerSignerIfNeed(signer)
             }
         }
         val wallet = nunchukNativeSdk.getWallet(walletServer.localId.orEmpty())
@@ -544,48 +545,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         return isNeedReload
     }
-
-    /**
-     * Return signer exist in local
-     */
-    private fun saveServerSignerIfNeed(signer: SignerServerDto): Boolean {
-        val hasSigner = nunchukNativeSdk.hasSigner(
-            SingleSigner(
-                name = signer.name.orEmpty(),
-                xpub = signer.xpub.orEmpty(),
-                publicKey = signer.pubkey.orEmpty(),
-                derivationPath = signer.derivationPath.orEmpty(),
-                masterFingerprint = signer.xfp.orEmpty(),
-            )
-        )
-        if (hasSigner) return true
-        val tapsigner = signer.tapsigner
-        if (tapsigner != null) {
-            nunchukNativeSdk.addTapSigner(
-                cardId = tapsigner.cardId,
-                name = signer.name.orEmpty(),
-                xfp = signer.xfp.orEmpty(),
-                version = tapsigner.version.orEmpty(),
-                brithHeight = tapsigner.birthHeight,
-                isTestNet = tapsigner.isTestnet,
-                replace = false
-            )
-        } else {
-            val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
-            nunchukNativeSdk.createSigner(
-                name = signer.name.orEmpty(),
-                xpub = signer.xpub.orEmpty(),
-                publicKey = signer.pubkey.orEmpty(),
-                derivationPath = signer.derivationPath.orEmpty(),
-                masterFingerprint = signer.xfp.orEmpty(),
-                type = type,
-                tags = signer.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() },
-                replace = false
-            )
-        }
-        return false
-    }
-
 
     override suspend fun updateServerWallet(
         walletLocalId: String,
@@ -2892,7 +2851,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             assistedWalletDao.updateOrInsert(it.copy(replaceSignerTypes = replaceSignerTypes))
         }
         status.signers.map {
-            saveServerSignerIfNeed(it.replaceBy)
+            signerGateway.saveServerSignerIfNeed(it.replaceBy)
         }
 
         return ReplaceWalletStatus(

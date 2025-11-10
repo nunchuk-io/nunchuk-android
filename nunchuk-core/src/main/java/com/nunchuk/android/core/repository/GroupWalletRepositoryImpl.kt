@@ -9,6 +9,7 @@ import com.nunchuk.android.core.data.model.byzantine.toWalletType
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
 import com.nunchuk.android.core.data.model.membership.WalletAliasRequest
 import com.nunchuk.android.core.data.model.membership.toModel
+import com.nunchuk.android.core.gateway.SignerGateway
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.toKeyHealthStatus
 import com.nunchuk.android.core.persistence.NcDataStore
@@ -20,7 +21,6 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.ServerKeyExtra
 import com.nunchuk.android.model.SignerExtra
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
@@ -56,6 +56,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
     private val byzantineSyncer: ByzantineSyncer,
     applicationScope: CoroutineScope,
     private val assistedWalletDao: AssistedWalletDao,
+    private val signerGateway: SignerGateway,
 ) : GroupWalletRepository {
     private val chain =
         ncDataStore.chain.stateIn(applicationScope, SharingStarted.Eagerly, Chain.MAIN)
@@ -104,7 +105,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
 
         draftWallet.signers.forEach { key ->
             val signerType = key.type.toSignerType()
-            newSigner[key.xfp.orEmpty()] = !saveServerSignerIfNeed(key)
+            newSigner[key.xfp.orEmpty()] = !signerGateway.saveServerSignerIfNeed(key)
             if (signerType == SignerType.SERVER) {
                 membershipRepository.saveStepInfo(
                     MembershipStepInfo(
@@ -211,7 +212,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
 
         draftWallet.signers.forEach { key ->
             val signerType = key.type.toSignerType()
-            newSigner[key.xfp.orEmpty()] = !saveServerSignerIfNeed(key)
+            newSigner[key.xfp.orEmpty()] = !signerGateway.saveServerSignerIfNeed(key)
             if (signerType == SignerType.SERVER) {
                 if (membershipStepDao.getStep(
                         chatId, chain.value, MembershipStep.ADD_SEVER_KEY, groupId
@@ -368,44 +369,6 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                 }
             }
         }
-    }
-
-    private fun saveServerSignerIfNeed(signer: SignerServerDto): Boolean {
-        val hasSigner = nunchukNativeSdk.hasSigner(
-            SingleSigner(
-                name = signer.name.orEmpty(),
-                xpub = signer.xpub.orEmpty(),
-                publicKey = signer.pubkey.orEmpty(),
-                derivationPath = signer.derivationPath.orEmpty(),
-                masterFingerprint = signer.xfp.orEmpty(),
-            )
-        )
-        if (hasSigner) return true
-        val tapsigner = signer.tapsigner
-        if (tapsigner != null) {
-            nunchukNativeSdk.addTapSigner(
-                cardId = tapsigner.cardId,
-                name = signer.name.orEmpty(),
-                xfp = signer.xfp.orEmpty(),
-                version = tapsigner.version.orEmpty(),
-                brithHeight = tapsigner.birthHeight,
-                isTestNet = tapsigner.isTestnet,
-                replace = false
-            )
-        } else {
-            val type = nunchukNativeSdk.signerTypeFromStr(signer.type.orEmpty())
-            nunchukNativeSdk.createSigner(
-                name = signer.name.orEmpty(),
-                xpub = signer.xpub.orEmpty(),
-                publicKey = signer.pubkey.orEmpty(),
-                derivationPath = signer.derivationPath.orEmpty(),
-                masterFingerprint = signer.xfp.orEmpty(),
-                type = type,
-                tags = signer.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() },
-                replace = false
-            )
-        }
-        return false
     }
 
     private suspend fun handleSetupStartedPlaceholder(
