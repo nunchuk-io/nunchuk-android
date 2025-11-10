@@ -1961,17 +1961,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) {
             throw response.error
         }
-
-        membershipRepository.saveStepInfo(
-            MembershipStepInfo(
-                id = getTimelockStepId(groupId.orEmpty()),
-                step = MembershipStep.TIMELOCK,
-                verifyType = VerifyType.APP_VERIFIED,
-                extraData = timelockValue.toString(),
-                plan = plan,
-                groupId = groupId.orEmpty()
-            )
-        )
     }
 
     private suspend fun getTimelockStepId(groupId: String): Long {
