@@ -18,8 +18,8 @@ import com.nunchuk.android.model.InheritanceClaimingInit
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
+import com.nunchuk.android.usecase.DeleteMasterSignerUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
-import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +37,7 @@ class ClaimInheritanceViewModel @Inject constructor(
     private val downloadWalletForClaimUseCase: DownloadWalletForClaimUseCase,
     private val getInheritanceClaimStateUseCase: GetInheritanceClaimStateUseCase,
     private val getMasterFingerprintUseCase: GetMasterFingerprintUseCase,
-    private val getMasterSignerUseCase: GetMasterSignerUseCase,
+    private val deleteMasterSignerUseCase: DeleteMasterSignerUseCase,
     private val singleSignerMapper: SingleSignerMapper,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -85,23 +85,23 @@ class ClaimInheritanceViewModel @Inject constructor(
             val currentData = _claimData.value
             val signerName = "$INHERITED_KEY_NAME #${currentData.signers.size + 1}"
 
-            val masterFingerprint = getMasterFingerprintUseCase(
-                GetMasterFingerprintUseCase.Param(
-                    mnemonic = mnemonic,
-                    passphrase = passphrase
-                )
-            ).getOrNull()
-
-            if (!masterFingerprint.isNullOrEmpty()) {
-                getMasterSignerUseCase(masterFingerprint)
-            } else {
-                createSoftwareSignerUseCase(
-                    CreateSoftwareSignerUseCase.Param(
-                        name = signerName,
+            runCatching {
+                getMasterFingerprintUseCase(
+                    GetMasterFingerprintUseCase.Param(
                         mnemonic = mnemonic,
+                        passphrase = passphrase
                     )
+                ).getOrThrow()?.let {
+                    deleteMasterSignerUseCase(it).getOrThrow()
+                }
+            }
+
+            createSoftwareSignerUseCase(
+                CreateSoftwareSignerUseCase.Param(
+                    name = signerName,
+                    mnemonic = mnemonic,
                 )
-            }.map { signer ->
+            ).map { signer ->
                 getDefaultSignerFromMasterSignerUseCase(
                     GetDefaultSignerFromMasterSignerUseCase.Params(
                         masterSignerId = signer.id,
