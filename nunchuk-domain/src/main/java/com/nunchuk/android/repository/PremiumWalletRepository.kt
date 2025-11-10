@@ -356,7 +356,12 @@ interface PremiumWalletRepository {
 
     suspend fun checkKeyAdded(plan: MembershipPlan, groupId: String, requestId: String?): Boolean
     suspend fun deleteDraftWallet()
-    suspend fun createDraftWalletTimelock(groupId: String?, timelockValue: Long, plan: MembershipPlan)
+    suspend fun createDraftWalletTimelock(
+        groupId: String?,
+        timelockValue: Long,
+        timezone: String,
+        plan: MembershipPlan
+    )
     suspend fun cancelRequestIdIfNeed(groupId: String, step: MembershipStep)
     suspend fun getPermissionGroupWallet(type: GroupWalletType): DefaultPermissions
     suspend fun createGroupServerKey(groupId: String, name: String, groupKeyPolicy: GroupKeyPolicy)

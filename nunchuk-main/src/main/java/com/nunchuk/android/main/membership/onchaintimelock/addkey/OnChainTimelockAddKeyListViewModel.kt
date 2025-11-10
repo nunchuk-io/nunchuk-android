@@ -173,7 +173,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                                     step,
                                     null,
                                     info.verifyType,
-                                    timelock = if (step == MembershipStep.TIMELOCK) info.parseTimelockValue() else null
+                                    timelock = if (step == MembershipStep.TIMELOCK) info.parseTimelockExtra() else null
                                 )
                             }
                         }

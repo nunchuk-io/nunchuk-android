@@ -43,7 +43,9 @@ internal data class CreateTimelockPayload(
 
 internal data class TimelockPayload(
     @SerializedName("value")
-    val value: Long
+    val value: Long,
+    @SerializedName("timezone")
+    val timezone: String = ""
 )
 
 internal data class CreateSecurityQuestionRequest(

@@ -176,7 +176,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     membershipStepManager,
                     ::handleShowMore,
                     onConfigTimelockClicked = { data ->
-                        val timelock = data.stepDataMap[MembershipStep.TIMELOCK]?.timelock ?: 0L
+                        val timelock = data.stepDataMap[MembershipStep.TIMELOCK]?.timelock?.value ?: 0L
                         findNavController().navigate(
                             OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToOnChainSetUpTimelockFragment(
                                 groupId = (activity as MembershipActivity).groupId,
@@ -956,8 +956,8 @@ private fun ConfigItem(
     val signers = item.signers ?: emptyList()
     
     // Check if this is a TIMELOCK step with timelock data configured
-    val isTimelockWithData = item.type == MembershipStep.TIMELOCK && 
-                             item.stepDataMap[MembershipStep.TIMELOCK]?.timelock.orDefault(0) > 0
+    val isTimelockWithData = item.type == MembershipStep.TIMELOCK &&
+            item.stepDataMap[MembershipStep.TIMELOCK]?.timelock?.value.orDefault(0) > 0
     
     Row(
         modifier = Modifier.padding(12.dp),
@@ -1011,7 +1011,7 @@ private fun ConfigItem(
                 }
             }
             if (isTimelockWithData) {
-                val timelockValue = item.stepDataMap[MembershipStep.TIMELOCK]?.timelock
+                val timelockValue = item.stepDataMap[MembershipStep.TIMELOCK]?.timelock?.value
                 val formattedDate = timelockValue?.let {
                     val dateFormat = SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.getDefault())
                     dateFormat.format(Date(it * 1000)) // Convert seconds to milliseconds

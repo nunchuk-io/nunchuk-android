@@ -24,6 +24,11 @@ import com.nunchuk.android.type.SignerType
 
 private val gson = Gson()
 
+data class TimelockExtra(
+    val value: Long = 0L,
+    val timezone: String? = null
+)
+
 data class MembershipStepInfo(
     val id: Long = 0,
     val step: MembershipStep,
@@ -57,10 +62,11 @@ data class MembershipStepInfo(
         return signer?.signerType == SignerType.NFC
     }
 
-    fun parseTimelockValue(): Long {
+    fun parseTimelockExtra(): TimelockExtra? {
+        if (extraData.isBlank()) return null
         return runCatching {
-            extraData.toLongOrNull() ?: 0L
-        }.getOrDefault(0L)
+            gson.fromJson(extraData, TimelockExtra::class.java)
+        }.getOrNull()
     }
 }
 

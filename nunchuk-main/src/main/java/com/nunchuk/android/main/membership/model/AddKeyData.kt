@@ -25,6 +25,7 @@ import com.nunchuk.android.core.util.DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.HARDWARE_KEY_NAME
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.TimelockExtra
 import com.nunchuk.android.model.VerifyType
 
 data class AddKeyData(
@@ -42,13 +43,13 @@ data class AddKeyData(
 data class StepData(
     val signer: SignerModel? = null,
     val verifyType: VerifyType = VerifyType.NONE,
-    val timelock: Long? = null
+    val timelock: TimelockExtra? = null
 ) {
     val isComplete: Boolean
         get() = signer != null || verifyType != VerifyType.NONE
 
     fun isTimelockComplete(): Boolean {
-        return timelock != null && timelock > 0
+        return timelock?.value?.let { it > 0 } == true
     }
 }
 
@@ -128,7 +129,7 @@ data class AddKeyOnChainData(
         step: MembershipStep,
         signer: SignerModel?,
         verifyType: VerifyType,
-        timelock: Long? = null
+        timelock: TimelockExtra? = null
     ): AddKeyOnChainData {
         val updatedMap = stepDataMap.toMutableMap()
         updatedMap[step] = StepData(signer, verifyType, timelock)

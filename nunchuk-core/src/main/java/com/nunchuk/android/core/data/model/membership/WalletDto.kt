@@ -53,6 +53,7 @@ data class ReplaceByDto(
 
 data class TimelockDto(
     @SerializedName("value") val value: Long = 0L,
+    @SerializedName("timezone") val timezone: String? = null,
 )
 
 internal fun WalletDto.toModel(): WalletServer {

@@ -1984,10 +1984,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun createDraftWalletTimelock(
         groupId: String?,
         timelockValue: Long,
+        timezone: String,
         plan: MembershipPlan
     ) {
         val payload = CreateTimelockPayload(
-            timelock = TimelockPayload(value = timelockValue)
+            timelock = TimelockPayload(
+                value = timelockValue,
+                timezone = timezone
+            )
         )
         val response = if (groupId.isNullOrEmpty()) {
             userWalletApiManager.walletApi.createDraftWalletTimelock(payload)

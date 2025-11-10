@@ -47,6 +47,7 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
                 CreateTimelockUseCase.Param(
                     groupId = groupId,
                     timelockValue = timelockValue,
+                    timezone = selectedTimeZone.id,
                     plan = membershipStepManager.localMembershipPlan
                 )
             )

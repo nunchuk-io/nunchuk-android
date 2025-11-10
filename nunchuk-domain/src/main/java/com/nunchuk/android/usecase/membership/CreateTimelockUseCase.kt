@@ -35,6 +35,7 @@ class CreateTimelockUseCase @Inject constructor(
         return premiumWalletRepository.createDraftWalletTimelock(
             groupId = parameters.groupId,
             timelockValue = parameters.timelockValue,
+            timezone = parameters.timezone,
             plan = parameters.plan
         )
     }
@@ -42,6 +43,7 @@ class CreateTimelockUseCase @Inject constructor(
     data class Param(
         val groupId: String?,
         val timelockValue: Long,
+        val timezone: String,
         val plan: MembershipPlan
     )
 }

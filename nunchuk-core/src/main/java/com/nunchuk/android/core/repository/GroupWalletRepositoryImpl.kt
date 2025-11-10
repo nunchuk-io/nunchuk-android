@@ -184,7 +184,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                     id = getTimelockStepId(""),
                     step = MembershipStep.TIMELOCK,
                     verifyType = VerifyType.APP_VERIFIED,
-                    extraData = timelock.value.toString(),
+                    extraData = gson.toJson(timelock),
                     plan = plan,
                     groupId = ""
                 )
@@ -303,7 +303,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                     id = getTimelockStepId(groupId),
                     step = MembershipStep.TIMELOCK,
                     verifyType = VerifyType.APP_VERIFIED,
-                    extraData = timelock.value.toString(),
+                    extraData = gson.toJson(timelock),
                     plan = MembershipPlan.BYZANTINE,
                     groupId = groupId
                 )
