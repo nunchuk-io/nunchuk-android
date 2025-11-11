@@ -147,10 +147,17 @@ private fun InheritancePlanOverviewContent(
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 2,
-                    label = if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) stringResource(
-                        id = R.string.nc_two_backup_password
-                    )
-                    else stringResource(id = R.string.nc_a_backup_password),
+                    label = if (isMiniscriptWallet) {
+                        if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) stringResource(
+                            R.string.nc_two_inheritance_keys
+                        )
+                        else stringResource(R.string.nc_an_inheritance_key)
+                    } else {
+                        if (groupWalletType == GroupWalletType.THREE_OF_FIVE_INHERITANCE) stringResource(
+                            id = R.string.nc_two_backup_password
+                        )
+                        else stringResource(id = R.string.nc_a_backup_password)
+                    },
                 )
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),

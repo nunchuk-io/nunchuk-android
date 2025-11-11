@@ -436,7 +436,7 @@
     <!-- About the timelock screen strings -->
     <string name="nc_about_the_timelock_title">About the timelock</string>
     <string name="nc_about_the_timelock_description_1">Your inheritance plan uses an on-chain timelock, a built-in delay that protects your funds. The wallet has two spending paths: before and after the timelock.</string>
-    <string name="nc_about_the_timelock_description_2">You can change the timelock later in the Services tab. This involves creating a new wallet and transferring your funds to it. We will automatically guide you through the process.</string>
+    <string name="nc_about_the_timelock_description_2">You can change the timelock later in Wallet Config. This involves creating a new wallet and transferring your funds to it. We will automatically guide you through the process.</string>
     <string name="nc_about_the_timelock_description_3">Review the plan annually and adjust the timelock as needed.</string>
     <string name="nc_timelock_info_hint">Even with the inheritance key, the Beneficiary or Trustee cannot claim funds before the timelock expires.</string>
     <string name="nc_inheritance_skip_notifications_confirmation">If you don’t provide a Beneficiary email address, you’ll need to share all inheritance plan updates with them manually. Are you sure you want to continue?</string>
@@ -486,4 +486,6 @@
     <string name="nc_no_inheritance_plan_found_desc">No matching inheritance plan found for the magic phrase and key you provided. Please try again later.</string>
     <string name="nc_keep_coin_tags_and_collections">Keep coin tags and collections</string>
     <string name="nc_add_coin_tags_or_collections">Add coin tags or collections</string>
+    <string name="nc_an_inheritance_key">An inheritance key</string>
+    <string name="nc_two_inheritance_keys">Two inheritance keys</string>
 </resources>
