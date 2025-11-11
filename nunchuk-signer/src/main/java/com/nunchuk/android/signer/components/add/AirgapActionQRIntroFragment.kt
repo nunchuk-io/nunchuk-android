@@ -122,6 +122,7 @@ internal fun AirgapActionQRIntroScreen(
                     .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
+                val keyIndex = if (onChainAddSignerParam != null && onChainAddSignerParam.keyIndex >= 0) onChainAddSignerParam.keyIndex else 0
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_add_jade),
@@ -165,12 +166,12 @@ internal fun AirgapActionQRIntroScreen(
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 3,
-                    title = stringResource(id = R.string.nc_export_xpub_jade, onChainAddSignerParam?.keyIndex ?: 0),
+                    title = stringResource(id = R.string.nc_export_xpub_jade, keyIndex),
                     titleStyle = NunchukTheme.typography.title,
                 ) {
                     Text(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),
-                        text = stringResource(id = R.string.nc_export_xpub_jade_desc, onChainAddSignerParam?.keyIndex ?: 0),
+                        text = stringResource(id = R.string.nc_export_xpub_jade_desc, keyIndex),
                         style = NunchukTheme.typography.body
                     )
                 }

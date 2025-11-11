@@ -219,10 +219,10 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                 if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
                     val currentSigner = onChainAddSignerParam!!.currentSigner
                     if (currentSigner != null) {
-                        if (signer.masterSignerId != currentSigner.fingerPrint) {
+                        if (signer.masterFingerprint != currentSigner.fingerPrint) {
                             setEvent(
                                 AddAirgapSignerErrorEvent(
-                                    "The key you just added (XFP:${signer.masterSignerId.uppercase()}) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}). Please try again."
+                                    "The key you just added (XFP:${signer.masterFingerprint.uppercase()}) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}). Please try again."
                                 )
                             )
                             setEvent(LoadingEventAirgap(false))
@@ -234,7 +234,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                         if (newAccountIndex != 0) {
                             setEvent(
                                 AddAirgapSignerErrorEvent(
-                                    "The key you just added (XFP:${signer.masterSignerId.uppercase()}, Account $newAccountIndex) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}, Account 0). Please try again."
+                                    "The key you just added (XFP:${signer.masterFingerprint.uppercase()}, Account $newAccountIndex) doesn't match the original inheritance key (XFP:${currentSigner.fingerPrint.uppercase()}, Account 0). Please try again."
                                 )
                             )
                             setEvent(LoadingEventAirgap(false))

@@ -106,7 +106,7 @@ internal fun AirgapActionIntroScreen(
                     if (onChainAddSignerParam != null && onChainAddSignerParam.keyIndex >= 0) onChainAddSignerParam.keyIndex else 0
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = if (onChainAddSignerParam != null) {
+                    text = if (onChainAddSignerParam != null && onChainAddSignerParam.isVerifyBackupSeedPhrase().not()) {
                         "${stringResource(R.string.nc_add_jade)} (${onChainKeyIndex + 1}/2)"
                     } else {
                         stringResource(R.string.nc_add_jade)

@@ -731,8 +731,7 @@ fun OnChainTimelockByzantineAddKeyListContent(
                             data.steps.all { step ->
                                 data.stepDataMap[step]?.isComplete == true
                             }
-                        } && keys.filter { it.type.isAddInheritanceKey }
-                            .all { it.verifyType != VerifyType.NONE }
+                        }
                     ) {
                         Text(text = stringResource(id = R.string.nc_text_continue))
                     }
