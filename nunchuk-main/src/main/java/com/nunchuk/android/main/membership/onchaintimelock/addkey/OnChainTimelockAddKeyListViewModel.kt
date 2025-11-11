@@ -800,13 +800,13 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
 
                                 if (signer != null) {
                                     // If signer != null, add signer to corresponding AddKeyOnChainData.signers
-                                    onSelectedExistingHardwareSigner(signer)
+                                    onSelectedExistingHardwareSigner(signer, data)
                                 } else {
                                     // If signer == null, run handleSignerTypeLogic flow
                                     _event.emit(
                                         AddKeyListEvent.HandleSignerTypeLogic(
                                             firstSigner.type,
-                                            firstSigner.tags.first { it != SignerTag.INHERITANCE }
+                                            firstSigner.tags.firstOrNull { it != SignerTag.INHERITANCE }
                                         )
                                     )
                                 }
@@ -817,7 +817,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                                 _event.emit(
                                     AddKeyListEvent.HandleSignerTypeLogic(
                                         firstSigner.type,
-                                        firstSigner.tags.first { it != SignerTag.INHERITANCE }
+                                        firstSigner.tags.firstOrNull { it != SignerTag.INHERITANCE }
                                     )
                                 )
                             }

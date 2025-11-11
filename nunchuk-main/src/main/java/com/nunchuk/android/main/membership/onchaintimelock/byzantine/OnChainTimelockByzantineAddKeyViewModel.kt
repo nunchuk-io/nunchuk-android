@@ -517,7 +517,8 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                                 signerByIndexResult.data?.let { singleSigner ->
                                     processTapSignerWithCompleteData(
                                         singleSigner,
-                                        singleSigner.toModel()
+                                        singleSigner.toModel(),
+                                        data
                                     )
                                 }
                             }
@@ -821,13 +822,13 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
 
                                 if (signer != null) {
                                     // If signer != null, add signer to corresponding AddKeyOnChainData.signers
-                                    handleSignerNewIndex(signer)
+                                    handleSignerNewIndex(signer, data)
                                 } else {
                                     // If signer == null, run handleSignerTypeLogic flow
                                     _event.emit(
                                         OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic(
                                             firstSigner.type,
-                                            firstSigner.tags.first { it != SignerTag.INHERITANCE }
+                                            firstSigner.tags.firstOrNull { it != SignerTag.INHERITANCE }
                                         )
                                     )
                                 }
@@ -838,7 +839,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                                 _event.emit(
                                     OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic(
                                         firstSigner.type,
-                                        firstSigner.tags.first { it != SignerTag.INHERITANCE }
+                                        firstSigner.tags.firstOrNull { it != SignerTag.INHERITANCE }
                                     )
                                 )
                             }
