@@ -238,7 +238,9 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                                 fromMembershipFlow = true,
                                 groupId = (activity as MembershipActivity).groupId,
                                 walletId = (activity as MembershipActivity).walletId,
-                                onChainAddSignerParam = args.onChainAddSignerParam
+                                onChainAddSignerParam = args.onChainAddSignerParam!!.copy(
+                                    keyIndex = viewModel.getNewIndex()
+                                )
                             )
                         )
                     } else {
@@ -264,6 +266,9 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                                         newIndex = viewModel.getNewIndex(),
                                         replacedXfp = args.replacedXfp,
                                         walletId = args.walletId.orEmpty(),
+                                        onChainAddSignerParam = args.onChainAddSignerParam?.copy(
+                                            keyIndex = viewModel.getNewIndex()
+                                        )
                                     )
                                 )
                             }
