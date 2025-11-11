@@ -176,7 +176,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     membershipStepManager,
                     ::handleShowMore,
                     onConfigTimelockClicked = { data ->
-                        val timelock = data.stepDataMap[MembershipStep.TIMELOCK]?.timelock?.value ?: 0L
+                        val timelock =
+                            data.stepDataMap[MembershipStep.TIMELOCK]?.timelock?.value ?: 0L
                         findNavController().navigate(
                             OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToOnChainSetUpTimelockFragment(
                                 groupId = (activity as MembershipActivity).groupId,
@@ -196,7 +197,11 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             val newIndex = bundle.getInt(GlobalResultKey.EXTRA_INDEX, -1)
 
             if (newIndex != -1 && signer?.masterFingerprint?.isNotEmpty() == true) {
-                viewModel.handleCustomKeyAccountResult(signer.masterFingerprint, newIndex, keyData = currentKeyData)
+                viewModel.handleCustomKeyAccountResult(
+                    signer.masterFingerprint,
+                    newIndex,
+                    keyData = currentKeyData
+                )
             } else if (signer != null) {
                 viewModel.onSelectedExistingHardwareSigner(signer, currentKeyData)
             }
@@ -225,7 +230,10 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         if (signer.type == SignerType.AIRGAP && signer.tags.isEmpty() && selectedSignerTag != null) {
                             viewModel.onUpdateSignerTag(signer, selectedSignerTag)
                         } else {
-                            viewModel.onSelectedExistingHardwareSigner(signer.toSingleSigner(), currentKeyData)
+                            viewModel.onSelectedExistingHardwareSigner(
+                                signer.toSingleSigner(),
+                                currentKeyData
+                            )
                         }
                     }
                 }
@@ -261,7 +269,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
             val signerModel = bundle.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
             val signerTag = filteredSigners?.firstOrNull()?.tags?.firstOrNull()
-            val isFromNfcSetup = bundle.getBoolean(OnChainSignerIntroFragment.EXTRA_IS_FROM_NFC_SETUP, false)
+            val isFromNfcSetup =
+                bundle.getBoolean(OnChainSignerIntroFragment.EXTRA_IS_FROM_NFC_SETUP, false)
             selectedSignerTag = signerTag
             when {
                 isFromNfcSetup && signerModel != null -> {
@@ -271,6 +280,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         (activity as MembershipActivity).walletId
                     )
                 }
+
                 !filteredSigners.isNullOrEmpty() -> {
                     findNavController().navigate(
                         OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToTapSignerListBottomSheetFragment(
@@ -288,13 +298,14 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         )
                     )
                 }
+
                 signerTag != null -> {
                     handleHardwareSignerTag(signerTag)
                 }
             }
             clearFragmentResult(OnChainSignerIntroFragment.REQUEST_KEY)
         }
-        
+
         setFragmentResultListener(ColdCardIntroFragment.REQUEST_KEY) { _, bundle ->
             val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
             if (signerTag != null) {
@@ -366,7 +377,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     flags = if (currentKeyData?.type?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
                     keyIndex = currentKeyData?.signers?.size ?: 0,
                     currentSigner = currentKeyData?.signers?.firstOrNull()
-            ))
+                )
+            )
         )
     }
 
@@ -382,7 +394,11 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     }
                 }
 
-                AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack(R.id.addKeyStepFragment, false)
+                AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack(
+                    R.id.addKeyStepFragment,
+                    false
+                )
+
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> {
 
@@ -768,6 +784,10 @@ private fun AddKeyCard(
     ) {
         val (banner, content) = createRefs()
         val signers = item.signers ?: emptyList()
+        val isVerified =
+            item.verifyType != VerifyType.NONE ||
+                    item.isInheritanceKey()
+                        .not() && item.signers?.firstOrNull()?.type != SignerType.NFC
         Box(
             modifier = modifier
                 .constrainAs(content) {
@@ -790,7 +810,7 @@ private fun AddKeyCard(
                                         alpha = 0.4f
                                     )
 
-                                    item.verifyType != VerifyType.NONE -> colorResource(id = R.color.nc_fill_slime)
+                                    isVerified -> colorResource(id = R.color.nc_fill_slime)
                                     isDisabled -> colorResource(id = R.color.nc_grey_dark_color)
                                     else -> colorResource(id = R.color.nc_fill_beewax)
                                 },
@@ -826,7 +846,10 @@ private fun AddKeyCard(
                                     )
                                     val firstAcctLabel = signers.firstOrNull()?.let { firstSigner ->
                                         if (firstSigner.isShowAcctX(true)) {
-                                            stringResource(R.string.nc_acct_x, if (firstSigner.index >= 0) firstSigner.index else 0)
+                                            stringResource(
+                                                R.string.nc_acct_x,
+                                                if (firstSigner.index >= 0) firstSigner.index else 0
+                                            )
                                         } else {
                                             "Acct X"
                                         }
@@ -844,7 +867,8 @@ private fun AddKeyCard(
                                         signers.getOrNull(1)?.let { secondSigner ->
                                             if (secondSigner.isShowAcctX(true)) {
                                                 stringResource(
-                                                    R.string.nc_acct_x, if (secondSigner.index >= 0) secondSigner.index else 0
+                                                    R.string.nc_acct_x,
+                                                    if (secondSigner.index >= 0) secondSigner.index else 0
                                                 )
                                             } else {
                                                 "Acct Y"
@@ -875,7 +899,7 @@ private fun AddKeyCard(
                                 }
                             }
                             if (signers.size >= 2) {
-                                if (item.verifyType != VerifyType.NONE) {
+                                if (isVerified) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.nc_circle_checked),
                                         contentDescription = "Checked icon"
@@ -892,8 +916,10 @@ private fun AddKeyCard(
                                         modifier = Modifier.height(36.dp),
                                         onClick = { onVerifyClicked(item) },
                                     ) {
-                                        Text(text = stringResource(R.string.nc_verify),
-                                            style = NunchukTheme.typography.caption)
+                                        Text(
+                                            text = stringResource(R.string.nc_verify),
+                                            style = NunchukTheme.typography.caption
+                                        )
                                     }
                                 }
                             } else {
@@ -921,7 +947,11 @@ private fun AddKeyCard(
                             ),
                         contentAlignment = Alignment.Center,
                     ) {
-                        ConfigItem(item, isDisabled = isDisabled, onChangeTimelockClicked = onChangeTimelockClicked)
+                        ConfigItem(
+                            item,
+                            isDisabled = isDisabled,
+                            onChangeTimelockClicked = onChangeTimelockClicked
+                        )
                     }
                 } else {
                     NcDashLineBox(modifier = modifier) {
@@ -960,11 +990,11 @@ private fun ConfigItem(
     onChangeTimelockClicked: (data: AddKeyOnChainData) -> Unit = {}
 ) {
     val signers = item.signers ?: emptyList()
-    
+
     // Check if this is a TIMELOCK step with timelock data configured
     val isTimelockWithData = item.type == MembershipStep.TIMELOCK &&
             item.stepDataMap[MembershipStep.TIMELOCK]?.timelock?.value.orDefault(0) > 0
-    
+
     Row(
         modifier = Modifier.padding(12.dp),
         verticalAlignment = Alignment.CenterVertically

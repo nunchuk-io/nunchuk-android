@@ -447,8 +447,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
             _event.emit(OnChainTimelockByzantineAddKeyListEvent.ShowError(it.message.orUnknownError()))
             return
         }
-        val verifyType =
-            if (signer.type == SignerType.NFC || data?.isInheritanceKey() == true) VerifyType.NONE else VerifyType.APP_VERIFIED
+        val verifyType = getVerificationTypeForSigner(signerModel, data)
 
         // Save membership step
         saveMembershipStepUseCase(
@@ -561,6 +560,14 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         }
     }
 
+    private fun getVerificationTypeForSigner(signer: SignerModel, data: AddKeyOnChainData?): VerifyType {
+        return if (data?.isInheritanceKey() == true || signer.type == SignerType.NFC) {
+            VerifyType.NONE
+        } else {
+            VerifyType.APP_VERIFIED
+        }
+    }
+
     fun handleCustomKeyAccountResult(
         signerFingerPrint: String,
         newIndex: Int,
@@ -622,8 +629,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                 _event.emit(OnChainTimelockByzantineAddKeyListEvent.ShowError(it.message.orUnknownError()))
                 return@launch
             }
-            val verifyType =
-                if (keyOnChainData?.isInheritanceKey() == true) VerifyType.NONE else VerifyType.APP_VERIFIED
+            val verifyType = getVerificationTypeForSigner(signer.toModel(), keyOnChainData)
             saveMembershipStepUseCase(
                 MembershipStepInfo(
                     step = currentStep,

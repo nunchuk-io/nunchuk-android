@@ -267,7 +267,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                 _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
                 return@launch
             }
-            val verifyType = if (keyData?.isInheritanceKey() == true) VerifyType.NONE else VerifyType.APP_VERIFIED
+            val verifyType = getVerificationTypeForSigner(signer.toModel(), keyData)
             saveMembershipStepUseCase(
                 MembershipStepInfo(
                     step = currentStep,
@@ -514,7 +514,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
 
         val currentStep = membershipStepManager.currentStep
             ?: throw IllegalArgumentException("Current step empty")
-        val verifyType = if (signer.type == SignerType.NFC || data?.isInheritanceKey() == true) VerifyType.NONE else VerifyType.APP_VERIFIED
+        val verifyType = getVerificationTypeForSigner(signerModel, data)
         // Save membership step
         saveMembershipStepUseCase(
             MembershipStepInfo(
@@ -687,6 +687,14 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         return runCatching {
             gson.fromJson(extra, SignerExtra::class.java).userKeyFileName
         }.getOrDefault("")
+    }
+
+    private fun getVerificationTypeForSigner(signer: SignerModel, data: AddKeyOnChainData?): VerifyType {
+        return if (data?.isInheritanceKey() == true || signer.type == SignerType.NFC) {
+            VerifyType.NONE
+        } else {
+            VerifyType.APP_VERIFIED
+        }
     }
 
     /**

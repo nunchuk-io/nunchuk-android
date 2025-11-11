@@ -842,6 +842,10 @@ private fun AddKeyCard(
     ) {
         val (banner, content) = createRefs()
         val signers = item.signers ?: emptyList()
+        val isVerified =
+            item.verifyType != VerifyType.NONE ||
+                    item.isInheritanceKey()
+                        .not() && item.signers?.firstOrNull()?.type != SignerType.NFC
         Box(
             modifier = modifier
                 .constrainAs(content) {
@@ -864,7 +868,7 @@ private fun AddKeyCard(
                                         alpha = 0.4f
                                     )
 
-                                    item.verifyType != VerifyType.NONE -> colorResource(id = R.color.nc_fill_slime)
+                                    isVerified -> colorResource(id = R.color.nc_fill_slime)
                                     isDisabled -> colorResource(id = R.color.nc_grey_dark_color)
                                     else -> colorResource(id = R.color.nc_fill_beewax)
                                 },
@@ -947,7 +951,7 @@ private fun AddKeyCard(
                                 )
                             }
                             if (signers.size >= 2) {
-                                if (item.verifyType != VerifyType.NONE) {
+                                if (isVerified) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.nc_circle_checked),
                                         contentDescription = "Checked icon"
