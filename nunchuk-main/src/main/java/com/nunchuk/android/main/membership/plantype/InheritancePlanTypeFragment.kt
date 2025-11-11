@@ -134,6 +134,7 @@ private fun InheritancePlanTypeScreen(
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     InheritancePlanTypeContent(
         selectedPlanType = uiState.selectedPlanType,
+        orderedPlanTypes = uiState.orderedPlanTypes,
         onPlanTypeSelected = viewModel::onPlanTypeSelected,
         onContinueClicked = onContinueClicked,
         changeTimelockFlow = uiState.changeTimelockFlow
@@ -143,6 +144,7 @@ private fun InheritancePlanTypeScreen(
 @Composable
 private fun InheritancePlanTypeContent(
     selectedPlanType: InheritancePlanType? = InheritancePlanType.OFF_CHAIN,
+    orderedPlanTypes: List<InheritancePlanType> = listOf(InheritancePlanType.ON_CHAIN, InheritancePlanType.OFF_CHAIN),
     onPlanTypeSelected: (InheritancePlanType) -> Unit = {},
     onContinueClicked: () -> Unit = {},
     changeTimelockFlow: Int = -1
@@ -196,120 +198,14 @@ private fun InheritancePlanTypeContent(
                     )
                 }
 
-                // Off-chain timelock option
-                NcRadioButtonOption(
-                    modifier = Modifier.fillMaxWidth(),
-                    isSelected = selectedPlanType == InheritancePlanType.OFF_CHAIN,
-                    onClick = {
-                        if (isChangeTimelockFlow.not()) {
-                            onPlanTypeSelected(InheritancePlanType.OFF_CHAIN)
-                        }
-                    },
-                    showRadioButton = isChangeTimelockFlow.not(),
-                    customBackgroundColor = if (isChangeTimelockFlow) MaterialTheme.colorScheme.lightGray else null
-                ) {
-                    Column {
-                        Row(
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            NcIcon(
-                                painter = painterResource(R.drawable.ic_off_chain_timelock),
-                                contentDescription = null,
-                                modifier = Modifier.size(32.dp)
-                            )
-
-                            Column(modifier = Modifier.padding(start = 12.dp)) {
-                                Text(
-                                    text = stringResource(R.string.nc_off_chain_timelock),
-                                    style = NunchukTheme.typography.title,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(
-                                    text = stringResource(R.string.nc_managed_by_nunchuk),
-                                    style = NunchukTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.textSecondary,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
-                            }
-                        }
-
-
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp),
-                            color = MaterialTheme.colorScheme.strokePrimary,
-                            thickness = 1.dp
-                        )
-
-                        Text(
-                            text = "Pros: ${stringResource(R.string.nc_off_chain_pros)}",
-                            style = NunchukTheme.typography.body,
-                        )
-                        Text(
-                            text = "Cons: ${stringResource(R.string.nc_off_chain_cons)}",
-                            style = NunchukTheme.typography.body,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
-                }
-
-                // On-chain timelock option
-                NcRadioButtonOption(
-                    modifier = Modifier.fillMaxWidth(),
-                    isSelected = selectedPlanType == InheritancePlanType.ON_CHAIN,
-                    onClick = {
-                        if (isChangeTimelockFlow.not()) {
-                            onPlanTypeSelected(InheritancePlanType.ON_CHAIN)
-                        }
-                    },
-                    showRadioButton = isChangeTimelockFlow.not(),
-                    customBackgroundColor = if (isChangeTimelockFlow) MaterialTheme.colorScheme.lightGray else null
-                ) {
-                    Column {
-                        Row(
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            NcIcon(
-                                painter = painterResource(R.drawable.ic_on_chain_timelock),
-                                contentDescription = null,
-                                modifier = Modifier.size(32.dp)
-                            )
-
-                            Column(modifier = Modifier.padding(start = 12.dp)) {
-                                Text(
-                                    text = stringResource(R.string.nc_on_chain_timelock),
-                                    style = NunchukTheme.typography.title,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(
-                                    text = stringResource(R.string.nc_enforced_on_bitcoin),
-                                    style = NunchukTheme.typography.caption,
-                                    color = MaterialTheme.colorScheme.textSecondary,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
-                            }
-                        }
-
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp),
-                            color = MaterialTheme.colorScheme.strokePrimary,
-                            thickness = 1.dp
-                        )
-
-                        Text(
-                            text = "Pros: ${stringResource(R.string.nc_on_chain_pros)}",
-                            style = NunchukTheme.typography.body,
-                            modifier = Modifier.padding(top = 12.dp)
-                        )
-                        Text(
-                            text = "Cons: ${stringResource(R.string.nc_on_chain_cons)}",
-                            style = NunchukTheme.typography.body,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
+                // Render options dynamically based on orderedPlanTypes
+                orderedPlanTypes.forEach { planType ->
+                    InheritancePlanTypeOption(
+                        planType = planType,
+                        isSelected = selectedPlanType == planType,
+                        isChangeTimelockFlow = isChangeTimelockFlow,
+                        onPlanTypeSelected = onPlanTypeSelected
+                    )
                 }
 
                 Row(
@@ -335,6 +231,134 @@ private fun InheritancePlanTypeContent(
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
                         tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InheritancePlanTypeOption(
+    planType: InheritancePlanType,
+    isSelected: Boolean,
+    isChangeTimelockFlow: Boolean,
+    onPlanTypeSelected: (InheritancePlanType) -> Unit
+) {
+    when (planType) {
+        InheritancePlanType.OFF_CHAIN -> {
+            // Off-chain timelock option
+            NcRadioButtonOption(
+                modifier = Modifier.fillMaxWidth(),
+                isSelected = isSelected,
+                onClick = {
+                    if (isChangeTimelockFlow.not()) {
+                        onPlanTypeSelected(InheritancePlanType.OFF_CHAIN)
+                    }
+                },
+                showRadioButton = isChangeTimelockFlow.not(),
+                customBackgroundColor = if (isChangeTimelockFlow) MaterialTheme.colorScheme.lightGray else null
+            ) {
+                Column {
+                    Row(
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        NcIcon(
+                            painter = painterResource(R.drawable.ic_off_chain_timelock),
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp)
+                        )
+
+                        Column(modifier = Modifier.padding(start = 12.dp)) {
+                            Text(
+                                text = stringResource(R.string.nc_off_chain_timelock),
+                                style = NunchukTheme.typography.title,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = stringResource(R.string.nc_managed_by_nunchuk),
+                                style = NunchukTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.textSecondary,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp),
+                        color = MaterialTheme.colorScheme.strokePrimary,
+                        thickness = 1.dp
+                    )
+
+                    Text(
+                        text = "Pros: ${stringResource(R.string.nc_off_chain_pros)}",
+                        style = NunchukTheme.typography.body,
+                    )
+                    Text(
+                        text = "Cons: ${stringResource(R.string.nc_off_chain_cons)}",
+                        style = NunchukTheme.typography.body,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+            }
+        }
+        InheritancePlanType.ON_CHAIN -> {
+            // On-chain timelock option
+            NcRadioButtonOption(
+                modifier = Modifier.fillMaxWidth(),
+                isSelected = isSelected,
+                onClick = {
+                    if (isChangeTimelockFlow.not()) {
+                        onPlanTypeSelected(InheritancePlanType.ON_CHAIN)
+                    }
+                },
+                showRadioButton = isChangeTimelockFlow.not(),
+                customBackgroundColor = if (isChangeTimelockFlow) MaterialTheme.colorScheme.lightGray else null
+            ) {
+                Column {
+                    Row(
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        NcIcon(
+                            painter = painterResource(R.drawable.ic_on_chain_timelock),
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp)
+                        )
+
+                        Column(modifier = Modifier.padding(start = 12.dp)) {
+                            Text(
+                                text = stringResource(R.string.nc_on_chain_timelock),
+                                style = NunchukTheme.typography.title,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = stringResource(R.string.nc_enforced_on_bitcoin),
+                                style = NunchukTheme.typography.caption,
+                                color = MaterialTheme.colorScheme.textSecondary,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp),
+                        color = MaterialTheme.colorScheme.strokePrimary,
+                        thickness = 1.dp
+                    )
+
+                    Text(
+                        text = "Pros: ${stringResource(R.string.nc_on_chain_pros)}",
+                        style = NunchukTheme.typography.body,
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                    Text(
+                        text = "Cons: ${stringResource(R.string.nc_on_chain_cons)}",
+                        style = NunchukTheme.typography.body,
+                        modifier = Modifier.padding(top = 8.dp)
                     )
                 }
             }

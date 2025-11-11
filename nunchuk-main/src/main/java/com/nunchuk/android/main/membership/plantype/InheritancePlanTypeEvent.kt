@@ -14,5 +14,6 @@ data class InheritancePlanTypeUiState(
     val changeTimelockFlow: Int = -1,
     val setupPreference: String? = null,
     val walletId: String? = null,
-    val groupId: String? = null
+    val groupId: String? = null,
+    val orderedPlanTypes: List<InheritancePlanType> = listOf(InheritancePlanType.OFF_CHAIN, InheritancePlanType.ON_CHAIN)
 )

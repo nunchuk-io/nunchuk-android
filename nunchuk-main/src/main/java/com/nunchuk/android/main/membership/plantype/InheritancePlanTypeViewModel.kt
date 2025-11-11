@@ -9,6 +9,8 @@ import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.GetUserWalletConfigsSetupFromCacheUseCase
+import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
 import com.nunchuk.android.usecase.wallet.InitWalletConfigUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +25,8 @@ import javax.inject.Inject
 class InheritancePlanTypeViewModel @Inject constructor(
     private val initWalletConfigUseCase: InitWalletConfigUseCase,
     private val setLocalMembershipPlanFlowUseCase: SetLocalMembershipPlanFlowUseCase,
+    private val getUserWalletConfigsSetupFromCacheUseCase: GetUserWalletConfigsSetupFromCacheUseCase,
+    private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
     private val applicationScope: CoroutineScope,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -38,16 +42,36 @@ class InheritancePlanTypeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            _state.emit(_state.value.copy(
-                isPersonal = args.isPersonal,
-                slug = args.slug,
-                walletType = args.walletType,
-                setupPreference = args.setupPreference,
-                walletId = args.walletId,
-                groupId = args.groupId,
-                changeTimelockFlow = args.changeTimelockFlow,
-                selectedPlanType = if (args.changeTimelockFlow == -1) InheritancePlanType.OFF_CHAIN else null
-            ))
+            getUserWalletConfigsSetupFromCacheUseCase(Unit).collect { walletConfigs ->
+                val orderedPlanTypes = walletConfigs.getOrNull()?.walletTypes?.mapNotNull { walletType ->
+                    when (walletType) {
+                        WalletType.MINISCRIPT.name -> InheritancePlanType.ON_CHAIN
+                        WalletType.MULTI_SIG.name -> InheritancePlanType.OFF_CHAIN
+                        else -> null
+                    }
+                } ?: listOf(InheritancePlanType.ON_CHAIN, InheritancePlanType.OFF_CHAIN)
+                
+                val defaultPlanType = if (args.changeTimelockFlow == -1) {
+                    orderedPlanTypes.firstOrNull()
+                } else {
+                    null
+                }
+                
+                _state.emit(_state.value.copy(
+                    isPersonal = args.isPersonal,
+                    slug = args.slug,
+                    walletType = args.walletType,
+                    setupPreference = args.setupPreference,
+                    walletId = args.walletId,
+                    groupId = args.groupId,
+                    changeTimelockFlow = args.changeTimelockFlow,
+                    orderedPlanTypes = orderedPlanTypes,
+                    selectedPlanType = defaultPlanType
+                ))
+            }
+        }
+        viewModelScope.launch {
+            getUserWalletConfigsSetupUseCase(Unit)
         }
     }
 
