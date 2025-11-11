@@ -146,7 +146,7 @@ class CreateWalletFragment : MembershipFragment() {
                         walletId = it.walletId,
                         isOnChainFlow = true,
                         groupId = groupId.takeIf { it.isNotEmpty() },
-                        replacedWalletId = null,
+                        replacedWalletId = (activity as? MembershipActivity)?.onChainReplaceWalletId,
                         quickWalletParam = quickWalletParam
                     )
                     NavOptions.Builder()

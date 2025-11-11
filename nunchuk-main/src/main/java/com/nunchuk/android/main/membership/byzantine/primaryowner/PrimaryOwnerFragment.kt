@@ -69,6 +69,7 @@ import com.nunchuk.android.core.util.shorten
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.AddKeyStepViewModel
 import com.nunchuk.android.model.ByzantineMember
 import com.nunchuk.android.nav.args.BackUpWalletArgs
@@ -147,7 +148,7 @@ class PrimaryOwnerFragment : MembershipFragment() {
                         walletId = event.walletId,
                         isOnChainFlow = true,
                         groupId = groupId.takeIf { it.isNotEmpty() },
-                        replacedWalletId = null,
+                        replacedWalletId = (activity as? MembershipActivity)?.onChainReplaceWalletId,
                         quickWalletParam = quickWalletParam
                     )
                     NavOptions.Builder()
