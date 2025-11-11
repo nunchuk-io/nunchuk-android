@@ -35,7 +35,12 @@ data class TimeZoneDetail(
 fun String.toTimeZoneDetail(): TimeZoneDetail? {
     val zone = ZoneId.of(this)
     val offsetToday = OffsetDateTime.now(zone).offset
-    if (offsetToday.id == "Z") return null
+
+    val offsetString = if (offsetToday.id == "Z") {
+        "+00:00"
+    } else {
+        offsetToday.id
+    }
 
     val tokens = this.replace("_", " ").split("/")
     if (tokens.size != 2) return null
@@ -43,6 +48,6 @@ fun String.toTimeZoneDetail(): TimeZoneDetail? {
         id = this,
         country = tokens[0],
         city = tokens[1],
-        offset = "GMT${offsetToday.id}"
+        offset = "GMT$offsetString"
     )
 }

@@ -20,4 +20,5 @@ data class WalletServer(
     val sendBsmsEmail: Boolean = false,
     val requiresRegistration: Boolean = false,
     val timelockValue: Long = 0L,
+    val timezone: String = "",
 )

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -50,6 +51,8 @@ import com.nunchuk.android.core.util.orFalse
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningState
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
@@ -73,7 +76,11 @@ class InheritanceReviewPlanGroupFragment : MembershipFragment(), BottomSheetOpti
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                InheritanceReviewPlanGroupScreen(viewModel, groupId)
+                InheritanceReviewPlanGroupScreen(
+                    viewModel = viewModel,
+                    sharedViewModel = inheritanceViewModel,
+                    groupId = groupId
+                )
             }
         }
     }
@@ -106,20 +113,25 @@ class InheritanceReviewPlanGroupFragment : MembershipFragment(), BottomSheetOpti
 @Composable
 fun InheritanceReviewPlanGroupScreen(
     viewModel: InheritanceReviewPlanGroupViewModel = viewModel(),
+    sharedViewModel: InheritancePlanningViewModel = viewModel(),
     groupId: String,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val sharedUiState by sharedViewModel.state.collectAsStateWithLifecycle()
     InheritanceReviewPlanGroupScreenContent(
         groupId = groupId,
+        sharedUiState = sharedUiState,
         uiState = state,
         onContinueClicked = viewModel::onContinueClick,
     )
 }
 
+
 @Composable
 fun InheritanceReviewPlanGroupScreenContent(
     groupId: String = "",
     uiState: InheritanceReviewPlanGroupState = InheritanceReviewPlanGroupState(),
+    sharedUiState: InheritancePlanningState,
     onContinueClicked: () -> Unit = {},
 ) {
     val newData = uiState.payload.newData
@@ -175,13 +187,15 @@ fun InheritanceReviewPlanGroupScreenContent(
                     requester?.name ?: "Someone",
                     uiState.walletName
                 )
-            } else {
+            } else if (!uiState.isMiniscriptWallet) {
                 stringResource(
                     id = R.string.nc_activation_date_inheritance_plan_normal_assisted,
                     uiState.walletName,
                     Date(oldData?.activationTimeMilis.orDefault(0L)).simpleGlobalDateFormat(),
                     Date(newData?.activationTimeMilis.orDefault(0L)).simpleGlobalDateFormat()
                 )
+            } else {
+                ""
             }
             message
         }
@@ -255,10 +269,46 @@ fun InheritanceReviewPlanGroupScreenContent(
                                 start = 16.dp, end = 16.dp, top = 24.dp
                             )
                         ) {
+                            // Show "On-chain timelock" for miniscript wallets, "Off-chain timelock" for others
+                            val timelockLabel = if (uiState.isMiniscriptWallet) {
+                                stringResource(id = R.string.nc_on_chain_timelock)
+                            } else {
+                                stringResource(id = R.string.nc_off_chain_timelock)
+                            }
                             Text(
-                                text = stringResource(id = R.string.nc_activation_date),
+                                text = timelockLabel,
                                 style = NunchukTheme.typography.title
                             )
+
+                            // For miniscript wallets: use SetupOrReview.activationDate and selectedZoneId
+                            // For off-chain wallets: use newData.activationTimeMilis with device default timezone
+                            val timestamp = if (uiState.isMiniscriptWallet) {
+                                sharedUiState.setupOrReviewParam.activationDate
+                            } else {
+                                newData?.activationTimeMilis.orDefault(0L)
+                            }
+                            
+                            val timeZoneId = if (uiState.isMiniscriptWallet) {
+                                sharedUiState.setupOrReviewParam.selectedZoneId
+                            } else {
+                                "" // Device default timezone
+                            }
+                            
+                            val activationDateTimeText = formatDateTimeInTimezone(
+                                timestamp = timestamp,
+                                timeZoneId = timeZoneId,
+                                isOnChainTimelock = uiState.isMiniscriptWallet
+                            )
+                            
+                            val timezoneDisplayText = getTimezoneDisplay(timeZoneId)
+                            
+                            // Determine if the date changed (for color highlighting)
+                            // On-chain timelock cannot change, so isDateChanged is always false
+                            val isDateChanged = if (uiState.isMiniscriptWallet) {
+                                false // On-chain timelock cannot change
+                            } else {
+                                newData?.activationTimeMilis != oldData?.activationTimeMilis
+                            }
 
                             Box(
                                 modifier = Modifier
@@ -269,17 +319,25 @@ fun InheritanceReviewPlanGroupScreenContent(
                                     ),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                Text(
+                                Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(16.dp),
-                                    text = Date(newData?.activationTimeMilis.orDefault(0L)).simpleGlobalDateFormat(),
-                                    style = NunchukTheme.typography.body.copy(
-                                        color = onTextColor(
-                                            newData?.activationTimeMilis != oldData?.activationTimeMilis
-                                        )
-                                    ),
-                                )
+                                        .padding(16.dp)
+                                ) {
+                                    Text(
+                                        text = activationDateTimeText,
+                                        style = NunchukTheme.typography.body.copy(
+                                            color = onTextColor(isDateChanged)
+                                        ),
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = timezoneDisplayText,
+                                        style = NunchukTheme.typography.bodySmall.copy(
+                                            color = onTextColor(isDateChanged)
+                                        ),
+                                    )
+                                }
                             }
                         }
 
@@ -316,43 +374,46 @@ fun InheritanceReviewPlanGroupScreenContent(
                                 )
                             }
                         }
-                        Column(
-                            modifier = Modifier.padding(
-                                start = 16.dp, end = 16.dp, top = 24.dp
-                            )
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.nc_buffer_period),
-                                style = NunchukTheme.typography.title
-                            )
 
-                            Box(
-                                modifier = Modifier
-                                    .padding(top = 12.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.greyLight,
-                                        shape = RoundedCornerShape(8.dp)
-                                    ),
-                                contentAlignment = Alignment.Center,
+                        if (!uiState.isMiniscriptWallet) {
+                            Column(
+                                modifier = Modifier.padding(
+                                    start = 16.dp, end = 16.dp, top = 24.dp
+                                )
                             ) {
                                 Text(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    text = newData?.bufferPeriod?.displayName.orEmpty()
-                                        .ifBlank { stringResource(id = R.string.nc_no_buffer) },
-                                    style = NunchukTheme.typography.body.copy(
-                                        color = onTextColor(
-                                            newData?.bufferPeriod?.id != oldData?.bufferPeriod?.id
-                                        )
-                                    ),
+                                    text = stringResource(id = R.string.nc_buffer_period),
+                                    style = NunchukTheme.typography.title
                                 )
+
+                                Box(
+                                    modifier = Modifier
+                                        .padding(top = 12.dp)
+                                        .background(
+                                            color = MaterialTheme.colorScheme.greyLight,
+                                            shape = RoundedCornerShape(8.dp)
+                                        ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        text = newData?.bufferPeriod?.displayName.orEmpty()
+                                            .ifBlank { stringResource(id = R.string.nc_no_buffer) },
+                                        style = NunchukTheme.typography.body.copy(
+                                            color = onTextColor(
+                                                newData?.bufferPeriod?.id != oldData?.bufferPeriod?.id
+                                            )
+                                        ),
+                                    )
+                                }
                             }
                         }
 
                         // Notification Preferences Section
                         val newNotificationPreferences = newData?.notificationPreferences
-                        if (newNotificationPreferences != null && newNotificationPreferences.perEmailSettings.isNotEmpty()) {
+                        if (uiState.isMiniscriptWallet && newNotificationPreferences != null) {
                             Column {
                                 Text(
                                     modifier = Modifier.padding(
@@ -492,7 +553,18 @@ private fun notificationPreferencesEqual(
 @PreviewLightDark
 @Composable
 private fun InheritanceReviewPlanGroupScreenPreview() {
-    InheritanceReviewPlanGroupScreenContent()
+    InheritanceReviewPlanGroupScreenContent(
+        sharedUiState = InheritancePlanningState(
+            setupOrReviewParam = InheritancePlanningParam.SetupOrReview(
+                walletId = "wallet123",
+                activationDate = System.currentTimeMillis(),
+                note = "Sample note",
+                emails = listOf("email1@example.com", "email2@example.com"),
+                isNotify = true,
+                magicalPhrase = "sample magical phrase"
+            ),
+        )
+    )
 }
 
 

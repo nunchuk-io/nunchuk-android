@@ -74,6 +74,7 @@ internal fun WalletDto.toModel(): WalletServer {
         sendBsmsEmail = sendBsmsEmail,
         requiresRegistration = requiresRegistration,
         timelockValue = timelock?.value ?: 0L,
+        timezone = timelock?.timezone ?: "",
     )
 }
 

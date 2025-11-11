@@ -115,7 +115,8 @@ class InheritancePlanningViewModel @Inject constructor(
                 keyTypes = keyTypes,
                 walletType = wallet.walletType,
                 setupOrReviewParam = it.setupOrReviewParam.copy(
-                    activationDate = if (wallet.walletType == WalletType.MINISCRIPT) wallet.timelockValue.seconds.inWholeMilliseconds else it.setupOrReviewParam.activationDate
+                    activationDate = if (wallet.walletType == WalletType.MINISCRIPT) wallet.timelockValue.seconds.inWholeMilliseconds else it.setupOrReviewParam.activationDate,
+                    selectedZoneId = wallet.timezone.ifEmpty { it.setupOrReviewParam.selectedZoneId }
                 )
             )
         }

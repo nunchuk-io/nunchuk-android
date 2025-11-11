@@ -21,10 +21,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.ui.TimeZoneDetail
-import com.nunchuk.android.core.ui.toTimeZoneDetail
 import com.nunchuk.android.main.R
-import java.util.TimeZone
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.getTimezoneDisplay
 
 @Composable
 fun ActivationDateItem(
@@ -33,18 +31,7 @@ fun ActivationDateItem(
     editable: Boolean = false,
     onClick: () -> Unit = {}
 ) {
-    val timeZoneDetail = if (timeZoneId.isNotEmpty()) {
-        timeZoneId.toTimeZoneDetail()
-    } else {
-        TimeZone.getDefault().id.toTimeZoneDetail()
-    } ?: TimeZoneDetail()
-
-    val timeZoneDisplay =
-        if (timeZoneDetail.city.isNotEmpty() && timeZoneDetail.offset.isNotEmpty()) {
-            "${timeZoneDetail.city} (${timeZoneDetail.offset})"
-        } else {
-            timeZoneDetail.id.ifEmpty { TimeZone.getDefault().id }
-        }
+    val timeZoneDisplay = getTimezoneDisplay(timeZoneId)
 
     Row(
         modifier = Modifier

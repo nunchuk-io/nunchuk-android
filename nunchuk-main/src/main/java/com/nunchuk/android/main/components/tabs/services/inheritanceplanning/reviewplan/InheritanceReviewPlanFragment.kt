@@ -98,10 +98,10 @@ import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.serializable
-import com.nunchuk.android.utils.simpleGlobalDateFormat
 import com.nunchuk.android.widget.NCWarningDialog
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.formatDateTimeInTimezone
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.getTimezoneDisplay
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.Date
 
 @AndroidEntryPoint
 class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionListener {
@@ -290,6 +290,7 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
         requireActivity().finish()
     }
 }
+
 
 @Composable
 fun InheritanceReviewPlanScreen(
@@ -535,7 +536,7 @@ fun InheritanceReviewPlanScreenContent(
                                     val isSingleKey = setupOrReviewParam.inheritanceKeys.size == 1
                                     SpecialDetailPlanItem(
                                         iconId = R.drawable.ic_password_light,
-                                        title = stringResource(if (isSingleKey)  R.string.nc_backup_password else R.string.nc_two_backup_password),
+                                        title = stringResource(if (isSingleKey) R.string.nc_backup_password else R.string.nc_two_backup_password),
                                         actionText = stringResource(id = R.string.nc_text_info),
                                         content = if (!isSingleKey) stringResource(
                                             id = R.string.nc_backup_passwords_desc
@@ -557,7 +558,11 @@ fun InheritanceReviewPlanScreenContent(
                                     color = Color.White
                                 )
                                 ActivationDateItem(
-                                    activationDate = Date(setupOrReviewParam.activationDate).simpleGlobalDateFormat(),
+                                    activationDate = formatDateTimeInTimezone(
+                                        timestamp = setupOrReviewParam.activationDate,
+                                        timeZoneId = setupOrReviewParam.selectedZoneId,
+                                        isOnChainTimelock = isMiniscriptWallet
+                                    ),
                                     timeZoneId = setupOrReviewParam.selectedZoneId,
                                     editable = isEditable && !isMiniscriptWallet,
                                     onClick = {
