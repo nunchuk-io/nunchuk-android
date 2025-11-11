@@ -55,13 +55,14 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetIndexFromPathUseCase
+import com.nunchuk.android.usecase.GetRemoteSignerUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.membership.GetMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
-import com.nunchuk.android.usecase.signer.GetCurrentIndexFromMasterSignerUseCase
+import com.nunchuk.android.usecase.signer.GetCurrentSignerIndexUseCase
 import com.nunchuk.android.usecase.signer.GetSignerFromMasterSignerByIndexUseCase
 import com.nunchuk.android.usecase.signer.GetUnusedSignerFromMasterSignerV2UseCase
 import com.nunchuk.android.usecase.wallet.GetWallets2UseCase
@@ -98,8 +99,9 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
     private val ncDataStore: NcDataStore,
     private val getWallets2UseCase: GetWallets2UseCase,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
-    private val getCurrentIndexFromMasterSignerUseCase: GetCurrentIndexFromMasterSignerUseCase,
+    private val getCurrentSignerIndexUseCase: GetCurrentSignerIndexUseCase,
     private val getSignerFromMasterSignerByIndexUseCase: GetSignerFromMasterSignerByIndexUseCase,
+    private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val getUnusedSignerFromMasterSignerV2UseCase: GetUnusedSignerFromMasterSignerV2UseCase,
     private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase,
     private val singleSignerMapper: SingleSignerMapper,
@@ -445,6 +447,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
             _event.emit(OnChainTimelockByzantineAddKeyListEvent.ShowError(it.message.orUnknownError()))
             return
         }
+        val verifyType = if (signer.type == SignerType.NFC) VerifyType.NONE else VerifyType.APP_VERIFIED
 
         // Save membership step
         saveMembershipStepUseCase(
@@ -452,7 +455,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                 step = currentStep,
                 masterSignerId = signer.masterFingerprint,
                 plan = membershipStepManager.localMembershipPlan,
-                verifyType = VerifyType.NONE,
+                verifyType = verifyType,
                 extraData = gson.toJson(
                     SignerExtra(
                         derivationPath = signer.derivationPath,
@@ -466,7 +469,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         )
 
         // Update the card with the new signer for the current step
-        updateCardForStep(currentStep, signerModel, VerifyType.NONE)
+        updateCardForStep(currentStep, signerModel, verifyType)
 
         // After successfully adding signer, handle TapSigner Acct 1 addition if we have the required data
         val nextStep = data?.getNextStepToAdd(currentStep)
@@ -702,9 +705,9 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
 
     suspend fun getCurrentIndexFromMasterSigner(fingerPrint: String): Result<Int> {
         return runCatching {
-            getCurrentIndexFromMasterSignerUseCase(
-                GetCurrentIndexFromMasterSignerUseCase.Param(
-                    xfp = fingerPrint,
+            getCurrentSignerIndexUseCase(
+                GetCurrentSignerIndexUseCase.Param(
+                    masterSignerId = fingerPrint,
                     walletType = WalletType.MULTI_SIG,
                     addressType = AddressType.NATIVE_SEGWIT
                 )
@@ -715,6 +718,9 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         )
     }
 
+    /**
+     * Gets a signer from master signer by specific index (for TapSigner flows)
+     */
     suspend fun getSignerFromMasterSignerByIndex(
         fingerPrint: String,
         index: Int
@@ -726,6 +732,27 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                     index = index,
                     walletType = WalletType.MULTI_SIG,
                     addressType = AddressType.NATIVE_SEGWIT
+                )
+            ).getOrThrow()
+        }.fold(
+            onSuccess = { Result.Success(it) },
+            onFailure = { Result.Error(it as Exception) }
+        )
+    }
+
+    /**
+     * Gets a remote signer by specific index using derivation path
+     */
+    suspend fun getRemoteSignerByIndex(
+        fingerPrint: String,
+        index: Int
+    ): Result<SingleSigner?> {
+        return runCatching {
+            val derivationPath = getPath(index)
+            getRemoteSignerUseCase(
+                GetRemoteSignerUseCase.Data(
+                    id = fingerPrint,
+                    derivationPath = derivationPath
                 )
             ).getOrThrow()
         }.fold(
@@ -767,9 +794,9 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                             )
                         )
                     } else {
-                        // If resultIndex < 1, call GetSignerFromMasterSignerUseCase
+                        // If resultIndex < 1, call GetRemoteSignerUseCase
                         val signerResult =
-                            getSignerFromMasterSignerByIndex(firstSigner.fingerPrint, 1)
+                            getRemoteSignerByIndex(firstSigner.fingerPrint, 1)
 
                         when (signerResult) {
                             is Result.Success -> {
