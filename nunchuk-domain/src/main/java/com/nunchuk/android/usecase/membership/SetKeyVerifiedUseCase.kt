@@ -20,6 +20,7 @@
 package com.nunchuk.android.usecase.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.repository.KeyRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -30,8 +31,8 @@ class SetKeyVerifiedUseCase @Inject constructor(
     private val repository: KeyRepository
 ) : UseCase<SetKeyVerifiedUseCase.Param, Unit>(dispatcher) {
     override suspend fun execute(parameters: Param) {
-        repository.setKeyVerified(parameters.groupId, parameters.masterSignerId, parameters.isAppVerified)
+        repository.setKeyVerified(parameters.groupId, parameters.masterSignerId, parameters.verifyType)
     }
 
-    data class Param(val groupId: String, val masterSignerId: String, val isAppVerified: Boolean)
+    data class Param(val groupId: String, val masterSignerId: String, val verifyType: VerifyType)
 }

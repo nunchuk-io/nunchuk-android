@@ -722,19 +722,23 @@ fun OnChainTimelockByzantineAddKeyListContent(
             },
             bottomBar = {
                 if (!isAddOnly) {
-                    NcPrimaryDarkButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        onClick = onContinueClicked,
-                        enabled = keys.all { data ->
-                            data.steps.all { step ->
-                                data.stepDataMap[step]?.isComplete == true
-                            }
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = onContinueClicked,
+                    enabled = keys.all { data ->
+                        data.steps.all { step ->
+                            data.stepDataMap[step]?.isComplete == true
                         }
-                    ) {
-                        Text(text = stringResource(id = R.string.nc_text_continue))
-                    }
+                    } && keys.filter { it.type.isAddInheritanceKey }
+                        .all { it.verifyType != VerifyType.NONE }
+                            && keys.filter { data ->
+                        data.signers?.any { it.type == SignerType.NFC } == true
+                    }.all { it.verifyType != VerifyType.NONE }
+                ) {
+                    Text(text = stringResource(id = R.string.nc_text_continue))
+                }
                 }
             },
         ) { innerPadding ->

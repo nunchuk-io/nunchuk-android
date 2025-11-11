@@ -25,14 +25,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerUseCase
-import com.nunchuk.android.core.push.PushEvent
-import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.util.CardIdManager
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
-import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.ChecksumUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -48,8 +46,6 @@ import javax.inject.Inject
 class TapSignerBackingUpIntroOnChainViewModel @Inject constructor(
     private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
     private val getSignerFromTapsignerMasterSignerUseCase: GetSignerFromTapsignerMasterSignerUseCase,
-    private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
-    private val pushEventManager: PushEventManager,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
     private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
     cardIdManager: CardIdManager,
@@ -126,7 +122,7 @@ class TapSignerBackingUpIntroOnChainViewModel @Inject constructor(
                 SetKeyVerifiedUseCase.Param(
                     groupId = groupId,
                     masterSignerId = masterSignerId,
-                    isAppVerified = true
+                    verifyType = VerifyType.SKIPPED_VERIFICATION
                 )
             )
             if (result.isSuccess) {

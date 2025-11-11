@@ -46,6 +46,8 @@ class BackUpSeedPhraseActivity : BaseComposeActivity() {
                         )
 
                         backUpSeedPhraseOptionDestination(
+                            groupId = args.groupId,
+                            masterSignerId = args.signer?.fingerPrint.orEmpty(),
                             onContinue = {
                                 navHostController.navigate(BackUpSeedPhraseVerify)
                             },

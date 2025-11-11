@@ -3,6 +3,7 @@ package com.nunchuk.android.signer.mk4.inheritance.backup.myself
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import com.nunchuk.android.utils.ChecksumUtil
@@ -32,7 +33,7 @@ class ColdCardVerifyRecoveredKeyViewModel @Inject constructor(
                     SetKeyVerifiedUseCase.Param(
                         groupId,
                         masterSignerId,
-                        false
+                        VerifyType.SELF_VERIFIED
                     )
                 )
             if (result.isSuccess) {

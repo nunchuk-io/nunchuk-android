@@ -25,6 +25,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.usecase.GetDownloadBackUpKeyReplacementUseCase
 import com.nunchuk.android.usecase.GetDownloadBackUpKeyUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
@@ -96,7 +97,7 @@ class CheckBackUpBySelfViewModel @Inject constructor(
                     SetKeyVerifiedUseCase.Param(
                         groupId,
                         args.masterSignerId,
-                        isAppVerified = if (isOnChainBackUp) true else false
+                        verifyType = VerifyType.SELF_VERIFIED
                     )
                 )
             if (result.isSuccess) {
@@ -113,7 +114,7 @@ class CheckBackUpBySelfViewModel @Inject constructor(
                 SetReplaceKeyVerifiedUseCase.Param(
                     keyId = keyId,
                     checkSum = getChecksum(true, groupId = groupId, walletId = walletId),
-                    isAppVerified = if (isOnChainBackUp) true else false,
+                    isAppVerified = false,
                     groupId = groupId,
                     walletId = walletId
                 )

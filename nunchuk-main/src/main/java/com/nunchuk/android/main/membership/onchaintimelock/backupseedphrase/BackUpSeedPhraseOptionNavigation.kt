@@ -35,11 +35,15 @@ import kotlinx.serialization.Serializable
 object BackUpSeedPhraseOption
 
 fun NavGraphBuilder.backUpSeedPhraseOptionDestination(
+    groupId: String = "",
+    masterSignerId: String = "",
     onContinue: () -> Unit = {},
     onSkip: () -> Unit = {}
 ) {
     composable<BackUpSeedPhraseOption> {
         BackUpSeedPhraseOptionScreen(
+            groupId = groupId,
+            masterSignerId = masterSignerId,
             onContinue = onContinue,
             onSkip = onSkip
         )
@@ -48,14 +52,31 @@ fun NavGraphBuilder.backUpSeedPhraseOptionDestination(
 
 @Composable
 private fun BackUpSeedPhraseOptionScreen(
+    groupId: String = "",
+    masterSignerId: String = "",
     viewModel: BackUpSeedPhraseSharedViewModel = hiltViewModel(),
     onContinue: () -> Unit = {},
     onSkip: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
+    
+    androidx.compose.runtime.LaunchedEffect(viewModel) {
+        viewModel.event.collect { event ->
+            when (event) {
+                is BackUpSeedPhraseEvent.SkipVerificationSuccess -> {
+                    onSkip()
+                }
+                is BackUpSeedPhraseEvent.SkipVerificationError -> {
+                    // Handle error if needed
+                    onSkip()
+                }
+            }
+        }
+    }
+    
     BackUpSeedPhraseOptionContent(
         onContinueClicked = onContinue,
-        onSkipClicked = onSkip,
+        onSkipClicked = { viewModel.skipVerification(groupId, masterSignerId) },
         remainTime = remainTime
     )
 }

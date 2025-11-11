@@ -406,7 +406,7 @@ internal class KeyRepositoryImpl @Inject constructor(
     override suspend fun setKeyVerified(
         groupId: String,
         masterSignerId: String,
-        isAppVerify: Boolean
+        verifyType: VerifyType
     ) {
         val stepInfo =
             membershipDao.getStepByMasterSignerId(
@@ -416,12 +416,18 @@ internal class KeyRepositoryImpl @Inject constructor(
                 groupId = groupId
             )
                 ?: throw NullPointerException("Can not mark key verified $masterSignerId")
+        val verifyTypeString = when (verifyType) {
+            VerifyType.APP_VERIFIED -> "APP_VERIFIED"
+            VerifyType.SELF_VERIFIED -> "SELF_VERIFIED"
+            VerifyType.SKIPPED_VERIFICATION -> "SKIPPED_VERIFICATION"
+            VerifyType.NONE -> "NONE"
+        }
         val response = if (groupId.isEmpty()) {
             userWalletApiManager.walletApi.setKeyVerified(
                 stepInfo.keyIdInServer.ifEmpty { stepInfo.masterSignerId },
                 KeyVerifiedRequest(
                     stepInfo.checkSum,
-                    if (isAppVerify) "APP_VERIFIED" else "SELF_VERIFIED"
+                    verifyTypeString
                 )
             )
         } else {
@@ -430,12 +436,12 @@ internal class KeyRepositoryImpl @Inject constructor(
                 stepInfo.keyIdInServer.ifEmpty { stepInfo.masterSignerId },
                 KeyVerifiedRequest(
                     stepInfo.checkSum,
-                    if (isAppVerify) "APP_VERIFIED" else "SELF_VERIFIED"
+                    verifyTypeString
                 )
             )
         }
         if (response.isSuccess) {
-            membershipDao.updateOrInsert(stepInfo.copy(verifyType = if (isAppVerify) VerifyType.APP_VERIFIED else VerifyType.SELF_VERIFIED))
+            membershipDao.updateOrInsert(stepInfo.copy(verifyType = verifyType))
         } else {
             throw response.error
         }

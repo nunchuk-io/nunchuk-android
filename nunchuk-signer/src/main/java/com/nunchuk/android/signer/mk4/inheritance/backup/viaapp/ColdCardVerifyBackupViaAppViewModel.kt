@@ -7,6 +7,7 @@ import com.nunchuk.android.core.util.lastWord
 import com.nunchuk.android.core.util.replaceLastWord
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Result
+import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.usecase.GetBip39WordListUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
@@ -66,7 +67,7 @@ class ColdCardVerifyBackupViaAppViewModel @Inject constructor(
                         SetKeyVerifiedUseCase.Param(
                             groupId,
                             masterSignerId,
-                            true
+                            VerifyType.APP_VERIFIED
                         )
                     )
                 if (apiResult.isSuccess) {

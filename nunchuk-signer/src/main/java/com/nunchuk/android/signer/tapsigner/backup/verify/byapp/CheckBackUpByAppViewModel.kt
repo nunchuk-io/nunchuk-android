@@ -30,6 +30,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.core.domain.VerifyTapSignerBackupUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.usecase.GetDownloadBackUpKeyReplacementUseCase
 import com.nunchuk.android.usecase.GetDownloadBackUpKeyUseCase
@@ -92,7 +93,7 @@ class CheckBackUpByAppViewModel @Inject constructor(
                         SetKeyVerifiedUseCase.Param(
                             groupId,
                             masterSignerId,
-                            isAppVerified = if (isOnChainBackUp) true else true
+                            verifyType = VerifyType.APP_VERIFIED
                         )
                     )
                 if (apiResult.isSuccess) {

@@ -23,6 +23,7 @@ import com.nunchuk.android.model.KeyUpload
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -64,7 +65,7 @@ interface KeyRepository {
     suspend fun setKeyVerified(
         groupId: String,
         masterSignerId: String,
-        isAppVerify: Boolean
+        verifyType: VerifyType
     )
 
     suspend fun setReplaceKeyVerified(

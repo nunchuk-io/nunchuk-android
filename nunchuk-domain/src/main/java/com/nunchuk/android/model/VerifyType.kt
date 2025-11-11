@@ -23,7 +23,7 @@ import androidx.annotation.Keep
 
 @Keep
 enum class VerifyType {
-    NONE, APP_VERIFIED, SELF_VERIFIED
+    NONE, APP_VERIFIED, SELF_VERIFIED, SKIPPED_VERIFICATION
 }
 
 fun String?.toVerifyType(keyVerifyType: String? = null): VerifyType {
@@ -31,12 +31,14 @@ fun String?.toVerifyType(keyVerifyType: String? = null): VerifyType {
         when(this) {
             VerifyType.APP_VERIFIED.name -> VerifyType.APP_VERIFIED
             VerifyType.SELF_VERIFIED.name -> VerifyType.SELF_VERIFIED
+            VerifyType.SKIPPED_VERIFICATION.name -> VerifyType.SKIPPED_VERIFICATION
             else -> VerifyType.NONE
         }
     } else {
         when(keyVerifyType) {
             VerifyType.APP_VERIFIED.name -> VerifyType.APP_VERIFIED
             VerifyType.SELF_VERIFIED.name -> VerifyType.SELF_VERIFIED
+            VerifyType.SKIPPED_VERIFICATION.name -> VerifyType.SKIPPED_VERIFICATION
             else -> VerifyType.NONE
         }
     }

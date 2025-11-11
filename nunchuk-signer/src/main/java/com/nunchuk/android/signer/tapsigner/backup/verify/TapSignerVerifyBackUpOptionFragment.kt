@@ -27,7 +27,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -37,12 +40,15 @@ import com.nunchuk.android.signer.components.backup.BACKUP_OPTIONS
 import com.nunchuk.android.signer.components.backup.BackUpOption
 import com.nunchuk.android.signer.components.backup.BackUpOptionType
 import com.nunchuk.android.signer.components.backup.VerifyBackUpOptionContent
+import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class TapSignerVerifyBackUpOptionFragment : MembershipFragment() {
     private val args: TapSignerVerifyBackUpOptionFragmentArgs by navArgs()
+    private val viewModel: TapSignerVerifyBackUpOptionViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -51,10 +57,36 @@ class TapSignerVerifyBackUpOptionFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                TapSignerVerifyBackUpOptionScreen(membershipStepManager) {
-                    handleVerifyClicked(it)
-                }
+                TapSignerVerifyBackUpOptionScreen(
+                    viewModel = viewModel,
+                    membershipStepManager = membershipStepManager,
+                    onContinueClicked = {
+                        handleVerifyClicked(it)
+                    }
+                )
             }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        observeEvents()
+    }
+
+    private fun observeEvents() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.event.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                .collect { event ->
+                    when (event) {
+                        is TapSignerVerifyBackUpOptionEvent.SkipVerificationSuccess -> {
+                            requireActivity().finish()
+                        }
+                        is TapSignerVerifyBackUpOptionEvent.SkipVerificationError -> {
+                            // Error already occurred, still close the activity
+                            requireActivity().finish()
+                        }
+                    }
+                }
         }
     }
 
@@ -82,7 +114,15 @@ class TapSignerVerifyBackUpOptionFragment : MembershipFragment() {
                     title = getString(R.string.nc_confirmation),
                     message = getString(R.string.nc_skip_back_up_desc),
                     onYesClick = {
-                        requireActivity().finish()
+                        val nfcActivity = requireActivity() as? NfcSetupActivity
+                        if (nfcActivity?.isOnChainBackUp == true) {
+                            viewModel.skipVerification(
+                                groupId = nfcActivity.groupId,
+                                masterSignerId = args.masterSignerId
+                            )
+                        } else {
+                            requireActivity().finish()
+                        }
                     }
                 )
             }
@@ -92,6 +132,7 @@ class TapSignerVerifyBackUpOptionFragment : MembershipFragment() {
 
 @Composable
 private fun TapSignerVerifyBackUpOptionScreen(
+    viewModel: TapSignerVerifyBackUpOptionViewModel,
     membershipStepManager: MembershipStepManager,
     onContinueClicked: (BackUpOption) -> Unit = {}
 ) {

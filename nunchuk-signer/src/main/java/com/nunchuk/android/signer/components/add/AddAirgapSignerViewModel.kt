@@ -494,7 +494,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                 SetKeyVerifiedUseCase.Param(
                     groupId = groupId,
                     masterSignerId = masterSignerId,
-                    isAppVerified = true
+                    verifyType = VerifyType.APP_VERIFIED
                 )
             ).onSuccess {
                 setEvent(KeyVerifiedSuccess)
