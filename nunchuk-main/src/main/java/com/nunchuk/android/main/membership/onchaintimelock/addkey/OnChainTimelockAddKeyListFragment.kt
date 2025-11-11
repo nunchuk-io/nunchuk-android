@@ -230,7 +230,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     }
                 }
             } else {
-                handleSignerTypeLogic(data.type, null)
+                handleSignerTypeLogic(data.type, selectedSignerTag)
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
         }
@@ -260,9 +260,9 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             val filteredSigners =
                 bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
             val signerModel = bundle.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
-            val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
+            val signerTag = filteredSigners?.firstOrNull()?.tags?.firstOrNull()
             val isFromNfcSetup = bundle.getBoolean(OnChainSignerIntroFragment.EXTRA_IS_FROM_NFC_SETUP, false)
-            
+            selectedSignerTag = signerTag
             when {
                 isFromNfcSetup && signerModel != null -> {
                     viewModel.addExistingTapSignerKey(
@@ -362,7 +362,11 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 isMembershipFlow = true,
                 tag = tag,
                 step = membershipStepManager.currentStep,
-            )
+                onChainAddSignerParam = OnChainAddSignerParam(
+                    flags = if (currentKeyData?.type?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
+                    keyIndex = currentKeyData?.signers?.size ?: 0,
+                    currentSigner = currentKeyData?.signers?.firstOrNull()
+            ))
         )
     }
 
@@ -517,6 +521,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
 
             else -> {}
         }
+        selectedSignerTag = null
     }
 
     private fun openSetupColdCard() {

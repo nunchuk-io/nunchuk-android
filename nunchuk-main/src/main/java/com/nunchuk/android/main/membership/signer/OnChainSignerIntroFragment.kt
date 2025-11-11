@@ -91,10 +91,14 @@ class OnChainSignerIntroFragment : MembershipFragment() {
                 popUpToOnChainTimelockFragment()
             } else {
                 val filteredSigners = result.data?.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
+                val signerTagName = result.data?.getStringExtra(GlobalResultKey.EXTRA_SIGNER_TAG)
                 if (!filteredSigners.isNullOrEmpty()) {
                     setFragmentResult(
                         REQUEST_KEY,
-                        bundleOf(GlobalResultKey.EXTRA_SIGNERS to ArrayList(filteredSigners))
+                        bundleOf(
+                            GlobalResultKey.EXTRA_SIGNERS to ArrayList(filteredSigners),
+                            GlobalResultKey.EXTRA_SIGNER_TAG to signerTagName
+                        )
                     )
                 }
                 popUpToOnChainTimelockFragment()

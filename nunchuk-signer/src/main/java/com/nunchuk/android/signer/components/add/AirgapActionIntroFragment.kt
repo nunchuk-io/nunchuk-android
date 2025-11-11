@@ -102,10 +102,12 @@ internal fun AirgapActionIntroScreen(
                     .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
+                val onChainKeyIndex =
+                    if (onChainAddSignerParam != null && onChainAddSignerParam.keyIndex >= 0) onChainAddSignerParam.keyIndex else 0
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = if (onChainAddSignerParam != null) {
-                        "${stringResource(R.string.nc_add_jade)} (${onChainAddSignerParam.keyIndex + 1}/2)"
+                        "${stringResource(R.string.nc_add_jade)} (${onChainKeyIndex + 1}/2)"
                     } else {
                         stringResource(R.string.nc_add_jade)
                     },
@@ -123,7 +125,7 @@ internal fun AirgapActionIntroScreen(
                             append(") coming from the same device but using different derivation paths. \n\n")
                             append("Please add a key for the spending path after the timelock. On your device, select ")
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("account ${onChainAddSignerParam.keyIndex}")
+                                append("account $onChainKeyIndex")
                             }
                             append(" for this spending path.")
                         },

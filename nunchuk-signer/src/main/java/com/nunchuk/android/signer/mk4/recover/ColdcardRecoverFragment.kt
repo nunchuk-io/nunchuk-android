@@ -381,6 +381,8 @@ private fun ColdcardRecoverContent(
                     .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
             ) {
+                val onChainKeyIndex =
+                    if (onChainAddSignerParam != null && onChainAddSignerParam.keyIndex >= 0) onChainAddSignerParam.keyIndex else 0
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = stringResource(R.string.nc_add_your_coldcard),
@@ -431,7 +433,7 @@ private fun ColdcardRecoverContent(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),
                         text = if (isScanQRCode) stringResource(
                             R.string.nc_export_xpub_coldcard_scan_qr_code_desc,
-                            onChainAddSignerParam?.keyIndex ?: 1
+                            onChainKeyIndex
                         )
                         else stringResource(R.string.nc_export_xpub_coldcard_desc),
                         style = NunchukTheme.typography.body

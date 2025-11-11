@@ -44,7 +44,9 @@ internal class ServerSignerMapper @Inject constructor(
             tags = signer.tags.map { it.name }.toHashSet().apply {
                 if (isInheritanceKey) {
                     add(SignerTag.INHERITANCE.name)
-                    add(SignerTag.COLDCARD.name)
+                    if (!signer.tags.contains(SignerTag.JADE)) {
+                        add(SignerTag.COLDCARD.name)
+                    }
                 } else {
                     remove(SignerTag.INHERITANCE.name)
                 }

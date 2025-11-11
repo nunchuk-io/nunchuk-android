@@ -21,7 +21,6 @@ package com.nunchuk.android.main.membership.onchaintimelock.byzantine
 
 import android.app.Activity
 import android.os.Bundle
-import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -63,7 +62,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.core.text.bold
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
@@ -249,7 +247,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     }
                 }
             } else {
-                handleSignerTypeLogic(data.type, null)
+                handleSignerTypeLogic(data.type, selectedSignerTag)
             }
             clearFragmentResult(TapSignerListBottomSheetFragment.REQUEST_KEY)
         }
@@ -257,6 +255,8 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
         setFragmentResultListener(ImportantNoticePassphraseFragment.REQUEST_KEY) { _, bundle ->
             val filteredSigners =
                 bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
+            val signerTag = filteredSigners?.firstOrNull()?.tags?.firstOrNull()
+            selectedSignerTag = signerTag
             if (!filteredSigners.isNullOrEmpty()) {
                 findNavController().navigate(
                     OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToTapSignerListBottomSheetFragment(
@@ -364,34 +364,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
             .showDialog(message = getString(R.string.nc_info_facilitator))
     }
 
-    private fun checkTwoSoftwareKeySameDevice(onSuccess: () -> Unit) {
-        val total = viewModel.getCountWalletSoftwareSignersInDevice()
-        if (total >= 1) {
-            NCInfoDialog(requireActivity())
-                .showDialog(
-                    title = getString(R.string.nc_text_warning),
-                    btnYes = getString(R.string.nc_text_continue),
-                    message = SpannableStringBuilder()
-                        .bold {
-                            append(getString(R.string.nc_info_software_key_same_device_part_1))
-                        }
-                        .append(" ")
-                        .append(getString(R.string.nc_info_software_key_same_device_part_2)),
-                    onYesClick = { onSuccess() },
-                    btnInfo = getString(R.string.nc_i_ll_choose_another_type_of_key),
-                )
-        } else {
-            onSuccess()
-        }
-    }
-
-    private fun openAddSoftwareKey() {
-        navigator.openAddSoftwareSignerScreen(
-            activityContext = requireActivity(),
-            groupId = args.groupId,
-        )
-    }
-
     private fun handleHardwareSignerTag(tag: SignerTag) {
         selectedSignerTag = tag
         val hardwareSigners = viewModel.getHardwareSigners(tag)
@@ -422,6 +394,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
     }
 
     private fun handleSelectAddAirgapType(tag: SignerTag?) {
+        val nextStep = currentKeyData?.getNextStepToAdd() ?: currentKeyData?.type
         navigator.openAddAirSignerScreen(
             activityContext = requireActivity(),
             args = AddAirSignerArgs(
@@ -429,7 +402,11 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 tag = tag,
                 groupId = args.groupId,
                 step = membershipStepManager.currentStep,
-            )
+                onChainAddSignerParam = OnChainAddSignerParam(
+                    flags = if (nextStep?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
+                    keyIndex = currentKeyData?.getAllSigners()?.size ?: 0,
+                    currentSigner = currentKeyData?.getAllSigners()?.firstOrNull()
+            ))
         )
     }
 
@@ -602,6 +579,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
 
             else -> {}
         }
+        selectedSignerTag = null
     }
 
     private fun openSetupColdCard() {
