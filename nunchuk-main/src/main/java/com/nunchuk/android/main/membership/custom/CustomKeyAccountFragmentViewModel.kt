@@ -10,6 +10,7 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.signer.GetCurrentIndexFromMasterSignerUseCase
+import com.nunchuk.android.usecase.signer.GetCurrentSignerIndexUseCase
 import com.nunchuk.android.usecase.signer.GetSignerFromMasterSignerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -24,6 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CustomKeyAccountFragmentViewModel @Inject constructor(
     private val getCurrentIndexFromMasterSignerUseCase: GetCurrentIndexFromMasterSignerUseCase,
+    private val getCurrentSignerIndexUseCase: GetCurrentSignerIndexUseCase,
     private val getSignerFromMasterSignerUseCase: GetSignerFromMasterSignerUseCase,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     savedStateHandle: SavedStateHandle,
@@ -39,14 +41,26 @@ class CustomKeyAccountFragmentViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getCurrentIndexFromMasterSignerUseCase(
-                GetCurrentIndexFromMasterSignerUseCase.Param(
-                    xfp = args.signer.fingerPrint,
-                    walletType = walletType,
-                    addressType = AddressType.NATIVE_SEGWIT
-                )
-            ).onSuccess {
-                _state.update { state -> state.copy(currentIndex = it) }
+            if (args.onChainAddSignerParam != null) {
+                getCurrentSignerIndexUseCase(
+                    GetCurrentSignerIndexUseCase.Param(
+                        masterSignerId = args.signer.fingerPrint,
+                        walletType = walletType,
+                        addressType = AddressType.NATIVE_SEGWIT
+                    )
+                ).onSuccess {
+                    _state.update { state -> state.copy(currentIndex = it) }
+                }
+            } else {
+                getCurrentIndexFromMasterSignerUseCase(
+                    GetCurrentIndexFromMasterSignerUseCase.Param(
+                        xfp = args.signer.fingerPrint,
+                        walletType = walletType,
+                        addressType = AddressType.NATIVE_SEGWIT
+                    )
+                ).onSuccess {
+                    _state.update { state -> state.copy(currentIndex = it) }
+                }
             }
         }
         viewModelScope.launch {

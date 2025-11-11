@@ -59,6 +59,19 @@ val MembershipStep.isAddInheritanceKey: Boolean
     get() = this == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY || this == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 || this == MembershipStep.HONEY_ADD_INHERITANCE_KEY
             || this == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK || this == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK || this == MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK
 
+val MembershipStep.isTimelockStep: Boolean
+    get() = this == MembershipStep.TIMELOCK
+            || this == MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK
+            || this == MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK
+            || this == MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK
+            || this == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK
+            || this == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK
+            || this == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK
+            || this == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK
+            || this == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK
+            || this == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3_TIMELOCK
+            || this == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4_TIMELOCK
+
 fun MembershipStep.toIndex(walletType: WalletType) = if (walletType == WalletType.MULTI_SIG) {
     when (this) {
         MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY,

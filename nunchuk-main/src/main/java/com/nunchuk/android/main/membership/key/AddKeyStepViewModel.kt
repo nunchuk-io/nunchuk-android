@@ -29,9 +29,7 @@ import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
-import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
-import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -149,10 +147,7 @@ class AddKeyStepViewModel @Inject constructor(
             val isConfigDone = if (draftWallet.walletType == WalletType.MINISCRIPT) {
                 val isSignerCountCorrect = draftWallet.signers.size == draftWallet.config.n * 2 - 1
                 val isTimelockSet = draftWallet.timelock > 0
-                val areInheritanceSignersVerified = draftWallet.signers.all { signer ->
-                    !signer.tags.contains(SignerTag.INHERITANCE.name) || signer.verifyType != VerifyType.NONE
-                }
-                isSignerCountCorrect && isTimelockSet && areInheritanceSignersVerified
+                isSignerCountCorrect && isTimelockSet
             } else {
                 draftWallet.config.n == draftWallet.signers.size
             }

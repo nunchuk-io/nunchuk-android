@@ -205,10 +205,10 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
 
             // Check if this is a result with newIndex (OnChainAddSignerParam case)
             if (newIndex != -1 && signer?.masterFingerprint?.isNotEmpty() == true) {
-                viewModel.handleCustomKeyAccountResult(signer.masterFingerprint, newIndex)
+                viewModel.handleCustomKeyAccountResult(signer.masterFingerprint, newIndex, currentKeyData)
             } else if (signer != null) {
                 // Original flow for non-OnChainAddSignerParam case
-                viewModel.handleSignerNewIndex(signer)
+                viewModel.handleSignerNewIndex(signer, currentKeyData)
             }
             clearFragmentResult(CustomKeyAccountFragment.REQUEST_KEY)
         }
@@ -964,7 +964,8 @@ private fun AddKeyCard(
                                         modifier = Modifier.height(36.dp),
                                         onClick = { onVerifyClicked(item) },
                                     ) {
-                                        Text(text = stringResource(R.string.nc_verify))
+                                        Text(text = stringResource(R.string.nc_verify),
+                                            style = NunchukTheme.typography.caption)
                                     }
                                 }
                             } else {

@@ -247,7 +247,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         }
     }
 
-    fun onSelectedExistingHardwareSigner(signer: SingleSigner) {
+    fun onSelectedExistingHardwareSigner(signer: SingleSigner, keyData: AddKeyOnChainData? = null) {
         viewModelScope.launch {
             val actualSigner = if (signer.xpub.isNotEmpty()) signer else singleSigners.find {
                 it.masterFingerprint == signer.masterFingerprint
@@ -267,12 +267,13 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                 _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
                 return@launch
             }
+            val verifyType = if (keyData?.isInheritanceKey() == true) VerifyType.NONE else VerifyType.APP_VERIFIED
             saveMembershipStepUseCase(
                 MembershipStepInfo(
                     step = currentStep,
                     masterSignerId = signer.masterFingerprint,
                     plan = membershipStepManager.localMembershipPlan,
-                    verifyType = VerifyType.APP_VERIFIED,
+                    verifyType = verifyType,
                     extraData = gson.toJson(
                         SignerExtra(
                             derivationPath = signer.derivationPath,
@@ -286,7 +287,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
             )
 
             // Update the card with the new signer for the current step
-            updateCardForStep(currentStep, signer.toModel(), VerifyType.APP_VERIFIED)
+            updateCardForStep(currentStep, signer.toModel(), verifyType)
         }
     }
 
@@ -513,7 +514,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
 
         val currentStep = membershipStepManager.currentStep
             ?: throw IllegalArgumentException("Current step empty")
-        val verifyType = if (signer.type == SignerType.NFC) VerifyType.NONE else VerifyType.APP_VERIFIED
+        val verifyType = if (signer.type == SignerType.NFC || data?.isInheritanceKey() == true) VerifyType.NONE else VerifyType.APP_VERIFIED
         // Save membership step
         saveMembershipStepUseCase(
             MembershipStepInfo(
@@ -627,14 +628,14 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         }
     }
 
-    fun handleCustomKeyAccountResult(signerFingerPrint: String, newIndex: Int) {
+    fun handleCustomKeyAccountResult(signerFingerPrint: String, newIndex: Int, keyData: AddKeyOnChainData?) {
         viewModelScope.launch {
             val signerByIndexResult = getSignerFromMasterSignerByIndex(signerFingerPrint, newIndex)
 
             when (signerByIndexResult) {
                 is Result.Success -> {
                     signerByIndexResult.data?.let { singleSigner ->
-                        processTapSignerWithCompleteData(singleSigner, singleSigner.toModel())
+                        processTapSignerWithCompleteData(singleSigner, singleSigner.toModel(), data = keyData)
                     }
                 }
 

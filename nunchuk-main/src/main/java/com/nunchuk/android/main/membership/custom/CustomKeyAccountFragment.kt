@@ -315,6 +315,9 @@ class CustomKeyAccountFragment : MembershipFragment(), BottomSheetOptionListener
                     )
                 }
             }
+            if (args.onChainAddSignerParam != null) {
+                requireActivity().onBackPressedDispatcher.onBackPressed()
+            }
         } else {
             setResultAndFinish(signer)
         }

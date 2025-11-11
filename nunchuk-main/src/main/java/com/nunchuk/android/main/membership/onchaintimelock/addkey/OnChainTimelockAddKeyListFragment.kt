@@ -196,9 +196,9 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             val newIndex = bundle.getInt(GlobalResultKey.EXTRA_INDEX, -1)
 
             if (newIndex != -1 && signer?.masterFingerprint?.isNotEmpty() == true) {
-                viewModel.handleCustomKeyAccountResult(signer.masterFingerprint, newIndex)
+                viewModel.handleCustomKeyAccountResult(signer.masterFingerprint, newIndex, keyData = currentKeyData)
             } else if (signer != null) {
-                viewModel.onSelectedExistingHardwareSigner(signer)
+                viewModel.onSelectedExistingHardwareSigner(signer, currentKeyData)
             }
             clearFragmentResult(CustomKeyAccountFragment.REQUEST_KEY)
         }
@@ -225,7 +225,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         if (signer.type == SignerType.AIRGAP && signer.tags.isEmpty() && selectedSignerTag != null) {
                             viewModel.onUpdateSignerTag(signer, selectedSignerTag)
                         } else {
-                            viewModel.onSelectedExistingHardwareSigner(signer.toSingleSigner())
+                            viewModel.onSelectedExistingHardwareSigner(signer.toSingleSigner(), currentKeyData)
                         }
                     }
                 }
@@ -892,7 +892,8 @@ private fun AddKeyCard(
                                         modifier = Modifier.height(36.dp),
                                         onClick = { onVerifyClicked(item) },
                                     ) {
-                                        Text(text = stringResource(R.string.nc_verify))
+                                        Text(text = stringResource(R.string.nc_verify),
+                                            style = NunchukTheme.typography.caption)
                                     }
                                 }
                             } else {

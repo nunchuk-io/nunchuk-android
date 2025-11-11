@@ -447,7 +447,8 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
             _event.emit(OnChainTimelockByzantineAddKeyListEvent.ShowError(it.message.orUnknownError()))
             return
         }
-        val verifyType = if (signer.type == SignerType.NFC) VerifyType.NONE else VerifyType.APP_VERIFIED
+        val verifyType =
+            if (signer.type == SignerType.NFC || data?.isInheritanceKey() == true) VerifyType.NONE else VerifyType.APP_VERIFIED
 
         // Save membership step
         saveMembershipStepUseCase(
@@ -560,14 +561,22 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         }
     }
 
-    fun handleCustomKeyAccountResult(signerFingerPrint: String, newIndex: Int) {
+    fun handleCustomKeyAccountResult(
+        signerFingerPrint: String,
+        newIndex: Int,
+        currentKeyData: AddKeyOnChainData?
+    ) {
         viewModelScope.launch {
             val signerByIndexResult = getSignerFromMasterSignerByIndex(signerFingerPrint, newIndex)
 
             when (signerByIndexResult) {
                 is Result.Success -> {
                     signerByIndexResult.data?.let { singleSigner ->
-                        processTapSignerWithCompleteData(singleSigner, singleSigner.toModel())
+                        processTapSignerWithCompleteData(
+                            singleSigner,
+                            singleSigner.toModel(),
+                            data = currentKeyData
+                        )
                     }
                 }
 
@@ -597,7 +606,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         }
     }
 
-    fun handleSignerNewIndex(signer: SingleSigner) {
+    fun handleSignerNewIndex(signer: SingleSigner, keyOnChainData: AddKeyOnChainData? = null) {
         viewModelScope.launch {
             val currentStep = membershipStepManager.currentStep
                 ?: throw IllegalArgumentException("Current step empty")
@@ -613,12 +622,14 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                 _event.emit(OnChainTimelockByzantineAddKeyListEvent.ShowError(it.message.orUnknownError()))
                 return@launch
             }
+            val verifyType =
+                if (keyOnChainData?.isInheritanceKey() == true) VerifyType.NONE else VerifyType.APP_VERIFIED
             saveMembershipStepUseCase(
                 MembershipStepInfo(
                     step = currentStep,
                     masterSignerId = signer.masterFingerprint,
                     plan = membershipStepManager.localMembershipPlan,
-                    verifyType = VerifyType.NONE,
+                    verifyType = verifyType,
                     extraData = gson.toJson(
                         SignerExtra(
                             derivationPath = signer.derivationPath,
@@ -632,7 +643,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
             )
 
             // Update the card with the new signer for the current step
-            updateCardForStep(currentStep, signer.toModel(), VerifyType.NONE)
+            updateCardForStep(currentStep, signer.toModel(), verifyType)
         }
     }
 

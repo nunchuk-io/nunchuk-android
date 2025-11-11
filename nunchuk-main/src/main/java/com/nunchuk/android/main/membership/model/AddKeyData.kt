@@ -27,6 +27,8 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.TimelockExtra
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.isAddInheritanceKey
+import com.nunchuk.android.model.isTimelockStep
 
 data class AddKeyData(
     val type: MembershipStep,
@@ -161,6 +163,13 @@ data class AddKeyOnChainData(
     fun shouldShowAcctXBadge(): Boolean {
         return type != MembershipStep.ADD_SEVER_KEY && type != MembershipStep.TIMELOCK
     }
+
+    /**
+     * Checks if this card represents an inheritance key
+     */
+    fun isInheritanceKey(): Boolean {
+        return type.isAddInheritanceKey
+    }
 }
 
 /**
@@ -205,7 +214,7 @@ fun List<MembershipStep>.toAddKeyOnChainDataList(): List<AddKeyOnChainData> {
             )
             processedSteps.add(step)
             processedSteps.add(timelockStep)
-        } else if (step.name.contains("_TIMELOCK")) {
+        } else if (step.isTimelockStep) {
             // This is a timelock step - check if its regular counterpart exists
             val regularStep = this.find { it.getTimelockStep() == step }
             if (regularStep != null && !processedSteps.contains(regularStep)) {
