@@ -32,7 +32,7 @@ data class AddAirSignerArgs(
     val tag: SignerTag? = null,
     val groupId: String = "",
     val xfp: String? = null,
-    val newIndex: Int = 0,
+    val newIndex: Int = -1,
     val replacedXfp: String? = null,
     val walletId: String = "",
     val step: MembershipStep? = null,
