@@ -29,8 +29,8 @@ ext {
     camerax_version = "1.4.1"
 
     // Nunchuk dep versions
-    nativeSdkVersion = '1.2.3-new-honey'
-    prebuildNativeSdkVersion = '1.2.3@aar'
+    nativeSdkVersion = '1.2.6'
+    prebuildNativeSdkVersion = '1.2.6@aar'
 
     // Matrix
     matrixSdkVersion = '1.5.30'
@@ -38,12 +38,12 @@ ext {
 
     navVersion = "2.6.0"
 
-    MAJOR_VERSION = 1
-    MINOR_VERSION = 75
-    PATCH_VERSION = 3
-    TASK_LABEL = "ONCHAIN"
+    MAJOR_VERSION = 2
+    MINOR_VERSION = 0
+    PATCH_VERSION = 0
+    TASK_LABEL = "DEV"
 
-    VERSION_CODE = 301
+    VERSION_CODE = 302
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
