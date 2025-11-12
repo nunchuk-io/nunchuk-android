@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -232,8 +233,9 @@ fun InheritanceReviewPlanGroupScreenContent(
                         .padding(16.dp), onContinueClicked
                 ) {
                     Text(
-                        text = stringResource(
-                            id = R.string.nc_text_continue_signature_pending,
+                        text = pluralStringResource(
+                            id = R.plurals.nc_text_continue_signature_pending,
+                            count = uiState.pendingSignatures,
                             uiState.pendingSignatures
                         )
                     )

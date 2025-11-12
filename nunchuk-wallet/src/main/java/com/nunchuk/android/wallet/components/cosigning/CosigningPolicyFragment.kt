@@ -441,8 +441,9 @@ private fun CosigningPolicyContent(
                     ) {
                         if (!isEditable) {
                             Text(
-                                text = stringResource(
-                                    R.string.nc_text_continue_signature_pending,
+                                text = pluralStringResource(
+                                    id = R.plurals.nc_text_continue_signature_pending,
+                                    count = requiredSignature.requiredSignatures,
                                     requiredSignature.requiredSignatures
                                 )
                             )

@@ -421,8 +421,9 @@ private fun CosigningGroupPolicyContent(
                     ) {
                         if (uiState.pendingSignature > 0) {
                             Text(
-                                text = stringResource(
-                                    R.string.nc_text_continue_signature_pending,
+                                text = pluralStringResource(
+                                    id = R.plurals.nc_text_continue_signature_pending,
+                                    count = uiState.pendingSignature,
                                     uiState.pendingSignature
                                 )
                             )
