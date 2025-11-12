@@ -46,14 +46,14 @@ class WalletDetailsActivity : BaseActivity<ActivityWalletDetailBinding>() {
             val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
             
             // Apply system bar insets as padding
-            view.setPadding(systemBars.left, systemBars.top, systemBars.right, 
+            view.setPadding(systemBars.left, 0, systemBars.right,
                 if (ime.bottom > 0) 0 else systemBars.bottom)
             
             // When keyboard is shown, adjust bottom padding to account for it
             if (ime.bottom > 0) {
                 val extraPadding = (32 * resources.displayMetrics.density).toInt()
                 val imeHeight = ime.bottom - systemBars.bottom + extraPadding
-                view.setPadding(systemBars.left, systemBars.top, systemBars.right, imeHeight)
+                view.setPadding(systemBars.left, 0, systemBars.right, imeHeight)
             }
             
             insets
