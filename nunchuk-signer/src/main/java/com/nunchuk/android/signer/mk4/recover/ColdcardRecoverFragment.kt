@@ -423,10 +423,19 @@ private fun ColdcardRecoverContent(
                         style = NunchukTheme.typography.body
                     )
                 }
+                val exportTitle =
+                    if (onChainAddSignerParam != null) {
+                        stringResource(
+                            R.string.nc_export_account_x_xpub_from_coldcard,
+                            onChainKeyIndex
+                        )
+                    } else {
+                        stringResource(R.string.nc_export_xpubs_from_coldcard)
+                    }
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 3,
-                    title = stringResource(R.string.nc_export_xpubs_from_coldcard),
+                    title = exportTitle,
                     titleStyle = NunchukTheme.typography.title,
                 ) {
                     val exportInstruction = when {
