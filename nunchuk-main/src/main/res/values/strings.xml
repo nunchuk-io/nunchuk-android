@@ -488,4 +488,5 @@
     <string name="nc_add_coin_tags_or_collections">Add coin tags or collections</string>
     <string name="nc_an_inheritance_key">An inheritance key</string>
     <string name="nc_two_inheritance_keys">Two inheritance keys</string>
+    <string name="nc_inheritance_notify_pref_warning_on_chain">You are still personally responsible for sharing the Magic Phrase and inheritance key seed phrase with the Beneficiary. The notification email won’t include these information.</string>
 </resources>

@@ -367,7 +367,7 @@ internal fun CreateKeyItem(
         }
     val title = when {
         signer?.name.isNullOrEmpty() -> key
-        !signer.isVisible -> stringResource(R.string.nc_key_with_index, index + 1)
+        !signer.isVisible -> signer.name.ifEmpty { stringResource(R.string.nc_key_with_index, index + 1) }
         else -> signer.name
     }
     KeyItem(
@@ -380,7 +380,7 @@ internal fun CreateKeyItem(
         avatarColor = avatarColor,
         isOccupied = data.isSlotOccupied(signer?.name ?: key),
         bottomContent = {
-            if (data.showBip32Path && signer != null) {
+            if (data.showBip32Path && signer != null && signer.type != SignerType.SERVER) {
                 val isDuplicateSigner =
                     data.duplicateSignerKeys.contains("${signer.fingerPrint}:${signer.derivationPath}")
                 Row(
@@ -496,7 +496,9 @@ internal fun CreateKeyItem(
                     }
                 }
 
-                data.transactionStatus.isPendingSignatures() && data.mode == ScriptMode.SIGN && signer != null && signer.isVisible && isSatisfiable -> {
+                data.transactionStatus.isPendingSignatures() && data.mode == ScriptMode.SIGN
+                        && signer != null && signer.type != SignerType.SERVER
+                        && signer.isVisible && isSatisfiable -> {
                     NcPrimaryDarkButton(
                         height = 36.dp,
                         onClick = { onActionKey(nodeId, signer) },
@@ -642,6 +644,7 @@ data class ScriptNodeData(
     val rootNode: ScriptNode? = null,
     val onPathSelectionChange: (List<Int>, Boolean) -> Unit = { _, _ -> },
     val disabledPaths: Set<List<Int>> = emptySet(),
+    val enableSignerSize: Int = 0,
     val serverTransaction: ServerTransaction? = null
 ) {
     fun isSlotOccupied(position: String): Boolean {
@@ -1033,8 +1036,8 @@ fun ThreshMultiItem(
                         Text(
                             text = pluralStringResource(
                                 if (node.type == ScriptNodeType.MULTI.name) R.plurals.nc_transaction_pending_signature else R.plurals.nc_transaction_pending_conditions,
-                                pendingSigners,
-                                pendingSigners
+                                if (data.enableSignerSize > 0) data.enableSignerSize else pendingSigners,
+                                if(data.enableSignerSize > 0) data.enableSignerSize else pendingSigners
                             ),
                             style = NunchukTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.textSecondary,
@@ -1269,6 +1272,7 @@ fun KeyItem(
         Row(
             modifier = Modifier
                 .weight(1f),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             if (data.isGroupWallet && xfp.isNotEmpty()) {
                 NcCircleImage(

@@ -124,6 +124,7 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                 val transaction = walletAuthenticationUiState.transaction
                 if (transaction != null) {
                     TransactionDetailView(
+                        isDummyTx = true,
                         walletId = viewModel.args.walletId,
                         txId = "",
                         state = TransactionDetailsState(

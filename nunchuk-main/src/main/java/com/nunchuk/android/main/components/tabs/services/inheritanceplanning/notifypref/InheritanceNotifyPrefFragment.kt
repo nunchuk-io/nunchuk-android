@@ -288,7 +288,7 @@ fun InheritanceNotifyPrefScreenContent(
                             .fillMaxWidth()
                             .padding(16.dp),
                         onClick = onContinueClick,
-                        enabled = emails.isNotEmpty()
+                        enabled = emails.isNotEmpty() || inputText.isNotEmpty()
                     ) {
                         Text(text = continueBtnText)
                     }
@@ -353,7 +353,12 @@ fun InheritanceNotifyPrefScreenContent(
                             color = MaterialTheme.colorScheme.strokePrimary,
                             shape = RoundedCornerShape(8.dp)
                         )
-                        .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = if (emails.isEmpty()) 32.dp else 16.dp)
+                        .padding(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 16.dp,
+                            bottom = if (emails.isEmpty()) 32.dp else 16.dp
+                        )
                 ) {
                     // Email chips - vertical layout
                     if (emails.isNotEmpty()) {
@@ -425,22 +430,24 @@ fun InheritanceNotifyPrefScreenContent(
                 }
 
                 // Notify checkbox
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.nc_notify_them_today),
-                        style = NunchukTheme.typography.body,
-                        modifier = Modifier.weight(1f)
-                    )
-                    NcCheckBox(
-                        modifier = Modifier.size(24.dp),
-                        checked = isNotify,
-                        onCheckedChange = onNotifyChange,
-                    )
+                if (!isMiniscriptWallet) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.nc_notify_them_today),
+                            style = NunchukTheme.typography.body,
+                            modifier = Modifier.weight(1f)
+                        )
+                        NcCheckBox(
+                            modifier = Modifier.size(24.dp),
+                            checked = isNotify,
+                            onCheckedChange = onNotifyChange,
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.weight(1.0f))
@@ -448,7 +455,15 @@ fun InheritanceNotifyPrefScreenContent(
                 // Warning message
                 NcHintMessage(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    messages = listOf(ClickAbleText(content = stringResource(R.string.nc_inheritance_notify_pref_warning))),
+                    messages = listOf(
+                        ClickAbleText(
+                            content = if (isMiniscriptWallet) {
+                                stringResource(R.string.nc_inheritance_notify_pref_warning_on_chain)
+                            } else {
+                                stringResource(R.string.nc_inheritance_notify_pref_warning)
+                            }
+                        )
+                    ),
                     type = HighlightMessageType.WARNING
                 )
             }

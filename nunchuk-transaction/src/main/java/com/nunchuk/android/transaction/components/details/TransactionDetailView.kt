@@ -99,6 +99,7 @@ import java.util.Date
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionDetailView(
+    isDummyTx: Boolean = false,
     inheritanceClaimTxDetailInfo: InheritanceClaimTxDetailInfo? = null,
     walletId: String,
     txId: String,
@@ -204,6 +205,7 @@ fun TransactionDetailView(
             ) {
                 item {
                     TransactionHeader(
+                        isDummyTx = isDummyTx,
                         inheritanceClaimTxDetailInfo = inheritanceClaimTxDetailInfo,
                         isTimelockedActive = miniscriptUiState.isTimelockedActive,
                         transaction = state.transaction,
@@ -436,6 +438,7 @@ fun TransactionDetailView(
                                     inputCoins = state.txInputCoins,
                                     transactionStatus = state.transaction.status,
                                     serverTransaction = state.serverTransaction,
+                                    enableSignerSize = state.enabledSigners.size
                                 ),
                                 onChangeBip32Path = { _, _ -> },
                                 onActionKey = { nodeId, signer ->
@@ -597,6 +600,7 @@ private fun TransactionHeader(
     showDetail: Boolean,
     onShowDetails: () -> Unit,
     onManageCoinClick: () -> Unit,
+    isDummyTx: Boolean,
 ) {
     val sendToAddress = if (outputs.size >= 2) {
         stringResource(R.string.nc_multiple_addresses)
@@ -717,7 +721,7 @@ private fun TransactionHeader(
             modifier = Modifier.padding(top = 4.dp),
         )
 
-        if (inheritanceClaimTxDetailInfo == null) {
+        if (inheritanceClaimTxDetailInfo == null && !isDummyTx) {
             Text(
                 text = transaction.getFormatDate(),
                 style = NunchukTheme.typography.body,
