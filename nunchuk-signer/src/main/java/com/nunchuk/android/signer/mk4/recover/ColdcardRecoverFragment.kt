@@ -430,10 +430,17 @@ private fun ColdcardRecoverContent(
                     titleStyle = NunchukTheme.typography.title,
                 ) {
                     val exportInstruction = when {
-                        onChainAddSignerParam != null -> stringResource(
-                            R.string.nc_export_xpub_coldcard_onchain_desc,
-                            onChainKeyIndex
-                        )
+                        onChainAddSignerParam != null -> if (isScanQRCode) {
+                            stringResource(
+                                R.string.nc_export_xpub_coldcard_onchain_scan_qr_code_desc,
+                                onChainKeyIndex
+                            )
+                        } else  {
+                            stringResource(
+                                R.string.nc_export_xpub_coldcard_onchain_file_desc,
+                                onChainKeyIndex
+                            )
+                        }
                         isScanQRCode -> stringResource(R.string.nc_export_xpub_coldcard_scan_qr_code_desc)
                         else -> stringResource(R.string.nc_export_xpub_coldcard_desc)
                     }

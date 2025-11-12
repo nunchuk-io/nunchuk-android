@@ -61,7 +61,7 @@ class OnChainTimelockExplanationFragment : MembershipFragment() {
                     onContinueClicked = {
                         val activity = requireActivity() as? MembershipActivity
                         val groupId = activity?.groupId.orEmpty()
-                        
+
                         if (groupId.isNotEmpty()) {
                             val role = groupViewModel?.getRole()?.name.orEmpty()
                             findNavController().navigate(
@@ -76,7 +76,8 @@ class OnChainTimelockExplanationFragment : MembershipFragment() {
                                 OnChainTimelockExplanationFragmentDirections.actionOnChainTimelockExplanationFragmentToOnChainTimelockAddKeyListFragment()
                             )
                         }
-                    }
+                    },
+                    onMoreClicked = ::handleShowMore
                 )
             }
         }
@@ -84,15 +85,20 @@ class OnChainTimelockExplanationFragment : MembershipFragment() {
 }
 
 @Composable
-private fun OnChainTimelockExplanationScreen(onContinueClicked: () -> Unit) {
+private fun OnChainTimelockExplanationScreen(
+    onContinueClicked: () -> Unit,
+    onMoreClicked: () -> Unit = {}
+) {
     OnChainTimelockExplanationContent(
-        onContinueClicked = onContinueClicked
+        onContinueClicked = onContinueClicked,
+        onMoreClicked = onMoreClicked
     )
 }
 
 @Composable
 private fun OnChainTimelockExplanationContent(
-    onContinueClicked: () -> Unit = {}
+    onContinueClicked: () -> Unit = {},
+    onMoreClicked: () -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold(
@@ -101,7 +107,7 @@ private fun OnChainTimelockExplanationContent(
                 NcImageAppBar(
                     backgroundRes = R.drawable.bg_inheritance_onchain_offchain,
                     actions = {
-                        IconButton(onClick = { /* TODO: Handle more actions */ }) {
+                        IconButton(onClick = onMoreClicked) {
                             NcIcon(
                                 painter = painterResource(R.drawable.ic_more),
                                 contentDescription = "More options"
@@ -208,6 +214,7 @@ private fun BulletPoint(
 @Composable
 private fun OnChainTimelockExplanationScreenPreview() {
     OnChainTimelockExplanationContent(
-        onContinueClicked = { }
+        onContinueClicked = { },
+        onMoreClicked = { }
     )
 }
