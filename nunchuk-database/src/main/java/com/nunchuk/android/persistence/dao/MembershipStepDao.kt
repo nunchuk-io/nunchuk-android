@@ -59,7 +59,4 @@ interface MembershipStepDao : BaseDao<MembershipStepEntity> {
 
     @Query("DELETE FROM $TABLE_MEMBERSHIP_STEP WHERE group_id = :groupId")
     suspend fun deleteStepByGroupId(groupId: String)
-
-    @Query("DELETE FROM $TABLE_MEMBERSHIP_STEP")
-    suspend fun deleteAll()
 }

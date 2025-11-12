@@ -23,7 +23,6 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.GetDeveloperSettingUseCase
 import com.nunchuk.android.core.domain.UpdateDeveloperSettingUseCase
-import com.nunchuk.android.core.domain.membership.ClearMembershipStepsUseCase
 import com.nunchuk.android.core.domain.data.DeveloperSetting
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,8 +34,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class DeveloperSettingViewModel @Inject constructor(
     private val updateDeveloperSettingUseCase: UpdateDeveloperSettingUseCase,
-    private val getDeveloperSettingUseCase: GetDeveloperSettingUseCase,
-    private val clearMembershipStepsUseCase: ClearMembershipStepsUseCase,
+    private val getDeveloperSettingUseCase: GetDeveloperSettingUseCase
 ) : NunchukViewModel<DeveloperSettingState, DeveloperSettingEvent>() {
 
     override val initialState = DeveloperSettingState()
@@ -78,12 +76,6 @@ internal class DeveloperSettingViewModel @Inject constructor(
     fun updateMatrixBasedCollaborativeWallet(matrixBasedCollaborativeWallet: Boolean) {
         if (state.value?.developerSetting?.matrixBasedCollaborativeWallet == matrixBasedCollaborativeWallet) return
         updateDeveloperSettings(state.value!!.developerSetting.copy(matrixBasedCollaborativeWallet = matrixBasedCollaborativeWallet))
-    }
-
-    fun clearMembershipSteps() {
-        viewModelScope.launch {
-            clearMembershipStepsUseCase(Unit)
-        }
     }
 
 }
