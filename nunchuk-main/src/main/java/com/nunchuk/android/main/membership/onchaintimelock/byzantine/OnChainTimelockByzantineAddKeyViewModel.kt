@@ -23,6 +23,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
+import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerByPathUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
@@ -51,6 +52,7 @@ import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
@@ -62,7 +64,6 @@ import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
-import com.nunchuk.android.usecase.signer.GetCurrentSignerIndexUseCase
 import com.nunchuk.android.usecase.signer.GetSignerFromMasterSignerByIndexUseCase
 import com.nunchuk.android.usecase.signer.GetUnusedSignerFromMasterSignerV2UseCase
 import com.nunchuk.android.usecase.wallet.GetWallets2UseCase
@@ -99,12 +100,12 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
     private val ncDataStore: NcDataStore,
     private val getWallets2UseCase: GetWallets2UseCase,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
-    private val getCurrentSignerIndexUseCase: GetCurrentSignerIndexUseCase,
     private val getSignerFromMasterSignerByIndexUseCase: GetSignerFromMasterSignerByIndexUseCase,
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val getUnusedSignerFromMasterSignerV2UseCase: GetUnusedSignerFromMasterSignerV2UseCase,
     private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase,
     private val singleSignerMapper: SingleSignerMapper,
+    private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(OnChainTimelockByzantineAddKeyListState())
     val state = _state.asStateFlow()
@@ -130,6 +131,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
     private val singleSigners = mutableListOf<SingleSigner>()
     private val masterSigners = mutableListOf<MasterSigner>()
     private val unBackedUpSignerXfpSet = mutableSetOf<String>()
+    private var isTestNet: Boolean = false
 
     // Context for TapSigner caching
     private var pendingTapSignerData: AddKeyOnChainData? = null
@@ -161,6 +163,13 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
             currentStep.filterNotNull().collect {
                 membershipStepManager.setCurrentStep(it)
             }
+        }
+        viewModelScope.launch {
+            getChainSettingFlowUseCase(Unit)
+                .map { it.getOrDefault(Chain.MAIN) }
+                .collect {
+                    isTestNet = it == Chain.TESTNET
+                }
         }
         refresh()
         viewModelScope.launch {
@@ -409,7 +418,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                 }.onFailure { error ->
                     if (error is NCNativeException && error.message.contains("-1009") == true) {
                         savedStateHandle[KEY_TAPSIGNER_MASTER_ID] = signerModel.fingerPrint
-                        savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(0)
+                        savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(0, isTestNet)
                         savedStateHandle[KEY_TAPSIGNER_CONTEXT] =
                             TapSignerCachingContext.ADD_TAPSIGNER_KEY.name
                         pendingTapSignerData = data
@@ -486,76 +495,43 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         walletId: String
     ) {
         viewModelScope.launch {
-            // Get current index from master signer
-            val currentIndexResult = getCurrentIndexFromMasterSigner(firstSigner.fingerPrint)
+            // Try to get signer at index 1
+            val signerByIndexResult =
+                getSignerFromMasterSignerByIndex(firstSigner.fingerPrint, 1)
 
-            when (currentIndexResult) {
+            when (signerByIndexResult) {
                 is Result.Success -> {
-                    if (currentIndexResult.data >= 1) {
-                        // Navigate to CustomKeyAccountFragment
-                        val onChainAddSignerParam = OnChainAddSignerParam(
-                            flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                            keyIndex = data.getAllSigners().size,
-                            currentSigner = firstSigner
+                    // Successfully got signer at index 1, process it with complete data
+                    signerByIndexResult.data?.let { singleSigner ->
+                        processTapSignerWithCompleteData(
+                            singleSigner,
+                            singleSigner.toModel(),
+                            data
                         )
-                        _event.emit(
-                            OnChainTimelockByzantineAddKeyListEvent.NavigateToCustomKeyAccount(
-                                firstSigner,
-                                walletId,
-                                onChainAddSignerParam
-                            )
-                        )
-                        return@launch
-                    } else {
-                        // Current index < 1, try to get signer at index 1
-                        val signerByIndexResult =
-                            getSignerFromMasterSignerByIndex(firstSigner.fingerPrint, 1)
-
-                        when (signerByIndexResult) {
-                            is Result.Success -> {
-                                // Successfully got signer at index 1, process it with complete data
-                                signerByIndexResult.data?.let { singleSigner ->
-                                    processTapSignerWithCompleteData(
-                                        singleSigner,
-                                        singleSigner.toModel(),
-                                        data
-                                    )
-                                }
-                            }
-
-                            is Result.Error -> {
-                                val error = signerByIndexResult.exception
-                                if (error is NCNativeException && error.message.contains("-1009")) {
-                                    // Store context for TapSigner caching - using index 1 for second account
-                                    savedStateHandle[KEY_TAPSIGNER_MASTER_ID] =
-                                        firstSigner.fingerPrint
-                                    savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(1)
-                                    savedStateHandle[KEY_TAPSIGNER_CONTEXT] =
-                                        TapSignerCachingContext.HANDLE_ACCT1_ADDITION.name
-                                    pendingTapSignerData = data
-                                    pendingTapSignerWalletId = walletId
-                                    pendingTapSignerSignerModel = firstSigner
-                                    requestCacheTapSignerXpub()
-                                } else {
-                                    // Other error, show error message
-                                    _event.emit(
-                                        OnChainTimelockByzantineAddKeyListEvent.ShowError(
-                                            error.message ?: "Failed to get signer at index 1"
-                                        )
-                                    )
-                                }
-                            }
-                        }
                     }
                 }
 
                 is Result.Error -> {
-                    // Error getting current index
-                    _event.emit(
-                        OnChainTimelockByzantineAddKeyListEvent.ShowError(
-                            currentIndexResult.exception.message ?: "Failed to get current index"
+                    val error = signerByIndexResult.exception
+                    if (error is NCNativeException && error.message.contains("-1009")) {
+                        // Store context for TapSigner caching - using index 1 for second account
+                        savedStateHandle[KEY_TAPSIGNER_MASTER_ID] =
+                            firstSigner.fingerPrint
+                        savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(1, isTestNet)
+                        savedStateHandle[KEY_TAPSIGNER_CONTEXT] =
+                            TapSignerCachingContext.HANDLE_ACCT1_ADDITION.name
+                        pendingTapSignerData = data
+                        pendingTapSignerWalletId = walletId
+                        pendingTapSignerSignerModel = firstSigner
+                        requestCacheTapSignerXpub()
+                    } else {
+                        // Other error, show error message
+                        _event.emit(
+                            OnChainTimelockByzantineAddKeyListEvent.ShowError(
+                                error.message ?: "Failed to get signer at index 1"
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
@@ -593,7 +569,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                     if (error is NCNativeException && error.message.contains("-1009") == true) {
                         // Store context for TapSigner caching - using the custom newIndex
                         savedStateHandle[KEY_TAPSIGNER_MASTER_ID] = signerFingerPrint
-                        savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(newIndex)
+                        savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(newIndex, isTestNet)
                         savedStateHandle[KEY_TAPSIGNER_CONTEXT] =
                             TapSignerCachingContext.HANDLE_CUSTOM_KEY_ACCOUNT_RESULT.name
                         // For custom key account result, we don't have data/walletId context to store
@@ -721,21 +697,6 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         }.getOrDefault("")
     }
 
-    suspend fun getCurrentIndexFromMasterSigner(fingerPrint: String): Result<Int> {
-        return runCatching {
-            getCurrentSignerIndexUseCase(
-                GetCurrentSignerIndexUseCase.Param(
-                    masterSignerId = fingerPrint,
-                    walletType = WalletType.MULTI_SIG,
-                    addressType = AddressType.NATIVE_SEGWIT
-                )
-            ).getOrThrow()
-        }.fold(
-            onSuccess = { Result.Success(it) },
-            onFailure = { Result.Error(it as Exception) }
-        )
-    }
-
     /**
      * Gets a signer from master signer by specific index (for TapSigner flows)
      */
@@ -766,7 +727,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         index: Int
     ): Result<SingleSigner?> {
         return runCatching {
-            val derivationPath = getPath(index)
+            val derivationPath = getPath(index, isTestNet)
             getRemoteSignerUseCase(
                 GetRemoteSignerUseCase.Data(
                     id = fingerPrint,
@@ -791,67 +752,34 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         walletId: String
     ) {
         viewModelScope.launch {
-            // Call getCurrentIndexFromMasterSigner to check resultIndex
-            val resultIndexResult = getCurrentIndexFromMasterSigner(firstSigner.fingerPrint)
+            // Call GetRemoteSignerUseCase
+            val signerResult =
+                getRemoteSignerByIndex(firstSigner.fingerPrint, 1)
 
-            when (resultIndexResult) {
+            when (signerResult) {
                 is Result.Success -> {
-                    val resultIndex = resultIndexResult.data
+                    val signer = signerResult.data
 
-                    if (resultIndex >= 1) {
-                        // If resultIndex >= 1, navigate to CustomKeyAccountFragment
+                    if (signer != null) {
+                        // If signer != null, add signer to corresponding AddKeyOnChainData.signers
+                        handleSignerNewIndex(signer, data)
+                    } else {
+                        // If signer == null, run handleSignerTypeLogic flow
                         _event.emit(
-                            OnChainTimelockByzantineAddKeyListEvent.NavigateToCustomKeyAccount(
-                                signer = firstSigner,
-                                walletId = walletId,
-                                onChainAddSignerParam = OnChainAddSignerParam(
-                                    flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                                    keyIndex = 1,
-                                    currentSigner = firstSigner
-                                )
+                            OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic(
+                                firstSigner.type,
+                                firstSigner.tags.firstOrNull { it != SignerTag.INHERITANCE }
                             )
                         )
-                    } else {
-                        // If resultIndex < 1, call GetRemoteSignerUseCase
-                        val signerResult =
-                            getRemoteSignerByIndex(firstSigner.fingerPrint, 1)
-
-                        when (signerResult) {
-                            is Result.Success -> {
-                                val signer = signerResult.data
-
-                                if (signer != null) {
-                                    // If signer != null, add signer to corresponding AddKeyOnChainData.signers
-                                    handleSignerNewIndex(signer, data)
-                                } else {
-                                    // If signer == null, run handleSignerTypeLogic flow
-                                    _event.emit(
-                                        OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic(
-                                            firstSigner.type,
-                                            firstSigner.tags.firstOrNull { it != SignerTag.INHERITANCE }
-                                        )
-                                    )
-                                }
-                            }
-
-                            is Result.Error -> {
-                                // If error getting signer, run handleSignerTypeLogic flow
-                                _event.emit(
-                                    OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic(
-                                        firstSigner.type,
-                                        firstSigner.tags.firstOrNull { it != SignerTag.INHERITANCE }
-                                    )
-                                )
-                            }
-                        }
                     }
                 }
 
                 is Result.Error -> {
-                    // If error getting current index, show error
+                    // If error getting signer, run handleSignerTypeLogic flow
                     _event.emit(
-                        OnChainTimelockByzantineAddKeyListEvent.ShowError(
-                            resultIndexResult.exception.message ?: "Failed to get current index"
+                        OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic(
+                            firstSigner.type,
+                            firstSigner.tags.firstOrNull { it != SignerTag.INHERITANCE }
                         )
                     )
                 }

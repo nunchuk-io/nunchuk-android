@@ -24,6 +24,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerByPathUseCase
+import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
@@ -47,6 +48,7 @@ import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
@@ -59,7 +61,6 @@ import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
-import com.nunchuk.android.usecase.signer.GetCurrentSignerIndexUseCase
 import com.nunchuk.android.usecase.signer.GetSignerFromMasterSignerByIndexUseCase
 import com.nunchuk.android.usecase.signer.GetUnusedSignerFromMasterSignerV2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -93,13 +94,13 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     private val syncKeyUseCase: SyncKeyUseCase,
     private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
-    private val getCurrentSignerIndexUseCase: GetCurrentSignerIndexUseCase,
     private val getSignerFromMasterSignerByIndexUseCase: GetSignerFromMasterSignerByIndexUseCase,
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val getUnusedSignerFromMasterSignerV2UseCase: GetUnusedSignerFromMasterSignerV2UseCase,
     private val getSignerFromTapsignerMasterSignerByPathUseCase: GetSignerFromTapsignerMasterSignerByPathUseCase,
     private val singleSignerMapper: SingleSignerMapper,
     private val pushEventManager: com.nunchuk.android.core.push.PushEventManager,
+    private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddKeyListState())
     val state = _state.asStateFlow()
@@ -124,6 +125,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
 
     private val singleSigners = mutableListOf<SingleSigner>()
     private val masterSigners = mutableListOf<MasterSigner>()
+    private var isTestNet: Boolean = false
 
     // Context for TapSigner caching
     private var pendingTapSignerData: AddKeyOnChainData? = null
@@ -135,6 +137,13 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
             currentStep.filterNotNull().collect {
                 membershipStepManager.setCurrentStep(it)
             }
+        }
+        viewModelScope.launch {
+            getChainSettingFlowUseCase(Unit)
+                .map { it.getOrDefault(Chain.MAIN) }
+                .collect {
+                    isTestNet = it == Chain.TESTNET
+                }
         }
         viewModelScope.launch {
             loadSigners()
@@ -474,7 +483,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                     if (error is NCNativeException && error.message.contains("-1009")) {
                         // Store context for TapSigner caching - using index 0 for first account
                         savedStateHandle[KEY_TAPSIGNER_MASTER_ID] = signerModel.fingerPrint
-                        savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(0)
+                        savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(0, isTestNet)
                         savedStateHandle[KEY_TAPSIGNER_CONTEXT] =
                             TapSignerCachingContext.ADD_TAPSIGNER_KEY.name
                         pendingTapSignerData = data
@@ -554,75 +563,42 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         viewModelScope.launch {
             Timber.tag("tapsigner-onchain")
                 .d("handleTapSignerAcct1Addition: currentStep=${membershipStepManager.currentStep}, data=$data, firstSigner=$firstSigner, walletId=$walletId")
-            // Get current index from master signer
-            val currentIndexResult = getCurrentIndexFromMasterSigner(firstSigner.fingerPrint)
+            // Try to get signer at index 1
+            val signerByIndexResult =
+                getSignerFromMasterSignerByIndex(firstSigner.fingerPrint, 1)
 
-            when (currentIndexResult) {
+            when (signerByIndexResult) {
                 is Result.Success -> {
-                    if (currentIndexResult.data >= 1) {
-                        // Navigate to CustomKeyAccountFragment
-                        val onChainAddSignerParam = OnChainAddSignerParam(
-                            flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                            keyIndex = data.signers?.size ?: 0,
-                            currentSigner = firstSigner
+                    // Successfully got signer at index 1, process it with complete data
+                    signerByIndexResult.data?.let { singleSigner ->
+                        processTapSignerWithCompleteData(
+                            singleSigner,
+                            singleSigner.toModel()
                         )
-                        _event.emit(
-                            AddKeyListEvent.NavigateToCustomKeyAccount(
-                                firstSigner,
-                                walletId,
-                                onChainAddSignerParam
-                            )
-                        )
-                        return@launch
-                    } else {
-                        // Current index < 1, try to get signer at index 1
-                        val signerByIndexResult =
-                            getSignerFromMasterSignerByIndex(firstSigner.fingerPrint, 1)
-
-                        when (signerByIndexResult) {
-                            is Result.Success -> {
-                                // Successfully got signer at index 1, process it with complete data
-                                signerByIndexResult.data?.let { singleSigner ->
-                                    processTapSignerWithCompleteData(
-                                        singleSigner,
-                                        singleSigner.toModel()
-                                    )
-                                }
-                            }
-
-                            is Result.Error -> {
-                                val error = signerByIndexResult.exception
-                                if (error is NCNativeException && error.message.contains("-1009") == true) {
-                                    // Store context for TapSigner caching - using index 1 for second account
-                                    savedStateHandle[KEY_TAPSIGNER_MASTER_ID] =
-                                        firstSigner.fingerPrint
-                                    savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(1)
-                                    savedStateHandle[KEY_TAPSIGNER_CONTEXT] =
-                                        TapSignerCachingContext.HANDLE_ACCT1_ADDITION.name
-                                    pendingTapSignerData = data
-                                    pendingTapSignerWalletId = walletId
-                                    pendingTapSignerSignerModel = firstSigner
-                                    requestCacheTapSignerXpub()
-                                } else {
-                                    // Other error, show error message
-                                    _event.emit(
-                                        AddKeyListEvent.ShowError(
-                                            error.message ?: "Failed to get signer at index 1"
-                                        )
-                                    )
-                                }
-                            }
-                        }
                     }
                 }
 
                 is Result.Error -> {
-                    // Error getting current index
-                    _event.emit(
-                        AddKeyListEvent.ShowError(
-                            currentIndexResult.exception.message ?: "Failed to get current index"
+                    val error = signerByIndexResult.exception
+                    if (error is NCNativeException && error.message.contains("-1009") == true) {
+                        // Store context for TapSigner caching - using index 1 for second account
+                        savedStateHandle[KEY_TAPSIGNER_MASTER_ID] =
+                            firstSigner.fingerPrint
+                        savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(1, isTestNet)
+                        savedStateHandle[KEY_TAPSIGNER_CONTEXT] =
+                            TapSignerCachingContext.HANDLE_ACCT1_ADDITION.name
+                        pendingTapSignerData = data
+                        pendingTapSignerWalletId = walletId
+                        pendingTapSignerSignerModel = firstSigner
+                        requestCacheTapSignerXpub()
+                    } else {
+                        // Other error, show error message
+                        _event.emit(
+                            AddKeyListEvent.ShowError(
+                                error.message ?: "Failed to get signer at index 1"
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
@@ -644,7 +620,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                     if (error is NCNativeException && error.message.contains("-1009")) {
                         // Store context for TapSigner caching - using the custom newIndex
                         savedStateHandle[KEY_TAPSIGNER_MASTER_ID] = signerFingerPrint
-                        savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(newIndex)
+                        savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(newIndex, isTestNet)
                         savedStateHandle[KEY_TAPSIGNER_CONTEXT] =
                             TapSignerCachingContext.HANDLE_CUSTOM_KEY_ACCOUNT_RESULT.name
                         // For custom key account result, we don't have data/walletId context to store
@@ -698,24 +674,6 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     }
 
     /**
-     * Gets the current index from a master signer
-     */
-    suspend fun getCurrentIndexFromMasterSigner(fingerPrint: String): Result<Int> {
-        return runCatching {
-            getCurrentSignerIndexUseCase(
-                GetCurrentSignerIndexUseCase.Param(
-                    masterSignerId = fingerPrint,
-                    walletType = WalletType.MULTI_SIG,
-                    addressType = AddressType.NATIVE_SEGWIT
-                )
-            ).getOrThrow()
-        }.fold(
-            onSuccess = { Result.Success(it) },
-            onFailure = { Result.Error(it as Exception) }
-        )
-    }
-
-    /**
      * Gets a signer from master signer by specific index (for TapSigner flows)
      */
     suspend fun getSignerFromMasterSignerByIndex(
@@ -745,7 +703,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         index: Int
     ): Result<SingleSigner?> {
         return runCatching {
-            val derivationPath = getPath(index)
+            val derivationPath = getPath(index, isTestNet)
             getRemoteSignerUseCase(
                 GetRemoteSignerUseCase.Data(
                     id = fingerPrint,
@@ -769,67 +727,34 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         walletId: String
     ) {
         viewModelScope.launch {
-            // Call getCurrentIndexFromMasterSigner to check resultIndex
-            val resultIndexResult = getCurrentIndexFromMasterSigner(firstSigner.fingerPrint)
+            // Call GetRemoteSignerUseCase
+            val signerResult =
+                getRemoteSignerByIndex(firstSigner.fingerPrint, 1)
 
-            when (resultIndexResult) {
+            when (signerResult) {
                 is Result.Success -> {
-                    val resultIndex = resultIndexResult.data
+                    val signer = signerResult.data
 
-                    if (resultIndex >= 1) {
-                        // If resultIndex >= 1, navigate to CustomKeyAccountFragment
+                    if (signer != null) {
+                        // If signer != null, add signer to corresponding AddKeyOnChainData.signers
+                        onSelectedExistingHardwareSigner(signer, data)
+                    } else {
+                        // If signer == null, run handleSignerTypeLogic flow
                         _event.emit(
-                            AddKeyListEvent.NavigateToCustomKeyAccount(
-                                signer = firstSigner,
-                                walletId = walletId,
-                                onChainAddSignerParam = OnChainAddSignerParam(
-                                    flags = if (data.type.isAddInheritanceKey) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                                    keyIndex = 1,
-                                    currentSigner = firstSigner
-                                )
+                            AddKeyListEvent.HandleSignerTypeLogic(
+                                firstSigner.type,
+                                firstSigner.tags.firstOrNull { it != SignerTag.INHERITANCE }
                             )
                         )
-                    } else {
-                        // If resultIndex < 1, call GetRemoteSignerUseCase
-                        val signerResult =
-                            getRemoteSignerByIndex(firstSigner.fingerPrint, 1)
-
-                        when (signerResult) {
-                            is Result.Success -> {
-                                val signer = signerResult.data
-
-                                if (signer != null) {
-                                    // If signer != null, add signer to corresponding AddKeyOnChainData.signers
-                                    onSelectedExistingHardwareSigner(signer, data)
-                                } else {
-                                    // If signer == null, run handleSignerTypeLogic flow
-                                    _event.emit(
-                                        AddKeyListEvent.HandleSignerTypeLogic(
-                                            firstSigner.type,
-                                            firstSigner.tags.firstOrNull { it != SignerTag.INHERITANCE }
-                                        )
-                                    )
-                                }
-                            }
-
-                            is Result.Error -> {
-                                // If error getting signer, run handleSignerTypeLogic flow
-                                _event.emit(
-                                    AddKeyListEvent.HandleSignerTypeLogic(
-                                        firstSigner.type,
-                                        firstSigner.tags.firstOrNull { it != SignerTag.INHERITANCE }
-                                    )
-                                )
-                            }
-                        }
                     }
                 }
 
                 is Result.Error -> {
-                    // If error getting current index, show error
+                    // If error getting signer, run handleSignerTypeLogic flow
                     _event.emit(
-                        AddKeyListEvent.ShowError(
-                            resultIndexResult.exception.message ?: "Failed to get current index"
+                        AddKeyListEvent.HandleSignerTypeLogic(
+                            firstSigner.type,
+                            firstSigner.tags.firstOrNull { it != SignerTag.INHERITANCE }
                         )
                     )
                 }
