@@ -1963,15 +1963,6 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun getTimelockStepId(groupId: String): Long {
-        val chatId = accountManager.getAccount().chatId
-        return if (groupId.isNotEmpty()) {
-            membershipStepDao.getStep(chatId, chain.value, MembershipStep.TIMELOCK, groupId)?.id ?: 0
-        } else {
-            membershipStepDao.getStep(chatId, chain.value, MembershipStep.TIMELOCK, "")?.id ?: 0
-        }
-    }
-
     override suspend fun cancelRequestIdIfNeed(groupId: String, step: MembershipStep) {
         val account = accountManager.getAccount()
         val entity = requestAddKeyDao.getRequest(account.chatId, chain.value, step, groupId)

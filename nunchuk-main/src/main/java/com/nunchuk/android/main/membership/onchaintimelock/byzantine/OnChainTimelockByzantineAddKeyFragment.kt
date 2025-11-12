@@ -130,6 +130,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @AndroidEntryPoint
 class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheetOptionListener {
@@ -182,11 +183,11 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     role = args.role.toRole,
                     onMoreClicked = ::handleShowMore,
                     onConfigTimelockClicked = { data ->
-                        val timelock = data.stepDataMap[MembershipStep.TIMELOCK]?.timelock?.value ?: 0L
+                        val timelockExtra = data.stepDataMap[MembershipStep.TIMELOCK]?.timelock
                         findNavController().navigate(
                             OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToOnChainSetUpTimelockFragment(
                                 groupId = args.groupId,
-                                timelock = timelock
+                                timelockExtra = timelockExtra
                             )
                         )
                     }
@@ -1101,10 +1102,14 @@ private fun ConfigItem(
                 }
             }
             if (isTimelockWithData) {
-                val timelockValue = item.stepDataMap[MembershipStep.TIMELOCK]?.timelock?.value
-                val formattedDate = timelockValue?.let {
+                val timelockExtra = item.stepDataMap[MembershipStep.TIMELOCK]?.timelock
+                val formattedDate = timelockExtra?.let {
                     val dateFormat = SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.getDefault())
-                    dateFormat.format(Date(it * 1000)) // Convert seconds to milliseconds
+                    // Use the timezone from TimelockExtra to display the date in the correct timezone
+                    it.timezone?.let { timezoneId ->
+                        dateFormat.timeZone = TimeZone.getTimeZone(timezoneId)
+                    }
+                    dateFormat.format(Date(it.value * 1000)) // Convert seconds to milliseconds
                 } ?: ""
                 Text(
                     text = formattedDate,

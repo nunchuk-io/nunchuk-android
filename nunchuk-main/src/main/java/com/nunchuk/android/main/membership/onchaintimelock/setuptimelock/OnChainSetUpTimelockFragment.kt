@@ -1,6 +1,5 @@
 package com.nunchuk.android.main.membership.onchaintimelock.setuptimelock
 
-import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -54,13 +53,14 @@ import com.nunchuk.android.core.ui.TimeZoneDetail
 import com.nunchuk.android.core.ui.toTimeZoneDetail
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.TimelockExtra
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Locale
-import java.util.TimeZone
+import java.util.TimeZone as JavaTimeZone
 
 @AndroidEntryPoint
 class OnChainSetUpTimelockFragment : MembershipFragment(), BottomSheetOptionListener {
@@ -74,7 +74,7 @@ class OnChainSetUpTimelockFragment : MembershipFragment(), BottomSheetOptionList
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                OnChainSetUpTimelockScreen(viewModel, args.groupId, args.timelock, onMoreClicked = ::handleShowMore)
+                OnChainSetUpTimelockScreen(viewModel, args.groupId, args.timelockExtra, onMoreClicked = ::handleShowMore)
             }
         }
     }
@@ -106,7 +106,7 @@ class OnChainSetUpTimelockFragment : MembershipFragment(), BottomSheetOptionList
 private fun OnChainSetUpTimelockScreen(
     viewModel: OnChainSetUpTimelockViewModel = viewModel(),
     groupId: String? = null,
-    timelock: Long = 0L,
+    timelockExtra: TimelockExtra? = null,
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -117,26 +117,31 @@ private fun OnChainSetUpTimelockScreen(
             viewModel.onContinueClick(selectedDate, selectedTimeZone, groupId = groupId)
         },
         remainTime = remainTime,
-        timelock = timelock
+        timelockExtra = timelockExtra
     )
 }
 
 @Composable
 private fun OnChainSetUpTimelockContent(
     remainTime: Int = 0,
-    timelock: Long = 0L,
+    timelockExtra: TimelockExtra? = null,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: (Calendar, TimeZoneDetail) -> Unit = { _, _ -> },
 ) {
-    // Local state management
-    var selectedDate by remember { 
+    var selectedTimeZone by remember {
         mutableStateOf(
-            if (timelock > 0) {
-                Calendar.getInstance().apply {
-                    timeInMillis = timelock * 1000 // Convert seconds to milliseconds
+            timelockExtra?.timezone?.toTimeZoneDetail() ?: JavaTimeZone.getDefault().id.toTimeZoneDetail() ?: TimeZoneDetail()
+        )
+    }
+    
+    var selectedDate by remember {
+        mutableStateOf(
+            if (timelockExtra != null && timelockExtra.value > 0) {
+                Calendar.getInstance(JavaTimeZone.getTimeZone(selectedTimeZone.id)).apply {
+                    timeInMillis = timelockExtra.value * 1000 // Convert seconds to milliseconds
                 }
             } else {
-                Calendar.getInstance().apply {
+                Calendar.getInstance(JavaTimeZone.getTimeZone(selectedTimeZone.id)).apply {
                     add(Calendar.YEAR, 5)
                     set(Calendar.HOUR_OF_DAY, 0)
                     set(Calendar.MINUTE, 0)
@@ -146,14 +151,22 @@ private fun OnChainSetUpTimelockContent(
             }
         )
     }
-    var selectedTimeZone by remember { 
-        mutableStateOf(TimeZone.getDefault().id.toTimeZoneDetail() ?: TimeZoneDetail())
-    }
     
-    val dateFormat = remember { SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()) }
-    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
-    val selectedDateText by remember { derivedStateOf { dateFormat.format(selectedDate.time) } }
-    val selectedTimeText by remember { derivedStateOf { timeFormat.format(selectedDate.time) } }
+    val selectedDateText by remember(selectedDate) {
+        derivedStateOf {
+            val month = selectedDate.get(Calendar.MONTH) + 1
+            val day = selectedDate.get(Calendar.DAY_OF_MONTH)
+            val year = selectedDate.get(Calendar.YEAR)
+            String.format(Locale.getDefault(), "%02d/%02d/%04d", month, day, year)
+        }
+    }
+    val selectedTimeText by remember(selectedDate) {
+        derivedStateOf {
+            val hour = selectedDate.get(Calendar.HOUR_OF_DAY)
+            val minute = selectedDate.get(Calendar.MINUTE)
+            String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
+        }
+    }
     
     var datePickerDialog by remember { mutableStateOf(false) }
     var timePickerDialog by remember { mutableStateOf(false) }
@@ -201,8 +214,18 @@ private fun OnChainSetUpTimelockContent(
                     modifier = Modifier.padding(start = 16.dp, top = 10.dp, end = 16.dp),
                     selectedTimeZone = selectedTimeZone,
                     onTimeZoneSelected = { timeZone ->
+                        val year = selectedDate.get(Calendar.YEAR)
+                        val month = selectedDate.get(Calendar.MONTH)
+                        val day = selectedDate.get(Calendar.DAY_OF_MONTH)
+                        val hour = selectedDate.get(Calendar.HOUR_OF_DAY)
+                        val minute = selectedDate.get(Calendar.MINUTE)
+
                         selectedTimeZone = timeZone
-                    }
+                        selectedDate = Calendar.getInstance(JavaTimeZone.getTimeZone(timeZone.id)).apply {
+                            set(year, month, day, hour, minute, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }
+                    },
                 )
 
                 // Date and Time fields
@@ -266,9 +289,8 @@ private fun OnChainSetUpTimelockContent(
                     NcDatePickerDialog(
                         onDismissRequest = { datePickerDialog = false },
                         onConfirm = { date ->
-                            val newCalendar = Calendar.getInstance().apply {
+                            val newCalendar = Calendar.getInstance(JavaTimeZone.getTimeZone(selectedTimeZone.id)).apply {
                                 timeInMillis = date
-                                // Preserve existing time when date changes
                                 set(Calendar.HOUR_OF_DAY, selectedDate.get(Calendar.HOUR_OF_DAY))
                                 set(Calendar.MINUTE, selectedDate.get(Calendar.MINUTE))
                             }
@@ -286,7 +308,7 @@ private fun OnChainSetUpTimelockContent(
                         initialHour = selectedDate.get(Calendar.HOUR_OF_DAY),
                         initialMinute = selectedDate.get(Calendar.MINUTE),
                         onConfirm = { hour, minute ->
-                            val newCalendar = Calendar.getInstance().apply {
+                            val newCalendar = Calendar.getInstance(JavaTimeZone.getTimeZone(selectedTimeZone.id)).apply {
                                 timeInMillis = selectedDate.timeInMillis
                                 set(Calendar.HOUR_OF_DAY, hour)
                                 set(Calendar.MINUTE, minute)
@@ -325,7 +347,7 @@ private fun OnChainSetUpTimelockContent(
 private fun OnChainSetUpTimelockScreenPreview() {
     OnChainSetUpTimelockContent(
         remainTime = 0,
-        timelock = 0L,
+        timelockExtra = null,
         onMoreClicked = {},
         onContinueClicked = { _, _ -> }
     )

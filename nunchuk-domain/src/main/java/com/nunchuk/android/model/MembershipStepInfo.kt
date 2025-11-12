@@ -19,15 +19,18 @@
 
 package com.nunchuk.android.model
 
+import android.os.Parcelable
 import com.google.gson.Gson
 import com.nunchuk.android.type.SignerType
+import kotlinx.parcelize.Parcelize
 
 private val gson = Gson()
 
+@Parcelize
 data class TimelockExtra(
     val value: Long = 0L,
     val timezone: String? = null
-)
+) : Parcelable
 
 data class MembershipStepInfo(
     val id: Long = 0,

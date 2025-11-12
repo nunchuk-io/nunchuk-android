@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import java.util.Calendar
-import java.util.TimeZone
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,20 +28,9 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
 
     fun onContinueClick(selectedDate: Calendar, selectedTimeZone: TimeZoneDetail, groupId: String? = null) {
         viewModelScope.launch {
-            val localCalendar = Calendar.getInstance()
-            localCalendar.timeInMillis = selectedDate.timeInMillis
-            
-            val targetTimezoneCalendar = Calendar.getInstance(TimeZone.getTimeZone(selectedTimeZone.id))
-            targetTimezoneCalendar.set(Calendar.YEAR, localCalendar.get(Calendar.YEAR))
-            targetTimezoneCalendar.set(Calendar.MONTH, localCalendar.get(Calendar.MONTH))
-            targetTimezoneCalendar.set(Calendar.DAY_OF_MONTH, localCalendar.get(Calendar.DAY_OF_MONTH))
-            targetTimezoneCalendar.set(Calendar.HOUR_OF_DAY, localCalendar.get(Calendar.HOUR_OF_DAY))
-            targetTimezoneCalendar.set(Calendar.MINUTE, localCalendar.get(Calendar.MINUTE))
-            targetTimezoneCalendar.set(Calendar.SECOND, 0)
-            targetTimezoneCalendar.set(Calendar.MILLISECOND, 0)
-            
-            // This gives us the UTC timestamp for the selected date/time in the selected timezone
-            val timelockValue = targetTimezoneCalendar.timeInMillis / 1000
+            // selectedDate is already a Calendar with the correct timezone set
+            // Just use it directly to get the timestamp
+            val timelockValue = selectedDate.timeInMillis / 1000
             
             val result = createTimelockUseCase(
                 CreateTimelockUseCase.Param(
