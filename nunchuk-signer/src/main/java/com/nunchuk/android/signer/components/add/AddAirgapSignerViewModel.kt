@@ -347,7 +347,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                                         ?: throw IllegalArgumentException("Current step empty"),
                                     masterSignerId = airgap.masterFingerprint,
                                     plan = membershipStepManager.localMembershipPlan,
-                                    verifyType = VerifyType.APP_VERIFIED,
+                                    verifyType = if (onChainAddSignerParam?.isAddInheritanceSigner() == true) VerifyType.NONE else VerifyType.APP_VERIFIED,
                                     extraData = gson.toJson(
                                         SignerExtra(
                                             derivationPath = airgap.derivationPath,

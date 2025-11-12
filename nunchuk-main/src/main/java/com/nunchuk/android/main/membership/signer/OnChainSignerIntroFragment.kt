@@ -91,13 +91,11 @@ class OnChainSignerIntroFragment : MembershipFragment() {
                 popUpToOnChainTimelockFragment()
             } else {
                 val filteredSigners = result.data?.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
-                val signerTagName = result.data?.getStringExtra(GlobalResultKey.EXTRA_SIGNER_TAG)
                 if (!filteredSigners.isNullOrEmpty()) {
                     setFragmentResult(
                         REQUEST_KEY,
                         bundleOf(
                             GlobalResultKey.EXTRA_SIGNERS to ArrayList(filteredSigners),
-                            GlobalResultKey.EXTRA_SIGNER_TAG to signerTagName
                         )
                     )
                 }
@@ -215,7 +213,7 @@ class OnChainSignerIntroFragment : MembershipFragment() {
                 REQUEST_KEY,
                 bundleOf(GlobalResultKey.EXTRA_SIGNER_TAG to tag)
             )
-            requireActivity().onBackPressedDispatcher.onBackPressed()
+            popUpToOnChainTimelockFragment()
         } else {
             // For non-onChain flows, this should not be called as the buttons are disabled
         }

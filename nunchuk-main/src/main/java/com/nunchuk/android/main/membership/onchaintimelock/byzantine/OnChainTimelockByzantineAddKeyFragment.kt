@@ -281,7 +281,10 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
             val filteredSigners =
                 bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
             val signerModel = bundle.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
-            val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
+            val requestDesktopSignerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
+            val signerTag =
+                requestDesktopSignerTag ?: filteredSigners?.firstOrNull()?.tags?.firstOrNull()
+            selectedSignerTag = signerTag
             val isFromNfcSetup =
                 bundle.getBoolean(OnChainSignerIntroFragment.EXTRA_IS_FROM_NFC_SETUP, false)
 

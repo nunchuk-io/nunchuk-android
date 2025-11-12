@@ -63,6 +63,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
@@ -130,6 +131,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                     isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow,
                     onKeyNameChange = { viewModel.updateKeyName(it) },
                     onKeySpecChange = { viewModel.updateKeySpec(it) },
+                    onChainAddSignerParam = (requireActivity() as AddAirgapSignerActivity).onChainAddSignerParam,
                     onImportFile = {
                         importFileLauncher.launch("*/*")
                     },
@@ -423,6 +425,7 @@ private fun AddAirgapSignerContent(
     remainTime: Int = 0,
     uiState: AddAirgapSignerState = AddAirgapSignerState(),
     isMembershipFlow: Boolean = false,
+    onChainAddSignerParam: OnChainAddSignerParam? = null,
     onAddSigner: (String, String) -> Unit = { _, _ -> },
     onScanQr: () -> Unit = {},
     onImportFile: () -> Unit = {},
@@ -452,7 +455,7 @@ private fun AddAirgapSignerContent(
                     onClick = {
                         onAddSigner(uiState.keyName, uiState.keySpec)
                     }) {
-                    Text(text = stringResource(id = R.string.nc_text_add_signer))
+                    Text(text = if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) stringResource(id = R.string.nc_text_continue) else stringResource(id = R.string.nc_text_add_signer))
                 }
             }) { innerPadding ->
             Column(
