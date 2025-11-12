@@ -70,7 +70,11 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
             showExportOptions()
         }
         binding.btnSkipUpload.setOnDebounceClickListener {
-            ActivityManager.popUntil(WalletDetailsActivity::class.java)
+            if (args.isOnChainFlow) {
+                openWalletCreatedSuccess()
+            } else {
+                ActivityManager.popUntil(WalletDetailsActivity::class.java)
+            }
         }
         binding.toolbar.setNavigationOnClickListener {
             finish()
