@@ -142,7 +142,7 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                         onSignClick = {
                             walletAuthenticationViewModel.onSignerSelect(it)
                         },
-                        onShowMore = viewModel::handleViewMoreEvent
+                        onShowMore = ::handleMenuMore
                     )
                 }
             }
