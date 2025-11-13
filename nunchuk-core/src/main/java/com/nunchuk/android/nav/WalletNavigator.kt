@@ -33,6 +33,7 @@ import com.nunchuk.android.nav.args.AddWalletArgs
 import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.nav.args.ReviewWalletArgs
+import com.nunchuk.android.nav.args.UploadConfigurationType
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 
@@ -140,7 +141,8 @@ interface WalletNavigator : PersonalWalletNavigator, SharedWalletNavigator {
         isOnChainFlow: Boolean = false,
         groupId: String? = null,
         replacedWalletId: String? = null,
-        quickWalletParam: QuickWalletParam? = null
+        quickWalletParam: QuickWalletParam? = null,
+        type: UploadConfigurationType = UploadConfigurationType.None,
     )
 
     fun openRegisterColdCardWalletScreen(

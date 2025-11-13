@@ -20,6 +20,7 @@
 package com.nunchuk.android.wallet.components.upload
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import com.nunchuk.android.core.manager.ActivityManager
@@ -27,10 +28,12 @@ import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
+import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.nav.args.UploadConfigurationArgs
+import com.nunchuk.android.nav.args.UploadConfigurationType
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
-import com.nunchuk.android.wallet.components.details.WalletDetailsActivity
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.ExportColdcardSuccess
 import com.nunchuk.android.wallet.databinding.ActivityWalletUploadConfigurationBinding
 import com.nunchuk.android.widget.util.setLightStatusBar
@@ -44,11 +47,7 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (args.isOnChainFlow) {
-                openWalletCreatedSuccess()
-            } else {
-                goToWalletConfigScreen()
-            }
+            handleRegisterDone()
         }
 
     private val sharingController: IntentSharingController by lazy { IntentSharingController.from(this, launcher) }
@@ -70,14 +69,24 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
             showExportOptions()
         }
         binding.btnSkipUpload.setOnDebounceClickListener {
-            if (args.isOnChainFlow) {
-                openWalletCreatedSuccess()
-            } else {
-                ActivityManager.popUntil(WalletDetailsActivity::class.java)
-            }
+            handleRegisterDone()
         }
         binding.toolbar.setNavigationOnClickListener {
             finish()
+        }
+    }
+
+    override fun onSaveFileLocalSuccess() {
+        handleRegisterDone()
+    }
+
+    private fun handleRegisterDone() {
+        if (args.type == UploadConfigurationType.RegisterOnly) {
+            finish()
+        } else if (args.isOnChainFlow) {
+            openWalletCreatedSuccess()
+        } else {
+            goToWalletConfigScreen()
         }
     }
 
@@ -104,7 +113,8 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
                     groupId = args.groupId,
                     replacedWalletId = args.replacedWalletId,
                     quickWalletParam = args.quickWalletParam,
-                    isMembershipFlow = args.isOnChainFlow
+                    isMembershipFlow = args.isOnChainFlow,
+                    uploadConfigurationType = args.type
                 )
             )
             return
@@ -157,7 +167,6 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
 
     private fun showOnChainFlowExportOptions() {
         val wallet = sharedViewModel.getWallet() ?: return
-        val isMiniscript = sharedViewModel.getIsMiniscriptWallet()
         val isMultisig = wallet.signers.size > 1
         val addressType = wallet.addressType
         val isSupportedType = addressType == AddressType.LEGACY ||
@@ -179,10 +188,9 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
         ).show(supportFragmentManager, "BottomSheetOption")
     }
 
-
     private fun shareConfigurationFile(filePath: String?) {
         if (filePath.isNullOrEmpty().not()) {
-            sharingController.shareFile(filePath.orEmpty())
+            sharingController.shareFile(filePath)
         }
     }
 
@@ -212,7 +220,7 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
     private fun openWalletCreatedSuccess() {
         navigator.openMembershipActivity(
             activityContext = this,
-            groupStep = com.nunchuk.android.model.MembershipStage.CREATE_WALLET_SUCCESS,
+            groupStep = MembershipStage.CREATE_WALLET_SUCCESS,
             walletId = args.walletId,
             groupId = args.groupId,
             replacedWalletId = args.replacedWalletId,
@@ -224,20 +232,12 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
     companion object {
         fun start(
             activityContext: Context,
-            walletId: String,
-            isOnChainFlow: Boolean = false,
-            groupId: String? = null,
-            replacedWalletId: String? = null,
-            quickWalletParam: com.nunchuk.android.core.data.model.QuickWalletParam? = null
+            args: UploadConfigurationArgs
         ) {
             activityContext.startActivity(
-                UploadConfigurationArgs(
-                    walletId = walletId,
-                    isOnChainFlow = isOnChainFlow,
-                    groupId = groupId,
-                    replacedWalletId = replacedWalletId,
-                    quickWalletParam = quickWalletParam
-                ).buildIntent(activityContext)
+                Intent(activityContext, UploadConfigurationActivity::class.java).apply {
+                    putExtras(args.buildBundle())
+                }
             )
         }
     }

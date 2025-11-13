@@ -6,7 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.base.MutableSaveStateFlow
 import com.nunchuk.android.core.base.update
+import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCase
 import com.nunchuk.android.core.domain.membership.DownloadWalletForClaimUseCase
+import com.nunchuk.android.core.domain.membership.GetClaimingWalletUseCase
 import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.network.NunchukApiException
@@ -39,6 +41,8 @@ class ClaimInheritanceViewModel @Inject constructor(
     private val getMasterFingerprintUseCase: GetMasterFingerprintUseCase,
     private val deleteMasterSignerUseCase: DeleteMasterSignerUseCase,
     private val singleSignerMapper: SingleSignerMapper,
+    private val getClaimingWalletUseCase: GetClaimingWalletUseCase,
+    private val parseWalletDescriptorUseCase: ParseWalletDescriptorUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -156,6 +160,7 @@ class ClaimInheritanceViewModel @Inject constructor(
                 keys = currentData.signers.map { it.toSingleSigner() },
             )
         ).map { wallet ->
+            _uiState.update { it.copy(isRequiredRegister = wallet.requiresRegistration, walletId = wallet.localId) }
             getInheritanceStatus(currentData.magic, wallet.bsms)
         }.onFailure { e ->
             if (e is NunchukApiException && e.code == 831) {
@@ -204,6 +209,19 @@ class ClaimInheritanceViewModel @Inject constructor(
         }
     }
 
+    fun getClaimingWallet(bsms: String) = viewModelScope.launch {
+        parseWalletDescriptorUseCase(bsms).onSuccess { wallet ->
+            getClaimingWalletUseCase(wallet.id).onSuccess { wallet ->
+                _uiState.update {
+                    it.copy(
+                        walletId = wallet.id,
+                        isRequiredRegister = wallet.requiresRegistration
+                    )
+                }
+            }
+        }
+    }
+
     fun onEventHandled() {
         _uiState.update { it.copy(event = null) }
     }
@@ -217,6 +235,8 @@ class ClaimInheritanceViewModel @Inject constructor(
 data class ClaimUiState(
     val event: ClaimInheritanceEvent? = null,
     val isLoading: Boolean = false,
+    val walletId: String = "",
+    val isRequiredRegister: Boolean = false,
 )
 
 sealed class ClaimInheritanceEvent {

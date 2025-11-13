@@ -38,7 +38,6 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.data.model.QuickWalletParam
-import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -47,10 +46,12 @@ import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.util.ExportWalletQRCodeType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.nav.args.UploadConfigurationType
 import com.nunchuk.android.share.membership.MembershipEvent
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.membership.MembershipViewModel
 import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.R
 import com.nunchuk.android.wallet.components.upload.UploadConfigurationEvent.ExportColdcardSuccess
 import com.nunchuk.android.widget.NCToastMessage
@@ -66,30 +67,40 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
     private val membershipViewModel by viewModels<MembershipViewModel>()
 
     private val viewModel by viewModels<SharedWalletConfigurationViewModel>()
-    
+
     private var isWaitingForShareDismissal = false
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
                 viewModel.doneScanQr()
-                openWalletCreatedSuccess()
+                onRegisterDone()
             }
         }
 
     private val launcherSharing =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            openWalletCreatedSuccess()
+            onRegisterDone()
         }
 
     private val sharingController: IntentSharingController by lazy {
         IntentSharingController.from(this, launcherSharing)
     }
 
+    private val uploadConfigurationType by lazy {
+        intent.serializable<UploadConfigurationType>(EXTRA_UPLOAD_CONFIG_TYPE)
+            ?: UploadConfigurationType.None
+    }
     private val walletId by lazy { intent.getStringExtra(EXTRA_WALLET_ID).orEmpty() }
     private val groupId by lazy { intent.getStringExtra(EXTRA_GROUP_ID) }
-    private val replacedWalletId by lazy { intent.getStringExtra(EXTRA_REPLACED_WALLET_ID).orEmpty() }
-    private val quickWalletParam by lazy { intent.parcelable<QuickWalletParam>(EXTRA_QUICK_WALLET_PARAM) }
+    private val replacedWalletId by lazy {
+        intent.getStringExtra(EXTRA_REPLACED_WALLET_ID).orEmpty()
+    }
+    private val quickWalletParam by lazy {
+        intent.parcelable<QuickWalletParam>(
+            EXTRA_QUICK_WALLET_PARAM
+        )
+    }
     private val isMembershipFlow by lazy { intent.getBooleanExtra(EXTRA_IS_MEMBERSHIP_FLOW, false) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -128,7 +139,7 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
                         onDownloadClick = { showSaveShareOption() },
                         onContinueClick = {
                             if (isExportViaFile) {
-                                openWalletCreatedSuccess()
+                                onRegisterDone()
                             } else {
                                 openDynamicQRScreen(walletId, ExportWalletQRCodeType.BBQR)
                             }
@@ -145,7 +156,7 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
         super.onResume()
         if (isWaitingForShareDismissal) {
             isWaitingForShareDismissal = false
-            openWalletCreatedSuccess()
+            onRegisterDone()
         }
     }
 
@@ -170,7 +181,7 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
             is UploadConfigurationEvent.SaveLocalFile -> {
                 showSaveFileState(event.isSuccess)
                 if (event.isSuccess) {
-                    openWalletCreatedSuccess()
+                    onRegisterDone()
                 }
             }
 
@@ -225,8 +236,9 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
         }
     }
 
-    private fun openWalletCreatedSuccess() {
-        if (isMembershipFlow) {
+    private fun onRegisterDone() {
+        if (isMembershipFlow && uploadConfigurationType != UploadConfigurationType.RegisterOnly) {
+            navigator.returnToMainScreen(this)
             navigator.openMembershipActivity(
                 activityContext = this,
                 groupStep = MembershipStage.CREATE_WALLET_SUCCESS,
@@ -235,7 +247,6 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
                 replacedWalletId = replacedWalletId,
                 quickWalletParam = quickWalletParam
             )
-            ActivityManager.popUntilRoot()
         } else {
             setResult(RESULT_OK)
             finish()
@@ -249,6 +260,7 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
         const val EXTRA_REPLACED_WALLET_ID = "replaced_wallet_id"
         const val EXTRA_QUICK_WALLET_PARAM = "quick_wallet_param"
         const val EXTRA_IS_MEMBERSHIP_FLOW = "is_membership_flow"
+        const val EXTRA_UPLOAD_CONFIG_TYPE = "upload_config_type"
 
         fun start(
             context: Context,
@@ -280,6 +292,7 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
             replacedWalletId: String? = null,
             quickWalletParam: QuickWalletParam? = null,
             isMembershipFlow: Boolean = false,
+            uploadConfigurationType: UploadConfigurationType = UploadConfigurationType.None
         ): Intent {
             return Intent(context, RegisterColdCardWalletActivity::class.java).apply {
                 putExtra(EXTRA_WALLET_ID, walletId)
@@ -288,6 +301,7 @@ class RegisterColdCardWalletActivity : BaseComposeActivity(), BottomSheetOptionL
                 putExtra(EXTRA_REPLACED_WALLET_ID, replacedWalletId)
                 putExtra(EXTRA_QUICK_WALLET_PARAM, quickWalletParam)
                 putExtra(EXTRA_IS_MEMBERSHIP_FLOW, isMembershipFlow)
+                putExtra(EXTRA_UPLOAD_CONFIG_TYPE, uploadConfigurationType)
             }
         }
     }

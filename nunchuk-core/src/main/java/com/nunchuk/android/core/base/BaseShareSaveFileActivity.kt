@@ -85,6 +85,7 @@ abstract class BaseShareSaveFileActivity<Binding : ViewBinding> : BaseActivity<B
         hideLoading()
         if (isSuccess) {
             NCToastMessage(this).showMessage(getString(R.string.nc_save_file_success))
+            onSaveFileLocalSuccess()
         } else {
             NCToastMessage(this).showError(getString(R.string.nc_save_file_failed))
         }
@@ -95,4 +96,6 @@ abstract class BaseShareSaveFileActivity<Binding : ViewBinding> : BaseActivity<B
     open fun saveFileToLocal() {}
 
     open fun exportAsQR() {}
+
+    open fun onSaveFileLocalSuccess() {}
 }

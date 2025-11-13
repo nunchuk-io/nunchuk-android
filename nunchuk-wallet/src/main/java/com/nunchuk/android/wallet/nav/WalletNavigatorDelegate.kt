@@ -34,6 +34,8 @@ import com.nunchuk.android.nav.args.AddWalletArgs
 import com.nunchuk.android.nav.args.BackUpWalletArgs
 import com.nunchuk.android.nav.args.ConfigureWalletArgs
 import com.nunchuk.android.nav.args.ReviewWalletArgs
+import com.nunchuk.android.nav.args.UploadConfigurationArgs
+import com.nunchuk.android.nav.args.UploadConfigurationType
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.components.backup.BackupWalletActivity
@@ -152,15 +154,19 @@ interface WalletNavigatorDelegate : WalletNavigator {
         isOnChainFlow: Boolean,
         groupId: String?,
         replacedWalletId: String?,
-        quickWalletParam: QuickWalletParam?
+        quickWalletParam: QuickWalletParam?,
+        type: UploadConfigurationType
     ) {
         UploadConfigurationActivity.start(
             activityContext = activityContext,
-            walletId = walletId,
-            isOnChainFlow = isOnChainFlow,
-            groupId = groupId,
-            replacedWalletId = replacedWalletId,
-            quickWalletParam = quickWalletParam
+            args = UploadConfigurationArgs(
+                walletId = walletId,
+                isOnChainFlow = isOnChainFlow,
+                groupId = groupId,
+                replacedWalletId = replacedWalletId,
+                quickWalletParam = quickWalletParam,
+                type = type
+            )
         )
     }
 

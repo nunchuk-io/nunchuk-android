@@ -98,5 +98,13 @@ internal class InheritanceRepositoryImpl @Inject constructor(
     override fun getClaimWalletsFlow(): Flow<Set<String>> {
         return ncDataStore.claimWalletsFlow
     }
+
+    override suspend fun getClaimingWallet(localId: String): WalletServer {
+        val response = userWalletApiManager.claimInheritanceApi.getClaimingWallet(localId)
+        val walletServer = response.data.wallet
+            ?: throw IllegalStateException("Wallet data is missing in response")
+        
+        return walletServer.toModel()
+    }
 }
 

@@ -62,6 +62,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.ClaimArgs
+import com.nunchuk.android.nav.args.UploadConfigurationType
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.parcelableArrayList
 import dagger.hilt.android.AndroidEntryPoint
@@ -77,8 +78,9 @@ class ClaimInheritanceActivity : BaseComposeActivity() {
 
         val args = ClaimArgs.deserializeFrom(intent)
 
-        if (args.bsms != null) {
+        if (!args.bsms.isNullOrEmpty()) {
             viewModel.getInheritanceStatus(bsms = args.bsms)
+            viewModel.getClaimingWallet(bsms = args.bsms.orEmpty())
         }
 
         setContentView(
@@ -190,7 +192,8 @@ private fun ClaimInheritanceGraph(
 
     LaunchedEffect(claimData.inheritanceAdditional) {
         val inheritanceAdditional = claimData.inheritanceAdditional
-        val isShowingClaimNote = navController.currentDestination?.hasRoute<ClaimNoteRoute>() == true
+        val isShowingClaimNote =
+            navController.currentDestination?.hasRoute<ClaimNoteRoute>() == true
         if (inheritanceAdditional != null && !isShowingClaimNote) {
             navController.navigateToClaimNote()
         }
@@ -335,6 +338,13 @@ private fun ClaimInheritanceGraph(
                 },
                 onWithdrawClick = {
                     navController.navigateToClaimWithdrawBitcoin()
+                    if (sharedUiState.isRequiredRegister) {
+                        navigator.openUploadConfigurationScreen(
+                            activityContext = context,
+                            walletId = sharedUiState.walletId,
+                            type = UploadConfigurationType.RegisterOnly
+                        )
+                    }
                 },
             )
             claimWithdrawBitcoin(
