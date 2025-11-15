@@ -28,6 +28,7 @@ import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.share.model.ExtendTransaction
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
+import timber.log.Timber
 import javax.inject.Inject
 
 class InheritanceClaimCreateTransactionUseCase @Inject constructor(
@@ -44,6 +45,7 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
             feeRate = nunchukNativeSdk.valueFromAmount(parameters.feeRate),
             amount = nunchukNativeSdk.valueFromAmount(parameters.amount.toAmount()),
             antiFeeSniping = parameters.antiFeeSniping,
+            subtractFeeFromAmount = parameters.subtractFeeFromAmount,
             bsms = parameters.bsms
         )
         val signatures = arrayListOf<String>()
@@ -70,7 +72,8 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
             fee = transactionResponse.fee.toString(),
             feeRate = transactionResponse.feeRate.toString(),
             isDraft = parameters.isDraft,
-            bsms = parameters.bsms
+            bsms = parameters.bsms,
+            subtractFeeFromAmount = transactionResponse.subtractFeeFromAmount
         )
         if (parameters.isDraft) return ExtendTransaction(transaction.copy(changeIndex = transactionResponse.changePos))
         if (parameters.bsms.isNullOrEmpty()) {
@@ -105,6 +108,11 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
         val derivationPaths: List<String>,
         val amount: Double,
         val antiFeeSniping: Boolean,
-        val bsms: String? = null
-    )
+        val bsms: String? = null,
+        val subtractFeeFromAmount: Boolean? = null,
+    ) {
+        init {
+            Timber.d("InheritanceClaimCreateTransactionUseCase Param: $this")
+        }
+    }
 }

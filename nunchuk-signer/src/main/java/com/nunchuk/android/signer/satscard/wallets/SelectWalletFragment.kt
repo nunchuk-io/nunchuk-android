@@ -209,13 +209,18 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
         } else {
             SweepType.SWEEP_TO_NUNCHUK_WALLET
         }
+        val subtractFeeFromAmount = if (isInheritanceWalletFlow()) {
+            args.claimParam?.customAmount == args.claimParam?.totalAmount
+        } else {
+            true
+        }
         navigator.openEstimatedFeeScreen(
             activityContext = requireActivity(),
             walletId = viewModel.selectedWalletId,
             availableAmount = totalInBtc,
             txReceipts = listOf(TxReceipt(address = address, totalInBtc)),
             privateNote = "",
-            subtractFeeFromAmount = true,
+            subtractFeeFromAmount = subtractFeeFromAmount,
             sweepType = type,
             slots = args.slots.toList(),
             claimInheritanceTxParam = args.claimParam,

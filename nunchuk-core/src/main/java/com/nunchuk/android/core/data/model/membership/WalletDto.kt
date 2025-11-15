@@ -43,7 +43,7 @@ data class WalletDto(
     @SerializedName("hide_fiat_currency") val hideFiatCurrency: Boolean = false,
     @SerializedName("wallet_type") val walletType: String? = null,
     @SerializedName("send_bsms_email") val sendBsmsEmail: Boolean = false,
-    @SerializedName("requires_registration") val requiresRegistration: Boolean = false,
+    @SerializedName("requires_registration") val requiresRegistration: Boolean? = null,
     @SerializedName("timelock") val timelock: TimelockDto? = null,
 )
 
@@ -72,7 +72,7 @@ internal fun WalletDto.toModel(): WalletServer {
         alias = alias ?: "",
         walletType = walletType?.toWalletType() ?: WalletType.MULTI_SIG,
         sendBsmsEmail = sendBsmsEmail,
-        requiresRegistration = requiresRegistration,
+        requiresRegistration = requiresRegistration == true,
         timelockValue = timelock?.value ?: 0L,
         timezone = timelock?.timezone ?: "",
     )

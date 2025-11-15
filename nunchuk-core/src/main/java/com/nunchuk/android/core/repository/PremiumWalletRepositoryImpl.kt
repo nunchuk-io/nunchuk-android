@@ -812,7 +812,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     }
 
     override suspend fun generateInheritanceClaimCreateTransactionUserData(
-        magic: String, address: String, feeRate: String, amount: String, antiFeeSniping: Boolean, bsms: String?
+        magic: String,
+        address: String,
+        feeRate: String,
+        amount: String,
+        antiFeeSniping: Boolean,
+        subtractFeeFromAmount: Boolean?,
+        bsms: String?
     ): String {
         val amountVal = amount.toDoubleOrNull() ?: 0.0
         val body = InheritanceClaimCreateTransactionRequest.Body(
@@ -821,7 +827,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             address = address,
             feeRate = feeRate,
             amount = if (amountVal == 0.0) null else amount,
-            antiFeeSniping = antiFeeSniping
+            antiFeeSniping = antiFeeSniping,
+            subtractFeeFromAmount = subtractFeeFromAmount
         )
         val nonce = getNonce()
         val request = InheritanceClaimCreateTransactionRequest(
@@ -883,6 +890,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             feeRate = response.data.txFeeRate ?: 0.0,
             status = transaction.status.toTransactionStatus(),
             changePos = response.data.changePos ?: -1,
+            subtractFeeFromAmount = transaction.subtractFeeFromAmount
         )
     }
 
@@ -2197,7 +2205,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val createdWallet = nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
         return CreateWalletResult(
             wallet = createdWallet,
-            requiresRegistration = wallet.requiresRegistration
+            requiresRegistration = wallet.requiresRegistration == true
         )
     }
 
@@ -2220,7 +2228,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val createdWallet = nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
         return CreateWalletResult(
             wallet = createdWallet,
-            requiresRegistration = wallet.requiresRegistration
+            requiresRegistration = wallet.requiresRegistration == true
         )
     }
 

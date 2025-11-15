@@ -296,7 +296,8 @@ class TransactionConfirmViewModel @Inject constructor(
                     isDraft = true,
                     amount = claimInheritanceTxParam?.customAmount ?: 0.0,
                     bsms = claimInheritanceTxParam?.bsms,
-                    antiFeeSniping = antiFeeSniping
+                    antiFeeSniping = antiFeeSniping,
+                    subtractFeeFromAmount = subtractFeeFromAmount
                 )
             )
             if (result.isSuccess) {
@@ -518,7 +519,8 @@ class TransactionConfirmViewModel @Inject constructor(
                 isDraft = false,
                 amount = claimInheritanceTxParam?.customAmount ?: 0.0,
                 bsms = claimInheritanceTxParam?.bsms,
-                antiFeeSniping = antiFeeSniping
+                antiFeeSniping = antiFeeSniping,
+                subtractFeeFromAmount = subtractFeeFromAmount
             )
         )
         if (result.isSuccess) {

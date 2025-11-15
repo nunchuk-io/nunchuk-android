@@ -249,7 +249,8 @@ interface PremiumWalletRepository {
         feeRate: String,
         amount: String,
         antiFeeSniping: Boolean,
-        bsms: String? = null
+        subtractFeeFromAmount: Boolean?,
+        bsms: String? = null,
     ): String
 
     suspend fun inheritanceClaimStatus(

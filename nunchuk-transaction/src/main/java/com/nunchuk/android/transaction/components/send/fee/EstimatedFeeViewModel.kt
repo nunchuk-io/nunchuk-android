@@ -323,7 +323,8 @@ class EstimatedFeeViewModel @Inject constructor(
                 isDraft = true,
                 amount = claimInheritanceTxParam?.customAmount ?: 0.0,
                 bsms = claimInheritanceTxParam?.bsms,
-                antiFeeSniping = getAntiFeeSniping()
+                antiFeeSniping = getAntiFeeSniping(),
+                subtractFeeFromAmount = getState().subtractFeeFromAmount,
             )
         )
         _event.emit(EstimatedFeeEvent.Loading(false))

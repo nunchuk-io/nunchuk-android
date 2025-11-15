@@ -195,12 +195,17 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         val sweepType = SweepType.SWEEP_TO_EXTERNAL_ADDRESS
         val totalBalance = amount * BTC_SATOSHI_EXCHANGE_RATE
         val totalInBtc = Amount(value = totalBalance.toLong()).pureBTC()
+        val subtractFeeFromAmount = if (args.claimInheritanceTxParam != null) {
+            args.claimInheritanceTxParam?.totalAmount == totalInBtc
+        } else {
+            true
+        }
         navigator.openAddReceiptScreen(
             activityContext = this,
             walletId = "",
             outputAmount = totalInBtc,
             availableAmount = totalInBtc,
-            subtractFeeFromAmount = true,
+            subtractFeeFromAmount = subtractFeeFromAmount,
             sweepType = sweepType,
             claimInheritanceTxParam = args.claimInheritanceTxParam?.copy(
                 customAmount = amount,

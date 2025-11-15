@@ -263,6 +263,8 @@ data class InheritanceClaimCreateTransactionRequest(
         val amount: String? = null,
         @SerializedName("anti_fee_sniping")
         val antiFeeSniping: Boolean? = null,
+        @SerializedName("subtract_fee_from_amount")
+        val subtractFeeFromAmount: Boolean? = null,
     )
 }
 

@@ -29,4 +29,5 @@ data class TransactionAdditional(
     val txId: String = "",
     val status: TransactionStatus,
     val changePos: Int = -1,
+    val subtractFeeFromAmount: Boolean = false
 )
