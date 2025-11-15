@@ -210,7 +210,7 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
             SweepType.SWEEP_TO_NUNCHUK_WALLET
         }
         val subtractFeeFromAmount = if (isInheritanceWalletFlow()) {
-            args.claimParam?.customAmount == args.claimParam?.totalAmount
+            args.claimParam?.customAmount == totalInBtc
         } else {
             true
         }

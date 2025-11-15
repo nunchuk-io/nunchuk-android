@@ -28,7 +28,6 @@ import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.share.model.ExtendTransaction
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
-import timber.log.Timber
 import javax.inject.Inject
 
 class InheritanceClaimCreateTransactionUseCase @Inject constructor(
@@ -110,9 +109,5 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
         val antiFeeSniping: Boolean,
         val bsms: String? = null,
         val subtractFeeFromAmount: Boolean? = null,
-    ) {
-        init {
-            Timber.d("InheritanceClaimCreateTransactionUseCase Param: $this")
-        }
-    }
+    )
 }
