@@ -32,6 +32,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.play.core.ktx.requestReview
 import com.google.android.play.core.review.ReviewInfo
 import com.google.android.play.core.review.ReviewManagerFactory
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.ExportPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.GetRawTransactionUseCase
@@ -300,13 +301,15 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collect {
                     val wallet = getState().wallet
-                    getMiniscriptInfo(
-                        transaction = getTransaction(),
-                        wallet = wallet,
-                        isValueKeySetDisable = wallet.isValueKeySetDisable,
-                        addressType = wallet.addressType,
-                        defaultKeySetIndex = getState().defaultKeySetIndex
-                    )
+                    if (wallet.miniscript.isNotEmpty()) {
+                        getMiniscriptInfo(
+                            transaction = getTransaction(),
+                            wallet = wallet,
+                            isValueKeySetDisable = wallet.isValueKeySetDisable,
+                            addressType = wallet.addressType,
+                            defaultKeySetIndex = getState().defaultKeySetIndex
+                        )
+                    }
                 }
         }
         viewModelScope.launch {
@@ -497,6 +500,10 @@ internal class TransactionDetailsViewModel @Inject constructor(
                         defaultKeySetIndex = defaultKeySetIndex,
                     )
                 }
+                if (wallet.wallet.signers.isEmpty()) {
+                    FirebaseCrashlytics.getInstance()
+                        .recordException(Exception("Wallet loaded without signers"))
+                }
                 if (wallet.wallet.miniscript.isEmpty()) {
                     val signers = wallet.wallet.signers.map { signer ->
                         singleSignerMapper(signer)
@@ -512,6 +519,9 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     } else {
                         _state.update { it.copy(signers = signers) }
                     }
+                } else {
+                    FirebaseCrashlytics.getInstance()
+                        .recordException(Exception("Miniscript wallet loaded without transaction"))
                 }
             }
         }
