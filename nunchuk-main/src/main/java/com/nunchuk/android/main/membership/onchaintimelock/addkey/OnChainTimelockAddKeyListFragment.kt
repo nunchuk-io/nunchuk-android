@@ -246,7 +246,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         setFragmentResultListener(ImportantNoticePassphraseFragment.REQUEST_KEY) { _, bundle ->
             val filteredSigners =
                 bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
-            val signerTag = filteredSigners?.firstOrNull()?.tags?.firstOrNull()
+            val signerTag = filteredSigners?.firstOrNull()?.tags?.firstOrNull { it != SignerTag.INHERITANCE }
             selectedSignerTag = signerTag
             if (!filteredSigners.isNullOrEmpty()) {
                 findNavController().navigate(
@@ -274,7 +274,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             val requestDesktopSignerTag =
                 bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
             val signerTag =
-                requestDesktopSignerTag ?: filteredSigners?.firstOrNull()?.tags?.firstOrNull()
+                requestDesktopSignerTag ?: filteredSigners?.firstOrNull()?.tags?.firstOrNull { it != SignerTag.INHERITANCE }
             selectedSignerTag = signerTag
             val isFromNfcSetup =
                 bundle.getBoolean(OnChainSignerIntroFragment.EXTRA_IS_FROM_NFC_SETUP, false)
