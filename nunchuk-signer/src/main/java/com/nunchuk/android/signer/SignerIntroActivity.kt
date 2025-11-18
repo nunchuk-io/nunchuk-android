@@ -39,15 +39,21 @@ import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class SignerIntroActivity : BaseComposeActivity() {
+
+    @Inject
+    lateinit var membershipStepManager: MembershipStepManager
+
     private val supportedSigners: List<SupportedSigner> by lazy {
         intent.parcelableArrayList<SupportedSigner>(EXTRA_SUPPORTED_SIGNERS).orEmpty()
     }
@@ -187,6 +193,7 @@ class SignerIntroActivity : BaseComposeActivity() {
                 groupId = groupId,
                 walletId = walletId,
                 onChainAddSignerParam = onChainAddSignerParam,
+                step = membershipStepManager.currentStep
             )
         )
         finish()

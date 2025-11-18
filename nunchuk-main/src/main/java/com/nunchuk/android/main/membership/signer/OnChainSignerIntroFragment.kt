@@ -228,6 +228,7 @@ class OnChainSignerIntroFragment : MembershipFragment() {
                 groupId = args.groupId.orEmpty(),
                 walletId = args.walletId.orEmpty(),
                 onChainAddSignerParam = args.onChainAddSignerParam,
+                step = membershipStepManager.currentStep
             )
         )
         popUpToOnChainTimelockFragment()

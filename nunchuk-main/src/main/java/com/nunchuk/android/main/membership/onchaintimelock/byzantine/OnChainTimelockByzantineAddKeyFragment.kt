@@ -771,7 +771,7 @@ fun OnChainTimelockByzantineAddKeyListContent(
                                     append("Before the timelock")
                                 }
                                 append(
-                                    ", spending requires signatures based on your wallet configuration."
+                                    ", spending requires three signatures from a 3-of-5 multisig:"
                                 )
                             },
                             style = NunchukTheme.typography.body
@@ -808,7 +808,7 @@ fun OnChainTimelockByzantineAddKeyListContent(
                                         append("After the timelock")
                                     }
                                     append(
-                                        ", spending requirements change based on your wallet configuration."
+                                        ", spending requires two signatures from a 2-of-4 multisig. The keyset remains the same, minus the Platform key."
                                     )
                                 },
                                 style = NunchukTheme.typography.body

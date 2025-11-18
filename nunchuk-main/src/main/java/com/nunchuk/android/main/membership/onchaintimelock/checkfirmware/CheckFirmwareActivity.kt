@@ -53,13 +53,18 @@ import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFrag
 import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
+import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class CheckFirmwareActivity : BaseComposeActivity() {
+
+    @Inject
+    lateinit var membershipStepManager: MembershipStepManager
 
     private val args: CheckFirmwareArgs by lazy {
         CheckFirmwareArgs.deserializeFrom(intent)
@@ -115,6 +120,7 @@ class CheckFirmwareActivity : BaseComposeActivity() {
                         groupId = args.groupId,
                         walletId = args.walletId,
                         onChainAddSignerParam = args.onChainAddSignerParam,
+                        step = membershipStepManager.currentStep
                     )
                 )
             }

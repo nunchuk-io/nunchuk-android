@@ -57,11 +57,12 @@ class OnChainTimelockExplanationFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
+                val activity = requireActivity() as? MembershipActivity
+                val groupId = activity?.groupId.orEmpty()
+                
                 OnChainTimelockExplanationScreen(
+                    groupId = groupId,
                     onContinueClicked = {
-                        val activity = requireActivity() as? MembershipActivity
-                        val groupId = activity?.groupId.orEmpty()
-
                         if (groupId.isNotEmpty()) {
                             val role = groupViewModel?.getRole()?.name.orEmpty()
                             findNavController().navigate(
@@ -86,10 +87,12 @@ class OnChainTimelockExplanationFragment : MembershipFragment() {
 
 @Composable
 private fun OnChainTimelockExplanationScreen(
+    groupId: String,
     onContinueClicked: () -> Unit,
     onMoreClicked: () -> Unit = {}
 ) {
     OnChainTimelockExplanationContent(
+        groupId = groupId,
         onContinueClicked = onContinueClicked,
         onMoreClicked = onMoreClicked
     )
@@ -97,15 +100,22 @@ private fun OnChainTimelockExplanationScreen(
 
 @Composable
 private fun OnChainTimelockExplanationContent(
+    groupId: String,
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {}
 ) {
+    val isGroupWallet = groupId.isNotEmpty()
+    
     NunchukTheme {
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 NcImageAppBar(
-                    backgroundRes = R.drawable.bg_inheritance_onchain_offchain,
+                    backgroundRes = if (isGroupWallet) {
+                        R.drawable.illustration_on_chain_group_wallet
+                    } else {
+                        R.drawable.bg_inheritance_onchain_offchain
+                    },
                     actions = {
                         IconButton(onClick = onMoreClicked) {
                             NcIcon(
@@ -152,7 +162,7 @@ private fun OnChainTimelockExplanationContent(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Main heading
                 Text(
@@ -160,21 +170,19 @@ private fun OnChainTimelockExplanationContent(
                     style = NunchukTheme.typography.heading
                 )
 
-                // Main explanation
-                Text(
-                    text = stringResource(R.string.nc_onchain_wallet_spending_paths_desc),
-                    style = NunchukTheme.typography.body
-                )
-
                 // Bullet points
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    BulletPoint(
-                        text = stringResource(R.string.nc_before_timelock_desc)
+                    Text(
+                        text = stringResource(R.string.nc_onchain_wallet_spending_paths_desc),
+                        style = NunchukTheme.typography.body
                     )
                     BulletPoint(
-                        text = stringResource(R.string.nc_after_timelock_desc)
+                        text = if (isGroupWallet) stringResource(R.string.nc_before_timelock_group_desc) else stringResource(R.string.nc_before_timelock_desc)
+                    )
+                    BulletPoint(
+                        text = if (isGroupWallet) stringResource(R.string.nc_after_timelock_group_desc) else stringResource(R.string.nc_after_timelock_desc)
                     )
                 }
 
@@ -214,6 +222,7 @@ private fun BulletPoint(
 @Composable
 private fun OnChainTimelockExplanationScreenPreview() {
     OnChainTimelockExplanationContent(
+        groupId = "3232",
         onContinueClicked = { },
         onMoreClicked = { }
     )

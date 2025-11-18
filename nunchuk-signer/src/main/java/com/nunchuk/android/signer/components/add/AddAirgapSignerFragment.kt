@@ -455,7 +455,11 @@ private fun AddAirgapSignerContent(
                     onClick = {
                         onAddSigner(uiState.keyName, uiState.keySpec)
                     }) {
-                    Text(text = if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) stringResource(id = R.string.nc_text_continue) else stringResource(id = R.string.nc_text_add_signer))
+                    Text(
+                        text = if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) stringResource(
+                            id = R.string.nc_text_continue
+                        ) else stringResource(id = R.string.nc_text_add_signer)
+                    )
                 }
             }) { innerPadding ->
             Column(
@@ -467,7 +471,9 @@ private fun AddAirgapSignerContent(
             ) {
 
                 Text(
-                    text = stringResource(R.string.nc_add_an_airgapped_key),
+                    text = if (onChainAddSignerParam != null) "Add Blockstream Jade" else stringResource(
+                        R.string.nc_add_an_airgapped_key
+                    ),
                     style = NunchukTheme.typography.heading
                 )
 

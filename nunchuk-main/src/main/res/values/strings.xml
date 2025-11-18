@@ -421,6 +421,8 @@
     <string name="nc_onchain_wallet_spending_paths_desc">Your new wallet will have two spending paths: before and after the timelock.</string>
     <string name="nc_before_timelock_desc">Before the timelock: spending requires two signatures from a 2-of-4 multisig.</string>
     <string name="nc_after_timelock_desc">After the timelock: spending only requires one signature from a 1-of-3 multisig.</string>
+    <string name="nc_before_timelock_group_desc">Before the timelock: spending requires three signatures from a 3-of-5 multisig. </string>
+    <string name="nc_after_timelock_group_desc">After the timelock: spending requires two signatures from a 2-of-4 multisig.</string>
     <string name="nc_select_inheritance_key_instruction">Among your keys, select one key to be the inheritance key.</string>
     <string name="nc_keys_added_twice_hint">Each key must be added twice, using different derivation paths for the two spending paths.</string>
     
