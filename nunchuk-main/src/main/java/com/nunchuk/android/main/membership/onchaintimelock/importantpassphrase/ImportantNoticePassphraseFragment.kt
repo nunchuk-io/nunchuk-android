@@ -22,6 +22,10 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.clearFragmentResult
@@ -159,11 +163,15 @@ private fun ImportantNoticePassphraseContent(
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
-                    text = "A passphrase is not recommended for the inheritance key, as it greatly complicates the setup and increases the risk of errors for both you and your Beneficiary.\n" +
-                            "\n" +
-                            "If you choose to use a passphrase, you must share it with your Beneficiary along with the seed phrase backup.\n" +
-                            "\n" +
-                            "Continue to add the inheritance key to the wallet on the next screen.",
+                    text = buildAnnotatedString {
+                        append("A passphrase is an optional \"extra word\" added to your 12 or 24-word seed phrase.\n\n")
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("We strongly advise against using a passphrase for the inheritance key.")
+                        }
+                        append(" It significantly complicates the recovery process and increases the risk of errors for your Beneficiary.\n\n")
+                        append("If you still choose to use a passphrase, you must ensure it is shared with your Beneficiary along with the seed phrase backup.\n\n")
+                        append("Continue to add the inheritance key to the wallet on the next screen.")
+                    },
                     style = NunchukTheme.typography.body
                 )
                 Spacer(modifier = Modifier.weight(1.0f))
