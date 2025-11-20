@@ -199,7 +199,11 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
     private fun navigateToEstimateFee(address: String) {
         val totalBalance =
             if (isInheritanceWalletFlow()) {
-                args.claimParam!!.customAmount * BTC_SATOSHI_EXCHANGE_RATE
+                if (args.claimParam!!.customAmount == 0.0) {
+                    args.claimParam!!.totalAmount * BTC_SATOSHI_EXCHANGE_RATE
+                } else {
+                    args.claimParam!!.customAmount * BTC_SATOSHI_EXCHANGE_RATE
+                }
             } else {
                 args.slots.sumOf { it.balance.value }
             }
@@ -210,7 +214,7 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
             SweepType.SWEEP_TO_NUNCHUK_WALLET
         }
         val subtractFeeFromAmount = if (isInheritanceWalletFlow()) {
-            args.claimParam?.customAmount == totalInBtc
+            totalInBtc == args.claimParam?.totalAmount
         } else {
             true
         }
