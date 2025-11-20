@@ -167,35 +167,14 @@ fun TransactionDetailView(
                 )
             },
             bottomBar = {
-                if ((transaction.status.canBroadCast() || transaction.status.isRejected())
-                    && inheritanceClaimTxDetailInfo == null && state.userRole.isObserver.not()
-                    && isServerBroadcastTime(transaction, state.serverTransaction).not()
-                ) {
-                    NcPrimaryDarkButton(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        enabled = !miniscriptUiState.isTimelockedActive,
-                        onClick = onBroadcastClick
-                    ) {
-                        Text(
-                            text = if (transaction.status.isRejected()) stringResource(R.string.nc_re_broadcast_transaction) else stringResource(
-                                R.string.nc_transaction_broadcast
-                            ),
-                        )
-                    }
-                } else if (transaction.status.hadBroadcast()) {
-                    NcPrimaryDarkButton(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        onClick = onViewOnBlockExplorer
-                    ) {
-                        Text(
-                            text = stringResource(R.string.nc_transaction_view_blockchain),
-                        )
-                    }
-                }
+                TransactionDetailBottomBar(
+                    transaction = transaction,
+                    inheritanceClaimTxDetailInfo = inheritanceClaimTxDetailInfo,
+                    state = state,
+                    miniscriptUiState = miniscriptUiState,
+                    onBroadcastClick = onBroadcastClick,
+                    onViewOnBlockExplorer = onViewOnBlockExplorer
+                )
             }
         ) { innerPadding ->
             LazyColumn(
@@ -583,6 +562,46 @@ fun TransactionDetailView(
                 onDismiss = {
                     preImageScriptMode = null
                 }
+            )
+        }
+    }
+}
+
+@Composable
+private fun TransactionDetailBottomBar(
+    transaction: Transaction,
+    inheritanceClaimTxDetailInfo: InheritanceClaimTxDetailInfo?,
+    state: TransactionDetailsState,
+    miniscriptUiState: TransactionMiniscriptUiState,
+    onBroadcastClick: () -> Unit,
+    onViewOnBlockExplorer: () -> Unit
+) {
+    if ((transaction.status.canBroadCast() || transaction.status.isRejected())
+        && (inheritanceClaimTxDetailInfo == null || state.userRole.isObserver.not())
+        && isServerBroadcastTime(transaction, state.serverTransaction).not()
+    ) {
+        NcPrimaryDarkButton(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            enabled = !miniscriptUiState.isTimelockedActive,
+            onClick = onBroadcastClick
+        ) {
+            Text(
+                text = if (transaction.status.isRejected()) stringResource(R.string.nc_re_broadcast_transaction) else stringResource(
+                    R.string.nc_transaction_broadcast
+                ),
+            )
+        }
+    } else if (transaction.status.hadBroadcast()) {
+        NcPrimaryDarkButton(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            onClick = onViewOnBlockExplorer
+        ) {
+            Text(
+                text = stringResource(R.string.nc_transaction_view_blockchain),
             )
         }
     }
