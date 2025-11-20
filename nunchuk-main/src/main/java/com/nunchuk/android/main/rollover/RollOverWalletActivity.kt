@@ -75,6 +75,11 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.getAllTagsAndCollections()
+    }
+
     override fun initializeBinding(): ActivityNavigationBinding {
         return ActivityNavigationBinding.inflate(layoutInflater)
     }

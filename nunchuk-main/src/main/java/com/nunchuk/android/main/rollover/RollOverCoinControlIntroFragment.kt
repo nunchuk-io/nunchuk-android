@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
@@ -48,6 +49,8 @@ class RollOverCoinControlIntroFragment : Fragment() {
     @Inject
     lateinit var navigator: NunchukNavigator
 
+    private val args: RollOverCoinControlIntroFragmentArgs by navArgs()
+
     private val rollOverWalletViewModel: RollOverWalletViewModel by activityViewModels()
 
     override fun onCreateView(
@@ -61,7 +64,7 @@ class RollOverCoinControlIntroFragment : Fragment() {
             setContent {
                 val sharedUiState by rollOverWalletViewModel.uiState.collectAsStateWithLifecycle()
                 RollOverCoinControlIntroView(
-                    hasCoin = sharedUiState.coins.isNotEmpty(),
+                    hasCollectionOrTag = sharedUiState.coinCollections.isNotEmpty() || sharedUiState.coinTags.isNotEmpty(),
                     onContinueClicked = {
                         val address = rollOverWalletViewModel.getAddress()
                         navigator.openEstimatedFeeScreen(
@@ -81,7 +84,31 @@ class RollOverCoinControlIntroFragment : Fragment() {
                         )
                     },
                     onAddTagOrCollectionClicked = {
-                        navigator.openCoinList(context = requireContext(), walletId = rollOverWalletViewModel.getOldWalletId())
+                        val isCollectionOrTagExist =
+                            sharedUiState.coinCollections.isNotEmpty() || sharedUiState.coinTags.isNotEmpty()
+                        if (isCollectionOrTagExist) {
+                            findNavController().navigate(
+                                RollOverCoinControlIntroFragmentDirections.actionRollOverCoinControlIntroFragmentToRollOverCoinControlFragment(
+                                    oldWalletId = args.oldWalletId,
+                                    newWalletId = args.newWalletId
+                                )
+                            )
+                        } else {
+                            findNavController().navigate(
+                                RollOverCoinControlIntroFragmentDirections.actionRollOverCoinControlIntroFragmentToRollOverAddTagOrCollectionFragment(
+                                    oldWalletId = args.oldWalletId,
+                                    newWalletId = args.newWalletId
+                                )
+                            )
+                        }
+                    },
+                    onKeepAllExistingCoinsClicked = {
+                        findNavController().navigate(
+                            RollOverCoinControlIntroFragmentDirections.actionRollOverCoinControlIntroFragmentToRollOverKeepAllExistingCoinsFragment(
+                                oldWalletId = args.oldWalletId,
+                                newWalletId = args.newWalletId
+                            )
+                        )
                     }
                 )
             }
@@ -91,22 +118,25 @@ class RollOverCoinControlIntroFragment : Fragment() {
 
 @Composable
 private fun RollOverCoinControlIntroView(
-    hasCoin: Boolean = true,
+    hasCollectionOrTag: Boolean = true,
     onContinueClicked: () -> Unit = { },
     onAddTagOrCollectionClicked: () -> Unit = { },
+    onKeepAllExistingCoinsClicked: () -> Unit = { },
 ) {
     RollOverCoinControlIntroContent(
-        hasCoin = hasCoin,
+        hasCollectionOrTag = hasCollectionOrTag,
         onContinueClicked = onContinueClicked,
-        onAddTagOrCollectionClicked = onAddTagOrCollectionClicked
+        onAddTagOrCollectionClicked = onAddTagOrCollectionClicked,
+        onKeepAllExistingCoinsClicked = onKeepAllExistingCoinsClicked
     )
 }
 
 @Composable
 private fun RollOverCoinControlIntroContent(
-    hasCoin: Boolean = true,
+    hasCollectionOrTag: Boolean = true,
     onContinueClicked: () -> Unit = { },
     onAddTagOrCollectionClicked: () -> Unit = { },
+    onKeepAllExistingCoinsClicked: () -> Unit = { },
 ) {
     NunchukTheme {
         NcScaffold(
@@ -137,15 +167,12 @@ private fun RollOverCoinControlIntroContent(
 
                     TextButton(
                         modifier = Modifier
-                            .padding(16.dp)
+                            .padding(top = 16.dp)
                             .fillMaxWidth(),
                         onClick = onAddTagOrCollectionClicked
                     ) {
                         Text(
-                            modifier = Modifier.clickable {
-                                onAddTagOrCollectionClicked()
-                            },
-                            text = if (hasCoin) {
+                            text = if (hasCollectionOrTag) {
                                 stringResource(R.string.nc_keep_coin_tags_and_collections)
                             } else {
                                 stringResource(
@@ -155,8 +182,19 @@ private fun RollOverCoinControlIntroContent(
                             style = NunchukTheme.typography.title,
                         )
                     }
-                }
 
+                    TextButton(
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .fillMaxWidth(),
+                        onClick = onKeepAllExistingCoinsClicked
+                    ) {
+                        Text(
+                            text = stringResource(R.string.nc_keep_all_existing_coins),
+                            style = NunchukTheme.typography.title,
+                        )
+                    }
+                }
             }
         ) { innerPadding ->
             Column(
@@ -183,7 +221,6 @@ private fun RollOverCoinControlIntroContent(
                     text = "By default, all existing coins will be consolidated into a single coin in the new wallet. If you want to organize and segregate your coins for various purposes, consider adding coin tags or collections before proceeding with the rollover.",
                     style = NunchukTheme.typography.body,
                 )
-
             }
         }
     }

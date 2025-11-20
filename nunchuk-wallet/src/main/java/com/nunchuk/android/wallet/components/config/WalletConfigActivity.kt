@@ -165,7 +165,9 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 ?: return@setFragmentResultListener
             if (result.walletId != null) {
                 navigator.openRollOverWalletScreen(
-                    this, oldWalletId = args.walletId, newWalletId = result.walletId!!,
+                    activityContext = this,
+                    oldWalletId = args.walletId,
+                    newWalletId = result.walletId!!,
                     startScreen = RollOverWalletFlow.REFUND,
                     source = RollOverWalletSource.WALLET_CONFIG
                 )

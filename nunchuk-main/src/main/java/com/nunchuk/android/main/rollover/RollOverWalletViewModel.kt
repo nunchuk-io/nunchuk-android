@@ -72,8 +72,6 @@ class RollOverWalletViewModel @Inject constructor(
         this.antiFeeSniping = antiFeeSniping
 
         getAllCoins()
-        getAllTags()
-        getAllCollections()
 
         viewModelScope.launch {
             getUnusedWalletAddressUseCase(newWalletId).onSuccess { addresses ->
@@ -95,6 +93,11 @@ class RollOverWalletViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isFreeWallet = assistedWalletManager.getWalletPlan(oldWalletId) == MembershipPlan.NONE) }
         }
+    }
+
+    fun getAllTagsAndCollections() {
+        getAllTags()
+        getAllCollections()
     }
 
     private fun getAllCoins() {

@@ -34,8 +34,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
@@ -47,10 +45,10 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.RollOverWalletSource
-import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.main.R
+import com.nunchuk.android.main.rollover.RollOverWalletUiState
 import com.nunchuk.android.main.rollover.RollOverWalletViewModel
 import com.nunchuk.android.nav.NunchukNavigator
 import dagger.hilt.android.AndroidEntryPoint
@@ -63,7 +61,6 @@ class RollOverTransferFundFragment : Fragment() {
 
     private val args: RollOverTransferFundFragmentArgs by navArgs()
 
-    private val viewModel: RollOverTransferFundViewModel by viewModels()
     private val rollOverWalletViewModel: RollOverWalletViewModel by activityViewModels()
 
     override fun onCreateView(
@@ -77,65 +74,42 @@ class RollOverTransferFundFragment : Fragment() {
             setContent {
                 val rollOverWalletState by rollOverWalletViewModel.uiState.collectAsStateWithLifecycle()
                 RollOverTransferFundView(
-                    viewModel = viewModel,
-                    isFreeWallet = rollOverWalletState.isFreeWallet,
                     source = rollOverWalletViewModel.getSource(),
+                    rollOverWalletState = rollOverWalletState,
                     onContinueClicked = {
                         rollOverWalletViewModel.updateReplaceKeyConfig(it)
-                        if (viewModel.isHasTagOrCollection()) {
-                            findNavController().navigate(
-                                RollOverTransferFundFragmentDirections.actionRollOverTransferFundFragmentToRollOverCoinControlFragment(
-                                    oldWalletId = args.oldWalletId,
-                                    newWalletId = args.newWalletId
-                                )
+                        findNavController().navigate(
+                            RollOverTransferFundFragmentDirections.actionRollOverTransferFundFragmentToRollOverCoinControlIntroFragment(
+                                oldWalletId = args.oldWalletId,
+                                newWalletId = args.newWalletId
                             )
-                        } else {
-                            findNavController().navigate(
-                                RollOverTransferFundFragmentDirections.actionRollOverTransferFundFragmentToRollOverCoinControlIntroFragment(
-                                    oldWalletId = args.oldWalletId,
-                                    newWalletId = args.newWalletId
-                                )
-                            )
-                        }
+                        )
                     },
                 )
             }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        flowObserver(rollOverWalletViewModel.uiState) { state ->
-            viewModel.updateWallets(state.oldWallet, state.newWallet)
         }
     }
 }
 
 @Composable
 private fun RollOverTransferFundView(
-    viewModel: RollOverTransferFundViewModel = hiltViewModel(),
-    isFreeWallet: Boolean = false,
     source: Int = 0,
     onContinueClicked: (Boolean) -> Unit = { },
+    rollOverWalletState: RollOverWalletUiState,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
     RollOverTransferFundContent(
-        uiState = uiState,
-        isFreeWallet = isFreeWallet,
         source = source,
-        onContinueClicked = onContinueClicked
+        rollOverWalletState = rollOverWalletState,
+        onContinueClicked = onContinueClicked,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RollOverTransferFundContent(
-    uiState: RollOverTransferFundUiState = RollOverTransferFundUiState(),
-    isFreeWallet: Boolean = false,
     source: Int = 0,
     onContinueClicked: (Boolean) -> Unit = { },
+    rollOverWalletState: RollOverWalletUiState = RollOverWalletUiState(),
 ) {
     var isRemoveUnusedKeys by rememberSaveable { mutableStateOf(false) }
     NunchukTheme {
@@ -168,7 +142,7 @@ private fun RollOverTransferFundContent(
                 Text(
                     text = stringResource(
                         R.string.nc_transfer_funds_desc,
-                        uiState.newWallet.name
+                        rollOverWalletState.newWallet.name
                     ),
                     style = NunchukTheme.typography.body,
                     modifier = Modifier.padding(top = 16.dp)
@@ -197,18 +171,18 @@ private fun RollOverTransferFundContent(
                         horizontalAlignment = Alignment.End
                     ) {
                         Text(
-                            text = uiState.oldWallet.getBTCAmount(),
+                            text = rollOverWalletState.oldWallet.getBTCAmount(),
                             style = NunchukTheme.typography.title,
                         )
 
                         Text(
-                            text = uiState.oldWallet.getCurrencyAmount(),
+                            text = rollOverWalletState.oldWallet.getCurrencyAmount(),
                             style = NunchukTheme.typography.bodySmall,
                         )
                     }
                 }
 
-                if (!isFreeWallet && source == RollOverWalletSource.REPLACE_KEY) {
+                if (!rollOverWalletState.isFreeWallet && source == RollOverWalletSource.REPLACE_KEY) {
                     // 1dp spacer with top and bottom padding are 24dp and background whisper
                     HorizontalDivider(
                         modifier = Modifier
@@ -252,7 +226,5 @@ private fun RollOverTransferFundContent(
 @Composable
 @Preview
 private fun RollOverTransferFundScreenContentPreview() {
-    RollOverTransferFundContent(
-        uiState = RollOverTransferFundUiState()
-    )
+    RollOverTransferFundContent()
 }

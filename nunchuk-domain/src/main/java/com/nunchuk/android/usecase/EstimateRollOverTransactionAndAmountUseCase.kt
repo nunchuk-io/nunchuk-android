@@ -16,25 +16,44 @@ class EstimateRollOverTransactionAndAmountUseCase @Inject constructor(
 ) {
 
     override suspend fun execute(parameters: Params): Result {
-        val numOfTx = nativeSdk.estimateRollOverTransactionCount(
-            walletId = parameters.oldWalletId,
-            tags = parameters.tags, collections = parameters.collections
-        )
-        val (subAmount, fee) = nativeSdk.estimateRollOverAmount(
-            walletId = parameters.oldWalletId,
-            newWalletId = parameters.newWalletId,
-            tags = parameters.tags,
-            collections = parameters.collections,
-            feeRate = parameters.feeRate
-        )
+        val isEmptyTagsAndCollections = parameters.tags.isEmpty() && parameters.collections.isEmpty()
+        
+        val numOfTx = if (isEmptyTagsAndCollections) {
+            nativeSdk.estimateRollOver11TransactionCount(
+                walletId = parameters.oldWalletId
+            )
+        } else {
+            nativeSdk.estimateRollOverTransactionCount(
+                walletId = parameters.oldWalletId,
+                tags = parameters.tags,
+                collections = parameters.collections
+            )
+        }
+        
+        val (subAmount, fee) = if (isEmptyTagsAndCollections) {
+            nativeSdk.estimateRollOver11Amount(
+                walletId = parameters.oldWalletId,
+                newWalletId = parameters.newWalletId,
+                feeRate = parameters.feeRate
+            )
+        } else {
+            nativeSdk.estimateRollOverAmount(
+                walletId = parameters.oldWalletId,
+                newWalletId = parameters.newWalletId,
+                tags = parameters.tags,
+                collections = parameters.collections,
+                feeRate = parameters.feeRate
+            )
+        }
+        
         return Result(numOfTx, subAmount, fee)
     }
 
     class Params(
         val oldWalletId: String,
         val newWalletId: String,
-        val tags: List<CoinTag>,
-        val collections: List<CoinCollection>,
+        val tags: List<CoinTag> = emptyList(),
+        val collections: List<CoinCollection> = emptyList(),
         val feeRate: Amount
     )
 

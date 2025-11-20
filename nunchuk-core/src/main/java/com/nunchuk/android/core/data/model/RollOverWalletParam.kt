@@ -10,5 +10,6 @@ data class RollOverWalletParam(
     val newWalletId: String,
     val tags: List<CoinTag>,
     val collections: List<CoinCollection>,
+    val isKeepAll: Boolean = false,
     val source: Int
 ) : Parcelable

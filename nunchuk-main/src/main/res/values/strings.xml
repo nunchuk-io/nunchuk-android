@@ -488,6 +488,14 @@
     <string name="nc_no_inheritance_plan_found_desc">No matching inheritance plan found for the magic phrase and key you provided. Please try again later.</string>
     <string name="nc_keep_coin_tags_and_collections">Keep coin tags and collections</string>
     <string name="nc_add_coin_tags_or_collections">Add coin tags or collections</string>
+    <string name="nc_coin_control">Coin control</string>
+    <string name="nc_keep_all_existing_coins">Keep all existing coins</string>
+    <string name="nc_keep_all_existing_coins_desc">Each coin in the old wallet will be transferred to a new address in the new wallet, retaining the original value (minus transaction fees). This process will require multiple transactions and result in higher total fees.</string>
+    <string name="nc_required_transactions">Required transactions</string>
+    <string name="nc_total_estimated_fees">Total estimated fees</string>
+    <string name="nc_continue">Continue</string>
+    <string name="nc_coins_dust_limit_warning">Coins with very small values (e.g., below the dust limit) may still require consolidation.</string>
+    <string name="nc_no_coin_tags_collections">Currently, there are no coin tags and collections in your wallet.</string>
     <string name="nc_an_inheritance_key">An inheritance key</string>
     <string name="nc_two_inheritance_keys">Two inheritance keys</string>
     <string name="nc_inheritance_notify_pref_warning_on_chain">You are still personally responsible for sharing the Magic Phrase and inheritance key seed phrase with the Beneficiary. The notification email won’t include these information.</string>
