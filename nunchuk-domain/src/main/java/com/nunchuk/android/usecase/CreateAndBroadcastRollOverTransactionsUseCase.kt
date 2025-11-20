@@ -35,14 +35,24 @@ class CreateAndBroadcastRollOverTransactionsUseCase @Inject constructor(
     private val transactionRepository: TransactionRepository
 ) : UseCase<CreateAndBroadcastRollOverTransactionsUseCase.Param, List<Transaction>?>(dispatcher) {
     override suspend fun execute(parameters: Param): List<Transaction>? {
-        val transactions = nunchukNativeSdk.createRollOverTransactions(
-            walletId = parameters.oldWalletId,
-            newWalletId = parameters.newWalletId,
-            tags = parameters.tags,
-            collections = parameters.collections,
-            feeRate = parameters.feeRate,
-            antiFeeSniping = parameters.antiFeeSniping
-        )
+        val isEmptyTagsAndCollections = parameters.tags.isEmpty() && parameters.collections.isEmpty()
+        val transactions = if (isEmptyTagsAndCollections) {
+            nunchukNativeSdk.createRollOver11Transactions(
+                walletId = parameters.oldWalletId,
+                newWalletId = parameters.newWalletId,
+                feeRate = parameters.feeRate,
+                antiFeeSniping = parameters.antiFeeSniping
+            )
+        } else {
+            nunchukNativeSdk.createRollOverTransactions(
+                walletId = parameters.oldWalletId,
+                newWalletId = parameters.newWalletId,
+                tags = parameters.tags,
+                collections = parameters.collections,
+                feeRate = parameters.feeRate,
+                antiFeeSniping = parameters.antiFeeSniping
+            )
+        }
         if (transactions.isEmpty()) return null
         if (parameters.isFreeWallet) return transactions
         transactionRepository.batchTransactions(

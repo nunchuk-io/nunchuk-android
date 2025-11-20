@@ -24,7 +24,6 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.DraftRollOverTransaction
-import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -34,13 +33,30 @@ class DraftRollOverTransactionsUseCase @Inject constructor(
     private val nunchukNativeSdk: NunchukNativeSdk,
 ) : UseCase<DraftRollOverTransactionsUseCase.Data, List<DraftRollOverTransaction>>(dispatcher) {
     override suspend fun execute(parameters: Data): List<DraftRollOverTransaction> {
-        return nunchukNativeSdk.draftRollOverTransactions(
-            walletId = parameters.oldWalletId,
-            newWalletId = parameters.newWalletId,
-            tags = parameters.tags,
-            collections = parameters.collections,
-            feeRate = parameters.feeRate
-        ).toList()
+        val isEmptyTagsAndCollections =
+            parameters.tags.isEmpty() && parameters.collections.isEmpty()
+        return if (isEmptyTagsAndCollections) {
+            nunchukNativeSdk.draftRollOver11Transactions(
+                walletId = parameters.oldWalletId,
+                newWalletId = parameters.newWalletId,
+                feeRate = parameters.feeRate
+            ).toList().map {
+                val coins = nunchukNativeSdk.getCoinsFromTxInputs(parameters.oldWalletId, it.inputs)
+                DraftRollOverTransaction(
+                    transaction = it,
+                    tagIds = coins.map { coin -> coin.tags }.flatten().toSet(),
+                    collectionIds = coins.map { coin -> coin.collection }.flatten().toSet()
+                )
+            }
+        } else {
+            nunchukNativeSdk.draftRollOverTransactions(
+                walletId = parameters.oldWalletId,
+                newWalletId = parameters.newWalletId,
+                tags = parameters.tags,
+                collections = parameters.collections,
+                feeRate = parameters.feeRate
+            ).toList()
+        }
     }
 
     class Data(
