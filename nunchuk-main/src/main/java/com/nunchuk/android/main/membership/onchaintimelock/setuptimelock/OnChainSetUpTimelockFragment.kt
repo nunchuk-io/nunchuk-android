@@ -48,6 +48,8 @@ import com.nunchuk.android.compose.NcTimePickerDialog
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.timezone.NcTimeZoneField
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
+import com.nunchuk.android.compose.dialog.NcInfoDialog
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.ui.TimeZoneDetail
 import com.nunchuk.android.core.ui.toTimeZoneDetail
@@ -74,7 +76,12 @@ class OnChainSetUpTimelockFragment : MembershipFragment(), BottomSheetOptionList
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                OnChainSetUpTimelockScreen(viewModel, args.groupId, args.timelockExtra, onMoreClicked = ::handleShowMore)
+                OnChainSetUpTimelockScreen(
+                    viewModel = viewModel,
+                    groupId = args.groupId,
+                    timelockExtra = args.timelockExtra,
+                    onMoreClicked = ::handleShowMore
+                )
             }
         }
     }
@@ -110,6 +117,9 @@ private fun OnChainSetUpTimelockScreen(
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
+    val showConfirmDialog by viewModel.showConfirmTimelockDateDialog.collectAsStateWithLifecycle()
+    val showInvalidDateDialog by viewModel.showInvalidDateDialog.collectAsStateWithLifecycle()
+    val maxTimelockYears by viewModel.maxTimelockYears.collectAsStateWithLifecycle()
     
     OnChainSetUpTimelockContent(
         onMoreClicked = onMoreClicked,
@@ -117,7 +127,13 @@ private fun OnChainSetUpTimelockScreen(
             viewModel.onContinueClick(selectedDate, selectedTimeZone, groupId = groupId)
         },
         remainTime = remainTime,
-        timelockExtra = timelockExtra
+        timelockExtra = timelockExtra,
+        showConfirmDialog = showConfirmDialog,
+        showInvalidDateDialog = showInvalidDateDialog,
+        maxTimelockYears = maxTimelockYears,
+        onConfirmTimelockDate = { viewModel.onConfirmTimelockDate() },
+        onDismissConfirmDialog = { viewModel.onDismissConfirmTimelockDateDialog() },
+        onDismissInvalidDateDialog = { viewModel.onDismissInvalidDateDialog() }
     )
 }
 
@@ -127,6 +143,12 @@ private fun OnChainSetUpTimelockContent(
     timelockExtra: TimelockExtra? = null,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: (Calendar, TimeZoneDetail) -> Unit = { _, _ -> },
+    showConfirmDialog: Boolean = false,
+    showInvalidDateDialog: Boolean = false,
+    maxTimelockYears: Int? = null,
+    onConfirmTimelockDate: () -> Unit = {},
+    onDismissConfirmDialog: () -> Unit = {},
+    onDismissInvalidDateDialog: () -> Unit = {},
 ) {
     var selectedTimeZone by remember {
         mutableStateOf(
@@ -339,6 +361,29 @@ private fun OnChainSetUpTimelockContent(
                 }
             }
         }
+    }
+    
+    // Confirm timelock date dialog
+    if (showConfirmDialog && maxTimelockYears != null) {
+        NcConfirmationDialog(
+            title = stringResource(id = R.string.nc_confirm_timelock_date_title),
+            message = stringResource(id = R.string.nc_confirm_timelock_date_message, maxTimelockYears),
+            positiveButtonText = stringResource(id = com.nunchuk.android.widget.R.string.nc_text_confirm),
+            negativeButtonText = stringResource(id = R.string.nc_change_date),
+            onPositiveClick = onConfirmTimelockDate,
+            onDismiss = onDismissConfirmDialog
+        )
+    }
+    
+    // Invalid date dialog
+    if (showInvalidDateDialog) {
+        NcInfoDialog(
+            title = stringResource(id = R.string.nc_invalid_date_title),
+            message = stringResource(id = R.string.nc_invalid_date_message),
+            positiveButtonText = stringResource(id = com.nunchuk.android.widget.R.string.nc_text_got_it),
+            onDismiss = onDismissInvalidDateDialog,
+            onPositiveClick = onDismissInvalidDateDialog
+        )
     }
 }
 

@@ -30,7 +30,8 @@ fun UserWalletConfigsSetupResponse.toDomain(): UserWalletConfigsSetup {
     return UserWalletConfigsSetup(
         walletTypes = walletTypes,
         supportedSigners = supportedSigners.map { it.toDomain() },
-        miniscriptSupportedFirmwares = miniscriptSupportedFirmwares.map { it.toDomain() }
+        miniscriptSupportedFirmwares = miniscriptSupportedFirmwares.map { it.toDomain() },
+        maxTimelockYears = maxTimelockYears
     )
 }
 

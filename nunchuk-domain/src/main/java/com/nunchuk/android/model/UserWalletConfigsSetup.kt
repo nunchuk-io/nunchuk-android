@@ -26,7 +26,8 @@ import kotlinx.parcelize.Parcelize
 data class UserWalletConfigsSetup(
     val walletTypes: List<String>,
     val supportedSigners: List<SupportedSignerConfig>,
-    val miniscriptSupportedFirmwares: List<MiniscriptSupportedFirmware>
+    val miniscriptSupportedFirmwares: List<MiniscriptSupportedFirmware>,
+    val maxTimelockYears: Int
 ) : Parcelable
 
 @Parcelize

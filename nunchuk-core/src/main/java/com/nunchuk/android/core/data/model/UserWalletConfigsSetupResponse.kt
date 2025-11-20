@@ -27,7 +27,9 @@ data class UserWalletConfigsSetupResponse(
     @SerializedName("supported_signers")
     val supportedSigners: List<SupportedSignerConfig>,
     @SerializedName("miniscript_supported_firmwares")
-    val miniscriptSupportedFirmwares: List<MiniscriptSupportedFirmware>
+    val miniscriptSupportedFirmwares: List<MiniscriptSupportedFirmware>,
+    @SerializedName("max_timelock_years")
+    val maxTimelockYears: Int
 )
 
 data class SupportedSignerConfig(
