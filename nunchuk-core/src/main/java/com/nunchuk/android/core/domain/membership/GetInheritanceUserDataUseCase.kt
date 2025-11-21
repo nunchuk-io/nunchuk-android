@@ -41,7 +41,8 @@ class GetInheritanceUserDataUseCase @Inject constructor(
             bufferPeriodId = parameters.bufferPeriodId,
             activationTimeMilis = parameters.activationTimeMilis,
             groupId = parameters.groupId,
-            notificationPreferences = parameters.notificationPreferences
+            notificationPreferences = parameters.notificationPreferences,
+            timezone = parameters.timezone
         )
     }
 
@@ -53,6 +54,7 @@ class GetInheritanceUserDataUseCase @Inject constructor(
         val walletId: String,
         val bufferPeriodId: String?,
         val groupId: String?,
-        val notificationPreferences: InheritanceNotificationSettings? = null
+        val notificationPreferences: InheritanceNotificationSettings? = null,
+        val timezone: String
     )
 }

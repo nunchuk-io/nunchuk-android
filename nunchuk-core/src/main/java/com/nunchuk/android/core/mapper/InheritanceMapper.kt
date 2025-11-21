@@ -48,7 +48,8 @@ internal fun InheritanceDto.toInheritance(): Inheritance {
         pendingRequests = pendingRequests,
         walletType = walletType.toWalletType() ?: WalletType.MULTI_SIG,
         notificationPreferences = notificationSettings,
-        inheritanceKeys = inheritanceKeys
+        inheritanceKeys = inheritanceKeys,
+        timezone = timezone.orEmpty()
     )
 }
 

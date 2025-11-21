@@ -48,8 +48,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Calendar
-import java.util.TimeZone
 import javax.inject.Inject
 
 @HiltViewModel
@@ -122,19 +120,18 @@ class InheritanceReviewPlanViewModel @Inject constructor(
         savedStateHandle[EXTRA_REVIEW_FLOW] = flow
         val walletId = param.walletId
         _event.emit(InheritanceReviewPlanEvent.Loading(true))
-        val activationTimeMillis =
-            calculateActivationTimeMillis(param.activationDate, param.selectedZoneId)
         val resultCalculate = calculateRequiredSignaturesInheritanceUseCase(
             CalculateRequiredSignaturesInheritanceUseCase.Param(
                 walletId = walletId,
                 note = param.note,
                 notificationEmails = param.emails.toList(),
                 notifyToday = param.isNotify,
-                activationTimeMilis = activationTimeMillis,
+                activationTimeMilis = param.activationDate,
                 bufferPeriodId = param.bufferPeriod?.id,
                 action = if (flow == ReviewFlow.CREATE_OR_UPDATE) CalculateRequiredSignaturesAction.CREATE_OR_UPDATE else CalculateRequiredSignaturesAction.CANCEL,
                 groupId = param.groupId,
-                notificationPreferences = param.notificationSettings
+                notificationPreferences = param.notificationSettings,
+                timezone = param.selectedZoneId
             )
         )
         val userData = getUserData()
@@ -225,8 +222,6 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     }
 
     private suspend fun getUserData(): String {
-        val activationTimeMillis =
-            calculateActivationTimeMillis(param.activationDate, param.selectedZoneId)
         val resultUserData = if (reviewFlow == ReviewFlow.CANCEL) {
             cancelInheritanceUserDataUseCase(
                 CancelInheritanceUserDataUseCase.Param(
@@ -241,10 +236,11 @@ class InheritanceReviewPlanViewModel @Inject constructor(
                     note = param.note,
                     notificationEmails = param.emails.toList(),
                     notifyToday = param.isNotify,
-                    activationTimeMilis = activationTimeMillis,
+                    activationTimeMilis = param.activationDate,
                     bufferPeriodId = param.bufferPeriod?.id,
                     groupId = param.groupId,
-                    notificationPreferences = param.notificationSettings
+                    notificationPreferences = param.notificationSettings,
+                    timezone = param.selectedZoneId
                 )
             )
         }
@@ -333,16 +329,6 @@ class InheritanceReviewPlanViewModel @Inject constructor(
             )
         )
         _event.emit(InheritanceReviewPlanEvent.MarkSetupInheritance)
-    }
-
-    private fun calculateActivationTimeMillis(activationDate: Long, timeZoneId: String): Long {
-        return if (timeZoneId.isNotEmpty()) {
-            val calendar = Calendar.getInstance(TimeZone.getTimeZone(timeZoneId))
-            calendar.timeInMillis = activationDate
-            calendar.timeInMillis
-        } else {
-            activationDate
-        }
     }
 
     enum class ReviewFlow {

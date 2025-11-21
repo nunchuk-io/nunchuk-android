@@ -38,7 +38,9 @@ class InheritanceDataExtendedDto(
     @SerializedName("buffer_period")
     val bufferPeriod: PeriodResponse.Data? = null,
     @SerializedName("notification_preferences")
-    val notificationPreferences: InheritanceNotificationPreferencesDto? = null
+    val notificationPreferences: InheritanceNotificationPreferencesDto? = null,
+    @SerializedName("timezone")
+    val timezone: String? = null
 )
 
 class InheritancePayload(
@@ -57,7 +59,8 @@ class InheritanceDataExtended(
     val activationTimeMilis: Long,
     val groupId: String,
     val bufferPeriod: Period?,
-    val notificationPreferences: InheritanceNotificationSettings? = null
+    val notificationPreferences: InheritanceNotificationSettings? = null,
+    val timezone: String = ""
 )
 
 fun InheritancePayloadDto.toInheritancePayload(): InheritancePayload {
@@ -79,6 +82,7 @@ fun InheritanceDataExtendedDto.toInheritanceDataExtended(): InheritanceDataExten
         activationTimeMilis = activationTimeMilis ?: 0,
         groupId = groupId.orEmpty(),
         bufferPeriod = bufferPeriod?.toPeriod(),
-        notificationPreferences = notificationPreferences?.toInheritanceNotificationSettings()
+        notificationPreferences = notificationPreferences?.toInheritanceNotificationSettings(),
+        timezone = timezone.orEmpty()
     )
 }

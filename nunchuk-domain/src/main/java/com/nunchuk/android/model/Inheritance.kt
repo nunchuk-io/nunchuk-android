@@ -41,6 +41,7 @@ class Inheritance(
     val walletType: WalletType = WalletType.MULTI_SIG,
     val notificationPreferences: InheritanceNotificationSettings? = null,
     val inheritanceKeys: List<InheritanceKey> = mutableListOf(),
+    val timezone: String = "",
 ) : Parcelable
 
 @Parcelize

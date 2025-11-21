@@ -44,7 +44,8 @@ class CalculateRequiredSignaturesInheritanceUseCase @Inject constructor(
             bufferPeriodId = parameters.bufferPeriodId,
             action = parameters.action,
             groupId = parameters.groupId,
-            notificationPreferences = parameters.notificationPreferences
+            notificationPreferences = parameters.notificationPreferences,
+            timezone = parameters.timezone
         )
     }
 
@@ -57,6 +58,7 @@ class CalculateRequiredSignaturesInheritanceUseCase @Inject constructor(
         val bufferPeriodId: String? = null,
         val action: CalculateRequiredSignaturesAction,
         val groupId: String? = null,
-        val notificationPreferences: InheritanceNotificationSettings? = null
+        val notificationPreferences: InheritanceNotificationSettings? = null,
+        val timezone: String = ""
     )
 }

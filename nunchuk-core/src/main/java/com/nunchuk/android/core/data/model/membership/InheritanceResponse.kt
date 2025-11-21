@@ -60,6 +60,8 @@ class InheritanceDto(
     val notificationPreferences: InheritanceNotificationPreferencesDto? = null,
     @SerializedName("inheritance_keys")
     val inheritanceKeys: List<InheritanceKeyDto>? = null,
+    @SerializedName("timezone")
+    val timezone: String? = null,
 )
 
 class InheritancePendingRequestResponse(

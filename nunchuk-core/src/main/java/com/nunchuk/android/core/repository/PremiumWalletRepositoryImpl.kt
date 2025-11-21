@@ -769,6 +769,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         walletId: String,
         groupId: String?,
         notificationPreferences: InheritanceNotificationSettings?,
+        timezone: String,
     ): String {
         val body = CreateUpdateInheritancePlanRequest.Body(
             note = note,
@@ -790,7 +791,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                         )
                     }
                 )
-            }
+            },
+            timezone = timezone
         )
         val nonce = getNonce()
         val request = CreateUpdateInheritancePlanRequest(
@@ -932,12 +934,13 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         action: CalculateRequiredSignaturesAction,
         groupId: String?,
         notificationPreferences: InheritanceNotificationSettings?,
+        timezone: String,
     ): CalculateRequiredSignatures {
         val response =
             if (action == CalculateRequiredSignaturesAction.CANCEL || action == CalculateRequiredSignaturesAction.REQUEST_PLANNING) {
                 userWalletApiManager.walletApi.calculateRequiredSignaturesInheritance(
                     CreateUpdateInheritancePlanRequest.Body(
-                        walletId = walletId, groupId = groupId
+                        walletId = walletId, groupId = groupId, timezone = timezone
                     )
                 )
             } else {
@@ -962,7 +965,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                                     )
                                 }
                             )
-                        }
+                        },
+                        timezone = timezone
                     )
                 )
             }

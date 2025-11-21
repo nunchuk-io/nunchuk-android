@@ -24,7 +24,9 @@ data class CreateUpdateInheritancePlanRequest(
         @SerializedName("group_id")
         val groupId: String? = null,
         @SerializedName("notification_preferences")
-        val notificationPreferences: NotificationPreferencesRequest? = null
+        val notificationPreferences: NotificationPreferencesRequest? = null,
+        @SerializedName("timezone")
+        val timezone: String
     )
 }
 

@@ -144,7 +144,9 @@ class InheritanceReviewPlanGroupViewModel @Inject constructor(
                             activationTimeMilis = state.value.payload.newData?.activationTimeMilis
                                 ?: 0,
                             bufferPeriodId = state.value.payload.newData?.bufferPeriod?.id,
-                            groupId = param.groupId
+                            groupId = param.groupId,
+                            notificationPreferences = state.value.payload.newData?.notificationPreferences,
+                            timezone = state.value.payload.newData?.timezone.orEmpty()
                         )
                     )
                 }

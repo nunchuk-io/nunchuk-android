@@ -238,7 +238,8 @@ interface PremiumWalletRepository {
         bufferPeriodId: String?,
         walletId: String,
         groupId: String?,
-        notificationPreferences: InheritanceNotificationSettings? = null
+        notificationPreferences: InheritanceNotificationSettings? = null,
+        timezone: String
     ): String
 
     suspend fun generateInheritanceClaimStatusUserData(magic: String, bsms: String? = null): String
@@ -284,7 +285,8 @@ interface PremiumWalletRepository {
         bufferPeriodId: String?,
         action: CalculateRequiredSignaturesAction,
         groupId: String?,
-        notificationPreferences: InheritanceNotificationSettings? = null
+        notificationPreferences: InheritanceNotificationSettings? = null,
+        timezone: String
     ): CalculateRequiredSignatures
 
     suspend fun createOrUpdateInheritance(
