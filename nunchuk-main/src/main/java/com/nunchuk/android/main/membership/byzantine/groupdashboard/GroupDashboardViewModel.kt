@@ -736,6 +736,10 @@ class GroupDashboardViewModel @Inject constructor(
         }
     }
 
+    fun isOnChainWallet(): Boolean {
+        return _state.value.wallet.miniscript?.isNotEmpty() == true
+    }
+
     private val currentSelectedAlert: Alert?
         get() = savedStateHandle.get<Alert>(EXTRA_SELECTED_ALERT)
 

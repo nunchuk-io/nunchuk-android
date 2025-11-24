@@ -50,6 +50,7 @@ import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.isByzantineOrFinney
 import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.consumeEdgeToEdge
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
@@ -348,7 +349,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     groupStep = walletsViewModel.getGroupStage(),
                     walletId = walletsViewModel.getAssistedWalletId(),
                     isPersonalWallet = isPersonalWallet,
-                    walletType = walletType,
+                    groupWalletType = walletType,
                 )
             }
         )
@@ -404,6 +405,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 groupStep = MembershipStage.REPLACE_KEY,
                 walletId = walletId,
                 groupId = groupId,
+                walletType = if (viewModel.isOnChainWallet(walletId)) WalletType.MINISCRIPT else null
             )
 
             else -> Unit

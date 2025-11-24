@@ -94,7 +94,7 @@ class SelectGroupFragment : MembershipFragment() {
                                         activityContext = requireActivity(),
                                         groupStep = MembershipStage.NONE,
                                         isPersonalWallet = true,
-                                        walletType = option.walletType,
+                                        groupWalletType = option.walletType,
                                         quickWalletParam = (requireActivity() as? MembershipActivity)?.quickWalletParam
                                     )
                                     requireActivity().finish()

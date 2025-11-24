@@ -46,8 +46,10 @@ class BackUpSeedPhraseActivity : BaseComposeActivity() {
                         )
 
                         backUpSeedPhraseOptionDestination(
+                            walletId = args.walletId,
                             groupId = args.groupId,
                             masterSignerId = args.signer?.fingerPrint.orEmpty(),
+                            replacedXfp = args.replacedXfp.orEmpty(),
                             onContinue = {
                                 navHostController.navigate(BackUpSeedPhraseVerify)
                             },
@@ -64,7 +66,11 @@ class BackUpSeedPhraseActivity : BaseComposeActivity() {
                                     groupId = args.groupId,
                                     onChainAddSignerParam = OnChainAddSignerParam(
                                         flags = OnChainAddSignerParam.FLAG_VERIFY_BACKUP_SEED_PHRASE,
-                                        currentSigner = args.signer
+                                        currentSigner = args.signer,
+                                        replaceInfo = OnChainAddSignerParam.ReplaceInfo(
+                                            replacedXfp = args.replacedXfp.orEmpty(),
+                                            step = null
+                                        )
                                     )
                                 )
                                 finish()

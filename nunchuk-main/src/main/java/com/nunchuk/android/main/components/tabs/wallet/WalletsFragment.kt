@@ -190,7 +190,7 @@ internal class WalletsFragment : Fragment() {
                             groupStep = stage,
                             walletId = walletsViewModel.getAssistedWalletId(),
                             isPersonalWallet = isPersonalWallet,
-                            walletType = walletType
+                            groupWalletType = walletType
                         )
                     }
                 },

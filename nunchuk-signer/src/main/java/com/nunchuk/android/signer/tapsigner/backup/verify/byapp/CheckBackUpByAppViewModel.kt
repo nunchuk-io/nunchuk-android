@@ -140,7 +140,7 @@ class CheckBackUpByAppViewModel @Inject constructor(
                         SetReplaceKeyVerifiedUseCase.Param(
                             keyId = keyId,
                             checkSum = checkSum,
-                            isAppVerified = if (isOnChainBackUp) true else true,
+                            verifyType = VerifyType.APP_VERIFIED,
                             groupId = groupId,
                             walletId = walletId
                         )

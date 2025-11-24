@@ -269,13 +269,13 @@ class ReplaceKeysViewModel @Inject constructor(
                 groupId = args.groupId,
                 walletId = args.walletId
             )
-        ).onSuccess { wallet ->
+        ).onSuccess { result ->
             if (args.groupId.isEmpty()) {
                 getServerWalletsUseCase(Unit)
             } else {
                 syncGroupWalletsUseCase(Unit)
             }
-            _uiState.update { it.copy(createWalletSuccess = StateEvent.String(wallet.id)) }
+            _uiState.update { it.copy(createWalletSuccess = StateEvent.String(result.wallet.id)) }
         }.onFailure {
             _uiState.update { state -> state.copy(message = it.message.orUnknownError()) }
         }

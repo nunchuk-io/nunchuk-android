@@ -28,7 +28,7 @@ class EmptyStatePersonalPlanUser(
                         groupStep = conditionInfo.groupStep,
                         walletId = conditionInfo.assistedWalletId,
                         isPersonalWallet = true,
-                        walletType = conditionInfo.walletType
+                        groupWalletType = conditionInfo.walletType
                     )
                 },
                 imageResId = R.drawable.bg_empty_state_personal_plan,
@@ -53,7 +53,7 @@ class EmptyStatePersonalPlanUser(
                         groupStep = conditionInfo.groupStep,
                         walletId = conditionInfo.assistedWalletId,
                         isPersonalWallet = true,
-                        walletType = conditionInfo.walletType
+                        groupWalletType = conditionInfo.walletType
                     )
                 }
             },

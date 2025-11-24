@@ -137,7 +137,5 @@ abstract class MembershipFragment : BaseShareSaveFileFragment<ViewBinding>(), Bo
 
     companion object {
         const val EXTRA_GROUP_ID = "group_id"
-        const val EXTRA_IS_PERSONAL_WALLET = "is_personal"
-        const val EXTRA_WALLET_TYPE = "wallet_type"
     }
 }

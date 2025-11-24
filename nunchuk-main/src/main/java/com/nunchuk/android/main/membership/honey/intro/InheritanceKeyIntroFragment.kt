@@ -162,7 +162,9 @@ class InheritanceKeyIntroFragment : MembershipFragment(), BottomSheetOptionListe
         runCatching {
             if (args.inheritanceType == InheritancePlanType.ON_CHAIN) {
                 findNavController().navigate(
-                    InheritanceKeyIntroFragmentDirections.actionInheritanceKeyIntroFragmentToImportantNoticePassphraseFragment()
+                    InheritanceKeyIntroFragmentDirections.actionInheritanceKeyIntroFragmentToImportantNoticePassphraseFragment(
+                        onChainAddSignerParam = args.onChainAddSignerParam
+                    )
                 )
             } else {
                 if (viewModel.getSigners().isNotEmpty()) {

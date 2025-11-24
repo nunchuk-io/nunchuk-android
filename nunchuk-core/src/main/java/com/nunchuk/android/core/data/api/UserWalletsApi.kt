@@ -665,6 +665,13 @@ internal interface UserWalletsApi {
         @Body payload: Map<String, Boolean>,
     ): Data<Unit>
 
+    @POST("/v1.1/user-wallets/wallets/{wallet_id_or_local_id}/replacement/timelock")
+    suspend fun replaceTimelock(
+        @Header("Verify-token") verifyToken: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: CreateTimelockPayload,
+    ): Data<DraftWalletResponse>
+
     @POST("/v1.1/user-wallets/signin-dummy")
     suspend fun signinDummy(
         @Body payload: SigninDummyRequest,

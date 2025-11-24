@@ -29,7 +29,8 @@ data class BackUpSeedPhraseArgs(
     val type: BackUpSeedPhraseType,
     val signer: SignerModel? = null,
     val groupId: String = "",
-    val walletId: String = ""
+    val walletId: String = "",
+    val replacedXfp: String? = null,
 ) {
 
     fun buildBundle() = Bundle().apply {
@@ -37,6 +38,7 @@ data class BackUpSeedPhraseArgs(
         putParcelable(SIGNER, signer)
         putString(GROUP_ID, groupId)
         putString(WALLET_ID, walletId)
+        putString(REPLACED_XFP, replacedXfp)
     }
 
     companion object {
@@ -44,13 +46,15 @@ data class BackUpSeedPhraseArgs(
         private const val SIGNER = "signer"
         private const val GROUP_ID = "group_id"
         private const val WALLET_ID = "wallet_id"
+        private const val REPLACED_XFP = "replaced_xfp"
 
         fun deserializeFrom(intent: Intent): BackUpSeedPhraseArgs = BackUpSeedPhraseArgs(
             type = intent.extras?.getSerializable(TYPE) as? BackUpSeedPhraseType 
                 ?: throw IllegalArgumentException("BackUpSeedPhraseType is required"),
             signer = intent.extras?.parcelable(SIGNER),
             groupId = intent.extras?.getString(GROUP_ID, "").orEmpty(),
-            walletId = intent.extras?.getString(WALLET_ID, "").orEmpty()
+            walletId = intent.extras?.getString(WALLET_ID, "").orEmpty(),
+            replacedXfp = intent.extras?.getString(REPLACED_XFP)
         )
     }
 }

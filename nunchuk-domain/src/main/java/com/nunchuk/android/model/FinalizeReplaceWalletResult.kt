@@ -17,34 +17,10 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase.membership
+package com.nunchuk.android.model
 
-import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.VerifyType
-import com.nunchuk.android.repository.KeyRepository
-import com.nunchuk.android.usecase.UseCase
-import kotlinx.coroutines.CoroutineDispatcher
-import javax.inject.Inject
+data class FinalizeReplaceWalletResult(
+    val wallet: Wallet,
+    val requiresRegistration: Boolean
+)
 
-class SetReplaceKeyVerifiedUseCase @Inject constructor(
-    @IoDispatcher private val dispatcher: CoroutineDispatcher,
-    private val repository: KeyRepository
-) : UseCase<SetReplaceKeyVerifiedUseCase.Param, Unit>(dispatcher) {
-    override suspend fun execute(parameters: Param) {
-        repository.setReplaceKeyVerified(
-            keyId = parameters.keyId,
-            checkSum = parameters.checkSum,
-            verifyType = parameters.verifyType,
-            groupId = parameters.groupId,
-            walletId = parameters.walletId
-        )
-    }
-
-    data class Param(
-        val keyId: String,
-        val checkSum: String,
-        val verifyType: VerifyType,
-        val groupId: String,
-        val walletId: String
-    )
-}

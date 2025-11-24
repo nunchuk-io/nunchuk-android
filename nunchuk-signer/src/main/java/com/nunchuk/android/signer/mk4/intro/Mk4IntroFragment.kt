@@ -162,10 +162,18 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                 requireActivity().finish()
                             } else if (onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true && onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
                                 if (it.signer.masterFingerprint == onChainAddSignerParam.currentSigner?.fingerPrint) {
-                                    viewModel.setKeyVerified(
-                                        groupId = (activity as Mk4Activity).groupId,
-                                        masterSignerId = it.signer.masterFingerprint
-                                    )
+                                    if (onChainAddSignerParam.replaceInfo != null) {
+                                        viewModel.setReplaceKeyVerified(
+                                            keyId = it.signer.masterFingerprint,
+                                            groupId = (activity as Mk4Activity).groupId,
+                                            walletId = (activity as Mk4Activity).walletId.orEmpty()
+                                        )
+                                    } else {
+                                        viewModel.setKeyVerified(
+                                            groupId = (activity as Mk4Activity).groupId,
+                                            masterSignerId = it.signer.masterFingerprint
+                                        )
+                                    }
                                 } else {
                                     requireActivity().setResult(Activity.RESULT_OK)
                                     navigator.returnMembershipScreen()

@@ -114,7 +114,7 @@ class CheckBackUpBySelfViewModel @Inject constructor(
                 SetReplaceKeyVerifiedUseCase.Param(
                     keyId = keyId,
                     checkSum = getChecksum(true, groupId = groupId, walletId = walletId),
-                    isAppVerified = false,
+                    verifyType = VerifyType.SELF_VERIFIED,
                     groupId = groupId,
                     walletId = walletId
                 )

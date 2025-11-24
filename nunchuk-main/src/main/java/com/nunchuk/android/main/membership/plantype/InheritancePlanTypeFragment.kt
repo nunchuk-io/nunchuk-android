@@ -115,7 +115,7 @@ class InheritancePlanTypeFragment : MembershipFragment() {
                         activityContext = requireActivity(),
                         groupStep = MembershipStage.NONE,
                         isPersonalWallet = true,
-                        walletType = viewModel.getWalletType(),
+                        groupWalletType = viewModel.getWalletType(),
                         quickWalletParam = (requireActivity() as? MembershipActivity)?.quickWalletParam,
                         inheritanceType = event.selectedPlanType.name
                     )

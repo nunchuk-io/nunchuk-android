@@ -66,4 +66,11 @@ object DBMigrations {
             database.execSQL("ALTER TABLE `assisted_wallet` ADD COLUMN `primary_membership_id` TEXT DEFAULT NULL")
         }
     }
+
+    val MIGRATION_30_31 = object : Migration(30, 31) {
+
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE `assisted_wallet` ADD COLUMN `wallet_type` TEXT NOT NULL DEFAULT ''")
+        }
+    }
 }

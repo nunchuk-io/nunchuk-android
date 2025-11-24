@@ -71,7 +71,7 @@ interface KeyRepository {
     suspend fun setReplaceKeyVerified(
         checkSum: String,
         keyId: String,
-        isAppVerify: Boolean,
+        verifyType: VerifyType,
         groupId: String,
         walletId: String
     )
@@ -93,6 +93,7 @@ interface KeyRepository {
         walletId: String,
         signer: SingleSigner,
         xfp: String,
+        keyIndex: Int? = null,
     )
 
     suspend fun resetReplaceKey(

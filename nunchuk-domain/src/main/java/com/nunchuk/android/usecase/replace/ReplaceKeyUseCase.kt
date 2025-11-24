@@ -35,7 +35,8 @@ class ReplaceKeyUseCase @Inject constructor(
             groupId = parameters.groupId,
             walletId = parameters.walletId,
             xfp = parameters.xfp,
-            signer = parameters.signer
+            signer = parameters.signer,
+            keyIndex = parameters.keyIndex
         )
     }
 
@@ -43,6 +44,7 @@ class ReplaceKeyUseCase @Inject constructor(
         val groupId: String = "",
         val walletId: String,
         val xfp: String,
-        val signer: SingleSigner
+        val signer: SingleSigner,
+        val keyIndex: Int? = null
     )
 }

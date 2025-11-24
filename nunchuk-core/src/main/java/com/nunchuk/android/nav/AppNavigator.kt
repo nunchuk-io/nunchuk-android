@@ -39,6 +39,7 @@ import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
 import com.nunchuk.android.nav.args.ClaimArgs
 import com.nunchuk.android.nav.args.MiniscriptArgs
+import com.nunchuk.android.type.WalletType
 
 interface AppNavigator {
     fun restartApp(activityContext: Context)
@@ -50,9 +51,10 @@ interface AppNavigator {
         walletId: String? = null,
         groupId: String? = null,
         isPersonalWallet: Boolean = false,
-        walletType: GroupWalletType? = null,
+        groupWalletType: GroupWalletType? = null,
         slug: String? = null,
         walletTypeName: String? = null,
+        walletType: WalletType? = null,
         isClearTop: Boolean = false,
         quickWalletParam: QuickWalletParam? = null,
         inheritanceType: String? = null,

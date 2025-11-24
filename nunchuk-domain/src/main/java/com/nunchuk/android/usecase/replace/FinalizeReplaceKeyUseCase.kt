@@ -20,7 +20,7 @@
 package com.nunchuk.android.usecase.replace
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.FinalizeReplaceWalletResult
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -29,8 +29,8 @@ import javax.inject.Inject
 class FinalizeReplaceKeyUseCase @Inject constructor(
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val repository: PremiumWalletRepository
-) : UseCase<FinalizeReplaceKeyUseCase.Param, Wallet>(dispatcher) {
-    override suspend fun execute(parameters: Param): Wallet {
+) : UseCase<FinalizeReplaceKeyUseCase.Param, FinalizeReplaceWalletResult>(dispatcher) {
+    override suspend fun execute(parameters: Param): FinalizeReplaceWalletResult {
         return repository.finalizeReplaceWallet(
             groupId = parameters.groupId,
             walletId = parameters.walletId,

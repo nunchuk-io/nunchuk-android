@@ -34,6 +34,7 @@ data class AssistedWalletBrief(
     val status: String = "",
     val replaceByWalletId: String = "",
     val hideFiatCurrency: Boolean = false,
+    val walletType: String = "",
 )
 
 val AssistedWalletBrief.isActiveWallet: Boolean

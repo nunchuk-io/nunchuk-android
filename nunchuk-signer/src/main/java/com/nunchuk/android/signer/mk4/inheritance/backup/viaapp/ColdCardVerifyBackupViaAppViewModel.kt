@@ -101,7 +101,7 @@ class ColdCardVerifyBackupViaAppViewModel @Inject constructor(
                         SetReplaceKeyVerifiedUseCase.Param(
                             keyId = keyId.ifEmpty { masterSignerId },
                             checkSum = getChecksum(filePath),
-                            isAppVerified = true,
+                            verifyType = VerifyType.APP_VERIFIED,
                             groupId = groupId,
                             walletId = walletId
                         )

@@ -26,10 +26,8 @@ import com.google.gson.Gson
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerByPathUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
-import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
-import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
@@ -66,7 +64,6 @@ import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.signer.GetSignerFromMasterSignerByIndexUseCase
 import com.nunchuk.android.usecase.signer.GetUnusedSignerFromMasterSignerV2UseCase
-import com.nunchuk.android.usecase.wallet.GetWallets2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -97,9 +94,6 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val getAllSignersUseCase: GetAllSignersUseCase,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
-    private val ncDataStore: NcDataStore,
-    private val getWallets2UseCase: GetWallets2UseCase,
-    private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val getSignerFromMasterSignerByIndexUseCase: GetSignerFromMasterSignerByIndexUseCase,
     private val getRemoteSignerUseCase: GetRemoteSignerUseCase,
     private val getUnusedSignerFromMasterSignerV2UseCase: GetUnusedSignerFromMasterSignerV2UseCase,
@@ -130,7 +124,6 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
 
     private val singleSigners = mutableListOf<SingleSigner>()
     private val masterSigners = mutableListOf<MasterSigner>()
-    private val unBackedUpSignerXfpSet = mutableSetOf<String>()
     private var isTestNet: Boolean = false
 
     // Context for TapSigner caching
@@ -178,7 +171,6 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                 updateKeyData()
             }
         }
-        getUnBackedUpWallet()
     }
 
     private suspend fun loadSigners() {
@@ -416,7 +408,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                 ).onSuccess { singleSigner ->
                     processTapSignerWithCompleteData(singleSigner, signerModel, data, walletId)
                 }.onFailure { error ->
-                    if (error is NCNativeException && error.message.contains("-1009") == true) {
+                    if (error is NCNativeException && error.message.contains("-1009")) {
                         savedStateHandle[KEY_TAPSIGNER_MASTER_ID] = signerModel.fingerPrint
                         savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(0, isTestNet)
                         savedStateHandle[KEY_TAPSIGNER_CONTEXT] =
@@ -566,7 +558,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
 
                 is Result.Error -> {
                     val error = signerByIndexResult.exception
-                    if (error is NCNativeException && error.message.contains("-1009") == true) {
+                    if (error is NCNativeException && error.message.contains("-1009")) {
                         // Store context for TapSigner caching - using the custom newIndex
                         savedStateHandle[KEY_TAPSIGNER_MASTER_ID] = signerFingerPrint
                         savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(newIndex, isTestNet)
@@ -663,28 +655,6 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
     fun markHandledShowKeyAdded() {
         _state.update { it.copy(shouldShowKeyAdded = false) }
     }
-
-    fun getGroupWalletType() = _state.value.groupWalletType
-
-    fun getCountWalletSoftwareSignersInDevice() =
-        key.value.count {
-            it.signers?.firstOrNull()
-                ?.let { signer -> signer.type == SignerType.SOFTWARE && signer.isVisible } == true
-        }
-
-    private fun getUnBackedUpWallet() {
-        viewModelScope.launch {
-            getWallets2UseCase(Unit)
-                .onSuccess { wallets ->
-                    wallets.filter { it.needBackup }.forEach {
-                        unBackedUpSignerXfpSet.add(it.signers.first().masterFingerprint)
-                    }
-                }
-        }
-    }
-
-    fun isUnBackedUpSigner(signer: SignerModel) =
-        unBackedUpSignerXfpSet.contains(signer.fingerPrint)
 
     fun getHardwareSigners(tag: SignerTag): List<SignerModel> =
         _state.value.signers.filter {

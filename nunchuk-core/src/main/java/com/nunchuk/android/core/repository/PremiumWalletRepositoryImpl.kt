@@ -86,6 +86,7 @@ import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.data.model.membership.toServerTransaction
 import com.nunchuk.android.core.data.model.membership.toTransactionStatus
 import com.nunchuk.android.core.data.model.membership.toWalletOption
+import com.nunchuk.android.core.data.model.replacement.replacementsToModel
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
 import com.nunchuk.android.core.exception.RequestAddSameKeyException
@@ -122,6 +123,7 @@ import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.CalculateRequiredSignaturesExt
 import com.nunchuk.android.model.CreateWalletResult
+import com.nunchuk.android.model.FinalizeReplaceWalletResult
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.GroupKeyPolicy
@@ -159,6 +161,7 @@ import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.WalletServerSync
+import com.nunchuk.android.model.WalletTimelock
 import com.nunchuk.android.model.byzantine.AssistedMember
 import com.nunchuk.android.model.byzantine.DraftWallet
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
@@ -1647,6 +1650,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     status = wallet.status,
                     replaceByWalletId = wallet.replaceByWalletId,
                     hideFiatCurrency = wallet.hideFiatCurrency,
+                    walletType = wallet.walletType,
                 )
             }
         }
@@ -2845,15 +2849,25 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         status.signers.map {
             signerGateway.saveServerSignerIfNeed(it.replaceBy)
+            it.replacements.forEach { replacement ->
+                signerGateway.saveServerSignerIfNeed(replacement)
+            }
         }
 
         return ReplaceWalletStatus(
             pendingReplaceXfps = status.pendingReplaceXfps,
-            signers = status.signers.associate { it.xfp to it.replaceBy.toModel() }
+            signers = status.signers.associate { it.xfp to it.replaceBy.toModel() },
+            replacements = status.signers.associate { it.xfp to it.replacementsToModel() },
+            timelock = status.timelock?.let {
+                WalletTimelock(
+                    timelockValue = it.value,
+                    timezone = it.timezone ?: ""
+                )
+            }
         )
     }
 
-    override suspend fun finalizeReplaceWallet(groupId: String?, walletId: String): Wallet {
+    override suspend fun finalizeReplaceWallet(groupId: String?, walletId: String): FinalizeReplaceWalletResult {
         val verifyToken = ncDataStore.passwordToken.first()
         val response = if (groupId.isNullOrEmpty()) {
             userWalletApiManager.walletApi.finalizeReplaceWallet(
@@ -2871,7 +2885,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         saveWalletToLib(wallet, mutableSetOf())
         assistedWalletDao.insert(wallet.toEntity())
-        return nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
+        val createdWallet = nunchukNativeSdk.getWallet(wallet.localId.orEmpty())
+        return FinalizeReplaceWalletResult(
+            wallet = createdWallet,
+            requiresRegistration = wallet.requiresRegistration == true
+        )
     }
 
     override suspend fun initWallet(
@@ -2943,6 +2961,38 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             timelock = draftWallet.timelock?.value ?: 0,
             replaceWallet = draftWallet.replaceWallet.toModel()
         )
+    }
+
+    override suspend fun replaceTimelock(
+        groupId: String?,
+        walletId: String,
+        timelockValue: Long,
+        timezone: String
+    ) {
+        val verifyToken = ncDataStore.passwordToken.first()
+        val payload = CreateTimelockPayload(
+            timelock = TimelockPayload(
+                value = timelockValue,
+                timezone = timezone
+            )
+        )
+        val response = if (!groupId.isNullOrEmpty()) {
+            userWalletApiManager.groupWalletApi.replaceTimelock(
+                verifyToken = verifyToken,
+                groupId = groupId,
+                walletId = walletId,
+                payload = payload
+            )
+        } else {
+            userWalletApiManager.walletApi.replaceTimelock(
+                verifyToken = verifyToken,
+                walletId = walletId,
+                payload = payload
+            )
+        }
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
     }
 
     private fun getHeaders(

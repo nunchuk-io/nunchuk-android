@@ -82,8 +82,6 @@ import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.compose.pullrefresh.PullRefreshIndicator
 import com.nunchuk.android.compose.pullrefresh.pullRefresh
 import com.nunchuk.android.compose.pullrefresh.rememberPullRefreshState
-import com.nunchuk.android.core.portal.PortalDeviceArgs
-import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
@@ -139,16 +137,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
 
     private var selectedSignerTag: SignerTag? = null
     private var currentKeyData: AddKeyOnChainData? = null
-
-    private val addPortalLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            val data = result.data
-            if (result.resultCode == Activity.RESULT_OK && data != null) {
-                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let {
-                    viewModel.onSelectedExistingHardwareSigner(it)
-                }
-            }
-        }
 
     private val addTapSignerLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -216,13 +204,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         data.signers.first(),
                         currentKeyData,
                         (activity as MembershipActivity).walletId
-                    )
-
-                    SignerType.PORTAL_NFC -> findNavController().navigate(
-                        OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToCustomKeyAccountFragmentFragment(
-                            data.signers.first(),
-                            walletId = (activity as MembershipActivity).walletId,
-                        )
                     )
 
                     else -> {
@@ -513,8 +494,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         when (type) {
             SignerType.NFC -> openSetupTapSigner()
 
-            SignerType.PORTAL_NFC -> openSetupPortal()
-
             SignerType.COLDCARD_NFC -> {
                 selectedSignerTag = SignerTag.COLDCARD
                 openSetupColdCard()
@@ -576,17 +555,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     currentSigner = currentKeyData?.signers?.firstOrNull()
                 )
             )
-        )
-    }
-
-    private fun openSetupPortal() {
-        navigator.openPortalScreen(
-            launcher = addPortalLauncher,
-            activity = requireActivity(),
-            args = PortalDeviceArgs(
-                type = PortalDeviceFlow.SETUP,
-                isMembershipFlow = true
-            ),
         )
     }
 

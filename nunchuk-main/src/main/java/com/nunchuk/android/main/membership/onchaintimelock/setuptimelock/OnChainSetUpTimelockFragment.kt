@@ -47,9 +47,9 @@ import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTimePickerDialog
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.timezone.NcTimeZoneField
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcInfoDialog
+import com.nunchuk.android.compose.timezone.NcTimeZoneField
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.ui.TimeZoneDetail
 import com.nunchuk.android.core.ui.toTimeZoneDetail
@@ -80,6 +80,8 @@ class OnChainSetUpTimelockFragment : MembershipFragment(), BottomSheetOptionList
                     viewModel = viewModel,
                     groupId = args.groupId,
                     timelockExtra = args.timelockExtra,
+                    isReplaceKeyFlow = args.isReplaceKeyFlow,
+                    walletId = args.walletId,
                     onMoreClicked = ::handleShowMore
                 )
             }
@@ -114,23 +116,32 @@ private fun OnChainSetUpTimelockScreen(
     viewModel: OnChainSetUpTimelockViewModel = viewModel(),
     groupId: String? = null,
     timelockExtra: TimelockExtra? = null,
+    isReplaceKeyFlow: Boolean = false,
+    walletId: String? = null,
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     val showConfirmDialog by viewModel.showConfirmTimelockDateDialog.collectAsStateWithLifecycle()
     val showInvalidDateDialog by viewModel.showInvalidDateDialog.collectAsStateWithLifecycle()
     val maxTimelockYears by viewModel.maxTimelockYears.collectAsStateWithLifecycle()
-    
+
     OnChainSetUpTimelockContent(
         onMoreClicked = onMoreClicked,
         onContinueClicked = { selectedDate, selectedTimeZone ->
-            viewModel.onContinueClick(selectedDate, selectedTimeZone, groupId = groupId)
+            viewModel.onContinueClick(
+                selectedDate,
+                selectedTimeZone,
+                groupId = groupId,
+                isReplaceKeyFlow = isReplaceKeyFlow,
+                walletId = walletId
+            )
         },
         remainTime = remainTime,
         timelockExtra = timelockExtra,
         showConfirmDialog = showConfirmDialog,
         showInvalidDateDialog = showInvalidDateDialog,
         maxTimelockYears = maxTimelockYears,
+        isReplaceKeyFlow = isReplaceKeyFlow,
         onConfirmTimelockDate = { viewModel.onConfirmTimelockDate() },
         onDismissConfirmDialog = { viewModel.onDismissConfirmTimelockDateDialog() },
         onDismissInvalidDateDialog = { viewModel.onDismissInvalidDateDialog() }
@@ -141,6 +152,7 @@ private fun OnChainSetUpTimelockScreen(
 private fun OnChainSetUpTimelockContent(
     remainTime: Int = 0,
     timelockExtra: TimelockExtra? = null,
+    isReplaceKeyFlow: Boolean = false,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: (Calendar, TimeZoneDetail) -> Unit = { _, _ -> },
     showConfirmDialog: Boolean = false,
@@ -218,7 +230,7 @@ private fun OnChainSetUpTimelockContent(
             ) {
                 Text(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                    text = "Set up an on-chain timelock",
+                    text = if (isReplaceKeyFlow) "Change on-chain timelock" else "Set up an on-chain timelock",
                     style = NunchukTheme.typography.heading
                 )
                 NcHighlightText(
@@ -362,7 +374,7 @@ private fun OnChainSetUpTimelockContent(
             }
         }
     }
-    
+
     // Confirm timelock date dialog
     if (showConfirmDialog && maxTimelockYears != null) {
         NcConfirmationDialog(
@@ -374,7 +386,7 @@ private fun OnChainSetUpTimelockContent(
             onDismiss = onDismissConfirmDialog
         )
     }
-    
+
     // Invalid date dialog
     if (showInvalidDateDialog) {
         NcInfoDialog(

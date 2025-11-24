@@ -46,6 +46,7 @@ import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
@@ -57,6 +58,7 @@ import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
+import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
@@ -85,6 +87,7 @@ class Mk4IntroViewModel @Inject constructor(
     private val syncKeyUseCase: SyncKeyUseCase,
     private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
+    private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
@@ -268,7 +271,8 @@ class Mk4IntroViewModel @Inject constructor(
                                         groupId = groupId,
                                         walletId = walletId.orEmpty(),
                                         xfp = replacedXfp,
-                                        signer = createSignerResult.getOrThrow()
+                                        signer = createSignerResult.getOrThrow(),
+                                        keyIndex = onChainAddSignerParam?.replaceInfo?.step?.toIndex(groupId.isNotEmpty())
                                     )
                                 ).onFailure {
                                     _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))
@@ -372,6 +376,24 @@ class Mk4IntroViewModel @Inject constructor(
                     groupId = groupId,
                     masterSignerId = masterSignerId,
                     verifyType = VerifyType.APP_VERIFIED
+                )
+            ).onSuccess {
+                _event.emit(Mk4IntroViewEvent.KeyVerifiedSuccess)
+            }.onFailure {
+                _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun setReplaceKeyVerified(keyId: String, groupId: String, walletId: String) {
+        viewModelScope.launch {
+            setReplaceKeyVerifiedUseCase(
+                SetReplaceKeyVerifiedUseCase.Param(
+                    keyId = keyId,
+                    checkSum = "",
+                    verifyType = VerifyType.SELF_VERIFIED,
+                    groupId = groupId,
+                    walletId = walletId
                 )
             ).onSuccess {
                 _event.emit(Mk4IntroViewEvent.KeyVerifiedSuccess)

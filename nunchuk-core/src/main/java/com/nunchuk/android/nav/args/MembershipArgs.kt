@@ -24,6 +24,7 @@ import android.os.Bundle
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 
@@ -32,9 +33,10 @@ data class MembershipArgs(
     val walletId: String? = null,
     val groupId: String? = null,
     val isPersonalWallet: Boolean = false,
-    val walletType: GroupWalletType? = null,
+    val groupWalletType: GroupWalletType? = null,
     val slug: String? = null,
     val walletTypeName: String? = null,
+    val walletType: WalletType? = null,
     val quickWalletParam: QuickWalletParam? = null,
     val inheritanceType: String? = null,
     val replacedWalletId: String? = null,
@@ -46,9 +48,10 @@ data class MembershipArgs(
         putString(WALLET_ID, walletId)
         putString(GROUP_ID, groupId)
         putBoolean(IS_PERSONAL_WALLET, isPersonalWallet)
-        putSerializable(WALLET_TYPE, walletType)
+        putSerializable(GROUP_WALLET_TYPE, groupWalletType)
         putString(SLUG, slug)
         putString(WALLET_TYPE_NAME, walletTypeName)
+        putSerializable(WALLET_TYPE, walletType)
         putParcelable(QUICK_WALLET_PARAM, quickWalletParam)
         putString(INHERITANCE_TYPE, inheritanceType)
         putString(REPLACED_WALLET_ID, replacedWalletId)
@@ -60,9 +63,10 @@ data class MembershipArgs(
         const val WALLET_ID = "wallet_id"
         const val GROUP_ID = "group_id"
         const val IS_PERSONAL_WALLET = "is_personal"
-        const val WALLET_TYPE = "wallet_type"
+        const val GROUP_WALLET_TYPE = "group_wallet_type"
         const val SLUG = "slug"
         const val WALLET_TYPE_NAME = "wallet_type_name"
+        const val WALLET_TYPE = "wallet_type"
         const val QUICK_WALLET_PARAM = "quick_wallet_param"
         const val INHERITANCE_TYPE = "inheritance_type"
         const val REPLACED_WALLET_ID = "replaced_wallet_id"
@@ -74,9 +78,10 @@ data class MembershipArgs(
             walletId = intent.extras?.getString(WALLET_ID),
             groupId = intent.extras?.getString(GROUP_ID),
             isPersonalWallet = intent.extras?.getBoolean(IS_PERSONAL_WALLET, false) ?: false,
-            walletType = intent.extras?.serializable(WALLET_TYPE),
+            groupWalletType = intent.extras?.serializable(GROUP_WALLET_TYPE),
             slug = intent.extras?.getString(SLUG),
             walletTypeName = intent.extras?.getString(WALLET_TYPE_NAME),
+            walletType = intent.extras?.serializable(WALLET_TYPE),
             quickWalletParam = intent.extras?.parcelable(QUICK_WALLET_PARAM),
             inheritanceType = intent.extras?.getString(INHERITANCE_TYPE),
             replacedWalletId = intent.extras?.getString(REPLACED_WALLET_ID),

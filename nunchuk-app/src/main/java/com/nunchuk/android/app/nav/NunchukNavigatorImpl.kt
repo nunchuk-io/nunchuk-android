@@ -76,6 +76,7 @@ import com.nunchuk.android.signer.nav.NfcNavigatorDelegate
 import com.nunchuk.android.signer.nav.SignerNavigatorDelegate
 import com.nunchuk.android.transaction.nav.TransactionNavigatorDelegate
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.wallet.components.coin.CoinActivity
 import com.nunchuk.android.wallet.nav.WalletNavigatorDelegate
 import javax.inject.Inject
@@ -242,9 +243,10 @@ interface AppNavigatorDelegate : AppNavigator {
         walletId: String?,
         groupId: String?,
         isPersonalWallet: Boolean,
-        walletType: GroupWalletType?,
+        groupWalletType: GroupWalletType?,
         slug: String?,
         walletTypeName: String?,
+        walletType: WalletType?,
         isClearTop: Boolean,
         quickWalletParam: QuickWalletParam?,
         inheritanceType: String?,
@@ -256,9 +258,10 @@ interface AppNavigatorDelegate : AppNavigator {
             walletId = walletId,
             groupId = groupId,
             isPersonalWallet = isPersonalWallet,
-            walletType = walletType,
+            groupWalletType = groupWalletType,
             slug = slug,
             walletTypeName = walletTypeName,
+            walletType = walletType,
             quickWalletParam = quickWalletParam,
             inheritanceType = inheritanceType,
             replacedWalletId = replacedWalletId,

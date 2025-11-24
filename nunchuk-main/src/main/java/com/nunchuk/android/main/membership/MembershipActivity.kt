@@ -37,6 +37,7 @@ import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
+import com.nunchuk.android.type.WalletType
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import javax.inject.Inject
@@ -65,20 +66,22 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
         val graph = inflater.inflate(R.navigation.membership_navigation)
         val stage = intent.serializable<MembershipStage>(MembershipArgs.GROUP_STEP)
         val isPersonalWallet = intent.getBooleanExtra(MembershipArgs.IS_PERSONAL_WALLET, false)
-        val walletType = intent.serializable<GroupWalletType>(MembershipArgs.WALLET_TYPE)
+        val groupWalletType = intent.serializable<GroupWalletType>(MembershipArgs.GROUP_WALLET_TYPE)
         val changeTimelockFlow = intent.getIntExtra(MembershipArgs.CHANGE_TIMELOCK_FLOW, -1)
+        val walletType = intent.serializable<WalletType>(MembershipArgs.WALLET_TYPE)
         
-        if (walletType != null) {
-            membershipStepManager.initStep(groupId, walletType)
+        if (groupWalletType != null) {
+            membershipStepManager.initStep(groupId, groupWalletType)
         }
         when {
             changeTimelockFlow != -1 -> graph.setStartDestination(R.id.inheritancePlanTypeFragment)
+            stage == MembershipStage.REPLACE_KEY && walletType == WalletType.MINISCRIPT -> graph.setStartDestination(R.id.onChainReplaceKeyIntroFragment)
             stage == MembershipStage.REPLACE_KEY -> graph.setStartDestination(R.id.replaceKeyIntroFragment)
             stage == MembershipStage.ADD_KEY_ONLY -> graph.setStartDestination(R.id.groupPendingIntroFragment)
             stage == MembershipStage.REGISTER_WALLET -> graph.setStartDestination(R.id.registerWalletToAirgapFragment)
             stage == MembershipStage.CREATE_WALLET_SUCCESS -> graph.setStartDestination(R.id.createWalletSuccessFragment)
-            walletType == null && isPersonalWallet -> graph.setStartDestination(R.id.selectGroupFragment)
-            walletType == null && !isPersonalWallet -> graph.setStartDestination(R.id.groupWalletIntroFragment)
+            groupWalletType == null && isPersonalWallet -> graph.setStartDestination(R.id.selectGroupFragment)
+            groupWalletType == null && !isPersonalWallet -> graph.setStartDestination(R.id.groupWalletIntroFragment)
             groupId.isEmpty() && stage == MembershipStage.NONE -> graph.setStartDestination(R.id.introAssistedWalletFragment)
             groupId.isEmpty() && stage != MembershipStage.NONE -> graph.setStartDestination(R.id.addKeyStepFragment)
             groupId.isNotEmpty() -> graph.setStartDestination(R.id.addGroupKeyStepFragment)

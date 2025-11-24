@@ -51,6 +51,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcOutlineButton
@@ -221,10 +222,18 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
             navigator.returnToClaimScreen(requireActivity())
         } else if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true && onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true) {
             if (signer.masterFingerprint == onChainAddSignerParam.currentSigner?.fingerPrint) {
-                viewModel.setKeyVerified(
-                    groupId = activity.groupId,
-                    masterSignerId = signer.masterFingerprint
-                )
+                if (onChainAddSignerParam.replaceInfo != null) {
+                    viewModel.setReplaceKeyVerified(
+                        keyId = signer.masterSignerId,
+                        groupId = activity.groupId,
+                        walletId = activity.walletId
+                    )
+                } else {
+                    viewModel.setKeyVerified(
+                        groupId = activity.groupId,
+                        masterSignerId = signer.masterFingerprint
+                    )
+                }
             } else {
                 activity.setResult(Activity.RESULT_OK)
                 navigator.returnMembershipScreen()

@@ -44,6 +44,7 @@ import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerErrorEvent
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerSuccessEvent
@@ -67,6 +68,7 @@ import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
+import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
@@ -104,6 +106,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val analyzeQrUseCase: AnalyzeQrUseCase,
     private val syncKeyUseCase: SyncKeyUseCase,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
+    private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val checkAssistedSignerExistenceHelper: CheckAssistedSignerExistenceHelper,
     private val changeKeyTypeUseCase: ChangeKeyTypeUseCase,
@@ -324,7 +327,8 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                                 groupId = groupId,
                                 walletId = walletId,
                                 xfp = replacedXfp.orEmpty(),
-                                signer = airgap
+                                signer = airgap,
+                                keyIndex = onChainAddSignerParam?.replaceInfo?.step?.toIndex(groupId.isNotEmpty())
                             )
                         ).onFailure {
                             setEvent(AddAirgapSignerErrorEvent(it.message.orUnknownError()))
@@ -493,6 +497,24 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     groupId = groupId,
                     masterSignerId = masterSignerId,
                     verifyType = VerifyType.APP_VERIFIED
+                )
+            ).onSuccess {
+                setEvent(KeyVerifiedSuccess)
+            }.onFailure {
+                setEvent(AddAirgapSignerErrorEvent(it.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun setReplaceKeyVerified(keyId: String, groupId: String, walletId: String) {
+        viewModelScope.launch {
+            setReplaceKeyVerifiedUseCase(
+                SetReplaceKeyVerifiedUseCase.Param(
+                    keyId = keyId,
+                    checkSum = "",
+                    verifyType = VerifyType.SELF_VERIFIED,
+                    groupId = groupId,
+                    walletId = walletId
                 )
             ).onSuccess {
                 setEvent(KeyVerifiedSuccess)

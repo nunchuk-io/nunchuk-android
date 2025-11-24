@@ -21,6 +21,7 @@ package com.nunchuk.android.core.data.model.membership
 
 import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.model.WalletServer
+import com.nunchuk.android.model.WalletTimelock
 import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.persistence.entity.AssistedWalletEntity
 import com.nunchuk.android.type.WalletType
@@ -73,8 +74,10 @@ internal fun WalletDto.toModel(): WalletServer {
         walletType = walletType?.toWalletType() ?: WalletType.MULTI_SIG,
         sendBsmsEmail = sendBsmsEmail,
         requiresRegistration = requiresRegistration == true,
+        timelock = WalletTimelock(
         timelockValue = timelock?.value ?: 0L,
-        timezone = timelock?.timezone ?: "",
+            timezone = timelock?.timezone ?: ""
+        )
     )
 }
 
@@ -96,5 +99,6 @@ fun WalletDto.toEntity() = AssistedWalletEntity(
     alias = alias.orEmpty(),
     hideFiatCurrency = hideFiatCurrency,
     primaryMembershipId = primaryMembershipId.orEmpty(),
-    replaceByWalletId = replaceBy?.walletId.orEmpty()
+    replaceByWalletId = replaceBy?.walletId.orEmpty(),
+    walletType = walletType.orEmpty()
 )

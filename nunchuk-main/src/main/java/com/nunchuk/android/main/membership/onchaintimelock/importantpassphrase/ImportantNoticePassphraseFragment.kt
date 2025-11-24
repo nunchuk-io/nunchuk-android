@@ -35,6 +35,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
@@ -51,6 +52,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class ImportantNoticePassphraseFragment : MembershipFragment(), BottomSheetOptionListener {
     private val viewModel: ImportantNoticePassphraseViewModel by viewModels()
+    private val args: ImportantNoticePassphraseFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -72,7 +74,10 @@ class ImportantNoticePassphraseFragment : MembershipFragment(), BottomSheetOptio
         setFragmentResultListener("SignerIntroFragment") { _, bundle ->
             val filteredSigners = bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
             val activity = requireActivity() as MembershipActivity
-            val destinationId = if (activity.groupId.isNotEmpty()) {
+            val destinationId = if (args.onChainAddSignerParam?.replaceInfo != null) {
+                // Navigate back to replace keys fragment when in replace key flow
+                R.id.onChainReplaceKeysFragment
+            } else if (activity.groupId.isNotEmpty()) {
                 R.id.onChainTimelockByzantineAddKeyFragment
             } else {
                 R.id.onChainTimelockAddKeyListFragment
@@ -93,6 +98,7 @@ class ImportantNoticePassphraseFragment : MembershipFragment(), BottomSheetOptio
 
     private fun handleContinueClick() {
         val activity = requireActivity() as MembershipActivity
+        val existingParam = args.onChainAddSignerParam
         findNavController().navigate(
             ImportantNoticePassphraseFragmentDirections.actionImportantNoticePassphraseFragmentToSignerIntroFragment(
                 walletId = activity.walletId,
@@ -100,9 +106,10 @@ class ImportantNoticePassphraseFragment : MembershipFragment(), BottomSheetOptio
                 supportedSigners = null,
                 keyFlow = 0,
                 onChainAddSignerParam = OnChainAddSignerParam(
-                    flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
-                    keyIndex = 0
-                )
+                        flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
+                        keyIndex = 0,
+                        replaceInfo = existingParam?.replaceInfo
+                    )
             )
         )
     }

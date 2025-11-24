@@ -450,11 +450,17 @@ internal class KeyRepositoryImpl @Inject constructor(
     override suspend fun setReplaceKeyVerified(
         checkSum: String,
         keyId: String,
-        isAppVerify: Boolean,
+        verifyType: VerifyType,
         groupId: String,
         walletId: String
     ) {
         val verifyToken = ncDataStore.passwordToken.first()
+        val verifyTypeString = when (verifyType) {
+            VerifyType.APP_VERIFIED -> "APP_VERIFIED"
+            VerifyType.SELF_VERIFIED -> "SELF_VERIFIED"
+            VerifyType.SKIPPED_VERIFICATION -> "SKIPPED_VERIFICATION"
+            VerifyType.NONE -> "NONE"
+        }
         val response = if (groupId.isEmpty()) {
             userWalletApiManager.walletApi.setKeyVerifiedReplacement(
                 verifyToken = verifyToken,
@@ -462,7 +468,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                 walletId = walletId,
                 KeyVerifiedRequest(
                     checkSum,
-                    if (isAppVerify) "APP_VERIFIED" else "SELF_VERIFIED"
+                    verifyTypeString
                 )
             )
         } else {
@@ -473,7 +479,7 @@ internal class KeyRepositoryImpl @Inject constructor(
                 walletId = walletId,
                 payload = KeyVerifiedRequest(
                     checkSum,
-                    if (isAppVerify) "APP_VERIFIED" else "SELF_VERIFIED"
+                    verifyTypeString
                 )
             )
         }
@@ -563,13 +569,19 @@ internal class KeyRepositoryImpl @Inject constructor(
         groupId: String?,
         walletId: String,
         signer: SingleSigner,
-        xfp: String
+        xfp: String,
+        keyIndex: Int?
     ) {
         val verifyToken = ncDataStore.passwordToken.first()
         val wallet = nativeSdk.getWallet(walletId)
         val isInheritance = wallet.signers.find { it.masterFingerprint == xfp }?.tags.orEmpty()
             .contains(SignerTag.INHERITANCE)
-        val serverSigner = serverSignerMapper(signer, isInheritance)
+        val baseServerSigner = serverSignerMapper(signer, isInheritance)
+        val serverSigner = if (keyIndex != null) {
+            baseServerSigner.copy(index = keyIndex)
+        } else {
+            baseServerSigner
+        }
         val response = if (groupId.isNullOrEmpty()) {
             userWalletApiManager.walletApi.replaceKey(
                 verifyToken = verifyToken,

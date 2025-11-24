@@ -17,34 +17,32 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase.membership
+package com.nunchuk.android.usecase.replace
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.VerifyType
-import com.nunchuk.android.repository.KeyRepository
+import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class SetReplaceKeyVerifiedUseCase @Inject constructor(
+class ReplaceTimelockUseCase @Inject constructor(
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
-    private val repository: KeyRepository
-) : UseCase<SetReplaceKeyVerifiedUseCase.Param, Unit>(dispatcher) {
+    private val repository: PremiumWalletRepository
+) : UseCase<ReplaceTimelockUseCase.Param, Unit>(dispatcher) {
     override suspend fun execute(parameters: Param) {
-        repository.setReplaceKeyVerified(
-            keyId = parameters.keyId,
-            checkSum = parameters.checkSum,
-            verifyType = parameters.verifyType,
+        repository.replaceTimelock(
             groupId = parameters.groupId,
-            walletId = parameters.walletId
+            walletId = parameters.walletId,
+            timelockValue = parameters.timelockValue,
+            timezone = parameters.timezone
         )
     }
 
     data class Param(
-        val keyId: String,
-        val checkSum: String,
-        val verifyType: VerifyType,
-        val groupId: String,
-        val walletId: String
+        val groupId: String?,
+        val walletId: String,
+        val timelockValue: Long,
+        val timezone: String
     )
 }
+

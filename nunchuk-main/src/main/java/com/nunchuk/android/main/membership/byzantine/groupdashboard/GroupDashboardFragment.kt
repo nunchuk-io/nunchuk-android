@@ -68,6 +68,7 @@ import com.nunchuk.android.nav.args.BackUpWalletType
 import com.nunchuk.android.nav.args.MembershipArgs
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.network.IsNetworkConnectedUseCase
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
@@ -478,6 +479,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                             groupStep = MembershipStage.REPLACE_KEY,
                             walletId = viewModel.getWalletId(),
                             groupId = viewModel.getGroupId(),
+                            walletType = if (viewModel.isOnChainWallet()) WalletType.MINISCRIPT else null
                         )
                     }
                     else -> {}
@@ -503,7 +505,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                 activityContext = requireActivity(),
                 groupStep = MembershipStage.CONFIG_RECOVER_KEY_AND_CREATE_WALLET_IN_PROGRESS,
                 isPersonalWallet = true,
-                walletType = viewModel.state.value.personalWalletType,
+                groupWalletType = viewModel.state.value.personalWalletType,
             )
         } else if (alert.type == AlertType.GROUP_WALLET_PENDING) {
             val walletType = viewModel.getByzantineGroup()?.walletConfig?.toGroupWalletType()
@@ -515,7 +517,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                     walletId = args.walletId,
                     groupId = viewModel.getGroupId(),
                     isPersonalWallet = true,
-                    walletType = walletType
+                    groupWalletType = walletType
                 )
             } else {
                 navigator.openMembershipActivity(
@@ -524,7 +526,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                     groupStep = MembershipStage.ADD_KEY_ONLY,
                     groupId = viewModel.getGroupId(),
                     isPersonalWallet = true,
-                    walletType = walletType
+                    groupWalletType = walletType
                 )
             }
         } else if (alert.type == AlertType.UPDATE_SERVER_KEY) {

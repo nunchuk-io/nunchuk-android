@@ -3,6 +3,11 @@ package com.nunchuk.android.model
 import com.nunchuk.android.model.signer.SignerServer
 import com.nunchuk.android.type.WalletType
 
+data class WalletTimelock(
+    val timelockValue: Long = 0L,
+    val timezone: String = "",
+)
+
 data class WalletServer(
     val id: String,
     val localId: String,
@@ -19,6 +24,5 @@ data class WalletServer(
     val walletType: WalletType = WalletType.MULTI_SIG,
     val sendBsmsEmail: Boolean = false,
     val requiresRegistration: Boolean = false,
-    val timelockValue: Long = 0L,
-    val timezone: String = "",
+    val timelock: WalletTimelock = WalletTimelock(),
 )

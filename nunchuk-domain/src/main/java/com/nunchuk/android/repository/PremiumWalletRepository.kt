@@ -27,6 +27,7 @@ import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.CalculateRequiredSignaturesExt
 import com.nunchuk.android.model.CreateWalletResult
 import com.nunchuk.android.model.DefaultPermissions
+import com.nunchuk.android.model.FinalizeReplaceWalletResult
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.HealthCheckHistory
@@ -46,7 +47,6 @@ import com.nunchuk.android.model.SeverWallet
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.TransactionAdditional
 import com.nunchuk.android.model.UserWalletConfigsSetup
-import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.WalletConstraints
 import com.nunchuk.android.model.WalletServer
@@ -528,7 +528,7 @@ interface PremiumWalletRepository {
     suspend fun finalizeReplaceWallet(
         groupId: String?,
         walletId: String,
-    ): Wallet
+    ): FinalizeReplaceWalletResult
 
     suspend fun initWallet(
         walletConfig: WalletConfig,
@@ -540,4 +540,11 @@ interface PremiumWalletRepository {
     suspend fun getUserWalletConfigsSetup(): UserWalletConfigsSetup
 
     suspend fun changeTimelockType(groupId: String?, walletId: String): com.nunchuk.android.model.byzantine.DraftWallet
+
+    suspend fun replaceTimelock(
+        groupId: String?,
+        walletId: String,
+        timelockValue: Long,
+        timezone: String
+    )
 }

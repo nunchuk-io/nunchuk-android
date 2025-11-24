@@ -102,19 +102,7 @@ class TapSignerBackingUpIntroOnChainFragment : MembershipFragment() {
                     }
 
                     is TapSignerBackingUpIntroOnChainEvent.GetTapSignerBackupKeyEvent -> {
-                        val activity = requireActivity() as NfcSetupActivity
-                        if (isManualBackup && activity.keyId.isNotEmpty()) {
-                            // This is manual backup for replace key flow
-                            viewModel.setReplaceKeyVerified(
-                                keyId = activity.keyId,
-                                filePath = event.filePath,
-                                groupId = activity.groupId,
-                                walletId = activity.walletId
-                            )
-                            isManualBackup = false
-                        } else {
-                            handleBackUpKeySuccess(event.filePath)
-                        }
+                        handleBackUpKeySuccess(event.filePath)
                     }
 
                     is TapSignerBackingUpIntroOnChainEvent.NfcLoading -> showOrHideNfcLoading(event.isLoading)
@@ -167,11 +155,19 @@ class TapSignerBackingUpIntroOnChainFragment : MembershipFragment() {
 
     private fun onManualBackup() {
         val activity = requireActivity() as NfcSetupActivity
-        viewModel.setKeyVerified(
-            groupId = activity.groupId,
-            masterSignerId = args.masterSignerId
-        )
-
+        if (activity.replacedXfp.isEmpty()) {
+            viewModel.setKeyVerified(
+                groupId = activity.groupId,
+                masterSignerId = args.masterSignerId
+            )
+        } else {
+            viewModel.setReplaceKeyVerified(
+                keyId = activity.keyId.ifBlank { activity.replacedXfp },
+                filePath = "",
+                groupId = activity.groupId,
+                walletId =  activity.walletId
+            )
+        }
     }
 
     private fun handleBackUpKeySuccess(filePath: String) {

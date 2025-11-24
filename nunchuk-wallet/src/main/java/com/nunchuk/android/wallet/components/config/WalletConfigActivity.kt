@@ -59,6 +59,7 @@ import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.isNone
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.utils.toInvoiceInfo
@@ -141,7 +142,14 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             WalletConfigView(
                 state = state,
                 onShowMore = ::showMoreOptions,
-                onChangeAlias = { aliasLauncher.launch(AliasActivity.createIntent(this, args.walletId)) },
+                onChangeAlias = {
+                    aliasLauncher.launch(
+                        AliasActivity.createIntent(
+                            this,
+                            args.walletId
+                        )
+                    )
+                },
                 openWalletConfig = {
                     showReEnterPassword(TargetAction.UPDATE_SERVER_KEY, it)
                 },
@@ -191,12 +199,17 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
     override fun onOptionClicked(option: SheetOption) {
         super.onOptionClicked(option)
         when (option.type) {
-            SheetOptionType.TYPE_EXPORT_AS_QR -> showExportQRTypeOption(viewModel.state.value.walletExtended.wallet, isMiniscriptWallet())
+            SheetOptionType.TYPE_EXPORT_AS_QR -> showExportQRTypeOption(
+                viewModel.state.value.walletExtended.wallet,
+                viewModel.isMiniscriptWallet()
+            )
+
             SheetOptionType.TYPE_DELETE_WALLET -> handleDeleteWallet()
             SheetOptionType.TYPE_EXPORT_TO_COLD_CARD -> {
                 isColdCardExportFlow = true
                 showExportColdcardOptions()
             }
+
             SheetOptionType.TYPE_FORCE_REFRESH_WALLET -> showForceRefreshWalletDialog()
             SheetOptionType.TYPE_SAVE_WALLET_CONFIG -> showSaveWalletConfigurationOption()
             SheetOptionType.TYPE_EXPORT_BSMS -> viewModel.handleExportBSMS()
@@ -314,7 +327,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
 
             SheetOptionType.TYPE_CHANGE_ON_CHAIN_TIMELOCK -> {
-                val changeTimelockFlow = if (isMiniscriptWallet()) {
+                val changeTimelockFlow = if (viewModel.isMiniscriptWallet()) {
                     1 // on-chain → off-chain
                 } else {
                     0 // off-chain → on-chain
@@ -331,6 +344,21 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
 
             SheetOptionType.TYPE_ARCHIVE -> viewModel.archiveWallet()
+
+            SheetOptionType.TYPE_REPLACE_KEY_CHANGE_TIMELOCK -> {
+                if (viewModel.isAssistedWallet()) {
+                    showReEnterPassword(TargetAction.REPLACE_KEYS)
+                } else {
+                    navigator.openMembershipActivity(
+                        activityContext = this,
+                        groupStep = MembershipStage.REPLACE_KEY,
+                        walletId = args.walletId,
+                        groupId = viewModel.getGroupId().orEmpty(),
+                        walletType = if (viewModel.isOnChainWallet()) WalletType.MINISCRIPT else null
+                    )
+                }
+            }
+
         }
     }
 
@@ -347,13 +375,15 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     private fun showForceRefreshWalletDialog() {
         if (viewModel.isAssistedWallet()) {
-            NCWarningDialog(this).showDialog(title = getString(R.string.nc_confirmation),
+            NCWarningDialog(this).showDialog(
+                title = getString(R.string.nc_confirmation),
                 message = getString(R.string.nc_force_refresh_desc),
                 onYesClick = {
                     viewModel.forceRefreshWallet()
                 })
         } else {
-            NCWarningDialog(this).showDialog(title = getString(R.string.nc_confirmation),
+            NCWarningDialog(this).showDialog(
+                title = getString(R.string.nc_confirmation),
                 message = getString(R.string.nc_force_refresh_free_user_desc),
                 onYesClick = {
                     viewModel.forceRefreshWallet()
@@ -446,7 +476,6 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             )
 
 
-
             is WalletConfigEvent.ExportInvoiceSuccess -> {
                 if (isCancelExportInvoice) {
                     return
@@ -477,7 +506,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     private fun showReEnterPassword(
         targetAction: TargetAction,
-        signer: SignerModel? = null,
+        signer: SignerModel? = null
     ) {
         passwordVerificationHelper.showPasswordVerificationDialog(
             context = this,
@@ -488,19 +517,23 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                     TargetAction.DELETE_WALLET -> {
                         viewModel.calculateRequiredSignaturesForDelete(token)
                     }
+
                     TargetAction.UPDATE_SERVER_KEY -> {
                         if (signer != null) {
                             openServerKeyDetail(token, signer)
                         }
                     }
+
                     TargetAction.REPLACE_KEYS -> {
                         navigator.openMembershipActivity(
                             activityContext = this,
                             groupStep = MembershipStage.REPLACE_KEY,
                             walletId = args.walletId,
                             groupId = viewModel.getGroupId().orEmpty(),
+                            walletType = if (viewModel.isOnChainWallet()) WalletType.MINISCRIPT else null
                         )
                     }
+
                     else -> Unit
                 }
             },
@@ -576,7 +609,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     override fun openExportColdcardViaFileFlow() {
         isColdCardExportFlow = false
-        if (isMiniscriptWallet()) {
+        if (viewModel.isMiniscriptWallet()) {
             navigator.openRegisterColdCardWalletScreen(
                 activityContext = this,
                 walletId = args.walletId,
@@ -591,7 +624,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     override fun openExportBbqrFlow() {
         isColdCardExportFlow = false
-        if (isMiniscriptWallet()) {
+        if (viewModel.isMiniscriptWallet()) {
             navigator.openRegisterColdCardWalletScreen(
                 activityContext = this,
                 walletId = args.walletId,
@@ -664,14 +697,24 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 )
             }
 
-            if (!viewModel.isReplacedOrLocked() && !isMiniscriptWallet()) {
-                options.add(
-                    SheetOption(
-                        SheetOptionType.TYPE_REPLACE_KEY,
-                        R.drawable.ic_hardware_key,
-                        R.string.nc_replace_keys
+            if (!viewModel.isReplacedOrLocked()) {
+                if (viewModel.hasMiniscriptTimelock()) {
+                    options.add(
+                        SheetOption(
+                            SheetOptionType.TYPE_REPLACE_KEY_CHANGE_TIMELOCK,
+                            R.drawable.ic_settings_dark,
+                            R.string.nc_replace_key_change_timelock,
+                        ),
                     )
-                )
+                } else {
+                    options.add(
+                        SheetOption(
+                            SheetOptionType.TYPE_REPLACE_KEY,
+                            R.drawable.ic_hardware_key,
+                            R.string.nc_replace_keys
+                        )
+                    )
+                }
                 if (viewModel.getRole().isKeyHolderWithoutKeyHolderLimited || viewModel.getGroupId()
                         .isNullOrEmpty()
                 ) {
@@ -686,7 +729,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
 
             if (viewModel.isAssistedWallet()) {
-                val changeTimelockStringId = if (isMiniscriptWallet()) {
+                val changeTimelockStringId = if (viewModel.isMiniscriptWallet()) {
                     R.string.nc_change_off_chain_timelock
                 } else {
                     R.string.nc_change_on_chain_timelock
@@ -738,7 +781,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
     private fun showSaveWalletConfigurationOption() {
         val wallet = viewModel.state.value.walletExtended.wallet
-        val isMiniscript = isMiniscriptWallet()
+        val isMiniscript = viewModel.isMiniscriptWallet()
         val isMultisig = wallet.signers.size > 1
         val addressType = wallet.addressType
         val isSupportedType = addressType == AddressType.LEGACY ||
@@ -747,15 +790,30 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
 
         val options = mutableListOf<SheetOption>()
         options.add(SheetOption(SheetOptionType.TYPE_EXPORT_BSMS, stringId = R.string.nc_bsms))
-        options.add(SheetOption(SheetOptionType.TYPE_EXPORT_DESCRIPTOR, stringId = R.string.nc_descriptor))
+        options.add(
+            SheetOption(
+                SheetOptionType.TYPE_EXPORT_DESCRIPTOR,
+                stringId = R.string.nc_descriptor
+            )
+        )
 
         // Show COLDCARD only for multisig and supported address types
         if ((isMiniscript || isMultisig) && isSupportedType) {
-            options.add(SheetOption(SheetOptionType.TYPE_EXPORT_TO_COLD_CARD, stringId = R.string.nc_coldcard))
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_EXPORT_TO_COLD_CARD,
+                    stringId = R.string.nc_coldcard
+                )
+            )
         }
 
         if (!isMiniscript) {
-            options.add(SheetOption(SheetOptionType.TYPE_EXPORT_PORTAL, stringId = R.string.nc_portal))
+            options.add(
+                SheetOption(
+                    SheetOptionType.TYPE_EXPORT_PORTAL,
+                    stringId = R.string.nc_portal
+                )
+            )
         }
 
         if (isMiniscript.not() && ((addressType != AddressType.TAPROOT && isMultisig))) {
@@ -771,10 +829,6 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             title = getString(R.string.nc_select_export_format),
             options = options
         ).show(supportFragmentManager, "BottomSheetOption")
-    }
-
-    private fun isMiniscriptWallet(): Boolean {
-        return viewModel.state.value.walletExtended.wallet.miniscript.isNotEmpty()
     }
 
     private fun showImportFormatOption() {

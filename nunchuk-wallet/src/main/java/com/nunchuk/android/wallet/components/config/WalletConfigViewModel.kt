@@ -24,6 +24,7 @@ import androidx.annotation.Keep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
@@ -34,6 +35,7 @@ import com.nunchuk.android.core.domain.wallet.GetWalletDescriptorUseCase
 import com.nunchuk.android.core.guestmode.SignInMode
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.miniscript.MiniscriptUtil
+import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isPending
@@ -244,7 +246,8 @@ internal class WalletConfigViewModel @Inject constructor(
                 _state.update { it.copy(signerMap = signerMap) }
                 if (wallet.addressType == AddressType.TAPROOT && wallet.walletTemplate != WalletTemplate.DISABLE_KEY_PATH) {
                     if (wallet.totalRequireSigns > 1) {
-                        val scriptNodeMuSig = MiniscriptUtil.buildMusigNode(wallet.totalRequireSigns)
+                        val scriptNodeMuSig =
+                            MiniscriptUtil.buildMusigNode(wallet.totalRequireSigns)
                         // Create muSigSignerMap by mapping the first n signers to the scriptNodeMuSig keys
                         val muSigSignerMap = scriptNodeMuSig.keys.mapIndexed { index, key ->
                             key to wallet.signers.getOrNull(index)
@@ -271,9 +274,9 @@ internal class WalletConfigViewModel @Inject constructor(
         val signerMap = mutableMapOf<String, SignerModel?>()
         node.keys.forEach { key ->
             val signer = parseSignerStringUseCase(key).getOrNull()
-           signer?.let {
-               signerMap[key] =  singleSignerMapper(signer)
-           }
+            signer?.let {
+                signerMap[key] = singleSignerMapper(signer)
+            }
         }
         node.subs.forEach { subNode ->
             signerMap.putAll(parseSignersFromScriptNode(subNode))
@@ -693,6 +696,14 @@ internal class WalletConfigViewModel @Inject constructor(
 
     fun isAssistedWallet() = assistedWalletManager.isActiveAssistedWallet(walletId)
 
+    fun isOnChainWallet(): Boolean {
+        return isMiniscriptWallet() && isAssistedWallet()
+    }
+
+    fun isMiniscriptWallet(): Boolean {
+        return state.value.walletExtended.wallet.miniscript.isNotEmpty()
+    }
+
     fun isServerWallet() = assistedWalletManager.getBriefWallet(walletId) != null
 
     fun isReplacedOrLocked() = assistedWalletManager.getBriefWallet(walletId)
@@ -723,6 +734,27 @@ internal class WalletConfigViewModel @Inject constructor(
     fun getFilePathInteracting() = filePathInteracting
 
     fun isArchived() = getState().walletExtended.wallet.archived
+
+    fun hasMiniscriptTimelock(): Boolean {
+        val root = getState().scriptNode ?: return false
+        val stack = ArrayDeque<ScriptNode>()
+        stack.add(root)
+        while (stack.isNotEmpty()) {
+            val node = stack.removeLast()
+            if (node.type == ScriptNodeType.AFTER.name || node.type == ScriptNodeType.OLDER.name) {
+                return true
+            }
+            node.subs.forEach { stack.add(it) }
+        }
+        return false
+    }
+
+    fun getReplaceWalletId(): String {
+        val assistedWallet = getState().assistedWallet
+        return assistedWallet?.replaceByWalletId?.takeIf { it.isNotEmpty() } ?: walletId
+    }
+
+    fun isReplaceKeyWithTimelock(): Boolean = hasMiniscriptTimelock()
 
     @Keep
     enum class UpdateAction {

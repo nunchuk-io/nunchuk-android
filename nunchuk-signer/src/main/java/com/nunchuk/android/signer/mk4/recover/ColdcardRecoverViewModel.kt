@@ -42,6 +42,7 @@ import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.toIndex
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.signer.util.isTestNetPath
 import com.nunchuk.android.type.Chain
@@ -56,6 +57,7 @@ import com.nunchuk.android.usecase.ResultExistingKey
 import com.nunchuk.android.usecase.byzantine.GetReplaceSignerNameUseCase
 import com.nunchuk.android.usecase.membership.SaveMembershipStepUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
+import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
@@ -80,6 +82,7 @@ class ColdcardRecoverViewModel @Inject constructor(
     private val syncKeyUseCase: SyncKeyUseCase,
     private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
+    private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
@@ -301,13 +304,14 @@ class ColdcardRecoverViewModel @Inject constructor(
                         return@launch
                     }
                 } else {
-                    if (args.isAddInheritanceKey.not()) {
+                    if (onChainAddSignerParam != null || args.isAddInheritanceKey.not()) {
                         replaceKeyUseCase(
                             ReplaceKeyUseCase.Param(
                                 groupId = groupId,
                                 xfp = replacedXfp,
                                 walletId = walletId.orEmpty(),
-                                signer = coldcardSigner
+                                signer = coldcardSigner,
+                                keyIndex = onChainAddSignerParam?.replaceInfo?.step?.toIndex(groupId.isNotEmpty())
                             )
                         ).onFailure {
                             _event.emit(ColdcardRecoverEvent.ShowError(it.message.orUnknownError()))
@@ -332,6 +336,24 @@ class ColdcardRecoverViewModel @Inject constructor(
                     groupId = groupId,
                     masterSignerId = masterSignerId,
                     verifyType = VerifyType.APP_VERIFIED
+                )
+            ).onSuccess {
+                _event.emit(ColdcardRecoverEvent.KeyVerifiedSuccess)
+            }.onFailure {
+                _event.emit(ColdcardRecoverEvent.ShowError(it.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun setReplaceKeyVerified(keyId: String, groupId: String, walletId: String) {
+        viewModelScope.launch {
+            setReplaceKeyVerifiedUseCase(
+                SetReplaceKeyVerifiedUseCase.Param(
+                    keyId = keyId,
+                    checkSum = "",
+                    verifyType = VerifyType.SELF_VERIFIED,
+                    groupId = groupId,
+                    walletId = walletId
                 )
             ).onSuccess {
                 _event.emit(ColdcardRecoverEvent.KeyVerifiedSuccess)

@@ -591,6 +591,14 @@ internal interface GroupWalletApi {
         @Body payload: Map<String, Boolean>,
     ): Data<Unit>
 
+    @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/replacement/timelock")
+    suspend fun replaceTimelock(
+        @Header("Verify-token") verifyToken: String,
+        @Path("group_id") groupId: String,
+        @Path("wallet_id_or_local_id") walletId: String,
+        @Body payload: CreateTimelockPayload,
+    ): Data<DraftWalletResponse>
+
     @POST("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions/batch")
     suspend fun batchTransactions(
         @Path("group_id") groupId: String,

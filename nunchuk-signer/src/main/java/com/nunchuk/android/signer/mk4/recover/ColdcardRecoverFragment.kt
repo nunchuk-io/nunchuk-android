@@ -166,10 +166,18 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                                         requireActivity().finish()
                                     } else if (onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true && onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
                                         if (event.signer.masterFingerprint == onChainAddSignerParam.currentSigner?.fingerPrint) {
-                                            viewModel.setKeyVerified(
-                                                groupId = (activity as Mk4Activity).groupId,
-                                                masterSignerId = event.signer.masterFingerprint
-                                            )
+                                            if (onChainAddSignerParam.replaceInfo != null) {
+                                                viewModel.setReplaceKeyVerified(
+                                                    keyId = event.signer.masterFingerprint,
+                                                    groupId = (activity as Mk4Activity).groupId,
+                                                    walletId = (activity as Mk4Activity).walletId.orEmpty()
+                                                )
+                                            } else {
+                                                viewModel.setKeyVerified(
+                                                    groupId = (activity as Mk4Activity).groupId,
+                                                    masterSignerId = event.signer.masterFingerprint
+                                                )
+                                            }
                                         } else {
                                             requireActivity().setResult(RESULT_OK)
                                             navigator.returnMembershipScreen()

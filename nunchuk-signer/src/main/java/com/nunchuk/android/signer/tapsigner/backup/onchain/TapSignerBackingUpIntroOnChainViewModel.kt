@@ -138,8 +138,8 @@ class TapSignerBackingUpIntroOnChainViewModel @Inject constructor(
             setReplaceKeyVerifiedUseCase(
                 SetReplaceKeyVerifiedUseCase.Param(
                     keyId = keyId,
-                    checkSum = getChecksum(filePath),
-                    isAppVerified = false,
+                    checkSum = "",
+                    verifyType = VerifyType.SELF_VERIFIED,
                     groupId = groupId,
                     walletId = walletId
                 )

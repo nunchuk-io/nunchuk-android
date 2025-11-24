@@ -53,7 +53,7 @@ class ColdCardVerifyRecoveredKeyViewModel @Inject constructor(
                 SetReplaceKeyVerifiedUseCase.Param(
                     keyId = keyId,
                     checkSum = getChecksum(filePath),
-                    isAppVerified = false,
+                    verifyType = VerifyType.SELF_VERIFIED,
                     groupId = groupId,
                     walletId = walletId
                 )

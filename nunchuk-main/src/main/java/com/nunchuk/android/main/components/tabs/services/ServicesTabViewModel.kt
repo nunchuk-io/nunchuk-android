@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.main.components.tabs.services
 
-import androidx.annotation.Keep
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
@@ -47,6 +46,7 @@ import com.nunchuk.android.model.membership.AssistedWalletBrief
 import com.nunchuk.android.model.wallet.WalletStatus
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetGroupsUseCase
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.banner.GetAssistedWalletPageContentUseCase
@@ -362,7 +362,7 @@ class ServicesTabViewModel @Inject constructor(
     }
 
     fun getActiveWalletsAndNoReplaced(): List<AssistedWalletBrief> {
-        return state.value.assistedWallets.filter { wallet -> wallet.status == WalletStatus.ACTIVE.name && wallet.replaceByWalletId.isEmpty() }
+        return state.value.assistedWallets.filter { wallet -> wallet.status == WalletStatus.ACTIVE.name }
     }
 
     /**
@@ -401,5 +401,9 @@ class ServicesTabViewModel @Inject constructor(
         if (state.value.userRole.toRole == AssistedWalletRole.OBSERVER) return true
         if (isNoByzantineWallet()) return true
         return (state.value.plans.isNonePlan()) && state.value.joinedGroups.isEmpty()
+    }
+
+    fun isOnChainWallet(walletId: String): Boolean {
+        return assistedWalletManager.getBriefWallet(walletId)?.walletType == WalletType.MINISCRIPT.name
     }
 }

@@ -505,7 +505,7 @@ class WalletIntermediaryFragment : BaseCameraFragment<ViewBinding>(),
             activityContext = requireActivity(),
             groupStep = viewModel.getGroupStage(),
             isPersonalWallet = true,
-            walletType = walletType,
+            groupWalletType = walletType,
             quickWalletParam = quickWalletParam
         )
     }

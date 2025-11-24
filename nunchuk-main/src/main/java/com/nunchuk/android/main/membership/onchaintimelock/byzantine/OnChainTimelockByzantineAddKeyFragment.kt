@@ -80,8 +80,6 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.pullrefresh.PullRefreshIndicator
 import com.nunchuk.android.compose.pullrefresh.pullRefresh
 import com.nunchuk.android.compose.pullrefresh.rememberPullRefreshState
-import com.nunchuk.android.core.portal.PortalDeviceArgs
-import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
@@ -95,7 +93,6 @@ import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
-import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyOnChainData
@@ -106,7 +103,6 @@ import com.nunchuk.android.main.membership.onchaintimelock.importantpassphrase.I
 import com.nunchuk.android.main.membership.signer.OnChainSignerIntroFragment
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
@@ -143,16 +139,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
     private var currentKeyData: AddKeyOnChainData? = null
 
     private val isKeyHolderLimited: Boolean by lazy { args.role.toRole == AssistedWalletRole.KEYHOLDER_LIMITED }
-
-    private val addPortalLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            val data = result.data
-            if (result.resultCode == Activity.RESULT_OK && data != null) {
-                data.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)?.let {
-                    viewModel.handleSignerNewIndex(it)
-                }
-            }
-        }
 
     private val addTapSignerLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -200,20 +186,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
         super.onViewCreated(view, savedInstanceState)
         observer()
 
-        setFragmentResultListener(CustomKeyAccountFragment.REQUEST_KEY) { _, bundle ->
-            val signer = bundle.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)
-            val newIndex = bundle.getInt(GlobalResultKey.EXTRA_INDEX, -1)
-
-            // Check if this is a result with newIndex (OnChainAddSignerParam case)
-            if (newIndex != -1 && signer?.masterFingerprint?.isNotEmpty() == true) {
-                viewModel.handleCustomKeyAccountResult(signer.masterFingerprint, newIndex, currentKeyData)
-            } else if (signer != null) {
-                // Original flow for non-OnChainAddSignerParam case
-                viewModel.handleSignerNewIndex(signer, currentKeyData)
-            }
-            clearFragmentResult(CustomKeyAccountFragment.REQUEST_KEY)
-        }
-
         setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
             val data = TapSignerListBottomSheetFragmentArgs.fromBundle(bundle)
             if (data.signers.isNotEmpty()) {
@@ -225,23 +197,10 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                         (activity as MembershipActivity).walletId
                     )
 
-                    SignerType.PORTAL_NFC -> findNavController().navigate(
-                        OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToCustomKeyAccountFragmentFragment(
-                            signer,
-                            groupId = args.groupId,
-                            walletId = (activity as MembershipActivity).walletId,
-                        )
-                    )
-
                     else -> {
                         val selectedSignerTag = selectedSignerTag
                         if (signer.type == SignerType.AIRGAP && signer.tags.isEmpty() && selectedSignerTag != null) {
                             viewModel.onUpdateSignerTag(signer, selectedSignerTag)
-                        } else if (signer.type == SignerType.SOFTWARE && viewModel.isUnBackedUpSigner(
-                                signer
-                            )
-                        ) {
-                            showUnBackedUpSignerWarning()
                         } else {
                             viewModel.handleSignerNewIndex(signer.toSingleSigner())
                         }
@@ -553,8 +512,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
         when (type) {
             SignerType.NFC -> openSetupTapSigner()
 
-            SignerType.PORTAL_NFC -> openSetupPortal()
-
             SignerType.COLDCARD_NFC -> {
                 selectedSignerTag = SignerTag.COLDCARD
                 openSetupColdCard()
@@ -603,7 +560,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
         )
     }
 
-
     private fun openVerifyTapSigner(event: OnChainTimelockByzantineAddKeyListEvent.OnVerifySigner) {
         navigator.openCreateBackUpTapSigner(
             activity = requireActivity(),
@@ -642,24 +598,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     currentSigner = currentKeyData?.getAllSigners()?.firstOrNull()
                 )
             )
-        )
-    }
-
-    private fun openSetupPortal() {
-        navigator.openPortalScreen(
-            launcher = addPortalLauncher,
-            activity = requireActivity(),
-            args = PortalDeviceArgs(
-                type = PortalDeviceFlow.SETUP,
-                isMembershipFlow = true
-            ),
-        )
-    }
-
-    private fun showUnBackedUpSignerWarning() {
-        NCInfoDialog(requireActivity()).showDialog(
-            message = getString(com.nunchuk.android.wallet.R.string.nc_unbacked_up_signer_warning_desc),
-            onYesClick = {}
         )
     }
 }

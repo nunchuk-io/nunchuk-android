@@ -19,8 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -35,15 +35,19 @@ import kotlinx.serialization.Serializable
 object BackUpSeedPhraseOption
 
 fun NavGraphBuilder.backUpSeedPhraseOptionDestination(
+    walletId: String = "",
     groupId: String = "",
     masterSignerId: String = "",
+    replacedXfp: String = "",
     onContinue: () -> Unit = {},
     onSkip: () -> Unit = {}
 ) {
     composable<BackUpSeedPhraseOption> {
         BackUpSeedPhraseOptionScreen(
+            walletId = walletId,
             groupId = groupId,
             masterSignerId = masterSignerId,
+            replacedXfp = replacedXfp,
             onContinue = onContinue,
             onSkip = onSkip
         )
@@ -52,8 +56,10 @@ fun NavGraphBuilder.backUpSeedPhraseOptionDestination(
 
 @Composable
 private fun BackUpSeedPhraseOptionScreen(
+    walletId: String = "",
     groupId: String = "",
     masterSignerId: String = "",
+    replacedXfp: String = "",
     viewModel: BackUpSeedPhraseSharedViewModel = hiltViewModel(),
     onContinue: () -> Unit = {},
     onSkip: () -> Unit = {},
@@ -76,7 +82,7 @@ private fun BackUpSeedPhraseOptionScreen(
     
     BackUpSeedPhraseOptionContent(
         onContinueClicked = onContinue,
-        onSkipClicked = { viewModel.skipVerification(groupId, masterSignerId) },
+        onSkipClicked = { viewModel.skipVerification(groupId = groupId, masterSignerId = masterSignerId, replacedXfp = replacedXfp, walletId = walletId) },
         remainTime = remainTime
     )
 }

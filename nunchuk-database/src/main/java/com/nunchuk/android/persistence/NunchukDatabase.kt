@@ -100,6 +100,7 @@ import com.nunchuk.android.persistence.spec.AutoMigrationSpec12to13
         AutoMigration(from = 27, to = 28),
         AutoMigration(from = 28, to = 29),
         AutoMigration(from = 29, to = 30),
+        AutoMigration(from = 30, to = 31),
     ]
 )
 @TypeConverters(Converters::class)

@@ -57,4 +57,6 @@ data class AssistedWalletEntity(
     val replaceSignerTypes: List<SignerType> = emptyList(),
     @ColumnInfo(name = "hide_fiat_currency", defaultValue = "false")
     val hideFiatCurrency: Boolean = false,
+    @ColumnInfo(name = "wallet_type", defaultValue = "")
+    val walletType: String = "",
 )

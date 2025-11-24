@@ -314,7 +314,9 @@ class OnChainSignerIntroFragment : MembershipFragment() {
 
     private fun popUpToOnChainTimelockFragment() {
         if (args.onChainAddSignerParam != null) {
-            val targetFragmentId = if (args.groupId.isNullOrEmpty()) {
+            val targetFragmentId = if (args.onChainAddSignerParam!!.replaceInfo != null) {
+                R.id.onChainReplaceKeysFragment
+            } else if (args.groupId.isNullOrEmpty()) {
                 R.id.onChainTimelockAddKeyListFragment
             } else {
                 R.id.onChainTimelockByzantineAddKeyFragment
