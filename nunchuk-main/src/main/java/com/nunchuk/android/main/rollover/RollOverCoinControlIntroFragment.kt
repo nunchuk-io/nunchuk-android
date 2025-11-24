@@ -218,7 +218,7 @@ private fun RollOverCoinControlIntroContent(
 
                 Text(
                     modifier = Modifier.padding(top = 16.dp),
-                    text = "By default, all existing coins will be consolidated into a single coin in the new wallet. If you want to organize and segregate your coins for various purposes, consider adding coin tags or collections before proceeding with the rollover.",
+                    text = "By default, all existing coins will be consolidated into a single coin in the new wallet. If you want to organize and segregate your coins for various purposes, consider using coin tags or collections before proceeding with the rollover, or keep all coins as they are.",
                     style = NunchukTheme.typography.body,
                 )
             }

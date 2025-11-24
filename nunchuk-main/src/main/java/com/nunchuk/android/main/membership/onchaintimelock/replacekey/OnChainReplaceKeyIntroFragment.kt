@@ -67,7 +67,6 @@ class OnChainReplaceKeyIntroFragment : Fragment() {
 
                 if (shouldShowIntro) {
                     OnChainReplaceKeyIntroScreen(
-                        isReplaceKeyWithTimelock = args.isReplaceKeyWithTimelock,
                         onContinueClicked = ::openReplaceKeysScreen,
                     )
                 }
@@ -80,7 +79,6 @@ class OnChainReplaceKeyIntroFragment : Fragment() {
             OnChainReplaceKeyIntroFragmentDirections.actionOnChainReplaceKeyIntroFragmentToOnChainReplaceKeysFragment(
                 walletId = args.walletId,
                 groupId = args.groupId,
-                isReplaceKeyWithTimelock = args.isReplaceKeyWithTimelock
             )
         )
     }
@@ -91,28 +89,9 @@ fun OnChainReplaceKeyIntroScreen(
     isLoading: Boolean = false,
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     onContinueClicked: () -> Unit = {},
-    isReplaceKeyWithTimelock: Boolean = false,
 ) = NunchukTheme {
     if (isLoading) {
         NcLoadingDialog()
-    }
-
-    val titleRes = if (isReplaceKeyWithTimelock) {
-        R.string.nc_replace_key_change_timelock
-    } else {
-        R.string.nc_replace_key_title
-    }
-
-    val descriptionRes = if (isReplaceKeyWithTimelock) {
-        R.string.nc_replace_key_change_timelock_desc
-    } else {
-        R.string.nc_replace_key_intro_desc_simple
-    }
-
-    val noteRes = if (isReplaceKeyWithTimelock) {
-        R.string.nc_replace_key_change_timelock_note
-    } else {
-        R.string.nc_replace_key_intro_note_simple
     }
 
     NcScaffold(
@@ -143,17 +122,17 @@ fun OnChainReplaceKeyIntroScreen(
         ) {
             Text(
                 modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                text = stringResource(id = titleRes),
+                text = stringResource(id =   R.string.nc_replace_key_change_timelock),
                 style = NunchukTheme.typography.heading
             )
             Text(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                text = stringResource(descriptionRes),
+                text = stringResource( R.string.nc_replace_key_intro_desc_simple),
                 style = NunchukTheme.typography.body
             )
             Text(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp),
-                text = stringResource(noteRes),
+                text = stringResource(  R.string.nc_replace_key_change_timelock_note),
                 style = NunchukTheme.typography.body
             )
         }

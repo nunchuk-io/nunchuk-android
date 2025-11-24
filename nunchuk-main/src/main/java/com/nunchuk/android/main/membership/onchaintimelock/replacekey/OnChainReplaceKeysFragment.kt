@@ -13,6 +13,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -896,6 +897,7 @@ fun ReplaceKeyCard(
     val replacedSigners = data.stepDataMap.values.mapNotNull { it.signer }
     val displaySigners = replacedSigners.ifEmpty { data.originalSigners }
     val isReplaced = replacedSigners.isNotEmpty()
+    val contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
 
     ConstraintLayout(
         modifier = Modifier
@@ -1025,6 +1027,7 @@ fun ReplaceKeyCard(
                                 if (isVerified || isReplaced.not()) {
                                     NcOutlineButton(
                                         modifier = Modifier.height(36.dp),
+                                        contentPadding = contentPadding,
                                         onClick = {
                                             if (isReplaced) onRemoveClicked(data) else onReplaceClicked(
                                                 data
@@ -1033,30 +1036,32 @@ fun ReplaceKeyCard(
                                     ) {
                                         Text(
                                             text = if (isReplaced) "Remove" else "Replace",
-                                            style = NunchukTheme.typography.caption,
+                                            style = NunchukTheme.typography.captionTitle,
                                         )
                                     }
                                 } else if (displaySigners.any { it.isVisible }) {
                                     NcOutlineButton(
                                         modifier = Modifier.height(36.dp),
+                                        contentPadding = contentPadding,
                                         onClick = { onVerifyClicked(data) },
                                     ) {
                                         Text(
                                             text = stringResource(R.string.nc_verify),
-                                            style = NunchukTheme.typography.caption
+                                            style = NunchukTheme.typography.captionTitle
                                         )
                                     }
                                 }
                             } else {
                                 NcOutlineButton(
                                     modifier = Modifier.height(36.dp),
+                                    contentPadding = contentPadding,
                                     onClick = {
                                         onReplaceClicked(data)
                                     },
                                 ) {
                                     Text(
                                         text = "Replace",
-                                        style = NunchukTheme.typography.caption,
+                                        style = NunchukTheme.typography.captionTitle,
                                     )
                                 }
                             }
@@ -1189,11 +1194,12 @@ private fun TimelockReplaceCard(
                 }
                 NcOutlineButton(
                     modifier = Modifier.height(36.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     onClick = onChangeClicked,
                 ) {
                     Text(
                         text = "Change",
-                        style = NunchukTheme.typography.caption,
+                        style = NunchukTheme.typography.captionTitle,
                     )
                 }
             }

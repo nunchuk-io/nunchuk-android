@@ -1061,11 +1061,6 @@
             android:name="group_id"
             android:defaultValue=""
             app:argType="string" />
-
-        <argument
-            android:name="is_replace_key_with_timelock"
-            android:defaultValue="false"
-            app:argType="boolean" />
     </fragment>
     <fragment
         android:id="@+id/onChainReplaceKeysFragment"
@@ -1080,10 +1075,6 @@
             android:defaultValue=""
             app:argType="string" />
 
-        <argument
-            android:name="is_replace_key_with_timelock"
-            android:defaultValue="false"
-            app:argType="boolean" />
         <action
             android:id="@+id/action_onChainReplaceKeysFragment_to_createWalletSuccessFragment"
             app:destination="@id/createWalletSuccessFragment"

@@ -20,6 +20,7 @@
 package com.nunchuk.android.compose
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,6 +45,7 @@ fun NcOutlineButton(
     enabled: Boolean = true,
     height: Dp = 48.dp,
     borderColor: Color = colorResource(id = R.color.nc_fill_primary),
+    contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     onClick: () -> Unit,
     content: @Composable RowScope.() -> Unit,
 ) {
@@ -54,6 +56,7 @@ fun NcOutlineButton(
         onClick = onClick,
         border = BorderStroke(2.dp, color),
         shape = RoundedCornerShape(44.dp),
+        contentPadding = contentPadding,
         content = {
             CompositionLocalProvider(
                 LocalTextStyle provides NunchukTheme.typography.title.copy(

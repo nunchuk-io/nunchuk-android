@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -101,6 +102,7 @@ class OnChainSetUpTimelockFragment : MembershipFragment(), BottomSheetOptionList
                         is OnChainSetUpTimelockEvent.Success -> {
                             requireActivity().onBackPressedDispatcher.onBackPressed()
                         }
+
                         is OnChainSetUpTimelockEvent.Error -> {
                             NCToastMessage(requireActivity()).showError(event.message)
                         }
@@ -164,10 +166,11 @@ private fun OnChainSetUpTimelockContent(
 ) {
     var selectedTimeZone by remember {
         mutableStateOf(
-            timelockExtra?.timezone?.toTimeZoneDetail() ?: JavaTimeZone.getDefault().id.toTimeZoneDetail() ?: TimeZoneDetail()
+            timelockExtra?.timezone?.toTimeZoneDetail()
+                ?: JavaTimeZone.getDefault().id.toTimeZoneDetail() ?: TimeZoneDetail()
         )
     }
-    
+
     var selectedDate by remember {
         mutableStateOf(
             if (timelockExtra != null && timelockExtra.value > 0) {
@@ -185,7 +188,7 @@ private fun OnChainSetUpTimelockContent(
             }
         )
     }
-    
+
     val selectedDateText by remember(selectedDate) {
         derivedStateOf {
             val month = selectedDate.get(Calendar.MONTH) + 1
@@ -201,7 +204,7 @@ private fun OnChainSetUpTimelockContent(
             String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
         }
     }
-    
+
     var datePickerDialog by remember { mutableStateOf(false) }
     var timePickerDialog by remember { mutableStateOf(false) }
 
@@ -221,6 +224,24 @@ private fun OnChainSetUpTimelockContent(
                     }
                 }
             )
+        }, bottomBar = {
+            Column {
+                NcHintMessage(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    messages = listOf(ClickAbleText(content = "Even with the inheritance key, the Beneficiary cannot claim funds before the timelock expires."))
+                )
+
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    onClick = {
+                        onContinueClicked(selectedDate, selectedTimeZone)
+                    },
+                ) {
+                    Text(text = stringResource(id = R.string.nc_text_save))
+                }
+            }
         }) { innerPadding ->
             Column(
                 modifier = Modifier
@@ -255,10 +276,11 @@ private fun OnChainSetUpTimelockContent(
                         val minute = selectedDate.get(Calendar.MINUTE)
 
                         selectedTimeZone = timeZone
-                        selectedDate = Calendar.getInstance(JavaTimeZone.getTimeZone(timeZone.id)).apply {
-                            set(year, month, day, hour, minute, 0)
-                            set(Calendar.MILLISECOND, 0)
-                        }
+                        selectedDate =
+                            Calendar.getInstance(JavaTimeZone.getTimeZone(timeZone.id)).apply {
+                                set(year, month, day, hour, minute, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }
                     },
                 )
 
@@ -292,7 +314,7 @@ private fun OnChainSetUpTimelockContent(
                         },
                         onValueChange = {}
                     )
-                    
+
                     // Time field
                     NcTextField(
                         modifier = Modifier.weight(1f),
@@ -323,11 +345,16 @@ private fun OnChainSetUpTimelockContent(
                     NcDatePickerDialog(
                         onDismissRequest = { datePickerDialog = false },
                         onConfirm = { date ->
-                            val newCalendar = Calendar.getInstance(JavaTimeZone.getTimeZone(selectedTimeZone.id)).apply {
-                                timeInMillis = date
-                                set(Calendar.HOUR_OF_DAY, selectedDate.get(Calendar.HOUR_OF_DAY))
-                                set(Calendar.MINUTE, selectedDate.get(Calendar.MINUTE))
-                            }
+                            val newCalendar =
+                                Calendar.getInstance(JavaTimeZone.getTimeZone(selectedTimeZone.id))
+                                    .apply {
+                                        timeInMillis = date
+                                        set(
+                                            Calendar.HOUR_OF_DAY,
+                                            selectedDate.get(Calendar.HOUR_OF_DAY)
+                                        )
+                                        set(Calendar.MINUTE, selectedDate.get(Calendar.MINUTE))
+                                    }
                             selectedDate = newCalendar
                             datePickerDialog = false
                         },
@@ -342,35 +369,21 @@ private fun OnChainSetUpTimelockContent(
                         initialHour = selectedDate.get(Calendar.HOUR_OF_DAY),
                         initialMinute = selectedDate.get(Calendar.MINUTE),
                         onConfirm = { hour, minute ->
-                            val newCalendar = Calendar.getInstance(JavaTimeZone.getTimeZone(selectedTimeZone.id)).apply {
-                                timeInMillis = selectedDate.timeInMillis
-                                set(Calendar.HOUR_OF_DAY, hour)
-                                set(Calendar.MINUTE, minute)
-                            }
+                            val newCalendar =
+                                Calendar.getInstance(JavaTimeZone.getTimeZone(selectedTimeZone.id))
+                                    .apply {
+                                        timeInMillis = selectedDate.timeInMillis
+                                        set(Calendar.HOUR_OF_DAY, hour)
+                                        set(Calendar.MINUTE, minute)
+                                    }
                             selectedDate = newCalendar
                             timePickerDialog = false
                         }
                     )
                 }
 
-                
-                Spacer(modifier = Modifier.weight(1.0f))
 
-                NcHintMessage(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    messages = listOf(ClickAbleText(content = "Even with the inheritance key, the Beneficiary cannot claim funds before the timelock expires."))
-                )
-                
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = {
-                        onContinueClicked(selectedDate, selectedTimeZone)
-                    },
-                ) {
-                    Text(text = stringResource(id = R.string.nc_text_save))
-                }
+                Spacer(modifier = Modifier.height(20.dp))
             }
         }
     }
@@ -379,7 +392,10 @@ private fun OnChainSetUpTimelockContent(
     if (showConfirmDialog && maxTimelockYears != null) {
         NcConfirmationDialog(
             title = stringResource(id = R.string.nc_confirm_timelock_date_title),
-            message = stringResource(id = R.string.nc_confirm_timelock_date_message, maxTimelockYears),
+            message = stringResource(
+                id = R.string.nc_confirm_timelock_date_message,
+                maxTimelockYears
+            ),
             positiveButtonText = stringResource(id = com.nunchuk.android.widget.R.string.nc_text_confirm),
             negativeButtonText = stringResource(id = R.string.nc_change_date),
             onPositiveClick = onConfirmTimelockDate,
