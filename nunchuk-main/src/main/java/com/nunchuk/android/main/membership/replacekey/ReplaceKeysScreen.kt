@@ -1,6 +1,8 @@
 package com.nunchuk.android.main.membership.replacekey
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -273,13 +275,21 @@ fun ReplaceKeyCard(
     onRemoveClicked: (data: SignerModel) -> Unit = {},
 ) {
     val item = replacedSigner ?: originalSigner
+    val modifier = if (isReplaced.not()) {
+        modifier.border(
+            BorderStroke(1.dp, colorResource(id = R.color.nc_stroke_primary)),
+            RoundedCornerShape(8.dp)
+        )
+    } else {
+        modifier
+    }
     Column {
         Box(
             modifier = modifier.background(
                 color = if (isReplaced && !isNeedVerify)
                     MaterialTheme.colorScheme.fillSlimeT2
                 else
-                    colorResource(id = R.color.nc_fill_beewax),
+                    colorResource(id = R.color.nc_background),
                 shape = RoundedCornerShape(8.dp)
             ),
             contentAlignment = Alignment.Center,

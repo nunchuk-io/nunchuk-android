@@ -241,7 +241,7 @@ fun CreateWalletSuccessScreenContent(
                 if (uiState.isReplaceWallet) {
                     Text(
                         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                        text = stringResource(com.nunchuk.android.main.R.string.congratulations_a_new_wallet_has_been_created),
+                        text = stringResource(R.string.congratulations_a_new_wallet_has_been_created),
                         style = NunchukTheme.typography.heading
                     )
                     Text(

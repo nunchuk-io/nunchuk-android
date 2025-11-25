@@ -816,7 +816,7 @@
     <string name="nc_not_checked_yet">Not checked yet</string>
     <string name="nc_delete_saved_address_dialog_desc"><![CDATA[Are you sure you want to remove <b>%s</b> from saved addresses?]]></string>
     <string name="congratulations_a_new_wallet_has_been_created">Congratulations! A new  wallet has been created</string>
-    <string name="nc_replace_wallet_success_desc">A new wallet that includes the new key(s) has been created. The new wallet will get the original wallet’s name. The original wallet will be renamed as [DEPRECATED] %1$s.\n\nFor best security, please keep your keys stored in physically distributed locations.</string>
+    <string name="nc_replace_wallet_success_desc">The new wallet will get the original wallet’s name. The original wallet will be renamed as [DEPRECATED] %1$s.</string>
     <string name="nc_i_ll_do_it_later">I\'ll do it later</string>
     <string name="nc_yes_do_it_now">Yes, do it now</string>
     <string name="nc_congratulations">Congratulations!</string>

@@ -108,7 +108,7 @@
     <string name="nc_consolidate_generate_address_error_msg">A consolidating address cannot be generated at this time. Please try again later.</string>
     <string name="nc_export_via_qr">Export via QR</string>
     <string name="nc_export_via_bbqr">Export via BBQR</string>
-    <string name="nc_replace_keys">Replace key(s)</string>
+    <string name="nc_replace_keys">Replace key</string>
     <string name="nc_export_to_portal_success">You have successfully exported your wallet.</string>
     <string name="nc_coin_collection">Coin collection</string>
     <string name="nc_coin_collection_intro">A coin collection allows you to automate coin management tasks. Here’s how you create a collection:</string>
