@@ -3,8 +3,8 @@ package com.nunchuk.android.main.rollover
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.manager.NcToastManager
@@ -31,7 +31,6 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
@@ -81,7 +80,9 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
     }
 
     override fun initializeBinding(): ActivityNavigationBinding {
-        return ActivityNavigationBinding.inflate(layoutInflater)
+        return ActivityNavigationBinding.inflate(layoutInflater).also {
+            enableEdgeToEdge()
+        }
     }
 
     companion object {

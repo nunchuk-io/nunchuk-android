@@ -205,7 +205,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                             selectedWalletId = args.walletId,
                         )
                     },
-                    transaction = event.transaction.takeIf { event.walletId.isNullOrEmpty() }
+                    transaction = event.transaction.takeIf { viewModel.isInheritanceClaimingFlow() }
                 )
             }
 
