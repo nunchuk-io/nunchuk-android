@@ -9,16 +9,16 @@ enum class MultisignType(
 ) {
     EXPANDING(
         "Expanding multisig",
-        "Keeps the required keys unchanged but adds more keys over time",
+        "Number of required signatures stays the same, but more possible signers can be added over time",
         icon = R.drawable.ic_expanding_multisign
     ),
     DECAYING(
         "Decaying multisig",
-        "Keeps the total number of keys unchanged but lowers the required keys over time",
+        "Total number of possible signers stays the same, but fewer signatures are needed over time",
         icon = R.drawable.ic_decaying_multisign
     ),
     FLEXIBLE(
-        "Flexible multisig", "Freely change the key set over time",
+        "Flexible multisig", "Both the number of signers and required signatures can change over time",
         icon = R.drawable.ic_flexible_multisign
     ),
     ZEN_HODL(
