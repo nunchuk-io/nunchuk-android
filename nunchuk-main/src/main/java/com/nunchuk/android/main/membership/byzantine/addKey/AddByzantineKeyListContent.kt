@@ -105,7 +105,7 @@ fun AddByzantineKeyListContent(
                     item {
                         Text(
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            text = stringResource(R.string.nc_let_add_your_keys),
+                            text = stringResource(R.string.nc_configure_your_wallet),
                             style = NunchukTheme.typography.heading
                         )
                         val description = when (groupWalletType) {

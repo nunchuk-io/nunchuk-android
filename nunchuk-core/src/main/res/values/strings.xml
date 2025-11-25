@@ -211,6 +211,7 @@
     <string name="nc_step">Step</string>
     <string name="nc_add_your_keys">Add your keys</string>
     <string name="nc_let_add_your_keys">Let’s add your keys</string>
+    <string name="nc_configure_your_wallet">Configure your wallet</string>
     <string name="nc_add_key_list_desc_one">Your new wallet will be a 2-of-%1$d multisig wallet.</string>
     <string name="nc_add_key_list_desc_two">Two keys are always required for spending.</string>
     <string name="nc_add_key_list_desc_three">\n\nYou will have possession of two keys. The third key will be held by Nunchuk on our secure server.</string>
@@ -406,7 +407,7 @@
     <string name="nc_recovery_questions_updated">Key recovery questions updated</string>
     <string name="nc_review_your_plan">Review your plan</string>
     <string name="nc_inheritance_review_plan_note">Please make note of these important details</string>
-    <string name="nc_activation_date">Activation date</string>
+    <string name="nc_activation_date">Off-chain timelock</string>
     <string name="nc_backup_password">Backup Password</string>
     <string name="nc_note_to_beneficiary_trustee">Note to Beneficiary or Trustee</string>
     <string name="nc_notification_preferences">Notification preferences</string>

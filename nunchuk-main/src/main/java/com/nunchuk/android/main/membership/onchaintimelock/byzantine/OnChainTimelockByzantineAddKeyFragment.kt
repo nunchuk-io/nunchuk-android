@@ -699,7 +699,7 @@ fun OnChainTimelockByzantineAddKeyListContent(
                 ) {
                     item {
                         Text(
-                            text = stringResource(R.string.nc_let_add_your_keys),
+                            text = stringResource(R.string.nc_configure_your_wallet),
                             style = NunchukTheme.typography.heading
                         )
                         Text(
