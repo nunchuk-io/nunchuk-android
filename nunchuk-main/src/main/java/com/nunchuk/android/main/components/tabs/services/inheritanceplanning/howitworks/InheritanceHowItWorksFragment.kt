@@ -32,13 +32,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.navigation.fragment.navArgs
@@ -140,8 +139,7 @@ private fun InheritanceHowItWorksContent(
                         baseStyle = NunchukTheme.typography.body,
                         styles = mapOf(
                             SpanIndicator('A') to SpanStyle(
-                                fontWeight = FontWeight.Bold,
-                                textDecoration = TextDecoration.Underline
+                                color = Color(0xFF0051CF)
                             )
                         ),
                         onClick = {
