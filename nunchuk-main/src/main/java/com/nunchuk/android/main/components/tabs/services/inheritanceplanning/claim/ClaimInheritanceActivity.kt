@@ -229,7 +229,7 @@ private fun ClaimInheritanceGraph(
                                 activityContext = activity,
                                 onChainAddSignerParam = OnChainAddSignerParam(
                                     flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
-                                    isClaiming = true
+                                    magic = claimData.magic
                                 )
                             )
                         }
@@ -268,7 +268,7 @@ private fun ClaimInheritanceGraph(
                         activityContext = activity,
                         onChainAddSignerParam = OnChainAddSignerParam(
                             flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
-                            isClaiming = true
+                            magic = claimData.magic
                         )
                     )
                 },

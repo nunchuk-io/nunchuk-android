@@ -44,6 +44,7 @@ data class SetupMk4Args(
     val isFromAddKey: Boolean = false,
     val quickWalletParam: QuickWalletParam? = null,
     val onChainAddSignerParam: OnChainAddSignerParam? = null,
+    val magic: String? = null
 ) {
 
     fun buildBundle() = Bundle().apply {
@@ -63,6 +64,7 @@ data class SetupMk4Args(
         putBoolean(IS_FROM_ADD_KEY, isFromAddKey)
         putParcelable(QUICK_WALLET_PARAM, quickWalletParam)
         putParcelable(ONCHAIN_ADD_SIGNER_PARAM, onChainAddSignerParam)
+        putString(MAGIC, magic)
     }
 
     companion object {
@@ -82,6 +84,7 @@ data class SetupMk4Args(
         private const val IS_FROM_ADD_KEY = "is_from_add_key"
         private const val QUICK_WALLET_PARAM = "quick_wallet_param"
         private const val ONCHAIN_ADD_SIGNER_PARAM = "onchain_add_signer_param"
+        private const val MAGIC = "magic"
 
         fun deserializeFrom(intent: Intent): SetupMk4Args = SetupMk4Args(
             fromMembershipFlow = intent.extras?.getBoolean(FROM_MEMBERSHIP_FLOW, false) == true,
@@ -99,7 +102,8 @@ data class SetupMk4Args(
             backUpFileName = intent.extras?.getString(BACKUP_FILE_NAME),
             isFromAddKey = intent.extras?.getBoolean(IS_FROM_ADD_KEY, false) == true,
             quickWalletParam = intent.parcelable<QuickWalletParam>(QUICK_WALLET_PARAM),
-            onChainAddSignerParam = intent.parcelable<OnChainAddSignerParam>(ONCHAIN_ADD_SIGNER_PARAM)
+            onChainAddSignerParam = intent.parcelable<OnChainAddSignerParam>(ONCHAIN_ADD_SIGNER_PARAM),
+            magic = intent.extras?.getString(MAGIC)
         )
     }
 }

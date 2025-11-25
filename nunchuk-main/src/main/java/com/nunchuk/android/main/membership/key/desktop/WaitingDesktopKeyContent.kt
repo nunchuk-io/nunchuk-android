@@ -30,6 +30,7 @@ fun WaitingDesktopKeyContent(
     title: String = "",
     desc: String = "",
     button: String = "",
+    isMembershipFlow: Boolean = true,
 ) {
     NunchukTheme {
         Scaffold(
@@ -52,7 +53,7 @@ fun WaitingDesktopKeyContent(
                     title = stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
-                    ),
+                    ).takeIf { isMembershipFlow },
                     actions = {
                         IconButton(onClick = onMoreClicked) {
                             Icon(

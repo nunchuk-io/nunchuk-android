@@ -27,6 +27,11 @@
             android:defaultValue="false"
             app:argType="boolean" />
 
+        <argument
+            android:name="magic"
+            android:defaultValue=""
+            app:argType="string" />
+
         <action
             android:id="@+id/action_addDesktopKeyFragment_to_waitingDesktopKeyFragment"
             app:destination="@id/waitingDesktopKeyFragment"
@@ -52,6 +57,10 @@
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
+        <argument
+            android:name="magic"
+            android:defaultValue=""
+            app:argType="string" />
         <action
             android:id="@+id/action_waitingDesktopKeyFragment_to_requestAddKeySuccessFragment"
             app:destination="@id/requestAddKeySuccessFragment"

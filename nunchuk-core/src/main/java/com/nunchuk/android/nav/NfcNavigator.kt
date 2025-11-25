@@ -89,6 +89,7 @@ interface NfcNavigator {
         signerTag: SignerTag,
         groupId: String? = null,
         step: MembershipStep,
-        isInheritanceKey: Boolean = false
+        isInheritanceKey: Boolean = false,
+        magic: String = "",
     )
 }

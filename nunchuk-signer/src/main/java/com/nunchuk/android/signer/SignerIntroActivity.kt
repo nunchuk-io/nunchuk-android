@@ -153,35 +153,35 @@ class SignerIntroActivity : BaseComposeActivity() {
     private fun handleColdCardSelection() {
         if (onChainAddSignerParam == null || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
             openSetupMk4()
-            return
-        }
-        navigator.openCheckFirmwareActivity(
-            activityContext = this,
-            launcher = checkFirmwareLauncher,
-            args = CheckFirmwareArgs(
-                signerTag = SignerTag.COLDCARD,
-                onChainAddSignerParam = onChainAddSignerParam,
-                walletId = walletId,
-                groupId = groupId
+        } else {
+            navigator.openCheckFirmwareActivity(
+                activityContext = this,
+                launcher = checkFirmwareLauncher,
+                args = CheckFirmwareArgs(
+                    signerTag = SignerTag.COLDCARD,
+                    onChainAddSignerParam = onChainAddSignerParam,
+                    walletId = walletId,
+                    groupId = groupId
+                )
             )
-        )
+        }
     }
 
     private fun handleJadeSelection() {
         if (onChainAddSignerParam == null || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
             handleSelectAddAirgapType(SignerTag.JADE)
-            return
-        }
-        navigator.openCheckFirmwareActivity(
-            activityContext = this,
-            launcher = checkFirmwareLauncher,
-            args = CheckFirmwareArgs(
-                signerTag = SignerTag.JADE,
-                onChainAddSignerParam = onChainAddSignerParam,
-                walletId = walletId,
-                groupId = groupId
+        } else {
+            navigator.openCheckFirmwareActivity(
+                activityContext = this,
+                launcher = checkFirmwareLauncher,
+                args = CheckFirmwareArgs(
+                    signerTag = SignerTag.JADE,
+                    onChainAddSignerParam = onChainAddSignerParam,
+                    walletId = walletId,
+                    groupId = groupId
+                )
             )
-        )
+        }
     }
 
     private fun handleSelectAddAirgapType(tag: SignerTag?) {

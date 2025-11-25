@@ -37,10 +37,8 @@ class WaitingDesktopKeyFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
-                val onConfirmAddLedger: () -> Unit = {
-                    viewModel.checkRequestStatus()
-                }
                 WaitingDesktopKeyContent(
+                    isMembershipFlow = args.magic.isEmpty(),
                     title = stringResource(
                         R.string.nc_waiting_for_desktop_key_to_be_added,
                         args.signerTag.toString(requireContext())
@@ -55,7 +53,9 @@ class WaitingDesktopKeyFragment : MembershipFragment() {
                     ),
                     remainTime = remainTime,
                     onMoreClicked = ::handleShowMore,
-                    onConfirmAddLedger = onConfirmAddLedger
+                    onConfirmAddLedger = {
+                        viewModel.checkRequestStatus()
+                    }
                 )
             }
         }

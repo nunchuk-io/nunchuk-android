@@ -10,7 +10,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class AddDesktopKeyFragment : MembershipFragment() {
-    private val viewModel: AddDesktopKeyViewModel by viewModels()
+    private val viewModel: AddDesktopKeyViewModel by activityViewModels()
     private val args: AddDesktopKeyFragmentArgs by navArgs()
 
     override fun onCreateView(
@@ -37,6 +37,7 @@ class AddDesktopKeyFragment : MembershipFragment() {
             setContent {
                 val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
                 AddLedgerScreen(
+                    isMembershipFlow = args.magic.isEmpty(),
                     tag = args.signerTag,
                     remainTime = remainTime,
                     onMoreClicked = ::handleShowMore,
@@ -59,7 +60,8 @@ class AddDesktopKeyFragment : MembershipFragment() {
                             AddDesktopKeyFragmentDirections.actionAddDesktopKeyFragmentToWaitingDesktopKeyFragment(
                                 signerTag = args.signerTag,
                                 requestId = event.requestId,
-                                groupId = args.groupId
+                                groupId = args.groupId,
+                                magic = args.magic
                             )
                         )
                     }
@@ -74,6 +76,7 @@ private fun AddLedgerScreen(
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
     remainTime: Int = 0,
+    isMembershipFlow: Boolean = true,
 ) {
     val desc = when(tag) {
         SignerTag.COLDCARD -> stringResource(id = R.string.nc_main_add_coldcard_desc)
@@ -93,6 +96,7 @@ private fun AddLedgerScreen(
     }
 
     AddDesktopKeyContent(
+        isMembershipFlow = isMembershipFlow,
         title = stringResource(
             id = R.string.nc_add_desktop_key,
             tag.toString(LocalContext.current)

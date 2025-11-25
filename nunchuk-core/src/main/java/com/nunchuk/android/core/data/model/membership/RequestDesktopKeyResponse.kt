@@ -8,7 +8,9 @@ internal data class DesktopKeyRequest(
     @SerializedName("key_index")
     val keyIndex: Int? = null,
     @SerializedName("key_indices")
-    val keyIndices: List<Int>? = null
+    val keyIndices: List<Int>? = null,
+    @SerializedName("magic")
+    val magic: String? = null
 )
 
 internal data class RequestDesktopKeyResponse(

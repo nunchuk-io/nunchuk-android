@@ -17,35 +17,24 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.usecase.membership
 
-import com.nunchuk.android.model.InheritanceClaimingInit
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.WalletServer
-import kotlinx.coroutines.flow.Flow
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.InheritanceRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-interface InheritanceRepository {
-    suspend fun inheritanceClaimingInit(magic: String): InheritanceClaimingInit
+class DeletePendingRequestsByMagicUseCase @Inject constructor(
+    private val repository: InheritanceRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<DeletePendingRequestsByMagicUseCase.Param, Unit>(ioDispatcher) {
 
-    suspend fun downloadWallet(
-        magic: String,
-        keys: List<SingleSigner>
-    ): WalletServer
+    override suspend fun execute(parameters: Param): Unit {
+        return repository.deletePendingRequestsByMagic(parameters.magic)
+    }
 
-    suspend fun isClaimWallet(walletId: String): Boolean
-
-    fun getClaimWalletsFlow(): Flow<Set<String>>
-
-    suspend fun getClaimingWallet(localId: String): WalletServer
-
-    suspend fun requestAddKeyForInheritance(magic: String): String
-
-    suspend fun checkKeyAddedForInheritance(
-        magic: String,
-        requestId: String?
-    ): Boolean
-
-    suspend fun deletePendingRequestsByMagic(magic: String)
-
-    suspend fun getAddedKeys(magic: String): List<SingleSigner>
+    data class Param(val magic: String)
 }
+
+

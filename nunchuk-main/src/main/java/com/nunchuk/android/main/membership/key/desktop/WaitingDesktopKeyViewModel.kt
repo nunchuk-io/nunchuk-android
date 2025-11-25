@@ -8,6 +8,7 @@ import com.nunchuk.android.core.exception.RequestAddSameKeyException
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.usecase.membership.CheckKeyAddedForInheritanceUseCase
 import com.nunchuk.android.usecase.membership.CheckRequestAddDesktopKeyStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,7 @@ import javax.inject.Inject
 class WaitingDesktopKeyViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val checkRequestAddDesktopKeyStatusUseCase: CheckRequestAddDesktopKeyStatusUseCase,
+    private val checkKeyAddedForInheritanceUseCase: CheckKeyAddedForInheritanceUseCase,
     private val membershipStepManager: MembershipStepManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -39,6 +41,34 @@ class WaitingDesktopKeyViewModel @Inject constructor(
     }
 
     fun checkRequestStatus() {
+        if (args.magic.isNotEmpty()) {
+            checkDestopAddClaimKey()
+        } else {
+            checkDesktopAddKey()
+        }
+    }
+
+    private fun checkDestopAddClaimKey() {
+        viewModelScope.launch {
+            checkKeyAddedForInheritanceUseCase(
+                CheckKeyAddedForInheritanceUseCase.Param(
+                    magic = args.magic
+                )
+            ).onSuccess {
+                _state.update { state -> state.copy(isCompleted = it) }
+            }.onFailure {
+                _state.update { state ->
+                    state.copy(
+                        isCompleted = false,
+                        requestCancel = it is RequestAddKeyCancelException,
+                        isDuplicateKey = it is RequestAddSameKeyException
+                    )
+                }
+            }
+        }
+    }
+
+    private fun checkDesktopAddKey() {
         viewModelScope.launch {
             checkRequestAddDesktopKeyStatusUseCase(
                 CheckRequestAddDesktopKeyStatusUseCase.Param(

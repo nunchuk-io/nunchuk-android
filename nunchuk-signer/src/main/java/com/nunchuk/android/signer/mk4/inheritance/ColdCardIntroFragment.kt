@@ -30,6 +30,7 @@ import com.nunchuk.android.compose.ActionItem
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.mk4.Mk4Activity
@@ -73,7 +74,17 @@ class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
                 }
 
                 ColdCardAction.USB -> {
-                    if ((requireActivity() as? Mk4Activity)?.replacedXfp.isNullOrEmpty().not()) {
+                    val onChainAddSignerParam = mk4Activity.onChainAddSignerParam
+                    if (onChainAddSignerParam?.isClaiming == true) {
+                        navigator.openAddDesktopKey(
+                            requireActivity(),
+                            signerTag = SignerTag.COLDCARD,
+                            groupId = (requireActivity() as Mk4Activity).groupId,
+                            step = MembershipStep.SETUP_INHERITANCE,
+                            isInheritanceKey = isAddInheritanceKey,
+                            magic = onChainAddSignerParam.magic
+                        )
+                    } else if (mk4Activity.replacedXfp.isNullOrEmpty().not()) {
                         NCInfoDialog(requireActivity())
                             .showDialog(
                                 message = getString(R.string.nc_info_hardware_key_not_supported),

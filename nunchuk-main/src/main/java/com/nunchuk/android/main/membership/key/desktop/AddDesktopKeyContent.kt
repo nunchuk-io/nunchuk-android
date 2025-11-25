@@ -38,6 +38,7 @@ fun AddDesktopKeyContent(
     title: String = "",
     desc: String = "",
     button: String = "",
+    isMembershipFlow: Boolean = true,
 ) {
     val context = LocalContext.current
     NunchukTheme {
@@ -61,7 +62,7 @@ fun AddDesktopKeyContent(
                     title = stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
-                    ),
+                    ).takeIf { isMembershipFlow },
                     actions = {
                         IconButton(onClick = onMoreClicked) {
                             Icon(
@@ -103,6 +104,6 @@ private fun AddLedgerScreenPreview() {
     AddDesktopKeyContent(
         title = "Add Ledger",
         desc = stringResource(id = R.string.nc_main_add_ledger_desc),
-        button = "Continue to add Ledger"
+        button = "Continue to add Ledger",
     )
 }
