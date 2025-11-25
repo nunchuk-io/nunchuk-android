@@ -986,7 +986,8 @@ private fun ConfigItem(
             Text(
                 text = if (item.type == MembershipStep.TIMELOCK && isTimelockWithData) "After" else item.type.getLabel(
                     context = LocalContext.current,
-                    isStandard = isStandard
+                    isStandard = isStandard,
+                    isOnChain = true
                 ),
                 style = NunchukTheme.typography.body
             )

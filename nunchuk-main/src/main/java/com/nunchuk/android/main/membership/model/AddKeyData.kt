@@ -262,7 +262,7 @@ val MembershipStep.resId: Int
         }
     }
 
-fun MembershipStep.getLabel(context: Context, isStandard: Boolean): String {
+fun MembershipStep.getLabel(context: Context, isStandard: Boolean, isOnChain: Boolean = false): String {
     val defaultKeyName = if (isStandard) {
         DEFAULT_KEY_NAME
     } else {
@@ -274,7 +274,7 @@ fun MembershipStep.getLabel(context: Context, isStandard: Boolean): String {
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> "$defaultKeyName #1"
         MembershipStep.ADD_SEVER_KEY -> context.getString(R.string.nc_server_key)
         MembershipStep.TIMELOCK -> context.getString(R.string.nc_timelock)
-        MembershipStep.HONEY_ADD_INHERITANCE_KEY, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY -> "$defaultKeyName #1"
+        MembershipStep.HONEY_ADD_INHERITANCE_KEY, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY -> if (isOnChain) defaultKeyName else "$defaultKeyName #1"
         MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 -> "$defaultKeyName #2"
         MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> "$defaultKeyName #2"
         MembershipStep.HONEY_ADD_HARDWARE_KEY_2, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 -> "$defaultKeyName #3"
