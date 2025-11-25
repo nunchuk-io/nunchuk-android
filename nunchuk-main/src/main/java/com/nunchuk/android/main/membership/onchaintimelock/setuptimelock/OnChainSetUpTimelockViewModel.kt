@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import javax.inject.Inject
@@ -33,16 +34,8 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
     private val _event = MutableSharedFlow<OnChainSetUpTimelockEvent>()
     val event = _event.asSharedFlow()
 
-    private val _showConfirmTimelockDateDialog = MutableStateFlow(false)
-    val showConfirmTimelockDateDialog = _showConfirmTimelockDateDialog.asStateFlow()
-
-    private val _showInvalidDateDialog = MutableStateFlow(false)
-    val showInvalidDateDialog = _showInvalidDateDialog.asStateFlow()
-
-    private val _maxTimelockYears = MutableStateFlow<Int?>(null)
-    val maxTimelockYears = _maxTimelockYears.asStateFlow()
-
-    private var pendingTimelockData: PendingTimelockData? = null
+    private val _state = MutableStateFlow(OnChainSetUpTimelockState())
+    val state = _state.asStateFlow()
 
     init {
         loadMaxTimelockYears()
@@ -52,7 +45,7 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
         viewModelScope.launch {
             getUserWalletConfigsSetupFromCacheUseCase(Unit).collect { result ->
                 result.getOrNull()?.let { configs ->
-                    _maxTimelockYears.value = configs.maxTimelockYears
+                    _state.update { it.copy(maxTimelockYears = configs.maxTimelockYears) }
                 }
             }
         }
@@ -70,7 +63,7 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
 
             // Check if date is in the past
             if (selectedDate.before(now)) {
-                _showInvalidDateDialog.value = true
+                _state.update { it.copy(showInvalidDateDialog = true) }
                 return@launch
             }
 
@@ -93,8 +86,12 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
 
             // Check if date is more than max_timelock_years in the future
             if (actualYearsDifference > maxTimelockYears) {
-                pendingTimelockData = PendingTimelockData(selectedDate, selectedTimeZone, groupId)
-                _showConfirmTimelockDateDialog.value = true
+                _state.update {
+                    it.copy(
+                        pendingTimelockData = PendingTimelockData(selectedDate, selectedTimeZone, groupId),
+                        showConfirmTimelockDateDialog = true
+                    )
+                }
                 return@launch
             }
 
@@ -104,20 +101,28 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
     }
 
     fun onConfirmTimelockDate() {
-        pendingTimelockData?.let { data ->
-            _showConfirmTimelockDateDialog.value = false
+        _state.value.pendingTimelockData?.let { data ->
+            _state.update {
+                it.copy(
+                    showConfirmTimelockDateDialog = false,
+                    pendingTimelockData = null
+                )
+            }
             createTimelock(data.selectedDate, data.selectedTimeZone, data.groupId)
-            pendingTimelockData = null
         }
     }
 
     fun onDismissConfirmTimelockDateDialog() {
-        _showConfirmTimelockDateDialog.value = false
-        pendingTimelockData = null
+        _state.update {
+            it.copy(
+                showConfirmTimelockDateDialog = false,
+                pendingTimelockData = null
+            )
+        }
     }
 
     fun onDismissInvalidDateDialog() {
-        _showInvalidDateDialog.value = false
+        _state.update { it.copy(showInvalidDateDialog = false) }
     }
 
     private fun createTimelock(
@@ -173,13 +178,20 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
             }
         }
     }
-
-    private data class PendingTimelockData(
-        val selectedDate: Calendar,
-        val selectedTimeZone: TimeZoneDetail,
-        val groupId: String?
-    )
 }
+
+data class PendingTimelockData(
+    val selectedDate: Calendar,
+    val selectedTimeZone: TimeZoneDetail,
+    val groupId: String?
+)
+
+data class OnChainSetUpTimelockState(
+    val showConfirmTimelockDateDialog: Boolean = false,
+    val showInvalidDateDialog: Boolean = false,
+    val maxTimelockYears: Int? = null,
+    val pendingTimelockData: PendingTimelockData? = null
+)
 
 sealed class OnChainSetUpTimelockEvent {
     data object Success : OnChainSetUpTimelockEvent()

@@ -9,9 +9,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -123,9 +124,7 @@ private fun OnChainSetUpTimelockScreen(
     onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
-    val showConfirmDialog by viewModel.showConfirmTimelockDateDialog.collectAsStateWithLifecycle()
-    val showInvalidDateDialog by viewModel.showInvalidDateDialog.collectAsStateWithLifecycle()
-    val maxTimelockYears by viewModel.maxTimelockYears.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     OnChainSetUpTimelockContent(
         onMoreClicked = onMoreClicked,
@@ -140,9 +139,9 @@ private fun OnChainSetUpTimelockScreen(
         },
         remainTime = remainTime,
         timelockExtra = timelockExtra,
-        showConfirmDialog = showConfirmDialog,
-        showInvalidDateDialog = showInvalidDateDialog,
-        maxTimelockYears = maxTimelockYears,
+        showConfirmDialog = state.showConfirmTimelockDateDialog,
+        showInvalidDateDialog = state.showInvalidDateDialog,
+        maxTimelockYears = state.maxTimelockYears,
         isReplaceKeyFlow = isReplaceKeyFlow,
         onConfirmTimelockDate = { viewModel.onConfirmTimelockDate() },
         onDismissConfirmDialog = { viewModel.onDismissConfirmTimelockDateDialog() },
@@ -225,7 +224,9 @@ private fun OnChainSetUpTimelockContent(
                 }
             )
         }, bottomBar = {
-            Column {
+            Column(
+                modifier = Modifier.navigationBarsPadding()
+            ) {
                 NcHintMessage(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     messages = listOf(ClickAbleText(content = "Even with the inheritance key, the Beneficiary cannot claim funds before the timelock expires."))
@@ -246,7 +247,7 @@ private fun OnChainSetUpTimelockContent(
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .fillMaxSize()
+                    .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(
@@ -383,7 +384,7 @@ private fun OnChainSetUpTimelockContent(
                 }
 
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(40.dp))
             }
         }
     }
