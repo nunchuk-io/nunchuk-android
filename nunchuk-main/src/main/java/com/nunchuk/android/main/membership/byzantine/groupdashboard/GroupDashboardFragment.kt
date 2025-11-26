@@ -584,7 +584,8 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                 GroupDashboardFragmentDirections.actionGroupDashboardFragmentToAlertActionIntroFragment(
                     viewModel.getGroupId(),
                     viewModel.getWalletId(),
-                    alert
+                    alert,
+                    if (viewModel.isOnChainWallet()) WalletType.MINISCRIPT.name else null
                 )
             )
         } else if (alert.type == AlertType.KEY_RECOVERY_APPROVED) {

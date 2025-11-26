@@ -51,6 +51,7 @@ import com.nunchuk.android.model.byzantine.AlertType
 import com.nunchuk.android.model.byzantine.DummyTransactionPayload
 import com.nunchuk.android.model.transaction.AlertPayload
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -149,6 +150,7 @@ class AlertActionIntroFragment : Fragment() {
                     groupStep = MembershipStage.REPLACE_KEY,
                     walletId = args.walletId,
                     groupId = args.groupId,
+                    walletType = args.walletType?.let { WalletType.valueOf(it) }
                 )
                 goBack()
             },

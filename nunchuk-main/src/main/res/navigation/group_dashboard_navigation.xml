@@ -217,6 +217,12 @@
             android:name="alert"
             app:argType="com.nunchuk.android.model.Alert" />
 
+        <argument
+            android:name="wallet_type"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+
         <action
             android:id="@+id/action_alertActionIntroFragment_to_healthCheckFragment"
             app:destination="@id/healthCheckFragment"
