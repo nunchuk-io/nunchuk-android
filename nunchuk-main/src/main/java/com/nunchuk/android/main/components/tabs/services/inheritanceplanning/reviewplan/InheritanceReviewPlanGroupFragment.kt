@@ -33,6 +33,8 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
@@ -40,11 +42,15 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NcPrimaryDarkButton
+import com.nunchuk.android.compose.NcSpannedText
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.compose.controlFillPrimary
 import com.nunchuk.android.compose.greyLight
 import com.nunchuk.android.compose.whisper
+import com.nunchuk.android.core.data.model.byzantine.InheritanceDataExtended
+import com.nunchuk.android.core.data.model.byzantine.InheritancePayload
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.orDefault
@@ -255,13 +261,17 @@ fun InheritanceReviewPlanGroupScreenContent(
                             style = NunchukTheme.typography.heading
                         )
                         if (desc.isNotEmpty()) {
-                            Text(
+                            NcSpannedText(
                                 text = desc,
-                                style = NunchukTheme.typography.body,
+                                baseStyle = NunchukTheme.typography.body,
                                 modifier = Modifier.padding(
                                     top = 16.dp,
                                     start = 16.dp,
                                     end = 16.dp
+                                ),
+                                styles = mapOf(
+                                    SpanIndicator('B') to SpanStyle(fontWeight = FontWeight.Bold),
+                                    SpanIndicator('A') to SpanStyle(fontWeight = FontWeight.Bold),
                                 )
                             )
                         }
@@ -565,7 +575,38 @@ private fun InheritanceReviewPlanGroupScreenPreview() {
                 isNotify = true,
                 magicalPhrase = "sample magical phrase"
             ),
-        )
+        ),
+        uiState = InheritanceReviewPlanGroupState(
+            dummyTransactionId = "tx123",
+            walletName = "My Inheritance Wallet",
+            type = DummyTransactionType.UPDATE_INHERITANCE_PLAN,
+            pendingSignatures = 2,
+            isMiniscriptWallet = false,
+            userEmail = "jayce@nunchuk.io",
+            payload = InheritancePayload(
+                newData = InheritanceDataExtended(
+                    activationTimeMilis = System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000,
+                    note = "This is a note to my beneficiaries and trustees.",
+                    bufferPeriod = null,
+                    notificationEmails = listOf(""),
+                    notificationPreferences = InheritanceNotificationSettings(),
+                    walletId = "wallet123",
+                    notifyToday = false,
+                    groupId = "group123"
+                ),
+                oldData = InheritanceDataExtended(
+                    activationTimeMilis = System.currentTimeMillis(),
+                    note = "This is a note to my beneficiaries",
+                    bufferPeriod = null,
+                    notificationEmails = listOf(""),
+                    notificationPreferences = InheritanceNotificationSettings(),
+                    walletId = "wallet123",
+                    notifyToday = false,
+                    groupId = "group123"
+                )
+            )
+        ),
+        groupId = "group123"
     )
 }
 

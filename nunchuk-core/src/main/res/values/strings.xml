@@ -763,9 +763,9 @@
     </plurals>
     <string name="nc_inheritance_plan_group_create">%1$s: inheritance plan creation</string>
     <string name="nc_inheritance_plan_group_change">%1$s: inheritance plan change</string>
-    <string name="nc_create_inheritance_plan_group_change_by">%1$s is requesting to create the inheritance plan for %2$s:</string>
-    <string name="nc_update_inheritance_plan_group_change_by">%1$s is requesting to make the following changes to the inheritance plan for %2$s:</string>
-    <string name="nc_cancel_inheritance_plan_group_change_by">%1$s is requesting to cancel the inheritance plan for %2$s.</string>
+    <string name="nc_create_inheritance_plan_group_change_by">[A]%1$s[/A] is requesting to create the inheritance plan for [B]%2$s[/B]:</string>
+    <string name="nc_update_inheritance_plan_group_change_by">[A]%1$s[/A] is requesting to make the following changes to the inheritance plan for [B]%2$s[/B]:</string>
+    <string name="nc_cancel_inheritance_plan_group_change_by">[A]%1$s[/A] is requesting to cancel the inheritance plan for [B]%2$s[/B].</string>
     <string name="nc_cancel_inheritance_plan_normal_assisted">The inheritance plan for %1$s will be canceled.</string>
     <string name="nc_activation_date_inheritance_plan_normal_assisted">The Activation Date for the inheritance plan for %1$s will change from %2$s to %3$s.</string>
     <string name="nc_no_internet_connection_try_again_later">No Internet connection. Please try again later.</string>
