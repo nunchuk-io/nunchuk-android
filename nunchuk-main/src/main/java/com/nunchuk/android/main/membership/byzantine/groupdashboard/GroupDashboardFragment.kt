@@ -728,7 +728,11 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                 options.add(
                     SheetOption(
                         type = SheetOptionType.TYPE_REPLACE_KEY,
-                        stringId = R.string.nc_replace_keys
+                        stringId = if (viewModel.isOnChainWallet()) {
+                            R.string.nc_replace_key_change_timelock
+                        } else {
+                            R.string.nc_replace_keys
+                        }
                     )
                 )
             }
@@ -799,7 +803,11 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
             options.add(
                 SheetOption(
                     type = SheetOptionType.TYPE_REPLACE_KEY,
-                    stringId = R.string.nc_replace_keys
+                    stringId = if (viewModel.isOnChainWallet()) {
+                        R.string.nc_replace_key_change_timelock
+                    } else {
+                        R.string.nc_replace_keys
+                    }
                 )
             )
         }
