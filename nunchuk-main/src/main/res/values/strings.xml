@@ -25,7 +25,6 @@
     <string name="nc_inheritance_claim_trustee">The inheritance can be claimed directly by the Beneficiary or indirectly through a third-party Trustee.</string>
     <string name="nc_plan_overview">Plan overview</string>
     <string name="nc_plan_overview_desc">The inheritance plan will have these main components:</string>
-    <string name="nc_activation_date">Activation Date</string>
     <string name="nc_plan_overview_bottom_desc">We will now go through them one-by-one.</string>
     <string name="nc_find_backup_password_desc">In your wallet, you have designated a TAPSIGNER to be the inheritance key. An encrypted backup of this key is stored on the server.\n\nAfter the timelock, the Beneficiary or Trustee can recover this key using the Backup Password printed on the back of the TAPSIGNER.\n\n[B]Make note of this Backup Password[/B]. You will need to share it with the Beneficiary or Trustee.</string>
     <string name="nc_find_backup_password_desc_1">In your wallet, you have designated a TAPSIGNER to be [A]the first inheritance key.[/A] An encrypted backup of this key is stored on the server.\n\nAfter the timelock, the Beneficiary or Trustee can recover this key using the Backup Password printed on the back of the TAPSIGNER.\n\n[B]Make note of this Backup Password[/B]. You will need to share it with the Beneficiary or Trustee.</string>
