@@ -32,6 +32,7 @@ import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -68,6 +69,15 @@ class AirgapActionIntroFragment : MembershipFragment() {
                 }
 
                 JADEAction.USB -> {
+                    val replacedXfp =
+                        (requireActivity() as AddAirgapSignerActivity).replacedXfp
+                    if (replacedXfp != null) {
+                        NCInfoDialog(requireActivity())
+                            .showDialog(
+                                message = getString(R.string.nc_info_hardware_key_not_supported),
+                            )
+                        return@AirgapActionIntroScreen
+                    }
                     (requireActivity() as AddAirgapSignerActivity).step?.let {
                         navigator.openAddDesktopKey(
                             activity = requireActivity(),

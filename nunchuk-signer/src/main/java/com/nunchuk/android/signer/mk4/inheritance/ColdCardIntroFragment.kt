@@ -74,6 +74,7 @@ class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
                             .showDialog(
                                 message = getString(R.string.nc_info_hardware_key_not_supported),
                             )
+                        return@ColdCardIntroScreen
                     } else {
                         membershipStepManager.currentStep?.let { step ->
                             navigator.openAddDesktopKey(
