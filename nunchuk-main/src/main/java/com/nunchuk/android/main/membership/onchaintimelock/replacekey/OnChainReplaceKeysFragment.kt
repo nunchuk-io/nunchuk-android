@@ -370,6 +370,7 @@ class OnChainReplaceKeysFragment : Fragment() {
                 tag = tag,
                 groupId = args.groupId,
                 replacedXfp = viewModel.replacedXfp,
+                walletId = args.walletId,
                 onChainAddSignerParam = OnChainAddSignerParam(
                     flags = if (nextStep?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
                     keyIndex = currentKeyData?.getAllSigners()?.size ?: 0,

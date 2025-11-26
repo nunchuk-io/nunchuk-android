@@ -139,7 +139,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
 
     val remainTime = membershipStepManager.remainingTime
 
-    fun init(groupId: String, isMembershipFlow: Boolean, replacedXfp: String?, walletId: String, onChainAddSignerParam: com.nunchuk.android.core.signer.OnChainAddSignerParam? = null) {
+    fun init(groupId: String, isMembershipFlow: Boolean, replacedXfp: String?, walletId: String, onChainAddSignerParam: OnChainAddSignerParam? = null) {
         this.groupId = groupId
         this.isMembershipFlow = isMembershipFlow
         this.replacedXfp = replacedXfp
