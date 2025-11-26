@@ -55,7 +55,6 @@ import com.nunchuk.android.utils.consumeEdgeToEdge
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.wallet.components.cosigning.CosigningPolicyActivity
 import com.nunchuk.android.widget.NCInfoDialog
-import com.nunchuk.android.widget.NCVerticalInputDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -186,21 +185,6 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
         requireActivity().openExternalLink("https://nunchuk.io/individuals")
     }
 
-    private fun showTellMeMoreDialog() {
-        NCVerticalInputDialog(requireContext()).showDialog(
-            title = getString(R.string.nc_enter_your_email),
-            positiveText = getString(R.string.nc_send_me_the_info),
-            negativeText = getString(R.string.nc_visit_our_website),
-            neutralText = getString(R.string.nc_text_do_this_later),
-            defaultInput = viewModel.getEmail(),
-            cancellable = true,
-            onPositiveClicked = {
-                viewModel.submitEmail(it)
-            },
-            onNegativeClicked = ::handleGoOurWebsite
-        )
-    }
-
     private fun setupViews() {
         binding.toolbar.consumeEdgeToEdge()
         adapter = ServicesTabAdapter(itemClick = {
@@ -288,7 +272,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
 
             ServiceTabRowItem.GetAdditionalWallets -> {}
 
-            ServiceTabRowItem.ReplaceKey -> showWalletsSheetOrEnterPassword(
+            is ServiceTabRowItem.ReplaceKey -> showWalletsSheetOrEnterPassword(
                 item,
                 viewModel.getActiveWalletsAndNoReplaced()
             )
@@ -400,7 +384,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 groupId
             )
 
-            ServiceTabRowItem.ReplaceKey -> navigator.openMembershipActivity(
+            is ServiceTabRowItem.ReplaceKey -> navigator.openMembershipActivity(
                 activityContext = requireActivity(),
                 groupStep = MembershipStage.REPLACE_KEY,
                 walletId = walletId,

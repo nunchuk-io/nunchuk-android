@@ -33,6 +33,7 @@ import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.containsByzantineOrFinney
 import com.nunchuk.android.model.isNonePlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
+import com.nunchuk.android.model.membership.isMiniscriptWallet
 import com.nunchuk.android.model.wallet.WalletStatus
 import kotlinx.parcelize.Parcelize
 
@@ -115,7 +116,7 @@ data class ServicesTabState(
                     add(ServiceTabRowItem.CoSigningPolicies)
                 }
                 add(ServiceTabRowItem.OrderNewHardware)
-                add(ServiceTabRowItem.ReplaceKey)
+                add(ServiceTabRowItem.ReplaceKey(getReplaceKeyTitle()))
                 add(ServiceTabRowItem.ManageSubscription)
             }
             return items
@@ -131,7 +132,7 @@ data class ServicesTabState(
                     add(ServiceTabRowItem.CoSigningPolicies)
                 }
                 add(ServiceTabRowItem.OrderNewHardware)
-                add(ServiceTabRowItem.ReplaceKey)
+                add(ServiceTabRowItem.ReplaceKey(getReplaceKeyTitle()))
                 add(ServiceTabRowItem.ManageSubscription)
             }
             if (banner != null) {
@@ -199,14 +200,14 @@ data class ServicesTabState(
                             add(ServiceTabRowItem.CoSigningPolicies)
                         }
                         add(ServiceTabRowItem.GetAdditionalWallets)
-                        add(ServiceTabRowItem.ReplaceKey)
+                        add(ServiceTabRowItem.ReplaceKey(getReplaceKeyTitle()))
                         add(ServiceTabRowItem.ManageSubscription)
                     } else {
                         showCoSigningPolicies {
                             add(ServiceTabRowCategory.Subscription)
                             add(ServiceTabRowItem.CoSigningPolicies)
                         }
-                        add(ServiceTabRowItem.ReplaceKey)
+                        add(ServiceTabRowItem.ReplaceKey(getReplaceKeyTitle()))
                     }
                 }
                 return items
@@ -223,7 +224,7 @@ data class ServicesTabState(
                         add(ServiceTabRowCategory.Subscription)
                         add(ServiceTabRowItem.CoSigningPolicies)
                     }
-                    add(ServiceTabRowItem.ReplaceKey)
+                    add(ServiceTabRowItem.ReplaceKey(getReplaceKeyTitle()))
                 }
                 return items
             } else if (userRole == AssistedWalletRole.MASTER.name) {
@@ -238,7 +239,7 @@ data class ServicesTabState(
                         add(ServiceTabRowItem.CoSigningPolicies)
                     }
                     add(ServiceTabRowItem.GetAdditionalWallets)
-                    add(ServiceTabRowItem.ReplaceKey)
+                    add(ServiceTabRowItem.ReplaceKey(getReplaceKeyTitle()))
                     add(ServiceTabRowItem.ManageSubscription)
                 }
                 return items
@@ -280,7 +281,7 @@ data class ServicesTabState(
                 showCoSigningPolicies {
                     add(ServiceTabRowItem.CoSigningPolicies)
                 }
-                add(ServiceTabRowItem.ReplaceKey)
+                add(ServiceTabRowItem.ReplaceKey(getReplaceKeyTitle()))
                 add(ServiceTabRowItem.ManageSubscription)
             }
             return items
@@ -293,7 +294,7 @@ data class ServicesTabState(
                     add(ServiceTabRowCategory.Subscription)
                     add(ServiceTabRowItem.CoSigningPolicies)
                 }
-                add(ServiceTabRowItem.ReplaceKey)
+                add(ServiceTabRowItem.ReplaceKey(getReplaceKeyTitle()))
             }
             return items
         } else if (userRole == AssistedWalletRole.FACILITATOR_ADMIN.name) {
@@ -357,6 +358,14 @@ data class ServicesTabState(
     private fun isInheritanceOwner(inheritanceOwnerId: String?): Boolean {
         return inheritanceOwnerId.isNullOrEmpty() || inheritanceOwnerId == accountId
     }
+
+    private fun getReplaceKeyTitle(): Int {
+        return if (assistedWallets.any { it.isMiniscriptWallet }) {
+            R.string.nc_replace_key_change_timelock
+        } else {
+            R.string.nc_replace_keys
+        }
+    }
 }
 
 internal data class Banner(val id: String, val url: String, val title: String)
@@ -406,5 +415,5 @@ sealed class ServiceTabRowItem(val title: Int) : Parcelable {
     @Parcelize
     data object GetAdditionalWallets : ServiceTabRowItem(R.string.nc_get_additional_wallet)
     @Parcelize
-    data object ReplaceKey : ServiceTabRowItem(R.string.nc_replace_keys_in_an_assisted_wallet)
+    data class ReplaceKey(private val titleRes: Int) : ServiceTabRowItem(titleRes)
 }

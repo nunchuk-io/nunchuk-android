@@ -21,6 +21,7 @@ package com.nunchuk.android.model.membership
 
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.wallet.WalletStatus
+import com.nunchuk.android.type.WalletType
 
 data class AssistedWalletBrief(
     val localId: String,
@@ -39,6 +40,9 @@ data class AssistedWalletBrief(
 
 val AssistedWalletBrief.isActiveWallet: Boolean
     get() = status == WalletStatus.ACTIVE.name
+
+val AssistedWalletBrief.isMiniscriptWallet: Boolean
+    get() = walletType == WalletType.MINISCRIPT.name
 
 data class AssistedWalletBriefExt(
     val inheritanceOwnerId: String? = null,
