@@ -600,7 +600,7 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
             )
         } else if (alert.type == AlertType.TRANSACTION_SIGNATURE_REQUEST) {
             viewModel.syncTransaction(alert.payload.transactionId)
-        } else if (alert.type == AlertType.KEY_REPLACEMENT_COMPLETED) {
+        } else if (alert.type == AlertType.KEY_REPLACEMENT_COMPLETED || alert.type == AlertType.KEY_TIMELOCK_UPDATE_PENDING) {
             enterPasswordDialog(TargetAction.REPLACE_KEYS)
         } else if (alert.type == AlertType.SETUP_INHERITANCE_PLAN) {
             viewModel.getInheritance()
