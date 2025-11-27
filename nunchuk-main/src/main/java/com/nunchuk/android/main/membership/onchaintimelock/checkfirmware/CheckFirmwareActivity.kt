@@ -106,6 +106,7 @@ class CheckFirmwareActivity : BaseComposeActivity() {
                         isFromAddKey = true,
                         groupId = args.groupId,
                         walletId = args.walletId,
+                        replacedXfp = args.onChainAddSignerParam?.replaceInfo?.replacedXfp,
                         onChainAddSignerParam = args.onChainAddSignerParam,
                     )
                 )
@@ -119,6 +120,7 @@ class CheckFirmwareActivity : BaseComposeActivity() {
                         tag = SignerTag.JADE,
                         groupId = args.groupId,
                         walletId = args.walletId,
+                        replacedXfp = args.onChainAddSignerParam?.replaceInfo?.replacedXfp,
                         onChainAddSignerParam = args.onChainAddSignerParam,
                         step = membershipStepManager.currentStep
                     )
