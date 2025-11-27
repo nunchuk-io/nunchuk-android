@@ -103,7 +103,7 @@ private fun BackUpSeedPhraseIntroContent(
                 NCLabelWithIndex(
                     modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                     index = 3,
-                    label = "Refer to your device’s instruction manual and find the option to view or back up the recovery words for this key (12 or 24 words)",
+                    label = "Write each word in the correct sequence and check the spelling carefully",
                 )
 
 
