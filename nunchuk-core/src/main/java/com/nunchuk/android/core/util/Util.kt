@@ -137,7 +137,7 @@ fun String.fixAfterDecimal(count: Int = 2): String {
 fun Double.roundDecimal(): Double = formatRoundDecimal().toDoubleOrNull() ?: 0.0
 
 fun Long.formatDate(): String =
-    SimpleDateFormat("MM/dd/yyyy 'at' HH:mm aaa", Locale.US).format(Date(this * 1000))
+    SimpleDateFormat("MM/dd/yyyy 'at' hh:mm aaa", Locale.US).format(Date(this * 1000))
 
 fun Transaction.getFormatDate(): String =
     if (blockTime <= 0) "--/--/--" else (blockTime).formatDate()
