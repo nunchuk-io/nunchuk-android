@@ -222,7 +222,7 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
             navigator.returnToClaimScreen(requireActivity())
         } else if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true && onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true) {
             if (signer.masterFingerprint == onChainAddSignerParam.currentSigner?.fingerPrint) {
-                if (onChainAddSignerParam.replaceInfo != null) {
+                if (onChainAddSignerParam.isReplaceKeyFlow()) {
                     viewModel.setReplaceKeyVerified(
                         keyId = signer.masterSignerId,
                         groupId = activity.groupId,

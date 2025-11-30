@@ -31,6 +31,10 @@ data class OnChainAddSignerParam(
         return flags == FLAG_ADD_SIGNER
     }
 
+    fun isReplaceKeyFlow(): Boolean {
+        return replaceInfo != null && replaceInfo.replacedXfp.isNotEmpty()
+    }
+
     @Parcelize
     data class ReplaceInfo(
         val replacedXfp: String,

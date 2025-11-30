@@ -162,7 +162,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                 requireActivity().finish()
                             } else if (onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true && onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
                                 if (it.signer.masterFingerprint == onChainAddSignerParam.currentSigner?.fingerPrint) {
-                                    if (onChainAddSignerParam.replaceInfo != null) {
+                                    if (onChainAddSignerParam.isReplaceKeyFlow()) {
                                         viewModel.setReplaceKeyVerified(
                                             keyId = it.signer.masterFingerprint,
                                             groupId = (activity as Mk4Activity).groupId,
