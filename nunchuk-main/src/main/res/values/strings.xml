@@ -345,7 +345,9 @@
     <string name="nc_continue_to_transfer_funds">Continue to transfer funds</string>
     <string name="nc_confirm_create_transactions">Confirm and create transactions</string>
     <string name="nc_transfer_funds">Transfer funds</string>
-    <string name="nc_transfer_funds_desc">Transfer all funds to %1$s.</string>
+    <string name="nc_transfer_funds_desc">Transfer all funds from the old wallet to %1$s.</string>
+    <string name="nc_transfer_funds_desc_miniscript">Transfer all funds from the old wallet to %1$s. Since some coins are timelocked, you can create the transaction now, but can only broadcast it after the timelock expires.</string>
+    <string name="nc_transfer_funds_desc_miniscript_hint">If you only want to transfer the coins that are immediately spendable, please use the coin control feature (Wallet details → View coins).</string>
     <string name="nc_existing_balance">Existing balance</string>
     <string name="nc_remove_unused_keys">Remove unused keys</string>
     <string name="nc_remove_unused_key_desc">Upon completion of the roll-over process, keys that are associated with your old wallet and are no longer used will automatically be removed.</string>

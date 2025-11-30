@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.RollOverWalletSource
+import com.nunchuk.android.core.util.getNearestTimeLock
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinCollection
@@ -11,10 +12,13 @@ import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.usecase.CreateAndBroadcastRollOverTransactionsUseCase
+import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllCollectionsUseCase
 import com.nunchuk.android.usecase.coin.GetAllTagsUseCase
+import com.nunchuk.android.usecase.miniscript.GetSpendableNowAmountUseCase
 import com.nunchuk.android.usecase.replace.UpdateReplaceKeyConfigUseCase
 import com.nunchuk.android.usecase.wallet.GetUnusedWalletAddressUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
@@ -38,6 +42,8 @@ class RollOverWalletViewModel @Inject constructor(
     private val createAndBroadcastRollOverTransactionsUseCase: CreateAndBroadcastRollOverTransactionsUseCase,
     private val assistedWalletManager: AssistedWalletManager,
     private val updateReplaceKeyConfigUseCase: UpdateReplaceKeyConfigUseCase,
+    private val getSpendableNowAmountUseCase: GetSpendableNowAmountUseCase,
+    private val getChainTipUseCase: GetChainTipUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RollOverWalletUiState())
@@ -83,6 +89,10 @@ class RollOverWalletViewModel @Inject constructor(
         viewModelScope.launch {
             getWalletDetail2UseCase(oldWalletId).onSuccess { wallet ->
                 _uiState.update { it.copy(oldWallet = wallet) }
+                // Load miniscript wallet data if applicable
+                if (wallet.miniscript.isNotEmpty()) {
+                    loadMiniscriptWalletData()
+                }
             }
         }
         viewModelScope.launch {
@@ -228,6 +238,45 @@ class RollOverWalletViewModel @Inject constructor(
         }
     }
 
+    private fun loadMiniscriptWalletData() {
+        val oldWallet = getOldWallet()
+        if (oldWallet.miniscript.isEmpty()) return
+
+        viewModelScope.launch {
+            val walletId = getOldWalletId()
+            
+            // Get spendable now amount
+            getSpendableNowAmountUseCase(walletId).onSuccess { spendableNowAmount ->
+                val totalBalance = oldWallet.balance
+                val timelockedAmount = Amount(value = maxOf(0, totalBalance.value - spendableNowAmount.value))
+                
+                // Get furthest timelock from coins
+                val currentBlockHeight = getChainTipUseCase(Unit).getOrDefault(0)
+                var furthestTimelock: Pair<MiniscriptTimelockBased, Long>? = null
+                var maxTimelock: Long = Long.MIN_VALUE
+                
+                getAllCoinUseCase(walletId).onSuccess { coins ->
+                    coins.forEach { coin ->
+                        coin.getNearestTimeLock(currentBlockHeight)?.let { time ->
+                            if (time > maxTimelock) {
+                                maxTimelock = time
+                                furthestTimelock = coin.lockBased to time
+                            }
+                        }
+                    }
+                    
+                    _uiState.update { state ->
+                        state.copy(
+                            spendableNowAmount = spendableNowAmount,
+                            timelockedAmount = timelockedAmount,
+                            furthestTimelock = furthestTimelock
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     companion object {
         private const val OLD_WALLET_ID = "old_wallet_id"
         private const val NEW_WALLET_ID = "new_wallet_id"
@@ -248,4 +297,7 @@ data class RollOverWalletUiState(
     val newWallet: Wallet = Wallet(),
     val address: String = "",
     val isFreeWallet: Boolean = false,
+    val spendableNowAmount: Amount? = null,
+    val timelockedAmount: Amount? = null,
+    val furthestTimelock: Pair<MiniscriptTimelockBased, Long>? = null,
 )

@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -29,8 +31,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -38,11 +42,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcCheckBox
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.fillPink
 import com.nunchuk.android.compose.greyLight
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.whisper
 import com.nunchuk.android.core.util.RollOverWalletSource
 import com.nunchuk.android.core.util.getBTCAmount
@@ -50,9 +57,16 @@ import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.rollover.RollOverWalletUiState
 import com.nunchuk.android.main.rollover.RollOverWalletViewModel
+import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.type.MiniscriptTimelockBased
+import com.nunchuk.android.utils.dateTimeFormat
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Date
 import javax.inject.Inject
+import com.nunchuk.android.transaction.R as TransactionR
+import com.nunchuk.android.wallet.R as WalletR
 
 @AndroidEntryPoint
 class RollOverTransferFundFragment : Fragment() {
@@ -139,46 +153,171 @@ private fun RollOverTransferFundContent(
                     style = NunchukTheme.typography.heading,
                 )
 
-                Text(
-                    text = stringResource(
-                        R.string.nc_transfer_funds_desc,
-                        rollOverWalletState.newWallet.name
-                    ),
-                    style = NunchukTheme.typography.body,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
+                val isMiniscriptWallet = rollOverWalletState.oldWallet.miniscript.isNotEmpty()
+                val spendableNowAmount = rollOverWalletState.spendableNowAmount
+                val timelockedAmount = rollOverWalletState.timelockedAmount
 
-                Row(
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                        .fillMaxWidth()
-                        .background(
-                            color = MaterialTheme.colorScheme.greyLight,
-                            shape = NunchukTheme.shape.medium
-                        )
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(R.string.nc_existing_balance),
-                        style = NunchukTheme.typography.body,
-                    )
-
-                    Spacer(modifier = Modifier.weight(1f))
-
+                // Show different description for miniscript wallets
+                if (isMiniscriptWallet && spendableNowAmount != null && timelockedAmount != null) {
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                        horizontalAlignment = Alignment.End
+                        modifier = Modifier.padding(top = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = rollOverWalletState.oldWallet.getBTCAmount(),
-                            style = NunchukTheme.typography.title,
+                            text = stringResource(
+                                R.string.nc_transfer_funds_desc_miniscript,
+                                rollOverWalletState.newWallet.name
+                            ),
+                            style = NunchukTheme.typography.body,
+                        )
+                        Text(
+                            text = stringResource(R.string.nc_transfer_funds_desc_miniscript_hint),
+                            style = NunchukTheme.typography.body,
+                        )
+                    }
+                } else {
+                    Text(
+                        text = stringResource(
+                            R.string.nc_transfer_funds_desc,
+                            rollOverWalletState.newWallet.name
+                        ),
+                        style = NunchukTheme.typography.body,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+
+                if (isMiniscriptWallet && spendableNowAmount != null && timelockedAmount != null) {
+                    // Miniscript wallet - show breakdown
+                    Column(
+                        modifier = Modifier
+                            .padding(top = 16.dp)
+                            .fillMaxWidth()
+                            .background(
+                                color = MaterialTheme.colorScheme.greyLight,
+                                shape = NunchukTheme.shape.medium
+                            )
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        // Spendable now
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(WalletR.string.nc_spendable_now_title),
+                                style = NunchukTheme.typography.body,
+                            )
+                            Column(
+                                horizontalAlignment = Alignment.End,
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = spendableNowAmount.getBTCAmount(),
+                                    style = NunchukTheme.typography.title,
+                                )
+                                Text(
+                                    text = spendableNowAmount.getCurrencyAmount(),
+                                    style = NunchukTheme.typography.bodySmall,
+                                )
+                            }
+                        }
+
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.whisper,
+                            thickness = 1.dp
                         )
 
-                        Text(
-                            text = rollOverWalletState.oldWallet.getCurrencyAmount(),
-                            style = NunchukTheme.typography.bodySmall,
+                        // Timelocked
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Timelocked",
+                                style = NunchukTheme.typography.body,
+                            )
+                            Column(
+                                horizontalAlignment = Alignment.End,
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = timelockedAmount.getBTCAmount(),
+                                    style = NunchukTheme.typography.title,
+                                )
+                                Text(
+                                    text = timelockedAmount.getCurrencyAmount(),
+                                    style = NunchukTheme.typography.bodySmall,
+                                )
+                            }
+                        }
+
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.whisper,
+                            thickness = 1.dp
                         )
+
+                        // Total balance
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.nc_total_balance),
+                                style = NunchukTheme.typography.body,
+                            )
+                            Column(
+                                horizontalAlignment = Alignment.End,
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = rollOverWalletState.oldWallet.getBTCAmount(),
+                                    style = NunchukTheme.typography.title,
+                                )
+                                Text(
+                                    text = rollOverWalletState.oldWallet.getCurrencyAmount(),
+                                    style = NunchukTheme.typography.bodySmall,
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // Regular wallet - show simple balance
+                    Row(
+                        modifier = Modifier
+                            .padding(top = 16.dp)
+                            .fillMaxWidth()
+                            .background(
+                                color = MaterialTheme.colorScheme.greyLight,
+                                shape = NunchukTheme.shape.medium
+                            )
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.nc_existing_balance),
+                            style = NunchukTheme.typography.body,
+                        )
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalAlignment = Alignment.End
+                        ) {
+                            Text(
+                                text = rollOverWalletState.oldWallet.getBTCAmount(),
+                                style = NunchukTheme.typography.title,
+                            )
+
+                            Text(
+                                text = rollOverWalletState.oldWallet.getCurrencyAmount(),
+                                style = NunchukTheme.typography.bodySmall,
+                            )
+                        }
                     }
                 }
 
@@ -218,6 +357,46 @@ private fun RollOverTransferFundContent(
                         }
                     }
                 }
+
+
+                // Timelock banner
+                rollOverWalletState.furthestTimelock?.let { (lockBased, lockedTime) ->
+                    Row(
+                        modifier = Modifier
+                            .padding(top = 16.dp)
+                            .fillMaxWidth()
+                            .background(
+                                color = MaterialTheme.colorScheme.fillPink,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        NcIcon(
+                            painter = painterResource(id = TransactionR.drawable.ic_timer),
+                            contentDescription = null,
+                            modifier = Modifier.size(36.dp),
+                        )
+                        val lockText = if (lockBased == MiniscriptTimelockBased.HEIGHT_LOCK) {
+                            stringResource(
+                                id = TransactionR.string.nc_timelocked_until_block,
+                                lockedTime
+                            )
+                        } else {
+                            val date = Date(lockedTime * 1000L)
+                            stringResource(
+                                id = TransactionR.string.nc_timelocked_until_date,
+                                date.dateTimeFormat()
+                            )
+                        }
+                        Text(
+                            text = lockText,
+                            style = NunchukTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.textPrimary
+                        )
+                    }
+                }
             }
         }
     }
@@ -227,4 +406,42 @@ private fun RollOverTransferFundContent(
 @Preview
 private fun RollOverTransferFundScreenContentPreview() {
     RollOverTransferFundContent()
+}
+
+@PreviewLightDark
+@Composable
+private fun RollOverTransferFundMiniscriptPreview() {
+    NunchukTheme {
+        val mockOldWallet = Wallet(
+            id = "old_wallet_id",
+            name = "Old Wallet",
+            miniscript = "andor(thresh(2,pk(key_0_0),pk(key_1_0)),older(4320))",
+            balance = Amount(value = 20000000L) // 0.2 BTC
+        )
+        
+        val mockNewWallet = Wallet(
+            id = "new_wallet_id",
+            name = "New Wallet",
+            balance = Amount(value = 0L)
+        )
+        
+        val mockSpendableNowAmount = Amount(value = 15000000L) // 0.15 BTC
+        val mockTimelockedAmount = Amount(value = 5000000L) // 0.05 BTC
+        val mockFurthestTimelock = MiniscriptTimelockBased.TIME_LOCK to (System.currentTimeMillis() / 1000 + 86400 * 30) // 30 days from now
+        
+        val mockState = RollOverWalletUiState(
+            oldWallet = mockOldWallet,
+            newWallet = mockNewWallet,
+            spendableNowAmount = mockSpendableNowAmount,
+            timelockedAmount = mockTimelockedAmount,
+            furthestTimelock = mockFurthestTimelock,
+            isFreeWallet = false
+        )
+        
+        RollOverTransferFundContent(
+            source = 0,
+            rollOverWalletState = mockState,
+            onContinueClicked = {}
+        )
+    }
 }
