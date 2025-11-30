@@ -247,30 +247,33 @@ class RollOverWalletViewModel @Inject constructor(
             
             // Get spendable now amount
             getSpendableNowAmountUseCase(walletId).onSuccess { spendableNowAmount ->
-                val totalBalance = oldWallet.balance
-                val timelockedAmount = Amount(value = maxOf(0, totalBalance.value - spendableNowAmount.value))
-                
-                // Get furthest timelock from coins
-                val currentBlockHeight = getChainTipUseCase(Unit).getOrDefault(0)
-                var furthestTimelock: Pair<MiniscriptTimelockBased, Long>? = null
-                var maxTimelock: Long = Long.MIN_VALUE
-                
-                getAllCoinUseCase(walletId).onSuccess { coins ->
-                    coins.forEach { coin ->
-                        coin.getNearestTimeLock(currentBlockHeight)?.let { time ->
-                            if (time > maxTimelock) {
-                                maxTimelock = time
-                                furthestTimelock = coin.lockBased to time
+                if (spendableNowAmount.value > 0L) {
+                    val totalBalance = oldWallet.balance
+                    val timelockedAmount =
+                        Amount(value = maxOf(0, totalBalance.value - spendableNowAmount.value))
+
+                    // Get furthest timelock from coins
+                    val currentBlockHeight = getChainTipUseCase(Unit).getOrDefault(0)
+                    var furthestTimelock: Pair<MiniscriptTimelockBased, Long>? = null
+                    var maxTimelock: Long = Long.MIN_VALUE
+
+                    getAllCoinUseCase(walletId).onSuccess { coins ->
+                        coins.forEach { coin ->
+                            coin.getNearestTimeLock(currentBlockHeight)?.let { time ->
+                                if (time > maxTimelock) {
+                                    maxTimelock = time
+                                    furthestTimelock = coin.lockBased to time
+                                }
                             }
                         }
-                    }
-                    
-                    _uiState.update { state ->
-                        state.copy(
-                            spendableNowAmount = spendableNowAmount,
-                            timelockedAmount = timelockedAmount,
-                            furthestTimelock = furthestTimelock
-                        )
+
+                        _uiState.update { state ->
+                            state.copy(
+                                spendableNowAmount = spendableNowAmount,
+                                timelockedAmount = timelockedAmount,
+                                furthestTimelock = furthestTimelock
+                            )
+                        }
                     }
                 }
             }

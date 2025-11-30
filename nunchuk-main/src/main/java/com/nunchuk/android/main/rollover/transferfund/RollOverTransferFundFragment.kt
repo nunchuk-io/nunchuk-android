@@ -133,12 +133,51 @@ private fun RollOverTransferFundContent(
                 NcTopAppBar(title = "")
             },
             bottomBar = {
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    onClick = { onContinueClicked(isRemoveUnusedKeys) }) {
-                    Text(text = stringResource(R.string.nc_text_continue))
+                Column {
+                    rollOverWalletState.furthestTimelock?.let { (lockBased, lockedTime) ->
+                        Row(
+                            modifier = Modifier
+                                .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                                .fillMaxWidth()
+                                .background(
+                                    color = MaterialTheme.colorScheme.fillPink,
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            NcIcon(
+                                painter = painterResource(id = TransactionR.drawable.ic_timer),
+                                contentDescription = null,
+                                modifier = Modifier.size(36.dp),
+                            )
+                            val lockText = if (lockBased == MiniscriptTimelockBased.HEIGHT_LOCK) {
+                                stringResource(
+                                    id = TransactionR.string.nc_timelocked_until_block,
+                                    lockedTime
+                                )
+                            } else {
+                                val date = Date(lockedTime * 1000L)
+                                stringResource(
+                                    id = TransactionR.string.nc_timelocked_until_date,
+                                    date.dateTimeFormat()
+                                )
+                            }
+                            Text(
+                                text = lockText,
+                                style = NunchukTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.textPrimary
+                            )
+                        }
+                    }
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        onClick = { onContinueClicked(isRemoveUnusedKeys) }) {
+                        Text(text = stringResource(R.string.nc_text_continue))
+                    }
                 }
             }
         ) { innerPadding ->
@@ -186,7 +225,9 @@ private fun RollOverTransferFundContent(
                     )
                 }
 
-                if (isMiniscriptWallet && spendableNowAmount != null && timelockedAmount != null) {
+                if (isMiniscriptWallet
+                    && spendableNowAmount != null
+                    && timelockedAmount != null) {
                     // Miniscript wallet - show breakdown
                     Column(
                         modifier = Modifier
@@ -355,46 +396,6 @@ private fun RollOverTransferFundContent(
                                 checked = isRemoveUnusedKeys,
                                 onCheckedChange = { isRemoveUnusedKeys = it })
                         }
-                    }
-                }
-
-
-                // Timelock banner
-                rollOverWalletState.furthestTimelock?.let { (lockBased, lockedTime) ->
-                    Row(
-                        modifier = Modifier
-                            .padding(top = 16.dp)
-                            .fillMaxWidth()
-                            .background(
-                                color = MaterialTheme.colorScheme.fillPink,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        NcIcon(
-                            painter = painterResource(id = TransactionR.drawable.ic_timer),
-                            contentDescription = null,
-                            modifier = Modifier.size(36.dp),
-                        )
-                        val lockText = if (lockBased == MiniscriptTimelockBased.HEIGHT_LOCK) {
-                            stringResource(
-                                id = TransactionR.string.nc_timelocked_until_block,
-                                lockedTime
-                            )
-                        } else {
-                            val date = Date(lockedTime * 1000L)
-                            stringResource(
-                                id = TransactionR.string.nc_timelocked_until_date,
-                                date.dateTimeFormat()
-                            )
-                        }
-                        Text(
-                            text = lockText,
-                            style = NunchukTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.textPrimary
-                        )
                     }
                 }
             }
