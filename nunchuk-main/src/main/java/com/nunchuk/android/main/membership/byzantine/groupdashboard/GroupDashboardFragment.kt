@@ -560,7 +560,16 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                     )
                 )
             } else {
-                viewModel.handleRegisterSigners(alert.id, alert.payload.xfps)
+                if (viewModel.isOnChainWallet()) {
+                    navigator.openUploadConfigurationScreen(
+                        activityContext = requireActivity(),
+                        walletId = viewModel.getWallet().id,
+                        groupId = viewModel.getGroupId(),
+                        type = UploadConfigurationType.RegisterOnly
+                    )
+                } else {
+                    viewModel.handleRegisterSigners(alert.id, alert.payload.xfps)
+                }
             }
         } else if (alert.type == AlertType.REQUEST_INHERITANCE_PLANNING_APPROVED) {
             navigator.openInheritancePlanningScreen(
