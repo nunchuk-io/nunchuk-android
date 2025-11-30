@@ -292,11 +292,13 @@ private fun ColdCardCheckFirmwareContent(
                         "Your $signerName must support Miniscript for on-chain timelocks. Please make sure the device is running "
                     )
                     if (firmwareVersion.isNotEmpty()) {
-                        append(firmwareVersion)
-                        append(" or above.")
-                        append(" ")
                         withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
-                            append("$firmwareVersion or above.")
+                            val versionText = if (firmwareVersion.contains("or above", ignoreCase = true)) {
+                                "$firmwareVersion."
+                            } else {
+                                "$firmwareVersion or above."
+                            }
+                            append(versionText)
                         }
                     } else {
                         append("the latest firmware version.")
@@ -307,7 +309,7 @@ private fun ColdCardCheckFirmwareContent(
                         tag = "URL",
                         annotation = when (args.signerTag) {
                             SignerTag.COLDCARD -> "https://coldcard.com/docs/upgrade/"
-                            SignerTag.JADE -> "https://help.blockstream.com/hc/en-us/articles/4403295799577-How-do-I-update-the-firmware-on-my-Blockstream-Jade"
+                            SignerTag.JADE -> "https://help.blockstream.com/hc/en-us/articles/4408030503577-Update-Jade-firmware"
                             else -> ""
                         }
                     )
@@ -317,7 +319,11 @@ private fun ColdCardCheckFirmwareContent(
                             textDecoration = TextDecoration.Underline
                         )
                     ) {
-                        append("$signerName's instructions")
+                        if (args.signerTag == SignerTag.JADE) {
+                            append("Blockstream's instructions")
+                        } else {
+                            append("$signerName's instructions")
+                        }
                     }
                     pop()
                     append(".")
