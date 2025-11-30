@@ -185,7 +185,7 @@ private fun RollOverCoinControlContent(
                     Text(
                         modifier = Modifier.align(Alignment.Center),
                         textAlign = TextAlign.Center,
-                        text = stringResource(com.nunchuk.android.wallet.R.string.nc_collections),
+                        text = stringResource(R.string.nc_coin_control),
                         style = NunchukTheme.typography.titleLarge
                     )
                     Text(
