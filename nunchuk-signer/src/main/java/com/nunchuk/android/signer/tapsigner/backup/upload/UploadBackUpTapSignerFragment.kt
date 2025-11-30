@@ -59,19 +59,21 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         nfcViewModel.updateMasterSigner(args.masterSignerId)
+        val activity = requireActivity() as NfcSetupActivity
         val isAddNewKey =
-            if (args.isOldKey) false else (requireActivity() as NfcSetupActivity).isAddNewSigner
-        val replacedXfp = (requireActivity() as NfcSetupActivity).replacedXfp
-        val walletId = (requireActivity() as NfcSetupActivity).walletId
+            if (args.isOldKey) false else activity.isAddNewSigner
+        val replacedXfp = activity.replacedXfp
+        val walletId = activity.walletId
         viewModel.init(
             isAddNewKey = isAddNewKey,
-            groupId = (requireActivity() as NfcSetupActivity).groupId,
-            signerIndex = (requireActivity() as NfcSetupActivity).signerIndex,
+            groupId = activity.groupId,
+            signerIndex = activity.signerIndex,
             replacedXfp = replacedXfp,
             walletId = walletId,
             masterSignerId = args.masterSignerId,
             filePath = args.filePath,
-            isRequestAddOrReplaceKey = true
+            isRequestAddOrReplaceKey = true,
+            isOnChainFlow = activity.isOnChainBackUp
         )
     }
 
@@ -93,15 +95,28 @@ class UploadBackUpTapSignerFragment : MembershipFragment() {
         flowObserver(viewModel.event) {
             when (it) {
                 BackingUpEvent.OnContinueClicked -> {
-                    (requireActivity() as NfcSetupActivity).keyId = if ((requireActivity() as NfcSetupActivity).replacedXfp.isNotEmpty()) viewModel.getKeyId() else ""
-                    findNavController().navigate(
-                        UploadBackUpTapSignerFragmentDirections.actionUploadBackUpTapSignerFragmentToTapSignerBackUpExplainFragment(
-                            viewModel.getServerFilePath(),
-                            args.masterSignerId
-                        ),
-                        NavOptions.Builder()
-                            .setPopUpTo(findNavController().graph.startDestinationId, true).build()
-                    )
+                    val activity = requireActivity() as NfcSetupActivity
+                    activity.keyId = if (activity.replacedXfp.isNotEmpty()) viewModel.getKeyId() else ""
+                    
+                    if (activity.isOnChainBackUp) {
+                        findNavController().navigate(
+                            UploadBackUpTapSignerFragmentDirections.actionUploadBackUpTapSignerFragmentToTapSignerVerifyBackUpOptionFragment(
+                                viewModel.getServerFilePath(),
+                                args.masterSignerId
+                            ),
+                            NavOptions.Builder()
+                                .setPopUpTo(findNavController().graph.startDestinationId, true).build()
+                        )
+                    } else {
+                        findNavController().navigate(
+                            UploadBackUpTapSignerFragmentDirections.actionUploadBackUpTapSignerFragmentToTapSignerBackUpExplainFragment(
+                                viewModel.getServerFilePath(),
+                                args.masterSignerId
+                            ),
+                            NavOptions.Builder()
+                                .setPopUpTo(findNavController().graph.startDestinationId, true).build()
+                        )
+                    }
                 }
 
                 is BackingUpEvent.ShowError -> showError(it.message)

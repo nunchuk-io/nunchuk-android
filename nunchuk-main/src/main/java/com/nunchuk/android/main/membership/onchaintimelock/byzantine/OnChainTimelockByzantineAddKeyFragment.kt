@@ -379,7 +379,11 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 is OnChainTimelockByzantineAddKeyListEvent.OnAddKey -> handleOnAddKey(event.data)
                 is OnChainTimelockByzantineAddKeyListEvent.OnVerifySigner -> {
                     if (event.signer.type == SignerType.NFC) {
-                        openVerifyTapSigner(event)
+                        if (event.isBackupNfc) {
+                            openBackupTapSigner(event)
+                        } else {
+                            openVerifyTapSigner(event)
+                        }
                     } else {
                         openVerifyColdCard(event)
                     }
@@ -561,6 +565,18 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
     }
 
     private fun openVerifyTapSigner(event: OnChainTimelockByzantineAddKeyListEvent.OnVerifySigner) {
+        navigator.openVerifyBackupTapSigner(
+            activity = requireActivity(),
+            fromMembershipFlow = true,
+            backUpFilePath = event.filePath,
+            masterSignerId = event.signer.id,
+            groupId = (activity as MembershipActivity).groupId,
+            walletId = (activity as MembershipActivity).walletId,
+            isOnChainBackUp = true,
+        )
+    }
+
+    private fun openBackupTapSigner(event: OnChainTimelockByzantineAddKeyListEvent.OnVerifySigner) {
         navigator.openCreateBackUpTapSigner(
             activity = requireActivity(),
             fromMembershipFlow = true,
@@ -620,6 +636,7 @@ fun OnChainTimelockByzantineAddKeyListScreen(
         onAddClicked = viewModel::onAddKeyClicked,
         onVerifyClicked = viewModel::onVerifyClicked,
         keys = keys,
+        uiState = state,
         remainingTime = remainingTime,
         onMoreClicked = onMoreClicked,
         refresh = viewModel::refresh,
@@ -634,6 +651,7 @@ fun OnChainTimelockByzantineAddKeyListScreen(
 fun OnChainTimelockByzantineAddKeyListContent(
     isRefreshing: Boolean = false,
     remainingTime: Int,
+    uiState: OnChainTimelockByzantineAddKeyListState = OnChainTimelockByzantineAddKeyListState(),
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
     onConfigTimelockClicked: (data: AddKeyOnChainData) -> Unit = {},
@@ -721,7 +739,8 @@ fun OnChainTimelockByzantineAddKeyListContent(
                             item = key,
                             onAddClicked = onAddClicked,
                             onVerifyClicked = onVerifyClicked,
-                            onChangeTimelockClicked = onChangeTimelockClicked
+                            onChangeTimelockClicked = onChangeTimelockClicked,
+                            isMissingBackup = uiState.missingBackupKeys.contains(key) && key.signers?.firstOrNull()?.type == SignerType.NFC
                         )
                     }
 
@@ -779,6 +798,7 @@ private fun AddKeyCard(
     onVerifyClicked: (data: AddKeyOnChainData) -> Unit = {},
     isDisabled: Boolean = false,
     isStandard: Boolean = false,
+    isMissingBackup: Boolean = false,
     onChangeTimelockClicked: (data: AddKeyOnChainData) -> Unit = {}
 ) {
     ConstraintLayout(
@@ -914,8 +934,12 @@ private fun AddKeyCard(
                                         modifier = Modifier.height(36.dp),
                                         onClick = { onVerifyClicked(item) },
                                     ) {
-                                        Text(text = stringResource(R.string.nc_verify),
-                                            style = NunchukTheme.typography.caption)
+                                        Text(
+                                            text = if (isMissingBackup.not()) stringResource(R.string.nc_verify) else stringResource(
+                                                R.string.nc_upload_backup
+                                            ),
+                                            style = NunchukTheme.typography.caption
+                                        )
                                     }
                                 }
                             } else {

@@ -23,8 +23,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
-import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerByPathUseCase
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
+import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerByPathUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
@@ -45,7 +45,6 @@ import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
-import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.Chain
@@ -151,6 +150,8 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         viewModelScope.launch {
             membershipStepState.combine(key) { _, keys -> keys }
                 .collect { keys ->
+                    val nfcMissingBackupKeys = arrayListOf<AddKeyOnChainData>()
+
                     val updatedKeys = keys.map { addKeyData ->
                         var updatedCard = addKeyData
 
@@ -187,11 +188,18 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                                     timelock = if (step == MembershipStep.TIMELOCK) info.parseTimelockExtra() else null
                                 )
                             }
+
+                            if (addKeyData.signers?.firstOrNull()?.type == SignerType.NFC) {
+                                if (extra != null && extra.userKeyFileName.isEmpty()) {
+                                    nfcMissingBackupKeys.add(updatedCard)
+                                }
+                            }
                         }
 
                         updatedCard
                     }
                     _keys.value = updatedKeys
+                    _state.update { it.copy(missingBackupKeys = nfcMissingBackupKeys) }
                 }
         }
         viewModelScope.launch {
@@ -365,7 +373,8 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                 AddKeyListEvent.OnVerifySigner(
                     signer = signer,
                     filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer),
-                    backUpFileName = getBackUpFileName(stepInfo.extraData)
+                    backUpFileName = getBackUpFileName(stepInfo.extraData),
+                    isBackupNfc = _state.value.missingBackupKeys.contains(data) && signer.type == SignerType.NFC
                 )
             )
         }
@@ -792,7 +801,8 @@ sealed class AddKeyListEvent {
     data class OnVerifySigner(
         val signer: SignerModel,
         val filePath: String,
-        val backUpFileName: String
+        val backUpFileName: String,
+        val isBackupNfc: Boolean = false
     ) : AddKeyListEvent()
 
     data object OnAddAllKey : AddKeyListEvent()
@@ -812,5 +822,6 @@ data class AddKeyListState(
     val isRefresh: Boolean = false,
     val signers: List<SignerModel> = emptyList(),
     val walletType: WalletType? = null,
-    val requestCacheTapSignerXpubEvent: Boolean = false
+    val requestCacheTapSignerXpubEvent: Boolean = false,
+    val missingBackupKeys: List<AddKeyOnChainData> = emptyList()
 )

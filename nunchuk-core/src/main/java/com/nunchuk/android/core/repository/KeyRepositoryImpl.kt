@@ -98,7 +98,8 @@ internal class KeyRepositoryImpl @Inject constructor(
         newIndex: Int,
         isRequestAddKey: Boolean,
         walletType: WalletType,
-        existingColdCard: SingleSigner?
+        existingColdCard: SingleSigner?,
+        isOnChainFlow: Boolean
     ): Flow<KeyUpload> {
         return callbackFlow {
             val file = File(filePath)
@@ -135,6 +136,30 @@ internal class KeyRepositoryImpl @Inject constructor(
                     image = body
                 )
             }
+            
+            if (isOnChainFlow) {
+                send(KeyUpload.Progress(100))
+
+                if (result.isSuccess) {
+                    val serverKeyFilePath = nfcFileManager.storeServerBackupKeyToFile(
+                        result.data.keyId,
+                        result.data.keyBackUpBase64
+                    )
+                    send(
+                        KeyUpload.Data(
+                            filePath = serverKeyFilePath,
+                            backUpFileName = result.data.fileName.orEmpty(),
+                            keyId = result.data.keyId
+                        )
+                    )
+                } else {
+                    send(KeyUpload.KeyVerified(result.error.message))
+                }
+                file.delete()
+                awaitClose { }
+                return@callbackFlow
+            }
+            
             if (result.isSuccess || result.error.code == ALREADY_VERIFIED_CODE) {
                 val response = if (result.isSuccess) result.data else null
                 val chatId = accountManager.getAccount().chatId
@@ -262,7 +287,8 @@ internal class KeyRepositoryImpl @Inject constructor(
         walletId: String,
         groupId: String,
         isRequestReplaceKey: Boolean,
-        exisingColdCard: SingleSigner?
+        exisingColdCard: SingleSigner?,
+        isOnChainFlow: Boolean
     ): Flow<KeyUpload> {
         return callbackFlow {
             val file = File(filePath)
@@ -304,6 +330,30 @@ internal class KeyRepositoryImpl @Inject constructor(
                     image = body
                 )
             }
+            
+            if (isOnChainFlow) {
+                send(KeyUpload.Progress(100))
+
+                if (result.isSuccess) {
+                    val serverKeyFilePath = nfcFileManager.storeServerBackupKeyToFile(
+                        result.data.keyId,
+                        result.data.keyBackUpBase64
+                    )
+                    send(
+                        KeyUpload.Data(
+                            filePath = serverKeyFilePath,
+                            backUpFileName = result.data.fileName.orEmpty(),
+                            keyId = result.data.keyId
+                        )
+                    )
+                } else {
+                    send(KeyUpload.KeyVerified(result.error.message))
+                }
+                file.delete()
+                awaitClose { }
+                return@callbackFlow
+            }
+            
             if (result.isSuccess.not() && result.error.code != ALREADY_VERIFIED_CODE) {
                 throw result.error
             }

@@ -194,6 +194,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
 
     private suspend fun updateKeyData() {
         if (key.value.isEmpty()) return
+        val nfcMissingBackupKeys = arrayListOf<AddKeyOnChainData>()
         val updatedKeys = key.value.map { addKeyData ->
             var updatedCard = addKeyData
 
@@ -225,11 +226,18 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                         timelock = if (step == MembershipStep.TIMELOCK) info.parseTimelockExtra() else null
                     )
                 }
+
+                if (addKeyData.signers?.firstOrNull()?.type == SignerType.NFC) {
+                    if (extra != null && extra.userKeyFileName.isEmpty()) {
+                        nfcMissingBackupKeys.add(updatedCard)
+                    }
+                }
             }
 
             updatedCard
         }
         _keys.value = updatedKeys
+        _state.update { it.copy(missingBackupKeys = nfcMissingBackupKeys) }
     }
 
     fun onUpdateSignerTag(signer: SignerModel, tag: SignerTag) {
@@ -300,7 +308,8 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
                 OnChainTimelockByzantineAddKeyListEvent.OnVerifySigner(
                     signer = signer,
                     filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer),
-                    backUpFileName = getBackUpFileName(stepInfo.extraData)
+                    backUpFileName = getBackUpFileName(stepInfo.extraData),
+                    isBackupNfc = _state.value.missingBackupKeys.contains(data) && signer.type == SignerType.NFC
                 )
             )
         }
@@ -787,7 +796,8 @@ sealed class OnChainTimelockByzantineAddKeyListEvent {
     data class OnVerifySigner(
         val signer: SignerModel,
         val filePath: String,
-        val backUpFileName: String
+        val backUpFileName: String,
+        val isBackupNfc: Boolean = false
     ) : OnChainTimelockByzantineAddKeyListEvent()
 
     data object OnAddAllKey : OnChainTimelockByzantineAddKeyListEvent()
@@ -811,6 +821,7 @@ data class OnChainTimelockByzantineAddKeyListState(
     val shouldShowKeyAdded: Boolean = false,
     val groupWalletType: GroupWalletType? = null,
     val walletType: WalletType? = null,
-    val requestCacheTapSignerXpubEvent: Boolean = false
+    val requestCacheTapSignerXpubEvent: Boolean = false,
+    val missingBackupKeys: List<AddKeyOnChainData> = emptyList()
 )
 

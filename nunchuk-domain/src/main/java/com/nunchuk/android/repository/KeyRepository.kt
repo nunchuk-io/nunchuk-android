@@ -44,7 +44,8 @@ interface KeyRepository {
         newIndex: Int,
         isRequestAddKey: Boolean,
         walletType: WalletType,
-        existingColdCard: SingleSigner? = null
+        existingColdCard: SingleSigner? = null,
+        isOnChainFlow: Boolean = false
     ): Flow<KeyUpload>
 
     fun uploadReplaceBackupKey(
@@ -59,7 +60,8 @@ interface KeyRepository {
         walletId: String,
         groupId: String,
         isRequestReplaceKey: Boolean,
-        existingColdCard: SingleSigner? = null
+        existingColdCard: SingleSigner? = null,
+        isOnChainFlow: Boolean = false
     ): Flow<KeyUpload>
 
     suspend fun setKeyVerified(

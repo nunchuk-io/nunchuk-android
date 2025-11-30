@@ -275,7 +275,13 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                         }
                     }
                 }
-                val shouldSave = info == null || info.masterSignerId != key.xfp || info.verifyType != verifyType
+                val infoUserKeyFileName = info?.extraJson?.let {
+                    runCatching {
+                        gson.fromJson(it, SignerExtra::class.java).userKeyFileName
+                    }.getOrNull()
+                }.orEmpty()
+                val shouldSave = info == null || info.masterSignerId != key.xfp || info.verifyType != verifyType || 
+                    (infoUserKeyFileName != key.userKey?.fileName && walletType == WalletType.MINISCRIPT)
                 
                 if (shouldSave) {
                     membershipRepository.saveStepInfo(

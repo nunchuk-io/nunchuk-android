@@ -134,6 +134,13 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_uploadBackUpTapSignerFragment_to_tapSignerVerifyBackUpOptionFragment"
+            app:destination="@id/tapSignerVerifyBackUpOptionFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <argument
             android:name="is_old_key"
             app:argType="boolean"
@@ -258,6 +265,13 @@
         <action
             android:id="@+id/action_tapSignerBackingUpIntroOnChainFragment_to_tapSignerVerifyBackUpOptionFragment"
             app:destination="@id/tapSignerVerifyBackUpOptionFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_tapSignerBackingUpIntroOnChainFragment_to_uploadBackUpTapSignerFragment"
+            app:destination="@id/uploadBackUpTapSignerFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"

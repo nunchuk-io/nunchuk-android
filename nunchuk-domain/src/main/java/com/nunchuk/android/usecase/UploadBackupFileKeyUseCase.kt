@@ -54,7 +54,8 @@ class UploadBackupFileKeyUseCase @Inject constructor(
             newIndex = parameters.signerIndex,
             isRequestAddKey = parameters.isRequestAddKey,
             walletType = parameters.walletType,
-            existingColdCard = parameters.existingColdCard
+            existingColdCard = parameters.existingColdCard,
+            isOnChainFlow = parameters.isOnChainFlow
         ).onCompletion {
             withContext(NonCancellable) {
                 runCatching {
@@ -76,6 +77,7 @@ class UploadBackupFileKeyUseCase @Inject constructor(
         val signerIndex: Int,
         val walletType: WalletType,
         val existingColdCard: SingleSigner?,
-        val isRequestAddKey: Boolean = true
+        val isRequestAddKey: Boolean = true,
+        val isOnChainFlow: Boolean = false
     )
 }

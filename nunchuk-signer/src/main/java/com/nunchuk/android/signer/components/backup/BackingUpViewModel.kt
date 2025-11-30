@@ -69,6 +69,7 @@ class BackingUpViewModel @Inject constructor(
     private var keyName = ""
     private var isRequestAddOrReplaceKey = true
     private var existingColdCard: SingleSigner? = null
+    private var isOnChainFlow = false
 
     fun init(
         isAddNewKey: Boolean,
@@ -81,7 +82,8 @@ class BackingUpViewModel @Inject constructor(
         signerType: SignerType = SignerType.NFC,
         keyName: String = "",
         isRequestAddOrReplaceKey: Boolean,
-        existingColdCard: SingleSigner? = null
+        existingColdCard: SingleSigner? = null,
+        isOnChainFlow: Boolean = false
     ) {
         this.isAddNewKey = isAddNewKey
         this.groupId = groupId
@@ -94,6 +96,7 @@ class BackingUpViewModel @Inject constructor(
         this.keyName = keyName
         this.isRequestAddOrReplaceKey = isRequestAddOrReplaceKey
         this.existingColdCard = existingColdCard
+        this.isOnChainFlow = isOnChainFlow
     }
 
     fun upload() {
@@ -116,7 +119,8 @@ class BackingUpViewModel @Inject constructor(
                         replacedXfp = replacedXfp,
                         walletId = walletId,
                         existingColdCard = existingColdCard,
-                        isRequestReplaceKey = true
+                        isRequestReplaceKey = true,
+                        isOnChainFlow = isOnChainFlow
                     )
                 )
             } else {
@@ -137,7 +141,8 @@ class BackingUpViewModel @Inject constructor(
                         signerIndex = signerIndex,
                         walletType = walletType,
                         existingColdCard = existingColdCard,
-                        isRequestAddKey = isRequestAddOrReplaceKey
+                        isRequestAddKey = isRequestAddOrReplaceKey,
+                        isOnChainFlow = isOnChainFlow
                     )
                 )
             }.collect {

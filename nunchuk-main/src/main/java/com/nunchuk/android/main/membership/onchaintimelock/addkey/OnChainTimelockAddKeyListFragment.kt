@@ -318,6 +318,11 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.refresh()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         // Clear TapSigner caching callback when fragment is destroyed
@@ -375,7 +380,11 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 is AddKeyListEvent.OnAddKey -> handleOnAddKey(event.data)
                 is AddKeyListEvent.OnVerifySigner -> {
                     if (event.signer.type == SignerType.NFC) {
-                        openVerifyTapSigner(event)
+                        if (event.isBackupNfc) {
+                            openBackupTapSigner(event)
+                        } else {
+                            openVerifyTapSigner(event)
+                        }
                     } else {
                         openVerifyColdCard(event)
                     }
@@ -559,6 +568,18 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
     }
 
     private fun openVerifyTapSigner(event: AddKeyListEvent.OnVerifySigner) {
+        navigator.openVerifyBackupTapSigner(
+            activity = requireActivity(),
+            fromMembershipFlow = true,
+            backUpFilePath = event.filePath,
+            masterSignerId = event.signer.id,
+            groupId = (activity as MembershipActivity).groupId,
+            walletId = (activity as MembershipActivity).walletId,
+            isOnChainBackUp = true,
+        )
+    }
+
+    private fun openBackupTapSigner(event: AddKeyListEvent.OnVerifySigner) {
         navigator.openCreateBackUpTapSigner(
             activity = requireActivity(),
             fromMembershipFlow = true,
@@ -597,6 +618,7 @@ fun AddKeyListScreen(
         onAddClicked = viewModel::onAddKeyClicked,
         onVerifyClicked = viewModel::onVerifyClicked,
         keys = keys,
+        uiState = uiState,
         remainingTime = remainingTime,
         onMoreClicked = onMoreClicked,
         refresh = viewModel::refresh,
@@ -610,6 +632,7 @@ fun AddKeyListScreen(
 fun OnChainTimelockAddKeyListContent(
     isRefreshing: Boolean = false,
     remainingTime: Int,
+    uiState: AddKeyListState = AddKeyListState(),
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
     onConfigTimelockClicked: (data: AddKeyOnChainData) -> Unit = {},
@@ -695,7 +718,8 @@ fun OnChainTimelockAddKeyListContent(
                             item = key,
                             onAddClicked = onAddClicked,
                             onVerifyClicked = onVerifyClicked,
-                            onChangeTimelockClicked = onChangeTimelockClicked
+                            onChangeTimelockClicked = onChangeTimelockClicked,
+                            isMissingBackup = uiState.missingBackupKeys.contains(key) && key.signers?.firstOrNull()?.type == SignerType.NFC
                         )
                     }
                     item {
@@ -749,10 +773,11 @@ fun OnChainTimelockAddKeyListContent(
 private fun AddKeyCard(
     item: AddKeyOnChainData,
     modifier: Modifier = Modifier,
-    onAddClicked: (data: AddKeyOnChainData) -> Unit = {},
-    onVerifyClicked: (data: AddKeyOnChainData) -> Unit = {},
     isDisabled: Boolean = false,
     isStandard: Boolean = false,
+    isMissingBackup: Boolean = false,
+    onAddClicked: (data: AddKeyOnChainData) -> Unit = {},
+    onVerifyClicked: (data: AddKeyOnChainData) -> Unit = {},
     onChangeTimelockClicked: (data: AddKeyOnChainData) -> Unit = {}
 ) {
     ConstraintLayout(
@@ -895,7 +920,9 @@ private fun AddKeyCard(
                                         onClick = { onVerifyClicked(item) },
                                     ) {
                                         Text(
-                                            text = stringResource(R.string.nc_verify),
+                                            text = if (isMissingBackup.not()) stringResource(R.string.nc_verify) else stringResource(
+                                                R.string.nc_upload_backup
+                                            ),
                                             style = NunchukTheme.typography.caption
                                         )
                                     }

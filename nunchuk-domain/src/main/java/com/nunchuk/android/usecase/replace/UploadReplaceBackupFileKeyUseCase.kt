@@ -45,7 +45,8 @@ class UploadReplaceBackupFileKeyUseCase @Inject constructor(
             walletId = parameters.walletId,
             groupId = parameters.groupId,
             isRequestReplaceKey = parameters.isRequestReplaceKey,
-            existingColdCard = parameters.existingColdCard
+            existingColdCard = parameters.existingColdCard,
+            isOnChainFlow = parameters.isOnChainFlow
         )
     data class Param(
         val replacedXfp: String,
@@ -59,6 +60,7 @@ class UploadReplaceBackupFileKeyUseCase @Inject constructor(
         val walletId: String,
         val groupId: String,
         val existingColdCard: SingleSigner?,
-        val isRequestReplaceKey: Boolean = true
+        val isRequestReplaceKey: Boolean = true,
+        val isOnChainFlow: Boolean = false
     )
 }
