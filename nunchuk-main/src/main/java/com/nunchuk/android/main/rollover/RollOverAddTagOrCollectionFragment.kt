@@ -17,6 +17,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -28,6 +30,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
@@ -43,6 +47,8 @@ class RollOverAddTagOrCollectionFragment : Fragment() {
     @Inject
     lateinit var navigator: NunchukNavigator
 
+    private val args: RollOverAddTagOrCollectionFragmentArgs by navArgs()
+
     private val rollOverWalletViewModel: RollOverWalletViewModel by activityViewModels()
 
     override fun onCreateView(
@@ -54,6 +60,22 @@ class RollOverAddTagOrCollectionFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
+                val sharedUiState by rollOverWalletViewModel.uiState.collectAsStateWithLifecycle()
+                val isCollectionOrTagExist = sharedUiState.coinTags.isNotEmpty() ||
+                        sharedUiState.coinCollections.isNotEmpty()
+
+                LaunchedEffect(isCollectionOrTagExist) {
+                    if (isCollectionOrTagExist) {
+                        findNavController().navigate(
+                            RollOverAddTagOrCollectionFragmentDirections
+                                .actionRollOverAddTagOrCollectionFragmentToRollOverCoinControlFragment(
+                                    oldWalletId = args.oldWalletId,
+                                    newWalletId = args.newWalletId
+                                )
+                        )
+                    }
+                }
+
                 RollOverAddTagOrCollectionView(
                     onAddTagOrCollectionClicked = {
                         navigator.openCoinList(

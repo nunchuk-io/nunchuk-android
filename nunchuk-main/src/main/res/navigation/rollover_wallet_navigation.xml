@@ -98,6 +98,16 @@
             android:name="new_wallet_id"
             app:argType="string" />
 
+        <action
+            android:id="@+id/action_rollOverAddTagOrCollectionFragment_to_rollOverCoinControlFragment"
+            app:destination="@id/rollOverCoinControlFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:popUpTo="@id/rollOverAddTagOrCollectionFragment"
+            app:popUpToInclusive="true"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+
     </fragment>
 
     <fragment

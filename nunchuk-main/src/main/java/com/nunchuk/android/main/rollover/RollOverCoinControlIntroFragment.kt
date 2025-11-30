@@ -172,13 +172,7 @@ private fun RollOverCoinControlIntroContent(
                         onClick = onAddTagOrCollectionClicked
                     ) {
                         Text(
-                            text = if (hasCollectionOrTag) {
-                                stringResource(R.string.nc_keep_coin_tags_and_collections)
-                            } else {
-                                stringResource(
-                                    R.string.nc_add_coin_tags_or_collections
-                                )
-                            },
+                            text = stringResource(R.string.nc_keep_coin_tags_and_collections),
                             style = NunchukTheme.typography.title,
                         )
                     }
