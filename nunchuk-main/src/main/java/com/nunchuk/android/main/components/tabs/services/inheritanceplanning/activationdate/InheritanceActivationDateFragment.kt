@@ -234,7 +234,7 @@ fun InheritanceActivationDateScreenContent(
                 ) {
                     val (title, input) = createRefs()
                     Text(
-                        text = stringResource(id = R.string.nc_activation_date),
+                        text = stringResource(id = R.string.nc_date),
                         style = NunchukTheme.typography.titleSmall,
                         modifier = Modifier
                             .padding(bottom = 4.dp)
