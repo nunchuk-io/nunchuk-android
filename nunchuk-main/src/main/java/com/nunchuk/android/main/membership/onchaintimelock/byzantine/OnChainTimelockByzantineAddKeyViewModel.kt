@@ -30,7 +30,6 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
-import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.orUnknownError
@@ -546,51 +545,6 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
         }
     }
 
-    fun handleCustomKeyAccountResult(
-        signerFingerPrint: String,
-        newIndex: Int,
-        currentKeyData: AddKeyOnChainData?
-    ) {
-        viewModelScope.launch {
-            val signerByIndexResult = getSignerFromMasterSignerByIndex(signerFingerPrint, newIndex)
-
-            when (signerByIndexResult) {
-                is Result.Success -> {
-                    signerByIndexResult.data?.let { singleSigner ->
-                        processTapSignerWithCompleteData(
-                            singleSigner,
-                            singleSigner.toModel(),
-                            data = currentKeyData
-                        )
-                    }
-                }
-
-                is Result.Error -> {
-                    val error = signerByIndexResult.exception
-                    if (error is NCNativeException && error.message.contains("-1009")) {
-                        // Store context for TapSigner caching - using the custom newIndex
-                        savedStateHandle[KEY_TAPSIGNER_MASTER_ID] = signerFingerPrint
-                        savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(newIndex, isTestNet)
-                        savedStateHandle[KEY_TAPSIGNER_CONTEXT] =
-                            TapSignerCachingContext.HANDLE_CUSTOM_KEY_ACCOUNT_RESULT.name
-                        // For custom key account result, we don't have data/walletId context to store
-                        pendingTapSignerData = null
-                        pendingTapSignerWalletId = null
-                        pendingTapSignerSignerModel = null
-                        requestCacheTapSignerXpub()
-                    } else {
-                        // Other error, show error message
-                        _event.emit(
-                            OnChainTimelockByzantineAddKeyListEvent.ShowError(
-                                error.message ?: "Failed to get signer at index $newIndex"
-                            )
-                        )
-                    }
-                }
-            }
-        }
-    }
-
     fun handleSignerNewIndex(signer: SingleSigner, keyOnChainData: AddKeyOnChainData? = null) {
         viewModelScope.launch {
             val currentStep = membershipStepManager.currentStep
@@ -804,12 +758,6 @@ sealed class OnChainTimelockByzantineAddKeyListEvent {
     data object SelectAirgapType : OnChainTimelockByzantineAddKeyListEvent()
     data class ShowError(val message: String) : OnChainTimelockByzantineAddKeyListEvent()
     data class UpdateSignerTag(val signer: SignerModel) : OnChainTimelockByzantineAddKeyListEvent()
-    data class NavigateToCustomKeyAccount(
-        val signer: SignerModel,
-        val walletId: String,
-        val onChainAddSignerParam: OnChainAddSignerParam? = null
-    ) : OnChainTimelockByzantineAddKeyListEvent()
-
     data class HandleSignerTypeLogic(val type: SignerType, val tag: SignerTag?) :
         OnChainTimelockByzantineAddKeyListEvent()
 }

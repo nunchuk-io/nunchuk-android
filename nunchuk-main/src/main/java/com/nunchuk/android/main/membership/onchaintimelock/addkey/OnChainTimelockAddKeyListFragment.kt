@@ -181,21 +181,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         observer()
-        setFragmentResultListener(CustomKeyAccountFragment.REQUEST_KEY) { _, bundle ->
-            val signer = bundle.parcelable<SingleSigner>(GlobalResultKey.EXTRA_SIGNER)
-            val newIndex = bundle.getInt(GlobalResultKey.EXTRA_INDEX, -1)
-
-            if (newIndex != -1 && signer?.masterFingerprint?.isNotEmpty() == true) {
-                viewModel.handleCustomKeyAccountResult(
-                    signer.masterFingerprint,
-                    newIndex,
-                    keyData = currentKeyData
-                )
-            } else if (signer != null) {
-                viewModel.onSelectedExistingHardwareSigner(signer, currentKeyData)
-            }
-            clearFragmentResult(CustomKeyAccountFragment.REQUEST_KEY)
-        }
         setFragmentResultListener(TapSignerListBottomSheetFragment.REQUEST_KEY) { _, bundle ->
             val data = TapSignerListBottomSheetFragmentArgs.fromBundle(bundle)
             if (data.signers.isNotEmpty()) {
@@ -398,16 +383,6 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> {
 
-                }
-
-                is AddKeyListEvent.NavigateToCustomKeyAccount -> {
-                    findNavController().navigate(
-                        OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToCustomKeyAccountFragmentFragment(
-                            event.signer,
-                            walletId = event.walletId,
-                            onChainAddSignerParam = event.onChainAddSignerParam
-                        )
-                    )
                 }
 
                 is AddKeyListEvent.HandleSignerTypeLogic -> {

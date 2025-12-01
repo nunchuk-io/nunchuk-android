@@ -613,43 +613,6 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         }
     }
 
-    fun handleCustomKeyAccountResult(signerFingerPrint: String, newIndex: Int, keyData: AddKeyOnChainData?) {
-        viewModelScope.launch {
-            val signerByIndexResult = getSignerFromMasterSignerByIndex(signerFingerPrint, newIndex)
-
-            when (signerByIndexResult) {
-                is Result.Success -> {
-                    signerByIndexResult.data?.let { singleSigner ->
-                        processTapSignerWithCompleteData(singleSigner, singleSigner.toModel(), data = keyData)
-                    }
-                }
-
-                is Result.Error -> {
-                    val error = signerByIndexResult.exception
-                    if (error is NCNativeException && error.message.contains("-1009")) {
-                        // Store context for TapSigner caching - using the custom newIndex
-                        savedStateHandle[KEY_TAPSIGNER_MASTER_ID] = signerFingerPrint
-                        savedStateHandle[KEY_TAPSIGNER_PATH] = getPath(newIndex, isTestNet)
-                        savedStateHandle[KEY_TAPSIGNER_CONTEXT] =
-                            TapSignerCachingContext.HANDLE_CUSTOM_KEY_ACCOUNT_RESULT.name
-                        // For custom key account result, we don't have data/walletId context to store
-                        pendingTapSignerData = null
-                        pendingTapSignerWalletId = null
-                        pendingTapSignerSignerModel = null
-                        requestCacheTapSignerXpub()
-                    } else {
-                        // Other error, show error message
-                        _event.emit(
-                            AddKeyListEvent.ShowError(
-                                error.message ?: "Failed to get signer at index $newIndex"
-                            )
-                        )
-                    }
-                }
-            }
-        }
-    }
-
     private fun getStepInfo(step: MembershipStep) =
         membershipStepState.value.filter {
             it.plan == membershipStepManager.localMembershipPlan
@@ -807,12 +770,6 @@ sealed class AddKeyListEvent {
 
     data object OnAddAllKey : AddKeyListEvent()
     data object SelectAirgapType : AddKeyListEvent()
-    data class NavigateToCustomKeyAccount(
-        val signer: SignerModel,
-        val walletId: String,
-        val onChainAddSignerParam: OnChainAddSignerParam? = null
-    ) : AddKeyListEvent()
-
     data class HandleSignerTypeLogic(val type: SignerType, val tag: SignerTag?) : AddKeyListEvent()
     data class ShowError(val message: String) : AddKeyListEvent()
 }

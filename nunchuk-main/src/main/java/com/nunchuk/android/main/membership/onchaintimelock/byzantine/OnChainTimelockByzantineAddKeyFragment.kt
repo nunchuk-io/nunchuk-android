@@ -202,7 +202,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                         if (signer.type == SignerType.AIRGAP && signer.tags.isEmpty() && selectedSignerTag != null) {
                             viewModel.onUpdateSignerTag(signer, selectedSignerTag)
                         } else {
-                            viewModel.handleSignerNewIndex(signer.toSingleSigner())
+                            viewModel.handleSignerNewIndex(signer.toSingleSigner(), keyOnChainData = currentKeyData)
                         }
                     }
                 }
@@ -403,17 +403,6 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                         walletId = (activity as MembershipActivity).walletId,
                     )
                 )
-
-                is OnChainTimelockByzantineAddKeyListEvent.NavigateToCustomKeyAccount -> {
-                    findNavController().navigate(
-                        OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToCustomKeyAccountFragmentFragment(
-                            event.signer,
-                            groupId = args.groupId,
-                            walletId = event.walletId,
-                            onChainAddSignerParam = event.onChainAddSignerParam
-                        )
-                    )
-                }
 
                 is OnChainTimelockByzantineAddKeyListEvent.HandleSignerTypeLogic -> {
                     handleSignerTypeLogic(event.type, event.tag)
