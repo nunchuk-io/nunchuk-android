@@ -43,6 +43,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
+import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.matrix.SessionHolder
@@ -81,7 +82,6 @@ import com.nunchuk.android.transaction.components.utils.showCreateTransactionErr
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
-import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -102,7 +102,15 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel.init(args)
-        transactionConfirmViewModel.init(args.walletId)
+        transactionConfirmViewModel.init(
+            walletId = args.walletId,
+            txReceipts = listOf(
+                TxReceipt(
+                    args.address, args.outputAmount
+                )
+            ),
+            subtractFeeFromAmount = args.subtractFeeFromAmount,
+        )
         observerSweepSatscard(sweepSatscardViewModel, nfcViewModel) { args.walletId }
         flowObserver(nfcViewModel.nfcScanInfo.filter { it.requestCode == REQUEST_SATSCARD_SWEEP_SLOT }) {
             sweepSatscardViewModel.init(
@@ -127,7 +135,6 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             var timelockCoin by remember { mutableStateOf<TimelockCoin?>(null) }
             val state by viewModel.state.asFlow()
                 .collectAsStateWithLifecycle(AddReceiptState())
-            Timber.d("CongHai - state.followParents: ${state.subNodeFollowParents}")
 
             LaunchedEffect(Unit) {
                 transactionConfirmViewModel.event.collect {
@@ -169,8 +176,12 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                                     inclusive = true
                                 }
                             }
-                        } else {
+                        } else if (!args.txId.isNullOrEmpty()) {
                             transactionConfirmViewModel.checkMiniscriptSigningPolicyTransaction(args.txId.orEmpty())
+                        } else if (args.rollOverWalletParam != null) {
+                            transactionConfirmViewModel.checkMiniscriptSigningPolicyRollOverTransaction(args.rollOverWalletParam!!)
+                        } else {
+                            transactionConfirmViewModel.checkMiniscriptSigningPolicy(isSelectPath = true)
                         }
                     }
                 }
@@ -179,7 +190,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             val startDestination = when (args.type) {
                 AddReceiptType.BATCH -> Batch
                 AddReceiptType.ADD_RECEIPT -> Main
-                AddReceiptType.SELECT_PATH -> ChooseSigningPolicy
+                AddReceiptType.SELECT_PATH -> ChooseSigningPolicy(false)
             }
 
             NavHost(
@@ -529,6 +540,10 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
             launcher: ActivityResultLauncher<Intent>,
             walletId: String,
             txId: String?,
+            outputAmount: Double,
+            address: String = "",
+            subtractFeeFromAmount: Boolean = false,
+            rollOverWalletParam: RollOverWalletParam?,
         ) {
             launcher.launch(
                 Intent(activityContext, AddReceiptActivity::class.java).apply {
@@ -536,7 +551,11 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                         AddReceiptArgs(
                             walletId = walletId,
                             type = AddReceiptType.SELECT_PATH,
-                            txId = txId
+                            txId = txId,
+                            outputAmount = outputAmount,
+                            address = address,
+                            subtractFeeFromAmount = subtractFeeFromAmount,
+                            rollOverWalletParam = rollOverWalletParam
                         ).buildBundle()
                     )
                 }

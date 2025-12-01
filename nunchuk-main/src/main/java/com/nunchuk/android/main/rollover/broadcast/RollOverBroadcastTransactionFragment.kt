@@ -20,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -135,7 +134,8 @@ private fun RollOverBroadcastTransactionContent(
         NcScaffold(
             modifier = Modifier.systemBarsPadding(),
             topBar = {
-                NcTopAppBar(title = "Before you continue",
+                NcTopAppBar(
+                    title = "Before you continue",
                     textStyle = NunchukTheme.typography.title,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))
@@ -296,6 +296,20 @@ private fun RollOverBroadcastTransactionContent(
 @Preview
 private fun RollOverBroadcastTransactionScreenContentPreview() {
     RollOverBroadcastTransactionContent(
-        uiState = RollOverBroadcastTransactionUiState(isFreeWallet = true, randomizeBroadcast = true),
+        uiState = RollOverBroadcastTransactionUiState(
+            isFreeWallet = true,
+            randomizeBroadcast = true
+        ),
+    )
+}
+
+@Composable
+@Preview
+private fun RollOverBroadcastTransactionScreenContentAssistedPreview() {
+    RollOverBroadcastTransactionContent(
+        uiState = RollOverBroadcastTransactionUiState(
+            isFreeWallet = false,
+            randomizeBroadcast = true
+        ),
     )
 }

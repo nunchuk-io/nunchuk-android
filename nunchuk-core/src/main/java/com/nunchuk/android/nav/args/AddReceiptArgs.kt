@@ -21,6 +21,7 @@ package com.nunchuk.android.nav.args
 
 import android.os.Bundle
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
+import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.UnspentOutput
@@ -40,6 +41,7 @@ data class AddReceiptArgs(
     val sweepType: SweepType = SweepType.NONE,
     val inputs: List<UnspentOutput> = emptyList(),
     val claimInheritanceTxParam: ClaimInheritanceTxParam? = null,
+    val rollOverWalletParam: RollOverWalletParam? = null,
     val type: AddReceiptType = AddReceiptType.ADD_RECEIPT,
 ) {
 
@@ -57,6 +59,7 @@ data class AddReceiptArgs(
         putSerializable(EXTRA_RECEIPT_TYPE, type)
         putBoolean(EXTRA_IS_FROM_SELECTED_COIN, inputs.isNotEmpty())
         txId?.let { putString(EXTRA_TX_ID, it) }
+        putParcelable(EXTRA_ROLL_OVER_WALLET_PARAM, rollOverWalletParam)
     }
 
     companion object {
@@ -73,6 +76,7 @@ data class AddReceiptArgs(
         const val EXTRA_RECEIPT_TYPE = "EXTRA_RECEIPT_TYPE"
         const val EXTRA_IS_FROM_SELECTED_COIN = "is_from_select_coin"
         const val EXTRA_TX_ID = "EXTRA_TX_ID"
+        const val EXTRA_ROLL_OVER_WALLET_PARAM = "EXTRA_ROLL_OVER_WALLET_PARAM"
 
         fun fromBundle(bundle: Bundle): AddReceiptArgs = AddReceiptArgs(
             walletId = bundle.getString(EXTRA_WALLET_ID) ?: "",
@@ -87,6 +91,7 @@ data class AddReceiptArgs(
             claimInheritanceTxParam = bundle.parcelable(EXTRA_CLAIM_INHERITANCE_TX_PARAM),
             type = bundle.serializable<AddReceiptType>(EXTRA_RECEIPT_TYPE) ?: AddReceiptType.ADD_RECEIPT,
             txId = bundle.getString(EXTRA_TX_ID, null),
+            rollOverWalletParam = bundle.parcelable(EXTRA_ROLL_OVER_WALLET_PARAM)
         )
     }
 }

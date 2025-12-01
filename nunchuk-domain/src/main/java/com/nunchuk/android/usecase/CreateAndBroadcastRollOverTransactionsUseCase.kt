@@ -23,6 +23,7 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.TransactionRepository
@@ -41,7 +42,8 @@ class CreateAndBroadcastRollOverTransactionsUseCase @Inject constructor(
                 walletId = parameters.oldWalletId,
                 newWalletId = parameters.newWalletId,
                 feeRate = parameters.feeRate,
-                antiFeeSniping = parameters.antiFeeSniping
+                antiFeeSniping = parameters.antiFeeSniping,
+                signingPath = parameters.signingPath
             )
         } else {
             nunchukNativeSdk.createRollOverTransactions(
@@ -50,7 +52,8 @@ class CreateAndBroadcastRollOverTransactionsUseCase @Inject constructor(
                 tags = parameters.tags,
                 collections = parameters.collections,
                 feeRate = parameters.feeRate,
-                antiFeeSniping = parameters.antiFeeSniping
+                antiFeeSniping = parameters.antiFeeSniping,
+                signingPath = parameters.signingPath
             )
         }
         if (transactions.isEmpty()) return null
@@ -83,5 +86,6 @@ class CreateAndBroadcastRollOverTransactionsUseCase @Inject constructor(
         val randomizeBroadcast: Boolean,
         val isFreeWallet: Boolean,
         val antiFeeSniping: Boolean,
+        val signingPath: SigningPath?
     )
 }

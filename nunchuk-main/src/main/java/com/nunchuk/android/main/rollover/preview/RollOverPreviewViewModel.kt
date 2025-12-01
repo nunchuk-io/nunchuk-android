@@ -8,6 +8,7 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.DraftRollOverTransaction
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.usecase.DraftRollOverTransactionsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,6 +39,7 @@ class RollOverPreviewViewModel @Inject constructor(
 
     private val tags: ArrayList<CoinTag> = arrayListOf()
     private val collections: ArrayList<CoinCollection> = arrayListOf()
+    private var signingPath: SigningPath? = null
 
     private var isDraftedTx = false
 
@@ -46,7 +48,8 @@ class RollOverPreviewViewModel @Inject constructor(
         newWalletId: String,
         selectedTags: List<CoinTag>,
         selectedCollections: List<CoinCollection>,
-        feeRate: Amount
+        feeRate: Amount,
+        signingPath: SigningPath?
     ) {
 
         this.oldWalletId = oldWalletId
@@ -54,6 +57,7 @@ class RollOverPreviewViewModel @Inject constructor(
         this.selectedTags = selectedTags
         this.selectedCollections = selectedCollections
         this.feeRate = feeRate
+        this.signingPath = signingPath
 
         if (isAllRequiredParamsInitialized() && isDraftedTx.not()) {
             isDraftedTx = true
@@ -76,7 +80,8 @@ class RollOverPreviewViewModel @Inject constructor(
                 oldWalletId = oldWalletId,
                 tags = selectedTags,
                 collections = selectedCollections,
-                feeRate = feeRate
+                feeRate = feeRate,
+                signingPath = signingPath
             )
         ).onSuccess { transactions ->
             mappingPreviewUi(transactions)

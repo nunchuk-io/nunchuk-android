@@ -1,9 +1,11 @@
 package com.nunchuk.android.main.rollover
 
+import android.app.Activity.RESULT_OK
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,7 +42,10 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -53,6 +58,16 @@ class RollOverCoinControlIntroFragment : Fragment() {
 
     private val rollOverWalletViewModel: RollOverWalletViewModel by activityViewModels()
 
+    private val selectSigningPathLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data
+            if (it.resultCode == RESULT_OK && data != null) {
+                val signingPath = data.parcelable<SigningPath>(GlobalResultKey.SIGNING_PATH)
+                val address = rollOverWalletViewModel.getAddress()
+                openEstimateFeeScreen(address = address, signingPath = signingPath)
+            }
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -64,24 +79,21 @@ class RollOverCoinControlIntroFragment : Fragment() {
             setContent {
                 val sharedUiState by rollOverWalletViewModel.uiState.collectAsStateWithLifecycle()
                 RollOverCoinControlIntroView(
-                    hasCollectionOrTag = sharedUiState.coinCollections.isNotEmpty() || sharedUiState.coinTags.isNotEmpty(),
                     onContinueClicked = {
                         val address = rollOverWalletViewModel.getAddress()
-                        navigator.openEstimatedFeeScreen(
-                            activityContext = requireActivity(),
-                            walletId = rollOverWalletViewModel.getOldWalletId(),
-                            availableAmount = rollOverWalletViewModel.getOldWallet().balance.pureBTC(),
-                            txReceipts = listOf(
-                                TxReceipt(
-                                    address = address,
-                                    amount = rollOverWalletViewModel.getOldWallet().balance.pureBTC()
-                                )
-                            ),
-                            privateNote = "",
-                            subtractFeeFromAmount = true,
-                            title = getString(R.string.nc_transaction_new),
-                            confirmTxActionButtonText = getString(R.string.nc_confirm_withdraw_balance)
-                        )
+                        val isMiniscript = sharedUiState.oldWallet.miniscript.isNotEmpty()
+                        if (isMiniscript) {
+                            navigator.selectMiniscriptSigningPath(
+                                launcher = selectSigningPathLauncher,
+                                activityContext = requireActivity(),
+                                walletId = rollOverWalletViewModel.getOldWalletId(),
+                                outputAmount = rollOverWalletViewModel.getOldWallet().balance.pureBTC(),
+                                address = address,
+                                subtractFeeFromAmount = true,
+                            )
+                        } else {
+                            openEstimateFeeScreen(address = address)
+                        }
                     },
                     onAddTagOrCollectionClicked = {
                         val isCollectionOrTagExist =
@@ -114,17 +126,34 @@ class RollOverCoinControlIntroFragment : Fragment() {
             }
         }
     }
+
+    private fun openEstimateFeeScreen(address: String, signingPath: SigningPath? = null) {
+        navigator.openEstimatedFeeScreen(
+            activityContext = requireActivity(),
+            walletId = rollOverWalletViewModel.getOldWalletId(),
+            availableAmount = rollOverWalletViewModel.getOldWallet().balance.pureBTC(),
+            txReceipts = listOf(
+                TxReceipt(
+                    address = address,
+                    amount = rollOverWalletViewModel.getOldWallet().balance.pureBTC()
+                )
+            ),
+            privateNote = "",
+            subtractFeeFromAmount = true,
+            title = getString(R.string.nc_transaction_new),
+            confirmTxActionButtonText = getString(R.string.nc_confirm_withdraw_balance),
+            signingPath = signingPath
+        )
+    }
 }
 
 @Composable
 private fun RollOverCoinControlIntroView(
-    hasCollectionOrTag: Boolean = true,
     onContinueClicked: () -> Unit = { },
     onAddTagOrCollectionClicked: () -> Unit = { },
     onKeepAllExistingCoinsClicked: () -> Unit = { },
 ) {
     RollOverCoinControlIntroContent(
-        hasCollectionOrTag = hasCollectionOrTag,
         onContinueClicked = onContinueClicked,
         onAddTagOrCollectionClicked = onAddTagOrCollectionClicked,
         onKeepAllExistingCoinsClicked = onKeepAllExistingCoinsClicked
@@ -133,7 +162,6 @@ private fun RollOverCoinControlIntroView(
 
 @Composable
 private fun RollOverCoinControlIntroContent(
-    hasCollectionOrTag: Boolean = true,
     onContinueClicked: () -> Unit = { },
     onAddTagOrCollectionClicked: () -> Unit = { },
     onKeepAllExistingCoinsClicked: () -> Unit = { },
@@ -142,7 +170,8 @@ private fun RollOverCoinControlIntroContent(
         NcScaffold(
             modifier = Modifier.systemBarsPadding(),
             topBar = {
-                NcTopAppBar(title = "Coin control",
+                NcTopAppBar(
+                    title = "Coin control",
                     textStyle = NunchukTheme.typography.title,
                     actions = {
                         Spacer(modifier = Modifier.size(LocalViewConfiguration.current.minimumTouchTargetSize))

@@ -24,6 +24,7 @@ import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.DraftRollOverTransaction
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -39,7 +40,8 @@ class DraftRollOverTransactionsUseCase @Inject constructor(
             nunchukNativeSdk.draftRollOver11Transactions(
                 walletId = parameters.oldWalletId,
                 newWalletId = parameters.newWalletId,
-                feeRate = parameters.feeRate
+                feeRate = parameters.feeRate,
+                signingPath = parameters.signingPath
             ).toList().map {
                 val coins = nunchukNativeSdk.getCoinsFromTxInputs(parameters.oldWalletId, it.inputs)
                 DraftRollOverTransaction(
@@ -54,7 +56,8 @@ class DraftRollOverTransactionsUseCase @Inject constructor(
                 newWalletId = parameters.newWalletId,
                 tags = parameters.tags,
                 collections = parameters.collections,
-                feeRate = parameters.feeRate
+                feeRate = parameters.feeRate,
+                signingPath = parameters.signingPath
             ).toList()
         }
     }
@@ -64,6 +67,7 @@ class DraftRollOverTransactionsUseCase @Inject constructor(
         val oldWalletId: String,
         val tags: List<CoinTag>,
         val collections: List<CoinCollection>,
-        val feeRate: Amount
+        val feeRate: Amount,
+        val signingPath: SigningPath?,
     )
 }

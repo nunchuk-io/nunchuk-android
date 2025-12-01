@@ -292,7 +292,8 @@ class EstimatedFeeFragment : BaseFragment<FragmentTransactionEstimateFeeBinding>
                         selectedCollectionIds = args.rollOverWalletParam.collections.map { it.id },
                         feeRate = event.manualFeeRate.toManualFeeRate(),
                         source = args.rollOverWalletParam.source,
-                        antiFeeSniping = viewModel.getAntiFeeSniping()
+                        antiFeeSniping = viewModel.getAntiFeeSniping(),
+                        signingPath = args.signingPath
                     )
                 } else {
                     openTransactionConfirmScreen(

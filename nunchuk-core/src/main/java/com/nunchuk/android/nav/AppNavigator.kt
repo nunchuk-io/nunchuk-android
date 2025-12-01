@@ -34,6 +34,7 @@ import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
@@ -161,6 +162,7 @@ interface AppNavigator {
         feeRate: Amount = Amount.ZER0,
         source: Int,
         antiFeeSniping: Boolean = false,
+        signingPath: SigningPath? = null
     )
 
     fun openReferralScreen(activityContext: Context, args: ReferralArgs)

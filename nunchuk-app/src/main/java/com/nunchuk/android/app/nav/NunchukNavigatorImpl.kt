@@ -61,6 +61,7 @@ import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.nav.AppNavigator
@@ -460,6 +461,7 @@ interface AppNavigatorDelegate : AppNavigator {
         feeRate: Amount,
         source: Int,
         antiFeeSniping: Boolean,
+        signingPath: SigningPath?,
     ) {
         RollOverWalletActivity.navigate(
             activity = activityContext,
@@ -470,7 +472,8 @@ interface AppNavigatorDelegate : AppNavigator {
             selectedCollectionIds = selectedCollectionIds,
             feeRate = feeRate,
             source = source,
-            antiFeeSniping = antiFeeSniping
+            antiFeeSniping = antiFeeSniping,
+            signingPath = signingPath
         )
     }
 

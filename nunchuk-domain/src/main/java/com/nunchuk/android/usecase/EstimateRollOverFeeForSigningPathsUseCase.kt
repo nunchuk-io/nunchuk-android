@@ -17,48 +17,46 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android
+package com.nunchuk.android.usecase
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.CoinCollection
+import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.SigningPath
-import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.usecase.UseCase
-import com.nunchuk.android.usecase.ValidateTransactionNotConfirmedUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class ReplaceTransactionUseCase @Inject constructor(
-    @IoDispatcher dispatcher: CoroutineDispatcher,
+class EstimateRollOverFeeForSigningPathsUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
-    private val validateTransactionNotConfirmedUseCase: ValidateTransactionNotConfirmedUseCase,
-) : UseCase<ReplaceTransactionUseCase.Data, Transaction>(dispatcher) {
-
-    override suspend fun execute(parameters: Data): Transaction {
-        // Validate that the transaction being replaced is not already confirmed
-        validateTransactionNotConfirmedUseCase(
-            ValidateTransactionNotConfirmedUseCase.Params(
-                walletId = parameters.walletId,
-                replaceTxId = parameters.txId
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : UseCase<EstimateRollOverFeeForSigningPathsUseCase.Params, List<Pair<SigningPath, Amount>>>(ioDispatcher) {
+    override suspend fun execute(parameters: Params): List<Pair<SigningPath, Amount>> {
+        val isEmptyTagsAndCollections = parameters.tags.isEmpty() && parameters.collections.isEmpty()
+        return if (isEmptyTagsAndCollections) {
+            nativeSdk.estimateRollOver11FeeForSigningPaths(
+                walletId = parameters.oldWalletId,
+                newWalletId = parameters.newWalletId,
+                feeRate = parameters.feeRate,
             )
-        ).onFailure { exception -> throw exception }
-        return nativeSdk.replaceTransaction(
-            walletId = parameters.walletId,
-            txId = parameters.txId,
-            newFeeRate = Amount(value = parameters.newFee.toLong()),
-            antiFeeSniping = parameters.antiFeeSniping,
-            useScriptPath = parameters.useScriptPath,
-            signingPath = parameters.signingPath
-        )
+        } else {
+            nativeSdk.estimateRollOverFeeForSigningPaths(
+                walletId = parameters.oldWalletId,
+                newWalletId = parameters.newWalletId,
+                tags = parameters.tags,
+                collections = parameters.collections,
+                feeRate = parameters.feeRate,
+            )
+        }
     }
 
-    data class Data(
-        val groupId: String?,
-        val walletId: String,
-        val txId: String, val newFee: Int,
-        val antiFeeSniping: Boolean,
-        val useScriptPath: Boolean = false,
-        val signingPath: SigningPath? = null,
+    data class Params(
+        val oldWalletId: String,
+        val newWalletId: String,
+        val tags: List<CoinTag>,
+        val collections: List<CoinCollection>,
+        val feeRate: Amount,
     )
 }
+

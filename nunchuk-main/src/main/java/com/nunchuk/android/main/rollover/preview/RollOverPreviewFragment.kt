@@ -92,7 +92,8 @@ class RollOverPreviewFragment : Fragment() {
                     newWalletId = rollOverWalletViewModel.getNewWalletId(),
                     selectedTags = rollOverWalletViewModel.getSelectedTags().orEmpty(),
                     selectedCollections = rollOverWalletViewModel.getSelectedCollections().orEmpty(),
-                    feeRate = rollOverWalletViewModel.getFeeRate()
+                    feeRate = rollOverWalletViewModel.getFeeRate(),
+                    signingPath = rollOverWalletViewModel.getSigningPath()
                 )
             }
         }

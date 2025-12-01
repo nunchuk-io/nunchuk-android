@@ -13,6 +13,7 @@ import com.nunchuk.android.core.util.RollOverWalletSource
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCToastMessage
@@ -50,7 +51,8 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
             oldWalletId = intent.getStringExtra(OLD_WALLET_ID).orEmpty(),
             newWalletId = intent.getStringExtra(NEW_WALLET_ID).orEmpty(),
             selectedTagIds = intent.getIntegerArrayListExtra(SELECT_TAG_IDS).orEmpty(),
-            selectedCollectionIds = intent.getIntegerArrayListExtra(SELECT_COLLECTION_IDS).orEmpty(),
+            selectedCollectionIds = intent.getIntegerArrayListExtra(SELECT_COLLECTION_IDS)
+                .orEmpty(),
             feeRate = intent.parcelable<Amount>(FEE_RATE) ?: Amount.ZER0,
             source = intent.getIntExtra(SOURCE, RollOverWalletSource.WALLET_CONFIG),
             antiFeeSniping = intent.getBooleanExtra(ANTI_FEE_SNIPING, false)
@@ -64,7 +66,10 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
                     val source = intent.getIntExtra(SOURCE, RollOverWalletSource.WALLET_CONFIG)
                     if (source == RollOverWalletSource.REPLACE_KEY) {
                         navigator.returnToMainScreen(this)
-                        navigator.openWalletDetailsScreen(this, intent.getStringExtra(OLD_WALLET_ID).orEmpty())
+                        navigator.openWalletDetailsScreen(
+                            this,
+                            intent.getStringExtra(OLD_WALLET_ID).orEmpty()
+                        )
                     } else {
                         navigator.returnToMainScreen(this)
                     }
@@ -87,8 +92,9 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
 
     companion object {
 
-        private const val OLD_WALLET_ID = "old_wallet_id"
-        private const val NEW_WALLET_ID = "new_wallet_id"
+        const val OLD_WALLET_ID = "old_wallet_id"
+        const val NEW_WALLET_ID = "new_wallet_id"
+        const val SIGNING_PATH = "signing_path"
         private const val START_SCREEN = "start_screen"
         private const val SELECT_TAG_IDS = "select_tag_ids"
         private const val SELECT_COLLECTION_IDS = "select_collection_ids"
@@ -106,6 +112,7 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
             feeRate: Amount,
             source: Int,
             antiFeeSniping: Boolean,
+            signingPath: SigningPath? = null
         ) {
             val intent = Intent(activity, RollOverWalletActivity::class.java)
                 .apply {
@@ -120,6 +127,9 @@ class RollOverWalletActivity : BaseActivity<ActivityNavigationBinding>() {
                     putExtra(FEE_RATE, feeRate)
                     putExtra(SOURCE, source)
                     putExtra(ANTI_FEE_SNIPING, antiFeeSniping)
+                    signingPath?.let {
+                        putExtra(SIGNING_PATH, it)
+                    }
                 }
             activity.startActivity(intent)
         }

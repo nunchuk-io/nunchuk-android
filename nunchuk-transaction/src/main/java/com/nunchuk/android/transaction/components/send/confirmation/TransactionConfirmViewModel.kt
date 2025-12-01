@@ -23,6 +23,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
+import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
 import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
@@ -43,6 +44,7 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TxInput
 import com.nunchuk.android.model.TxOutput
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.model.setting.TaprootFeeSelectionSetting
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.AssignTagEvent
 import com.nunchuk.android.transaction.components.send.confirmation.TransactionConfirmEvent.CreateTxErrorEvent
@@ -57,6 +59,8 @@ import com.nunchuk.android.usecase.CreateTransactionUseCase
 import com.nunchuk.android.usecase.DraftSatsCardTransactionUseCase
 import com.nunchuk.android.usecase.DraftTransactionUseCase
 import com.nunchuk.android.usecase.EstimateFeeForSigningPathsUseCase
+import com.nunchuk.android.usecase.EstimateFeeUseCase
+import com.nunchuk.android.usecase.EstimateRollOverFeeForSigningPathsUseCase
 import com.nunchuk.android.usecase.GetTaprootSelectionFeeSettingUseCase
 import com.nunchuk.android.usecase.GetTimelockedCoinsUseCase
 import com.nunchuk.android.usecase.coin.AddToCoinTagUseCase
@@ -102,6 +106,8 @@ class TransactionConfirmViewModel @Inject constructor(
     private val getTimelockedCoinsUseCase: GetTimelockedCoinsUseCase,
     private val getCoinsFromTxInputsUseCase: GetCoinsFromTxInputsUseCase,
     private val getTransaction2UseCase: GetTransaction2UseCase,
+    private val estimateRollOverFeeForSigningPathsUseCase: EstimateRollOverFeeForSigningPathsUseCase,
+    private val estimateFeeUseCase: EstimateFeeUseCase,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TransactionConfirmUiState())
@@ -524,7 +530,12 @@ class TransactionConfirmViewModel @Inject constructor(
             )
         )
         if (result.isSuccess) {
-            _event.emit(CreateTxSuccessEvent(result.getOrThrow().transaction, result.getOrThrow().walletId))
+            _event.emit(
+                CreateTxSuccessEvent(
+                    result.getOrThrow().transaction,
+                    result.getOrThrow().walletId
+                )
+            )
         } else {
             _event.emit(CreateTxErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
         }
@@ -591,8 +602,36 @@ class TransactionConfirmViewModel @Inject constructor(
         }
     }
 
-    fun checkMiniscriptSigningPolicy() {
+    fun checkMiniscriptSigningPolicyRollOverTransaction(rollOverWalletParam: RollOverWalletParam) {
         viewModelScope.launch {
+            fetchFeeRateIfNeeded()
+            estimateRollOverFeeForSigningPathsUseCase(
+                EstimateRollOverFeeForSigningPathsUseCase.Params(
+                    oldWalletId = walletId,
+                    newWalletId = rollOverWalletParam.newWalletId,
+                    feeRate = manualFeeRate.toManualFeeRate(),
+                    tags = rollOverWalletParam.tags,
+                    collections = rollOverWalletParam.collections
+                )
+            ).onSuccess { result ->
+                if (result.size > 1) {
+                    _event.emit(TransactionConfirmEvent.ChooseSigningPolicy(result))
+                } else if (result.size == 1) {
+                    _event.emit(
+                        TransactionConfirmEvent.AutoSelectSigningPath(
+                            signingPath = result.first().first
+                        )
+                    )
+                }
+            }.onFailure {
+                _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun checkMiniscriptSigningPolicy(isSelectPath: Boolean = false) {
+        viewModelScope.launch {
+            fetchFeeRateIfNeeded()
             estimateFeeForSigningPathsUseCase(
                 EstimateFeeForSigningPathsUseCase.Params(
                     walletId = walletId,
@@ -605,13 +644,27 @@ class TransactionConfirmViewModel @Inject constructor(
                 if (result.size > 1) {
                     _event.emit(TransactionConfirmEvent.ChooseSigningPolicy(result))
                 } else if (result.size == 1) {
-                    draftMiniscriptTransaction(
-                        signingPath = result.first().first
-                    )
+                    if (isSelectPath) {
+                        _event.emit(
+                            TransactionConfirmEvent.AutoSelectSigningPath(
+                                signingPath = result.first().first
+                            )
+                        )
+                    } else {
+                        draftMiniscriptTransaction(
+                            signingPath = result.first().first
+                        )
+                    }
                 }
             }.onFailure {
                 _event.emit(CreateTxErrorEvent(it.message.orUnknownError()))
             }
+        }
+    }
+
+    private suspend fun fetchFeeRateIfNeeded() {
+        if (manualFeeRate == -1) {
+            manualFeeRate = estimateFeeUseCase(Unit).getOrNull()?.defaultRate ?: -1
         }
     }
 

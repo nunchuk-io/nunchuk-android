@@ -1,9 +1,11 @@
 package com.nunchuk.android.main.rollover
 
+import android.app.Activity.RESULT_OK
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -53,7 +55,10 @@ import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.main.R
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -65,6 +70,29 @@ class RollOverKeepAllExistingCoinsFragment : Fragment() {
     private val viewModel: RollOverKeepAllExistingCoinsViewModel by viewModels()
     private val rollOverWalletViewModel: RollOverWalletViewModel by activityViewModels()
 
+    private val rollOverWalletParam by lazy {
+        RollOverWalletParam(
+            newWalletId = rollOverWalletViewModel.getNewWalletId(),
+            tags = emptyList(),
+            collections = emptyList(),
+            source = rollOverWalletViewModel.getSource()
+        )
+    }
+
+    private val selectSigningPathLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data
+            if (it.resultCode == RESULT_OK && data != null) {
+                val signingPath = data.parcelable<SigningPath>(GlobalResultKey.SIGNING_PATH)
+                val address = rollOverWalletViewModel.getAddress()
+                openEstimateFeeScreen(
+                    address = address,
+                    rollOverWalletParam = rollOverWalletParam,
+                    signingPath = signingPath
+                )
+            }
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -75,36 +103,50 @@ class RollOverKeepAllExistingCoinsFragment : Fragment() {
 
             setContent {
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                val sharedUiState by rollOverWalletViewModel.uiState.collectAsStateWithLifecycle()
                 RollOverKeepAllExistingCoinsView(
                     uiState = uiState,
                     onContinueClicked = {
-                        val rollOverWalletParam = RollOverWalletParam(
-                            newWalletId = rollOverWalletViewModel.getNewWalletId(),
-                            tags = emptyList(),
-                            collections = emptyList(),
-                            source = rollOverWalletViewModel.getSource()
-                        )
                         val address = rollOverWalletViewModel.getAddress()
-                        navigator.openEstimatedFeeScreen(
-                            activityContext = requireActivity(),
-                            walletId = rollOverWalletViewModel.getOldWalletId(),
-                            availableAmount = rollOverWalletViewModel.getOldWallet().balance.pureBTC(),
-                            txReceipts = listOf(
-                                TxReceipt(
-                                    address = address,
-                                    amount = rollOverWalletViewModel.getOldWallet().balance.pureBTC()
-                                )
-                            ),
-                            privateNote = "",
-                            subtractFeeFromAmount = true,
-                            title = getString(R.string.nc_transaction_new),
-                            rollOverWalletParam = rollOverWalletParam,
-                            confirmTxActionButtonText = getString(R.string.nc_confirm_withdraw_balance)
-                        )
+                        val isMiniscript = sharedUiState.oldWallet.miniscript.isNotEmpty()
+                        if (isMiniscript) {
+                            navigator.selectMiniscriptSigningPath(
+                                launcher = selectSigningPathLauncher,
+                                activityContext = requireActivity(),
+                                walletId = rollOverWalletViewModel.getOldWalletId(),
+                                rollOverWalletParam = rollOverWalletParam
+                            )
+                        } else {
+                            openEstimateFeeScreen(address, rollOverWalletParam)
+                        }
                     }
                 )
             }
         }
+    }
+
+    private fun openEstimateFeeScreen(
+        address: String,
+        rollOverWalletParam: RollOverWalletParam,
+        signingPath: SigningPath? = null
+    ) {
+        navigator.openEstimatedFeeScreen(
+            activityContext = requireActivity(),
+            walletId = rollOverWalletViewModel.getOldWalletId(),
+            availableAmount = rollOverWalletViewModel.getOldWallet().balance.pureBTC(),
+            txReceipts = listOf(
+                TxReceipt(
+                    address = address,
+                    amount = rollOverWalletViewModel.getOldWallet().balance.pureBTC()
+                )
+            ),
+            privateNote = "",
+            subtractFeeFromAmount = true,
+            title = getString(R.string.nc_transaction_new),
+            rollOverWalletParam = rollOverWalletParam,
+            confirmTxActionButtonText = getString(R.string.nc_confirm_withdraw_balance),
+            signingPath = signingPath
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

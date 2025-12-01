@@ -1,10 +1,12 @@
 package com.nunchuk.android.main.rollover.coincontrol
 
+import android.app.Activity.RESULT_OK
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -56,8 +58,11 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.rollover.RollOverWalletViewModel
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -69,6 +74,20 @@ class RollOverCoinControlFragment : Fragment() {
     private val viewModel: RollOverCoinControlViewModel by viewModels()
     private val rollOverWalletViewModel: RollOverWalletViewModel by activityViewModels()
 
+    private val selectSigningPathLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val data = it.data
+            if (it.resultCode == RESULT_OK && data != null) {
+                val signingPath = data.parcelable<SigningPath>(GlobalResultKey.SIGNING_PATH)
+                val address = rollOverWalletViewModel.getAddress()
+                openEstimateFeeScreen(
+                    address = address,
+                    rollOverWalletParam = getRollOverWalletParam(),
+                    signingPath = signingPath
+                )
+            }
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -78,40 +97,65 @@ class RollOverCoinControlFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
+                val sharedUiState by rollOverWalletViewModel.uiState.collectAsStateWithLifecycle()
+                val isMiniscript = sharedUiState.oldWallet.miniscript.isNotEmpty()
                 RollOverCoinControlView(
                     viewModel = viewModel,
                     onContinueClicked = {
-                        val rollOverWalletParam = if (viewModel.isSelectTagOrCollection()) {
-                            RollOverWalletParam(
-                                newWalletId = rollOverWalletViewModel.getNewWalletId(),
-                                tags = viewModel.getSelectedCoinTags(),
-                                collections = viewModel.getSelectedCoinCollections(),
-                                source = rollOverWalletViewModel.getSource()
+                        val rollOverWalletParam = getRollOverWalletParam()
+                        val address = rollOverWalletViewModel.getAddress()
+                        if (isMiniscript) {
+                            navigator.selectMiniscriptSigningPath(
+                                launcher = selectSigningPathLauncher,
+                                activityContext = requireActivity(),
+                                walletId = rollOverWalletViewModel.getOldWalletId(),
+                                rollOverWalletParam = rollOverWalletParam,
+                                outputAmount = rollOverWalletViewModel.getOldWallet().balance.pureBTC(),
+                                address = address,
+                                subtractFeeFromAmount = true,
                             )
                         } else {
-                            null
+                            openEstimateFeeScreen(address, rollOverWalletParam)
                         }
-                        val address = rollOverWalletViewModel.getAddress()
-                        navigator.openEstimatedFeeScreen(
-                            activityContext = requireActivity(),
-                            walletId = rollOverWalletViewModel.getOldWalletId(),
-                            availableAmount = rollOverWalletViewModel.getOldWallet().balance.pureBTC(),
-                            txReceipts = listOf(
-                                TxReceipt(
-                                    address = address,
-                                    amount = rollOverWalletViewModel.getOldWallet().balance.pureBTC()
-                                )
-                            ),
-                            privateNote = "",
-                            subtractFeeFromAmount = true,
-                            title = getString(R.string.nc_transaction_new),
-                            rollOverWalletParam = rollOverWalletParam,
-                            confirmTxActionButtonText = getString(R.string.nc_confirm_withdraw_balance)
-                        )
                     },
                 )
             }
         }
+    }
+
+    private fun openEstimateFeeScreen(
+        address: String,
+        rollOverWalletParam: RollOverWalletParam?,
+        signingPath: SigningPath? = null
+    ) {
+        navigator.openEstimatedFeeScreen(
+            activityContext = requireActivity(),
+            walletId = rollOverWalletViewModel.getOldWalletId(),
+            availableAmount = rollOverWalletViewModel.getOldWallet().balance.pureBTC(),
+            txReceipts = listOf(
+                TxReceipt(
+                    address = address,
+                    amount = rollOverWalletViewModel.getOldWallet().balance.pureBTC()
+                )
+            ),
+            privateNote = "",
+            subtractFeeFromAmount = true,
+            title = getString(R.string.nc_transaction_new),
+            rollOverWalletParam = rollOverWalletParam,
+            confirmTxActionButtonText = getString(R.string.nc_confirm_withdraw_balance),
+            signingPath = signingPath
+        )
+    }
+
+    private fun getRollOverWalletParam(): RollOverWalletParam? = if (viewModel.isSelectTagOrCollection()) {
+        RollOverWalletParam(
+            newWalletId = rollOverWalletViewModel.getNewWalletId(),
+            tags = viewModel.getSelectedCoinTags(),
+            collections = viewModel.getSelectedCoinCollections(),
+            source = rollOverWalletViewModel.getSource()
+        )
+    } else {
+        null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

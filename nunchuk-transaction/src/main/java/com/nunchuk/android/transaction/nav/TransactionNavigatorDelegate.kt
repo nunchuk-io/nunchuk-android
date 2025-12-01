@@ -343,13 +343,21 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         launcher: ActivityResultLauncher<Intent>,
         activityContext: Activity,
         walletId: String,
-        txId: String?
+        txId: String?,
+        outputAmount: Double,
+        address: String,
+        subtractFeeFromAmount: Boolean,
+        rollOverWalletParam: RollOverWalletParam?,
     ) {
         AddReceiptActivity.selectMiniscriptSigningPath(
             activityContext = activityContext,
             launcher = launcher,
             walletId = walletId,
-            txId = txId
+            txId = txId,
+            outputAmount = outputAmount,
+            address = address,
+            subtractFeeFromAmount = subtractFeeFromAmount,
+            rollOverWalletParam = rollOverWalletParam
         )
     }
 }

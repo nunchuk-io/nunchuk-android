@@ -185,6 +185,10 @@ interface TransactionNavigator {
         launcher: ActivityResultLauncher<Intent>,
         activityContext: Activity,
         walletId: String,
-        txId: String? = null
+        txId: String? = null,
+        outputAmount: Double = 0.0,
+        address: String = "",
+        subtractFeeFromAmount: Boolean = false,
+        rollOverWalletParam: RollOverWalletParam? = null
     )
 }

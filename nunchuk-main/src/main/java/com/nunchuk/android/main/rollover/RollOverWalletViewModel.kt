@@ -5,11 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.util.RollOverWalletSource
 import com.nunchuk.android.core.util.getNearestTimeLock
+import com.nunchuk.android.main.rollover.RollOverWalletActivity.Companion.NEW_WALLET_ID
+import com.nunchuk.android.main.rollover.RollOverWalletActivity.Companion.OLD_WALLET_ID
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.CoinCollection
 import com.nunchuk.android.model.CoinTag
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.MiniscriptTimelockBased
@@ -67,7 +70,6 @@ class RollOverWalletViewModel @Inject constructor(
         source: Int,
         antiFeeSniping: Boolean,
     ) {
-
         savedStateHandle[OLD_WALLET_ID] = oldWalletId
         savedStateHandle[NEW_WALLET_ID] = newWalletId
 
@@ -157,7 +159,8 @@ class RollOverWalletViewModel @Inject constructor(
                     days = days,
                     randomizeBroadcast = randomizeBroadcast,
                     isFreeWallet = uiState.value.isFreeWallet,
-                    antiFeeSniping = antiFeeSniping
+                    antiFeeSniping = antiFeeSniping,
+                    signingPath = savedStateHandle[RollOverWalletActivity.SIGNING_PATH]
                 )
             ).onSuccess {
                 if (it.isNullOrEmpty()) {
@@ -186,10 +189,6 @@ class RollOverWalletViewModel @Inject constructor(
 
     fun getOldWallet(): Wallet {
         return uiState.value.oldWallet
-    }
-
-    fun getNewWallet(): Wallet {
-        return uiState.value.newWallet
     }
 
     fun getCoinTags(): List<CoinTag> {
@@ -221,6 +220,8 @@ class RollOverWalletViewModel @Inject constructor(
     fun getSource(): Int {
         return source
     }
+
+    fun getSigningPath(): SigningPath? = savedStateHandle[RollOverWalletActivity.SIGNING_PATH]
 
     fun updateReplaceKeyConfig(isRemoveKey: Boolean) {
         if (source == RollOverWalletSource.REPLACE_KEY) {
@@ -278,11 +279,6 @@ class RollOverWalletViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    companion object {
-        private const val OLD_WALLET_ID = "old_wallet_id"
-        private const val NEW_WALLET_ID = "new_wallet_id"
     }
 }
 
