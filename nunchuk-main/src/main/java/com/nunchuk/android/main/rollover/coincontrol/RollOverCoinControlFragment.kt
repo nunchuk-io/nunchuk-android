@@ -58,6 +58,7 @@ import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.rollover.RollOverWalletViewModel
+import com.nunchuk.android.main.rollover.handleRollOverSigningPathCheck
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.nav.NunchukNavigator
@@ -104,19 +105,17 @@ class RollOverCoinControlFragment : Fragment() {
                     onContinueClicked = {
                         val rollOverWalletParam = getRollOverWalletParam()
                         val address = rollOverWalletViewModel.getAddress()
-                        if (isMiniscript) {
-                            navigator.selectMiniscriptSigningPath(
-                                launcher = selectSigningPathLauncher,
-                                activityContext = requireActivity(),
-                                walletId = rollOverWalletViewModel.getOldWalletId(),
-                                rollOverWalletParam = rollOverWalletParam,
-                                outputAmount = rollOverWalletViewModel.getOldWallet().balance.pureBTC(),
-                                address = address,
-                                subtractFeeFromAmount = true,
-                            )
-                        } else {
-                            openEstimateFeeScreen(address, rollOverWalletParam)
-                        }
+                        handleRollOverSigningPathCheck(
+                            rollOverWalletViewModel = rollOverWalletViewModel,
+                            rollOverWalletParam = rollOverWalletParam,
+                            address = address,
+                            isMiniscript = isMiniscript,
+                            selectSigningPathLauncher = selectSigningPathLauncher,
+                            navigator = navigator,
+                            openEstimateFeeScreen = { signingPath ->
+                                openEstimateFeeScreen(address, rollOverWalletParam, signingPath)
+                            }
+                        )
                     },
                 )
             }

@@ -3,8 +3,11 @@ package com.nunchuk.android.main.rollover
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.util.RollOverWalletSource
 import com.nunchuk.android.core.util.getNearestTimeLock
+import com.nunchuk.android.core.util.pureBTC
+import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.main.rollover.RollOverWalletActivity.Companion.NEW_WALLET_ID
 import com.nunchuk.android.main.rollover.RollOverWalletActivity.Companion.OLD_WALLET_ID
 import com.nunchuk.android.manager.AssistedWalletManager
@@ -17,6 +20,8 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.usecase.CreateAndBroadcastRollOverTransactionsUseCase
+import com.nunchuk.android.usecase.EstimateFeeForSigningPathsUseCase
+import com.nunchuk.android.usecase.EstimateRollOverFeeForSigningPathsUseCase
 import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
 import com.nunchuk.android.usecase.coin.GetAllCollectionsUseCase
@@ -47,6 +52,8 @@ class RollOverWalletViewModel @Inject constructor(
     private val updateReplaceKeyConfigUseCase: UpdateReplaceKeyConfigUseCase,
     private val getSpendableNowAmountUseCase: GetSpendableNowAmountUseCase,
     private val getChainTipUseCase: GetChainTipUseCase,
+    private val estimateRollOverFeeForSigningPathsUseCase: EstimateRollOverFeeForSigningPathsUseCase,
+    private val estimateFeeForSigningPathsUseCase: EstimateFeeForSigningPathsUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RollOverWalletUiState())
@@ -223,6 +230,45 @@ class RollOverWalletViewModel @Inject constructor(
 
     fun getSigningPath(): SigningPath? = savedStateHandle[RollOverWalletActivity.SIGNING_PATH]
 
+    suspend fun checkSigningPathsForRollOver(rollOverWalletParam: RollOverWalletParam): Int {
+        val result = estimateRollOverFeeForSigningPathsUseCase(
+            EstimateRollOverFeeForSigningPathsUseCase.Params(
+                oldWalletId = getOldWalletId(),
+                newWalletId = rollOverWalletParam.newWalletId,
+                feeRate = feeRate,
+                tags = rollOverWalletParam.tags,
+                collections = rollOverWalletParam.collections
+            )
+        ).getOrNull().orEmpty()
+        if (result.size == 1) {
+            savedStateHandle[RollOverWalletActivity.SIGNING_PATH] = result.first().first
+        }
+        
+        return result.size
+    }
+
+    suspend fun checkSigningPathsForConsolidation(): Int {
+        val address = getAddress()
+        val balance = getOldWallet().balance.pureBTC()
+        val outputs = mapOf(address to balance.toAmount())
+
+        val result = estimateFeeForSigningPathsUseCase(
+            EstimateFeeForSigningPathsUseCase.Params(
+                walletId = getOldWalletId(),
+                outputs = outputs,
+                subtractFeeFromAmount = true,
+                feeRate = feeRate,
+                inputs = emptyList(),
+            )
+        ).getOrNull().orEmpty()
+
+        if (result.size == 1) {
+            savedStateHandle[RollOverWalletActivity.SIGNING_PATH] = result.first().first
+        }
+
+        return result.size
+    }
+
     fun updateReplaceKeyConfig(isRemoveKey: Boolean) {
         if (source == RollOverWalletSource.REPLACE_KEY) {
             viewModelScope.launch {
@@ -245,7 +291,7 @@ class RollOverWalletViewModel @Inject constructor(
 
         viewModelScope.launch {
             val walletId = getOldWalletId()
-            
+
             // Get spendable now amount
             getSpendableNowAmountUseCase(walletId).onSuccess { spendableNowAmount ->
                 if (spendableNowAmount.value > 0L) {

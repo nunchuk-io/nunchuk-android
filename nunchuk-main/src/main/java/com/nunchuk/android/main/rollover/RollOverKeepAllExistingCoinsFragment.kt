@@ -109,16 +109,17 @@ class RollOverKeepAllExistingCoinsFragment : Fragment() {
                     onContinueClicked = {
                         val address = rollOverWalletViewModel.getAddress()
                         val isMiniscript = sharedUiState.oldWallet.miniscript.isNotEmpty()
-                        if (isMiniscript) {
-                            navigator.selectMiniscriptSigningPath(
-                                launcher = selectSigningPathLauncher,
-                                activityContext = requireActivity(),
-                                walletId = rollOverWalletViewModel.getOldWalletId(),
-                                rollOverWalletParam = rollOverWalletParam
-                            )
-                        } else {
-                            openEstimateFeeScreen(address, rollOverWalletParam)
-                        }
+                        handleRollOverSigningPathCheck(
+                            rollOverWalletViewModel = rollOverWalletViewModel,
+                            rollOverWalletParam = rollOverWalletParam,
+                            address = address,
+                            isMiniscript = isMiniscript,
+                            selectSigningPathLauncher = selectSigningPathLauncher,
+                            navigator = navigator,
+                            openEstimateFeeScreen = { signingPath ->
+                                openEstimateFeeScreen(address, rollOverWalletParam, signingPath)
+                            }
+                        )
                     }
                 )
             }
