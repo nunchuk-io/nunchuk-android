@@ -29,8 +29,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -86,7 +84,7 @@ fun TagHorizontalList(
         } else {
             Icon(
                 modifier = Modifier.clickable { onUpdateTag() },
-                imageVector = Icons.Default.Add,
+                painter = painterResource(R.drawable.ic_plus),
                 contentDescription = "Add"
             )
         }

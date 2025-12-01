@@ -191,7 +191,7 @@ private fun RollOverCoinControlIntroContent(
                         onClick = {
                             onContinueClicked()
                         }) {
-                        Text(text = "Continue, I’m fine consolidating all coins")
+                        Text(text = "Continue consolidating all coins")
                     }
 
                     TextButton(

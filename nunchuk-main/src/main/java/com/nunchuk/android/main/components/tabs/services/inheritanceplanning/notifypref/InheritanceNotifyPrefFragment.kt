@@ -43,8 +43,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -523,7 +521,7 @@ private fun EmailChip(
 
             // Right close icon
             Icon(
-                imageVector = Icons.Default.Close,
+                painter = painterResource(R.drawable.ic_close),
                 contentDescription = "Remove email",
                 tint = Color(0xFF031F2B),
                 modifier = Modifier.size(16.dp)
