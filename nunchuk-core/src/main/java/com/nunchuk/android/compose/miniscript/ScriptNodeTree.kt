@@ -367,7 +367,13 @@ internal fun CreateKeyItem(
         }
     val title = when {
         signer?.name.isNullOrEmpty() -> key
-        !signer.isVisible -> signer.name.ifEmpty { stringResource(R.string.nc_key_with_index, index + 1) }
+        !signer.isVisible -> signer.name.ifEmpty {
+            stringResource(
+                R.string.nc_key_with_index,
+                index + 1
+            )
+        }
+
         else -> signer.name
     }
     KeyItem(
@@ -424,12 +430,12 @@ internal fun CreateKeyItem(
                     }
                 }
             }
-            
+
             if (signer?.type == SignerType.SERVER && data.mode == ScriptMode.SIGN) {
                 val serverTransaction = data.serverTransaction
                 val spendingLimitMessage = serverTransaction?.spendingLimitMessage.orEmpty()
                 val cosignedTime = serverTransaction?.signedInMilis ?: 0L
-                
+
                 if (serverTransaction?.isCosigning == true) {
                     Text(
                         text = stringResource(R.string.nc_co_signing_in_progress),
@@ -481,6 +487,17 @@ internal fun CreateKeyItem(
                                 Text(stringResource(R.string.nc_remove))
                             }
                         }
+                    }
+                }
+
+                signer != null && data.isViewServerKeyPolicy && signer.type == SignerType.SERVER -> {
+                    NcOutlineButton(
+                        modifier = Modifier.height(36.dp),
+                        onClick = { data.onViewPolicy(signer) },
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.nc_view_policies),
+                        )
                     }
                 }
 
@@ -645,7 +662,9 @@ data class ScriptNodeData(
     val onPathSelectionChange: (List<Int>, Boolean) -> Unit = { _, _ -> },
     val disabledPaths: Set<List<Int>> = emptySet(),
     val enableSignerSize: Int = 0,
-    val serverTransaction: ServerTransaction? = null
+    val serverTransaction: ServerTransaction? = null,
+    val isViewServerKeyPolicy: Boolean = false,
+    val onViewPolicy: (SignerModel) -> Unit = {}
 ) {
     fun isSlotOccupied(position: String): Boolean {
         return occupiedSlots.contains(position)
@@ -1037,7 +1056,7 @@ fun ThreshMultiItem(
                             text = pluralStringResource(
                                 if (node.type == ScriptNodeType.MULTI.name) R.plurals.nc_transaction_pending_signature else R.plurals.nc_transaction_pending_conditions,
                                 if (data.enableSignerSize > 0) data.enableSignerSize else pendingSigners,
-                                if(data.enableSignerSize > 0) data.enableSignerSize else pendingSigners
+                                if (data.enableSignerSize > 0) data.enableSignerSize else pendingSigners
                             ),
                             style = NunchukTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.textSecondary,
