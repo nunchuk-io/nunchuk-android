@@ -25,6 +25,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +36,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,6 +61,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
@@ -218,9 +221,10 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             }
 
             SheetOptionType.TYPE_ADD_COLDCARD_NFC -> navigator.openSetupMk4(
-                requireActivity(), 
+                requireActivity(),
                 SetupMk4Args(fromMembershipFlow = true)
             )
+
             SheetOptionType.TYPE_ADD_COLDCARD_QR,
             SheetOptionType.TYPE_ADD_COLDCARD_FILE,
                 -> navigator.openSetupMk4(
@@ -388,9 +392,11 @@ class AddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
             }
 
             MembershipStep.HONEY_ADD_INHERITANCE_KEY -> {
-                findNavController().navigate(AddKeyListFragmentDirections.actionAddKeyListFragmentToInheritanceKeyIntroFragment(
-                    inheritanceType = InheritancePlanType.OFF_CHAIN
-                ))
+                findNavController().navigate(
+                    AddKeyListFragmentDirections.actionAddKeyListFragmentToInheritanceKeyIntroFragment(
+                        inheritanceType = InheritancePlanType.OFF_CHAIN
+                    )
+                )
             }
 
             MembershipStep.IRON_ADD_HARDWARE_KEY_1,
@@ -618,99 +624,136 @@ fun AddKeyCard(
     isDisabled: Boolean = false,
     isStandard: Boolean = false
 ) {
-    if (item.signer != null) {
+    ConstraintLayout(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+    ) {
+        val (banner, content) = createRefs()
         Box(
-            modifier = modifier.background(
-                color = if (item.verifyType != VerifyType.NONE) {
-                    colorResource(id = R.color.nc_fill_slime)
-                } else if (isDisabled) {
-                    colorResource(id = R.color.nc_grey_dark_color)
-                } else {
-                    colorResource(id = R.color.nc_fill_beewax)
-                },
-                shape = RoundedCornerShape(8.dp)
-            ),
-            contentAlignment = Alignment.Center,
-        ) {
-            Row(
-                modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically
-            ) {
-                NcCircleImage(
-                    resId = item.signer.toReadableDrawableResId(),
-                )
-                Column(
-                    modifier = Modifier
-                        .weight(1.0f)
-                        .padding(start = 8.dp)
+            modifier = Modifier
+                .constrainAs(content) {
+                    top.linkTo(parent.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(parent.bottom)
+                }) {
+            if (item.signer != null) {
+                Box(
+                    modifier = modifier.background(
+                        color = if (item.verifyType != VerifyType.NONE) {
+                            colorResource(id = R.color.nc_fill_slime)
+                        } else if (isDisabled) {
+                            colorResource(id = R.color.nc_grey_dark_color)
+                        } else {
+                            colorResource(id = R.color.nc_fill_beewax)
+                        },
+                        shape = RoundedCornerShape(8.dp)
+                    ),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        text = item.signer.name,
-                        style = NunchukTheme.typography.body
-                    )
-                    Row(modifier = Modifier.padding(top = 4.dp)) {
-                        NcTag(
-                            label = item.signer.toReadableSignerType(context = LocalContext.current),
-                            backgroundColor = colorResource(
-                                id = R.color.nc_bg_mid_gray
-                            ),
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        NcCircleImage(
+                            resId = item.signer.toReadableDrawableResId(),
                         )
-                        if (item.signer.isShowAcctX()) {
-                            NcTag(
-                                modifier = Modifier.padding(start = 4.dp),
-                                label = stringResource(R.string.nc_acct_x, item.signer.index),
-                                backgroundColor = colorResource(
-                                    id = R.color.nc_bg_mid_gray
-                                ),
+                        Column(
+                            modifier = Modifier
+                                .weight(1.0f)
+                                .padding(start = 8.dp)
+                        ) {
+                            Text(
+                                text = item.signer.name,
+                                style = NunchukTheme.typography.body
+                            )
+                            Row(modifier = Modifier.padding(top = 4.dp)) {
+                                NcTag(
+                                    label = item.signer.toReadableSignerType(context = LocalContext.current),
+                                    backgroundColor = colorResource(
+                                        id = R.color.nc_bg_mid_gray
+                                    ),
+                                )
+                                if (item.signer.isShowAcctX()) {
+                                    NcTag(
+                                        modifier = Modifier.padding(start = 4.dp),
+                                        label = stringResource(
+                                            R.string.nc_acct_x,
+                                            item.signer.index
+                                        ),
+                                        backgroundColor = colorResource(
+                                            id = R.color.nc_bg_mid_gray
+                                        ),
+                                    )
+                                }
+                            }
+                            Text(
+                                modifier = Modifier.padding(top = 4.dp),
+                                text = item.signer.getXfpOrCardIdLabel(),
+                                style = NunchukTheme.typography.bodySmall
                             )
                         }
-                    }
-                    Text(
-                        modifier = Modifier.padding(top = 4.dp),
-                        text = item.signer.getXfpOrCardIdLabel(),
-                        style = NunchukTheme.typography.bodySmall
-                    )
-                }
-                if (item.verifyType != VerifyType.NONE) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.nc_circle_checked),
-                        contentDescription = "Checked icon"
-                    )
-                    Text(
-                        modifier = Modifier.padding(start = 4.dp),
-                        style = NunchukTheme.typography.body,
-                        text = stringResource(
-                            R.string.nc_added
-                        )
-                    )
-                } else if (item.signer.isVisible) {
-                    NcOutlineButton(
-                        modifier = Modifier.height(36.dp),
-                        onClick = { onVerifyClicked(item) },
-                    ) {
-                        Text(
-                            text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
-                                R.string.nc_upload_backup
+                        if (item.verifyType != VerifyType.NONE) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.nc_circle_checked),
+                                contentDescription = "Checked icon"
                             )
+                            Text(
+                                modifier = Modifier.padding(start = 4.dp),
+                                style = NunchukTheme.typography.body,
+                                text = stringResource(
+                                    R.string.nc_added
+                                )
+                            )
+                        } else if (item.signer.isVisible) {
+                            NcOutlineButton(
+                                modifier = Modifier.height(36.dp),
+                                onClick = { onVerifyClicked(item) },
+                            ) {
+                                Text(
+                                    text = if (isMissingBackup.not()) stringResource(R.string.nc_verify_backup) else stringResource(
+                                        R.string.nc_upload_backup
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (item.verifyType != VerifyType.NONE) {
+                    Box(
+                        modifier = modifier.background(
+                            colorResource(id = R.color.nc_fill_slime),
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        ConfigItem(item, isDisabled = isDisabled)
+                    }
+                } else {
+                    NcDashLineBox(modifier = modifier) {
+                        ConfigItem(
+                            item = item,
+                            onAddClicked = onAddClicked,
+                            isDisabled = isDisabled,
+                            isStandard = isStandard
                         )
                     }
                 }
             }
         }
-    } else {
-        if (item.verifyType != VerifyType.NONE) {
-            Box(
-                modifier = modifier.background(
-                    colorResource(id = R.color.nc_fill_slime),
-                    shape = RoundedCornerShape(8.dp)
-                ),
-                contentAlignment = Alignment.Center,
-            ) {
-                ConfigItem(item, isDisabled = isDisabled)
-            }
-        } else {
-            NcDashLineBox(modifier = modifier) {
-                ConfigItem(item = item, onAddClicked = onAddClicked, isDisabled = isDisabled, isStandard = isStandard)
-            }
+
+        if (item.type.isAddInheritanceKey) {
+            Image(
+                modifier = modifier
+                    .constrainAs(banner) {
+                        top.linkTo(parent.top)
+                        end.linkTo(parent.end)
+                    },
+                contentDescription = "Inheritance icon",
+                painter = painterResource(id = R.drawable.ic_badge_inheritance)
+            )
         }
     }
 }
@@ -737,14 +780,6 @@ private fun ConfigItem(
                 style = NunchukTheme.typography.body
             )
             Row(modifier = Modifier.padding(top = 4.dp)) {
-                if (item.type.isAddInheritanceKey) {
-                    NcTag(
-                        label = stringResource(R.string.nc_inheritance),
-                        backgroundColor = colorResource(
-                            id = R.color.nc_bg_mid_gray
-                        ),
-                    )
-                }
                 if (item.signer?.isShowAcctX() == true) {
                     NcTag(
                         modifier = Modifier.padding(start = if (item.type == MembershipStep.HONEY_ADD_INHERITANCE_KEY) 4.dp else 0.dp),
