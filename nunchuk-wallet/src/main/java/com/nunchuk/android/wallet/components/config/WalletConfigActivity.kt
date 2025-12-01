@@ -227,7 +227,9 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                 WalletComposeBottomSheet.show(
                     fragmentManager = supportFragmentManager,
                     exclusiveAssistedWalletIds = arrayListOf(args.walletId),
-                    configArgs = WalletComposeBottomSheet.ConfigArgs()
+                    configArgs = WalletComposeBottomSheet.ConfigArgs(
+                        title = getString(R.string.nc_select_a_destination_wallet)
+                    )
                 )
             }
 
