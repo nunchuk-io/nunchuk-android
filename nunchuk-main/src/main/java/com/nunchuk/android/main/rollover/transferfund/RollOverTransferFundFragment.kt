@@ -42,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcCheckBox
+import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
@@ -202,7 +203,7 @@ private fun RollOverTransferFundContent(
                         modifier = Modifier.padding(top = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(
+                        NcHighlightText(
                             text = stringResource(
                                 R.string.nc_transfer_funds_desc_miniscript,
                                 rollOverWalletState.newWallet.name
@@ -215,7 +216,7 @@ private fun RollOverTransferFundContent(
                         )
                     }
                 } else {
-                    Text(
+                    NcHighlightText(
                         text = stringResource(
                             R.string.nc_transfer_funds_desc,
                             rollOverWalletState.newWallet.name
@@ -406,7 +407,29 @@ private fun RollOverTransferFundContent(
 @Composable
 @Preview
 private fun RollOverTransferFundScreenContentPreview() {
-    RollOverTransferFundContent()
+    val mockOldWallet = Wallet(
+        id = "old_wallet_id",
+        name = "Old Wallet",
+        balance = Amount(value = 20000000L) // 0.2 BTC
+    )
+
+    val mockNewWallet = Wallet(
+        id = "new_wallet_id",
+        name = "New Wallet",
+        balance = Amount(value = 0L)
+    )
+
+    val mockState = RollOverWalletUiState(
+        oldWallet = mockOldWallet,
+        newWallet = mockNewWallet,
+        isFreeWallet = false
+    )
+
+    RollOverTransferFundContent(
+        source = 0,
+        rollOverWalletState = mockState,
+        onContinueClicked = {}
+    )
 }
 
 @PreviewLightDark
