@@ -532,7 +532,7 @@ fun AddKeyListContent(
             modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    title = stringResource(R.string.nc_estimate_remain_time, remainingTime),
+                    title = if (remainingTime <= 0) "" else stringResource(R.string.nc_estimate_remain_time, remainingTime),
                     actions = {
                         IconButton(onClick = onMoreClicked) {
                             Icon(

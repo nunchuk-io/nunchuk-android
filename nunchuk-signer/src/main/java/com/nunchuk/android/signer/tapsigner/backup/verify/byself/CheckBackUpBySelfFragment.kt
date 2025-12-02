@@ -178,7 +178,7 @@ private fun CheckBackUpBySelfContent(
                 .statusBarsPadding()
                 .navigationBarsPadding(),
             topBar = {
-                NcTopAppBar(stringResource(R.string.nc_estimate_remain_time, remainingTime))
+                NcTopAppBar(if (remainingTime <= 0) "" else stringResource(R.string.nc_estimate_remain_time, remainingTime))
             }
         ) { innerPadding ->
             Column(

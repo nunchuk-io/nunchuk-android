@@ -89,7 +89,7 @@ class SetupChainCodeFragment : BaseFragment<FragmentSetupChainCodeBinding>() {
         binding.etChainCode.setMaxLength(CHAIN_CODE_LENGTH)
         binding.etChainCode.heightExtended(resources.getDimensionPixelSize(R.dimen.nc_height_120))
         if ((activity as NfcSetupActivity).fromMembershipFlow) {
-            binding.tvTitle.text =
+            binding.tvTitle.text = if (membershipStepManager.remainingTime.value <= 0) "" else
                 getString(
                     R.string.nc_estimate_remain_time,
                     membershipStepManager.remainingTime.value

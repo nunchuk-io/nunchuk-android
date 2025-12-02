@@ -445,7 +445,7 @@ private fun AddAirgapSignerContent(
         Scaffold(
             modifier = Modifier.navigationBarsPadding(),
             topBar = {
-                val title = if (isMembershipFlow) {
+                val title = if (isMembershipFlow && remainTime > 0) {
                     stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime

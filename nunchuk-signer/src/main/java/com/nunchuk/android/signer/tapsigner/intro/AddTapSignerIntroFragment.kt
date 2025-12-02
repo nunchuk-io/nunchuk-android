@@ -281,7 +281,7 @@ fun AddTapSignerIntroScreenContent(
         Scaffold(topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.nc_bg_tap_signer_chip,
-                title = if (isMembershipFlow && !isReplaceKey) stringResource(
+                title = if (isMembershipFlow && !isReplaceKey && remainTime > 0) stringResource(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
                 ) else "",

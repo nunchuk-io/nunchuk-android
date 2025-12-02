@@ -126,7 +126,7 @@ fun ConfigureServerKeyIntroScreenContent(
         Scaffold(topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.nc_bg_server_key_intro,
-                title = stringResource(id = R.string.nc_estimate_remain_time, remainTime),
+                title = if (remainTime <= 0) "" else stringResource(id = R.string.nc_estimate_remain_time, remainTime),
                 actions = {
                     IconButton(onClick = onMoreClicked) {
                         NcIcon(

@@ -33,11 +33,11 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.nav.args.MembershipArgs
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.wallet.components.base.BaseWalletConfigActivity
 import com.nunchuk.android.widget.databinding.ActivityNavigationBinding
-import com.nunchuk.android.type.WalletType
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.filter
 import javax.inject.Inject
@@ -54,6 +54,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
     private var tapSignerCachingCallback: ((IsoDep?, String) -> Unit)? = null
 
     val quickWalletParam by lazy { intent.parcelable<QuickWalletParam>(MembershipArgs.QUICK_WALLET_PARAM) }
+    val stage  by lazy { intent.serializable<MembershipStage>(MembershipArgs.GROUP_STEP) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,12 +65,12 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
             (supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment)
         val inflater = navHostFragment.navController.navInflater
         val graph = inflater.inflate(R.navigation.membership_navigation)
-        val stage = intent.serializable<MembershipStage>(MembershipArgs.GROUP_STEP)
         val isPersonalWallet = intent.getBooleanExtra(MembershipArgs.IS_PERSONAL_WALLET, false)
         val groupWalletType = intent.serializable<GroupWalletType>(MembershipArgs.GROUP_WALLET_TYPE)
         val changeTimelockFlow = intent.getIntExtra(MembershipArgs.CHANGE_TIMELOCK_FLOW, -1)
         val walletType = intent.serializable<WalletType>(MembershipArgs.WALLET_TYPE)
         
+        membershipStepManager.stage = stage
         if (groupWalletType != null) {
             membershipStepManager.initStep(groupId, groupWalletType)
         }

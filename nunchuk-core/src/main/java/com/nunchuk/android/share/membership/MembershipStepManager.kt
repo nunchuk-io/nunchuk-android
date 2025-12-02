@@ -26,6 +26,7 @@ import com.nunchuk.android.core.util.COLDCARD_DEFAULT_KEY_NAME
 import com.nunchuk.android.core.util.INHERITANCE_KEY_NAME_EXT
 import com.nunchuk.android.core.util.TAPSIGNER_DEFAULT_KEY_NAME
 import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.SignerExtra
@@ -70,8 +71,12 @@ class MembershipStepManager @Inject constructor(
         private set
     val assistedWallets = mutableListOf<AssistedWalletBrief>()
 
+    var stage: MembershipStage? = null
+
     private val _remainingTime = MutableStateFlow(0)
-    val remainingTime = _remainingTime.asStateFlow()
+    val remainingTime = _remainingTime.map { 
+        if (stage == MembershipStage.REPLACE_KEY) 0 else it 
+    }.stateIn(applicationScope, SharingStarted.Eagerly, 0)
 
     private val stepInfo = MutableStateFlow<List<MembershipStepInfo>>(emptyList())
 

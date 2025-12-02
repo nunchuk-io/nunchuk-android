@@ -250,7 +250,7 @@ private fun ColdCardCheckFirmwareContent(
                         SignerTag.JADE -> R.drawable.bg_add_jade
                         else -> R.drawable.bg_check_coldcard_firmware_illustration
                     },
-                    title = stringResource(
+                    title = if (remainTime <= 0) "" else stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
                     ),

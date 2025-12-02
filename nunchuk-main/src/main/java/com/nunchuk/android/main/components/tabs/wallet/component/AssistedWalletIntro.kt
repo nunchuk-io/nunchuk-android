@@ -45,7 +45,7 @@ internal fun AssistedWalletIntro(
         } else if (stage != MembershipStage.DONE) {
             tvIntroTitle.text =
                 context.getString(R.string.nc_you_almost_done)
-            tvIntroDesc.text =
+            tvIntroDesc.text = if (state.remainingTime <= 0) "" else
                 context.getString(
                     R.string.nc_estimate_remain_time,
                     state.remainingTime

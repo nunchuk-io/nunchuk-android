@@ -166,7 +166,7 @@ private fun RegisterWalletToAirgapContent(
         Scaffold(topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.bg_register_to_air_gapped,
-                title = stringResource(id = R.string.nc_estimate_remain_time, remainingTime),
+                title = if (remainingTime <= 0) "" else stringResource(id = R.string.nc_estimate_remain_time, remainingTime),
             )
         }) { innerPadding ->
             Column(

@@ -264,7 +264,7 @@ fun RecoveryQuestionScreenContent(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                val title = if (isRecoveryFlow.not()) {
+                val title = if (isRecoveryFlow.not() && remainTime > 0) {
                     stringResource(R.string.nc_estimate_remain_time, remainTime)
                 } else {
                     ""

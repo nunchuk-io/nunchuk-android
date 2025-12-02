@@ -74,7 +74,7 @@ internal fun ColdCardEncryptBackUpFileScreen(
         Scaffold(modifier = Modifier.navigationBarsPadding(), topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.bg_coldcard_encrypt_backup_illustration,
-                title = stringResource(
+                title = if (remainTime <= 0) "" else stringResource(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
                 )

@@ -422,7 +422,7 @@ private fun Mk4IntroContent(
             Scaffold(topBar = {
                 NcImageAppBar(
                     backgroundRes = R.drawable.nc_bg_coldcard_intro,
-                    title = if (isMembershipFlow && !isReplaceKey) stringResource(
+                    title = if (isMembershipFlow && !isReplaceKey && remainTime > 0) stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
                     ) else "",

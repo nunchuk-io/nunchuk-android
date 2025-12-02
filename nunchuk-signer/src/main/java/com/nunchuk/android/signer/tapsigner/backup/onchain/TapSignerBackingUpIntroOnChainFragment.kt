@@ -208,10 +208,10 @@ private fun TapSignerBackingUpIntroOnChainContent(
         Scaffold(
             modifier = Modifier.imePadding(),
             topBar = {
-                NcImageAppBar(
-                    backgroundRes = R.drawable.nc_bg_tap_signer_explain,
-                    title = stringResource(R.string.nc_estimate_remain_time, remainingTime),
-                )
+            NcImageAppBar(
+                backgroundRes = R.drawable.nc_bg_tap_signer_explain,
+                title = if (remainingTime <= 0) "" else stringResource(R.string.nc_estimate_remain_time, remainingTime),
+            )
             }) { innerPadding ->
             Column(
                 modifier = Modifier

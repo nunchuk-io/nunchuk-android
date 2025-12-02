@@ -115,7 +115,7 @@ private fun AirgapIntroContent(
             topBar = {
                 NcImageAppBar(
                     backgroundRes = bgResId,
-                    title = if (isMembershipFlow && !isReplaceKey) stringResource(
+                    title = if (isMembershipFlow && !isReplaceKey && remainTime > 0) stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
                     ) else "",

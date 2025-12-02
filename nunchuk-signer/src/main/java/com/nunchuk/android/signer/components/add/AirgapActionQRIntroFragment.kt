@@ -99,7 +99,7 @@ internal fun AirgapActionQRIntroScreen(
         Scaffold(topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.bg_airgap_jade_intro,
-                title = if (isMembershipFlow && !isReplaceKey) stringResource(
+                title = if (isMembershipFlow && !isReplaceKey && remainTime > 0) stringResource(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
                 ) else "",

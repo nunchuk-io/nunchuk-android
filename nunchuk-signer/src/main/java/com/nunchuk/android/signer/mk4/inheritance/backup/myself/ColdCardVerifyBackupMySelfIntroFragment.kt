@@ -62,7 +62,7 @@ fun ColdCardVerifyBackupMySelfIntroScreen(
             modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    title = stringResource(
+                    title = if (remainTime <= 0) "" else stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
                     ),

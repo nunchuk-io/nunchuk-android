@@ -59,7 +59,7 @@ internal fun Mk4InfoContent(
         Scaffold(topBar = {
             NcImageAppBar(
                 backgroundRes = R.drawable.bg_add_coldcard_view_nfc_intro,
-                title = if (isMembershipFlow && !isReplaceKey) stringResource(
+                title = if (isMembershipFlow && !isReplaceKey && remainTime > 0) stringResource(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
                 ) else "",

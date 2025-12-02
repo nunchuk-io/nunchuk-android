@@ -112,7 +112,7 @@ private fun TapSignerBackUpExplainContent(
         ) {
             NcImageAppBar(
                 backgroundRes = R.drawable.nc_bg_tap_signer_explain,
-                title = stringResource(id = R.string.nc_estimate_remain_time, remainTime),
+                title = if (remainTime <= 0) "" else stringResource(id = R.string.nc_estimate_remain_time, remainTime),
             )
             Text(
                 modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),

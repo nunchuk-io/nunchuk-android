@@ -231,7 +231,7 @@ fun CreateWalletScreenContent(
             modifier = Modifier.systemBarsPadding(),
             topBar = {
                 NcTopAppBar(
-                    stringResource(R.string.nc_estimate_remain_time, remainTime),
+                    if (remainTime <= 0) "" else stringResource(R.string.nc_estimate_remain_time, remainTime),
                     actions = {
                         IconButton(onClick = { onMoreClicked() }) {
                             Icon(
