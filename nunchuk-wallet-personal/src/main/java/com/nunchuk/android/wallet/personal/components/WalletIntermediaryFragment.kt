@@ -464,12 +464,15 @@ class WalletIntermediaryFragment : BaseCameraFragment<ViewBinding>(),
     private fun createAssistedWallet() {
         val state = viewModel.state.value
         val walletCount = state.walletsCount.values.sum()
+        val personalWalletCount = viewModel.getPersonalWalletCount()
+        val groupWalletCount = viewModel.getGroupWalletCount()
+        
         if (state.personalSteps.isNotEmpty()) {
             openCreateAssistedWallet()
-        } else if (viewModel.isPersonalWalletAvailable() && walletCount == 1) {
-            openCreateAssistedWallet()
-        } else if (viewModel.isGroupWalletAvailable() && walletCount == 1) {
+        } else if (personalWalletCount == 0 && walletCount > 0) {
             openCreateGroupWallet()
+        } else if (groupWalletCount == 0 && walletCount > 0) {
+            openCreateAssistedWallet()
         } else {
             showOptionGroupWalletType()
         }

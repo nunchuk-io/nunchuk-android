@@ -173,6 +173,16 @@ class WalletIntermediaryViewModel @Inject constructor(
         return state.value.groupOptions.sumOf { walletsCount[it.slug] ?: 0 } > 0
     }
 
+    fun getPersonalWalletCount(): Int {
+        val walletsCount = state.value.walletsCount
+        return state.value.personalOptions.sumOf { walletsCount[it.slug] ?: 0 }
+    }
+
+    fun getGroupWalletCount(): Int {
+        val walletsCount = state.value.walletsCount
+        return state.value.groupOptions.sumOf { walletsCount[it.slug] ?: 0 }
+    }
+
     fun setLocalMembershipPlan(plan: MembershipPlan) {
         viewModelScope.launch {
             setLocalMembershipPlanFlowUseCase(plan)
