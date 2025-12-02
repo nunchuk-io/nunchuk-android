@@ -28,8 +28,6 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.compose.HighlightMessageType
-import com.nunchuk.android.compose.NcHintMessage
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
@@ -127,32 +125,16 @@ private fun OnChainTimelockExplanationContent(
                 )
             },
             bottomBar = {
-                Column(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                NcPrimaryDarkButton(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    onClick = onContinueClicked
                 ) {
-                    NcHintMessage(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .fillMaxWidth(),
-                        type = HighlightMessageType.HINT
-                    ) {
-                        Text(
-                            text = stringResource(R.string.nc_keys_added_twice_hint),
-                            style = NunchukTheme.typography.bodySmall
-                        )
-                    }
-                    NcPrimaryDarkButton(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .fillMaxWidth(),
-                        onClick = onContinueClicked
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.nc_text_continue),
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    Text(
+                        text = stringResource(id = R.string.nc_text_continue),
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             },
         ) { innerPadding ->
