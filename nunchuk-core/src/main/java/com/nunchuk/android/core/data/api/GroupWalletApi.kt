@@ -4,7 +4,6 @@ import com.nunchuk.android.core.data.model.CreateServerKeyResponse
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
 import com.nunchuk.android.core.data.model.CreateTimelockPayload
 import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
-import com.nunchuk.android.core.data.model.InitWalletConfigRequest
 import com.nunchuk.android.core.data.model.LockdownUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
@@ -401,7 +400,7 @@ internal interface GroupWalletApi {
     suspend fun getWallets(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
-        @Query("statuses") statuses: List<String> = listOf("DELETED"),
+        @Query("statuses") statuses: List<String>,
     ): Data<GetWalletsResponse>
 
     @GET("/v1.1/group-wallets/groups/{group_id}/wallets/{wallet_id_or_local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&statuses=PENDING_SIGNATURES,READY_TO_BROADCAST&types=STANDARD,SCHEDULED,CLAIMING,ROLLOVER,RECURRING")

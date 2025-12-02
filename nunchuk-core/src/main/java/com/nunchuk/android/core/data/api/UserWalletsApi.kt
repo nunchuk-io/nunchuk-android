@@ -75,6 +75,7 @@ import com.nunchuk.android.core.data.model.membership.CreateWalletRequest
 import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
 import com.nunchuk.android.core.data.model.membership.GetNonceResponse
 import com.nunchuk.android.core.data.model.membership.GetWalletResponse
+import com.nunchuk.android.core.data.model.membership.GetWalletsResponse
 import com.nunchuk.android.core.data.model.membership.GroupAssistedWalletConfigResponse
 import com.nunchuk.android.core.data.model.membership.HealthCheckHistoryResponseData
 import com.nunchuk.android.core.data.model.membership.HealthReminderRequest
@@ -757,4 +758,11 @@ internal interface UserWalletsApi {
     suspend fun changeTimelockType(
         @Path("wallet_id_or_local_id") walletId: String
     ): Data<DraftWalletResponse>
+
+    @GET("/v1.1/user-wallets/wallets")
+    suspend fun getWallets(
+        @Query("offset") offset: Int,
+        @Query("limit") limit: Int,
+        @Query("statuses") statuses: List<String>,
+    ): Data<GetWalletsResponse>
 }

@@ -123,8 +123,8 @@ import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.CalculateRequiredSignaturesExt
 import com.nunchuk.android.model.CreateWalletResult
-import com.nunchuk.android.model.FinalizeReplaceWalletResult
 import com.nunchuk.android.model.DefaultPermissions
+import com.nunchuk.android.model.FinalizeReplaceWalletResult
 import com.nunchuk.android.model.GroupChat
 import com.nunchuk.android.model.GroupKeyPolicy
 import com.nunchuk.android.model.GroupStatus
@@ -470,7 +470,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             isNeedReload = true
             if (!isRemoveKey) {
                 walletServer.signerServerDtos?.forEach { signer ->
-                    newSignerMap[signer.xfp.orEmpty()] = !signerGateway.saveServerSignerIfNeed(signer)
+                    newSignerMap[signer.xfp.orEmpty()] =
+                        !signerGateway.saveServerSignerIfNeed(signer)
                 }
             }
 
@@ -804,7 +805,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return gson.toJson(request)
     }
 
-    override suspend fun generateInheritanceClaimStatusUserData(magic: String, bsms: String?): String {
+    override suspend fun generateInheritanceClaimStatusUserData(
+        magic: String,
+        bsms: String?
+    ): String {
         val body = InheritanceClaimStatusRequest.Body(
             magic = magic,
             bsms = bsms
@@ -2422,17 +2426,41 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
 
         var page = 0
         val pageSize = 30
+        runCatching {
+            do {
+                val response = userWalletApiManager.groupWalletApi.getWallets(
+                    page * pageSize,
+                    pageSize,
+                    listOf("DELETED")
+                )
+                val wallets = response.data.wallets
+                results.addAll(wallets.map {
+                    runCatching {
+                        nunchukNativeSdk.deleteWallet(it.localId.orEmpty())
+                    }
+                })
+                page++
+            } while (wallets.size == pageSize)
+        }
 
-        do {
-            val response = userWalletApiManager.groupWalletApi.getWallets(page * pageSize, pageSize)
-            val wallets = response.data.wallets
-            results.addAll(wallets.map {
-                runCatching {
-                    nunchukNativeSdk.deleteWallet(it.localId.orEmpty())
-                }
-            })
-            page++
-        } while (wallets.size == pageSize)
+        page = 0
+        runCatching {
+            do {
+                val response = userWalletApiManager.walletApi.getWallets(
+                    page * pageSize,
+                    pageSize,
+                    listOf("DELETED")
+                )
+                val wallets = response.data.wallets
+                results.addAll(wallets.map {
+                    runCatching {
+                        nunchukNativeSdk.deleteWallet(it.localId.orEmpty())
+                    }
+                })
+                page++
+            } while (wallets.size == pageSize)
+        }
+
         return results.any { it.isSuccess }
     }
 
@@ -2867,7 +2895,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun finalizeReplaceWallet(groupId: String?, walletId: String): FinalizeReplaceWalletResult {
+    override suspend fun finalizeReplaceWallet(
+        groupId: String?,
+        walletId: String
+    ): FinalizeReplaceWalletResult {
         val verifyToken = ncDataStore.passwordToken.first()
         val response = if (groupId.isNullOrEmpty()) {
             userWalletApiManager.walletApi.finalizeReplaceWallet(
@@ -2942,7 +2973,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         return response.data.toDomain()
     }
 
-    override suspend fun changeTimelockType(groupId: String?, walletId: String): com.nunchuk.android.model.byzantine.DraftWallet {
+    override suspend fun changeTimelockType(
+        groupId: String?,
+        walletId: String
+    ): DraftWallet {
         val response = if (!groupId.isNullOrEmpty()) {
             userWalletApiManager.groupWalletApi.changeTimelockType(groupId, walletId)
         } else {
@@ -2951,7 +2985,8 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) {
             throw response.error
         }
-        val draftWallet = response.data.draftWallet ?: throw NullPointerException("draftWallet null")
+        val draftWallet =
+            response.data.draftWallet ?: throw NullPointerException("draftWallet null")
         return DraftWallet(
             groupId = draftWallet.groupId,
             config = draftWallet.walletConfig.toModel(),

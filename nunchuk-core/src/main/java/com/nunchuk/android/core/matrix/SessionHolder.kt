@@ -56,6 +56,7 @@ class SessionHolder @Inject constructor(
             addListener(sessionListener)
             cryptoService().setWarnOnUnknownDevices(false)
             try {
+                runCatching { close() } // wtf don't know why but sometimes session is already
                 open()
                 if (!syncService().hasAlreadySynced()) {
                     syncService().startSync(true)
