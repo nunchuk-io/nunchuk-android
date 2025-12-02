@@ -23,7 +23,6 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.asFlow
 import com.nunchuk.android.core.persistence.NcEncryptedPreferences
 import com.nunchuk.android.core.util.isAtLeastStarted
-import com.nunchuk.android.log.fileLog
 import com.nunchuk.android.utils.CrashlyticsReporter
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
@@ -45,8 +44,10 @@ class SessionHolder @Inject constructor(
     private var isLeaveRoom: Boolean = false
 
     // isOpen state is hidden inside matrix sdk, there is no way to know exactly variable value
-    suspend fun storeActiveSession(session: Session) {
-        fileLog(message = "storeActiveSession of ${session.myUserId}")
+    fun storeActiveSession(session: Session) {
+        if (session.sessionId == getSafeActiveSession()?.sessionId) {
+            return
+        }
         getSafeActiveSession()?.apply {
             removeListener(sessionListener)
             close()
@@ -56,7 +57,6 @@ class SessionHolder @Inject constructor(
             addListener(sessionListener)
             cryptoService().setWarnOnUnknownDevices(false)
             try {
-                runCatching { close() } // wtf don't know why but sometimes session is already
                 open()
                 if (!syncService().hasAlreadySynced()) {
                     syncService().startSync(true)
