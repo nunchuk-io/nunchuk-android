@@ -17,36 +17,24 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.core.push
+package com.nunchuk.android.usecase.membership
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.repository.InheritanceRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface PushEventManager {
-    suspend fun push(event: PushEvent)
+class GetAddedKeysForInheritanceUseCase @Inject constructor(
+    private val repository: InheritanceRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<GetAddedKeysForInheritanceUseCase.Param, Map<String, SingleSigner>>(ioDispatcher) {
 
-    fun tryPush(event: PushEvent)
-
-    val event: Flow<PushEvent>
-}
-
-internal class PushEventManagerImpl @Inject constructor(
-    private val applicationScope: CoroutineScope
-) : PushEventManager {
-    private val pushEvent = MutableSharedFlow<PushEvent>()
-
-    override suspend fun push(event: PushEvent) {
-        pushEvent.emit(event)
+    override suspend fun execute(parameters: Param): Map<String, SingleSigner> {
+        return repository.getAddedKeys(parameters.magic)
     }
 
-    override fun tryPush(event: PushEvent) {
-        applicationScope.run {
-            pushEvent.tryEmit(event)
-        }
-    }
-
-    override val event: Flow<PushEvent> = pushEvent.asSharedFlow()
+    data class Param(val magic: String)
 }
+

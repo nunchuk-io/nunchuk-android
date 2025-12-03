@@ -22,6 +22,8 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
 import com.nunchuk.android.usecase.DeleteMasterSignerUseCase
 import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
+import com.nunchuk.android.usecase.membership.DeletePendingRequestsByMagicUseCase
+import com.nunchuk.android.usecase.membership.GetAddedKeysForInheritanceUseCase
 import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,8 +45,11 @@ class ClaimInheritanceViewModel @Inject constructor(
     private val singleSignerMapper: SingleSignerMapper,
     private val getClaimingWalletUseCase: GetClaimingWalletUseCase,
     private val parseWalletDescriptorUseCase: ParseWalletDescriptorUseCase,
+    private val getAddedKeysForInheritanceUseCase: GetAddedKeysForInheritanceUseCase,
+    private val deletePendingRequestsByMagicUseCase: DeletePendingRequestsByMagicUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    private val handledRequestIds = mutableSetOf<String>()
 
     private val _claimData = MutableSaveStateFlow(
         savedStateHandle = savedStateHandle,
@@ -62,6 +67,7 @@ class ClaimInheritanceViewModel @Inject constructor(
         inheritanceAdditional: InheritanceAdditional,
         derivationPaths: List<String>
     ) {
+        deletePendingRequests(magic)
         _claimData.update {
             it.copy(
                 signers = signers.toSet(),
@@ -73,6 +79,7 @@ class ClaimInheritanceViewModel @Inject constructor(
     }
 
     fun updateClaimInit(magicPhrase: String, init: InheritanceClaimingInit) {
+        deletePendingRequests(magicPhrase)
         _claimData.update {
             it.copy(
                 signers = emptySet(),
@@ -80,6 +87,18 @@ class ClaimInheritanceViewModel @Inject constructor(
                 requiredKeyCount = init.inheritanceKeyCount,
                 walletType = init.walletType
             )
+        }
+    }
+
+    fun deletePendingRequests(magic: String) {
+        viewModelScope.launch {
+            if (magic.isNotEmpty()) {
+                deletePendingRequestsByMagicUseCase(
+                    DeletePendingRequestsByMagicUseCase.Param(
+                        magic,
+                    )
+                )
+            }
         }
     }
 
@@ -139,7 +158,12 @@ class ClaimInheritanceViewModel @Inject constructor(
 
     fun addSigner(signer: SignerModel) {
         if (_claimData.value.signers.contains(signer)) {
-            _uiState.update { it.copy(event = ClaimInheritanceEvent.KeyAlreadyAdded, isLoading = false) }
+            _uiState.update {
+                it.copy(
+                    event = ClaimInheritanceEvent.KeyAlreadyAdded,
+                    isLoading = false
+                )
+            }
         } else {
             _claimData.update { it.copy(signers = it.signers + signer) }
             if (claimData.value.signers.size == claimData.value.requiredKeyCount) {
@@ -147,7 +171,12 @@ class ClaimInheritanceViewModel @Inject constructor(
                     downloadWalletForClaim()
                 }
             } else {
-                _uiState.update { it.copy(event = ClaimInheritanceEvent.AddMoreSigners, isLoading = false) }
+                _uiState.update {
+                    it.copy(
+                        event = ClaimInheritanceEvent.AddMoreSigners,
+                        isLoading = false
+                    )
+                }
             }
         }
     }
@@ -160,7 +189,12 @@ class ClaimInheritanceViewModel @Inject constructor(
                 keys = currentData.signers.map { it.toSingleSigner() },
             )
         ).map { wallet ->
-            _uiState.update { it.copy(isRequiredRegister = wallet.requiresRegistration, walletId = wallet.localId) }
+            _uiState.update {
+                it.copy(
+                    isRequiredRegister = wallet.requiresRegistration,
+                    walletId = wallet.localId
+                )
+            }
             getInheritanceStatus(currentData.magic, wallet.bsms)
         }.onFailure { e ->
             if (e is NunchukApiException && e.code == 831) {
@@ -224,6 +258,31 @@ class ClaimInheritanceViewModel @Inject constructor(
 
     fun onEventHandled() {
         _uiState.update { it.copy(event = null) }
+    }
+
+    fun checkRequestedAddDesktopKey() {
+        viewModelScope.launch {
+            getAddedKeysForInheritanceUseCase(
+                GetAddedKeysForInheritanceUseCase.Param(
+                    magic = claimData.value.magic
+                )
+            ).onSuccess { addedKeys ->
+                addedKeys.forEach { entry ->
+                    if (!handledRequestIds.contains(entry.key)) {
+                        val signerModel = singleSignerMapper(entry.value)
+                        addSigner(signerModel)
+                    }
+                }
+                handledRequestIds.addAll(addedKeys.map { it.key })
+            }.onFailure { e ->
+                Timber.e(e)
+                _uiState.update {
+                    it.copy(
+                        event = ClaimInheritanceEvent.ShowError(e.message.orUnknownError()),
+                    )
+                }
+            }
+        }
     }
 
     private companion object {

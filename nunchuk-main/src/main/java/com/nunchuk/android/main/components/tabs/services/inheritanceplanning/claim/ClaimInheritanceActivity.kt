@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
@@ -143,6 +144,13 @@ private fun ClaimInheritanceGraph(
     val context = LocalContext.current
     val claimData by activityViewModel.claimData.collectAsStateWithLifecycle()
     val sharedUiState by activityViewModel.uiState.collectAsStateWithLifecycle()
+
+    LifecycleResumeEffect(Unit) {
+        if (claimData.magic.isNotEmpty()) {
+            activityViewModel.checkRequestedAddDesktopKey()
+        }
+        onPauseOrDispose { }
+    }
 
     LaunchedEffect(sharedUiState.event) {
         sharedUiState.event?.let { event ->

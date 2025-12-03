@@ -47,5 +47,5 @@ interface InheritanceRepository {
 
     suspend fun deletePendingRequestsByMagic(magic: String)
 
-    suspend fun getAddedKeys(magic: String): List<SingleSigner>
+    suspend fun getAddedKeys(magic: String): Map<String, SingleSigner>
 }

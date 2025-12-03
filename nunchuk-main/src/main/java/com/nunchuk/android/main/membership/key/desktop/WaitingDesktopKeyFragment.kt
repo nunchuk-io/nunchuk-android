@@ -74,7 +74,8 @@ class WaitingDesktopKeyFragment : MembershipFragment() {
                             noDeviceDialog?.dismiss()
                             findNavController().navigate(
                                 WaitingDesktopKeyFragmentDirections.actionWaitingDesktopKeyFragmentToRequestAddKeySuccessFragment(
-                                    args.signerTag
+                                    signerTag = args.signerTag,
+                                    magic = args.magic
                                 )
                             )
                         } else {

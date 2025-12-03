@@ -5,6 +5,8 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.InheritanceAdditional
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -17,9 +19,9 @@ fun NavGraphBuilder.claimBackupPassword(
     onBackPressed: () -> Unit = {},
     onNoInheritancePlanFound: () -> Unit = {},
     onSuccess: (
-        signers: List<com.nunchuk.android.core.signer.SignerModel>,
+        signers: List<SignerModel>,
         magic: String,
-        inheritanceAdditional: com.nunchuk.android.model.InheritanceAdditional,
+        inheritanceAdditional: InheritanceAdditional,
         derivationPaths: List<String>
     ) -> Unit = { _, _, _, _ -> },
 ) {

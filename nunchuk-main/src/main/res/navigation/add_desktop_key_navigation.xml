@@ -78,5 +78,9 @@
         <argument
             android:name="signer_tag"
             app:argType="com.nunchuk.android.type.SignerTag" />
+        <argument
+            android:name="magic"
+            android:defaultValue=""
+            app:argType="string" />
     </fragment>
 </navigation>

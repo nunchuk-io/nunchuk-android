@@ -19,7 +19,6 @@
 
 package com.nunchuk.android.core.repository
 
-import com.google.gson.Gson
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.model.InheritanceClaimingDownloadWalletRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimingInitRequest
@@ -38,11 +37,9 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.persistence.dao.MembershipStepDao
 import com.nunchuk.android.persistence.dao.RequestAddKeyDao
 import com.nunchuk.android.persistence.entity.RequestAddKeyEntity
 import com.nunchuk.android.repository.InheritanceRepository
-import com.nunchuk.android.repository.MembershipRepository
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.WalletType
 import kotlinx.coroutines.flow.Flow
@@ -57,9 +54,6 @@ internal class InheritanceRepositoryImpl @Inject constructor(
     private val signerGateway: SignerGateway,
     private val requestAddKeyDao: RequestAddKeyDao,
     private val accountManager: AccountManager,
-    private val membershipRepository: MembershipRepository,
-    private val membershipStepDao: MembershipStepDao,
-    private val gson: Gson,
 ) : InheritanceRepository {
 
     override suspend fun inheritanceClaimingInit(magic: String): InheritanceClaimingInit {
@@ -248,18 +242,20 @@ internal class InheritanceRepositoryImpl @Inject constructor(
         requestAddKeyDao.deleteRequests(magic)
     }
 
-    override suspend fun getAddedKeys(magic: String): List<SingleSigner> {
-        return requestAddKeyDao.getRequests(magic).map { localRequest ->
+    override suspend fun getAddedKeys(magic: String): Map<String, SingleSigner> {
+        val result = mutableMapOf<String, SingleSigner>()
+        requestAddKeyDao.getRequests(magic).map { localRequest ->
             val response =
                 userWalletApiManager.walletApi.getRequestAddKeyStatus(localRequest.requestId)
 
-            response.data.request?.keys?.map { serverKey ->
-                nunchukNativeSdk.getRemoteSigner(
+            response.data.request?.keys?.forEach { serverKey ->
+                result[localRequest.requestId] = nunchukNativeSdk.getRemoteSigner(
                     masterFingerprint = serverKey.xfp.orEmpty(),
                     derivationPath = serverKey.derivationPath.orEmpty(),
                 )
-            }.orEmpty()
-        }.flatten()
+            }
+        }
+        return result
     }
 }
 

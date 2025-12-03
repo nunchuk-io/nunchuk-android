@@ -85,14 +85,14 @@ internal class NunchukApplication : MultiDexApplication(), Configuration.Provide
 
     override fun onCreate() {
         super.onCreate()
+        applicationScope.launch {
+            matrixInitializerUseCase.get()(Unit)
+        }
         if (BuildConfig.DEBUG) {
             Timber.plant(FileLogTree(this))
             Branch.enableLogging()
         }
         Branch.getAutoInstance(this)
-        applicationScope.launch {
-            matrixInitializerUseCase.get()(Unit)
-        }
         runBlocking {
             val account = accountManager.getAccount()
             val accountId = if (account.loginType == SignInMode.PRIMARY_KEY.value) {

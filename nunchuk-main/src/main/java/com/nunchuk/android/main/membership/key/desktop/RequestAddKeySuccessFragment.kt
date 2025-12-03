@@ -38,13 +38,21 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.manager.ActivityManager
+import com.nunchuk.android.core.push.PushEvent
+import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.toString
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.SignerTag
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class RequestAddKeySuccessFragment : MembershipFragment() {
+    @Inject
+    lateinit var pushEventManager: PushEventManager
+
     private val args: RequestAddKeySuccessFragmentArgs by navArgs()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -65,7 +73,10 @@ class RequestAddKeySuccessFragment : MembershipFragment() {
     }
 
     private fun handleBack() {
-        if (requireActivity() is MembershipActivity) {
+        if (args.magic.isNotEmpty()) {
+            pushEventManager.tryPush(PushEvent.AddDesktopKeyCompleted)
+            navigator.returnToClaimScreen(requireContext())
+        } else if (requireActivity() is MembershipActivity) {
             findNavController().popBackStack()
         } else {
             ActivityManager.popUntil(MembershipActivity::class.java)
