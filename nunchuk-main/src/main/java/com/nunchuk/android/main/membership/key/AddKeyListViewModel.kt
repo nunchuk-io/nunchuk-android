@@ -189,10 +189,11 @@ class AddKeyListViewModel @Inject constructor(
                     clear()
                     addAll(pair.second)
                 }
+                val signers = pair.first.map { signer ->
+                    masterSignerMapper(signer)
+                } + pair.second.map { signer -> signer.toModel() }
                 it.copy(
-                    signers = pair.first.map { signer ->
-                        masterSignerMapper(signer)
-                    } + pair.second.map { signer -> signer.toModel() }
+                    signers = signers.filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }
                 )
             }
         }
@@ -340,7 +341,12 @@ class AddKeyListViewModel @Inject constructor(
 
 sealed class AddKeyListEvent {
     data class OnAddKey(val data: AddKeyData) : AddKeyListEvent()
-    data class OnVerifySigner(val signer: SignerModel, val filePath: String, val backUpFileName: String) : AddKeyListEvent()
+    data class OnVerifySigner(
+        val signer: SignerModel,
+        val filePath: String,
+        val backUpFileName: String
+    ) : AddKeyListEvent()
+
     data object OnAddAllKey : AddKeyListEvent()
     data object SelectAirgapType : AddKeyListEvent()
     data class ShowError(val message: String) : AddKeyListEvent()
