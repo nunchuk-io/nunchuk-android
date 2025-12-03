@@ -6,6 +6,7 @@ import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.SupportedSignerConfig
@@ -130,8 +131,9 @@ class SignerIntroViewModel @Inject constructor(
 
     fun onTapSignerContinueClicked() {
         viewModelScope.launch {
-           if (_state.value.filteredTapSigners.isNotEmpty()) {
-                _event.emit(SignerIntroEvent.ShowFilteredTapSigners(_state.value.filteredTapSigners))
+            val signers = _state.value.filteredTapSigners.filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }
+           if (signers.isNotEmpty()) {
+                _event.emit(SignerIntroEvent.ShowFilteredTapSigners(signers))
             } else {
                 _event.emit(SignerIntroEvent.OpenSetupTapSigner)
             }

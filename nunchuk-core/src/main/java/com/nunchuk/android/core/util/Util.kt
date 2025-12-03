@@ -189,7 +189,7 @@ val String.isTestNetSigner: Boolean
     get() = split("/").getOrNull(2) == "1h"
 
 val String.isRecommendedMultiSigPath: Boolean
-    get() = this.startsWith("m/48h") && this.endsWith("2h")
+    get() = isEmpty() || this.startsWith("m/48h") && this.endsWith("2h")
 
 val String.isRecommendedSingleSigPath: Boolean
     get() = this.startsWith(SINGLE_SIG_SIGNER_PATH_PREFIX) && this.endsWith("0h")

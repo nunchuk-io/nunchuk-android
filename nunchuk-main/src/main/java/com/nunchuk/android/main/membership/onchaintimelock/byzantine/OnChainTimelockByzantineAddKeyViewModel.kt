@@ -32,6 +32,7 @@ import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.main.membership.model.AddKeyOnChainData
@@ -186,7 +187,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
             val signers = pair.first.map { signer ->
                 masterSignerMapper(signer)
             } + singleSigner.map { signer -> signer.toModel() }
-            _state.update { it.copy(signers = signers) }
+            _state.update { it.copy(signers = signers.filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }) }
             updateKeyData()
         }
     }

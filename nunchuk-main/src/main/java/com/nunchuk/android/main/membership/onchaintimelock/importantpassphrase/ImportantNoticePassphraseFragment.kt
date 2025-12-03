@@ -44,6 +44,7 @@ import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.main.membership.signer.OnChainSignerIntroFragment
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.parcelableArrayList
@@ -71,7 +72,7 @@ class ImportantNoticePassphraseFragment : MembershipFragment(), BottomSheetOptio
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setFragmentResultListener("SignerIntroFragment") { _, bundle ->
+        setFragmentResultListener(OnChainSignerIntroFragment.REQUEST_KEY) { _, bundle ->
             val filteredSigners = bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
             val activity = requireActivity() as MembershipActivity
             val destinationId = if (args.onChainAddSignerParam?.isReplaceKeyFlow() == true) {
@@ -92,7 +93,7 @@ class ImportantNoticePassphraseFragment : MembershipFragment(), BottomSheetOptio
             } else {
                 findNavController().popBackStack(destinationId, false)
             }
-            clearFragmentResult("SignerIntroFragment")
+            clearFragmentResult(OnChainSignerIntroFragment.REQUEST_KEY)
         }
     }
 

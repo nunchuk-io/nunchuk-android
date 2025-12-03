@@ -29,9 +29,9 @@ import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.push.PushEvent
-import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.main.membership.model.AddKeyOnChainData
@@ -255,10 +255,11 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                     clear()
                     addAll(pair.first)
                 }
+                val signers = pair.first.map { signer ->
+                    masterSignerMapper(signer)
+                } + pair.second.map { signer -> signer.toModel() }
                 it.copy(
-                    signers = pair.first.map { signer ->
-                        masterSignerMapper(signer)
-                    } + pair.second.map { signer -> signer.toModel() }
+                    signers = signers.filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }
                 )
             }
         }
@@ -589,7 +590,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
 
                 is Result.Error -> {
                     val error = signerByIndexResult.exception
-                    if (error is NCNativeException && error.message.contains("-1009") == true) {
+                    if (error is NCNativeException && error.message.contains("-1009")) {
                         // Store context for TapSigner caching - using index 1 for second account
                         savedStateHandle[KEY_TAPSIGNER_MASTER_ID] =
                             firstSigner.fingerPrint

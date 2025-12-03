@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
@@ -83,21 +84,24 @@ class CheckFirmwareViewModel @Inject constructor(
         singleSigners: List<SingleSigner>,
         masterSigners: List<MasterSigner>
     ): List<SignerModel> {
-        return masterSigners.map { masterSignerMapper(it) } + 
-               singleSigners.map(SingleSigner::toModel)
+        return masterSigners.map { masterSignerMapper(it) } +
+                singleSigners.map(SingleSigner::toModel)
     }
 
     private suspend fun filterSignersByTypeAndIndex(signers: List<SignerModel>): List<SignerModel> {
         return signers.filter { signer ->
             // Filter by signer type and tag based on the selected SignerTag
             val matchesType = when (args.signerTag) {
-                SignerTag.COLDCARD -> signer.type == SignerType.COLDCARD_NFC || signer.tags.contains(SignerTag.COLDCARD)
+                SignerTag.COLDCARD -> signer.type == SignerType.COLDCARD_NFC || signer.tags.contains(
+                    SignerTag.COLDCARD
+                )
+
                 SignerTag.JADE -> signer.type == SignerType.AIRGAP && signer.tags.contains(SignerTag.JADE)
                 else -> false
             }
-            
+
             if (!matchesType) return@filter false
-            
+
             // Filter by derivation path index = 0
             try {
                 val index = getIndexFromPathUseCase(signer.derivationPath).getOrThrow()
@@ -110,13 +114,12 @@ class CheckFirmwareViewModel @Inject constructor(
 
     fun onContinueClicked() {
         viewModelScope.launch {
-            // Check if OnChainAddSignerParam is verify backup seed phrase flow
+            val signers = _filteredSigners.value.filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }
             if (args.onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
                 _event.emit(CheckFirmwareEvent.OpenNextScreen)
-            } else if (_filteredSigners.value.isNotEmpty()) {
-                _event.emit(CheckFirmwareEvent.ShowFilteredSigners(_filteredSigners.value))
+            } else if (signers.isNotEmpty()) {
+                _event.emit(CheckFirmwareEvent.ShowFilteredSigners(signers))
             } else {
-                // If no signers found, navigate to the appropriate next screen
                 _event.emit(CheckFirmwareEvent.OpenNextScreen)
             }
         }
