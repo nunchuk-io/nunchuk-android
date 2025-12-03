@@ -70,6 +70,7 @@ import com.nunchuk.android.core.data.model.membership.ConfirmationCodeRequest
 import com.nunchuk.android.core.data.model.membership.ConfirmationCodeVerifyRequest
 import com.nunchuk.android.core.data.model.membership.CreateOrUpdateServerTransactionRequest
 import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
+import com.nunchuk.android.core.data.model.membership.GetWalletsResponse
 import com.nunchuk.android.core.data.model.membership.HealthReminderRequest
 import com.nunchuk.android.core.data.model.membership.KeyPolicyUpdateRequest
 import com.nunchuk.android.core.data.model.membership.RequestSignatureTransactionRequest
@@ -107,6 +108,7 @@ import com.nunchuk.android.core.mapper.toMemberRequest
 import com.nunchuk.android.core.mapper.toPeriod
 import com.nunchuk.android.core.mapper.toSavedAddress
 import com.nunchuk.android.core.mapper.toSavedAddressEntity
+import com.nunchuk.android.core.network.Data
 import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
@@ -408,7 +410,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getServerWallet(): WalletServerSync {
+    override suspend fun getServerWallets(): WalletServerSync {
         val result = userWalletApiManager.walletApi.getServerWallet()
         val assistedKeys = mutableSetOf<String>()
         var isNeedReload = false
@@ -433,6 +435,29 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         ncDataStore.setAssistedKey(assistedKeys)
         result.data.wallets.forEach { planWalletCreated[it.slug.orEmpty()] = it.localId.orEmpty() }
+
+        val claimingWallets = mutableListOf<WalletDto>()
+        var page = 0
+        val pageSize = 30
+        runCatching {
+            do {
+                val response = userWalletApiManager.claimWalletApi.getClaimingWallets(
+                    offset = page * pageSize,
+                    limit = pageSize,
+                    statuses = listOf("ACTIVE")
+                )
+                val wallets = response.data.wallets
+                claimingWallets.addAll(wallets)
+                page++
+            } while (wallets.size == pageSize)
+        }
+
+        claimingWallets.forEach { walletServer ->
+            Timber.d("Claiming wallet sync: ${walletServer.localId}")
+            if (saveWalletToLib(walletServer, assistedKeys)) isNeedReload = true
+        }
+        ncDataStore.setClaimWallets(claimingWallets.map { it.localId.orEmpty() }.toSet())
+
         return WalletServerSync(
             keyPolicyMap = keyPolicyMap, isNeedReload = isNeedReload || deleteCount > 0
         )
@@ -2443,44 +2468,70 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             })
         }
 
-        var page = 0
         val pageSize = 30
+        val statuses = listOf("DELETED")
+        
         runCatching {
-            do {
-                val response = userWalletApiManager.groupWalletApi.getWallets(
-                    page * pageSize,
-                    pageSize,
-                    listOf("DELETED")
+            results.addAll(
+                syncDeletedWalletsWithPagination(
+                    fetchWallets = { offset, limit, statusList ->
+                        userWalletApiManager.groupWalletApi.getWallets(offset, limit, statusList)
+                    },
+                    statuses = statuses,
+                    pageSize = pageSize
                 )
-                val wallets = response.data.wallets
-                results.addAll(wallets.map {
-                    runCatching {
-                        nunchukNativeSdk.deleteWallet(it.localId.orEmpty())
-                    }
-                })
-                page++
-            } while (wallets.size == pageSize)
+            )
         }
 
-        page = 0
         runCatching {
-            do {
-                val response = userWalletApiManager.walletApi.getWallets(
-                    page * pageSize,
-                    pageSize,
-                    listOf("DELETED")
+            results.addAll(
+                syncDeletedWalletsWithPagination(
+                    fetchWallets = { offset, limit, statusList ->
+                        userWalletApiManager.walletApi.getWallets(offset, limit, statusList)
+                    },
+                    statuses = statuses,
+                    pageSize = pageSize
                 )
-                val wallets = response.data.wallets
-                results.addAll(wallets.map {
-                    runCatching {
-                        nunchukNativeSdk.deleteWallet(it.localId.orEmpty())
-                    }
-                })
-                page++
-            } while (wallets.size == pageSize)
+            )
+        }
+
+        runCatching {
+            results.addAll(
+                syncDeletedWalletsWithPagination(
+                    fetchWallets = { offset, limit, statusList ->
+                        userWalletApiManager.claimWalletApi.getClaimingWallets(
+                            offset = offset,
+                            limit = limit,
+                            statuses = statusList
+                        )
+                    },
+                    statuses = statuses,
+                    pageSize = pageSize
+                )
+            )
         }
 
         return results.any { it.isSuccess }
+    }
+
+    private suspend fun syncDeletedWalletsWithPagination(
+        fetchWallets: suspend (Int, Int, List<String>) -> Data<GetWalletsResponse>,
+        statuses: List<String>,
+        pageSize: Int
+    ): List<Result<Boolean>> {
+        val results = mutableListOf<Result<Boolean>>()
+        var page = 0
+        do {
+            val response = fetchWallets(page * pageSize, pageSize, statuses)
+            val wallets = response.data.wallets
+            results.addAll(wallets.map { wallet ->
+                runCatching {
+                    nunchukNativeSdk.deleteWallet(wallet.localId.orEmpty())
+                }
+            })
+            page++
+        } while (wallets.size == pageSize)
+        return results
     }
 
     override suspend fun deleteKeyForReplacedWallet(groupId: String, walletId: String) {

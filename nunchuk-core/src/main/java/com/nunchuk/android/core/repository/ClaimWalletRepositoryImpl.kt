@@ -17,25 +17,30 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase
+package com.nunchuk.android.core.repository
 
-import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.core.manager.UserWalletApiManager
+import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.repository.ClaimWalletRepository
-import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
-class DeleteWalletUseCase @Inject constructor(
-    @IoDispatcher private val dispatcher: CoroutineDispatcher,
-    private val nativeSdk: NunchukNativeSdk,
-    private val claimWalletRepository: ClaimWalletRepository,
-) : UseCase<DeleteWalletUseCase.Params, Boolean>(dispatcher) {
-    override suspend fun execute(parameters: Params): Boolean {
-        if (claimWalletRepository.isClaimWallet(parameters.walletId)) {
-            claimWalletRepository.deleteClaimingWallet(parameters.walletId)
+internal class ClaimWalletRepositoryImpl @Inject constructor(
+    private val userWalletApiManager: UserWalletApiManager,
+    private val ncDataStore: NcDataStore,
+) : ClaimWalletRepository {
+    override suspend fun deleteClaimingWallet(localId: String) {
+        runCatching {
+            val response = userWalletApiManager.claimWalletApi.deleteClaimingWallet(localId)
+            if (response.isSuccess.not()) {
+                throw response.error
+            }
         }
-        return nativeSdk.deleteWallet(parameters.walletId)
     }
 
-    data class Params(val walletId: String)
+    override suspend fun isClaimWallet(localId: String): Boolean {
+        val claimWallets = ncDataStore.claimWalletsFlow.first()
+        return claimWallets.contains(localId)
+    }
 }
+

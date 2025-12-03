@@ -1,6 +1,6 @@
 package com.nunchuk.android.core.domain.message
 
-import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
+import com.nunchuk.android.core.domain.membership.SyncPersonalWallets
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -53,7 +53,7 @@ class HandlePushMessageUseCase @Inject constructor(
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
     private val getServerWalletUseCase: GetServerWalletUseCase,
     private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
-    private val getServerWalletsUseCase: GetServerWalletsUseCase,
+    private val syncPersonalWallets: SyncPersonalWallets,
     private val syncCoinControlData: SyncCoinControlData,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val deleteKeyInWalletUseCase: DeleteKeyInWalletUseCase,
@@ -220,7 +220,7 @@ class HandlePushMessageUseCase @Inject constructor(
                 if (result.getOrDefault(false).not()) {
                     saveHandledEventUseCase.invoke(parameters.eventId)
                     syncGroupWalletsUseCase(Unit)
-                    getServerWalletsUseCase(Unit)
+                    syncPersonalWallets(Unit)
                     pushEventManager.push(
                         PushEvent.SignedChanged(
                             parameters.getXfp().orEmpty()
@@ -302,7 +302,7 @@ class HandlePushMessageUseCase @Inject constructor(
                     val oldGroupId = parameters.getGroupId().orEmpty()
                     val newWalletId = parameters.getNewWalletId().orEmpty()
                     if (oldGroupId.isEmpty()) {
-                        getServerWalletsUseCase(Unit)
+                        syncPersonalWallets(Unit)
                     } else {
                         syncGroupWalletsUseCase(Unit)
                     }

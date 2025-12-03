@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.CreateWallet2UseCase
-import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
+import com.nunchuk.android.core.domain.membership.SyncPersonalWallets
 import com.nunchuk.android.core.domain.utils.NfcFileManager
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.mapper.SingleSignerMapper
@@ -73,7 +73,7 @@ class ReplaceKeysViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val nfcFileManager: NfcFileManager,
     private val singleSignerMapper: SingleSignerMapper,
-    private val getServerWalletsUseCase: GetServerWalletsUseCase,
+    private val syncPersonalWallets: SyncPersonalWallets,
     private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
     private val getServerWalletUseCase: GetServerWalletUseCase,
@@ -271,7 +271,7 @@ class ReplaceKeysViewModel @Inject constructor(
             )
         ).onSuccess { result ->
             if (args.groupId.isEmpty()) {
-                getServerWalletsUseCase(Unit)
+                syncPersonalWallets(Unit)
             } else {
                 syncGroupWalletsUseCase(Unit)
             }

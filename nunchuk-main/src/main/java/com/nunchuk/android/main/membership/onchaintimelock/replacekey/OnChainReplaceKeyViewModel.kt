@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.CreateWallet2UseCase
-import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
+import com.nunchuk.android.core.domain.membership.SyncPersonalWallets
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerByPathUseCase
 import com.nunchuk.android.core.domain.utils.NfcFileManager
@@ -94,7 +94,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val nfcFileManager: NfcFileManager,
     private val singleSignerMapper: SingleSignerMapper,
-    private val getServerWalletsUseCase: GetServerWalletsUseCase,
+    private val syncPersonalWallets: SyncPersonalWallets,
     private val syncGroupWalletsUseCase: SyncGroupWalletsUseCase,
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
     private val getServerWalletUseCase: GetServerWalletUseCase,
@@ -330,7 +330,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
             )
         ).onSuccess { result ->
             if (args.groupId.isEmpty()) {
-                getServerWalletsUseCase(Unit)
+                syncPersonalWallets(Unit)
             } else {
                 syncGroupWalletsUseCase(Unit)
             }

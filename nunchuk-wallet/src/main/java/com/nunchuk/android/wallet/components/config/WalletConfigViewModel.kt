@@ -24,7 +24,6 @@ import androidx.annotation.Keep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.GetTapSignerStatusByIdUseCase
@@ -419,17 +418,13 @@ internal class WalletConfigViewModel @Inject constructor(
     fun handleDeleteWallet() {
         viewModelScope.launch {
             leaveRoom {
-                when (val event = deleteWalletUseCase.execute(walletId)) {
-                    is Result.Success -> {
-                        if (isAssistedWallet()) {
-                            _event.emit(WalletConfigEvent.DeleteAssistedWalletSuccess)
-                        } else {
-                            _event.emit(WalletConfigEvent.DeleteWalletSuccess)
-                        }
+                deleteWalletUseCase(DeleteWalletUseCase.Params(walletId)).onSuccess {
+                    if (isAssistedWallet()) {
+                        _event.emit(WalletConfigEvent.DeleteAssistedWalletSuccess)
+                    } else {
+                        _event.emit(WalletConfigEvent.DeleteWalletSuccess)
                     }
-
-                    is Result.Error -> showError(event.exception)
-                }
+                }.onFailure { e -> showError(e) }
             }
         }
     }

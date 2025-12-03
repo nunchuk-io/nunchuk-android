@@ -31,7 +31,7 @@ import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.IsShowNfcUniversalUseCase
 import com.nunchuk.android.core.domain.JoinFreeGroupWalletByIdUseCase
 import com.nunchuk.android.core.domain.membership.GetClaimWalletsFlowUseCase
-import com.nunchuk.android.core.domain.membership.GetServerWalletsUseCase
+import com.nunchuk.android.core.domain.membership.SyncPersonalWallets
 import com.nunchuk.android.core.domain.membership.UpdateExistingKeyUseCase
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
@@ -150,7 +150,7 @@ internal class WalletsViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val accountManager: AccountManager,
     private val getUserSubscriptionUseCase: GetUserSubscriptionUseCase,
-    private val getServerWalletsUseCase: GetServerWalletsUseCase,
+    private val syncPersonalWallets: SyncPersonalWallets,
     private val getInheritanceUseCase: GetInheritanceUseCase,
     private val getBannerUseCase: GetBannerUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
@@ -276,7 +276,7 @@ internal class WalletsViewModel @Inject constructor(
                             // personal wallet
                             syncDraftWalletUseCase("")
                         } else if (!getState().wallets.any { it.wallet.id == event.walletId }) {
-                            getServerWalletsUseCase(Unit).onSuccess {
+                            syncPersonalWallets(Unit).onSuccess {
                                 if (it.isNeedReload) {
                                     retrieveData()
                                 }
@@ -552,7 +552,7 @@ internal class WalletsViewModel @Inject constructor(
             val result = getUserSubscriptionUseCase(Unit)
             if (result.isSuccess) {
                 val subscription = result.getOrThrow()
-                val getServerWalletResult = getServerWalletsUseCase(Unit)
+                val getServerWalletResult = syncPersonalWallets(Unit)
                 if (getServerWalletResult.isFailure) return@launch
                 keyPolicyMap.clear()
                 keyPolicyMap.putAll(getServerWalletResult.getOrNull()?.keyPolicyMap.orEmpty())

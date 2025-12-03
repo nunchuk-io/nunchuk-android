@@ -239,7 +239,7 @@ class WalletIntermediaryViewModel @Inject constructor(
                 if (it) {
                     _event.emit(WalletIntermediaryEvent.ImportWalletSuccessEvent(wallet, filePath))
                 } else {
-                    deleteWalletUseCase.execute(wallet.id)
+                    deleteWalletUseCase(DeleteWalletUseCase.Params(wallet.id))
                     _event.emit(WalletIntermediaryEvent.ShowError("Group wallet not found"))
                 }
             }

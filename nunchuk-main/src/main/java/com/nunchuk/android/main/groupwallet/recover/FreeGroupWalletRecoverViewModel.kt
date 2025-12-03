@@ -324,7 +324,7 @@ class FreeGroupWalletRecoverViewModel @Inject constructor(
 
     private fun deleteWallet() {
         viewModelScope.launch {
-            deleteWalletUseCase.execute(walletId)
+            deleteWalletUseCase(DeleteWalletUseCase.Params(walletId))
         }
     }
 

@@ -17,25 +17,10 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase
+package com.nunchuk.android.repository
 
-import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.nativelib.NunchukNativeSdk
-import com.nunchuk.android.repository.ClaimWalletRepository
-import kotlinx.coroutines.CoroutineDispatcher
-import javax.inject.Inject
-
-class DeleteWalletUseCase @Inject constructor(
-    @IoDispatcher private val dispatcher: CoroutineDispatcher,
-    private val nativeSdk: NunchukNativeSdk,
-    private val claimWalletRepository: ClaimWalletRepository,
-) : UseCase<DeleteWalletUseCase.Params, Boolean>(dispatcher) {
-    override suspend fun execute(parameters: Params): Boolean {
-        if (claimWalletRepository.isClaimWallet(parameters.walletId)) {
-            claimWalletRepository.deleteClaimingWallet(parameters.walletId)
-        }
-        return nativeSdk.deleteWallet(parameters.walletId)
-    }
-
-    data class Params(val walletId: String)
+interface ClaimWalletRepository {
+    suspend fun deleteClaimingWallet(localId: String)
+    suspend fun isClaimWallet(localId: String): Boolean
 }
+

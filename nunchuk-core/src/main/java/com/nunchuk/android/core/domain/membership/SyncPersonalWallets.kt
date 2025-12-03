@@ -26,11 +26,11 @@ import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetServerWalletsUseCase @Inject constructor(
+class SyncPersonalWallets @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val userWalletsRepository: PremiumWalletRepository,
 ) : UseCase<Unit, WalletServerSync>(dispatcher) {
     override suspend fun execute(parameters: Unit): WalletServerSync {
-        return userWalletsRepository.getServerWallet()
+        return userWalletsRepository.getServerWallets()
     }
 }

@@ -102,7 +102,7 @@ interface PremiumWalletRepository {
 
     suspend fun createSecurityQuestion(question: String): SecurityQuestion
 
-    suspend fun getServerWallet(): WalletServerSync
+    suspend fun getServerWallets(): WalletServerSync
     suspend fun createServerTransaction(
         groupId: String?,
         walletId: String,

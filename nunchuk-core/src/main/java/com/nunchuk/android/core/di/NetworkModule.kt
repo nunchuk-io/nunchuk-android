@@ -22,6 +22,7 @@ package com.nunchuk.android.core.di
 import com.nunchuk.android.core.data.api.BannerApi
 import com.nunchuk.android.core.data.api.CampaignsApi
 import com.nunchuk.android.core.data.api.ClaimInheritanceApi
+import com.nunchuk.android.core.data.api.ClaimWalletApi
 import com.nunchuk.android.core.data.api.GroupWalletApi
 import com.nunchuk.android.core.data.api.NotificationApi
 import com.nunchuk.android.core.data.api.PriceConverterAPI
@@ -102,4 +103,15 @@ internal object NetworkModule {
     @Named(TEST_NET_USER_WALLET_API)
     fun provideTestNetClaimInheritanceApi(@Named(TEST_NET_RETROFIT) retrofit: Retrofit): ClaimInheritanceApi =
         retrofit.create(ClaimInheritanceApi::class.java)
+
+    @Singleton
+    @Provides
+    fun provideClaimWalletApi(retrofit: Retrofit): ClaimWalletApi =
+        retrofit.create(ClaimWalletApi::class.java)
+
+    @Singleton
+    @Provides
+    @Named(TEST_NET_USER_WALLET_API)
+    fun provideTestNetClaimWalletApi(@Named(TEST_NET_RETROFIT) retrofit: Retrofit): ClaimWalletApi =
+        retrofit.create(ClaimWalletApi::class.java)
 }

@@ -23,6 +23,7 @@ import com.nunchuk.android.core.repository.BannerRepositoryImpl
 import com.nunchuk.android.core.repository.BtcRepository
 import com.nunchuk.android.core.repository.BtcRepositoryImpl
 import com.nunchuk.android.core.repository.CampaignsRepositoryImpl
+import com.nunchuk.android.core.repository.ClaimWalletRepositoryImpl
 import com.nunchuk.android.core.repository.DummyTransactionRepositoryImpl
 import com.nunchuk.android.core.repository.GroupWalletRepositoryImpl
 import com.nunchuk.android.core.repository.HandledEventRepositoryImpl
@@ -35,6 +36,7 @@ import com.nunchuk.android.core.repository.SettingRepositoryImpl
 import com.nunchuk.android.core.repository.TransactionRepositoryImpl
 import com.nunchuk.android.repository.BannerRepository
 import com.nunchuk.android.repository.CampaignsRepository
+import com.nunchuk.android.repository.ClaimWalletRepository
 import com.nunchuk.android.repository.DummyTransactionRepository
 import com.nunchuk.android.repository.GroupWalletRepository
 import com.nunchuk.android.repository.HandledEventRepository
@@ -105,4 +107,8 @@ internal interface DataModule {
     @Binds
     @Singleton
     fun bindInheritanceRepository(repository: InheritanceRepositoryImpl): InheritanceRepository
+
+    @Binds
+    @Singleton
+    fun bindClaimWalletRepository(repository: ClaimWalletRepositoryImpl): ClaimWalletRepository
 }
