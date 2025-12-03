@@ -30,7 +30,6 @@ import com.nunchuk.android.core.domain.GetGroupDeviceUIDUseCase
 import com.nunchuk.android.core.domain.GetListMessageFreeGroupWalletUseCase
 import com.nunchuk.android.core.domain.GetWalletBannerStateUseCase
 import com.nunchuk.android.core.domain.HasSignerUseCase
-import com.nunchuk.android.core.domain.membership.IsClaimWalletUseCase
 import com.nunchuk.android.core.domain.wallet.GetWalletBsmsUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
@@ -82,6 +81,8 @@ import com.nunchuk.android.usecase.free.groupwallet.GetDeprecatedGroupWalletsUse
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupWalletsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetReplaceGroupsUseCase
 import com.nunchuk.android.usecase.free.groupwallet.SetBackUpBannerWalletIdsUseCase
+import com.nunchuk.android.usecase.membership.IsClaimWalletUseCase
+import com.nunchuk.android.usecase.membership.SyncClaimWalletTransactionUseCase
 import com.nunchuk.android.usecase.membership.SyncTransactionUseCase
 import com.nunchuk.android.usecase.miniscript.GetSpendableNowAmountUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
@@ -126,6 +127,7 @@ internal class WalletDetailsViewModel @Inject constructor(
     private val selectedWalletUseCase: SetSelectedWalletUseCase,
     private val assistedWalletManager: AssistedWalletManager,
     private val syncTransactionUseCase: SyncTransactionUseCase,
+    private val syncClaimWalletTransactionUseCase: SyncClaimWalletTransactionUseCase,
     private val getWalletSecuritySettingUseCase: GetWalletSecuritySettingUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
     private val pushEventManager: PushEventManager,
@@ -437,12 +439,16 @@ internal class WalletDetailsViewModel @Inject constructor(
         }
     }
 
-    private suspend fun syncTransactionFromServer() {
-        val result = syncTransactionUseCase(
-            SyncTransactionUseCase.Params(
-                assistedWalletManager.getGroupId(args.walletId), args.walletId
+    private suspend fun syncTransactionFromServer(isClaimWallet: Boolean) {
+        val result = if (isClaimWallet) {
+            syncClaimWalletTransactionUseCase(args.walletId)
+        } else {
+            syncTransactionUseCase(
+                SyncTransactionUseCase.Params(
+                    assistedWalletManager.getGroupId(args.walletId), args.walletId
+                )
             )
-        )
+        }
         if (result.isSuccess) {
             getTransactionHistory()
         }
@@ -451,7 +457,12 @@ internal class WalletDetailsViewModel @Inject constructor(
     fun syncServerTransaction() {
         viewModelScope.launch {
             if (assistedWalletManager.isActiveAssistedWallet(args.walletId)) {
-                syncTransactionFromServer()
+                syncTransactionFromServer(false)
+            } else {
+                val isClaimWallet = isClaimWalletUseCase(args.walletId).getOrDefault(false)
+                if (isClaimWallet) {
+                    syncTransactionFromServer(true)
+                }
             }
         }
     }

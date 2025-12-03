@@ -1521,7 +1521,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }.orEmpty()
     }
 
-    override suspend fun syncTransaction(groupId: String?, walletId: String) {
+        override suspend fun syncTransaction(groupId: String?, walletId: String) {
         (0 until Int.MAX_VALUE step TRANSACTION_PAGE_COUNT).forEach { index ->
             val response = if (!groupId.isNullOrEmpty()) {
                 userWalletApiManager.groupWalletApi.getTransactionsToSync(groupId, walletId, index)
@@ -1532,10 +1532,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             response.data.transactions.forEach { transition ->
                 Timber.d("${transition.transactionId} - $transition")
                 if (transition.psbt.isNullOrEmpty().not()) {
-                    val importTx = nunchukNativeSdk.importPsbt(walletId, transition.psbt.orEmpty())
+                    val importTx = nunchukNativeSdk.importPsbt(walletId, transition.psbt)
                     if (transition.note.isNullOrEmpty().not() && importTx.memo != transition.note) {
                         nunchukNativeSdk.updateTransactionMemo(
-                            walletId, importTx.txId, transition.note.orEmpty()
+                            walletId, importTx.txId, transition.note
                         )
                     }
                     updateScheduleTransactionIfNeed(
@@ -1707,7 +1707,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         else userWalletApiManager.walletApi.uploadCoinControlData(walletId, CoinDataContent(data))
     }
 
-    override suspend fun clearTransactionEmergencyLockdown(groupId: String?, walletId: String) {
+    override suspend fun syncDeletedTransaction(groupId: String?, walletId: String) {
         (0 until Int.MAX_VALUE step TRANSACTION_PAGE_COUNT).forEach { index ->
             val response = if (!groupId.isNullOrEmpty()) {
                 userWalletApiManager.groupWalletApi.getTransactionsToDelete(

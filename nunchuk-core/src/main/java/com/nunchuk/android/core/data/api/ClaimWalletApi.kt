@@ -58,11 +58,10 @@ internal interface ClaimWalletApi {
         @Path("local_id") localId: String
     ): Data<Unit>
 
-    @GET("/v1.1/user-wallets/claiming-wallets/{local_id}/transactions")
-    suspend fun getClaimingWalletTransactions(
+    @GET("/v1.1/user-wallets/claiming-wallets/{local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&statuses=PENDING_SIGNATURES,READY_TO_BROADCAST&types=STANDARD,SCHEDULED,CLAIMING,ROLLOVER,RECURRING")
+    suspend fun getClaimingWalletTransactionsToSync(
         @Path("local_id") localId: String,
-        @Query("offset") offset: Int,
-        @Query("limit") limit: Int = TRANSACTION_PAGE_COUNT,
+        @Query("offset") offset: Int
     ): Data<TransactionsResponse>
 
     @GET("/v1.1/user-wallets/claiming-wallets/{local_id}/transactions/{transaction_id}")
@@ -83,5 +82,11 @@ internal interface ClaimWalletApi {
         @Path("transaction_id") transactionId: String,
         @Body payload: CreateOrUpdateServerTransactionRequest
     ): Data<TransactionResponse>
+
+    @GET("/v1.1/user-wallets/claiming-wallets/{local_id}/transactions?limit=${TRANSACTION_PAGE_COUNT}&statuses=CANCELED&types=STANDARD,SCHEDULED,CLAIMING,ROLLOVER,RECURRING")
+    suspend fun getClaimingWalletTransactionsToDelete(
+        @Path("local_id") localId: String,
+        @Query("offset") offset: Int
+    ): Data<TransactionsResponse>
 }
 

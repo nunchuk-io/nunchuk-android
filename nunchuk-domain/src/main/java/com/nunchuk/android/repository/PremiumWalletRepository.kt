@@ -353,7 +353,7 @@ interface PremiumWalletRepository {
 
     suspend fun uploadCoinControlData(groupId: String?, walletId: String, data: String)
 
-    suspend fun clearTransactionEmergencyLockdown(groupId: String?, walletId: String)
+    suspend fun syncDeletedTransaction(groupId: String?, walletId: String)
 
     suspend fun requestAddKey(groupId: String, step: MembershipStep, tags: List<SignerTag>, walletType: WalletType): String
 

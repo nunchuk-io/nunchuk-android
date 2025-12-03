@@ -17,12 +17,21 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.usecase.membership
 
-interface ClaimWalletRepository {
-    suspend fun deleteClaimingWallet(localId: String)
-    suspend fun isClaimWallet(localId: String): Boolean
-    suspend fun syncTransaction(walletId: String)
-    suspend fun syncDeletedTransaction(walletId: String)
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.ClaimWalletRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
+
+class IsClaimWalletUseCase @Inject constructor(
+    private val repository: ClaimWalletRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<String, Boolean>(ioDispatcher) {
+
+    override suspend fun execute(parameters: String): Boolean {
+        return repository.isClaimWallet(parameters)
+    }
 }
 
