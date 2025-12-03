@@ -103,6 +103,7 @@ class SelectGroupFragment : MembershipFragment() {
                                 findNavController().navigate(
                                     SelectGroupFragmentDirections.actionSelectGroupFragmentToSelectWalletSetupFragment(
                                         groupType = option.walletType.name,
+                                        slug = option.slug,
                                     )
                                 )
                             }

@@ -688,6 +688,9 @@
             android:name="group_type"
             app:argType="string" />
         <argument
+            android:name="slug"
+            app:argType="string" />
+        <argument
             android:name="inheritance_plan_type"
             android:defaultValue="@null"
             app:argType="string"
