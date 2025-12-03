@@ -183,6 +183,8 @@ private fun ClaimInheritanceGraph(
                         type = NcToastType.ERROR
                     )
                 }
+
+                ClaimInheritanceEvent.SignerAdded -> navController.popBackStack<ClaimMagicPhraseRoute>(false)
             }
             activityViewModel.onEventHandled()
         }

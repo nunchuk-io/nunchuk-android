@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -38,21 +37,15 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.manager.ActivityManager
-import com.nunchuk.android.core.push.PushEvent
-import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.main.membership.key.toString
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.type.SignerTag
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class RequestAddKeySuccessFragment : MembershipFragment() {
-    @Inject
-    lateinit var pushEventManager: PushEventManager
-
     private val args: RequestAddKeySuccessFragmentArgs by navArgs()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -62,6 +55,7 @@ class RequestAddKeySuccessFragment : MembershipFragment() {
             setContent {
                 val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
                 RequestAddKeySuccessContent(
+                    isClaimingKey = args.magic.isNotEmpty(),
                     remainingTime = remainingTime,
                     tag = args.signerTag,
                     onContinueClick = ::handleBack,
@@ -74,7 +68,6 @@ class RequestAddKeySuccessFragment : MembershipFragment() {
 
     private fun handleBack() {
         if (args.magic.isNotEmpty()) {
-            pushEventManager.tryPush(PushEvent.AddDesktopKeyCompleted)
             navigator.returnToClaimScreen(requireContext())
         } else if (requireActivity() is MembershipActivity) {
             findNavController().popBackStack()
@@ -86,6 +79,7 @@ class RequestAddKeySuccessFragment : MembershipFragment() {
 
 @Composable
 private fun RequestAddKeySuccessContent(
+    isClaimingKey: Boolean = false,
     remainingTime: Int = 0,
     tag: SignerTag = SignerTag.LEDGER,
     onContinueClick: () -> Unit = {},
@@ -94,14 +88,13 @@ private fun RequestAddKeySuccessContent(
 ) {
     NunchukTheme {
         Scaffold(
-            modifier = Modifier
-                .navigationBarsPadding()
-                .statusBarsPadding(),
+            modifier = Modifier,
             bottomBar = {
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(16.dp)
+                        .navigationBarsPadding(),
                     onClick = onContinueClick
                 ) {
                     Text(
@@ -111,13 +104,15 @@ private fun RequestAddKeySuccessContent(
             },
             topBar = {
                 NcTopAppBar(
-                    title = if (remainingTime <= 0) "" else stringResource(R.string.nc_estimate_remain_time, remainingTime),
+                    title = if (remainingTime <= 0) "" else stringResource(R.string.nc_estimate_remain_time, remainingTime).takeIf { remainingTime > 0 }.orEmpty(),
                     actions = {
-                        IconButton(onClick = onMoreClicked) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
-                            )
+                        if (!isClaimingKey) {
+                            IconButton(onClick = onMoreClicked) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_more),
+                                    contentDescription = "More icon"
+                                )
+                            }
                         }
                     },
                     onBackPress = onBackClicked

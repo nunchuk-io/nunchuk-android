@@ -167,6 +167,11 @@ class ClaimInheritanceViewModel @Inject constructor(
         } else {
             _claimData.update { it.copy(signers = it.signers + signer) }
             if (claimData.value.signers.size == claimData.value.requiredKeyCount) {
+                _uiState.update {
+                    it.copy(
+                        event = ClaimInheritanceEvent.SignerAdded
+                    )
+                }
                 viewModelScope.launch {
                     downloadWalletForClaim()
                 }
@@ -303,6 +308,7 @@ sealed class ClaimInheritanceEvent {
     data object NavigateToNoInheritanceFound : ClaimInheritanceEvent()
     data object AddMoreSigners : ClaimInheritanceEvent()
     data object KeyAlreadyAdded : ClaimInheritanceEvent()
+    data object SignerAdded : ClaimInheritanceEvent()
 }
 
 @Parcelize
