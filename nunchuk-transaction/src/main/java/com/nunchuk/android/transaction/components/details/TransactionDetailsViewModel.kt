@@ -642,13 +642,17 @@ internal class TransactionDetailsViewModel @Inject constructor(
         transaction: Transaction
     ): Map<String, SignerModel> {
         if (!satisfiableMap.containsKey(node.idString)) {
-            satisfiableMap[node.idString] = isScriptNodeSatisfiableUseCase(
-                IsScriptNodeSatisfiableUseCase.Params(
-                    nodeId = node.id.toIntArray(),
-                    walletId = walletId,
-                    psbt = transaction.psbt
-                )
-            ).getOrDefault(false)
+            if (transaction.raw.isNotEmpty()) {
+                satisfiableMap[node.idString] = true
+            } else {
+                satisfiableMap[node.idString] = isScriptNodeSatisfiableUseCase(
+                    IsScriptNodeSatisfiableUseCase.Params(
+                        nodeId = node.id.toIntArray(),
+                        walletId = walletId,
+                        psbt = transaction.psbt
+                    )
+                ).getOrDefault(false)
+            }
         }
 
         if (node.isPreImageNode) {
