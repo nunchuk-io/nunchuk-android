@@ -392,7 +392,11 @@ class OnChainReplaceKeysFragment : Fragment() {
                 is OnChainReplaceKeyEvent.OnAddKey -> handleOnAddKey(event.data)
                 is OnChainReplaceKeyEvent.OnVerifySigner -> {
                     if (event.signer.type == SignerType.NFC) {
-                        openVerifyTapSigner(event)
+                        if (event.isBackupNfc) {
+                            openBackupTapSigner(event)
+                        } else {
+                            openVerifyTapSigner(event)
+                        }
                     } else {
                         openVerifyColdCard(event)
                     }
@@ -584,10 +588,23 @@ class OnChainReplaceKeysFragment : Fragment() {
         )
     }
 
-    private fun openVerifyTapSigner(event: OnChainReplaceKeyEvent.OnVerifySigner) {
+    private fun openBackupTapSigner(event: OnChainReplaceKeyEvent.OnVerifySigner) {
         navigator.openCreateBackUpTapSigner(
             activity = requireActivity(),
             fromMembershipFlow = true,
+            masterSignerId = event.signer.fingerPrint,
+            groupId = (activity as MembershipActivity).groupId,
+            walletId = (activity as MembershipActivity).walletId,
+            replacedXfp = event.signer.fingerPrint,
+            isOnChainBackUp = true,
+        )
+    }
+
+    private fun openVerifyTapSigner(event: OnChainReplaceKeyEvent.OnVerifySigner) {
+        navigator.openVerifyBackupTapSigner(
+            activity = requireActivity(),
+            fromMembershipFlow = true,
+            backUpFilePath = event.filePath,
             masterSignerId = event.signer.fingerPrint,
             groupId = (activity as MembershipActivity).groupId,
             walletId = (activity as MembershipActivity).walletId,
@@ -768,6 +785,7 @@ private fun OnChainReplaceKeysContent(
                         items(keys.filter { it.isServerOrTimelockKey().not() }) { data ->
                             ReplaceKeyCard(
                                 data = data,
+                                isMissingBackup = uiState.missingBackupKeys.contains(data) && data.replaceSigners?.firstOrNull()?.type == SignerType.NFC,
                                 onReplaceClicked = {
                                     onAddKeyClicked(data)
                                 },
@@ -796,7 +814,7 @@ private fun OnChainReplaceKeysContent(
                                 modifier = Modifier
                                     .padding(top = 12.dp)
                                     .fillMaxWidth(),
-                                text = "Pull to refresh the key statuses.",
+                                text = "Pull to refresh the key status.",
                                 style = NunchukTheme.typography.bodySmall,
                                 textAlign = TextAlign.Center
                             )
@@ -885,6 +903,7 @@ private fun OnChainReplaceKeysContent(
 @Composable
 fun ReplaceKeyCard(
     data: AddReplaceKeyOnChainData,
+    isMissingBackup: Boolean = false,
     modifier: Modifier = Modifier,
     onReplaceClicked: (data: AddReplaceKeyOnChainData) -> Unit = {},
     onRemoveClicked: (data: AddReplaceKeyOnChainData) -> Unit = {},
@@ -1042,7 +1061,9 @@ fun ReplaceKeyCard(
                                         onClick = { onVerifyClicked(data) },
                                     ) {
                                         Text(
-                                            text = stringResource(R.string.nc_verify),
+                                            text = if (isMissingBackup.not()) stringResource(R.string.nc_verify) else stringResource(
+                                                R.string.nc_upload_backup
+                                            ),
                                             style = NunchukTheme.typography.captionTitle
                                         )
                                     }

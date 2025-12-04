@@ -94,7 +94,7 @@ class CheckBackUpByAppFragment : MembershipFragment() {
                     membershipStepManager = membershipStepManager,
                     masterSignerId = nfcViewModel.masterSignerId,
                     groupId = (activity as NfcSetupActivity).groupId,
-                    keyId = (activity as NfcSetupActivity).keyId,
+                    keyId = (activity as NfcSetupActivity).keyId.ifEmpty { (activity as NfcSetupActivity).replacedXfp },
                     walletId = (activity as NfcSetupActivity).walletId,
                     isOnChainBackUp = (activity as NfcSetupActivity).isOnChainBackUp
                 )

@@ -95,7 +95,8 @@ interface NfcNavigatorDelegate : NfcNavigator {
         groupId: String,
         keyId: String,
         walletId: String,
-        isOnChainBackUp: Boolean
+        isOnChainBackUp: Boolean,
+        replacedXfp: String,
     ) {
         activity.startActivity(
             NfcSetupActivity.buildIntent(
@@ -108,6 +109,7 @@ interface NfcNavigatorDelegate : NfcNavigator {
                 keyId = keyId,
                 walletId = walletId,
                 isOnChainBackUp = isOnChainBackUp,
+                replacedXfp = replacedXfp
             )
         )
     }

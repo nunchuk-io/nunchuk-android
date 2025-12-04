@@ -95,7 +95,6 @@ import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableSignerType
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
-import com.nunchuk.android.main.membership.custom.CustomKeyAccountFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragment
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.main.membership.model.AddKeyOnChainData
@@ -107,7 +106,6 @@ import com.nunchuk.android.main.membership.onchaintimelock.importantpassphrase.I
 import com.nunchuk.android.main.membership.signer.OnChainSignerIntroFragment
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.nav.args.AddAirSignerArgs
@@ -547,7 +545,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             activity = requireActivity(),
             fromMembershipFlow = true,
             backUpFilePath = event.filePath,
-            masterSignerId = event.signer.id,
+            masterSignerId = event.signer.fingerPrint,
             groupId = (activity as MembershipActivity).groupId,
             walletId = (activity as MembershipActivity).walletId,
             isOnChainBackUp = true,

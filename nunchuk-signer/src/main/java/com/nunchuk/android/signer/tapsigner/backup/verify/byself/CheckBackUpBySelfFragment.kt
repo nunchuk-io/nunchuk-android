@@ -114,9 +114,9 @@ class CheckBackUpBySelfFragment : MembershipFragment() {
                                     val activity = requireActivity() as NfcSetupActivity
                                     val keyId = activity.keyId
                                     val isOnChainBackUp = activity.isOnChainBackUp
-                                    if (keyId.isNotEmpty()) {
+                                    if (keyId.isNotEmpty() || activity.replacedXfp.isNotEmpty()) {
                                         viewModel.setReplaceKeyVerified(
-                                            keyId = keyId,
+                                            keyId = keyId.ifEmpty { activity.replacedXfp },
                                             groupId = activity.groupId,
                                             walletId = activity.walletId,
                                             isOnChainBackUp = isOnChainBackUp

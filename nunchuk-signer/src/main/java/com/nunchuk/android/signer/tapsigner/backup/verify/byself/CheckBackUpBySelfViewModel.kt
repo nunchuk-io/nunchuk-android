@@ -113,7 +113,7 @@ class CheckBackUpBySelfViewModel @Inject constructor(
             setReplaceKeyVerifiedUseCase(
                 SetReplaceKeyVerifiedUseCase.Param(
                     keyId = keyId,
-                    checkSum = getChecksum(true, groupId = groupId, walletId = walletId),
+                    checkSum = if (isOnChainBackUp) "" else getChecksum(true, groupId = groupId, walletId = walletId),
                     verifyType = VerifyType.SELF_VERIFIED,
                     groupId = groupId,
                     walletId = walletId

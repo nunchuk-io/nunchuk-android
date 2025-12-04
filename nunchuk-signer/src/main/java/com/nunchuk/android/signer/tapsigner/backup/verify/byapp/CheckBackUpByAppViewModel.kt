@@ -125,7 +125,7 @@ class CheckBackUpByAppViewModel @Inject constructor(
                 walletId = walletId,
                 masterSignerId = masterSignerId
             )
-            val checkSum = getChecksum(newFile)
+            val checkSum = if (isOnChainBackUp) "" else getChecksum(newFile)
             val result =
                 verifyTapSignerBackupUseCase(
                     VerifyTapSignerBackupUseCase.Data(

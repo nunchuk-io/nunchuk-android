@@ -1,5 +1,6 @@
 package com.nunchuk.android.main.membership.onchaintimelock.replacekey
 
+import android.nfc.tech.IsoDep
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -257,10 +258,12 @@ class OnChainReplaceKeysViewModel @Inject constructor(
                         )
                     }
                 }
-                
+                val nfcMissingBackupKeys = arrayListOf<AddReplaceKeyOnChainData>()
+
                 // Update _keys with replacement signers
                 _keys.update { currentKeys ->
                     currentKeys.map { keyData ->
+                        var newKeyData: AddReplaceKeyOnChainData
                         val replaceSigners = replaceSignersMap[keyData.fingerPrint]
                         if (replaceSigners != null && replaceSigners.isNotEmpty()) {
                             // Get the original SignerServer objects to access their index
@@ -278,19 +281,26 @@ class OnChainReplaceKeysViewModel @Inject constructor(
                             val mergedStepDataMap = keyData.stepDataMap.toMutableMap().apply {
                                 putAll(newStepDataMap)
                             }
-                            keyData.copy(stepDataMap = mergedStepDataMap)
+                            newKeyData = keyData.copy(stepDataMap = mergedStepDataMap)
+                            if (newKeyData.replaceSigners?.firstOrNull()?.type == SignerType.NFC) {
+                                if (originalReplacements.any { it.userBackUpFileName.isNullOrEmpty() }) {
+                                    nfcMissingBackupKeys.add(newKeyData)
+                                }
+                            }
                         } else {
-                            if (keyData.type == OnChainReplaceKeyStep.TIMELOCK && status.timelock != null) {
+                            newKeyData = if (keyData.type == OnChainReplaceKeyStep.TIMELOCK && status.timelock != null) {
                                 keyData.updateTimelock(newTimelock = status.timelock!!)
                             } else {
                                 keyData.copy(stepDataMap = emptyMap(), newTimelock = null)
                             }
                         }
+                        newKeyData
                     }
                 }
                 
                 _uiState.update { state ->
                     state.copy(
+                        missingBackupKeys = nfcMissingBackupKeys,
                         verifiedSigners = verifiedSigners,
                         pendingReplaceXfps = status.pendingReplaceXfps,
                     )
@@ -531,7 +541,8 @@ class OnChainReplaceKeysViewModel @Inject constructor(
                 OnChainReplaceKeyEvent.OnVerifySigner(
                     signer = signer,
                     filePath = nfcFileManager.buildFilePath(stepInfo.keyIdInServer),
-                    backUpFileName = getBackUpFileName(stepInfo.extraData)
+                    backUpFileName = getBackUpFileName(stepInfo.extraData),
+                    isBackupNfc = _uiState.value.missingBackupKeys.contains(data) && signer.type == SignerType.NFC
                 )
             )
         }
@@ -551,7 +562,7 @@ class OnChainReplaceKeysViewModel @Inject constructor(
         _uiState.update { it.copy(requestCacheTapSignerXpubEvent = false) }
     }
 
-    fun cacheTapSignerXpub(isoDep: android.nfc.tech.IsoDep?, cvc: String) {
+    fun cacheTapSignerXpub(isoDep: IsoDep?, cvc: String) {
         val masterSignerId = savedStateHandle.get<String>(KEY_TAPSIGNER_MASTER_ID) ?: return
         val path = savedStateHandle.get<String>(KEY_TAPSIGNER_PATH) ?: return
         val contextName = savedStateHandle.get<String>(KEY_TAPSIGNER_CONTEXT) ?: return
@@ -892,7 +903,8 @@ sealed class OnChainReplaceKeyEvent {
     data class OnVerifySigner(
         val signer: SignerModel,
         val filePath: String,
-        val backUpFileName: String
+        val backUpFileName: String,
+        val isBackupNfc: Boolean = false
     ) : OnChainReplaceKeyEvent()
 
     data object OnAddAllKey : OnChainReplaceKeyEvent()
@@ -920,5 +932,6 @@ data class OnChainReplaceKeysUiState(
     val isMultiSig: Boolean = false,
     val addressType: AddressType = AddressType.NATIVE_SEGWIT,
     val requestCacheTapSignerXpubEvent: Boolean = false,
-    val isRefreshing: Boolean = false
+    val isRefreshing: Boolean = false,
+    val missingBackupKeys: List<AddReplaceKeyOnChainData> = emptyList()
 )
