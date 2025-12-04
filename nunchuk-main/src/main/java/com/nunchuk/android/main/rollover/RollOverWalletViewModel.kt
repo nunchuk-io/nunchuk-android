@@ -18,9 +18,11 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.Wallet
+import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.type.MiniscriptTimelockBased
 import com.nunchuk.android.usecase.CreateAndBroadcastRollOverTransactionsUseCase
 import com.nunchuk.android.usecase.EstimateFeeForSigningPathsUseCase
+import com.nunchuk.android.usecase.EstimateFeeUseCase
 import com.nunchuk.android.usecase.EstimateRollOverFeeForSigningPathsUseCase
 import com.nunchuk.android.usecase.GetChainTipUseCase
 import com.nunchuk.android.usecase.coin.GetAllCoinUseCase
@@ -37,6 +39,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 @HiltViewModel
@@ -54,7 +58,9 @@ class RollOverWalletViewModel @Inject constructor(
     private val getChainTipUseCase: GetChainTipUseCase,
     private val estimateRollOverFeeForSigningPathsUseCase: EstimateRollOverFeeForSigningPathsUseCase,
     private val estimateFeeForSigningPathsUseCase: EstimateFeeForSigningPathsUseCase,
+    private val estimateFeeUseCase: EstimateFeeUseCase,
 ) : ViewModel() {
+    private val mutex = Mutex()
 
     private val _uiState = MutableStateFlow(RollOverWalletUiState())
     val uiState = _uiState.asStateFlow()
@@ -111,6 +117,9 @@ class RollOverWalletViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _uiState.update { it.copy(isFreeWallet = assistedWalletManager.getWalletPlan(oldWalletId) == MembershipPlan.NONE) }
+        }
+        viewModelScope.launch {
+            fetchFeeRateIfNeeded()
         }
     }
 
@@ -231,6 +240,7 @@ class RollOverWalletViewModel @Inject constructor(
     fun getSigningPath(): SigningPath? = savedStateHandle[RollOverWalletActivity.SIGNING_PATH]
 
     suspend fun checkSigningPathsForRollOver(rollOverWalletParam: RollOverWalletParam): Int {
+        fetchFeeRateIfNeeded()
         val result = estimateRollOverFeeForSigningPathsUseCase(
             EstimateRollOverFeeForSigningPathsUseCase.Params(
                 oldWalletId = getOldWalletId(),
@@ -243,7 +253,7 @@ class RollOverWalletViewModel @Inject constructor(
         if (result.size == 1) {
             savedStateHandle[RollOverWalletActivity.SIGNING_PATH] = result.first().first
         }
-        
+
         return result.size
     }
 
@@ -251,7 +261,7 @@ class RollOverWalletViewModel @Inject constructor(
         val address = getAddress()
         val balance = getOldWallet().balance.pureBTC()
         val outputs = mapOf(address to balance.toAmount())
-
+        fetchFeeRateIfNeeded()
         val result = estimateFeeForSigningPathsUseCase(
             EstimateFeeForSigningPathsUseCase.Params(
                 walletId = getOldWalletId(),
@@ -324,6 +334,13 @@ class RollOverWalletViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    private suspend fun fetchFeeRateIfNeeded() = mutex.withLock {
+        if (feeRate == Amount.ZER0) {
+            feeRate =
+                estimateFeeUseCase(Unit).getOrNull()?.defaultRate?.toManualFeeRate() ?: Amount.ZER0
         }
     }
 }
