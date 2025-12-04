@@ -62,6 +62,7 @@ import com.nunchuk.android.core.R
 import com.nunchuk.android.core.miniscript.ScriptNodeType
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getBTCAmount
+import com.nunchuk.android.core.util.isConfirmed
 import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.signDone
 import com.nunchuk.android.core.util.toAmount
@@ -688,12 +689,13 @@ fun AndOrView(
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
     val blockHeight by rememberBlockHeightManager().state.collectAsStateWithLifecycle()
-    val pendingSigners =
+    val pendingSigners by lazy(LazyThreadSafetyMode.NONE) {
         if (data.mode == ScriptMode.SIGN && data.satisfiableMap[node.idString] != false) {
             calculatePending(node, data, blockHeight)
         } else {
             0
         }
+    }
 
     Column(modifier = modifier) {
         Box(
@@ -737,7 +739,7 @@ fun AndOrView(
             }
 
             // Show pending conditions or enough conditions collected
-            if (data.mode == ScriptMode.SIGN && data.satisfiableMap[node.idString] != false) {
+            if (data.mode == ScriptMode.SIGN && data.satisfiableMap[node.idString] != false && !data.transactionStatus.isConfirmed()) {
                 Row(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -1001,12 +1003,13 @@ fun ThreshMultiItem(
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
     val blockHeight by rememberBlockHeightManager().state.collectAsStateWithLifecycle()
-    val pendingSigners =
+    val pendingSigners by lazy(LazyThreadSafetyMode.NONE) {
         if (data.mode == ScriptMode.SIGN && data.satisfiableMap[node.idString] != false) {
             calculatePending(node, data, blockHeight)
         } else {
             0
         }
+    }
 
     Column {
         Row(
@@ -1038,7 +1041,7 @@ fun ThreshMultiItem(
             }
 
             // Show pending conditions or enough conditions collected
-            if (data.mode == ScriptMode.SIGN && isSatisfiable) {
+            if (data.mode == ScriptMode.SIGN && isSatisfiable  && !data.transactionStatus.isConfirmed()) {
                 Row(
                     modifier = Modifier
                         .then(modifier)
