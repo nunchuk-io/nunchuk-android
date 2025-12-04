@@ -13,6 +13,7 @@
 
     <string name="nc_wallet_upload_configuration_title">Register wallet on hardware</string>
     <string name="nc_wallet_upload_configuration">If you have a hardware key in your multisig wallet, you might be required to register the wallet with the hardware before the key can be used.\n\nChoose the export option according to your hardware type. Please check the vendor’s manual.</string>
+    <string name="nc_wallet_upload_configuration_onchain">You might need to register the wallet with the hardware signer before it can be used to withdraw bitcoin.\n\nChoose the export option according to your hardware type. Please check the vendor’s manual.</string>
     <string name="nc_wallet_save_configuration">Export configuration as a file</string>
     <string name="nc_export_configuration_qr_code">Export configuration as QR code</string>
     <string name="nc_wallet_skip_upload_configuration">I’ll do this later</string>

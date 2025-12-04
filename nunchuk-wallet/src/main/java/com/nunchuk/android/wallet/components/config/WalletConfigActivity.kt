@@ -348,17 +348,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             SheetOptionType.TYPE_ARCHIVE -> viewModel.archiveWallet()
 
             SheetOptionType.TYPE_REPLACE_KEY_CHANGE_TIMELOCK -> {
-                if (viewModel.isAssistedWallet()) {
-                    showReEnterPassword(TargetAction.REPLACE_KEYS)
-                } else {
-                    navigator.openMembershipActivity(
-                        activityContext = this,
-                        groupStep = MembershipStage.REPLACE_KEY,
-                        walletId = args.walletId,
-                        groupId = viewModel.getGroupId().orEmpty(),
-                        walletType = if (viewModel.isOnChainWallet()) WalletType.MINISCRIPT else null
-                    )
-                }
+                showReEnterPassword(TargetAction.REPLACE_KEYS)
             }
 
         }
@@ -700,7 +690,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
             }
 
             if (!viewModel.isReplacedOrLocked()) {
-                if (viewModel.hasMiniscriptTimelock()) {
+                if (viewModel.isOnChainWallet()) {
                     options.add(
                         SheetOption(
                             SheetOptionType.TYPE_REPLACE_KEY_CHANGE_TIMELOCK,
@@ -708,7 +698,7 @@ class WalletConfigActivity : BaseWalletConfigActivity<ActivityWalletConfigBindin
                             R.string.nc_replace_key_change_timelock,
                         ),
                     )
-                } else {
+                } else if (viewModel.isMiniscriptWallet().not()) {
                     options.add(
                         SheetOption(
                             SheetOptionType.TYPE_REPLACE_KEY,

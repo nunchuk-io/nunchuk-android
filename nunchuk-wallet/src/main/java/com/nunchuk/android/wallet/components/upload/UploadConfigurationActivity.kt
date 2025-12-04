@@ -65,6 +65,11 @@ class UploadConfigurationActivity : BaseWalletConfigActivity<ActivityWalletUploa
     }
 
     private fun setupViews() {
+        binding.description.text = if (args.isOnChainFlow) {
+            getString(R.string.nc_wallet_upload_configuration_onchain)
+        } else {
+            getString(R.string.nc_wallet_upload_configuration)
+        }
         binding.btnExportConfiguration.setOnDebounceClickListener {
             showExportOptions()
         }
