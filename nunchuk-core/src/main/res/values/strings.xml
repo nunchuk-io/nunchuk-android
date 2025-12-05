@@ -1065,7 +1065,7 @@
 
     <string name="nc_replace_key_title">Replace key</string>
     <string name="nc_replace_key_change_timelock">Replace key or change timelock</string>
-    <string name="nc_replace_key_intro_desc_simple">If a key in a wallet is lost or has been compromised, you can replace it here.</string>
+    <string name="nc_replace_key_intro_desc_simple">If a key in this wallet is lost or compromised, or if you want to change the timelock, you can do it here.</string>
     <string name="nc_replace_key_intro_note_simple">Note that replacing a key with a new one will create a brand new wallet. You will need to transfer the existing balance over to the new wallet afterwards.</string>
     <string name="nc_replace_key_change_timelock_desc">If keys in this wallet are lost or compromised, or if you want to change the timelocks, you can do it here.</string>
     <string name="nc_replace_key_change_timelock_note">Changing any timelock or replacing any key will create a brand new wallet. You will need to transfer the existing balance to the new wallet afterwards.</string>
