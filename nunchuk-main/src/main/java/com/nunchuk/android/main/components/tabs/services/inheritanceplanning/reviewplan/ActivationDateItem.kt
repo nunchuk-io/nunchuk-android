@@ -22,7 +22,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.getTimezoneDisplay
 
 @Composable
 fun ActivationDateItem(
@@ -68,7 +67,7 @@ fun ActivationDateItem(
                 modifier = Modifier.clickable {
                     onClick()
                 },
-                text = stringResource(id = R.string.nc_change),
+                text = stringResource(id = R.string.nc_edit),
                 color = colorResource(id = R.color.nc_white_color),
                 style = NunchukTheme.typography.title,
                 textDecoration = TextDecoration.Companion.Underline,

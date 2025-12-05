@@ -631,6 +631,7 @@ internal class WalletsViewModel @Inject constructor(
         val wallets = getState().wallets
         val groups = getState().allGroups
         val assistedWallets = getState().assistedWallets
+        val statues = assistedWallets.associate { it.localId to it.status }
         val alerts = getState().alerts
         val pendingGroupSandboxes = getState().pendingGroupSandboxes
         val groupSandboxWalletIds = getState().groupSandboxWalletIds
@@ -643,8 +644,10 @@ internal class WalletsViewModel @Inject constructor(
         results.addAll(pendingGroupSandboxes.map { GroupWalletUi(sandbox = it) })
         val totalArchivedWallet = wallets.count { it.wallet.archived }
         wallets.filter { !it.wallet.archived }.sortedWith(
-            compareBy<WalletExtended>({ walletOrderMap[it.wallet.id]?.order ?: Int.MIN_VALUE })
-                .thenByDescending({ it.wallet.createDate })
+            compareBy<WalletExtended> { wallet ->
+                if (statues[wallet.wallet.id] == WalletStatus.ACTIVE.name) 0 else 1
+            }.thenBy { walletOrderMap[it.wallet.id]?.order ?: Int.MIN_VALUE }
+                .thenByDescending { it.wallet.createDate }
         ).forEach { wallet ->
             ensureActive()
             val assistedWallet = assistedWallets.find { it.localId == wallet.wallet.id }

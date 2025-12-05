@@ -123,7 +123,7 @@ class ConfirmReplaceTransactionFragment : BaseFragment<FragmentTransactionConfir
         binding.estimatedFeeUSD.text = transaction.fee.pureBTC().getCurrencyAmount()
         binding.totalAmountBTC.text = transaction.totalAmount.pureBTC().getBTCAmount()
         binding.totalAmountUSD.text = transaction.totalAmount.pureBTC().getCurrencyAmount()
-        binding.noteContent.text = transaction.memo.ifEmpty { getString(R.string.nc_none) }
+        binding.noteContent.text = transaction.memo
 
         val txOutput = transaction.outputs.getOrNull(transaction.changeIndex)
         val changeAddress = txOutput?.first.orEmpty()

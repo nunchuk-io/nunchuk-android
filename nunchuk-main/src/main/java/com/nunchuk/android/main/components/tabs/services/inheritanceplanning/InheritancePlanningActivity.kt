@@ -102,7 +102,8 @@ class InheritancePlanningActivity : BaseShareSaveFileActivity<ActivityNavigation
                         dummyTransactionId = intent.getStringExtra(EXTRA_DUMMY_TRANSACTION_ID)
                             .orEmpty(),
                         notificationSettings = inheritance.notificationPreferences,
-                        inheritanceKeys = inheritance.inheritanceKeys.map { it.xfp }
+                        inheritanceKeys = inheritance.inheritanceKeys.map { it.xfp },
+                        selectedZoneId = inheritance.timezone
                     )
                 )
             }

@@ -311,7 +311,7 @@ fun TransactionDetailView(
 
                         item {
                             Text(
-                                text = transaction.memo.ifBlank { stringResource(R.string.nc_none) },
+                                text = transaction.memo,
                                 style = NunchukTheme.typography.body,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
                             )
