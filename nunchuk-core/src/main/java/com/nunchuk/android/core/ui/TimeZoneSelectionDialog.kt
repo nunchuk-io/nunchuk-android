@@ -70,9 +70,9 @@ fun TimeZoneSelectionDialog(
                     timeZones
                 } else {
                     timeZones.filter { timeZone ->
-                        timeZone.city.contains(search)
-                                || timeZone.country.contains(search)
-                                || timeZone.offset.contains(search)
+                        timeZone.city.contains(search, ignoreCase = true)
+                                || timeZone.country.contains(search, ignoreCase = true)
+                                || timeZone.offset.contains(search, ignoreCase = true)
                     }
                 }
             }

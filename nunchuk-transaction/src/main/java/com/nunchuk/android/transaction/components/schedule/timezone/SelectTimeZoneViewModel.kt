@@ -67,9 +67,9 @@ class SelectTimeZoneViewModel @Inject constructor(
                 } else {
                     _state.update {
                         it.copy(timezones = timezones.filter { timeZone ->
-                            timeZone.city.contains(value)
-                                    || timeZone.country.contains(value)
-                                    || timeZone.offset.contains(value)
+                            timeZone.city.contains(value, ignoreCase = true)
+                                    || timeZone.country.contains(value, ignoreCase = true)
+                                    || timeZone.offset.contains(value, ignoreCase = true)
                         })
                     }
                 }
