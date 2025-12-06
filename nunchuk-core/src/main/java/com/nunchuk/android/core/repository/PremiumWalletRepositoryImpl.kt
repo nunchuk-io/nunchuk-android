@@ -2993,7 +2993,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
             signers = draftWallet.signers.map { it.toModel() },
             walletType = draftWallet.walletType.toWalletType(),
-            timelock = draftWallet.timelock?.value ?: 0,
+            timelock = draftWallet.timelock?.value ?: 0L,
             replaceWallet = draftWallet.replaceWallet.toModel()
         )
     }

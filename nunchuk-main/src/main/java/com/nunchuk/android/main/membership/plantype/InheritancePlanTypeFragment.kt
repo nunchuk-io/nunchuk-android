@@ -29,7 +29,11 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
@@ -43,7 +47,7 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.strokePrimary
-import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.util.InheritancePlanType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.MembershipNavigationDirections
@@ -270,8 +274,10 @@ private fun InheritancePlanTypeOption(
                             )
                             Text(
                                 text = stringResource(R.string.nc_managed_by_nunchuk),
-                                style = NunchukTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.textSecondary,
+                                style = NunchukTheme.typography.bodySmall.copy(
+                                    fontStyle = FontStyle.Italic
+                                ),
+                                color = MaterialTheme.colorScheme.textPrimary,
                                 modifier = Modifier.padding(top = 4.dp)
                             )
                         }
@@ -286,11 +292,21 @@ private fun InheritancePlanTypeOption(
                     )
 
                     Text(
-                        text = "Pros: ${stringResource(R.string.nc_off_chain_pros)}",
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Pros: ")
+                            }
+                            append(stringResource(R.string.nc_off_chain_pros))
+                        },
                         style = NunchukTheme.typography.body,
                     )
                     Text(
-                        text = "Cons: ${stringResource(R.string.nc_off_chain_cons)}",
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Cons: ")
+                            }
+                            append(stringResource(R.string.nc_off_chain_cons))
+                        },
                         style = NunchukTheme.typography.body,
                         modifier = Modifier.padding(top = 8.dp)
                     )
@@ -328,8 +344,10 @@ private fun InheritancePlanTypeOption(
                             )
                             Text(
                                 text = stringResource(R.string.nc_enforced_on_bitcoin),
-                                style = NunchukTheme.typography.caption,
-                                color = MaterialTheme.colorScheme.textSecondary,
+                                style = NunchukTheme.typography.caption.copy(
+                                    fontStyle = FontStyle.Italic
+                                ),
+                                color = MaterialTheme.colorScheme.textPrimary,
                                 modifier = Modifier.padding(top = 4.dp)
                             )
                         }
@@ -344,12 +362,22 @@ private fun InheritancePlanTypeOption(
                     )
 
                     Text(
-                        text = "Pros: ${stringResource(R.string.nc_on_chain_pros)}",
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Pros: ")
+                            }
+                            append(stringResource(R.string.nc_on_chain_pros))
+                        },
                         style = NunchukTheme.typography.body,
                         modifier = Modifier.padding(top = 12.dp)
                     )
                     Text(
-                        text = "Cons: ${stringResource(R.string.nc_on_chain_cons)}",
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Cons: ")
+                            }
+                            append(stringResource(R.string.nc_on_chain_cons))
+                        },
                         style = NunchukTheme.typography.body,
                         modifier = Modifier.padding(top = 8.dp)
                     )

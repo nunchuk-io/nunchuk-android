@@ -50,7 +50,8 @@ fun NcConfirmationDialog(
             Text(
                 modifier = Modifier.align(CenterHorizontally),
                 text = title,
-                style = NunchukTheme.typography.title
+                style = NunchukTheme.typography.title,
+                fontWeight = FontWeight.Bold
             )
             NcSpannedText(
                 modifier = Modifier

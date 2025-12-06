@@ -29,7 +29,7 @@ internal data class WalletConfigDto(
 )
 
 internal data class TimelockDto(
-    @SerializedName("value") val value: Int = 0,
+    @SerializedName("value") val value: Long = 0L,
     @SerializedName("timezone") val timezone: String? = null
 )
 
