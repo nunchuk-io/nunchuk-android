@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.usecase
 
+import com.nunchuk.android.FlowUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.transaction.ExtendedTransaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
@@ -28,44 +29,40 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
-interface GetTransactionUseCase {
-    fun execute(
-        groupId: String?,
-        walletId: String,
-        txId: String,
-        isAssistedWallet: Boolean
-    ): Flow<ExtendedTransaction>
-}
-
-internal class GetTransactionUseCaseImpl @Inject constructor(
+class GetTransactionUseCase @Inject constructor(
     private val nativeSdk: NunchukNativeSdk,
     private val repository: PremiumWalletRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : GetTransactionUseCase {
+) : FlowUseCase<GetTransactionUseCase.Params, ExtendedTransaction>(ioDispatcher) {
 
-    override fun execute(
-        groupId: String?,
-        walletId: String,
-        txId: String,
-        isAssistedWallet: Boolean
-    ): Flow<ExtendedTransaction> = flow {
+    override fun execute(parameters: Params): Flow<ExtendedTransaction> = flow {
         val chainTip = nativeSdk.getChainTip()
-        val tx = nativeSdk.getTransaction(walletId = walletId, txId = txId)
+        val tx = nativeSdk.getTransaction(walletId = parameters.walletId, txId = parameters.txId)
         emit(ExtendedTransaction(transaction = tx.copy(height = tx.getConfirmations(chainTip))))
-        if (isAssistedWallet && tx.status.isPending()) {
+        if (parameters.isAssistedWallet && tx.status.isPending()) {
             delay(100L)
-            val extendedTransaction = repository.getServerTransaction(groupId, walletId, txId)
+            val extendedTransaction = repository.getServerTransaction(
+                parameters.groupId,
+                parameters.walletId,
+                parameters.txId
+            )
             val transaction = extendedTransaction.transaction.copy(
                 height = extendedTransaction.transaction.getConfirmations(chainTip)
             )
             emit(extendedTransaction.copy(transaction = transaction))
         }
-    }.flowOn(ioDispatcher)
+    }
 
     private fun TransactionStatus.isPending() =
         this == TransactionStatus.PENDING_SIGNATURES || this == TransactionStatus.READY_TO_BROADCAST
+
+    data class Params(
+        val groupId: String?,
+        val walletId: String,
+        val txId: String,
+        val isAssistedWallet: Boolean
+    )
 }
 

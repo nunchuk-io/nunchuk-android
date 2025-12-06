@@ -181,7 +181,7 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
             }
             _event.emit(ReplaceFeeEvent.Loading(false))
             if (result.isSuccess) {
-                if (assistedWalletManager.isActiveAssistedWallet(walletId)) {
+                if (assistedWalletManager.isSyncableWallet(walletId)) {
                     replaceServerTransactionUseCase(
                         ReplaceServerTransactionUseCase.Params(
                             groupId = assistedWalletManager.getGroupId(walletId),
@@ -220,7 +220,7 @@ class ConfirmReplaceTransactionViewModel @Inject constructor(
                         antiFeeSniping = antiFeeSniping
                     )
                 ).onSuccess {
-                    if (assistedWalletManager.isActiveAssistedWallet(walletId)) {
+                    if (assistedWalletManager.isSyncableWallet(walletId)) {
                         replaceServerTransactionUseCase(
                             ReplaceServerTransactionUseCase.Params(
                                 groupId = assistedWalletManager.getGroupId(walletId),

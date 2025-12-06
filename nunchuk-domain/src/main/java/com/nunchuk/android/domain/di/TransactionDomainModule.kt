@@ -32,7 +32,6 @@ import com.nunchuk.android.usecase.GetAddressesUseCaseImpl
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCase
 import com.nunchuk.android.usecase.GetTransactionHistoryUseCaseImpl
 import com.nunchuk.android.usecase.GetTransactionUseCase
-import com.nunchuk.android.usecase.GetTransactionUseCaseImpl
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCaseImpl
 import com.nunchuk.android.usecase.NewAddressUseCase
@@ -58,9 +57,6 @@ internal interface TransactionDomainModule {
 
     @Binds
     fun bindGetTransactionHistoryUseCase(useCase: GetTransactionHistoryUseCaseImpl): GetTransactionHistoryUseCase
-
-    @Binds
-    fun bindGetTransactionUseCase(useCase: GetTransactionUseCaseImpl): GetTransactionUseCase
 
     @Binds
     fun bindGetAddressBalanceUseCase(useCase: GetAddressBalanceUseCaseImpl): GetAddressBalanceUseCase

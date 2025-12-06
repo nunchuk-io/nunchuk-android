@@ -402,7 +402,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     }
 
     private fun listenTransactionChanged() {
-        if (isAssistedWallet()) {
+        if (assistedWalletManager.isSyncableWallet(walletId)) {
             viewModelScope.launch {
                 state.collect {
                     if (it.transaction.txId.isNotEmpty()) {
@@ -793,12 +793,14 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private fun loadLocalTransaction() {
         if (getTransactionJob?.isActive == true) return
         getTransactionJob = viewModelScope.launch {
-            getTransactionUseCase.execute(
-                groupId = assistedWalletManager.getGroupId(walletId),
-                walletId = walletId,
-                txId = txId,
-                isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
-            ).flowOn(IO).onException {
+            getTransactionUseCase(
+                GetTransactionUseCase.Params(
+                    groupId = assistedWalletManager.getGroupId(walletId),
+                    walletId = walletId,
+                    txId = txId,
+                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
+                )
+            ).onException {
                 if (it is NCNativeException && it.message.contains("-2003")) {
                     _event.emit(DeleteTransactionSuccess())
                 } else if ((it as? NunchukApiException)?.code == ApiErrorCode.TRANSACTION_CANCEL) {
@@ -806,12 +808,22 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 } else if (it.isNoInternetException.not()) {
                     _event.emit(TransactionDetailsError(it.message.orEmpty()))
                 }
-            }.collect {
-                updateTransaction(
-                    transaction = it.transaction,
-                    serverTransaction = it.serverTransaction,
-                )
-                getSignedSigners(it.transaction)
+            }.collect { result ->
+                result.onSuccess { extendedTransaction ->
+                    updateTransaction(
+                        transaction = extendedTransaction.transaction,
+                        serverTransaction = extendedTransaction.serverTransaction,
+                    )
+                    getSignedSigners(extendedTransaction.transaction)
+                }.onFailure { throwable ->
+                    if (throwable is NCNativeException && throwable.message.contains("-2003")) {
+                        _event.emit(DeleteTransactionSuccess())
+                    } else if ((throwable as? NunchukApiException)?.code == ApiErrorCode.TRANSACTION_CANCEL) {
+                        handleDeleteTransactionEvent(isCancel = true, onlyLocal = true)
+                    } else if (throwable.isNoInternetException.not()) {
+                        _event.emit(TransactionDetailsError(throwable.message.orEmpty()))
+                    }
+                }
             }
         }
     }
@@ -1064,14 +1076,12 @@ internal class TransactionDetailsViewModel @Inject constructor(
 
     private fun signPersonalTransaction(device: Device, signerId: String) {
         viewModelScope.launch {
-            val isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
             val result = signTransactionUseCase(
                 SignTransactionUseCase.Param(
                     walletId = walletId,
                     txId = txId,
                     device = device,
                     signerId = signerId,
-                    isAssistedWallet = isAssistedWallet
                 )
             )
             if (result.isSuccess) {

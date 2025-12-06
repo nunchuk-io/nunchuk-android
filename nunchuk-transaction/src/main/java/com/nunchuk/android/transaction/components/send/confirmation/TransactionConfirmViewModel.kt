@@ -466,7 +466,7 @@ class TransactionConfirmViewModel @Inject constructor(
                     subtractFeeFromAmount = subtractFeeFromAmount,
                     feeRate = manualFeeRate.toManualFeeRate(),
                     memo = privateNote,
-                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId),
+                    isAssistedWallet = assistedWalletManager.isSyncableWallet(walletId),
                     antiFeeSniping = antiFeeSniping,
                     useScriptPath = useScriptPath,
                     signingPath = signingPath

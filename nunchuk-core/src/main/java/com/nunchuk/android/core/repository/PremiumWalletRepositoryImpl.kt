@@ -605,9 +605,12 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun getServerTransaction(
         groupId: String?, walletId: String, transactionId: String,
     ): ExtendedTransaction {
+        val isClaimWallet = ncDataStore.claimWalletsFlow.first().contains(walletId)
         val transaction = runCatching {
             val response = if (!groupId.isNullOrEmpty()) {
                 userWalletApiManager.groupWalletApi.getTransaction(groupId, walletId, transactionId)
+            } else if (isClaimWallet) {
+                userWalletApiManager.claimWalletApi.getClaimingWalletTransaction(walletId, transactionId)
             } else {
                 userWalletApiManager.walletApi.getTransaction(walletId, transactionId)
             }
@@ -1214,10 +1217,18 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun createServerTransaction(
         groupId: String?, walletId: String, psbt: String, note: String?,
     ) {
-        val response = if (!groupId.isNullOrEmpty()) {
+        val isClaimWallet = ncDataStore.claimWalletsFlow.first().contains(walletId)
+        if (!groupId.isNullOrEmpty()) {
             userWalletApiManager.groupWalletApi.createTransaction(
                 groupId, walletId, CreateOrUpdateServerTransactionRequest(
                     note = note, psbt = psbt
+                )
+            )
+        } else if (isClaimWallet) {
+            userWalletApiManager.claimWalletApi.createClaimingWalletTransaction(
+                localId = walletId,
+                payload = CreateOrUpdateServerTransactionRequest(
+                    psbt = psbt
                 )
             )
         } else {
@@ -1256,6 +1267,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
     override suspend fun signServerTransaction(
         groupId: String?, walletId: String, txId: String, psbt: String,
     ): ExtendedTransaction {
+        val isClaimWallet = ncDataStore.claimWalletsFlow.first().contains(walletId)
         val transaction = runCatching {
             val response = if (!groupId.isNullOrEmpty()) {
                 userWalletApiManager.groupWalletApi.signServerTransaction(
@@ -1263,6 +1275,11 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     walletId = walletId,
                     transactionId = txId,
                     payload = SignServerTransactionRequest(psbt = psbt)
+                )
+            } else if (isClaimWallet) {
+                userWalletApiManager.claimWalletApi.createClaimingWalletTransaction(
+                    localId = walletId,
+                    payload = CreateOrUpdateServerTransactionRequest(psbt = psbt)
                 )
             } else {
                 userWalletApiManager.walletApi.signServerTransaction(
@@ -2701,10 +2718,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         transactionId: String,
         newTxPsbt: String
     ) {
+        val isClaimWallet = ncDataStore.claimWalletsFlow.first().contains(walletId)
         val response = if (!groupId.isNullOrEmpty()) {
             userWalletApiManager.groupWalletApi.replaceTransaction(
                 groupId = groupId,
                 walletId = walletId,
+                transactionId = transactionId,
+                payload = CreateOrUpdateServerTransactionRequest(psbt = newTxPsbt)
+            )
+        } else if (isClaimWallet) {
+            userWalletApiManager.claimWalletApi.replaceClaimingWalletTransaction(
+                localId = walletId,
                 transactionId = transactionId,
                 payload = CreateOrUpdateServerTransactionRequest(psbt = newTxPsbt)
             )

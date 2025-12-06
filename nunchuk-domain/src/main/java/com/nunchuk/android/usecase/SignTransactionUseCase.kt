@@ -48,6 +48,5 @@ class SignTransactionUseCase @Inject constructor(
         val txId: String,
         val device: Device,
         val signerId: String,
-        val isAssistedWallet: Boolean
     )
 }

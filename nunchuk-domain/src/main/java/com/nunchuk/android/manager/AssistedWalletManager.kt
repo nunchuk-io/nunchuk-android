@@ -32,4 +32,5 @@ interface AssistedWalletManager {
     fun getBriefWallet(walletId: String): AssistedWalletBrief?
     fun getGroup(groupId: String): ByzantineGroup?
     fun isGroupAssistedWallet(groupId: String?): Boolean
+    fun isSyncableWallet(walletId: String): Boolean
 }
