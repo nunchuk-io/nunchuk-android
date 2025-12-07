@@ -187,7 +187,7 @@ class OnChainTimelockByzantineAddKeyViewModel @Inject constructor(
             val signers = pair.first.map { signer ->
                 masterSignerMapper(signer)
             } + singleSigner.map { signer -> signer.toModel() }
-            _state.update { it.copy(signers = signers.filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }) }
+            _state.update { it.copy(signers = signers) }
             updateKeyData()
         }
     }

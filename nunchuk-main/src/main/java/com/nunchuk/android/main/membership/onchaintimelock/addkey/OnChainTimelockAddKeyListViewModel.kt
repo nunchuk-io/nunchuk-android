@@ -31,7 +31,6 @@ import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
-import com.nunchuk.android.core.util.isRecommendedMultiSigPath
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.exception.NCNativeException
 import com.nunchuk.android.main.membership.model.AddKeyOnChainData
@@ -259,7 +258,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                     masterSignerMapper(signer)
                 } + pair.second.map { signer -> signer.toModel() }
                 it.copy(
-                    signers = signers.filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }
+                    signers = signers
                 )
             }
         }
