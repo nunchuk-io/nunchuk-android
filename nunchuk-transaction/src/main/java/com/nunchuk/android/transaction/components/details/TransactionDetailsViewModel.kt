@@ -296,7 +296,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             state.filter { it.transaction.txId.isNotEmpty() && it.wallet.id.isNotEmpty() }
-                .map { it.transaction.txId }
+                .map { it.transaction.status }
                 .distinctUntilChanged()
                 .collect {
                     val wallet = getState().wallet
