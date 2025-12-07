@@ -212,6 +212,7 @@
     <string name="nc_add_your_keys">Add your keys</string>
     <string name="nc_let_add_your_keys">Let’s add your keys</string>
     <string name="nc_configure_your_wallet">Configure your wallet</string>
+    <string name="nc_let_configure_your_wallet">Let’s configure your wallet</string>
     <string name="nc_add_key_list_desc_one">Your new wallet will be a 2-of-%1$d multisig wallet.</string>
     <string name="nc_add_key_list_desc_two">Two keys are always required for spending.</string>
     <string name="nc_add_key_list_desc_three">\n\nYou will have possession of two keys. The third key will be held by Nunchuk on our secure server.</string>

@@ -241,7 +241,7 @@ fun AddKeyStepContent(
         ) {
             StepWithEstTime(
                 1,
-                stringResource(id = R.string.nc_add_your_keys),
+                stringResource(id = R.string.nc_configure_your_wallet),
                 groupRemainTime[0],
                 isConfigKeyDone,
                 isConfigKeyDone.not()
