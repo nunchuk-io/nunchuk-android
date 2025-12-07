@@ -23,6 +23,7 @@ buildscript {
         classpath pluginsDeps.hilt
         classpath pluginsDeps.safeArgs
         classpath pluginsDeps.kotlinSerialization
+        classpath "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.1.21-2.0.2"
     }
 }
 

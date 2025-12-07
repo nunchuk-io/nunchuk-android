@@ -31,7 +31,7 @@ import javax.inject.Inject
 abstract class BaseFragment<out Binding : ViewBinding> : Fragment() {
 
     @Inject
-    protected lateinit var navigator: NunchukNavigator
+    lateinit var navigator: NunchukNavigator
 
     private var _binding: Binding? = null
 

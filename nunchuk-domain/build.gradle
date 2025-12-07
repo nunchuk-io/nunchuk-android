@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.plugin.compose' version '2.0.21'
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
 apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
@@ -20,7 +20,7 @@ dependencies {
     debugImplementation nunchukDeps.nativeSdk
     releaseImplementation nunchukDeps.prebuildNativeSdk
 
-    kapt hiltDeps.processor
+    ksp hiltDeps.processor
     api hiltDeps.hilt
 
     implementation networkDeps.values()

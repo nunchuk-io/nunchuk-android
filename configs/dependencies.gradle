@@ -1,3 +1,5 @@
+def kotlinVersionFromProps = project.findProperty('kotlinVersion')
+
 ext {
     // Library Version
     androidxVersion = '1.0.0'
@@ -10,7 +12,7 @@ ext {
     gsonVersion = '2.8.2'
     androidTestVersion = '1.1.0'
 
-    roomVersion = '2.6.1'
+    roomVersion = '2.8.4'
     workMangerVersion = '2.0.0'
     lifecycleVersion = '2.5.0'
 
@@ -21,10 +23,10 @@ ext {
     // Plugins versions
     gradleVersion = '8.12.3'
     googleServiceVersion = '4.4.2'
-    kotlinStdlibVersion = '2.0.21'
+    kotlinStdlibVersion = kotlinVersionFromProps
     pagingVersion = "3.1.1"
 
-    hiltVersion = "2.48"
+    hiltVersion = "2.57.1"
 
     camerax_version = "1.4.1"
 

@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlinx-serialization'
 
 android {
@@ -33,17 +34,12 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion '1.5.14'
-    }
-
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinStdlibVersion"
 
-    kapt hiltDeps.processor
+    ksp hiltDeps.processor
     implementation hiltDeps.hilt
     implementation hiltDeps.hiltNavigation
 

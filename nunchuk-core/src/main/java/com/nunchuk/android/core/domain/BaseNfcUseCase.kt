@@ -78,5 +78,5 @@ abstract class BaseNfcUseCase<P : BaseNfcUseCase.Data, R>(
 
     open class Data(val isoDep: IsoDep)
 
-    protected open val isAutoRemoveRateLimit: Boolean = true
+    open val isAutoRemoveRateLimit: Boolean = true
 }

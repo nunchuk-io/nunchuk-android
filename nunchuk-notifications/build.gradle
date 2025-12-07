@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.plugin.compose' version '2.0.21'
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
 apply from: '../configs/dependencies.gradle'
 apply from: '../configs/submodule-config.gradle'
@@ -31,8 +31,7 @@ dependencies {
     implementation matrixDeps.matrixSdk
     implementation platform(playServices.firebaseBom)
 
-    kapt hiltDeps.processor
-    api hiltDeps.hilt
+    implementation hiltDeps.hilt
 
     implementation 'com.google.android.gms:play-services-base:18.2.0'
     implementation 'com.google.firebase:firebase-messaging-ktx:23.2.0'

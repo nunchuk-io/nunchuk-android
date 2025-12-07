@@ -5,11 +5,13 @@ pluginManagement {
         mavenCentral()
     }
     plugins {
-        id 'com.google.devtools.ksp' version '2.0.21-1.0.28' apply false
+        id 'com.google.devtools.ksp' version "${kotlinVersion}-2.0.2" apply false
         id 'com.android.test' version '8.6.0'
-        id 'org.jetbrains.kotlin.android' version '2.0.21'
+        id 'org.jetbrains.kotlin.android' version kotlinVersion
+        id 'org.jetbrains.kotlin.plugin.compose' version kotlinVersion apply false
         id 'com.android.application' version '8.6.0'
         id 'androidx.baselineprofile' version '1.3.0'
+        id 'com.google.dagger.hilt.android' version '2.57.1' apply false
     }
 }
 include ':nunchuk-app'

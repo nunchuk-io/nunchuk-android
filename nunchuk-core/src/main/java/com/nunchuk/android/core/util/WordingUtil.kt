@@ -19,7 +19,7 @@
 
 package com.nunchuk.android.core.util
 
-import java.util.*
+import java.util.Locale
 
 private const val DELIMITERS = " "
 
@@ -33,7 +33,7 @@ fun String.shorten(): String {
     return "${first()}".upperCase()
 }
 
-fun String.upperCase() = toUpperCase(Locale.getDefault())
+fun String.upperCase() = uppercase(Locale.getDefault())
 
 fun String.lastWord(): String = if (this.contains(DELIMITERS)) {
     this.split(DELIMITERS).last()
