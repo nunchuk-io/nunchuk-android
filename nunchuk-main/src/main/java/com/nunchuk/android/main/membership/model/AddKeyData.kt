@@ -271,12 +271,13 @@ fun MembershipStep.getLabel(context: Context, isStandard: Boolean, isOnChain: Bo
     return when (this) {
         MembershipStep.IRON_ADD_HARDWARE_KEY_1 -> "$defaultKeyName #1"
         MembershipStep.IRON_ADD_HARDWARE_KEY_2 -> "$defaultKeyName #2"
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> "$defaultKeyName #1"
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> if (isOnChain) "$defaultKeyName #3" else "$defaultKeyName #1"
         MembershipStep.ADD_SEVER_KEY -> context.getString(R.string.nc_server_key)
         MembershipStep.TIMELOCK -> context.getString(R.string.nc_timelock)
         MembershipStep.HONEY_ADD_INHERITANCE_KEY, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY -> if (isOnChain) defaultKeyName else "$defaultKeyName #1"
         MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 -> "$defaultKeyName #2"
-        MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> "$defaultKeyName #2"
+        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> if (isOnChain) "$defaultKeyName #4" else "$defaultKeyName #2"
+        MembershipStep.HONEY_ADD_HARDWARE_KEY_1  -> "$defaultKeyName #2"
         MembershipStep.HONEY_ADD_HARDWARE_KEY_2, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 -> "$defaultKeyName #3"
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 -> "$defaultKeyName #4"
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4 -> "$defaultKeyName #5"
