@@ -435,12 +435,8 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 }
             }
 
-            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK,
-            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK -> handleHardwareKeyAdd(
-                data
-            )
+            else -> handleHardwareKeyAdd(data)
 
-            else -> Unit
         }
     }
 
@@ -452,11 +448,7 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
 
         if (allSigners.isEmpty()) {
             // No signers exist, check if this is inheritance key or hardware key
-            if (nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY ||
-                nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK ||
-                nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 ||
-                nextStep == MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK
-            ) {
+            if (nextStep.isAddInheritanceKey) {
                 // For inheritance key, navigate to inheritance intro screen
                 findNavController().navigate(
                     OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToInheritanceKeyIntroFragment(

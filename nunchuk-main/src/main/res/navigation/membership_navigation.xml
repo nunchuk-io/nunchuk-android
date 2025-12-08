@@ -92,6 +92,11 @@
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
+        <argument
+            android:name="config"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.WalletConfig"
+            app:nullable="true" />
         <action
             android:id="@+id/action_onChainTimelockExplanationFragment_to_onChainTimelockAddKeyListFragment"
             app:destination="@id/onChainTimelockAddKeyListFragment"

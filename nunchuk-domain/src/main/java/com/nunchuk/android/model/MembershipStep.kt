@@ -72,7 +72,10 @@ val MembershipStep.isTimelockStep: Boolean
             || this == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3_TIMELOCK
             || this == MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4_TIMELOCK
 
-fun MembershipStep.toIndex(walletType: WalletType) = if (walletType == WalletType.MULTI_SIG) {
+/**
+ * @param requireInheritance is only applicable for walletType == WalletType.MINISCRIPT
+ */
+fun MembershipStep.toIndex(walletType: WalletType, requireInheritance: Boolean = false) = if (walletType == WalletType.MULTI_SIG) {
     when (this) {
         MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY,
         MembershipStep.HONEY_ADD_INHERITANCE_KEY,
@@ -89,22 +92,36 @@ fun MembershipStep.toIndex(walletType: WalletType) = if (walletType == WalletTyp
         else -> throw IllegalArgumentException()
     }
 } else {
-    when (this) {
-        MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK -> 0
-        MembershipStep.HONEY_ADD_INHERITANCE_KEY, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY -> 1
-        MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK -> 2
-        MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 -> 3
-        MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK -> 4
-        MembershipStep.HONEY_ADD_HARDWARE_KEY_2, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> 5
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK -> 6
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> 7
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK -> 8
-        else -> throw IllegalArgumentException()
+    if (requireInheritance) {
+        when (this) {
+            MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK -> 0
+            MembershipStep.HONEY_ADD_INHERITANCE_KEY, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY -> 1
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK -> 2
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_1, MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1 -> 3
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK -> 4
+            MembershipStep.HONEY_ADD_HARDWARE_KEY_2, MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> 5
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK -> 6
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> 7
+            else -> throw IllegalArgumentException()
+        }
+    } else {
+        when (this) {
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK -> 0
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0 -> 1
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK -> 2
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1 -> 3
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK -> 4
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2 -> 5
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3_TIMELOCK -> 6
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3 -> 7
+            else -> throw IllegalArgumentException()
+        }
     }
+
 }
 
-fun MembershipStep.toPairIndex(walletType: WalletType): List<Int> {
-    val index = this.toIndex(walletType)
+fun MembershipStep.toPairIndex(walletType: WalletType, requireInheritance: Boolean): List<Int> {
+    val index = this.toIndex(walletType, requireInheritance)
     val pairStart = (index / 2) * 2
     return listOf(pairStart, pairStart + 1)
 }

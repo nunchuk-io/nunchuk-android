@@ -44,6 +44,7 @@ import com.nunchuk.android.main.membership.byzantine.ByzantineMemberFlow
 import com.nunchuk.android.model.byzantine.ByzantinePreferenceSetup
 import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.byzantine.toGroupWalletType
+import com.nunchuk.android.model.isByzantinePro
 import com.nunchuk.android.model.isHoneyBadgerPremier
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -61,7 +62,9 @@ class SelectWalletSetupFragment : MembershipFragment() {
             setContent {
                 SelectWalletSetupScreen(
                     onContinueClicked = { setupPreference ->
-                        if (args.slug.isHoneyBadgerPremier() && args.groupType.toGroupWalletType()?.allowInheritance == true && args.groupType.toGroupWalletType() == GroupWalletType.THREE_OF_FIVE_INHERITANCE) {
+                        if ((args.slug.isHoneyBadgerPremier() && args.groupType.toGroupWalletType()?.allowInheritance == true && args.groupType.toGroupWalletType() == GroupWalletType.THREE_OF_FIVE_INHERITANCE)
+                            || (args.slug.isByzantinePro() && args.groupType.toGroupWalletType() == GroupWalletType.THREE_OF_FIVE_INHERITANCE || args.groupType.toGroupWalletType() == GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY)
+                        ) {
                             findNavController().navigate(
                                 SelectWalletSetupFragmentDirections.actionSelectWalletSetupFragmentToInheritancePlanTypeFragment(
                                     isPersonal = false,

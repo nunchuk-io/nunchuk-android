@@ -28,6 +28,7 @@ import com.nunchuk.android.core.util.InheritancePlanType
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipFragment
@@ -102,6 +103,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     private var draftWalletType: WalletType? = null
+    private var draftWalletConfig: WalletConfig? = null
 
     val groupRemainTime =
         membershipStepManager.remainingTime.map {
@@ -175,6 +177,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
             }
             _isConfigKeyDone.value = isCreateWallet || isConfigDone
             draftWalletType = draftWallet.walletType
+            draftWalletConfig = draftWallet.config
         }
     }
 
@@ -210,6 +213,8 @@ class AddGroupKeyStepViewModel @Inject constructor(
     fun isMaster(): Boolean = _uiState.value.isMaster
 
     fun getRole(): AssistedWalletRole = _uiState.value.role
+
+    fun getConfig(): WalletConfig? = draftWalletConfig
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"

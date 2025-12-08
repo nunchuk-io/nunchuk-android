@@ -43,6 +43,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.share.membership.MembershipFragment
+import kotlin.getValue
 
 class OnChainTimelockExplanationFragment : MembershipFragment() {
 
@@ -59,9 +60,11 @@ class OnChainTimelockExplanationFragment : MembershipFragment() {
             setContent {
                 val activity = requireActivity() as? MembershipActivity
                 val groupId = activity?.groupId.orEmpty()
-                
+                val allowInheritance = args.config?.allowInheritance ?: false
+
                 OnChainTimelockExplanationScreen(
                     groupId = groupId,
+                    allowInheritance = allowInheritance,
                     viewModel = viewModel,
                     onContinueClicked = {
                         if (groupId.isNotEmpty()) {
@@ -90,6 +93,7 @@ class OnChainTimelockExplanationFragment : MembershipFragment() {
 private fun OnChainTimelockExplanationScreen(
     viewModel: OnChainTimelockExplanationViewModel = viewModel(),
     groupId: String,
+    allowInheritance: Boolean,
     onContinueClicked: () -> Unit,
     onMoreClicked: () -> Unit = {}
 ) {
@@ -98,6 +102,7 @@ private fun OnChainTimelockExplanationScreen(
     OnChainTimelockExplanationContent(
         groupId = groupId,
         remainTime = remainTime,
+        allowInheritance = allowInheritance,
         onContinueClicked = onContinueClicked,
         onMoreClicked = onMoreClicked
     )
@@ -107,6 +112,7 @@ private fun OnChainTimelockExplanationScreen(
 private fun OnChainTimelockExplanationContent(
     groupId: String,
     remainTime: Int = 0,
+    allowInheritance: Boolean,
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {}
 ) {
@@ -118,7 +124,11 @@ private fun OnChainTimelockExplanationContent(
             topBar = {
                 NcImageAppBar(
                     backgroundRes = if (isGroupWallet) {
-                        R.drawable.illustration_on_chain_group_wallet
+                        if (allowInheritance) {
+                            R.drawable.illustration_on_chain_group_wallet
+                        } else {
+                            R.drawable.illustration_on_chain_without_inheritance_group_wallet
+                        }
                     } else {
                         R.drawable.bg_inheritance_onchain_offchain
                     },
@@ -192,11 +202,13 @@ private fun OnChainTimelockExplanationContent(
                     )
                 }
 
-                // Instruction about inheritance key
-                Text(
-                    text = if (isGroupWallet) stringResource(R.string.nc_select_inheritance_key_group_instruction) else stringResource(R.string.nc_select_inheritance_key_instruction),
-                    style = NunchukTheme.typography.body
-                )
+                // Instruction about inheritance key (only show when inheritance is allowed)
+                if (allowInheritance) {
+                    Text(
+                        text = if (isGroupWallet) stringResource(R.string.nc_select_inheritance_key_group_instruction) else stringResource(R.string.nc_select_inheritance_key_instruction),
+                        style = NunchukTheme.typography.body
+                    )
+                }
             }
         }
     }
@@ -229,6 +241,7 @@ private fun BulletPoint(
 private fun OnChainTimelockExplanationScreenPreview() {
     OnChainTimelockExplanationContent(
         groupId = "3232",
+        allowInheritance = true,
         onContinueClicked = { },
         onMoreClicked = { }
     )

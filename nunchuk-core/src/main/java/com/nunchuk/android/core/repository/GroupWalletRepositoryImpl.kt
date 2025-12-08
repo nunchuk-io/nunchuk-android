@@ -126,23 +126,21 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                     )
                 )
             } else {
+                val allowInheritance = draftWallet.walletConfig?.allowInheritance == true
                 val step = if (walletType == WalletType.MINISCRIPT) {
                     when (key.index) {
-                        0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK else throw IllegalArgumentException(
-                            "Iron Hand doesn't support timelock at index 1"
-                        )
-
-                        1 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_INHERITANCE_KEY else MembershipStep.IRON_ADD_HARDWARE_KEY_1
+                        0 -> MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK
+                        1 -> MembershipStep.HONEY_ADD_INHERITANCE_KEY
                         2 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK
-                        3 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_HARDWARE_KEY_1 else MembershipStep.IRON_ADD_HARDWARE_KEY_2
+                        3 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_1
                         4 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK
                         5 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_2
                         else -> throw IllegalArgumentException("Unexpected index ${key.index} for MINISCRIPT")
                     }
                 } else {
                     when (key.index) {
-                        0 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_INHERITANCE_KEY else MembershipStep.IRON_ADD_HARDWARE_KEY_1
-                        1 -> if (draftWallet.walletConfig?.allowInheritance == true) MembershipStep.HONEY_ADD_HARDWARE_KEY_1 else MembershipStep.IRON_ADD_HARDWARE_KEY_2
+                        0 -> if (allowInheritance) MembershipStep.HONEY_ADD_INHERITANCE_KEY else MembershipStep.IRON_ADD_HARDWARE_KEY_1
+                        1 -> if (allowInheritance) MembershipStep.HONEY_ADD_HARDWARE_KEY_1 else MembershipStep.IRON_ADD_HARDWARE_KEY_2
                         2 -> MembershipStep.HONEY_ADD_HARDWARE_KEY_2
                         else -> throw IllegalArgumentException("Unexpected index ${key.index} for MULTI_SIG")
                     }
@@ -239,17 +237,32 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
                     )
                 }
             } else {
+                val allowInheritance = draftWallet.walletConfig?.allowInheritance == true
                 val step = if (walletType == WalletType.MINISCRIPT) {
-                    when (key.index) {
-                        0 -> MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK
-                        1 -> MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY
-                        2 -> MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK
-                        3 -> MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1
-                        4 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK
-                        5 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
-                        6 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK
-                        7 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
-                        else -> throw IllegalArgumentException("Unexpected index ${key.index} for MINISCRIPT")
+                    if (allowInheritance) {
+                        when (key.index) {
+                            0 -> MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK
+                            1 -> MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY
+                            2 -> MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1_TIMELOCK
+                            3 -> MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_1
+                            4 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK
+                            5 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
+                            6 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK
+                            7 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
+                            else -> throw IllegalArgumentException("Unexpected index ${key.index} for MINISCRIPT")
+                        }
+                    } else {
+                        when (key.index) {
+                            0 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK
+                            1 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0
+                            2 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK
+                            3 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1
+                            4 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK
+                            5 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2
+                            6 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3_TIMELOCK
+                            7 -> MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3
+                            else -> throw IllegalArgumentException("Unexpected index ${key.index} for MINISCRIPT")
+                        }
                     }
                 } else {
                     when (key.index) {

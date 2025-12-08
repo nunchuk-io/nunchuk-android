@@ -60,7 +60,10 @@ fun WalletConfig.toGroupWalletType(): GroupWalletType? {
         .find { this.m == it.m && this.n == it.n && this.allowInheritance == it.allowInheritance && this.requiredServerKey == it.requiredServerKey }
 }
 
-fun GroupWalletType.toSteps(isPersonalWallet: Boolean = false, walletType: WalletType? = null): List<MembershipStep> = when (this) {
+fun GroupWalletType.toSteps(
+    isPersonalWallet: Boolean = false,
+    walletType: WalletType? = null
+): List<MembershipStep> = when (this) {
     GroupWalletType.TWO_OF_FOUR_MULTISIG -> if (isPersonalWallet) {
         if (walletType == WalletType.MINISCRIPT) {
             listOf(
@@ -82,25 +85,12 @@ fun GroupWalletType.toSteps(isPersonalWallet: Boolean = false, walletType: Walle
             )
         }
     } else {
-        if (walletType == WalletType.MINISCRIPT) {
-            listOf(
-                MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY,
-                MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY_TIMELOCK,
-                MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
-                MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK,
-                MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
-                MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK,
-                MembershipStep.ADD_SEVER_KEY,
-                MembershipStep.TIMELOCK
-            )
-        } else {
-            listOf(
-                MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY,
-                MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
-                MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
-                MembershipStep.ADD_SEVER_KEY,
-            )
-        }
+        listOf(
+            MembershipStep.BYZANTINE_ADD_INHERITANCE_KEY,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
+            MembershipStep.ADD_SEVER_KEY,
+        )
     }
 
     GroupWalletType.TWO_OF_THREE -> listOf(
@@ -109,13 +99,14 @@ fun GroupWalletType.toSteps(isPersonalWallet: Boolean = false, walletType: Walle
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
     )
 
-    GroupWalletType.THREE_OF_FIVE -> listOf(
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3,
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4,
-    )
+    GroupWalletType.THREE_OF_FIVE ->
+        listOf(
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_4,
+        )
 
     GroupWalletType.TWO_OF_FOUR_MULTISIG_NO_INHERITANCE -> listOf(
         MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,
@@ -147,13 +138,28 @@ fun GroupWalletType.toSteps(isPersonalWallet: Boolean = false, walletType: Walle
         )
     }
 
-    GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY -> listOf(
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
-        MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3,
-        MembershipStep.ADD_SEVER_KEY,
-    )
+    GroupWalletType.THREE_OF_FIVE_PLATFORM_KEY -> if (walletType == WalletType.MINISCRIPT) {
+        listOf(
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0_TIMELOCK,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1_TIMELOCK,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2_TIMELOCK,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3_TIMELOCK,
+            MembershipStep.ADD_SEVER_KEY,
+            MembershipStep.TIMELOCK
+        )
+    } else {
+        listOf(
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_0,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_1,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_2,
+            MembershipStep.BYZANTINE_ADD_HARDWARE_KEY_3,
+            MembershipStep.ADD_SEVER_KEY,
+        )
+    }
 
     GroupWalletType.TWO_OF_THREE_PLATFORM_KEY -> listOf(
         MembershipStep.IRON_ADD_HARDWARE_KEY_1,

@@ -1779,10 +1779,24 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
     }
 
+    private suspend fun getAllowInheritanceFromDraftWallet(groupId: String): Boolean {
+        val response = if (groupId.isEmpty()) {
+            userWalletApiManager.walletApi.getDraftWallet()
+        } else {
+            userWalletApiManager.groupWalletApi.getDraftWallet(groupId)
+        }
+        return response.data.draftWallet?.walletConfig?.allowInheritance ?: false
+    }
+
     override suspend fun syncKey(
         groupId: String, step: MembershipStep, signer: SingleSigner, walletType: WalletType,
     ) {
-        val index = step.toIndex(walletType)
+        val allowInheritance = if (walletType == WalletType.MINISCRIPT) {
+            getAllowInheritanceFromDraftWallet(groupId)
+        } else {
+            false
+        }
+        val index = step.toIndex(walletType, allowInheritance)
         val signerDto = serverSignerMapper(
             signer, step.isAddInheritanceKey
         ).copy(index = index)
@@ -1817,11 +1831,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             }
         }
         return if (localRequest == null) {
+            val allowInheritance = if (walletType == WalletType.MINISCRIPT) {
+                getAllowInheritanceFromDraftWallet(groupId)
+            } else {
+                false
+            }
             val desktopKeyRequest = if (walletType == WalletType.MINISCRIPT) {
                 DesktopKeyRequest(
                     tags = tags.map { it.name },
-                    keyIndex = step.toIndex(walletType),
-                    keyIndices = step.toPairIndex(walletType)
+                    keyIndex = step.toIndex(walletType, allowInheritance),
+                    keyIndices = step.toPairIndex(walletType, allowInheritance)
                 )
             } else {
                 DesktopKeyRequest(

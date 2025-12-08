@@ -402,18 +402,9 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 )
             }
 
-            MembershipStep.HONEY_ADD_INHERITANCE_KEY,
-            MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK,
-            MembershipStep.IRON_ADD_HARDWARE_KEY_1,
-            MembershipStep.IRON_ADD_HARDWARE_KEY_2,
-            MembershipStep.HONEY_ADD_HARDWARE_KEY_1,
-            MembershipStep.HONEY_ADD_HARDWARE_KEY_1_TIMELOCK,
-            MembershipStep.HONEY_ADD_HARDWARE_KEY_2,
-            MembershipStep.HONEY_ADD_HARDWARE_KEY_2_TIMELOCK -> handleHardwareKeyAdd(
+            else -> handleHardwareKeyAdd(
                 data
             )
-
-            else -> Unit
         }
     }
 
@@ -425,9 +416,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
 
         if (allSigners.isEmpty()) {
             // No signers exist, check if this is inheritance key or hardware key
-            if (nextStep == MembershipStep.HONEY_ADD_INHERITANCE_KEY ||
-                nextStep == MembershipStep.HONEY_ADD_INHERITANCE_KEY_TIMELOCK
-            ) {
+            if (nextStep.isAddInheritanceKey) {
                 // For inheritance key, navigate to inheritance intro screen
                 findNavController().navigate(
                     OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToInheritanceKeyIntroFragment(
