@@ -40,10 +40,10 @@ ext {
 
     MAJOR_VERSION = 2
     MINOR_VERSION = 1
-    PATCH_VERSION = 1
+    PATCH_VERSION = 2
     TASK_LABEL = "DEV"
 
-    VERSION_CODE = 306
+    VERSION_CODE = 307
 
     androidConfig = [
             applicationId    : "com.nunchuk.android",
