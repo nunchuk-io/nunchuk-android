@@ -41,8 +41,8 @@ ext {
     navVersion = "2.6.0"
 
     MAJOR_VERSION = 2
-    MINOR_VERSION = 1
-    PATCH_VERSION = 5
+    MINOR_VERSION = 2
+    PATCH_VERSION = 0
     TASK_LABEL = "DEV"
 
     VERSION_CODE = 310
