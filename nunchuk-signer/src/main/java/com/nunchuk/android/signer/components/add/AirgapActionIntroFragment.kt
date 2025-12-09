@@ -15,6 +15,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -53,7 +54,8 @@ class AirgapActionIntroFragment : MembershipFragment() {
     ): View = content {
         AirgapActionIntroScreen(
             isMembershipFlow = isMembershipFlow,
-            onChainAddSignerParam = onChainAddSignerParam
+            onChainAddSignerParam = onChainAddSignerParam,
+            remainTime = membershipStepManager.remainingTime.collectAsState().value
         ) { jadeAction ->
             when (jadeAction) {
                 JADEAction.QR -> {
@@ -96,13 +98,18 @@ class AirgapActionIntroFragment : MembershipFragment() {
 @Composable
 internal fun AirgapActionIntroScreen(
     isMembershipFlow: Boolean,
+    remainTime: Int = 0,
     onChainAddSignerParam: OnChainAddSignerParam? = null,
     onAction: (JADEAction) -> Unit = {}
 ) {
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
-                backgroundRes = R.drawable.bg_airgap_jade_intro
+                backgroundRes = R.drawable.bg_airgap_jade_intro,
+                title = if (isMembershipFlow && remainTime > 0) stringResource(
+                    id = R.string.nc_estimate_remain_time,
+                    remainTime
+                ) else "",
             )
         }) { innerPadding ->
             Column(
@@ -159,7 +166,7 @@ internal fun AirgapActionIntroScreen(
                                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                     append("before the timelock")
                                 }
-                                append(". On your device, we recommend selecting ")
+                                append(". On your device, select ")
                                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                     append("account $onChainKeyIndex")
                                 }
@@ -191,7 +198,7 @@ internal fun AirgapActionIntroScreen(
                     title = stringResource(R.string.nc_add_jade_via_usb),
                     iconId = R.drawable.ic_usb,
                     onClick = { onAction(JADEAction.USB) },
-                    isEnable = isMembershipFlow,
+                    isEnable = isMembershipFlow && onChainAddSignerParam?.isVerifyBackupSeedPhrase() == false,
                     subtitle = if (isMembershipFlow.not()) stringResource(R.string.nc_desktop_only) else ""
                 )
             }

@@ -189,7 +189,7 @@ internal fun ColdCardIntroScreen(
                                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                     append("before the timelock")
                                 }
-                                append(". On your device, we recommend selecting ")
+                                append(". On your device, select ")
                                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                     append("account $onChainKeyIndex")
                                 }
