@@ -182,7 +182,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
         viewModelScope.launch {
             if (isSetupRecoverKeyDone.value && isConfigKeyDone.value) {
                 savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.CREATE_WALLET
-                if (isCreateWalletDone.value && isRegisterAirgap.value.not()) {
+                if (isCreateWalletDone.value && isRegisterAirgap.value.not() && draftWalletType != WalletType.MINISCRIPT) {
                     val walletId = assistedWallets.value.lastOrNull()?.localId ?: return@launch
                     _event.emit(AddKeyStepEvent.OpenRegisterAirgap(walletId))
                 } else {

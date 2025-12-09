@@ -160,7 +160,7 @@ class PrimaryOwnerFragment : MembershipFragment() {
     }
 
     private fun handleCreateWalletSuccess(event: PrimaryOwnerEvent.OnCreateWalletSuccess) {
-        if (event.airgapCount > 0) {
+        if (event.airgapCount > 0 && event.wallet.miniscript.isEmpty()) {
             findNavController().navigate(
                 PrimaryOwnerFragmentDirections.actionPrimaryOwnerFragmentToRegisterWalletToAirgapFragment(
                     walletId = event.wallet.id,

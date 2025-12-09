@@ -173,7 +173,7 @@ class AddKeyStepViewModel @Inject constructor(
                 _event.emit(AddKeyStepEvent.OpenInheritanceSetup)
             } else if (isSetupRecoverKeyDone.value && isConfigKeyDone.value) {
                 savedStateHandle[KEY_CURRENT_STEP] = MembershipStep.CREATE_WALLET
-                if (isCreateWalletDone.value && isRegisterAirgap.value.not()) {
+                if (isCreateWalletDone.value && isRegisterAirgap.value.not() && _draftWalletType.value != WalletType.MINISCRIPT) {
                     val walletId = assistedWallets.value.lastOrNull()?.localId ?: return@launch
                     _event.emit(AddKeyStepEvent.OpenRegisterAirgap(walletId))
                 } else {

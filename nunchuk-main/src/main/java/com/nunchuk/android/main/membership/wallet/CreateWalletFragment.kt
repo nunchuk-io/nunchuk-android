@@ -159,7 +159,7 @@ class CreateWalletFragment : MembershipFragment() {
     }
 
     private fun handleCreateWalletSuccess(event: CreateWalletEvent.OnCreateWalletSuccess) {
-        if (event.airgapCount > 0) {
+        if (event.airgapCount > 0 && event.wallet.miniscript.isEmpty()) {
             requireActivity().setResult(Activity.RESULT_OK)
             findNavController().navigate(
                 CreateWalletFragmentDirections.actionCreateWalletFragmentToRegisterWalletToAirgapFragment(
