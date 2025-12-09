@@ -42,36 +42,31 @@ fun NcTimeZoneField(
     title: String = stringResource(R.string.nc_time_zone),
     selectedTimeZone: TimeZoneDetail,
     onTimeZoneSelected: (TimeZoneDetail) -> Unit,
-    enabled: Boolean = true,
     placeholder: String = "Select Time zone"
 ) {
     var showTimeZoneDialog by remember { mutableStateOf(false) }
-    
+
     val displayText = if (selectedTimeZone.city.isNotEmpty()) {
         "${selectedTimeZone.city} (${selectedTimeZone.offset})"
     } else {
         placeholder
     }
-    
+
     NcTextField(
         modifier = modifier,
         title = title,
         value = displayText,
         readOnly = true,
-        enabled = enabled,
+        enabled = false,
         onClick = {
-            if (enabled) {
-                showTimeZoneDialog = true
-            }
+            showTimeZoneDialog = true
         },
         rightContent = {
             Icon(
                 modifier = Modifier
                     .padding(end = 12.dp)
                     .clickable {
-                        if (enabled) {
-                            showTimeZoneDialog = true
-                        }
+                        showTimeZoneDialog = true
                     },
                 painter = painterResource(id = R.drawable.ic_arrow_down),
                 contentDescription = ""
@@ -79,7 +74,7 @@ fun NcTimeZoneField(
         },
         onValueChange = {}
     )
-    
+
     if (showTimeZoneDialog) {
         TimeZoneSelectionDialog(
             onDismissRequest = { showTimeZoneDialog = false },
