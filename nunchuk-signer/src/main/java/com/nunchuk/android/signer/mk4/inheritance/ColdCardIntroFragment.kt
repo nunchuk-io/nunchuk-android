@@ -17,6 +17,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.compose.content
@@ -39,7 +43,7 @@ class ColdCardIntroFragment : MembershipFragment(), BottomSheetOptionListener {
     private val isFromAddKey by lazy { (requireActivity() as Mk4Activity).isFromAddKey }
 
     private val mk4Activity by lazy { requireActivity() as Mk4Activity }
-    private val isMembershipFlow by lazy { 
+    private val isMembershipFlow by lazy {
         mk4Activity.isMembershipFlow || mk4Activity.onChainAddSignerParam != null
     }
     private val isAddInheritanceKey by lazy {
@@ -118,7 +122,9 @@ internal fun ColdCardIntroScreen(
     mk4Activity: Mk4Activity? = null,
     onColdCardAction: (ColdCardAction) -> Unit = {}
 ) {
-    val isVerifyBackupSeedPhrase = mk4Activity?.onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true
+    val isVerifyBackupSeedPhrase =
+        mk4Activity?.onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true
+    val onChainKeyIndex = if (mk4Activity?.onChainAddSignerParam != null && mk4Activity.onChainAddSignerParam!!.keyIndex >= 0) mk4Activity.onChainAddSignerParam!!.keyIndex else 0
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
@@ -151,10 +157,49 @@ internal fun ColdCardIntroScreen(
                 )
                 Text(
                     modifier = Modifier.padding(16.dp),
-                    text = if (mk4Activity?.onChainAddSignerParam?.isAddInheritanceSigner() == true) {
-                        "Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\nPlease add a key for the spending path after the timelock. On your device, select account 0 for this spending path."
+                    text = if (isVerifyBackupSeedPhrase) {
+                        buildAnnotatedString {
+                            append("Please re-add the key for the spending path ")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("after the timelock")
+                            }
+                            append(" to verify. On your device, select ")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("account 0")
+                            }
+                            append(" for this spending path.")
+                        }
+                    } else if (mk4Activity?.onChainAddSignerParam != null) {
+                        val keyIndex = mk4Activity.onChainAddSignerParam?.keyIndex ?: 0
+                        buildAnnotatedString {
+                            append("Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\n")
+
+                            if (keyIndex == 0) {
+                                append("Please add a key for the spending path ")
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("after the timelock.")
+                                }
+                                append(" On your device, select ")
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("account 0")
+                                }
+                                append(" for this spending path.")
+                            } else {
+                                append("Now add the second key from the same COLDCARD for the spending path ")
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("before the timelock")
+                                }
+                                append(". On your device, we recommend selecting ")
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("account $onChainKeyIndex")
+                                }
+                                append(" for this spending path.")
+                            }
+                        }
                     } else {
-                        stringResource(R.string.nc_add_coldcard_mk4_desc)
+                        buildAnnotatedString {
+                            append(stringResource(R.string.nc_add_coldcard_mk4_desc))
+                        }
                     },
                     style = NunchukTheme.typography.body
                 )

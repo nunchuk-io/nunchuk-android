@@ -127,17 +127,44 @@ internal fun AirgapActionIntroScreen(
                     Spacer(modifier = Modifier.padding(top = 16.dp))
                     Text(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        text = buildAnnotatedString {
-                            append("Each hardware device must be added twice, with both keys (")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("before the timelock")
+                        text = if (onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
+                            buildAnnotatedString {
+                                append("Please re-add the key for the spending path ")
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("after the timelock")
+                                }
+                                append(" to verify. On your device, select ")
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("account 0")
+                                }
+                                append(" for this spending path.")
                             }
-                            append(") coming from the same device but using different derivation paths. \n\n")
-                            append("Please add a key for the spending path after the timelock. On your device, select ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("account $onChainKeyIndex")
+                        } else if (onChainAddSignerParam.keyIndex == 0) {
+                            buildAnnotatedString {
+                                append("Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\n")
+                                append("Please add a key for the spending path ")
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("after the timelock.")
+                                }
+                                append(" On your device, select ")
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("account 0")
+                                }
+                                append(" for this spending path.")
                             }
-                            append(" for this spending path.")
+                        } else {
+                            buildAnnotatedString {
+                                append("Each hardware device must be added twice, with both keys (before and after the timelock) coming from the same device but using different derivation paths.\n\n")
+                                append("Now add the second key from the same Jade for the spending path ")
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("before the timelock")
+                                }
+                                append(". On your device, we recommend selecting ")
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("account $onChainKeyIndex")
+                                }
+                                append(" for this spending path.")
+                            }
                         },
                         style = NunchukTheme.typography.body
                     )
