@@ -14,7 +14,7 @@ fun WalletConfigType.toOptionName(): String {
     return when (this) {
         WalletConfigType.TOW_OF_THREE -> "2/3 multisig"
         WalletConfigType.THREE_OF_FIVE -> "3/5 multisig"
-        WalletConfigType.CUSTOM -> "Customize"
+        WalletConfigType.CUSTOM -> "Customize multisig"
         WalletConfigType.MINISCRIPT -> "Miniscript"
     }
 }
