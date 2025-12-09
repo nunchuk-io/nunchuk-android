@@ -145,7 +145,11 @@ class AddGroupKeyStepFragment : MembershipFragment() {
     }
 
     private fun handleOpenOnChainTimelockExplanation() {
-        findNavController().navigate(AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToOnChainTimelockExplanationFragment())
+        findNavController().navigate(
+            AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToOnChainTimelockExplanationFragment(
+                role = viewModel.getRole().name,
+            )
+        )
     }
 }
 

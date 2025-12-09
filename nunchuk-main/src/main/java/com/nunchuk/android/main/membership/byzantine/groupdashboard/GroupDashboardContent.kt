@@ -268,7 +268,8 @@ private fun LazyListScope.alertListView(
                     bottom = 12.dp,
                     start = 16.dp,
                     end = 16.dp
-                )
+                ),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 NcIcon(
                     painter = painterResource(id = R.drawable.ic_alert),

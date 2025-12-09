@@ -114,7 +114,7 @@
     <string name="nc_wallet_invitation">Wallet invitation</string>
     <string name="nc_accept">Accept</string>
     <string name="nc_deny">Deny</string>
-    <string name="nc_alert">Alert</string>
+    <string name="nc_alert">Alerts</string>
     <string name="nc_pending_wallet_invite_member">%s invited you to join a group wallet.</string>
     <string name="nc_view_recurring_payments">View recurring payments</string>
     <string name="nc_deny_wallet_invitation_dialog">Are you sure you want to deny this wallet invitation?</string>
@@ -420,11 +420,14 @@
     <!-- On-chain timelock explanation strings -->
     <string name="nc_how_onchain_timelock_works">How on-chain timelock works</string>
     <string name="nc_onchain_wallet_spending_paths_desc">Your new wallet will have two spending paths: before and after the timelock.</string>
-    <string name="nc_before_timelock_desc">Before the timelock: spending requires two signatures from a 2-of-4 multisig.</string>
-    <string name="nc_after_timelock_desc">After the timelock: spending only requires one signature from a 1-of-3 multisig.</string>
-    <string name="nc_before_timelock_group_desc">Before the timelock: spending requires three signatures from a 3-of-5 multisig. </string>
-    <string name="nc_after_timelock_group_desc">After the timelock: spending requires two signatures from a 2-of-4 multisig.</string>
+    <string name="nc_before_timelock">Before the timelock: </string>
+    <string name="nc_after_timelock">After the timelock: </string>
+    <string name="nc_before_timelock_desc">spending requires two signatures from a 2-of-4 multisig.</string>
+    <string name="nc_after_timelock_desc">spending only requires one signature from a 1-of-3 multisig.</string>
+    <string name="nc_before_timelock_group_desc">spending requires three signatures from a 3-of-5 multisig.</string>
+    <string name="nc_after_timelock_group_desc">spending requires two signatures from a 2-of-4 multisig.</string>
     <string name="nc_select_inheritance_key_instruction">Among your keys, select one key to be the inheritance key.</string>
+    <string name="nc_select_inheritance_key_group_instruction">Among your keys, select two keys to be the inheritance keys.</string>
 
     <!-- Check Firmware Strings -->
     <string name="nc_check_coldcard_firmware_title">Check your ColdCard firmware</string>

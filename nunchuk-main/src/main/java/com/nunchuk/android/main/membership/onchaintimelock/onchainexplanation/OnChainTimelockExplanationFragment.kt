@@ -17,36 +17,38 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
-import com.nunchuk.android.main.membership.byzantine.step.AddGroupKeyStepViewModel
 import com.nunchuk.android.share.membership.MembershipFragment
 
 class OnChainTimelockExplanationFragment : MembershipFragment() {
 
-    private val groupViewModel: AddGroupKeyStepViewModel? by lazy {
-        try {
-            val vm: AddGroupKeyStepViewModel by activityViewModels()
-            vm
-        } catch (e: Exception) {
-            null
-        }
-    }
+    private val args: OnChainTimelockExplanationFragmentArgs by navArgs()
+
+    private val viewModel: OnChainTimelockExplanationViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -60,9 +62,10 @@ class OnChainTimelockExplanationFragment : MembershipFragment() {
                 
                 OnChainTimelockExplanationScreen(
                     groupId = groupId,
+                    viewModel = viewModel,
                     onContinueClicked = {
                         if (groupId.isNotEmpty()) {
-                            val role = groupViewModel?.getRole()?.name.orEmpty()
+                            val role = args.role.orEmpty()
                             findNavController().navigate(
                                 OnChainTimelockExplanationFragmentDirections.actionOnChainTimelockExplanationFragmentToOnChainTimelockByzantineAddKeyFragment(
                                     groupId = groupId,
@@ -85,12 +88,16 @@ class OnChainTimelockExplanationFragment : MembershipFragment() {
 
 @Composable
 private fun OnChainTimelockExplanationScreen(
+    viewModel: OnChainTimelockExplanationViewModel = viewModel(),
     groupId: String,
     onContinueClicked: () -> Unit,
     onMoreClicked: () -> Unit = {}
 ) {
+    val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
+
     OnChainTimelockExplanationContent(
         groupId = groupId,
+        remainTime = remainTime,
         onContinueClicked = onContinueClicked,
         onMoreClicked = onMoreClicked
     )
@@ -99,6 +106,7 @@ private fun OnChainTimelockExplanationScreen(
 @Composable
 private fun OnChainTimelockExplanationContent(
     groupId: String,
+    remainTime: Int = 0,
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {}
 ) {
@@ -114,6 +122,10 @@ private fun OnChainTimelockExplanationContent(
                     } else {
                         R.drawable.bg_inheritance_onchain_offchain
                     },
+                    title = if (remainTime <= 0) "" else stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    ),
                     actions = {
                         IconButton(onClick = onMoreClicked) {
                             NcIcon(
@@ -161,16 +173,28 @@ private fun OnChainTimelockExplanationContent(
                         style = NunchukTheme.typography.body
                     )
                     BulletPoint(
-                        text = if (isGroupWallet) stringResource(R.string.nc_before_timelock_group_desc) else stringResource(R.string.nc_before_timelock_desc)
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append(stringResource(R.string.nc_before_timelock))
+                                append(" ")
+                            }
+                            append(if (isGroupWallet) stringResource(R.string.nc_before_timelock_group_desc) else stringResource(R.string.nc_before_timelock_desc))
+                        }
                     )
                     BulletPoint(
-                        text = if (isGroupWallet) stringResource(R.string.nc_after_timelock_group_desc) else stringResource(R.string.nc_after_timelock_desc)
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append(stringResource(R.string.nc_after_timelock))
+                                append(" ")
+                            }
+                            append(if (isGroupWallet) stringResource(R.string.nc_after_timelock_group_desc) else stringResource(R.string.nc_after_timelock_desc))
+                        }
                     )
                 }
 
                 // Instruction about inheritance key
                 Text(
-                    text = stringResource(R.string.nc_select_inheritance_key_instruction),
+                    text = if (isGroupWallet) stringResource(R.string.nc_select_inheritance_key_group_instruction) else stringResource(R.string.nc_select_inheritance_key_instruction),
                     style = NunchukTheme.typography.body
                 )
             }
@@ -180,7 +204,7 @@ private fun OnChainTimelockExplanationContent(
 
 @Composable
 private fun BulletPoint(
-    text: String,
+    text: AnnotatedString,
     modifier: Modifier = Modifier
 ) {
     Row(

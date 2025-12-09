@@ -87,6 +87,11 @@
         android:id="@+id/onChainTimelockExplanationFragment"
         android:name="com.nunchuk.android.main.membership.onchaintimelock.onchainexplanation.OnChainTimelockExplanationFragment"
         android:label="OnChainTimelockExplanationFragment">
+        <argument
+            android:name="role"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
         <action
             android:id="@+id/action_onChainTimelockExplanationFragment_to_onChainTimelockAddKeyListFragment"
             app:destination="@id/onChainTimelockAddKeyListFragment"
