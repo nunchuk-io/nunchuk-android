@@ -24,6 +24,7 @@ import androidx.lifecycle.asFlow
 import com.nunchuk.android.core.persistence.NcEncryptedPreferences
 import com.nunchuk.android.core.util.isAtLeastStarted
 import com.nunchuk.android.utils.CrashlyticsReporter
+import kotlinx.coroutines.delay
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -44,13 +45,17 @@ class SessionHolder @Inject constructor(
     private var isLeaveRoom: Boolean = false
 
     // isOpen state is hidden inside matrix sdk, there is no way to know exactly variable value
-    fun storeActiveSession(session: Session) {
+    suspend fun storeActiveSession(session: Session) {
         if (session.sessionId == getSafeActiveSession()?.sessionId) {
+            Timber.d("Session ${session.sessionId} is already the active session, no need to store it again")
             return
         }
-        getSafeActiveSession()?.apply {
-            removeListener(sessionListener)
-            close()
+        runCatching {
+            getSafeActiveSession()?.apply {
+                removeListener(sessionListener)
+                close()
+                delay(1000L)
+            }
         }
         session.apply {
             activeSessionReference.set(this)
