@@ -150,7 +150,8 @@ class OnChainSignerIntroFragment : MembershipFragment() {
                             KeyType.SOFTWARE -> openAddSoftwareSignerScreen()
                             KeyType.GENERIC_AIRGAP -> openAddAirSignerIntroScreen()
                         }
-                    }
+                    },
+                    onMoreClicked = ::handleShowMore
                 )
             }
         }

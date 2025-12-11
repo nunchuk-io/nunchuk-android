@@ -143,7 +143,7 @@ private fun ImportantNoticePassphraseContent(
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
-                backgroundRes = R.drawable.bg_passphrase_notice_illustration,
+                backgroundRes = R.drawable.bg_importance_passphrase_notice_illustration,
                 title = if (remainTime <= 0) "" else stringResource(
                     id = R.string.nc_estimate_remain_time,
                     remainTime

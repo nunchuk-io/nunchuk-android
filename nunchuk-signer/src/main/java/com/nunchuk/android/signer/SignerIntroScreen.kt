@@ -15,6 +15,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -49,7 +51,8 @@ fun SignerIntroScreen(
     supportedSigners: List<SupportedSigner> = emptyList(),
     viewModel: SignerIntroViewModel,
     onChainAddSignerParam: OnChainAddSignerParam? = null,
-    onClick: (KeyType) -> Unit = {}
+    onClick: (KeyType) -> Unit = {},
+    onMoreClicked: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isDisableAll = keyFlow != KeyFlow.NONE
@@ -59,7 +62,17 @@ fun SignerIntroScreen(
         Scaffold(topBar = {
             NcTopAppBar(
                 title = "",
-                isBack = false
+                isBack = false,
+                actions = {
+                    if (onChainAddSignerParam != null) {
+                        IconButton(onClick = onMoreClicked) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_more),
+                                contentDescription = "More icon"
+                            )
+                        }
+                    }
+                }
             )
         }) { innerPadding ->
             Column(

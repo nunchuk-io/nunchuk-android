@@ -41,6 +41,10 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.clearFragmentResult
@@ -293,11 +297,14 @@ private fun TapSignerInheritanceIntroContent(
                 } else {
                     Text(
                         modifier = Modifier.padding(16.dp),
-                        text = "The inheritance key is used to claim funds and spend from the wallet after the timelock.\n" +
-                                "\n" +
-                                "If you do not already have a BIP39 seed phrase, view it on your device or generate a new one. Either a 12-word or 24-word seed phrase is acceptable (12 words are sufficient). Keep it secret.\n" +
-                                "\n" +
-                                "You will later share this seed phrase backup with your Beneficiary so they can access the inheritance.",
+                        text = buildAnnotatedString {
+                            append("The inheritance key is used to claim funds and spend from the wallet after the timelock.\n\n")
+                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("If you do not already have a BIP39 seed phrase, view it on your device or generate a new one. ")
+                            }
+                            append("Either a 12-word or 24-word seed phrase is acceptable (12 words are sufficient). Keep it secret.\n\n")
+                            append("You will later share this seed phrase backup with your Beneficiary so they can access the inheritance.")
+                        },
                         style = NunchukTheme.typography.body
                     )
                 }

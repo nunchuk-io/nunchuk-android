@@ -246,10 +246,7 @@ private fun ColdCardCheckFirmwareContent(
             modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 NcImageAppBar(
-                    backgroundRes = when (args.signerTag) {
-                        SignerTag.JADE -> R.drawable.bg_add_jade
-                        else -> R.drawable.bg_check_coldcard_firmware_illustration
-                    },
+                    backgroundRes = R.drawable.bg_check_coldcard_firmware_illustration,
                     title = if (remainTime <= 0) "" else stringResource(
                         id = R.string.nc_estimate_remain_time,
                         remainTime
@@ -316,7 +313,7 @@ private fun ColdCardCheckFirmwareContent(
                     withStyle(
                         style = SpanStyle(
                             color = Color(0xFF1976D2),
-                            textDecoration = TextDecoration.Underline
+                            textDecoration = TextDecoration.None
                         )
                     ) {
                         if (args.signerTag == SignerTag.JADE) {
