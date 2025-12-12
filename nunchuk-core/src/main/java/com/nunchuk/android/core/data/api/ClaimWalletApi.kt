@@ -88,5 +88,11 @@ internal interface ClaimWalletApi {
         @Path("local_id") localId: String,
         @Query("offset") offset: Int
     ): Data<TransactionsResponse>
+
+    @DELETE("/v1.1/user-wallets/claiming-wallets/{local_id}/transactions/{transaction_id}")
+    suspend fun deleteClaimingWalletTransaction(
+        @Path("local_id") localId: String,
+        @Path("transaction_id") transactionId: String,
+    ): Data<TransactionResponse>
 }
 

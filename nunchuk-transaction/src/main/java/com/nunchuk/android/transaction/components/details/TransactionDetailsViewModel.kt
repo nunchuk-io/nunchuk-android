@@ -957,7 +957,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     groupId = assistedWalletManager.getGroupId(walletId),
                     walletId = walletId,
                     txId = txId,
-                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId) && !onlyLocal
+                    isAssistedWallet = assistedWalletManager.isSyncableWallet(walletId) && !onlyLocal
                 )
             )
             if (result.isSuccess) {

@@ -1302,8 +1302,14 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         walletId: String,
         transactionId: String,
     ) {
+        val isClaimWallet = ncDataStore.claimWalletsFlow.first().contains(walletId)
         val response = if (!groupId.isNullOrEmpty()) {
             userWalletApiManager.groupWalletApi.deleteTransaction(groupId, walletId, transactionId)
+        } else if (isClaimWallet) {
+            userWalletApiManager.claimWalletApi.deleteClaimingWalletTransaction(
+                localId = walletId,
+                transactionId = transactionId
+            )
         } else {
             userWalletApiManager.walletApi.deleteTransaction(walletId, transactionId)
         }
