@@ -433,7 +433,7 @@
     <string name="nc_set_up_activation_date_notice">Even with the correct Magic Phrase and Backup Password, one cannot claim the inheritance before this date.</string>
     <string name="nc_set_up_activation_date_desc">[B]Only on or after this date[/B] can a Beneficiary or Trustee claim the inheritance.\n\nYou can change the timelock later via the Services tab.\n\nWe recommend setting a timelock not too far in the future (e.g., 2 years from now). Review the plan annually and adjust the date if necessary to avoid long-term uncertainties.</string>
     <string name="nc_inheritance_leave_message">Would you like to leave a message?</string>
-    <string name="nc_inheritance_leave_message_desc">After the Beneficiary or Trustee claims the inheritance, they will be able to see this message.</string>
+    <string name="nc_inheritance_leave_message_desc">After the Beneficiary or Trustee claims the inheritance, they will see this message.</string>
     <string name="nc_update_message">Update message</string>
     <string name="nc_note">Note</string>
     <string name="nc_optional">(optional)</string>
