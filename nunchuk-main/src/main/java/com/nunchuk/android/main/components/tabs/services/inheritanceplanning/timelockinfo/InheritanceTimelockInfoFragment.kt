@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.navigation.fragment.findNavController
@@ -147,7 +148,9 @@ private fun InheritanceTimelockInfoContent(
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     text = stringResource(R.string.nc_about_the_timelock_description_3),
-                    style = NunchukTheme.typography.body
+                    style = NunchukTheme.typography.body.copy(
+                        fontWeight = FontWeight.Bold
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
