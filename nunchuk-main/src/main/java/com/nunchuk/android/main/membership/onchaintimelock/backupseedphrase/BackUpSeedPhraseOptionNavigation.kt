@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,7 +17,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,7 +44,8 @@ fun NavGraphBuilder.backUpSeedPhraseOptionDestination(
     masterSignerId: String = "",
     replacedXfp: String = "",
     onContinue: () -> Unit = {},
-    onSkip: () -> Unit = {}
+    onSkip: () -> Unit = {},
+    onMoreClicked: () -> Unit = {}
 ) {
     composable<BackUpSeedPhraseOption> {
         BackUpSeedPhraseOptionScreen(
@@ -49,7 +54,8 @@ fun NavGraphBuilder.backUpSeedPhraseOptionDestination(
             masterSignerId = masterSignerId,
             replacedXfp = replacedXfp,
             onContinue = onContinue,
-            onSkip = onSkip
+            onSkip = onSkip,
+            onMoreClicked = onMoreClicked
         )
     }
 }
@@ -63,6 +69,7 @@ private fun BackUpSeedPhraseOptionScreen(
     viewModel: BackUpSeedPhraseSharedViewModel = hiltViewModel(),
     onContinue: () -> Unit = {},
     onSkip: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     
@@ -83,7 +90,8 @@ private fun BackUpSeedPhraseOptionScreen(
     BackUpSeedPhraseOptionContent(
         onContinueClicked = onContinue,
         onSkipClicked = { viewModel.skipVerification(groupId = groupId, masterSignerId = masterSignerId, replacedXfp = replacedXfp, walletId = walletId) },
-        remainTime = remainTime
+        remainTime = remainTime,
+        onMoreClicked = onMoreClicked
     )
 }
 
@@ -92,6 +100,7 @@ private fun BackUpSeedPhraseOptionContent(
     remainTime: Int = 0,
     onContinueClicked: () -> Unit = {},
     onSkipClicked: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
 ) {
     var verifyNow by remember { mutableStateOf(true) }
     NunchukTheme {
@@ -100,7 +109,15 @@ private fun BackUpSeedPhraseOptionContent(
                 title = if (remainTime <= 0) "" else stringResource(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
-                )
+                ),
+                actions = {
+                    IconButton(onClick = onMoreClicked) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_more),
+                            contentDescription = "More icon"
+                        )
+                    }
+                }
             )
         }) { innerPadding ->
             Column(
@@ -143,7 +160,9 @@ private fun BackUpSeedPhraseOptionContent(
                             style = NunchukTheme.typography.title
                         )
                         NcTag(
-                            modifier = Modifier.padding(start = 8.dp, top = 4.dp),
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                                .padding(start = 8.dp),
                             label = "Recommended"
                         )
                     }

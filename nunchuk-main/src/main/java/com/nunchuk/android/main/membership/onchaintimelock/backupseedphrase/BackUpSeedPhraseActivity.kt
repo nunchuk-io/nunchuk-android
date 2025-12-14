@@ -7,14 +7,20 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.ui.platform.ComposeView
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseComposeActivity
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class BackUpSeedPhraseActivity : BaseComposeActivity() {
+class BackUpSeedPhraseActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
     private val args: BackUpSeedPhraseArgs by lazy {
         BackUpSeedPhraseArgs.deserializeFrom(intent)
@@ -55,7 +61,8 @@ class BackUpSeedPhraseActivity : BaseComposeActivity() {
                             },
                             onSkip = {
                                 navigator.returnMembershipScreen()
-                            }
+                            },
+                            onMoreClicked = ::handleShowMore
                         )
 
                         backUpSeedPhraseVerifyDestination(
@@ -85,6 +92,28 @@ class BackUpSeedPhraseActivity : BaseComposeActivity() {
                     }
                 }
             })
+    }
+
+    private fun handleShowMore() {
+        val options = mutableListOf<SheetOption>()
+        options.add(
+            SheetOption(
+                type = SheetOptionType.TYPE_EXIT_WIZARD,
+                label = getString(R.string.nc_exit_wizard)
+            )
+        )
+        BottomSheetOption.newInstance(options).show(supportFragmentManager, "BottomSheetOption")
+    }
+
+    override fun onOptionClicked(option: SheetOption) {
+        if (option.type == SheetOptionType.TYPE_EXIT_WIZARD) {
+            NCInfoDialog(this).showDialog(
+                message = getString(R.string.nc_resume_wizard_desc),
+                onYesClick = {
+                    finish()
+                }
+            )
+        }
     }
 
     companion object {

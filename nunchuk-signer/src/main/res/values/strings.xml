@@ -210,7 +210,7 @@
     <string name="nc_unlock_jade">Unlock Jade</string>
     <string name="nc_unlock_jade_desc">You might need to enter a PIN and/or a PASSPHRASE directly on Jade.</string>
     <string name="nc_export_xpub_jade">Export Account %d XPUB from Jade</string>
-    <string name="nc_export_xpub_jade_desc">Options → Wallet → Export Xpub → Options → Wallet → Multisig → Enter → Account Index → <b>Enter account %d</b></string>
+    <string name="nc_export_xpub_jade_desc"><![CDATA[Options → Wallet → Export Xpub → Options → Wallet → Multisig → Enter → Account Index → <b>Enter account %d</b>]]></string>
     <string name="nc_scan_qr_code">Scan QR code</string>
     <string name="nc_please_back_up_your_key">Please back up your key.</string>
     <string name="nc_do_it_now">Do it now.</string>

@@ -237,9 +237,11 @@ internal fun ColdCardIntroScreen(
                 )
 
                 ActionItem(
-                    title = stringResource(R.string.nc_add_coldcard_via_file),
-                    iconId = R.drawable.ic_import,
-                    onClick = { onColdCardAction(ColdCardAction.FILE) }
+                    title = stringResource(R.string.nc_add_coldcard_via_usb),
+                    iconId = R.drawable.ic_usb,
+                    onClick = { onColdCardAction(ColdCardAction.USB) },
+                    isEnable = isFromAddKey.not() || (mk4Activity?.onChainAddSignerParam != null && !isVerifyBackupSeedPhrase),
+                    subtitle = if (isFromAddKey) stringResource(R.string.nc_desktop_only) else ""
                 )
 
                 HorizontalDivider(
@@ -248,11 +250,9 @@ internal fun ColdCardIntroScreen(
                 )
 
                 ActionItem(
-                    title = stringResource(R.string.nc_add_coldcard_via_usb),
-                    iconId = R.drawable.ic_usb,
-                    onClick = { onColdCardAction(ColdCardAction.USB) },
-                    isEnable = isFromAddKey.not() || (mk4Activity?.onChainAddSignerParam != null && !isVerifyBackupSeedPhrase),
-                    subtitle = if (isFromAddKey) stringResource(R.string.nc_desktop_only) else ""
+                    title = stringResource(R.string.nc_add_coldcard_via_file),
+                    iconId = R.drawable.ic_import,
+                    onClick = { onColdCardAction(ColdCardAction.FILE) }
                 )
             }
         }

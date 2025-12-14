@@ -47,10 +47,7 @@ class WaitingDesktopKeyFragment : MembershipFragment() {
                         R.string.nc_add_key_using_desktop_desc,
                         args.signerTag.toString(requireContext())
                     ),
-                    button = stringResource(
-                        R.string.nc_i_have_already_added_desktop_key,
-                        args.signerTag.toString(requireContext())
-                    ),
+                    button = stringResource(R.string.nc_text_continue),
                     remainTime = remainTime,
                     onMoreClicked = ::handleShowMore,
                     onConfirmAddLedger = {

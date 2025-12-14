@@ -185,7 +185,7 @@ internal fun AirgapActionIntroScreen(
                 }
                 ActionItem(
                     title = stringResource(R.string.nc_add_jade_via_qr),
-                    iconId = R.drawable.ic_nfc_card,
+                    iconId = R.drawable.ic_qr,
                     onClick = { onAction(JADEAction.QR) }
                 )
 

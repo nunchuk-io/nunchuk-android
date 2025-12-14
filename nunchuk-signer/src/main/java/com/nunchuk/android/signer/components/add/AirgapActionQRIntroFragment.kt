@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -33,6 +34,7 @@ import com.nunchuk.android.compose.NcClickableText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.html.HtmlText
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.util.ClickAbleText
 import com.nunchuk.android.core.util.JADE_GUIDE_URL
@@ -163,15 +165,16 @@ internal fun AirgapActionQRIntroScreen(
                         style = NunchukTheme.typography.body
                     )
                 }
+                val context = LocalContext.current
                 LabelNumberAndDesc(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
                     index = 3,
                     title = stringResource(id = R.string.nc_export_xpub_jade, keyIndex),
                     titleStyle = NunchukTheme.typography.title,
                 ) {
-                    Text(
+                    HtmlText(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),
-                        text = stringResource(id = R.string.nc_export_xpub_jade_desc, keyIndex),
+                        text = context.getString(R.string.nc_export_xpub_jade_desc, keyIndex),
                         style = NunchukTheme.typography.body
                     )
                 }
