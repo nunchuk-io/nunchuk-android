@@ -325,7 +325,7 @@ fun InheritanceNotifyPrefScreenContent(
 
                 Text(
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_inheritance_notify_pref_desc),
+                    text = if (isMiniscriptWallet) stringResource(R.string.nc_inheritance_notify_pref_on_chain_desc) else stringResource(R.string.nc_inheritance_notify_pref_desc),
                     style = NunchukTheme.typography.body
                 )
 

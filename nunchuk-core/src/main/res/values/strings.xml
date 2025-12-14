@@ -439,7 +439,7 @@
     <string name="nc_optional">(optional)</string>
     <string name="nc_inheritance_notify_pref_desc">After the timelock expires, would you like us to notify the Beneficiary or Trustee of the inheritance plan? If so, please provide an email address.</string>
     <string name="nc_notify_them_today">Also notify them today</string>
-    <string name="nc_inheritance_notify_pref_warning">You are still personally responsible for sharing the Magic Phrase and Backup Password with the Beneficiary or Trustee. The notification email won’t include these information.</string>
+    <string name="nc_inheritance_notify_pref_warning">You are still personally responsible for sharing the Magic Phrase and Backup Password with the Beneficiary or Trustee. The notification emails won’t include these information.</string>
     <string name="nc_update_notification_preferences">Update notification preferences</string>
     <string name="nc_dont_want_any_notifications">I don’t want any notifications</string>
     <string name="nc_policy_updated">The platform key policies have been updated</string>
