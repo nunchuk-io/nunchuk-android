@@ -268,6 +268,10 @@
         <item quantity="one">Approve (%1$d signature pending)</item>
         <item quantity="other">Approve (%1$d signatures pending)</item>
     </plurals>
+    <plurals name="nc_inheritance_key">
+        <item quantity="one">Inheritance key</item>
+        <item quantity="other">Inheritance keys</item>
+    </plurals>
     <string name="nc_delete_this_payment">Delete this payment</string>
     <string name="nc_recurring_payment">Recurring payment</string>
     <string name="nc_destination_whitelisted_addresses">Destination (whitelisted addresses)</string>

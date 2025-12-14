@@ -37,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -69,6 +70,7 @@ class InheritanceKeyTipFragment : MembershipFragment() {
                 val sharedState by inheritanceViewModel.state.collectAsStateWithLifecycle()
                 InheritanceKeyTipContent(
                     remainTime = remainTime,
+                    numberOfKey = sharedState.keyTypes.size,
                     isMiniscriptWallet = sharedState.isMiniscriptWallet,
                     onContinueClicked = {
                         if (inheritanceViewModel.isMiniscriptWallet()) {
@@ -91,6 +93,7 @@ class InheritanceKeyTipFragment : MembershipFragment() {
 @Composable
 private fun InheritanceKeyTipContent(
     remainTime: Int = 0,
+    numberOfKey: Int = 1,
     isMiniscriptWallet: Boolean = false,
     onContinueClicked: () -> Unit = {}
 ) {
@@ -138,13 +141,17 @@ private fun InheritanceKeyTipContent(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.nc_inheritance_key_tip),
+                    text = pluralStringResource(
+                        R.plurals.nc_inheritance_key,
+                        numberOfKey,
+                        numberOfKey
+                    ),
                     style = NunchukTheme.typography.heading
                 )
                 NcHighlightText(
                     modifier = Modifier.padding(16.dp),
                     text = if (isMiniscriptWallet) {
-                        stringResource(R.string.nc_inheritance_key_tip_desc_miniscript)
+                        pluralStringResource(R.plurals.nc_inheritance_key_tip_desc_miniscript, numberOfKey, numberOfKey)
                     } else {
                         stringResource(R.string.nc_inheritance_key_tip_desc)
                     },
@@ -170,6 +177,7 @@ private fun InheritanceKeyTipScreenPreview() {
 private fun InheritanceKeyTipScreenMiniscriptPreview() {
     InheritanceKeyTipContent(
         remainTime = 5,
+        numberOfKey = 2,
         isMiniscriptWallet = true,
         onContinueClicked = {}
     )
