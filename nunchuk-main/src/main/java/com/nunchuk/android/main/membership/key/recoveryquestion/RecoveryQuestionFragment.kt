@@ -179,7 +179,7 @@ class RecoveryQuestionFragment : MembershipFragment() {
         viewModel.updateClearFocus(true)
     }
 
-    private fun handleShowSecurityQuestion(event: RecoveryQuestionEvent.GetSecurityQuestionSuccess) {
+    private fun handleShowSecurityQuestion(event: RecoveryQuestionEvent.GetSecurityQuestionSuccess) = runCatching {
         findNavController().navigate(
             RecoveryQuestionFragmentDirections.actionRecoveryQuestionFragmentToRecoveryQuestionBottomSheetFragment(
                 event.questions.toMutableList().apply {

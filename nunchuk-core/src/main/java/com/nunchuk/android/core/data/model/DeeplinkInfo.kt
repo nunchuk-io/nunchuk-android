@@ -6,7 +6,7 @@ data class DeeplinkInfo(
     @SerializedName("\$deeplink_path")
     val deeplinkPath: String,
     @SerializedName("group_id")
-    val groupId: String,
+    val groupId: String?,
     @SerializedName("~campaign")
     val campaign: String,
     @SerializedName("~channel")

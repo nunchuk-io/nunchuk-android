@@ -24,7 +24,8 @@ import androidx.lifecycle.asFlow
 import com.nunchuk.android.core.persistence.NcEncryptedPreferences
 import com.nunchuk.android.core.util.isAtLeastStarted
 import com.nunchuk.android.utils.CrashlyticsReporter
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -40,12 +41,13 @@ class SessionHolder @Inject constructor(
     private val encryptedPreferences: NcEncryptedPreferences,
 ) {
     private var activeSessionReference: AtomicReference<Session?> = AtomicReference()
+    private val mutex = Mutex()
 
     private var currentRoomId: String? = null
     private var isLeaveRoom: Boolean = false
 
     // isOpen state is hidden inside matrix sdk, there is no way to know exactly variable value
-    suspend fun storeActiveSession(session: Session) {
+    suspend fun storeActiveSession(session: Session) = mutex.withLock {
         if (session.sessionId == getSafeActiveSession()?.sessionId) {
             Timber.d("Session ${session.sessionId} is already the active session, no need to store it again")
             return
@@ -53,8 +55,6 @@ class SessionHolder @Inject constructor(
         runCatching {
             getSafeActiveSession()?.apply {
                 removeListener(sessionListener)
-                close()
-                delay(1000L)
             }
         }
         session.apply {

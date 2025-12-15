@@ -424,12 +424,17 @@ private fun CustomKeyAccountFragmentContent(
                 )
             },
             bottomBar = {
+                val isValidIndex = newIndex.isNotEmpty() && newIndex.toIntOrNull() != null
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    onClick = { onContinueClicked(newIndex.toInt()) },
-                    enabled = newIndex.isNotEmpty()
+                    onClick = {
+                        newIndex.toIntOrNull()?.let {
+                            onContinueClicked(it)
+                        }
+                    },
+                    enabled = isValidIndex
                 ) {
                     Text(text = stringResource(id = R.string.nc_text_continue))
                 }

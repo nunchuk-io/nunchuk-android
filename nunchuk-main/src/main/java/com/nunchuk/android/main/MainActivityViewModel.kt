@@ -29,13 +29,11 @@ import com.nunchuk.android.core.data.model.SyncFileModel
 import com.nunchuk.android.core.domain.CheckUpdateRecommendUseCase
 import com.nunchuk.android.core.domain.CreateOrUpdateSyncFileUseCase
 import com.nunchuk.android.core.domain.DeleteSyncFileUseCase
-import com.nunchuk.android.core.domain.GetDisplayUnitSettingUseCase
 import com.nunchuk.android.core.domain.GetLocalBtcPriceFlowUseCase
 import com.nunchuk.android.core.domain.GetRemotePriceConvertBTCUseCase
 import com.nunchuk.android.core.domain.GetSyncFileUseCase
 import com.nunchuk.android.core.domain.GetSyncSettingUseCase
 import com.nunchuk.android.core.domain.ScheduleGetPriceConvertBTCUseCase
-import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.matrix.BackupFileUseCase
 import com.nunchuk.android.core.matrix.ConsumeSyncFileUseCase
 import com.nunchuk.android.core.matrix.ConsumerSyncEventUseCase
@@ -560,7 +558,6 @@ internal class MainActivityViewModel @Inject constructor(
         val token = account.token
         val deviceId = account.deviceId.orEmpty()
         return Pair(token, deviceId)
-
     }
 
     override fun onCleared() {
