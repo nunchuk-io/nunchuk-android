@@ -349,8 +349,8 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
         membershipStepManager.currentStep?.let { step ->
             findNavController().navigate(
                 OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToAddDesktopKeyFragment(
-                    tag,
-                    step,
+                    signerTag = tag,
+                    step = step,
                     args.groupId
                 )
             )

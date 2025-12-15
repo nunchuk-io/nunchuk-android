@@ -54,6 +54,7 @@
     <string name="nc_main_add_bitbox_desc">To use BitBox with your assisted wallet, you will need the desktop app. If you don’t have it yet, please [A]download it here[/A].\n\nOnce the app is installed, sign in to your account on desktop, then click Continue below.</string>
     <string name="nc_main_add_jade_desc">To add Blockstream Jade via a USB cable, you will need the desktop app. If you don’t have it yet, please [A]download it here[/A].\n\nOnce the app is installed, sign in to your account on desktop, then click Continue below.</string>
     <string name="nc_add_desktop_key">Add %1$s</string>
+    <string name="nc_add_desktop_key_via_usb">Add %1$s via USB</string>
     <string name="nc_i_have_already_added_desktop_key">I have already added %1$s</string>
     <string name="nc_waiting_for_desktop_key_to_be_added">Waiting for %1$s to be added</string>
     <string name="nc_add_key_using_desktop_desc">You can now add %1$s using the desktop app. Once finished, you can return here to continue the setup.</string>

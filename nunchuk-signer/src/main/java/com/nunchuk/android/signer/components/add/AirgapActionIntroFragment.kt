@@ -198,7 +198,7 @@ internal fun AirgapActionIntroScreen(
                     title = stringResource(R.string.nc_add_jade_via_usb),
                     iconId = R.drawable.ic_usb,
                     onClick = { onAction(JADEAction.USB) },
-                    isEnable = isMembershipFlow && onChainAddSignerParam?.isVerifyBackupSeedPhrase() == false,
+                    isEnable = isMembershipFlow && onChainAddSignerParam?.isVerifyBackupSeedPhrase() != true,
                     subtitle = if (isMembershipFlow.not()) stringResource(R.string.nc_desktop_only) else ""
                 )
             }

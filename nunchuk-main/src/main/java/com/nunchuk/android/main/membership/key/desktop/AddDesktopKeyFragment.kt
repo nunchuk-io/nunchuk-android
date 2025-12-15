@@ -10,7 +10,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class AddDesktopKeyFragment : MembershipFragment() {
-    private val viewModel: AddDesktopKeyViewModel by activityViewModels()
+    private val viewModel: AddDesktopKeyViewModel by viewModels()
     private val args: AddDesktopKeyFragmentArgs by navArgs()
 
     override fun onCreateView(
@@ -94,11 +94,12 @@ private fun AddLedgerScreen(
         SignerTag.JADE -> R.drawable.bg_add_jade
         else -> 0
     }
+    val isJadeOrColdcard = tag == SignerTag.JADE || tag == SignerTag.COLDCARD
 
     AddDesktopKeyContent(
         isMembershipFlow = isMembershipFlow,
         title = stringResource(
-            id = R.string.nc_add_desktop_key,
+            id = if (isJadeOrColdcard) R.string.nc_add_desktop_key_via_usb else R.string.nc_add_desktop_key,
             tag.toString(LocalContext.current)
         ),
         desc = desc,
