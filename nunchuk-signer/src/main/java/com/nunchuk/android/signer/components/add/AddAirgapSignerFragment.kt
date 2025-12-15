@@ -25,6 +25,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,8 +36,11 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,14 +55,13 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.NcIcon
-import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.core.base.BaseCameraFragment
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
@@ -520,24 +523,27 @@ private fun AddAirgapSignerContent(
                 )
 
                 Row(Modifier.padding(top = 16.dp)) {
-                    NcOutlineButton(
+                    Surface(
                         modifier = Modifier
                             .weight(1f, true)
-                            .padding(end = 4.dp)
-                            .height(36.dp),
+                            .padding(end = 8.dp)
+                            .height(40.dp),
                         onClick = { onImportFile() },
+                        shape = RoundedCornerShape(20.dp),
+                        color = MaterialTheme.colorScheme.lightGray,
                     ) {
                         Row(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                modifier = Modifier.padding(start = 6.dp),
                                 text = stringResource(id = R.string.nc_import_via_file),
                                 style = NunchukTheme.typography.captionTitle
                             )
                             NcIcon(
                                 modifier = Modifier
-                                    .padding(start = 8.dp)
+                                    .padding(start = 6.dp)
                                     .size(18.dp),
                                 painter = painterResource(id = R.drawable.ic_import),
                                 contentDescription = "Import",
@@ -545,24 +551,27 @@ private fun AddAirgapSignerContent(
                         }
                     }
 
-                    NcOutlineButton(
+                    Surface(
                         modifier = Modifier
                             .weight(1f, true)
-                            .padding(start = 4.dp)
-                            .height(36.dp),
+                            .padding(start = 8.dp)
+                            .height(40.dp),
                         onClick = { onScanQr() },
+                        shape = RoundedCornerShape(20.dp),
+                        color = MaterialTheme.colorScheme.lightGray,
                     ) {
                         Row(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                modifier = Modifier.padding(start = 6.dp),
                                 text = stringResource(id = R.string.nc_scan_qr),
                                 style = NunchukTheme.typography.captionTitle
                             )
                             NcIcon(
                                 modifier = Modifier
-                                    .padding(start = 8.dp)
+                                    .padding(start = 6.dp)
                                     .size(18.dp),
                                 painter = painterResource(id = R.drawable.ic_qr),
                                 contentDescription = "QR",
