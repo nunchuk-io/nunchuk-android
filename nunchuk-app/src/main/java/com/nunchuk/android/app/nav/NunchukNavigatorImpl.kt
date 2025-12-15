@@ -328,7 +328,8 @@ interface AppNavigatorDelegate : AppNavigator {
         keyPolicy: GroupKeyPolicy?,
         xfp: String?,
         groupId: String?,
-        originalKeyPolicy: GroupKeyPolicy?
+        originalKeyPolicy: GroupKeyPolicy?,
+        walletType: WalletType?
     ) {
         launcher?.launch(
             ConfigServerKeyActivity.buildGroupIntent(
@@ -337,7 +338,8 @@ interface AppNavigatorDelegate : AppNavigator {
                 groupId = groupId,
                 xfp = xfp,
                 groupStep = groupStep,
-                originKeyPolicy = originalKeyPolicy
+                originKeyPolicy = originalKeyPolicy,
+                walletType = walletType
             )
         ) ?: activityContext.startActivity(
             ConfigServerKeyActivity.buildGroupIntent(
@@ -346,7 +348,8 @@ interface AppNavigatorDelegate : AppNavigator {
                 groupId = groupId,
                 xfp = xfp,
                 groupStep = groupStep,
-                originKeyPolicy = originalKeyPolicy
+                originKeyPolicy = originalKeyPolicy,
+                walletType = walletType
             )
         )
     }

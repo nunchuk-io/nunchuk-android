@@ -118,6 +118,7 @@ import com.nunchuk.android.signer.mk4.inheritance.ColdCardIntroFragment
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.NCInfoDialog
@@ -430,7 +431,8 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                     navigator.openConfigGroupServerKeyActivity(
                         activityContext = requireActivity(),
                         groupStep = MembershipStage.NONE,
-                        groupId = args.groupId
+                        groupId = args.groupId,
+                        walletType = WalletType.MINISCRIPT
                     )
                 }
             }

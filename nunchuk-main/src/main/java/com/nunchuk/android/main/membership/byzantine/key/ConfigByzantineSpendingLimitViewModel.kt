@@ -39,6 +39,7 @@ import com.nunchuk.android.model.byzantine.isKeyHolder
 import com.nunchuk.android.model.byzantine.toByzantinePreferenceSetup
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -68,7 +69,13 @@ class ConfigByzantineSpendingLimitViewModel @Inject constructor(
 
     init {
         val keyPolicy = args.keyPolicy
-        _state.update { it.copy(isApplyToAllMember = keyPolicy?.isApplyAll ?: false) }
+        val walletType = args.walletType?.let { runCatching { WalletType.valueOf(it) }.getOrNull() }
+        val isApplyToAllMember = if (walletType == WalletType.MINISCRIPT && keyPolicy == null) {
+            true
+        } else {
+            keyPolicy?.isApplyAll ?: false
+        }
+        _state.update { it.copy(isApplyToAllMember = isApplyToAllMember) }
         if (keyPolicy != null && keyPolicy.isApplyAll && keyPolicy.spendingPolicies.isNotEmpty()) {
             val spendingLimit = keyPolicy.spendingPolicies.values.first()
             _state.update {

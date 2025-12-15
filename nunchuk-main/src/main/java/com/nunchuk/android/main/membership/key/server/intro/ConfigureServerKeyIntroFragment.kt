@@ -82,9 +82,11 @@ class ConfigureServerKeyIntroFragment : MembershipFragment() {
         flowObserver(viewModel.event) {
             val groupId = (requireActivity() as ConfigServerKeyActivity).groupId
             if (groupId.isNotEmpty()) {
+                val walletType = (requireActivity() as ConfigServerKeyActivity).walletType
                 findNavController().navigate(
                     ConfigureServerKeyIntroFragmentDirections.actionConfigureServerKeyIntroFragmentToConfigByzantineSpendingLimitFragment(
-                        (requireActivity() as ConfigServerKeyActivity).groupId
+                        groupId = (requireActivity() as ConfigServerKeyActivity).groupId,
+                        walletType = walletType
                     )
                 )
             } else {

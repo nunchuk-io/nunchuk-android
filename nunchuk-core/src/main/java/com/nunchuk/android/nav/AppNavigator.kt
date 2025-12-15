@@ -80,6 +80,7 @@ interface AppNavigator {
         xfp: String? = null,
         groupId: String? = null,
         originalKeyPolicy: GroupKeyPolicy? = null,
+        walletType: WalletType? = null,
     )
 
     /**
