@@ -52,6 +52,7 @@ import com.nunchuk.android.app.referral.ReferralAction
 import com.nunchuk.android.app.referral.address.REFERRAL_ADDRESS_RESULT
 import com.nunchuk.android.app.referral.confirmationcode.REFERRAL_CONFIRMATION_CODE_RESULT
 import com.nunchuk.android.app.referral.simplifyAddress
+import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcSelectableBottomSheet
@@ -322,7 +323,7 @@ fun ReferralInviteFriendScreen(
                             .fillMaxWidth()
                     )
 
-                    Image(
+                    NcIcon(
                         painter = painterResource(id = R.drawable.ic_edit),
                         contentDescription = "",
                         modifier = Modifier
