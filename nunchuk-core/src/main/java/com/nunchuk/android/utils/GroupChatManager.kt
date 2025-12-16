@@ -5,12 +5,13 @@ import com.nunchuk.android.core.domain.SendMessageFreeGroupWalletUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
+import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.share.InitNunchukUseCase
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
-import timber.log.Timber
 import javax.inject.Inject
 
 class GroupChatManager @Inject constructor(
@@ -19,6 +20,7 @@ class GroupChatManager @Inject constructor(
     private val sendMessageFreeGroupWalletUseCase: SendMessageFreeGroupWalletUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val hasSignerUseCase: HasSignerUseCase,
+    private val initNunchukUseCase: InitNunchukUseCase,
 ) {
 
     var selectedSigner: SingleSigner? = null
@@ -52,18 +54,35 @@ class GroupChatManager @Inject constructor(
     }
 
     suspend fun sendMessage(message: String, walletId: String, onError: (Throwable) -> Unit) {
-        sendMessageFreeGroupWalletUseCase(
-            SendMessageFreeGroupWalletUseCase.Param(
-                walletId = walletId,
-                message = message,
-                singleSigner = selectedSigner,
-            )
-        ).onSuccess {
-            Timber.e("group-wallet", "send message success")
-        }.onFailure {
-            onError(it)
-            Timber.e("group-wallet", "send message failed: $it")
+        var lastError: Throwable? = null
+        
+        repeat(MAX_RETRIES) { attempt ->
+            sendMessageFreeGroupWalletUseCase(
+                SendMessageFreeGroupWalletUseCase.Param(
+                    walletId = walletId,
+                    message = message,
+                    singleSigner = selectedSigner,
+                )
+            ).onSuccess {
+                return
+            }.onFailure { throwable ->
+                lastError = throwable
+                val errorCode = throwable.nativeErrorCode()
+                if (errorCode == GROUP_NOT_ENABLED_ERROR_CODE) {
+                    initNunchukUseCase.retryInitGroupWallet()
+                } else {
+                    onError(throwable)
+                    return
+                }
+            }
         }
+        
+        lastError?.let { error -> onError(error) }
+    }
+
+    companion object {
+        private const val GROUP_NOT_ENABLED_ERROR_CODE = -7000
+        private const val MAX_RETRIES = 3
     }
 
     private suspend fun mapSigners(

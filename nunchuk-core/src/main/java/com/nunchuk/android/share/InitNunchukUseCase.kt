@@ -124,6 +124,14 @@ class InitNunchukUseCase @Inject constructor(
         }
     }
 
+    suspend fun retryInitGroupWallet(): Result<Unit> {
+        return runCatching {
+            enableGroupWalletUseCase(Unit)
+            nativeSdk.registerGlobalListener()
+            startConsumeGroupWalletEventUseCase(Unit)
+        }
+    }
+
     private fun initNunchuk(
         appSettings: AppSettings,
         passphrase: String,
