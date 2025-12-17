@@ -24,7 +24,6 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
-import com.nunchuk.android.core.domain.membership.GetClaimWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -55,6 +54,7 @@ import com.nunchuk.android.usecase.banner.GetBannerUseCase
 import com.nunchuk.android.usecase.banner.SubmitEmailUseCase
 import com.nunchuk.android.usecase.membership.GetInheritanceUseCase
 import com.nunchuk.android.usecase.membership.InheritanceCheckUseCase
+import com.nunchuk.android.usecase.membership.IsCurrentUserClaimedWalletUseCase
 import com.nunchuk.android.utils.ByzantineGroupUtils
 import com.nunchuk.android.utils.EmailValidator
 import com.nunchuk.android.utils.onException
@@ -93,7 +93,7 @@ class ServicesTabViewModel @Inject constructor(
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val calculateRequiredSignaturesInheritanceUseCase: CalculateRequiredSignaturesInheritanceUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
-    private val getClaimWalletsFlowUseCase: GetClaimWalletsFlowUseCase,
+    private val isCurrentUserClaimedWalletUseCase: IsCurrentUserClaimedWalletUseCase,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ServicesTabEvent>()
@@ -104,11 +104,11 @@ class ServicesTabViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getClaimWalletsFlowUseCase(Unit)
-                .map { it.getOrElse { emptyList() } }
+            isCurrentUserClaimedWalletUseCase(Unit)
+                .map { it.getOrElse { false } }
                 .distinctUntilChanged()
-                .collect { claimWallets ->
-                    _state.update { it.copy(claimUser = claimWallets.isNotEmpty()) }
+                .collect { claimUser ->
+                    _state.update { it.copy(claimUser = claimUser) }
                 }
         }
         viewModelScope.launch {

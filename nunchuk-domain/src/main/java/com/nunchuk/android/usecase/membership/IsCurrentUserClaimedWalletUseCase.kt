@@ -17,37 +17,21 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.usecase.membership
 
-import com.nunchuk.android.model.InheritanceClaimingInit
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.WalletServer
+import com.nunchuk.android.FlowUseCase
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.InheritanceRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-interface InheritanceRepository {
-    suspend fun inheritanceClaimingInit(magic: String): InheritanceClaimingInit
+class IsCurrentUserClaimedWalletUseCase @Inject constructor(
+    private val repository: InheritanceRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : FlowUseCase<Unit, Boolean>(ioDispatcher) {
 
-    suspend fun downloadWallet(
-        magic: String,
-        keys: List<SingleSigner>
-    ): WalletServer
-
-    suspend fun isClaimWallet(walletId: String): Boolean
-
-    fun getClaimWalletsFlow(): Flow<Set<String>>
-
-    suspend fun getClaimingWallet(localId: String): WalletServer
-
-    suspend fun requestAddKeyForInheritance(magic: String): String
-
-    suspend fun checkKeyAddedForInheritance(
-        magic: String,
-        requestId: String?
-    ): Boolean
-
-    suspend fun deletePendingRequestsByMagic(magic: String)
-
-    suspend fun getAddedKeys(magic: String): Map<String, SingleSigner>
-
-    fun isCurrentUserClaimedWallet(): Flow<Boolean>
+    override fun execute(parameters: Unit): Flow<Boolean> =
+        repository.isCurrentUserClaimedWallet()
 }
+

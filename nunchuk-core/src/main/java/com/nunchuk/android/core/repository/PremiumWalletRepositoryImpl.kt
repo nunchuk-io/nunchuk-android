@@ -885,7 +885,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         }
         val request = gson.fromJson(userData, InheritanceClaimStatusRequest::class.java)
         val response =
-            userWalletApiManager.walletApi.inheritanceClaimingStatus(headers, request).data
+            userWalletApiManager.walletApi.inheritanceClaimingStatus(headers, request).also {
+                if (it.isSuccess) ncDataStore.setClaimedWalletUserId(accountManager.getAccount().chatId + chain.toString())
+            }.data
 
         val bufferPeriodCountdown = if (response.bufferPeriodCountdown == null) {
             null

@@ -43,6 +43,7 @@ import com.nunchuk.android.repository.InheritanceRepository
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.WalletType
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -97,6 +98,11 @@ internal class InheritanceRepositoryImpl @Inject constructor(
         val currentClaimWallets = ncDataStore.claimWalletsFlow.first().toMutableSet()
         currentClaimWallets.add(walletLocalId)
         ncDataStore.setClaimWallets(currentClaimWallets)
+
+        // Store user ID who successfully claimed wallet
+        val chatId = accountManager.getAccount().chatId
+        val chain = ncDataStore.chain.first()
+        ncDataStore.setClaimedWalletUserId(chatId + chain.toString())
 
         return walletServer.toModel()
     }
@@ -256,6 +262,18 @@ internal class InheritanceRepositoryImpl @Inject constructor(
             }
         }
         return result
+    }
+
+    override fun isCurrentUserClaimedWallet(): Flow<Boolean> {
+        val chatId = accountManager.getAccount().chatId
+        return combine(
+            ncDataStore.chain,
+            ncDataStore.claimedWalletUserIdsFlow,
+            ncDataStore.claimWalletsFlow
+        ) { chain, claimedUserIds, claimWallets ->
+            val userId = chatId + chain.toString()
+            claimWallets.isNotEmpty() || claimedUserIds.contains(userId)
+        }
     }
 }
 
