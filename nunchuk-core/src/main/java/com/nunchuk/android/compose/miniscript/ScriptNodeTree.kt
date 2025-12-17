@@ -747,7 +747,7 @@ fun AndOrView(
                         .padding(top = if (isShowCurve) 10.dp else 0.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (pendingSigners > 0) {
+                    if (pendingSigners > 0 && data.transactionStatus.isPendingSignatures()) {
                         NcIcon(
                             painter = painterResource(id = R.drawable.ic_pending_signatures),
                             contentDescription = "Warning",
@@ -763,7 +763,7 @@ fun AndOrView(
                             color = MaterialTheme.colorScheme.textSecondary,
                             modifier = Modifier.padding(start = 4.dp),
                         )
-                    } else {
+                    } else if (pendingSigners <= 0) {
                         NcIcon(
                             painter = painterResource(id = R.drawable.ic_check_circle),
                             contentDescription = "Check",
@@ -1049,7 +1049,7 @@ fun ThreshMultiItem(
                         .padding(top = topPadding.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (pendingSigners > 0) {
+                    if (pendingSigners > 0 && data.transactionStatus.isPendingSignatures()) {
                         NcIcon(
                             painter = painterResource(id = R.drawable.ic_pending_signatures),
                             contentDescription = "Warning",
@@ -1065,7 +1065,7 @@ fun ThreshMultiItem(
                             color = MaterialTheme.colorScheme.textSecondary,
                             modifier = Modifier.padding(start = 4.dp),
                         )
-                    } else {
+                    } else if (pendingSigners <= 0) {
                         NcIcon(
                             painter = painterResource(id = R.drawable.ic_check_circle),
                             contentDescription = "Check",
