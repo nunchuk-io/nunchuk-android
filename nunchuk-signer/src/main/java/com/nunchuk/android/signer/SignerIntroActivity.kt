@@ -35,6 +35,7 @@ import com.nunchuk.android.core.portal.PortalDeviceFlow
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
@@ -126,6 +127,17 @@ class SignerIntroActivity : BaseComposeActivity() {
                             KeyType.FOUNDATION -> handleSelectAddAirgapType(SignerTag.PASSPORT)
                             KeyType.SOFTWARE -> openAddSoftwareSignerScreen()
                             KeyType.GENERIC_AIRGAP -> openAddAirSignerIntroScreen()
+                            KeyType.LEDGER -> {
+                                if (onChainAddSignerParam?.isClaiming == true) {
+                                    navigator.openAddDesktopKey(
+                                        this@SignerIntroActivity,
+                                        signerTag = SignerTag.LEDGER,
+                                        step = MembershipStep.SETUP_INHERITANCE,
+                                        isInheritanceKey = true,
+                                        magic = onChainAddSignerParam?.magic.orEmpty()
+                                    )
+                                }
+                            }
                             else -> {}
                         }
                     }
