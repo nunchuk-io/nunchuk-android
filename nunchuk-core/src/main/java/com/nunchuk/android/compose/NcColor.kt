@@ -28,6 +28,7 @@ object NcColor {
     val greyLight = Color(0xFFF5F5F5)
     val white = Color(0xFFFFFFFF)
     val beeswaxLight = Color(0xFFFDD95C)
+    val linkColor = Color(0xFF0051CF)
 }
 
 val ColorScheme.isDark: Boolean

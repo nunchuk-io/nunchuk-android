@@ -104,6 +104,11 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
         super.onSaveInstanceState(outState)
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.loadWallets()
+    }
+
     private fun observeEvent() {
         viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
@@ -157,7 +162,7 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
         binding.premiumBadge.isVisible = state.plans.isNotEmpty() && !isGuestMode
         binding.premiumBadge.text = getPlanName(state.plans)
         binding.inviteFriendsView.isVisible = state.campaign?.isValid().orFalse() && (state.isHasWallet ||  state.campaign?.type == CampaignType.DOWNLOAD)
-        binding.llCampaigns.isVisible = state.campaign?.cta.isNullOrEmpty().not() && state.campaign?.type != CampaignType.DOWNLOAD
+        binding.llCampaigns.isVisible = state.campaign?.cta.isNullOrEmpty().not() && state.campaign.type != CampaignType.DOWNLOAD
         binding.tvCampaigns.text = state.campaign?.cta.orEmpty()
     }
 

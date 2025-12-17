@@ -89,11 +89,11 @@ class IntentSharingController private constructor(
     }
 
     fun shareLinkViaSms(link: String) {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            putExtra("sms_body", link);
-            setType("vnd.android-dir/mms-sms");
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("smsto:")
+            putExtra("sms_body", link)
         }
-        share(intent)
+        activityContext.startActivity(intent)
     }
 
     companion object {

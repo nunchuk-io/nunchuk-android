@@ -113,14 +113,17 @@ internal class AccountViewModel @Inject constructor(
                 updateState { copy(localReferrerCode = it.getOrNull()) }
             }
         }
+    }
+
+    fun loadWallets() {
         viewModelScope.launch {
-            getWalletsUseCase.execute()
-                .catch { Timber.e(it) }
-                .collect { wallets ->
-                    updateState {
-                        copy(isHasWallet = wallets.isNotEmpty())
-                    }
+            getWalletsUseCase.execute().catch {
+                Timber.e(it)
+            }.collect { wallets ->
+                updateState {
+                    copy(isHasWallet = wallets.isNotEmpty())
                 }
+            }
         }
     }
 

@@ -1,21 +1,31 @@
 package com.nunchuk.android.compose.html
 
 import android.text.Spanned
-import android.text.style.*
-import android.widget.TextView
+import android.text.style.BulletSpan
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
+import android.text.style.StrikethroughSpan
+import android.text.style.StyleSpan
+import android.text.style.SubscriptSpan
+import android.text.style.SuperscriptSpan
+import android.text.style.TypefaceSpan
+import android.text.style.URLSpan
+import android.text.style.UnderlineSpan
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.*
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import androidx.core.text.HtmlCompat
+import com.nunchuk.android.compose.NcColor
 import com.nunchuk.android.compose.NunchukTheme
 
 private const val URL_TAG = "url_tag"
@@ -106,7 +116,7 @@ private fun String.asHTML(
                         end = end
                     )
                     if (span.url == "https://nunchuk.io/referral-terms") {
-                        URLSpanStyle.copy(color = Color.Blue, textDecoration = TextDecoration.None)
+                        URLSpanStyle.copy(color = NcColor.linkColor, textDecoration = TextDecoration.None)
                     } else {
                         URLSpanStyle
                     }
