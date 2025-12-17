@@ -21,6 +21,7 @@ package com.nunchuk.android.usecase.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.repository.InheritanceRepository
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
@@ -31,10 +32,11 @@ class RequestAddKeyForInheritanceUseCase @Inject constructor(
 ) : UseCase<RequestAddKeyForInheritanceUseCase.Param, String>(ioDispatcher) {
 
     override suspend fun execute(parameters: Param): String {
-        return repository.requestAddKeyForInheritance(parameters.magic)
+        val signerTags = listOf(SignerTag.INHERITANCE, parameters.signerTag)
+        return repository.requestAddKeyForInheritance(parameters.magic, signerTags)
     }
 
-    data class Param(val magic: String)
+    data class Param(val magic: String, val signerTag: SignerTag)
 }
 
 

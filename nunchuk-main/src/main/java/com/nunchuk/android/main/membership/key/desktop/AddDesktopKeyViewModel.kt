@@ -57,7 +57,8 @@ class AddDesktopKeyViewModel @Inject constructor(
         requestJob = viewModelScope.launch {
             requestAddKeyForInheritanceUseCase(
                 RequestAddKeyForInheritanceUseCase.Param(
-                    args.magic,
+                    magic = args.magic,
+                    signerTag = args.signerTag
                 )
             ).onSuccess {
                 _event.emit(AddDesktopKeyEvent.RequestAddKeySuccess(it))

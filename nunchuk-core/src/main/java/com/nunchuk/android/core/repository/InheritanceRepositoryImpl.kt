@@ -124,7 +124,7 @@ internal class InheritanceRepositoryImpl @Inject constructor(
         return walletServer.toModel()
     }
 
-    override suspend fun requestAddKeyForInheritance(magic: String): String {
+    override suspend fun requestAddKeyForInheritance(magic: String, signerTags: List<SignerTag>): String {
         val chatId = accountManager.getAccount().chatId
         val chain = ncDataStore.chain.first()
 
@@ -149,9 +149,8 @@ internal class InheritanceRepositoryImpl @Inject constructor(
         }
 
         return if (localRequest == null) {
-            // For inheritance claiming, only pass magic
             val desktopKeyRequest = DesktopKeyRequest(
-                tags = emptyList(),
+                tags = signerTags.map { it.name },
                 keyIndex = null,
                 keyIndices = null,
                 magic = magic
