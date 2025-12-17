@@ -62,7 +62,7 @@ class SessionHolder @Inject constructor(
             addListener(sessionListener)
             cryptoService().setWarnOnUnknownDevices(false)
             try {
-                open()
+                runCatching { open() }
                 if (!syncService().hasAlreadySynced()) {
                     syncService().startSync(true)
                 } else {
@@ -91,7 +91,6 @@ class SessionHolder @Inject constructor(
             getSafeActiveSession()?.apply {
                 removeListener(sessionListener)
                 clearCache()
-                close()
             }
         } catch (e: Error) {
             Timber.e(e)
@@ -113,7 +112,7 @@ class SessionHolder @Inject constructor(
 
     fun getActiveRoomIdSafe() = currentRoomId.orEmpty()
 
-    fun isLeaveRoom() : Boolean = isLeaveRoom
+    fun isLeaveRoom(): Boolean = isLeaveRoom
 
     fun getCurrentRoom() = activeSessionReference.get()?.getRoom(getActiveRoomId())
 }
