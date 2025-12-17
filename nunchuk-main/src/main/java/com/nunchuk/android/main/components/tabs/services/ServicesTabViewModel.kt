@@ -24,6 +24,7 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.CalculateRequiredSignaturesInheritanceUseCase
+import com.nunchuk.android.core.domain.membership.GetClaimWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.GetLocalMembershipPlansFlowUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
@@ -92,6 +93,7 @@ class ServicesTabViewModel @Inject constructor(
     private val byzantineGroupUtils: ByzantineGroupUtils,
     private val calculateRequiredSignaturesInheritanceUseCase: CalculateRequiredSignaturesInheritanceUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
+    private val getClaimWalletsFlowUseCase: GetClaimWalletsFlowUseCase,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<ServicesTabEvent>()
@@ -101,6 +103,14 @@ class ServicesTabViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            getClaimWalletsFlowUseCase(Unit)
+                .map { it.getOrElse { emptyList() } }
+                .distinctUntilChanged()
+                .collect { claimWallets ->
+                    _state.update { it.copy(claimUser = claimWallets.isNotEmpty()) }
+                }
+        }
         viewModelScope.launch {
             getLocalMembershipPlansFlowUseCase(Unit)
                 .map { it.getOrElse { emptyList() } }
@@ -193,7 +203,7 @@ class ServicesTabViewModel @Inject constructor(
         _state.update { it.copy(rowItems = rowItems) }
     }
 
-    fun isPremiumUser() = state.value.isPremiumUser
+    fun shouldShowHelpCenter() = state.value.isPremiumUser == true || state.value.claimUser
 
     fun getInheritance(walletId: String, token: String, groupId: String?) = viewModelScope.launch {
         _event.emit(ServicesTabEvent.Loading(true))

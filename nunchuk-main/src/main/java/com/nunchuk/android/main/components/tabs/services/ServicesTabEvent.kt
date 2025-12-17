@@ -82,6 +82,7 @@ data class ServicesTabState(
     val isMasterHasNotCreatedWallet: Boolean = false,
     val accountId: String = "",
     val rowItems: List<Any> = emptyList(),
+    val claimUser: Boolean = false
 ) {
     fun initRowItems(): List<Any> {
         val items = mutableListOf<Any>()

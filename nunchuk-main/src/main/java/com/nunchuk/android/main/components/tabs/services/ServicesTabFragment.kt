@@ -160,7 +160,7 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
 
                 is ServicesTabEvent.RowItems -> {
                     adapter.submitList(event.items)
-                    viewModel.isPremiumUser()?.let { it ->
+                    viewModel.shouldShowHelpCenter().let { it ->
                         binding.supportFab.isVisible = it || viewModel.isByzantine()
                         binding.actionGroup.isVisible =
                             it.not() && event.items.any { it is NonSubHeader }
