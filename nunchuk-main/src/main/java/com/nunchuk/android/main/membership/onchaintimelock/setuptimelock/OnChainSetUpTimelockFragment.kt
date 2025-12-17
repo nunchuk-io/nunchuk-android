@@ -259,9 +259,9 @@ private fun OnChainSetUpTimelockContent(
                     modifier = Modifier.padding(16.dp),
                     text = "Your inheritance plan includes an on-chain timelock enforced by the Bitcoin network. After it expires, the Beneficiary can claim the funds autonomously using the required secrets.\n" +
                             "\n" +
-                            "[B]On-chain timelocks are immutable.[/B] Once set, the date cannot be changed. To adjust the date later, you must create a new wallet and migrate your funds. A guided feature is available in the Wallet Config screen.\n" +
+                            "[B]The lock is immutable.[/B] Once set, the unlock time cannot be changed. To adjust it later, you must create a new wallet and migrate your funds. A guided feature is available in the Wallet Config screen.\n" +
                             "\n" +
-                            "[B]Recommendation: Choose a longer timeframe.[/B] To minimize the need for future migrations, we recommend setting the timelock further into the future (e.g., 5 to 10 years).",
+                            "Recommendation: Set a duration of 5 to 10 years to minimize the need for future migrations.",
                     style = NunchukTheme.typography.body
                 )
 

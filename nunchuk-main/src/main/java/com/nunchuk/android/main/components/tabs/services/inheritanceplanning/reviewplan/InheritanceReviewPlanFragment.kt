@@ -99,8 +99,6 @@ import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.utils.Utils
 import com.nunchuk.android.utils.serializable
 import com.nunchuk.android.widget.NCWarningDialog
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.formatDateTimeInTimezone
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.getTimezoneDisplay
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -548,11 +546,7 @@ fun InheritanceReviewPlanScreenContent(
                                     )
                                 }
                                 Text(
-                                    text = if (isMiniscriptWallet) {
-                                        stringResource(R.string.nc_inheritance_on_chain_timelock_info_title)
-                                    } else {
-                                        stringResource(R.string.nc_inheritance_off_chain_timelock_info_title)
-                                    },
+                                    text = "Funds become claimable after:",
                                     modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
                                     style = NunchukTheme.typography.title,
                                     color = Color.White
