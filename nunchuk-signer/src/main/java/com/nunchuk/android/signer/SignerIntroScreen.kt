@@ -64,7 +64,7 @@ fun SignerIntroScreen(
                 title = "",
                 isBack = false,
                 actions = {
-                    if (onChainAddSignerParam != null) {
+                    if (onChainAddSignerParam != null && onChainAddSignerParam.isClaiming.not()) {
                         IconButton(onClick = onMoreClicked) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_more),

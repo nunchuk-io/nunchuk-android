@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,10 +38,14 @@ import kotlinx.serialization.Serializable
 object BackUpSeedPhraseVerifySuccess
 
 fun NavGraphBuilder.backUpSeedPhraseVerifySuccessDestination(
-    onContinue: () -> Unit = {}
+    onContinue: () -> Unit = {},
+    onMoreClicked: () -> Unit = {}
 ) {
     composable<BackUpSeedPhraseVerifySuccess> {
-        BackUpSeedPhraseVerifySuccessScreen(onContinue = onContinue)
+        BackUpSeedPhraseVerifySuccessScreen(
+            onContinue = onContinue,
+            onMoreClicked = onMoreClicked
+        )
     }
 }
 
@@ -47,11 +53,13 @@ fun NavGraphBuilder.backUpSeedPhraseVerifySuccessDestination(
 private fun BackUpSeedPhraseVerifySuccessScreen(
     viewModel: BackUpSeedPhraseSharedViewModel = hiltViewModel(),
     onContinue: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     BackUpSeedPhraseVerifySuccessContent(
         onContinueClicked = onContinue,
-        remainTime = remainTime
+        remainTime = remainTime,
+        onMoreClicked = onMoreClicked
     )
 }
 
@@ -59,6 +67,7 @@ private fun BackUpSeedPhraseVerifySuccessScreen(
 private fun BackUpSeedPhraseVerifySuccessContent(
     remainTime: Int = 0,
     onContinueClicked: () -> Unit = {},
+    onMoreClicked: () -> Unit = {},
 ) {
     var verifyNow by remember { mutableStateOf(true) }
     NunchukTheme {
@@ -67,7 +76,15 @@ private fun BackUpSeedPhraseVerifySuccessContent(
                 title = if (remainTime <= 0) "" else stringResource(
                     id = R.string.nc_estimate_remain_time,
                     remainTime
-                )
+                ),
+                actions = {
+                    IconButton(onClick = onMoreClicked) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_more),
+                            contentDescription = "More icon"
+                        )
+                    }
+                }
             )
         }) { innerPadding ->
             Column(

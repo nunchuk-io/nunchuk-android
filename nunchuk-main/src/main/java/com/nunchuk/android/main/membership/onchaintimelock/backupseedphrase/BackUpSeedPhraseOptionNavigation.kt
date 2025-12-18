@@ -83,6 +83,8 @@ private fun BackUpSeedPhraseOptionScreen(
                     // Handle error if needed
                     onSkip()
                 }
+
+                else -> {}
             }
         }
     }

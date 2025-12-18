@@ -7,7 +7,9 @@ import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.SupportedSignerConfig
 import com.nunchuk.android.model.signer.SupportedSigner
@@ -18,6 +20,7 @@ import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupFromCacheUseCase
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
+import com.nunchuk.android.usecase.membership.RestartWizardUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -43,6 +46,7 @@ class SignerIntroViewModel @Inject constructor(
     private val masterSignerMapper: MasterSignerMapper,
     private val getUserWalletConfigsSetupFromCacheUseCase: GetUserWalletConfigsSetupFromCacheUseCase,
     private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
+    private val restartWizardUseCase: RestartWizardUseCase,
 ) : ViewModel() {
 
     val remainTime = membershipStepManager.remainingTime
@@ -139,10 +143,24 @@ class SignerIntroViewModel @Inject constructor(
             }
         }
     }
+
+    fun resetWizard(plan: MembershipPlan, groupId: String) {
+        viewModelScope.launch {
+            restartWizardUseCase(RestartWizardUseCase.Param(plan, groupId))
+                .onSuccess {
+                    membershipStepManager.restart()
+                    _event.emit(SignerIntroEvent.RestartWizardSuccess)
+                }.onFailure {
+                    _event.emit(SignerIntroEvent.Error(it.message.orUnknownError()))
+                }
+        }
+    }
 }
 
 sealed class SignerIntroEvent {
     data class ShowFilteredTapSigners(val signers: List<SignerModel>) : SignerIntroEvent()
-    object OpenSetupTapSigner : SignerIntroEvent()
+    data object OpenSetupTapSigner : SignerIntroEvent()
+    data object RestartWizardSuccess : SignerIntroEvent()
+    data class Error(val message: String) : SignerIntroEvent()
 }
 

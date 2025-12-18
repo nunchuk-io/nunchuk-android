@@ -126,6 +126,8 @@ class OnChainSignerIntroFragment : MembershipFragment() {
                             SignerIntroEvent.OpenSetupTapSigner -> {
                                 navigateToSetupTapSigner()
                             }
+
+                            else -> {}
                         }
                     }
                 }

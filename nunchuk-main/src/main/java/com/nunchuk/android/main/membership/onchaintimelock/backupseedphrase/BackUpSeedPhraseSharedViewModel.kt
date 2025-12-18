@@ -2,8 +2,11 @@ package com.nunchuk.android.main.membership.onchaintimelock.backupseedphrase
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.usecase.membership.RestartWizardUseCase
 import com.nunchuk.android.usecase.membership.SetKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +19,8 @@ import javax.inject.Inject
 class BackUpSeedPhraseSharedViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
     private val setKeyVerifiedUseCase: SetKeyVerifiedUseCase,
-    private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase
+    private val setReplaceKeyVerifiedUseCase: SetReplaceKeyVerifiedUseCase,
+    private val restartWizardUseCase: RestartWizardUseCase
 ) : ViewModel() {
 
     val remainTime = membershipStepManager.remainingTime
@@ -74,10 +78,24 @@ class BackUpSeedPhraseSharedViewModel @Inject constructor(
             }
         }
     }
+
+    fun resetWizard(plan: MembershipPlan, groupId: String) {
+        viewModelScope.launch {
+            restartWizardUseCase(RestartWizardUseCase.Param(plan, groupId))
+                .onSuccess {
+                    membershipStepManager.restart()
+                    _event.emit(BackUpSeedPhraseEvent.RestartWizardSuccess)
+                }.onFailure {
+                    _event.emit(BackUpSeedPhraseEvent.Error(it.message.orUnknownError()))
+                }
+        }
+    }
 }
 
 sealed class BackUpSeedPhraseEvent {
     data object SkipVerificationSuccess : BackUpSeedPhraseEvent()
     data class SkipVerificationError(val error: Throwable?) : BackUpSeedPhraseEvent()
+    data object RestartWizardSuccess : BackUpSeedPhraseEvent()
+    data class Error(val message: String) : BackUpSeedPhraseEvent()
 }
 

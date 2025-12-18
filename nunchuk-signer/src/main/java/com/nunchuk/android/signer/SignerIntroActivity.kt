@@ -29,12 +29,19 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.portal.PortalDeviceArgs
 import com.nunchuk.android.core.portal.PortalDeviceFlow
+import com.nunchuk.android.core.sheet.BottomSheetOption
+import com.nunchuk.android.core.sheet.BottomSheetOptionListener
+import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.args.AddAirSignerArgs
@@ -46,11 +53,13 @@ import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
+import com.nunchuk.android.widget.NCInfoDialog
+import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class SignerIntroActivity : BaseComposeActivity() {
+class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
     @Inject
     lateinit var membershipStepManager: MembershipStepManager
@@ -89,6 +98,7 @@ class SignerIntroActivity : BaseComposeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        observeEvent()
 
         viewModel.init(onChainAddSignerParam)
 
@@ -106,6 +116,20 @@ class SignerIntroActivity : BaseComposeActivity() {
 
                             SignerIntroEvent.OpenSetupTapSigner -> {
                                 navigateToSetupTapSigner()
+                            }
+
+                            is SignerIntroEvent.Error -> {}
+
+                            SignerIntroEvent.RestartWizardSuccess -> {
+                                navigator.openMembershipActivity(
+                                    activityContext = this@SignerIntroActivity,
+                                    groupStep = MembershipStage.NONE,
+                                    isPersonalWallet = membershipStepManager.isPersonalWallet(),
+                                    isClearTop = true,
+                                    quickWalletParam = null
+                                )
+                                setResult(Activity.RESULT_OK)
+                                finish()
                             }
                         }
                     }
@@ -140,7 +164,8 @@ class SignerIntroActivity : BaseComposeActivity() {
                             }
                             else -> {}
                         }
-                    }
+                    },
+                    onMoreClicked = ::handleShowMore
                 )
             }
         })
@@ -273,6 +298,63 @@ class SignerIntroActivity : BaseComposeActivity() {
             )
         )
         finish()
+    }
+
+    private fun observeEvent() {
+        flowObserver(viewModel.event) { event ->
+            when (event) {
+                is SignerIntroEvent.RestartWizardSuccess -> {
+                    navigator.openMembershipActivity(
+                        activityContext = this,
+                        groupStep = MembershipStage.NONE,
+                        isPersonalWallet = membershipStepManager.isPersonalWallet(),
+                        isClearTop = true,
+                        quickWalletParam = null
+                    )
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                }
+                is SignerIntroEvent.Error -> {
+                }
+                else -> {}
+            }
+        }
+    }
+
+    private fun handleShowMore() {
+        val options = mutableListOf<SheetOption>()
+        options.add(
+            SheetOption(
+                type = SheetOptionType.TYPE_RESTART_WIZARD,
+                label = getString(R.string.nc_restart_wizard)
+            )
+        )
+        options.add(
+            SheetOption(
+                type = SheetOptionType.TYPE_EXIT_WIZARD,
+                label = getString(R.string.nc_exit_wizard)
+            )
+        )
+        BottomSheetOption.newInstance(options).show(supportFragmentManager, "BottomSheetOption")
+    }
+
+    override fun onOptionClicked(option: SheetOption) {
+        if (option.type == SheetOptionType.TYPE_RESTART_WIZARD) {
+            NCWarningDialog(this).showDialog(
+                title = getString(R.string.nc_confirmation),
+                message = getString(R.string.nc_confirm_restart_wizard),
+                onYesClick = {
+                    viewModel.resetWizard(membershipStepManager.localMembershipPlan, groupId)
+                }
+            )
+        } else if (option.type == SheetOptionType.TYPE_EXIT_WIZARD) {
+            NCInfoDialog(this).showDialog(
+                message = getString(R.string.nc_resume_wizard_desc),
+                onYesClick = {
+                    finish()
+                }
+            )
+        }
     }
 
     // replace key in free wallet
