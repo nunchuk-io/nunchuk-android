@@ -116,7 +116,11 @@ private fun InheritanceKeyTipContent(
                             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                             messages = listOf(
                                 ClickAbleText(
-                                    stringResource(R.string.nc_inheritance_key_hardware_device_hint)
+                                    pluralStringResource(
+                                        R.plurals.nc_inheritance_key_hardware_device_hint,
+                                        numberOfKey,
+                                        numberOfKey
+                                    )
                                 )
                             )
                         )
@@ -151,7 +155,11 @@ private fun InheritanceKeyTipContent(
                 NcHighlightText(
                     modifier = Modifier.padding(16.dp),
                     text = if (isMiniscriptWallet) {
-                        pluralStringResource(R.plurals.nc_inheritance_key_tip_desc_miniscript, numberOfKey, numberOfKey)
+                        pluralStringResource(
+                            R.plurals.nc_inheritance_key_tip_desc_miniscript,
+                            numberOfKey,
+                            numberOfKey
+                        )
                     } else {
                         stringResource(R.string.nc_inheritance_key_tip_desc)
                     },
@@ -178,6 +186,17 @@ private fun InheritanceKeyTipScreenMiniscriptPreview() {
     InheritanceKeyTipContent(
         remainTime = 5,
         numberOfKey = 2,
+        isMiniscriptWallet = true,
+        onContinueClicked = {}
+    )
+}
+
+@PreviewLightDark
+@Composable
+private fun InheritanceKeyTipScreenMiniscriptSinglePreview() {
+    InheritanceKeyTipContent(
+        remainTime = 5,
+        numberOfKey = 1,
         isMiniscriptWallet = true,
         onContinueClicked = {}
     )

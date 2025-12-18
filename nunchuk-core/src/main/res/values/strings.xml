@@ -317,10 +317,13 @@
     <string name="nc_inheritance_intro_desc">This TAPSIGNER will be your designated inheritance key.\n\nPlease take a moment to mark or label this key.</string>
     <string name="nc_inheritance_key_tip_desc">[B]The inheritance key is designed to be used exclusively for the purpose of inheritance.[/B] As such, it should rarely be accessed. However, in an emergency, it can function as a backup signing key.\n\nWe recommend that you put it away in a safe place. Only use this key to sign daily transactions as a last resort.</string>
     <plurals name="nc_inheritance_key_tip_desc_miniscript">
-        <item quantity="one">After the timelock, the Beneficiary holds two keys in a 2-of-4 multisig, referred to as \'inheritance key.\'\n\n[B]Back up the seed phrases of the inheritance keys on separate steel plates or another durable, non-digital medium[/B]. You will need to share these seed phrases with your Beneficiary or Trustee so they can access the inheritance.</item>
+        <item quantity="one">The inheritance key is used to claim funds and spend from the wallet after the timelock.\n\n[B]Back up the seed phrase of the inheritance key on a steel plate or another durable, non-digital medium[/B]. You will need to share this seed phrase with your Beneficiary or Trustee so they can access the inheritance.</item>
         <item quantity="other">After the timelock, the Beneficiary holds two keys in a 2-of-4 multisig, referred to as \'inheritance keys.\'\n\n[B]Back up the seed phrases of the inheritance keys on separate steel plates or another durable, non-digital medium[/B]. You will need to share these seed phrases with your Beneficiary or Trustee so they can access the inheritance.</item>
     </plurals>
-    <string name="nc_inheritance_key_hardware_device_hint">You can also give the Beneficiary the hardware devices used to generate the inheritance keys. However, because electronics can fail, it is essential to share the seed phrases in an analog format that can last many decades.</string>
+    <plurals name="nc_inheritance_key_hardware_device_hint">
+        <item quantity="one">You can also give the Beneficiary the hardware device used to generate the inheritance key. However, because electronics can fail, it is essential to share the seed phrase in an analog format that can last many decades.</item>
+        <item quantity="other">You can also give the Beneficiary the hardware devices used to generate the inheritance keys. However, because electronics can fail, it is essential to share the seed phrases in an analog format that can last many decades.</item>
+    </plurals>
     <string name="nc_set_up_inheritance_plan">Set up an inheritance plan</string>
     <string name="nc_set_up_inheritance_plan_wallet">Set up an inheritance plan for this wallet</string>
     <string name="nc_view_inheritance_plan">View inheritance plan</string>

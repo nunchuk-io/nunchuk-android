@@ -39,7 +39,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
 class InheritancePlanningViewModel @Inject constructor(
@@ -103,6 +102,7 @@ class InheritancePlanningViewModel @Inject constructor(
     private fun updateKeyTypes(wallet: WalletServer) {
         val keyTypes = mutableListOf<InheritanceKeyType>()
         wallet.signers.filter { it.tags.contains(SignerTag.INHERITANCE.name) }
+            .distinctBy { it.xfp }
             .forEach { key ->
                 if (key.type == SignerType.NFC) {
                     keyTypes.add(InheritanceKeyType.TAPSIGNER)
