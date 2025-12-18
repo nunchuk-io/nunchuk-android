@@ -206,6 +206,7 @@ class ClaimInheritanceViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         event = ClaimInheritanceEvent.NavigateToNoInheritanceFound,
+                        isLoading = false
                     )
                 }
             } else {
@@ -213,6 +214,7 @@ class ClaimInheritanceViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         event = ClaimInheritanceEvent.ShowError(e.message.orUnknownError()),
+                        isLoading = false
                     )
                 }
             }

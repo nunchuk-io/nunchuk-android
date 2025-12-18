@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -54,8 +53,6 @@ fun NcLoadingDialog(
                 horizontalAlignment = CenterHorizontally,
             ) {
                 CircularProgressIndicator(
-                    modifier = Modifier
-                        .width(48.dp),
                     color = MaterialTheme.colorScheme.textPrimary,
                     trackColor = MaterialTheme.colorScheme.background,
                 )
