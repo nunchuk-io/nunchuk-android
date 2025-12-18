@@ -2274,6 +2274,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                     sendBsmsEmail = sendBsmsEmail
                 )
             )
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
         val wallet = response.data.wallet ?: throw NullPointerException("Wallet empty")
         saveWalletToLib(wallet, mutableSetOf())
         assistedWalletDao.insert(
