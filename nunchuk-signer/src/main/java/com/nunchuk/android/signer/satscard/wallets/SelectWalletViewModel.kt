@@ -22,9 +22,11 @@ package com.nunchuk.android.signer.satscard.wallets
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCase
 import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
 import com.nunchuk.android.core.util.toAmount
 import com.nunchuk.android.model.EstimateFeeRates
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.share.model.ExtendTransaction
 import com.nunchuk.android.usecase.EstimateFeeUseCase
@@ -52,6 +54,7 @@ class SelectWalletViewModel @Inject constructor(
     private val newAddressUseCase: NewAddressUseCase,
     private val estimateFeeUseCase: EstimateFeeUseCase,
     private val inheritanceClaimCreateTransactionUseCase: InheritanceClaimCreateTransactionUseCase,
+    private val parseWalletDescriptorUseCase: ParseWalletDescriptorUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -72,7 +75,10 @@ class SelectWalletViewModel @Inject constructor(
                 }
                 .onCompletion { _event.emit(SelectWalletEvent.Loading(false)) }
                 .collect { wallets ->
-                    _state.value = _state.value.copy(selectWallets = wallets.map {
+                    val claimWallet = args.claimParam?.bsms?.let { bsms ->
+                        parseWalletDescriptorUseCase(bsms).getOrDefault(Wallet())
+                    }
+                    _state.value = _state.value.copy(selectWallets = wallets.filter { it.wallet.id != claimWallet?.id }.map {
                         SelectableWallet(
                             it.wallet,
                             it.isShared
@@ -164,11 +170,16 @@ class SelectWalletViewModel @Inject constructor(
 }
 
 sealed class SelectWalletEvent {
-    data class GetAddressSuccess(val address: String, val isCreateTransaction: Boolean) : SelectWalletEvent()
+    data class GetAddressSuccess(val address: String, val isCreateTransaction: Boolean) :
+        SelectWalletEvent()
+
     data class GetFeeRateSuccess(val estimateFeeRates: EstimateFeeRates) : SelectWalletEvent()
-    data class Loading(val isLoading: Boolean, val isClaimInheritance: Boolean = false) : SelectWalletEvent()
+    data class Loading(val isLoading: Boolean, val isClaimInheritance: Boolean = false) :
+        SelectWalletEvent()
+
     data class Error(val e: Throwable?) : SelectWalletEvent()
-    data class CreateTransactionSuccessEvent(val extendTransaction: ExtendTransaction) : SelectWalletEvent()
+    data class CreateTransactionSuccessEvent(val extendTransaction: ExtendTransaction) :
+        SelectWalletEvent()
 }
 
 data class SelectWalletState(
