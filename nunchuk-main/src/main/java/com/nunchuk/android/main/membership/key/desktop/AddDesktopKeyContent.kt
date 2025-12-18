@@ -64,11 +64,13 @@ fun AddDesktopKeyContent(
                         remainTime
                     ).takeIf { isMembershipFlow },
                     actions = {
-                        IconButton(onClick = onMoreClicked) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
-                            )
+                        if (isMembershipFlow) {
+                            IconButton(onClick = onMoreClicked) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_more),
+                                    contentDescription = "More icon"
+                                )
+                            }
                         }
                     },
                 )

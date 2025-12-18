@@ -23,6 +23,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.model.InheritanceClaimingDownloadWalletRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimingInitRequest
 import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
+import com.nunchuk.android.core.data.model.membership.Request
 import com.nunchuk.android.core.data.model.membership.toModel
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
 import com.nunchuk.android.core.gateway.SignerGateway
@@ -192,48 +193,9 @@ internal class InheritanceRepositoryImpl @Inject constructor(
                 userWalletApiManager.walletApi.getRequestAddKeyStatus(localRequest.requestId)
             val request = response.data.request
             if (request?.status == "COMPLETED") {
-                val isMiniscript = request.walletType == WalletType.MINISCRIPT.name
-                val keysToProcess = if (isMiniscript) {
-                    request.keys.orEmpty()
-                } else {
-                    request.key?.let { listOf(it) }.orEmpty()
-                }
+                saveKeyIfNeeded(request, localRequest)
 
-                if (keysToProcess.isEmpty()) {
-                    // No keys to process, handle as before
-                    if (request.key == null && request.keys.isNullOrEmpty()) {
-                        requestAddKeyDao.delete(localRequest)
-                        throw RequestAddKeyCancelException
-                    }
-                }
-
-                keysToProcess.forEach { key ->
-                    val type = nunchukNativeSdk.signerTypeFromStr(key.type.orEmpty())
-
-                    val hasSigner = nunchukNativeSdk.hasSigner(
-                        SingleSigner(
-                            name = key.name.orEmpty(),
-                            xpub = key.xpub.orEmpty(),
-                            publicKey = key.pubkey.orEmpty(),
-                            derivationPath = key.derivationPath.orEmpty(),
-                            masterFingerprint = key.xfp.orEmpty(),
-                        )
-                    )
-                    if (!hasSigner) {
-                        nunchukNativeSdk.createSigner(
-                            name = key.name.orEmpty(),
-                            xpub = key.xpub.orEmpty(),
-                            publicKey = key.pubkey.orEmpty(),
-                            derivationPath = key.derivationPath.orEmpty(),
-                            masterFingerprint = key.xfp.orEmpty(),
-                            type = type,
-                            tags = key.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() },
-                            replace = false
-                        )
-                    }
-                }
-
-                if (requestId != null) return true
+                return true
             } else if (request == null) {
                 requestAddKeyDao.delete(localRequest)
                 throw RequestAddKeyCancelException
@@ -241,6 +203,52 @@ internal class InheritanceRepositoryImpl @Inject constructor(
         }
 
         return false
+    }
+
+    private suspend fun saveKeyIfNeeded(
+        request: Request,
+        localRequest: RequestAddKeyEntity
+    ) {
+        val isMiniscript = request.walletType == WalletType.MINISCRIPT.name
+        val keysToProcess = if (isMiniscript) {
+            request.keys.orEmpty()
+        } else {
+            request.key?.let { listOf(it) }.orEmpty()
+        }
+
+        if (keysToProcess.isEmpty()) {
+            // No keys to process, handle as before
+            if (request.key == null && request.keys.isNullOrEmpty()) {
+                requestAddKeyDao.delete(localRequest)
+                throw RequestAddKeyCancelException
+            }
+        }
+
+        keysToProcess.forEach { key ->
+            val type = nunchukNativeSdk.signerTypeFromStr(key.type.orEmpty())
+
+            val hasSigner = nunchukNativeSdk.hasSigner(
+                SingleSigner(
+                    name = key.name.orEmpty(),
+                    xpub = key.xpub.orEmpty(),
+                    publicKey = key.pubkey.orEmpty(),
+                    derivationPath = key.derivationPath.orEmpty(),
+                    masterFingerprint = key.xfp.orEmpty(),
+                )
+            )
+            if (!hasSigner) {
+                nunchukNativeSdk.createSigner(
+                    name = key.name.orEmpty(),
+                    xpub = key.xpub.orEmpty(),
+                    publicKey = key.pubkey.orEmpty(),
+                    derivationPath = key.derivationPath.orEmpty(),
+                    masterFingerprint = key.xfp.orEmpty(),
+                    type = type,
+                    tags = key.tags.orEmpty().mapNotNull { tag -> tag.toSignerTag() },
+                    replace = false
+                )
+            }
+        }
     }
 
     override suspend fun deletePendingRequestsByMagic(magic: String) {
@@ -252,7 +260,10 @@ internal class InheritanceRepositoryImpl @Inject constructor(
         requestAddKeyDao.getRequests(magic).map { localRequest ->
             val response =
                 userWalletApiManager.walletApi.getRequestAddKeyStatus(localRequest.requestId)
-
+            val request = response.data.request
+            if (request?.status == "COMPLETED") {
+                saveKeyIfNeeded(request, localRequest)
+            }
             response.data.request?.keys?.forEach { serverKey ->
                 result[localRequest.requestId] = nunchukNativeSdk.getRemoteSigner(
                     masterFingerprint = serverKey.xfp.orEmpty(),

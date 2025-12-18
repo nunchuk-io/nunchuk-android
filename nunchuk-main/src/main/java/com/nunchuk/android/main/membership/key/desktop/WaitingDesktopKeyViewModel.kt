@@ -52,7 +52,8 @@ class WaitingDesktopKeyViewModel @Inject constructor(
         viewModelScope.launch {
             checkKeyAddedForInheritanceUseCase(
                 CheckKeyAddedForInheritanceUseCase.Param(
-                    magic = args.magic
+                    magic = args.magic,
+                    requestId = args.requestId
                 )
             ).onSuccess {
                 _state.update { state -> state.copy(isCompleted = it) }
