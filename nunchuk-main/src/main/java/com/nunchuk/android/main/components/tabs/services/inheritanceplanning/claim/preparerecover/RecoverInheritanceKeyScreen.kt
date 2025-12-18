@@ -103,7 +103,8 @@ fun RecoverInheritanceKeyScreen(
                     ) {
                         Text(
                             text = stringResource(R.string.nc_use_hardware_device),
-                            style = NunchukTheme.typography.title
+                            style = NunchukTheme.typography.title,
+                            modifier = Modifier.weight(1f)
                         )
                         Text(
                             modifier = Modifier
