@@ -36,6 +36,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -43,6 +44,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcHintMessage
@@ -64,7 +66,9 @@ class InheritanceTimelockInfoFragment : MembershipFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
+                val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
                 InheritanceTimelockInfoContent(
+                    remainTime = remainTime,
                     onContinueClicked = {
                         findNavController().navigate(
                             InheritanceTimelockInfoFragmentDirections
@@ -80,6 +84,7 @@ class InheritanceTimelockInfoFragment : MembershipFragment() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun InheritanceTimelockInfoContent(
+    remainTime: Int = 0,
     onContinueClicked: () -> Unit = {}
 ) {
     NunchukTheme {
@@ -90,7 +95,7 @@ private fun InheritanceTimelockInfoContent(
                     backgroundRes = R.drawable.bg_timelock_illustrations,
                     title = stringResource(
                         id = R.string.nc_estimate_remain_time,
-                        0 // Placeholder for time
+                        remainTime
                     ),
                 )
             },
