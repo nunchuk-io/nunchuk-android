@@ -86,13 +86,34 @@ val ScriptNode.descriptionText: String
                 timeLock.isTimestamp() -> {
                     val currentTimeSeconds = System.currentTimeMillis() / 1000
                     val diff = timeLock.value - currentTimeSeconds
-                    val daysFromNow = ceil(diff / 86400.0).toInt()
-                    // Don't display description if daysFromNow is less than 0
-                    if (daysFromNow <= 0) {
-                        ""
-                    } else {
-                        val dayText = if (daysFromNow == 1) "day" else "days"
-                        if (daysFromNow == 1) "1 $dayText from today." else "$daysFromNow $dayText from today."
+                    when {
+                        diff <= 0 -> ""
+                        diff >= 86400 -> {
+                            val daysFromNow = ceil(diff / 86400.0).toInt()
+                            val dayText = if (daysFromNow == 1) "day" else "days"
+                            "$daysFromNow $dayText from today."
+                        }
+                        else -> {
+                            val totalMinutes = ceil(diff / 60.0).toInt()
+                            val hours = totalMinutes / 60
+                            val minutes = totalMinutes % 60
+
+                            val parts = mutableListOf<String>()
+                            if (hours > 0) {
+                                val hourText = if (hours == 1) "hour" else "hours"
+                                parts.add("$hours $hourText")
+                            }
+                            if (minutes > 0) {
+                                val minuteText = if (minutes == 1) "minute" else "minutes"
+                                parts.add("$minutes $minuteText")
+                            }
+
+                            if (parts.isEmpty()) {
+                                ""
+                            } else {
+                                "${parts.joinToString(" ")} from now."
+                            }
+                        }
                     }
                 }
 
