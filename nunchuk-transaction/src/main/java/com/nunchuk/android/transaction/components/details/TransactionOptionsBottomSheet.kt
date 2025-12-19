@@ -104,7 +104,7 @@ class TransactionOptionsBottomSheet : BaseBottomSheet<DialogTransactionSignBotto
             dismiss()
         }
 
-        binding.btnCopyRawTransactionHex.isVisible = args.canBroadcast
+        binding.btnCopyRawTransactionHex.isVisible = args.canBroadcast || args.isRejected
         binding.btnCopyRawTransactionHex.setOnClickListener {
             listener(COPY_RAW_TRANSACTION_HEX)
             dismiss()
