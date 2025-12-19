@@ -32,6 +32,7 @@ fun NavGraphBuilder.claimWithdrawBitcoin(
         walletBalance?.let { walletBalance ->
             ClaimWithdrawBitcoinScreen(
                 snackState = snackState,
+                bsms = claimData.bsms,
                 balance = walletBalance,
                 onNavigateToInputAmount = onNavigateToInputAmount,
                 onNavigateToSelectWallet = onNavigateToSelectWallet,

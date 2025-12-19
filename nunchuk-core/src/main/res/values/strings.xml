@@ -103,7 +103,6 @@
     <string name="nc_satscard_unsealed_slots">SATSCARD unsealed slots</string>
     <string name="nc_unconfirmed">Unconfirmed</string>
     <string name="nc_sweep_balance">Sweep balance</string>
-    <string name="nc_withdraw_to_nunchuk_wallet">Withdraw to Nunchuk wallet</string>
     <string name="nc_withdraw_to_a_wallet">Withdraw to a wallet</string>
     <string name="nc_withdraw_a_custom_amount">Withdraw a custom amount</string>
     <string name="nc_withdraw_full_balance_now">Withdraw full balance now</string>

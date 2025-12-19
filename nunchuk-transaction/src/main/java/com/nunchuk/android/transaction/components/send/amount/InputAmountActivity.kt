@@ -184,7 +184,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
 
     override fun onOptionClicked(option: SheetOption) {
         if (option.type == SheetOptionType.TYPE_SWEEP_TO_WALLET) {
-            viewModel.checkWallet()
+            viewModel.checkWallet(args.claimInheritanceTxParam?.bsms)
         } else if (option.type == SheetOptionType.TYPE_SWEEP_TO_EXTERNAL_ADDRESS) {
             openSweepRecipeScreen()
         }
@@ -374,5 +374,4 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
         }
 
     }
-
 }

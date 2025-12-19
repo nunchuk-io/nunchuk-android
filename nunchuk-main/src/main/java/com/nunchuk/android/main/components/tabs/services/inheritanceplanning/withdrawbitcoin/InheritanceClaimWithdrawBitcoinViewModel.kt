@@ -2,7 +2,9 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.wi
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.usecase.GetWalletsUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class InheritanceClaimWithdrawBitcoinViewModel @Inject constructor(
     private val getWalletsUseCase: GetWalletsUseCase,
+    private val parseWalletDescriptorUseCase: ParseWalletDescriptorUseCase,
 ) : ViewModel() {
 
     private val _event = MutableSharedFlow<InheritanceClaimWithdrawBitcoinEvent>()
@@ -33,7 +36,7 @@ class InheritanceClaimWithdrawBitcoinViewModel @Inject constructor(
                 .onException { }
                 .flowOn(Dispatchers.Main)
                 .collect { wallets ->
-                    if (_state.value.oldWalletIds == null) {
+                    if (_state.value.oldWalletIds.isEmpty()) {
                         _state.update {
                             it.copy(oldWalletIds = wallets.map { wallet -> wallet.wallet.id })
                         }
@@ -52,14 +55,22 @@ class InheritanceClaimWithdrawBitcoinViewModel @Inject constructor(
             }
     }
 
-    fun checkWallet() = viewModelScope.launch {
-        val hasWallet = _state.value.oldWalletIds.isNullOrEmpty().not()
+    fun checkWallet(bsms: String?) = viewModelScope.launch {
+        val claimWallet = bsms?.let { bsmsValue ->
+            parseWalletDescriptorUseCase(bsmsValue).getOrDefault(Wallet())
+        }
+        val claimWalletId = claimWallet?.id
+        val hasWallet = if (!claimWalletId.isNullOrEmpty()) {
+            _state.value.oldWalletIds.any { it != claimWalletId }
+        } else {
+            _state.value.oldWalletIds.isNotEmpty()
+        }
         _event.emit(InheritanceClaimWithdrawBitcoinEvent.CheckHasWallet(hasWallet))
     }
 }
 
 data class InheritanceClaimWithdrawBitcoinState(
-    val oldWalletIds: List<String>? = null,
+    val oldWalletIds: List<String> = emptyList(),
 )
 
 sealed class InheritanceClaimWithdrawBitcoinEvent {

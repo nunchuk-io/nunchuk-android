@@ -52,6 +52,7 @@ import com.nunchuk.android.main.R as MainR
 @Composable
 fun ClaimWithdrawBitcoinScreen(
     snackState: SnackbarHostState,
+    bsms: String?,
     balance: Double,
     modifier: Modifier = Modifier,
     onNavigateToInputAmount: () -> Unit = {},
@@ -112,7 +113,7 @@ fun ClaimWithdrawBitcoinScreen(
         },
         onSweepOptionSelected = { option ->
             if (option == 0) { // Sweep to wallet
-                viewModel.checkWallet()
+                viewModel.checkWallet(bsms)
             } else if (option == 1) { // Sweep to external address
                 onNavigateToAddReceipt()
             }

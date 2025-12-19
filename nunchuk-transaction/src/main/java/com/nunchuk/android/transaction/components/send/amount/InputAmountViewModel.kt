@@ -25,11 +25,13 @@ import com.nunchuk.android.core.domain.data.CURRENT_DISPLAY_UNIT_TYPE
 import com.nunchuk.android.core.domain.data.SAT
 import com.nunchuk.android.core.util.fromBTCToCurrency
 import com.nunchuk.android.core.util.fromCurrencyToBTC
+import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCase
 import com.nunchuk.android.core.util.fromSATtoBTC
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.toNumericValue
 import com.nunchuk.android.model.BtcUri
+import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.transaction.components.send.amount.InputAmountEvent.SwapCurrencyEvent
 import com.nunchuk.android.transaction.components.utils.privateNote
 import com.nunchuk.android.usecase.GetWalletsUseCase
@@ -47,6 +49,7 @@ internal class InputAmountViewModel @Inject constructor(
     private val parseBtcUriUseCase: ParseBtcUriUseCase,
     private val getAllCoinUseCase: GetAllCoinUseCase,
     private val getWalletsUseCase: GetWalletsUseCase,
+    private val parseWalletDescriptorUseCase: ParseWalletDescriptorUseCase,
 ) : NunchukViewModel<InputAmountState, InputAmountEvent>() {
 
     private var availableAmount: Double = 0.0
@@ -167,12 +170,23 @@ internal class InputAmountViewModel @Inject constructor(
         }
     }
 
-    fun checkWallet() = viewModelScope.launch {
-        getWalletsUseCase.execute().flowOn(Dispatchers.IO)
+    fun checkWallet(bsms: String?) = viewModelScope.launch {
+        val claimWallet = bsms?.let { bsmsValue ->
+            parseWalletDescriptorUseCase(bsmsValue).getOrDefault(Wallet())
+        }
+        val claimWalletId = claimWallet?.id
+        getWalletsUseCase.execute()
+            .flowOn(Dispatchers.IO)
             .onException { setEvent(InputAmountEvent.ShowError(it.message.orUnknownError())) }
             .flowOn(Dispatchers.Main)
-            .collect {
-                setEvent(InputAmountEvent.CheckHasWallet(it.isNotEmpty()))
+            .collect { wallets ->
+                val oldWalletIds = wallets.map { wallet -> wallet.wallet.id }
+                val hasWallet = if (!claimWalletId.isNullOrEmpty()) {
+                    oldWalletIds.any { it != claimWalletId }
+                } else {
+                    oldWalletIds.isNotEmpty()
+                }
+                setEvent(InputAmountEvent.CheckHasWallet(hasWallet))
             }
     }
 
