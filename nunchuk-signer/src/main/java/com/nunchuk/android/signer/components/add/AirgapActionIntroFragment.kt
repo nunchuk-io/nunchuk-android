@@ -107,6 +107,7 @@ internal fun AirgapActionIntroScreen(
     onChainAddSignerParam: OnChainAddSignerParam? = null,
     onAction: (JADEAction) -> Unit = {}
 ) {
+    val isClaiming = onChainAddSignerParam?.isClaiming == true
     NunchukTheme {
         Scaffold(topBar = {
             NcImageAppBar(
@@ -128,14 +129,14 @@ internal fun AirgapActionIntroScreen(
                     if (onChainAddSignerParam != null && onChainAddSignerParam.keyIndex >= 0) onChainAddSignerParam.keyIndex else 0
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = if (onChainAddSignerParam != null && onChainAddSignerParam.isVerifyBackupSeedPhrase().not()) {
+                    text = if (onChainAddSignerParam != null && onChainAddSignerParam.isVerifyBackupSeedPhrase().not() && !isClaiming) {
                         "${stringResource(R.string.nc_add_jade)} (${onChainKeyIndex + 1}/2)"
                     } else {
                         stringResource(R.string.nc_add_jade)
                     },
                     style = NunchukTheme.typography.heading
                 )
-                if (onChainAddSignerParam != null) {
+                if (onChainAddSignerParam != null && !isClaiming) {
                     Spacer(modifier = Modifier.padding(top = 16.dp))
                     Text(
                         modifier = Modifier.padding(horizontal = 16.dp),

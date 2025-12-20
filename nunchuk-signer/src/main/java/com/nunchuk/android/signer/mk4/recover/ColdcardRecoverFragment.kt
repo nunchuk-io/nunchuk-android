@@ -55,6 +55,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.LabelNumberAndDesc
 import com.nunchuk.android.compose.NcClickableText
+import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
@@ -463,7 +464,7 @@ private fun ColdcardRecoverContent(
                         isScanQRCode -> stringResource(R.string.nc_export_xpub_coldcard_scan_qr_code_desc)
                         else -> stringResource(R.string.nc_export_xpub_coldcard_desc)
                     }
-                    Text(
+                    NcHighlightText(
                         modifier = Modifier.padding(top = 8.dp, start = 36.dp),
                         text = exportInstruction,
                         style = NunchukTheme.typography.body

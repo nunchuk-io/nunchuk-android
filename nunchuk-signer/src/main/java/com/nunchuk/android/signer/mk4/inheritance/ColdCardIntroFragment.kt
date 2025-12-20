@@ -135,6 +135,8 @@ internal fun ColdCardIntroScreen(
 ) {
     val isVerifyBackupSeedPhrase =
         mk4Activity?.onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true
+    val isClaiming =
+        mk4Activity?.onChainAddSignerParam?.isClaiming == true
     val onChainKeyIndex = if (mk4Activity?.onChainAddSignerParam != null && mk4Activity.onChainAddSignerParam!!.keyIndex >= 0) mk4Activity.onChainAddSignerParam!!.keyIndex else 0
     NunchukTheme {
         Scaffold(topBar = {
@@ -159,13 +161,14 @@ internal fun ColdCardIntroScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                    text = if (mk4Activity?.onChainAddSignerParam != null && !isVerifyBackupSeedPhrase) {
+                    text = if (mk4Activity?.onChainAddSignerParam != null && !isVerifyBackupSeedPhrase && isClaiming.not()) {
                         "Add COLDCARD (${mk4Activity.onChainAddSignerParam!!.keyIndex + 1}/2)"
                     } else {
                         stringResource(R.string.nc_add_coldcard_mk4)
                     },
                     style = NunchukTheme.typography.heading
                 )
+                if (isClaiming.not()) {
                 Text(
                     modifier = Modifier.padding(16.dp),
                     text = if (isVerifyBackupSeedPhrase) {
@@ -214,6 +217,7 @@ internal fun ColdCardIntroScreen(
                     },
                     style = NunchukTheme.typography.body
                 )
+                    }
 
                 ActionItem(
                     title = stringResource(R.string.nc_add_coldcard_via_nfc),
