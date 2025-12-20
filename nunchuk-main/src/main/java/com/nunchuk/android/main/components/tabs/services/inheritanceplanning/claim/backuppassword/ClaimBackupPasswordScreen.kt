@@ -1,12 +1,17 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.backuppassword
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -132,18 +137,17 @@ private fun ClaimBackupPasswordContent(
     onContinueClick: () -> Unit = {},
     onBackupPasswordTextChange: (String, Int) -> Unit = { _, _ -> },
 ) {
+    val listState = rememberLazyListState()
+
     if (isLoading) {
         NcLoadingDialog()
     }
 
     NcScaffold(
         modifier = modifier.navigationBarsPadding().imePadding(),
-        topBar = {
-            NcImageAppBar(
-                backgroundRes = MainR.drawable.bg_claim_inheritance_illustration,
-                onClosedClicked = onBackPressed,
-            )
-        },
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(
+            WindowInsets.statusBars
+        ),
         snackState = snackState,
         bottomBar = {
             NcPrimaryDarkButton(
@@ -161,7 +165,14 @@ private fun ClaimBackupPasswordContent(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
+            state = listState
         ) {
+            item {
+                NcImageAppBar(
+                    backgroundRes = MainR.drawable.bg_claim_inheritance_illustration,
+                    onClosedClicked = onBackPressed,
+                )
+            }
             item {
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
