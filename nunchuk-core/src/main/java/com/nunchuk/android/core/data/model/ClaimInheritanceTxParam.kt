@@ -23,3 +23,8 @@ fun ClaimInheritanceTxParam?.isInheritanceClaimFlow() : Boolean {
     if (!bsms.isNullOrEmpty()) return true
     return masterSignerIds.isNotEmpty() && magicalPhrase.isNotEmpty() && derivationPaths.isNotEmpty()
 }
+
+fun ClaimInheritanceTxParam?.isOffChainClaim(): Boolean {
+    if (this == null) return false
+    return masterSignerIds.isNotEmpty() && magicalPhrase.isNotEmpty() && derivationPaths.isNotEmpty() && bsms.isNullOrEmpty()
+}

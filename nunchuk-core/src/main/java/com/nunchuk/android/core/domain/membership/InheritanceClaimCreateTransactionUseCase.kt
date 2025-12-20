@@ -74,7 +74,13 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
             bsms = parameters.bsms,
             subtractFeeFromAmount = transactionResponse.subtractFeeFromAmount
         )
-        if (parameters.isDraft) return ExtendTransaction(transaction.copy(changeIndex = transactionResponse.changePos))
+        if (parameters.isDraft) {
+            return if (parameters.bsms.isNullOrEmpty()) {
+                ExtendTransaction(transaction.copy(changeIndex = transactionResponse.changePos))
+            } else {
+                ExtendTransaction(transaction)
+            }
+        }
         if (parameters.bsms.isNullOrEmpty()) {
             val transactionAdditional = userWalletRepository.inheritanceClaimingClaim(
                 magic = parameters.magic,

@@ -26,6 +26,7 @@ import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.RollOverWalletParam
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
+import com.nunchuk.android.core.data.model.isOffChainClaim
 import com.nunchuk.android.core.domain.membership.InheritanceClaimCreateTransactionUseCase
 import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.push.PushEvent
@@ -448,6 +449,8 @@ class TransactionConfirmViewModel @Inject constructor(
     }
 
     fun isInheritanceClaimingFlow() = claimInheritanceTxParam.isInheritanceClaimFlow()
+
+    fun isOffChainClaimingFlow() = claimInheritanceTxParam.isOffChainClaim()
 
     private fun createNewTransaction(
         isQuickCreateTransaction: Boolean,

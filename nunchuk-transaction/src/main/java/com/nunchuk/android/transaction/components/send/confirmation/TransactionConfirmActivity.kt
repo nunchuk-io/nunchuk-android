@@ -202,10 +202,10 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
                     inheritanceClaimTxDetailInfo = takeIf { viewModel.isInheritanceClaimingFlow() }?.let {
                         InheritanceClaimTxDetailInfo(
                             changePos = event.transaction.changeIndex,
-                            selectedWalletId = args.walletId,
+                            selectedWalletId = args.walletId.takeIf { event.walletId.isNullOrEmpty() },
                         )
                     },
-                    transaction = event.transaction.takeIf { viewModel.isInheritanceClaimingFlow() }
+                    transaction = event.transaction.takeIf { event.walletId.isNullOrEmpty() && viewModel.isInheritanceClaimingFlow() }
                 )
             }
 
@@ -271,7 +271,7 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
 
     private fun bindChangAddress(changeAddress: String, amount: Amount) {
         hideLoading()
-        if (viewModel.isInheritanceClaimingFlow()) {
+        if (viewModel.isOffChainClaimingFlow()) {
             binding.changeAddressGroup.visibility = View.GONE
             return
         }
