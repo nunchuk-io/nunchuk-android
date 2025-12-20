@@ -94,8 +94,15 @@ data class ServicesTabState(
             } else {
                 bannerPage?.let { bannerPage ->
                     items.add(NonSubHeader(title = bannerPage.title, desc = bannerPage.desc))
-                    bannerPage.items.forEach {
-                        items.add(NonSubRow(url = it.url, title = it.title, desc = it.desc))
+                    // Group items by heading while preserving order
+                    val groupedItems = bannerPage.items.groupBy { it.heading }
+                    groupedItems.forEach { (heading, groupItems) ->
+                        if (heading.isNotEmpty()) {
+                            items.add(NonSubRowHeading(title = heading))
+                        }
+                        groupItems.forEach {
+                            items.add(NonSubRow(url = it.url, title = it.title, desc = it.desc))
+                        }
                     }
                 }
             }
@@ -372,6 +379,8 @@ data class ServicesTabState(
 internal data class Banner(val id: String, val url: String, val title: String)
 
 internal data class NonSubRow(val url: String, val title: String, val desc: String)
+
+internal data class NonSubRowHeading(val title: String)
 
 internal data class NonSubHeader(val title: String, val desc: String)
 

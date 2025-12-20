@@ -29,4 +29,5 @@ data class BannerPageItem(
     val title: String,
     val desc: String,
     val url: String,
+    val heading: String,
 )

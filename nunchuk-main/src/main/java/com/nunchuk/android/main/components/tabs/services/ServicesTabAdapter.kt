@@ -33,6 +33,7 @@ import com.nunchuk.android.main.databinding.ItemServiceTabCategoryBinding
 import com.nunchuk.android.main.databinding.ItemServiceTabEmptyStateBinding
 import com.nunchuk.android.main.databinding.ItemServiceTabNonSubHeaderBinding
 import com.nunchuk.android.main.databinding.ItemServiceTabNonSubRowBinding
+import com.nunchuk.android.main.databinding.ItemServiceTabNonSubRowHeadingBinding
 import com.nunchuk.android.main.databinding.ItemServiceTabObserverRoleBinding
 import com.nunchuk.android.main.databinding.ItemServiceTabRowBinding
 import com.nunchuk.android.main.databinding.ItemServicesTabBannerBinding
@@ -72,6 +73,12 @@ class ServicesTabAdapter constructor(
             R.layout.item_service_tab_non_sub_row -> {
                 val viewHolder = ServiceTabViewHolder.NonSubRowViewHolder(
                     ItemServiceTabNonSubRowBinding.inflate(inflater, parent, false)
+                )
+                viewHolder
+            }
+            R.layout.item_service_tab_non_sub_row_heading -> {
+                val viewHolder = ServiceTabViewHolder.NonSubRowHeadingViewHolder(
+                    ItemServiceTabNonSubRowHeadingBinding.inflate(inflater, parent, false)
                 )
                 viewHolder
             }
@@ -116,6 +123,9 @@ class ServicesTabAdapter constructor(
             is ServiceTabViewHolder.NonSubHeaderViewHolder -> {
                 holder.bind(getItem(position) as NonSubHeader)
             }
+            is ServiceTabViewHolder.NonSubRowHeadingViewHolder -> {
+                holder.bind(getItem(position) as NonSubRowHeading)
+            }
             is ServiceTabViewHolder.BannerViewHolder -> {
                 holder.bind(getItem(position) as Banner)
             }
@@ -128,6 +138,7 @@ class ServicesTabAdapter constructor(
             is ServiceTabRowItem -> R.layout.item_service_tab_row
             is NonSubHeader -> R.layout.item_service_tab_non_sub_header
             is NonSubRow -> R.layout.item_service_tab_non_sub_row
+            is NonSubRowHeading -> R.layout.item_service_tab_non_sub_row_heading
             is Banner -> R.layout.item_services_tab_banner
             is ObserverRole -> R.layout.item_service_tab_observer_role
             is EmptyState -> R.layout.item_service_tab_empty_state
@@ -145,6 +156,7 @@ object DiffCallback : DiffUtil.ItemCallback<Any>() {
             oldItem is ServiceTabRowItem && newItem is ServiceTabRowItem -> oldItem.title == newItem.title
             oldItem is NonSubRow && newItem is NonSubRow -> oldItem.title == newItem.title
             oldItem is NonSubHeader && newItem is NonSubHeader -> oldItem.title == newItem.title
+            oldItem is NonSubRowHeading && newItem is NonSubRowHeading -> oldItem.title == newItem.title
             oldItem is Banner && newItem is Banner -> oldItem.id == newItem.id
             oldItem is ObserverRole && newItem is ObserverRole -> oldItem == newItem
             oldItem is EmptyState && newItem is EmptyState -> oldItem == newItem
@@ -159,6 +171,7 @@ object DiffCallback : DiffUtil.ItemCallback<Any>() {
             oldItem is ServiceTabRowItem && newItem is ServiceTabRowItem -> oldItem == newItem
             oldItem is NonSubRow && newItem is NonSubRow -> oldItem == newItem
             oldItem is NonSubHeader && newItem is NonSubHeader -> oldItem == newItem
+            oldItem is NonSubRowHeading && newItem is NonSubRowHeading -> oldItem == newItem
             oldItem is Banner && newItem is Banner -> oldItem == newItem
             oldItem is ObserverRole && newItem is ObserverRole -> oldItem == newItem
             oldItem is EmptyState && newItem is EmptyState -> oldItem == newItem
@@ -228,6 +241,14 @@ sealed class ServiceTabViewHolder(itemView: View) : ViewHolder(itemView) {
             Glide.with(binding.image)
                 .load(item.url)
                 .into(binding.image)
+        }
+    }
+
+    class NonSubRowHeadingViewHolder(
+        val binding: ItemServiceTabNonSubRowHeadingBinding
+    ) : ServiceTabViewHolder(binding.root) {
+        internal fun bind(item: NonSubRowHeading) {
+            binding.tvTitle.text = item.title
         }
     }
 

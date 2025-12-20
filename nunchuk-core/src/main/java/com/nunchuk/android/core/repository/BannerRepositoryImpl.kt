@@ -50,9 +50,10 @@ internal class BannerRepositoryImpl @Inject constructor(
             desc = page?.content?.description.orEmpty(),
             items = page?.content?.items.orEmpty().map {
                 BannerPageItem(
-                    it.title.orEmpty(),
-                    it.description.orEmpty(),
-                    it.iconUrl.orEmpty()
+                    title = it.title.orEmpty(),
+                    desc = it.description.orEmpty(),
+                    url = it.iconUrl.orEmpty(),
+                    heading = it.heading.orEmpty()
                 )
             }
         )

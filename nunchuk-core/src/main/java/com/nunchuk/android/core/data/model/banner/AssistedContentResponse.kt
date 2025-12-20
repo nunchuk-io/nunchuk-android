@@ -36,6 +36,7 @@ internal data class Items(
     @SerializedName("title") val title: String? = null,
     @SerializedName("description") val description: String? = null,
     @SerializedName("icon_url") val iconUrl: String? = null,
+    @SerializedName("heading") val heading: String? = null,
 )
 
 internal data class Page(

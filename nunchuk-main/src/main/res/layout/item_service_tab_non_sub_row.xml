@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingHorizontal="17dp"
-    android:paddingTop="@dimen/nc_padding_24">
+    android:paddingTop="@dimen/nc_padding_12">
 
     <ImageButton
         android:id="@+id/image"
