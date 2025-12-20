@@ -85,7 +85,12 @@ class AirgapActionIntroFragment : MembershipFragment() {
                             activity = requireActivity(),
                             signerTag = SignerTag.JADE,
                             groupId = (requireActivity() as AddAirgapSignerActivity).groupId,
-                            step = it
+                            step = it,
+                            magic = if (onChainAddSignerParam?.isClaiming == true) {
+                                onChainAddSignerParam?.magic.orEmpty()
+                            } else {
+                                ""
+                            }
                         )
                     }
                 }
