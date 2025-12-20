@@ -77,7 +77,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingHorizontal="@dimen/nc_padding_16"
-            android:paddingTop="@dimen/nc_padding_16"
+            android:paddingVertical="@dimen/nc_padding_16"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             tools:visibility="visible">
@@ -88,6 +88,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/nc_visit_our_website" />
+
+            <com.nunchuk.android.widget.NCFontButton
+                android:id="@+id/btn_view_plans"
+                style="@style/NCPrimaryButton.Dark"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:text="@string/nc_view_plans_pricing" />
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -23,6 +23,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -30,6 +31,8 @@ import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.constants.Constants
 import com.nunchuk.android.core.domain.membership.PasswordVerificationHelper
 import com.nunchuk.android.core.domain.membership.TargetAction
+import com.nunchuk.android.core.guestmode.SignInMode
+import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
@@ -70,6 +73,9 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
     
     @Inject
     lateinit var passwordVerificationHelper: PasswordVerificationHelper
+
+    @Inject
+    lateinit var signInModeHolder: SignInModeHolder
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -162,10 +168,10 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                     adapter.submitList(event.items)
                     viewModel.shouldShowHelpCenter().let { it ->
                         binding.supportFab.isVisible = it || viewModel.isByzantine()
-                        binding.actionGroup.isVisible =
-                            it.not() && event.items.any { it is NonSubHeader }
+                        binding.actionGroup.isVisible = event.items.any { it is NonSubHeader }
                         binding.claimLayout.isVisible =
-                            viewModel.isShowClaimInheritanceLayout() && event.items.none { it is ServiceTabRowItem.ClaimInheritance }
+                            viewModel.isShowClaimInheritanceLayout() && event.items.none { it is ServiceTabRowItem.ClaimInheritance } && signInModeHolder.getCurrentMode() != SignInMode.GUEST_MODE
+                        updateSupportFabPosition()
                     }
                 }
             }
@@ -203,8 +209,31 @@ class ServicesTabFragment : BaseFragment<FragmentServicesTabBinding>() {
                 navigator.openSignInScreen(requireActivity(), isNeedNewTask = false)
             }
         }
+        binding.btnVisitWebsite.isVisible = signInModeHolder.getCurrentMode() == SignInMode.GUEST_MODE
+        binding.btnViewPlans.isVisible = signInModeHolder.getCurrentMode() != SignInMode.GUEST_MODE
+
         binding.btnVisitWebsite.setOnDebounceClickListener {
             handleGoOurWebsite()
+        }
+        binding.btnViewPlans.setOnDebounceClickListener {
+            handleGoOurWebsite()
+        }
+    }
+
+    private fun updateSupportFabPosition() {
+        if (binding.supportFab.isVisible && binding.actionGroup.isVisible) {
+            binding.actionGroup.post {
+                val actionGroupHeight = binding.actionGroup.height
+                val defaultMargin = resources.getDimensionPixelSize(R.dimen.nc_padding_2)
+                val layoutParams = binding.supportFab.layoutParams as CoordinatorLayout.LayoutParams
+                layoutParams.bottomMargin = actionGroupHeight + defaultMargin
+                binding.supportFab.layoutParams = layoutParams
+            }
+        } else {
+            val defaultMargin = resources.getDimensionPixelSize(R.dimen.nc_padding_16)
+            val layoutParams = binding.supportFab.layoutParams as CoordinatorLayout.LayoutParams
+            layoutParams.bottomMargin = defaultMargin
+            binding.supportFab.layoutParams = layoutParams
         }
     }
 

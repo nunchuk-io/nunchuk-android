@@ -10,7 +10,7 @@
         style="@style/NCText.Heading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/nc_padding_24"
+        android:layout_marginTop="@dimen/nc_padding_16"
         android:paddingHorizontal="17dp"
         tools:text="@string/nc_get_assisted_wallet_title" />
 
