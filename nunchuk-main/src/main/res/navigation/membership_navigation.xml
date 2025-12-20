@@ -906,6 +906,12 @@
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
+
+        <argument
+            android:name="slug"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
     </action>
     <fragment
         android:id="@+id/keyAddedToGroupWalletFragment"

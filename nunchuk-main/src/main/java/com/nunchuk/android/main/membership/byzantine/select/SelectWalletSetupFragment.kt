@@ -69,7 +69,8 @@ class SelectWalletSetupFragment : MembershipFragment() {
                                 SelectWalletSetupFragmentDirections.actionSelectWalletSetupFragmentToInheritancePlanTypeFragment(
                                     isPersonal = false,
                                     walletType = args.groupType,
-                                    setupPreference = setupPreference
+                                    setupPreference = setupPreference,
+                                    slug = args.slug
                                 )
                             )
                         } else {

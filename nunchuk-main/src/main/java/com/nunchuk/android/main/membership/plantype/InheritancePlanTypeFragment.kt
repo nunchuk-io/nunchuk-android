@@ -97,7 +97,8 @@ class InheritancePlanTypeFragment : MembershipFragment() {
                                             flow = ByzantineMemberFlow.SETUP,
                                             setupPreference = uiState.setupPreference ?: "",
                                             groupType = walletType,
-                                            inheritancePlanType = planType.name
+                                            inheritancePlanType = planType.name,
+                                            slug = uiState.slug
                                         )
                                     )
                                 }

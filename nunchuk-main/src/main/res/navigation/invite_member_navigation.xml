@@ -45,6 +45,12 @@
             app:argType="string"
             app:nullable="true" />
 
+        <argument
+            android:name="slug"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+
         <action
             android:id="@+id/action_byzantineInviteMembersFragment_to_byzantineSelectRoleFragment"
             app:destination="@id/byzantineSelectRoleFragment"

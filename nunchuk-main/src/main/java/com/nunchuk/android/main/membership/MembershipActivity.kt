@@ -143,6 +143,11 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
                 intent.getIntExtra(MembershipArgs.CHANGE_TIMELOCK_FLOW, -1)
             }
 
+    val slug: String?
+            by lazy(LazyThreadSafetyMode.NONE) {
+                intent.getStringExtra(MembershipArgs.SLUG)
+            }
+
     var onChainReplaceWalletId: String = ""
         private set
 

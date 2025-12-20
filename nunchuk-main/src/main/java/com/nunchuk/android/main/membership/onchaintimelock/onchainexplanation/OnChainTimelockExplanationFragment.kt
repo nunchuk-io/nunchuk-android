@@ -42,8 +42,8 @@ import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.model.isByzantinePro
 import com.nunchuk.android.share.membership.MembershipFragment
-import kotlin.getValue
 
 class OnChainTimelockExplanationFragment : MembershipFragment() {
 
@@ -60,10 +60,12 @@ class OnChainTimelockExplanationFragment : MembershipFragment() {
             setContent {
                 val activity = requireActivity() as? MembershipActivity
                 val groupId = activity?.groupId.orEmpty()
+                val slug = activity?.slug
                 val allowInheritance = args.config?.allowInheritance ?: false
 
                 OnChainTimelockExplanationScreen(
                     groupId = groupId,
+                    slug = slug,
                     allowInheritance = allowInheritance,
                     viewModel = viewModel,
                     onContinueClicked = {
@@ -93,6 +95,7 @@ class OnChainTimelockExplanationFragment : MembershipFragment() {
 private fun OnChainTimelockExplanationScreen(
     viewModel: OnChainTimelockExplanationViewModel = viewModel(),
     groupId: String,
+    slug: String?,
     allowInheritance: Boolean,
     onContinueClicked: () -> Unit,
     onMoreClicked: () -> Unit = {}
@@ -101,6 +104,7 @@ private fun OnChainTimelockExplanationScreen(
 
     OnChainTimelockExplanationContent(
         groupId = groupId,
+        slug = slug,
         remainTime = remainTime,
         allowInheritance = allowInheritance,
         onContinueClicked = onContinueClicked,
@@ -111,12 +115,14 @@ private fun OnChainTimelockExplanationScreen(
 @Composable
 private fun OnChainTimelockExplanationContent(
     groupId: String,
+    slug: String? = null,
     remainTime: Int = 0,
     allowInheritance: Boolean,
     onContinueClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {}
 ) {
     val isGroupWallet = groupId.isNotEmpty()
+    val isByzantinePro = slug?.isByzantinePro() == true
     
     NunchukTheme {
         Scaffold(
@@ -124,8 +130,12 @@ private fun OnChainTimelockExplanationContent(
             topBar = {
                 NcImageAppBar(
                     backgroundRes = if (isGroupWallet) {
-                        if (allowInheritance) {
-                            R.drawable.illustration_on_chain_group_wallet
+                       if (allowInheritance) {
+                            if (isByzantinePro) {
+                                R.drawable.illustration_on_chain_group_wallet_hb_pro
+                            } else {
+                                R.drawable.illustration_on_chain_group_wallet
+                            }
                         } else {
                             R.drawable.illustration_on_chain_without_inheritance_group_wallet
                         }
@@ -241,6 +251,7 @@ private fun BulletPoint(
 private fun OnChainTimelockExplanationScreenPreview() {
     OnChainTimelockExplanationContent(
         groupId = "3232",
+        slug = null,
         allowInheritance = true,
         onContinueClicked = { },
         onMoreClicked = { }
