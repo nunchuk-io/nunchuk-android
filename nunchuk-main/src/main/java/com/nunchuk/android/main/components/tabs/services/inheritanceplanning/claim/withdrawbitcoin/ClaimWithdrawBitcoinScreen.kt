@@ -35,10 +35,11 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.nunchuk.android.compose.NcOptionItem
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
-import com.nunchuk.android.compose.NcSelectableBottomSheet
+import com.nunchuk.android.compose.NcSelectableBottomSheetWithIcon
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.SelectableItem
 import com.nunchuk.android.compose.montserratMedium
 import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.core.R
@@ -238,11 +239,17 @@ private fun ClaimWithdrawBitcoinContent(
 
     // Show sweep options dialog
     if (showSweepOptions) {
-        NcSelectableBottomSheet(
+        NcSelectableBottomSheetWithIcon(
             sheetState = rememberModalBottomSheetState(),
-            options = listOf(
-                stringResource(R.string.nc_withdraw_nunchuk_wallet),
-                stringResource(R.string.nc_withdraw_to_an_address)
+            items = listOf(
+                SelectableItem(
+                    resId = R.drawable.ic_wallet_info,
+                    text = stringResource(R.string.nc_withdraw_nunchuk_wallet)
+                ),
+                SelectableItem(
+                    resId = R.drawable.ic_sending_bitcoin,
+                    text = stringResource(R.string.nc_withdraw_to_an_address)
+                )
             ),
             onSelected = { index ->
                 onSweepOptionSelected(index)

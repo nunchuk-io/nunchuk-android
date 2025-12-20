@@ -1,11 +1,13 @@
 package com.nunchuk.android.compose
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,11 +23,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.core.R
 import kotlinx.coroutines.launch
+
+data class SelectableItem(
+    @DrawableRes val resId: Int,
+    val text: String
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,17 +86,78 @@ fun NcSelectableBottomSheet(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NcSelectableBottomSheetWithIcon(
+    sheetState: SheetState = rememberModalBottomSheetState(),
+    title: String? = null,
+    showSelectIndicator: Boolean = false,
+    items: List<SelectableItem>,
+    selectedPos: Int = -1,
+    onSelected: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    var selectedIndex by remember { mutableIntStateOf(selectedPos) }
+    ModalBottomSheet(
+        sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
+        onDismissRequest = onDismiss,
+        tonalElevation = 0.dp,
+        content = {
+            title?.let {
+                Text(
+                    text = it,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                    style = NunchukTheme.typography.title
+                )
+            }
+            LazyColumn(modifier = Modifier.padding(vertical = 16.dp)) {
+                itemsIndexed(items) { index, item ->
+                    val painter = item.resId?.let { painterResource(id = it) }
+                    NcSelectableBottomSheetItem(
+                        text = item.text,
+                        selected = index == selectedIndex && showSelectIndicator,
+                        painter = painter,
+                        onClick = {
+                            selectedIndex = index
+                            scope.launch {
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                onSelected(index)
+                                if (!sheetState.isVisible) {
+                                    onDismiss()
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        },
+        dragHandle = { }
+    )
+}
+
 @Composable
 private fun NcSelectableBottomSheetItem(
     text: String,
     selected: Boolean,
     onClick: () -> Unit,
+    painter: Painter? = null,
 ) {
     Row(
         modifier = Modifier
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
+        painter?.let {
+            NcIcon(
+                painter = it,
+                contentDescription = "Icon",
+                modifier = Modifier.padding(end = 12.dp).size(24.dp)
+            )
+        }
         Text(
             modifier = Modifier.weight(1f),
             text = text, style = NunchukTheme.typography.body
@@ -126,6 +195,81 @@ private fun NcSelectableBottomSheetNoTitlePreview() {
         NcSelectableBottomSheet(
             sheetState = rememberModalBottomSheetState(),
             options = listOf("Option 1", "Option 2", "Option 3"),
+            selectedPos = 1,
+            onSelected = {},
+            onDismiss = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun NcSelectableBottomSheetWithIconPreview() {
+    NunchukTheme {
+        NcSelectableBottomSheetWithIcon(
+            sheetState = rememberModalBottomSheetState(),
+            title = "Select Option",
+            items = listOf(
+                SelectableItem(
+                    resId = R.drawable.ic_wallet_info,
+                    text = "Withdraw to Nunchuk wallet"
+                ),
+                SelectableItem(
+                    resId = R.drawable.ic_sending_bitcoin,
+                    text = "Withdraw to an address"
+                )
+            ),
+            selectedPos = 0,
+            onSelected = {},
+            onDismiss = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun NcSelectableBottomSheetWithIconNoTitlePreview() {
+    NunchukTheme {
+        NcSelectableBottomSheetWithIcon(
+            sheetState = rememberModalBottomSheetState(),
+            items = listOf(
+                SelectableItem(
+                    resId = R.drawable.ic_wallet_info,
+                    text = "Withdraw to Nunchuk wallet"
+                ),
+                SelectableItem(
+                    resId = R.drawable.ic_sending_bitcoin,
+                    text = "Withdraw to an address"
+                )
+            ),
+            selectedPos = 1,
+            onSelected = {},
+            onDismiss = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+private fun NcSelectableBottomSheetWithIconMixedPreview() {
+    NunchukTheme {
+        NcSelectableBottomSheetWithIcon(
+            sheetState = rememberModalBottomSheetState(),
+            title = "Select Option",
+            showSelectIndicator = true,
+            items = listOf(
+                SelectableItem(
+                    resId = R.drawable.ic_wallet_info,
+                    text = "Option with icon"
+                ),
+                SelectableItem(
+                    resId = R.drawable.ic_sending_bitcoin,
+                    text = "Another option with icon"
+                )
+            ),
             selectedPos = 1,
             onSelected = {},
             onDismiss = {}
