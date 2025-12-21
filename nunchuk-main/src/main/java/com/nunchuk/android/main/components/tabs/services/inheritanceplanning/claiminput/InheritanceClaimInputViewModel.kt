@@ -68,7 +68,10 @@ class InheritanceClaimInputViewModel @Inject constructor(
         _event.emit(InheritanceClaimInputEvent.Loading(false))
         if (result.isSuccess) {
             val backupKeys = result.getOrThrow()
-            if (backupKeys.size != stateValue.formattedBackupPasswords.size) return@launch
+            if (backupKeys.size != stateValue.formattedBackupPasswords.size) {
+                _event.emit(InheritanceClaimInputEvent.Error("Invalid password. Unable to restore backup"))
+                return@launch
+            }
             val importMasterSigners = ArrayList<MasterSigner>()
             var errorMsg: String? = null
             backupKeys.forEachIndexed { index, backupKey ->
@@ -87,7 +90,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
                     if (resultImport.isSuccess) {
                         importMasterSigners.add(resultImport.getOrThrow())
                     } else {
-                        errorMsg = resultImport.exceptionOrNull()?.message.orUnknownError()
+                        errorMsg = "Invalid password. Unable to restore backup"
                     }
                 }
             }
@@ -97,7 +100,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
                 }
                 _event.emit(
                     InheritanceClaimInputEvent.Error(
-                        errorMsg ?: "Error importing backup keys"
+                        errorMsg ?: "Invalid password. Unable to restore backup"
                     )
                 )
                 return@launch
