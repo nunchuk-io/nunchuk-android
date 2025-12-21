@@ -21,6 +21,7 @@ package com.nunchuk.android.messages.components.list
 
 import com.nunchuk.android.messages.usecase.message.GroupWalletMessage
 import com.nunchuk.android.model.GroupChatRoom
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.RoomWallet
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 
@@ -32,6 +33,8 @@ data class RoomsState(
     val groupWalletMessages: List<GroupWalletMessage> = emptyList(),
     val matrixRooms: List<RoomSummary> = emptyList(),
     val groupWalletWalletIds: Set<String> = emptySet(),
+    val isClaimUser: Boolean = false,
+    val plans: List<MembershipPlan> = emptyList(),
 ) {
 
     companion object {

@@ -41,6 +41,7 @@ import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.usecase.GetAllRoomWalletsUseCase
 import com.nunchuk.android.usecase.GetGroupWalletMessageUnreadCountUseCase
 import com.nunchuk.android.usecase.membership.DeleteGroupChatUseCase
+import com.nunchuk.android.usecase.membership.IsCurrentUserClaimedWalletUseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -48,7 +49,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
@@ -57,7 +57,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -76,14 +75,11 @@ class RoomsViewModel @Inject constructor(
     getLocalMembershipPlansFlowUseCase: GetLocalMembershipPlansFlowUseCase,
     private val getGroupMessageAccountUseCase: GetGroupMessageAccountUseCase,
     private val getGroupWalletMessageUnreadCountUseCase: GetGroupWalletMessageUnreadCountUseCase,
+    private val isCurrentUserClaimedWalletUseCase: IsCurrentUserClaimedWalletUseCase,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : NunchukViewModel<RoomsState, RoomsEvent>() {
 
     override val initialState = RoomsState.empty()
-
-    val plans = getLocalMembershipPlansFlowUseCase(Unit)
-        .map { it.getOrElse { emptyList() } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private var listenJob: Job? = null
 
@@ -91,6 +87,26 @@ class RoomsViewModel @Inject constructor(
         listenRoomSummaries()
         getGroupMessageAccount()
         listenGroupMessages()
+        loadClaimUser()
+        viewModelScope.launch {
+            getLocalMembershipPlansFlowUseCase(Unit)
+                .map { it.getOrElse { emptyList() } }
+                .collect { updateState { copy(plans = it) } }
+        }
+    }
+
+    private fun loadClaimUser() {
+        viewModelScope.launch {
+            isCurrentUserClaimedWalletUseCase(Unit).map {
+                it.getOrElse { false }
+            }.collect { isClaimUser ->
+                updateState {
+                    copy(
+                        isClaimUser = isClaimUser
+                    )
+                }
+            }
+        }
     }
 
     private fun listenGroupMessages() {
@@ -129,7 +145,11 @@ class RoomsViewModel @Inject constructor(
     private fun updateGroupMessageUnreadCount(walletId: String) {
         viewModelScope.launch {
             delay(200)
-            getGroupWalletMessageUnreadCountUseCase(GetGroupWalletMessageUnreadCountUseCase.Params(walletId))
+            getGroupWalletMessageUnreadCountUseCase(
+                GetGroupWalletMessageUnreadCountUseCase.Params(
+                    walletId
+                )
+            )
                 .onSuccess { unreadCount ->
                     updateState {
                         copy(

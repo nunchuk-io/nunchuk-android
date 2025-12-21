@@ -31,13 +31,13 @@ import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.matrix.SessionHolder
-import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.messages.R
 import com.nunchuk.android.messages.components.list.RoomsEvent.LoadingEvent
 import com.nunchuk.android.messages.databinding.FragmentMessagesBinding
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.RoomWallet
 import com.nunchuk.android.widget.NCWarningDialog
 import com.nunchuk.android.widget.util.setOnDebounceClickListener
@@ -116,9 +116,6 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
     private fun observeEvent() {
         viewModel.state.observe(viewLifecycleOwner, ::handleState)
         viewModel.event.observe(viewLifecycleOwner, ::handleEvent)
-        flowObserver(viewModel.plans) {
-            handleShowEmptyState()
-        }
     }
 
     private fun handleState(state: RoomsState) {
@@ -135,17 +132,15 @@ class RoomsFragment : BaseFragment<FragmentMessagesBinding>() {
                     ((it as? RoomMessage.MatrixRoom)?.data?.shouldShow() == true)
         }
         adapter.submitList(visibleRooms)
-        handleShowEmptyState()
-
+        handleShowEmptyState(viewModel.getVisibleRooms().isNotEmpty(), state.plans, state.isClaimUser)
         hideLoading()
     }
 
-    private fun handleShowEmptyState() {
-        val visibleRooms = viewModel.getVisibleRooms()
-        val plans = viewModel.plans.value
-        binding.viewStubEmptyState.container.isVisible = visibleRooms.isEmpty() && plans.isEmpty()
+    private fun handleShowEmptyState(hasRoom: Boolean, plans: List<MembershipPlan>, isClaimUser: Boolean) {
+        val isPremiumUser = plans.isNotEmpty() || isClaimUser
+        binding.viewStubEmptyState.container.isVisible = !hasRoom && !isPremiumUser
         binding.containerEmptyPremiumUser.isVisible =
-            visibleRooms.isEmpty() && plans.isNotEmpty()
+            !hasRoom && isPremiumUser
     }
 
     private fun handleEvent(event: RoomsEvent) {
