@@ -39,15 +39,6 @@ sealed class InheritanceReviewPlanEvent {
 }
 
 data class InheritanceReviewPlanState(
-    // Removed duplicated properties that exist in InheritancePlanningParam.SetupOrReview:
-    // - activationDate (use param.activationDate)
-    // - note (use param.note)
-    // - isNotifyToday (use param.isNotify)
-    // - emails (use param.emails)
-    // - notificationSettings (use param.notificationSettings)
-    // - bufferPeriod (use param.bufferPeriod)
-    // - timeZoneId (use param.selectedZoneId)
-    
     val userData: String? = null,
     val walletId: String? = null,
     val walletName: String? = null,

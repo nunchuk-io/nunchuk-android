@@ -33,6 +33,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.Inh
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.VerificationType
+import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetWalletUseCase
 import com.nunchuk.android.usecase.byzantine.GetGroupRemoteUseCase
@@ -66,6 +67,7 @@ class InheritanceReviewPlanViewModel @Inject constructor(
 ) : ViewModel() {
 
     private lateinit var param: InheritancePlanningParam.SetupOrReview
+    private var initialParam: InheritancePlanningParam.SetupOrReview? = null
 
     internal val reviewFlow: ReviewFlow?
         get() = savedStateHandle.get<ReviewFlow>(EXTRA_REVIEW_FLOW)
@@ -76,10 +78,14 @@ class InheritanceReviewPlanViewModel @Inject constructor(
     private val _state = MutableStateFlow(InheritanceReviewPlanState())
     val state = _state.asStateFlow()
 
+    private val _isContinueButtonEnabled = MutableStateFlow(true)
+    val isContinueButtonEnabled = _isContinueButtonEnabled.asStateFlow()
+
     val remainTime = membershipStepManager.remainingTime
 
     fun init(param: InheritancePlanningParam.SetupOrReview) {
         this.param = param
+        initialParam = param.copy()
         getWalletName()
         if (param.groupId.isNotEmpty()) {
             getGroup()
@@ -88,6 +94,36 @@ class InheritanceReviewPlanViewModel @Inject constructor(
 
     fun update(param: InheritancePlanningParam.SetupOrReview) {
         this.param = param
+        updateContinueButtonState()
+    }
+
+    private fun updateContinueButtonState() {
+        val shouldEnable = param.planFlow == InheritancePlanFlow.SETUP ||
+                          (param.planFlow == InheritancePlanFlow.VIEW && hasDataChanged())
+        _isContinueButtonEnabled.value = shouldEnable
+    }
+
+    private fun hasDataChanged(): Boolean {
+        val initial = initialParam ?: return true
+
+        return initial.activationDate != param.activationDate ||
+                initial.selectedZoneId != param.selectedZoneId ||
+                initial.emails != param.emails ||
+                initial.isNotify != param.isNotify ||
+                initial.note != param.note ||
+                initial.bufferPeriod != param.bufferPeriod ||
+                !notificationSettingsEqual(initial.notificationSettings, param.notificationSettings)
+    }
+
+    private fun notificationSettingsEqual(
+        first: InheritanceNotificationSettings?,
+        second: InheritanceNotificationSettings?
+    ): Boolean {
+        if (first == null && second == null) return true
+        if (first == null || second == null) return false
+        
+        return first.emailMeWalletConfig == second.emailMeWalletConfig &&
+                first.perEmailSettings == second.perEmailSettings
     }
 
     private fun getGroup() {

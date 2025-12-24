@@ -129,6 +129,11 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
             }
         }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel.init(inheritanceViewModel.setupOrReviewParam)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -212,7 +217,6 @@ class InheritanceReviewPlanFragment : MembershipFragment(), BottomSheetOptionLis
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.init(inheritanceViewModel.setupOrReviewParam)
         flowObserver(viewModel.event) { event ->
             when (event) {
                 is InheritanceReviewPlanEvent.CalculateRequiredSignaturesSuccess -> {
@@ -306,6 +310,7 @@ fun InheritanceReviewPlanScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
+    val isContinueButtonEnabled by viewModel.isContinueButtonEnabled.collectAsStateWithLifecycle()
     val sharedUiState by inheritanceViewModel.state.collectAsStateWithLifecycle()
     val setupOrReviewParam = sharedUiState.setupOrReviewParam
 
@@ -322,6 +327,7 @@ fun InheritanceReviewPlanScreen(
         groupId = setupOrReviewParam.groupId,
         setupOrReviewParam = setupOrReviewParam,
         state = state,
+        isContinueButtonEnabled = isContinueButtonEnabled,
         onContinueClicked = {
             viewModel.calculateRequiredSignatures(flow = InheritanceReviewPlanViewModel.ReviewFlow.CREATE_OR_UPDATE)
         },
@@ -355,6 +361,7 @@ fun InheritanceReviewPlanScreenContent(
     setupOrReviewParam: InheritancePlanningParam.SetupOrReview = InheritancePlanningParam.SetupOrReview(
         walletId = ""
     ),
+    isContinueButtonEnabled: Boolean = true,
     onContinueClicked: () -> Unit = {},
     onShareSecretClicked: () -> Unit = {},
     onDiscardChange: () -> Unit = {},
@@ -423,7 +430,9 @@ fun InheritanceReviewPlanScreenContent(
                         NcPrimaryDarkButton(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp), onContinueClicked
+                                .padding(16.dp),
+                            enabled = isContinueButtonEnabled,
+                            onClick = onContinueClicked
                         ) {
                             Text(text = continueText)
                         }
