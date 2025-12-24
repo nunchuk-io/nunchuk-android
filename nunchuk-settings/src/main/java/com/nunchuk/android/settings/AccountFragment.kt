@@ -163,7 +163,7 @@ internal class AccountFragment : BaseCameraFragment<FragmentAccountBinding>() {
         binding.premiumBadge.text = getPlanName(state.plans)
         binding.inviteFriendsView.isVisible = state.campaign?.isValid().orFalse() && (state.isHasWallet ||  state.campaign?.type == CampaignType.DOWNLOAD)
         binding.llCampaigns.isVisible = state.campaign?.cta.isNullOrEmpty().not() && state.campaign.type != CampaignType.DOWNLOAD
-        binding.tvCampaigns.text = state.campaign?.cta.orEmpty()
+        binding.tvCampaigns.text = state.campaign?.profileCta.orEmpty()
     }
 
     private fun openAboutScreen() {
