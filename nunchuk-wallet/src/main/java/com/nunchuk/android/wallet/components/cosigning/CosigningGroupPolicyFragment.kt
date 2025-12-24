@@ -336,7 +336,7 @@ private fun CosigningGroupPolicyContent(
                         modifier = Modifier
                             .padding(16.dp)
                             .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(24.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
@@ -345,7 +345,6 @@ private fun CosigningGroupPolicyContent(
                             style = NunchukTheme.typography.body
                         )
                         Text(
-                            modifier = Modifier.weight(1.0f),
                             textAlign = TextAlign.End,
                             text = if (isAutoBroadcast)
                                 stringResource(R.string.nc_on)
@@ -365,7 +364,7 @@ private fun CosigningGroupPolicyContent(
                         modifier = Modifier
                             .padding(16.dp)
                             .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(24.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
@@ -403,7 +402,6 @@ private fun CosigningGroupPolicyContent(
                             }"
                         }
                         Text(
-                            modifier = Modifier.weight(1.0f),
                             textAlign = TextAlign.End,
                             text = delayTime,
                             style = NunchukTheme.typography.title.copy(fontWeight = FontWeight.Bold)
