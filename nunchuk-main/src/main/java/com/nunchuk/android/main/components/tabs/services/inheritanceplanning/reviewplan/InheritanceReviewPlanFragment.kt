@@ -424,7 +424,7 @@ fun InheritanceReviewPlanScreenContent(
                     val continueText = if (planFlow == InheritancePlanFlow.SETUP) {
                         stringResource(id = R.string.nc_text_continue)
                     } else {
-                        stringResource(id = R.string.nc_continue_to_finalize_changes)
+                        stringResource(id = R.string.nc_save)
                     }
                     if (isEditable) {
                         NcPrimaryDarkButton(
