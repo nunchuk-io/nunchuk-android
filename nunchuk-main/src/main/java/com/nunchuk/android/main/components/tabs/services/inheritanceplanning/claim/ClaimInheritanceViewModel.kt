@@ -251,12 +251,17 @@ class ClaimInheritanceViewModel @Inject constructor(
     }
 
     fun getClaimingWallet(bsms: String) = viewModelScope.launch {
-        parseWalletDescriptorUseCase(bsms).onSuccess { wallet ->
-            getClaimingWalletUseCase(wallet.id).onSuccess { wallet ->
+        parseWalletDescriptorUseCase(bsms).onSuccess { localWallet ->
+            getClaimingWalletUseCase(localWallet.id).onSuccess { wallet ->
                 _uiState.update {
                     it.copy(
-                        walletId = wallet.id,
-                        isRequiredRegister = wallet.requiresRegistration
+                        walletId = wallet.localId,
+                        isRequiredRegister = wallet.requiresRegistration,
+                    )
+                }
+                _claimData.update {
+                    it.copy(
+                        walletType = wallet.walletType,
                     )
                 }
             }
@@ -325,5 +330,8 @@ data class ClaimData(
 ) : Parcelable {
     val requiredSigners: List<SignerModel>
         get() = signers.takeIf { bsms.isNullOrEmpty() }.orEmpty().toList()
+
+    val isOnChainClaim: Boolean
+        get() = !bsms.isNullOrEmpty()
 }
 

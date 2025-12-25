@@ -20,6 +20,7 @@ fun NavGraphBuilder.claimNote(
     snackState: SnackbarHostState,
     onDoneClick: () -> Unit = {},
     onWithdrawClick: () -> Unit = {},
+    onViewWallet: () -> Unit = {},
 ) {
     composable<ClaimNoteRoute> {
         val activity = LocalActivity.current as ComponentActivity
@@ -31,10 +32,10 @@ fun NavGraphBuilder.claimNote(
             ClaimNoteScreen(
                 snackState = snackState,
                 inheritanceAdditional = inheritanceAdditional,
-                onDoneClick = {
-                    onDoneClick()
-                },
+                onDoneClick = onDoneClick,
+                isOnChainClaim = claimData.isOnChainClaim,
                 onWithdrawClick = onWithdrawClick,
+                onViewWallet = onViewWallet
             )
         }
     }

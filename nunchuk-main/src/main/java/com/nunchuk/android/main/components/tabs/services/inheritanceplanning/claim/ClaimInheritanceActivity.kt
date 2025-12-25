@@ -343,6 +343,12 @@ private fun ClaimInheritanceGraph(
             )
             claimNote(
                 snackState = snackbarHostState,
+                onViewWallet = {
+                    navigator.openWalletDetailsScreen(
+                        activityContext = context,
+                        walletId = sharedUiState.walletId
+                    )
+                },
                 onDoneClick = {
                     activity.finish()
                 },

@@ -514,4 +514,5 @@
     <string name="nc_invalid_date_title">Invalid date</string>
     <string name="nc_invalid_date_message">The timelock date cannot be in the past. Please select a future date.</string>
     <string name="nc_inheritance_notify_pref_on_chain_desc">Would you like us to notify the Beneficiary or Trustee about the inheritance plan?</string>
+    <string name="nc_view_wallet">View wallet</string>
 </resources>
