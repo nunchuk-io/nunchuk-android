@@ -61,7 +61,11 @@ class OnChainTimelockExplanationFragment : MembershipFragment() {
                 val activity = requireActivity() as? MembershipActivity
                 val groupId = activity?.groupId.orEmpty()
                 val slug = activity?.slug
-                val allowInheritance = args.config?.allowInheritance ?: false
+                val allowInheritance = if (groupId.isEmpty()) {
+                    true
+                } else {
+                    args.config?.allowInheritance ?: false
+                }
 
                 OnChainTimelockExplanationScreen(
                     groupId = groupId,
