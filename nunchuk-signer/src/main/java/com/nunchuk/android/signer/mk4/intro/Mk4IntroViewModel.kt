@@ -226,7 +226,7 @@ class Mk4IntroViewModel @Inject constructor(
                     if (createSignerResult.isSuccess) {
                         // force type coldcard nfc in case we import hardware key first
                         if (onChainAddSignerParam?.isClaiming == true) {
-                            pushEventManager.push(PushEvent.LocalUserSignerAdded(signer))
+                            pushEventManager.push(PushEvent.ClaimSignerAdded(signer))
                         } else if (replacedXfp.isNullOrEmpty()) {
                             val coldcardSigner =
                                 createSignerResult.getOrThrow()

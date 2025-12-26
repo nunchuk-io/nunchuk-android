@@ -192,7 +192,7 @@ private fun ClaimInheritanceGraph(
 
     LaunchedEffect(Unit) {
         pushEventManager.event.collectLatest { event ->
-            if (event is PushEvent.LocalUserSignerAdded) {
+            if (event is PushEvent.ClaimSignerAdded) {
                 val signer = event.signer
                 navController.popBackStack<ClaimMagicPhraseRoute>(false)
                 activityViewModel.addSigner(signer.toModel())

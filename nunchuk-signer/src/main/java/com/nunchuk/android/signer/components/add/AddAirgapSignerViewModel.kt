@@ -24,6 +24,7 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.nunchuk.android.arch.vm.NunchukViewModel
+import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.push.PushEvent
@@ -38,6 +39,7 @@ import com.nunchuk.android.core.util.formattedName
 import com.nunchuk.android.core.util.getFileFromUri
 import com.nunchuk.android.core.util.isIdentical
 import com.nunchuk.android.core.util.isValidPathForAssistedWallet
+import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.MembershipStepInfo
@@ -72,6 +74,7 @@ import com.nunchuk.android.usecase.membership.SetReplaceKeyVerifiedUseCase
 import com.nunchuk.android.usecase.membership.SyncKeyUseCase
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
 import com.nunchuk.android.usecase.replace.ReplaceKeyUseCase
+import com.nunchuk.android.usecase.signer.GetRemoteOrMasterSignerUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import com.nunchuk.android.utils.CrashlyticsReporter
 import com.nunchuk.android.utils.onException
@@ -115,6 +118,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
     private val pushEventManager: PushEventManager,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
+    private val getRemoteOrMasterSignerUseCase: GetRemoteOrMasterSignerUseCase,
 ) : NunchukViewModel<Unit, AddAirgapSignerEvent>() {
     private val qrDataList = HashSet<String>()
     private var isProcessing = false
@@ -139,7 +143,13 @@ internal class AddAirgapSignerViewModel @Inject constructor(
 
     val remainTime = membershipStepManager.remainingTime
 
-    fun init(groupId: String, isMembershipFlow: Boolean, replacedXfp: String?, walletId: String, onChainAddSignerParam: OnChainAddSignerParam? = null) {
+    fun init(
+        groupId: String,
+        isMembershipFlow: Boolean,
+        replacedXfp: String?,
+        walletId: String,
+        onChainAddSignerParam: OnChainAddSignerParam? = null
+    ) {
         this.groupId = groupId
         this.isMembershipFlow = isMembershipFlow
         this.replacedXfp = replacedXfp
@@ -215,7 +225,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                 _state.update { it.copy(showKeyNameError = true) }
                 return@launch
             }
-            if (onChainAddSignerParam != null ) {
+            if (onChainAddSignerParam != null) {
                 val signer = signerInput.toSingleSigner(newSignerName, signerTag)
                 if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
                     val currentSigner = onChainAddSignerParam!!.currentSigner
@@ -229,9 +239,10 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                             setEvent(LoadingEventAirgap(false))
                             return@launch
                         }
-                        
-                        val newAccountIndex = getIndexFromPathUseCase(signer.derivationPath).getOrElse { 0 }
-                        
+
+                        val newAccountIndex =
+                            getIndexFromPathUseCase(signer.derivationPath).getOrElse { 0 }
+
                         if (newAccountIndex != 0) {
                             setEvent(
                                 AddAirgapSignerErrorEvent(
@@ -245,7 +256,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     setEvent(AddAirgapSignerSuccessEvent(signer))
                     setEvent(LoadingEventAirgap(false))
                     return@launch
-                } else if (onChainAddSignerParam != null && signer.masterFingerprint != onChainAddSignerParam!!.currentSigner?.fingerPrint && onChainAddSignerParam!!.keyIndex > 0){
+                } else if (onChainAddSignerParam != null && signer.masterFingerprint != onChainAddSignerParam!!.currentSigner?.fingerPrint && onChainAddSignerParam!!.keyIndex > 0) {
                     setEvent(
                         AddAirgapSignerErrorEvent(
                             "The added key has an XFP mismatch. Please use the same device for both keys."
@@ -275,11 +286,17 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             }
             val formatedDerivationPath = signerInput.derivationPath
                 .replace("'", "h")
-            if (newIndex >= 0 && walletType == WalletType.MULTI_SIG && !formatedDerivationPath.endsWith("${newIndex}h/2h")) {
+            if (newIndex >= 0 && walletType == WalletType.MULTI_SIG && !formatedDerivationPath.endsWith(
+                    "${newIndex}h/2h"
+                )
+            ) {
                 setEvent(AddAirgapSignerEvent.NewIndexNotMatchException)
                 return@launch
             }
-            if (newIndex >= 0 && walletType == WalletType.SINGLE_SIG && !formatedDerivationPath.endsWith("${newIndex}h")) {
+            if (newIndex >= 0 && walletType == WalletType.SINGLE_SIG && !formatedDerivationPath.endsWith(
+                    "${newIndex}h"
+                )
+            ) {
                 setEvent(AddAirgapSignerEvent.NewIndexNotMatchException)
                 return@launch
             }
@@ -316,11 +333,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                 pushEventManager.push(PushEvent.LocalUserSignerAdded(airgap))
                 if (isMembershipFlow) {
                     if (onChainAddSignerParam?.isClaiming == true) {
-                        pushEventManager.push(
-                            PushEvent.LocalUserSignerAdded(
-                                airgap
-                            )
-                        )
+                        pushEventManager.push(PushEvent.ClaimSignerAdded(airgap))
                     } else if (walletId.isNotEmpty() && !replacedXfp.isNullOrEmpty()) {
                         replaceKeyUseCase(
                             ReplaceKeyUseCase.Param(
@@ -374,7 +387,22 @@ internal class AddAirgapSignerViewModel @Inject constructor(
                     setEvent(AddAirgapSignerSuccessEvent(result.getOrThrow()))
                 }
             } else {
-                setEvent(AddAirgapSignerErrorEvent(result.exceptionOrNull()?.message.orUnknownError()))
+                val exception = result.exceptionOrNull()
+                if (exception?.nativeErrorCode() == NativeErrorCode.SIGNER_EXISTS && onChainAddSignerParam?.isClaiming == true) {
+                    getRemoteOrMasterSignerUseCase(
+                        GetRemoteOrMasterSignerUseCase.Data(
+                            id = signerInput.fingerPrint,
+                            derivationPath = signerInput.derivationPath
+                        )
+                    ).onSuccess {
+                        pushEventManager.push(PushEvent.ClaimSignerAdded(it))
+                        setEvent(AddAirgapSignerSuccessEvent(it))
+                    }.onFailure {
+                        setEvent(AddAirgapSignerErrorEvent(exception.message.orUnknownError()))
+                    }
+                } else {
+                    setEvent(AddAirgapSignerErrorEvent(exception?.message.orUnknownError()))
+                }
             }
             setEvent(LoadingEventAirgap(false))
         }
@@ -489,7 +517,7 @@ internal class AddAirgapSignerViewModel @Inject constructor(
             }
         }
     }
-    
+
     fun setKeyVerified(groupId: String, masterSignerId: String) {
         viewModelScope.launch {
             setKeyVerifiedUseCase(

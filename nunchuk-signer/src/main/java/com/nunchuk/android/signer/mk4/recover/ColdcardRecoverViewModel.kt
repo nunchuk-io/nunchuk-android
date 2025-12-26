@@ -267,7 +267,7 @@ class ColdcardRecoverViewModel @Inject constructor(
                 val coldcardSigner = createSignerResult.getOrThrow()
                 if (onChainAddSignerParam?.isClaiming == true) {
                     pushEventManager.push(
-                        PushEvent.LocalUserSignerAdded(coldcardSigner)
+                        PushEvent.ClaimSignerAdded(coldcardSigner)
                     )
                 } else if (replacedXfp.isNullOrEmpty()) {
                     val walletType = syncDraftWalletUseCase(groupId).getOrNull()?.walletType

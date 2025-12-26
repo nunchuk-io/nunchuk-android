@@ -1,16 +1,4 @@
 <resources>
-    <string name="nc_text_get_started">Get Started</string>
-    <string name="nc_text_welcome_to_nunchuk">Welcome to Nunchuk</string>
-    <string name="nc_text_intro">Where private messaging meets the safest Bitcoin wallet.</string>
-    <string name="nc_txt_message_function_require_an_account">Please create an account</string>
-    <string name="nc_txt_message_function_require_des">Accounts are required for interpersonal messaging and collaborative wallet features.</string>
-    <string name="nc_txt_guest_mode_got_it">Got it</string>
-    <string name="nc_txt_guest_mode_intro_1">Guest mode allows you to create keys and wallets without an account. Please consider the following before using—</string>
-    <string name="nc_txt_guest_mode_intro_2">Keys and wallets created in guest mode are stored locally. They will not be removed until you manually delete them or uninstall the app.</string>
-    <string name="nc_txt_guest_mode_intro_3">Messaging and collaborative multisig wallets (*) are currently not available in guest mode.</string>
-    <string name="nc_txt_guest_mode_intro_4">*A collaborative multisig wallet is a wallet where you co-manage bitcoin with other people.</string>
-    <string name="nc_txt_guest_mode_header_1">1</string>
-    <string name="nc_txt_guest_mode_header_2">2</string>
     <string name="nc_quick_create_a_hot_wallet_desc">Quickly create a hot wallet for immediate use and back it up later.</string>
     <string name="nc_create_a_hot_wallet_now">Create a hot wallet now</string>
     <string name="nc_i_ll_explore_on_my_own">I’ll explore on my own</string>
