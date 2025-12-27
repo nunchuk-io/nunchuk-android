@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -46,10 +45,6 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class AirgapActionQRIntroFragment : MembershipFragment() {
 
-    private val isMembershipFlow: Boolean by lazy {
-        (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
-    }
-
     private val onChainAddSignerParam: OnChainAddSignerParam? by lazy {
         (requireActivity() as AddAirgapSignerActivity).onChainAddSignerParam
     }
@@ -62,7 +57,6 @@ class AirgapActionQRIntroFragment : MembershipFragment() {
         savedInstanceState: Bundle?
     ): View {
         val isMembershipFlow = (requireActivity() as AddAirgapSignerActivity).isMembershipFlow
-        val signerTag = (requireActivity() as AddAirgapSignerActivity).signerTag
         val replacedXfp = (requireActivity() as AddAirgapSignerActivity).replacedXfp.orEmpty()
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -116,12 +110,21 @@ internal fun AirgapActionQRIntroScreen(
                     }
                 }
             )
+        }, bottomBar = {
+            NcPrimaryDarkButton(
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                onClick = onContinueClicked,
+            ) {
+                Text(text = stringResource(id = R.string.nc_text_continue))
+            }
         }) { innerPadding ->
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
                     .padding(innerPadding)
-                    .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
                 val keyIndex = if (onChainAddSignerParam != null && onChainAddSignerParam.keyIndex >= 0) onChainAddSignerParam.keyIndex else 0
@@ -189,16 +192,6 @@ internal fun AirgapActionQRIntroScreen(
                         text = stringResource(id = R.string.nc_scan_qr_code_desc),
                         style = NunchukTheme.typography.body
                     )
-                }
-                Spacer(modifier = Modifier.weight(1.0f))
-
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClicked,
-                ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
                 }
             }
         }
