@@ -150,7 +150,12 @@ class AddReceiptFragment : BaseFragment<ActivityTransactionAddReceiptBinding>() 
         }
         binding.btnCreateTransaction.setOnDebounceClickListener {
             transactionConfirmViewModel.setCustomizeTransaction(false)
-            viewModel.handleContinueEvent(true)
+            val receiptInput = binding.receiptInput.text.toString()
+            if (receiptInput.startsWith("bitcoin:", ignoreCase = true)) {
+                viewModel.parseBtcUriAndContinue(receiptInput)
+            } else {
+                viewModel.handleContinueEvent(true)
+            }
         }
         binding.btnCustomFee.setOnDebounceClickListener {
             transactionConfirmViewModel.setCustomizeTransaction(true)
