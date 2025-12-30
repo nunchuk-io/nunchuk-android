@@ -215,4 +215,8 @@
     <string name="nc_please_back_up_your_key">Please back up your key.</string>
     <string name="nc_do_it_now">Do it now.</string>
     <string name="nc_pending_backup">Pending backup</string>
+    <string name="nc_view_seed_phrase">View seed phrase</string>
+    <string name="nc_security_timeout">Security Timeout</string>
+    <string name="nc_security_timeout_message">For security reasons, you\'ll need to wait %1$s before you can view your seed phrase.</string>
+    <string name="nc_confirm">Confirm</string>
 </resources>

@@ -70,6 +70,8 @@ import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.byzantine.KeyHealthCheckUseCase
 import com.nunchuk.android.usecase.membership.GetAssistedKeysUseCase
 import com.nunchuk.android.usecase.membership.UpdateServerKeyNameUseCase
+import com.nunchuk.android.usecase.signer.GetSeedPhraseViewTimestampUseCase
+import com.nunchuk.android.usecase.signer.SaveSeedPhraseViewTimestampUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -111,6 +113,8 @@ internal class SignerInfoViewModel @Inject constructor(
     private val assistedWalletManager: AssistedWalletManager,
     private val keyHealthCheckUseCase: KeyHealthCheckUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
+    private val saveSeedPhraseViewTimestampUseCase: SaveSeedPhraseViewTimestampUseCase,
+    private val getSeedPhraseViewTimestampUseCase: GetSeedPhraseViewTimestampUseCase,
     savedStateHandle: SavedStateHandle,
     getAssistedKeysUseCase: GetAssistedKeysUseCase,
 ) : ViewModel() {
@@ -183,6 +187,13 @@ internal class SignerInfoViewModel @Inject constructor(
             delay(500)
             val assistedWalletIds = checkAssistedSignerExistenceHelper.getAssistedWallets(signer)
             _state.update { state -> state.copy(assistedWalletIds = assistedWalletIds) }
+        }
+        
+        viewModelScope.launch {
+            if (args.isMasterSigner && args.signerType == SignerType.SOFTWARE) {
+                val timestamp = getSeedPhraseViewTimestampUseCase(args.masterFingerprint).getOrNull()?.takeIf { it > 0L }
+                _state.update { state -> state.copy(seedPhraseViewTimestamp = timestamp) }
+            }
         }
     }
 
@@ -463,4 +474,21 @@ internal class SignerInfoViewModel @Inject constructor(
             isMasterSigner = args.isMasterSigner,
             type = args.signerType
         )
+
+    fun saveSeedPhraseViewTimestamp(masterFingerprint: String) {
+        viewModelScope.launch {
+            val timeStamp = System.currentTimeMillis()
+            saveSeedPhraseViewTimestampUseCase(SaveSeedPhraseViewTimestampUseCase.Param(masterFingerprint, timeStamp))
+            _state.update { state -> state.copy(seedPhraseViewTimestamp = timeStamp) }
+        }
+    }
+
+    fun removeSeedPhraseViewTimestamp(masterFingerprint: String) {
+        viewModelScope.launch {
+            viewModelScope.launch {
+                saveSeedPhraseViewTimestampUseCase(SaveSeedPhraseViewTimestampUseCase.Param(masterFingerprint, -1))
+                _state.update { state -> state.copy(seedPhraseViewTimestamp = null) }
+            }
+        }
+    }
 }

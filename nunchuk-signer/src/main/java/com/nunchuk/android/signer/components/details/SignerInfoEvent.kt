@@ -66,4 +66,5 @@ data class SignerInfoState(
     val signerName: String = "",
     val assistedWalletIds: List<String> = emptyList(),
     val backupKeyPath: String = "",
+    val seedPhraseViewTimestamp: Long? = null,
 )

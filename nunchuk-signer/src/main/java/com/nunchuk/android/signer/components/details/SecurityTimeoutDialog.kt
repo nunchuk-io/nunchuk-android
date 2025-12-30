@@ -17,42 +17,36 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.signer.components.details
 
-import com.nunchuk.android.model.PKeySignInResponse
-import com.nunchuk.android.model.PKeySignUpResponse
-import com.nunchuk.android.model.UserResponse
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
+import com.nunchuk.android.signer.R
+import java.util.Locale
 
-interface SignerSoftwareRepository {
-    suspend fun getPKeyNonce(address: String?, username: String): String
-    suspend fun postPKeyNonce(
-        address: String?,
-        username: String,
-        nonce: String?,
-        isChangeKey: Boolean
-    ): String
+@Composable
+fun SecurityTimeoutDialog(
+    remainingTimeMs: Long,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit = onDismiss,
+) {
+    val totalMinutes = (remainingTimeMs / (60 * 1000)).toInt()
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    val timeString = String.format(Locale.getDefault(), "%02d:%02d", hours, minutes)
 
-    suspend fun pKeySignUp(
-        address: String,
-        username: String,
-        signature: String
-    ): PKeySignUpResponse
+    val message = stringResource(
+        id = R.string.nc_security_timeout_message, timeString
+    )
 
-    suspend fun pKeySignIn(
-        address: String?,
-        username: String,
-        signature: String
-    ): PKeySignInResponse
-
-    suspend fun pKeyUserInfo(address: String): UserResponse
-
-    suspend fun pKeyCheckUsername(username: String)
-
-    suspend fun pKeyChangeKey(newKey: String, oldSignedMessage: String, newSignedMessage: String)
-
-    suspend fun pKeyDeleteAccount(signedMessage: String)
-
-    suspend fun saveSeedPhraseViewTimestamp(masterFingerprint: String, timestamp: Long)
-
-    suspend fun getSeedPhraseViewTimestamp(masterFingerprint: String): Long?
+    NcConfirmationDialog(
+        title = stringResource(id = R.string.nc_security_timeout),
+        message = message,
+        positiveButtonText = stringResource(id = R.string.nc_confirm),
+        negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_cancel),
+        onPositiveClick = onConfirm,
+        onDismiss = onDismiss
+    )
 }
+

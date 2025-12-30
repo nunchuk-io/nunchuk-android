@@ -47,10 +47,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -89,6 +94,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.compose.latoBold
 import com.nunchuk.android.compose.textPrimary
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.domain.data.CheckFirmwareVersion
 import com.nunchuk.android.core.nfc.BaseNfcActivity.Companion.REQUEST_GENERATE_HEAL_CHECK_MSG
@@ -128,84 +134,97 @@ import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.NCWarningDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.isActive
+import java.util.Locale
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.seconds
 
 @AndroidEntryPoint
 class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
     SingerInfoOptionBottomSheet.OptionClickListener {
 
-    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding {
-        TODO("Not yet implemented")
-    }
+    override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): ViewBinding =
+        ViewBinding {
+            ComposeView(requireContext()).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+
+                setContent {
+                    val uiState by viewModel.state.collectAsStateWithLifecycle()
+                    val isPrimaryKey =
+                        uiState.masterSigner?.let { viewModel.isPrimaryKey(it.device.masterFingerprint) } == true
+                    SignerInfoContent(
+                        uiState = uiState,
+                        isPrimaryKey = isPrimaryKey,
+                        justAdded = args.justAdded,
+                        onBackClicked = ::openMainScreen,
+                        onMoreClicked = {
+                            val type = viewModel.state.value.masterSigner?.type
+                                ?: viewModel.state.value.remoteSigner?.type
+                            type?.let { signerType ->
+                                SingerInfoOptionBottomSheet.newInstance(signerType)
+                                    .show(childFragmentManager, "SingerInfoOptionBottomSheet")
+                            }
+                        },
+                        onDoneClicked = ::openMainScreen,
+                        onEditClicked = { onEditClicked(uiState.signerName) },
+                        onHealthCheckClicked = ::handleRunHealthCheck,
+                        onHistoryItemClick = {
+                            navigator.openTransactionDetailsScreen(
+                                activityContext = requireActivity(),
+                                walletId = it.walletLocalId,
+                                txId = it.transactionId,
+                                roomId = ""
+                            )
+                        },
+                        onBackupKeyClicked = {
+                            navigator.openCreateNewSeedScreen(
+                                activityContext = requireActivity(),
+                                walletId = "",
+                                backupHotKeySignerId = args.id
+                            )
+                        },
+                        onViewSeedPhraseClicked = {
+                            if (uiState.seedPhraseViewTimestamp == null) {
+                                viewModel.saveSeedPhraseViewTimestamp(args.id)
+                            } else {
+                                viewModel.removeSeedPhraseViewTimestamp(args.id)
+                                navigator.openCreateNewSeedScreen(
+                                    activityContext = requireActivity(),
+                                    masterSignerId = args.id,
+                                    passphrase = ""
+                                )
+                            }
+                        }
+                    )
+                }
+
+                if (args.existingKey != null) {
+                    NCInfoDialog(requireActivity()).showDialog(
+                        message = String.format(
+                            getString(R.string.nc_software_key_removed_from_device),
+                            args.name
+                        ),
+                        btnYes = getString(R.string.nc_delete_key),
+                        btnInfo = getString(R.string.nc_text_cancel),
+                        onYesClick = {
+                            args.existingKey?.let {
+                                viewModel.updateExistingKey(it, true)
+                            }
+                        },
+                        onInfoClick = {
+                            requireActivity().finish()
+                        }
+                    )
+                }
+            }
+        }
 
     private val viewModel: SignerInfoViewModel by viewModels()
     private val nfcViewModel: NfcViewModel by activityViewModels()
 
     private val args: SignerInfoFragmentArgs by navArgs()
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-            setContent {
-                val uiState by viewModel.state.collectAsStateWithLifecycle()
-                val isPrimaryKey =
-                    uiState.masterSigner?.let { viewModel.isPrimaryKey(it.device.masterFingerprint) } == true
-                SignerInfoContent(
-                    uiState = uiState, isPrimaryKey = isPrimaryKey,
-                    justAdded = args.justAdded,
-                    onBackClicked = ::openMainScreen,
-                    onMoreClicked = {
-                        val type = viewModel.state.value.masterSigner?.type
-                            ?: viewModel.state.value.remoteSigner?.type
-                        type?.let { signerType ->
-                            SingerInfoOptionBottomSheet.newInstance(signerType)
-                                .show(childFragmentManager, "SingerInfoOptionBottomSheet")
-                        }
-                    },
-                    onDoneClicked = ::openMainScreen,
-                    onEditClicked = { onEditClicked(uiState.signerName) },
-                    onHealthCheckClicked = ::handleRunHealthCheck,
-                    onHistoryItemClick = {
-                        navigator.openTransactionDetailsScreen(
-                            activityContext = requireActivity(),
-                            walletId = it.walletLocalId,
-                            txId = it.transactionId,
-                            roomId = ""
-                        )
-                    },
-                    onBackupKeyClicked = {
-                        navigator.openCreateNewSeedScreen(
-                            activityContext = requireActivity(),
-                            walletId = "",
-                            backupHotKeySignerId = args.id
-                        )
-                    }
-                )
-            }
-
-            if (args.existingKey != null) {
-                NCInfoDialog(requireActivity()).showDialog(
-                    message = String.format(
-                        getString(R.string.nc_software_key_removed_from_device),
-                        args.name
-                    ),
-                    btnYes = getString(R.string.nc_delete_key),
-                    btnInfo = getString(R.string.nc_text_cancel),
-                    onYesClick = {
-                        args.existingKey?.let {
-                            viewModel.updateExistingKey(it, true)
-                        }
-                    },
-                    onInfoClick = {
-                        requireActivity().finish()
-                    }
-                )
-            }
-        }
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -546,6 +565,8 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
     }
 }
 
+val timeoutDurationMs = 2.hours.inWholeMilliseconds
+
 @Composable
 private fun SignerInfoContent(
     uiState: SignerInfoState = SignerInfoState(),
@@ -557,7 +578,8 @@ private fun SignerInfoContent(
     onEditClicked: () -> Unit = {},
     onHealthCheckClicked: () -> Unit = {},
     onBackupKeyClicked: () -> Unit = {},
-    onHistoryItemClick: (HealthCheckHistory) -> Unit = {}
+    onHistoryItemClick: (HealthCheckHistory) -> Unit = {},
+    onViewSeedPhraseClicked: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val label by remember(uiState.lastHealthCheckTimeMillis) {
@@ -568,11 +590,28 @@ private fun SignerInfoContent(
     val color = uiState.lastHealthCheckTimeMillis.healthCheckTimeColor()
     val isMyKey = uiState.masterSigner?.isVisible ?: uiState.remoteSigner?.isVisible ?: false
     val isHotKey = uiState.masterSigner?.isNeedBackup == true
+    val isSoftwareSigner = uiState.masterSigner?.type == SignerType.SOFTWARE
+    var showSecurityTimeoutDialog by remember { mutableStateOf(false) }
+    var remainingTimeMs by remember { mutableLongStateOf(0L) }
+
+    LaunchedEffect(uiState.seedPhraseViewTimestamp) {
+        val timestamp = uiState.seedPhraseViewTimestamp
+        while (isActive) {
+            if (timestamp == null) {
+                remainingTimeMs = 0L
+            } else {
+                val currentTime = System.currentTimeMillis()
+                val elapsedTime = currentTime - timestamp
+                val remaining = timeoutDurationMs - elapsedTime
+                remainingTimeMs = if (remaining > 0) remaining else 0L
+            }
+            delay(30.seconds)
+        }
+    }
 
     NunchukTheme {
         Scaffold(
-            modifier = Modifier
-                .navigationBarsPadding(),
+            modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 Column(
                     modifier = Modifier
@@ -620,7 +659,10 @@ private fun SignerInfoContent(
                                 val annotatedText = buildAnnotatedString {
                                     append(stringResource(R.string.nc_please_back_up_your_key))
                                     append(" ")
-                                    pushStringAnnotation(tag = "DO_IT_NOW", annotation = "do_it_now")
+                                    pushStringAnnotation(
+                                        tag = "DO_IT_NOW",
+                                        annotation = "do_it_now"
+                                    )
                                     withStyle(
                                         style = SpanStyle(
                                             textDecoration = TextDecoration.Underline
@@ -632,7 +674,11 @@ private fun SignerInfoContent(
                                 }
                                 Text(
                                     text = annotatedText,
-                                    style = NunchukTheme.typography.titleSmall.copy(color = colorResource(R.color.nc_primary_dark_color))
+                                    style = NunchukTheme.typography.titleSmall.copy(
+                                        color = colorResource(
+                                            R.color.nc_primary_dark_color
+                                        )
+                                    )
                                 )
                             }
                         )
@@ -722,7 +768,10 @@ private fun SignerInfoContent(
                 }
             },
             bottomBar = {
-                Column(modifier = Modifier.padding()) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
                     if (justAdded && isHotKey.not()) {
                         NcPrimaryDarkButton(
                             modifier = Modifier
@@ -734,18 +783,58 @@ private fun SignerInfoContent(
                         }
                     }
                     if (isMyKey) {
-                        NcOutlineButton(
+                        NcPrimaryDarkButton(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(
-                                    start = 16.dp,
-                                    end = 16.dp,
-                                    top = if (justAdded) 0.dp else 16.dp,
-                                    bottom = 16.dp
-                                ),
+                                .fillMaxWidth(),
                             onClick = onHealthCheckClicked
                         ) {
-                            Text(text = if (isHotKey) stringResource(id = R.string.nc_txt_health_check) else stringResource(id = R.string.nc_txt_run_health_check))
+                            Text(
+                                text = if (isHotKey) stringResource(id = R.string.nc_txt_health_check) else stringResource(
+                                    id = R.string.nc_txt_run_health_check
+                                )
+                            )
+                        }
+                    }
+                    if (isSoftwareSigner) {
+                        val buttonText = if (remainingTimeMs > 0) {
+                            val totalMinutes = (remainingTimeMs / (60 * 1000)).toInt()
+                            val hours = totalMinutes / 60
+                            val minutes = totalMinutes % 60
+                            val timeString =
+                                String.format(Locale.getDefault(), "%02d:%02d", hours, minutes)
+                            stringResource(id = R.string.nc_view_seed_phrase) + " in $timeString"
+                        } else {
+                            stringResource(id = R.string.nc_view_seed_phrase)
+                        }
+
+                        if (uiState.seedPhraseViewTimestamp != null && remainingTimeMs <= 0) {
+                            NcOutlineButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = onViewSeedPhraseClicked
+                            ) {
+                                Text(text = buttonText)
+                            }
+                        } else {
+                            val isEnabled = remainingTimeMs <= 0
+                            TextButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = isEnabled,
+                                onClick = {
+                                    onViewSeedPhraseClicked()
+                                    showSecurityTimeoutDialog = true
+                                }
+                            ) {
+                                Text(
+                                    text = buttonText,
+                                    style = NunchukTheme.typography.title.copy(
+                                        color = if (isEnabled) {
+                                            MaterialTheme.colorScheme.textPrimary
+                                        } else {
+                                            MaterialTheme.colorScheme.textSecondary
+                                        }
+                                    )
+                                )
+                            }
                         }
                     }
                 }
@@ -850,6 +939,18 @@ private fun SignerInfoContent(
                 }
             }
         }
+
+        if (showSecurityTimeoutDialog) {
+            SecurityTimeoutDialog(
+                remainingTimeMs = remainingTimeMs,
+                onDismiss = {
+                    showSecurityTimeoutDialog = false
+                },
+                onConfirm = {
+                    showSecurityTimeoutDialog = false
+                },
+            )
+        }
     }
 }
 
@@ -929,7 +1030,7 @@ private fun SignerInfoAssistedScreenPreview() {
         uiState = SignerInfoState(
             signerName = "Key",
             masterSigner = MasterSigner(
-                type = SignerType.NFC
+                type = SignerType.SOFTWARE
             ),
             assistedWalletIds = listOf("abc")
         )

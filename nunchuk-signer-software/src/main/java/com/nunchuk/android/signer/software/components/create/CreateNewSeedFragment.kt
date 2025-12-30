@@ -30,6 +30,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
+import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -84,7 +85,9 @@ class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
         when (event) {
             is GenerateMnemonicCodeErrorEvent -> NCToastMessage(requireActivity()).showWarning(event.message)
             is OpenSelectPhraseEvent -> {
-                if (args.isQuickWallet) {
+                if (args.masterSignerId.isNotEmpty()) {
+                    requireActivity().finish()
+                } else if (args.isQuickWallet) {
                     findNavController().navigate(
                         CreateNewSeedFragmentDirections.actionCreateNewSeedFragmentToConfirmSeedFragment(
                             mnemonic = event.mnemonic,
@@ -118,7 +121,12 @@ class CreateNewSeedFragment : BaseFragment<FragmentCreateSeedBinding>() {
         binding.toolbar.setNavigationOnClickListener {
             activity?.onBackPressedDispatcher?.onBackPressed()
         }
-        binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
+        if (args.masterSignerId.isNotEmpty()) {
+            binding.btnContinue.text = getString(R.string.nc_text_done)
+        }
+        binding.btnContinue.setOnClickListener {
+            viewModel.handleContinueEvent()
+        }
     }
 
     companion object {

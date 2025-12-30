@@ -166,7 +166,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
         groupId: String?,
         replacedXfp: String?,
         numberOfWords: Int,
-        backupHotKeySignerId: String
+        backupHotKeySignerId: String,
+        masterSignerId: String
     ) {
         CreateNewSeedActivity.start(
             activityContext = activityContext,
@@ -176,7 +177,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
             groupId = groupId,
             replacedXfp = replacedXfp,
             numberOfWords = numberOfWords,
-            backupHotKeySignerId = backupHotKeySignerId
+            backupHotKeySignerId = backupHotKeySignerId,
+            masterSignerId = masterSignerId
         )
     }
 

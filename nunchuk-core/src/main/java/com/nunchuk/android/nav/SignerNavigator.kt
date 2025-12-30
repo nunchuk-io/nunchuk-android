@@ -94,6 +94,7 @@ interface SignerNavigator {
         replacedXfp: String? = null,
         numberOfWords: Int = 24,
         backupHotKeySignerId: String = "",
+        masterSignerId: String = "",
     )
 
     /**

@@ -43,6 +43,10 @@
             android:name="backup_hot_key_signer_id"
             android:defaultValue=""
             app:argType="string" />
+        <argument
+            android:name="master_signer_id"
+            android:defaultValue=""
+            app:argType="string" />
         <action
             android:id="@+id/action_createNewSeedFragment_to_confirmSeedFragment"
             app:destination="@id/confirmSeedFragment"

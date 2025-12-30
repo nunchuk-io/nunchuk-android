@@ -91,6 +91,10 @@ class NcDataStore @Inject constructor(
     private val userWalletConfigsSetupKey = stringPreferencesKey("user_wallet_configs_setup")
     private val claimWallets = stringSetPreferencesKey("claim_wallets")
     private val claimedWalletUserIds = stringSetPreferencesKey("claimed_wallet_user_ids")
+    
+    private fun getSeedPhraseViewTimestampKey(masterFingerprint: String): Preferences.Key<Long> {
+        return longPreferencesKey("seed_phrase_view_timestamp_$masterFingerprint")
+    }
 
     /**
      * Current membership plan key
@@ -623,6 +627,15 @@ class NcDataStore @Inject constructor(
         }
     }
 
+    suspend fun setSeedPhraseViewTimestamp(masterFingerprint: String, timestamp: Long) {
+        context.dataStore.edit {
+            it[getSeedPhraseViewTimestampKey(masterFingerprint)] = timestamp
+        }
+    }
+
+    suspend fun getSeedPhraseViewTimestamp(masterFingerprint: String): Long? {
+        return context.dataStore.data.first()[getSeedPhraseViewTimestampKey(masterFingerprint)]
+    }
 
     suspend fun clear() {
         context.dataStore.edit {

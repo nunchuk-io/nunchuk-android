@@ -17,42 +17,25 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.usecase.signer
 
-import com.nunchuk.android.model.PKeySignInResponse
-import com.nunchuk.android.model.PKeySignUpResponse
-import com.nunchuk.android.model.UserResponse
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SignerSoftwareRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-interface SignerSoftwareRepository {
-    suspend fun getPKeyNonce(address: String?, username: String): String
-    suspend fun postPKeyNonce(
-        address: String?,
-        username: String,
-        nonce: String?,
-        isChangeKey: Boolean
-    ): String
+class SaveSeedPhraseViewTimestampUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val repository: SignerSoftwareRepository
+) : UseCase<SaveSeedPhraseViewTimestampUseCase.Param, Unit>(dispatcher) {
+    override suspend fun execute(parameters: Param): Unit {
+        repository.saveSeedPhraseViewTimestamp(parameters.masterFingerprint, parameters.timestamp)
+    }
 
-    suspend fun pKeySignUp(
-        address: String,
-        username: String,
-        signature: String
-    ): PKeySignUpResponse
-
-    suspend fun pKeySignIn(
-        address: String?,
-        username: String,
-        signature: String
-    ): PKeySignInResponse
-
-    suspend fun pKeyUserInfo(address: String): UserResponse
-
-    suspend fun pKeyCheckUsername(username: String)
-
-    suspend fun pKeyChangeKey(newKey: String, oldSignedMessage: String, newSignedMessage: String)
-
-    suspend fun pKeyDeleteAccount(signedMessage: String)
-
-    suspend fun saveSeedPhraseViewTimestamp(masterFingerprint: String, timestamp: Long)
-
-    suspend fun getSeedPhraseViewTimestamp(masterFingerprint: String): Long?
+    data class Param(
+        val masterFingerprint: String,
+        val timestamp: Long = System.currentTimeMillis()
+    )
 }
+

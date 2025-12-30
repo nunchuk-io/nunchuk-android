@@ -17,42 +17,28 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.usecase.signer
 
-import com.nunchuk.android.model.PKeySignInResponse
-import com.nunchuk.android.model.PKeySignUpResponse
-import com.nunchuk.android.model.UserResponse
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-interface SignerSoftwareRepository {
-    suspend fun getPKeyNonce(address: String?, username: String): String
-    suspend fun postPKeyNonce(
-        address: String?,
-        username: String,
-        nonce: String?,
-        isChangeKey: Boolean
-    ): String
+class IsValidSignerPassphraseUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val nativeSdk: NunchukNativeSdk
+) : UseCase<IsValidSignerPassphraseUseCase.Params, Boolean>(dispatcher) {
+    override suspend fun execute(parameters: Params): Boolean {
+        return nativeSdk.isValidSignerPassphrase(
+            masterSignerId = parameters.masterSignerId,
+            passphrase = parameters.passphrase
+        )
+    }
 
-    suspend fun pKeySignUp(
-        address: String,
-        username: String,
-        signature: String
-    ): PKeySignUpResponse
-
-    suspend fun pKeySignIn(
-        address: String?,
-        username: String,
-        signature: String
-    ): PKeySignInResponse
-
-    suspend fun pKeyUserInfo(address: String): UserResponse
-
-    suspend fun pKeyCheckUsername(username: String)
-
-    suspend fun pKeyChangeKey(newKey: String, oldSignedMessage: String, newSignedMessage: String)
-
-    suspend fun pKeyDeleteAccount(signedMessage: String)
-
-    suspend fun saveSeedPhraseViewTimestamp(masterFingerprint: String, timestamp: Long)
-
-    suspend fun getSeedPhraseViewTimestamp(masterFingerprint: String): Long?
+    data class Params(
+        val masterSignerId: String,
+        val passphrase: String
+    )
 }
+
