@@ -34,10 +34,10 @@ import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.KeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.signer.KeyFlow.isSignInFlow
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.signer.software.components.intro.CreateSoftwareNavKey
+import com.nunchuk.android.signer.software.components.intro.RecoverByXprvNavKey
 import com.nunchuk.android.signer.software.components.intro.createSoftwareKeyIntro
-import com.nunchuk.android.signer.software.components.intro.createSoftwareKeyIntroRoute
 import com.nunchuk.android.signer.software.components.intro.recoverByXprv
-import com.nunchuk.android.signer.software.components.intro.recoverByXprvRoute
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseEvent.CreateSoftwareSignerCompletedEvent
 import com.nunchuk.android.signer.software.components.passphrase.SetPassphraseViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -55,6 +55,18 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
     }
     private val groupId: String? by lazy {
         intent.getStringExtra(EXTRA_GROUP_ID)
+    }
+
+    private val replacedXfp: String? by lazy {
+        intent.getStringExtra(EXTRA_REPLACED_XFP)
+    }
+
+    private val walletId by lazy {
+        intent.getStringExtra(EXTRA_WALLET_ID).orEmpty()
+    }
+
+    private val masterSignerId: String by lazy {
+        intent.getStringExtra(EXTRA_MASTER_SIGNER_ID).orEmpty()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,7 +117,11 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                 val navigationController = rememberNavController()
                 NavHost(
                     navController = navigationController,
-                    startDestination = createSoftwareKeyIntroRoute
+                    startDestination = if (masterSignerId.isEmpty()) {
+                        CreateSoftwareNavKey
+                    } else {
+                        RecoverByXprvNavKey(masterSignerId)
+                    }
                 ) {
                     createSoftwareKeyIntro(
                         isSupportXprv = !keyFlow.isSignInFlow() && keyFlow.isPrimaryKeyFlow().not(),
@@ -115,16 +131,23 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                                 openCreateNewSeedScreen()
                             } else {
                                 viewModel.getHotKeyInfo(
-                                    isAssistedWallet = setPassphraseViewModel.isGroupAssistedWallet(groupId)
+                                    isAssistedWallet = setPassphraseViewModel.isGroupAssistedWallet(
+                                        groupId
+                                    )
                                 )
                             }
                         },
                         onRecoverSeedClicked = { openRecoverSeedScreen() },
-                        onRecoverXprvClicked = { navigationController.navigate(recoverByXprvRoute) }
+                        onRecoverXprvClicked = {
+                            navigationController.navigate(RecoverByXprvNavKey())
+                        }
                     )
-                    recoverByXprv { xprv ->
-                        onRecoverFromXprv(xprv)
-                    }
+                    recoverByXprv(
+                        onDoneClicked = ::finish,
+                        onContinueClicked = { xprv ->
+                            onRecoverFromXprv(xprv)
+                        }
+                    )
                 }
             }
         }
@@ -208,20 +231,13 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
         )
     }
 
-    val replacedXfp: String? by lazy {
-        intent.getStringExtra(EXTRA_REPLACED_XFP)
-    }
-
-    val walletId by lazy {
-        intent.getStringExtra(EXTRA_WALLET_ID).orEmpty()
-    }
-
     companion object {
         private const val EXTRA_PRIMARY_KEY_FLOW = "EXTRA_PRIMARY_KEY_FLOW"
         private const val EXTRA_PASSPHRASE = "EXTRA_PASSPHRASE"
         private const val EXTRA_GROUP_ID = "EXTRA_GROUP_ID"
         private const val EXTRA_REPLACED_XFP = "EXTRA_REPLACED_XFP"
         private const val EXTRA_WALLET_ID = "EXTRA_WALLET_ID"
+        private const val EXTRA_MASTER_SIGNER_ID = "EXTRA_MASTER_SIGNER_ID"
 
         fun start(
             activityContext: Context,
@@ -230,6 +246,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
             groupId: String? = null,
             replacedXfp: String? = null,
             walletId: String = "",
+            masterSignerId: String = "",
         ) {
             activityContext.startActivity(
                 Intent(
@@ -241,6 +258,7 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                     groupId?.let { putExtra(EXTRA_GROUP_ID, it) }
                     replacedXfp?.let { putExtra(EXTRA_REPLACED_XFP, it) }
                     putExtra(EXTRA_WALLET_ID, walletId)
+                    putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
                 },
             )
         }

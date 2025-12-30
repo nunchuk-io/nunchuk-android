@@ -71,6 +71,8 @@ import com.nunchuk.android.usecase.byzantine.KeyHealthCheckUseCase
 import com.nunchuk.android.usecase.membership.GetAssistedKeysUseCase
 import com.nunchuk.android.usecase.membership.UpdateServerKeyNameUseCase
 import com.nunchuk.android.usecase.signer.GetSeedPhraseViewTimestampUseCase
+import com.nunchuk.android.usecase.signer.HasSignerMasterXprvUseCase
+import com.nunchuk.android.usecase.signer.HasSignerMnemonicUseCase
 import com.nunchuk.android.usecase.signer.SaveSeedPhraseViewTimestampUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -115,6 +117,8 @@ internal class SignerInfoViewModel @Inject constructor(
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
     private val saveSeedPhraseViewTimestampUseCase: SaveSeedPhraseViewTimestampUseCase,
     private val getSeedPhraseViewTimestampUseCase: GetSeedPhraseViewTimestampUseCase,
+    private val hasSignerMnemonicUseCase: HasSignerMnemonicUseCase,
+    private val hasSignerMasterXprvUseCase: HasSignerMasterXprvUseCase,
     savedStateHandle: SavedStateHandle,
     getAssistedKeysUseCase: GetAssistedKeysUseCase,
 ) : ViewModel() {
@@ -191,8 +195,16 @@ internal class SignerInfoViewModel @Inject constructor(
         
         viewModelScope.launch {
             if (args.isMasterSigner && args.signerType == SignerType.SOFTWARE) {
-                val timestamp = getSeedPhraseViewTimestampUseCase(args.masterFingerprint).getOrNull()?.takeIf { it > 0L }
-                _state.update { state -> state.copy(seedPhraseViewTimestamp = timestamp) }
+                val timestamp = getSeedPhraseViewTimestampUseCase(args.id).getOrNull()?.takeIf { it > 0L }
+                val hasMnemonic = hasSignerMnemonicUseCase(args.id).getOrDefault(false)
+                val hasXprv = hasSignerMasterXprvUseCase(args.id).getOrDefault(false)
+                _state.update { state -> 
+                    state.copy(
+                        seedPhraseViewTimestamp = timestamp,
+                        hasMnemonic = hasMnemonic,
+                        hasXprv = hasXprv
+                    )
+                }
             }
         }
     }

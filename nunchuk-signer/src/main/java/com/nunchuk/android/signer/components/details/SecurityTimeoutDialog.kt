@@ -28,6 +28,7 @@ import java.util.Locale
 @Composable
 fun SecurityTimeoutDialog(
     remainingTimeMs: Long,
+    isXprv: Boolean = false,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit = onDismiss,
 ) {
@@ -37,7 +38,8 @@ fun SecurityTimeoutDialog(
     val timeString = String.format(Locale.getDefault(), "%02d:%02d", hours, minutes)
 
     val message = stringResource(
-        id = R.string.nc_security_timeout_message, timeString
+        id = if (isXprv) R.string.nc_security_timeout_message_xprv else R.string.nc_security_timeout_message,
+        timeString
     )
 
     NcConfirmationDialog(

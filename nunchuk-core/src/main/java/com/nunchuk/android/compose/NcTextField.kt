@@ -88,7 +88,7 @@ fun NcTextField(
     keyboardActions: KeyboardActions = KeyboardActions(),
     enabled: Boolean = true,
     readOnly: Boolean = false,
-    disableBackgroundColor: Color = MaterialTheme.colorScheme.background,
+    disableBackgroundColor: Color = MaterialTheme.colorScheme.greyLight,
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
     maxLength: Int = Int.MAX_VALUE,

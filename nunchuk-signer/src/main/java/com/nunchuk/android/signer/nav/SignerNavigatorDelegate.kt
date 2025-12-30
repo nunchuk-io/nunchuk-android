@@ -147,6 +147,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         groupId: String?,
         replacedXfp: String?,
         walletId: String,
+        masterSignerId: String,
     ) {
         SoftwareSignerIntroActivity.start(
             activityContext = activityContext,
@@ -155,6 +156,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
             groupId = groupId,
             replacedXfp = replacedXfp,
             walletId = walletId,
+            masterSignerId = masterSignerId,
         )
     }
 

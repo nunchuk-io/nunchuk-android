@@ -157,7 +157,6 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                     SignerInfoContent(
                         uiState = uiState,
                         isPrimaryKey = isPrimaryKey,
-                        justAdded = args.justAdded,
                         onBackClicked = ::openMainScreen,
                         onMoreClicked = {
                             val type = viewModel.state.value.masterSigner?.type
@@ -167,7 +166,6 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                                     .show(childFragmentManager, "SingerInfoOptionBottomSheet")
                             }
                         },
-                        onDoneClicked = ::openMainScreen,
                         onEditClicked = { onEditClicked(uiState.signerName) },
                         onHealthCheckClicked = ::handleRunHealthCheck,
                         onHistoryItemClick = {
@@ -190,11 +188,18 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                                 viewModel.saveSeedPhraseViewTimestamp(args.id)
                             } else {
                                 viewModel.removeSeedPhraseViewTimestamp(args.id)
-                                navigator.openCreateNewSeedScreen(
-                                    activityContext = requireActivity(),
-                                    masterSignerId = args.id,
-                                    passphrase = ""
-                                )
+                                if (uiState.hasXprv) {
+                                    navigator.openAddSoftwareSignerScreen(
+                                        activityContext = requireActivity(),
+                                        masterSignerId = args.id,
+                                    )
+                                } else {
+                                    navigator.openCreateNewSeedScreen(
+                                        activityContext = requireActivity(),
+                                        masterSignerId = args.id,
+                                        passphrase = ""
+                                    )
+                                }
                             }
                         }
                     )
@@ -570,11 +575,9 @@ val timeoutDurationMs = 2.hours.inWholeMilliseconds
 @Composable
 private fun SignerInfoContent(
     uiState: SignerInfoState = SignerInfoState(),
-    justAdded: Boolean = false,
     isPrimaryKey: Boolean = false,
     onBackClicked: () -> Unit = {},
     onMoreClicked: () -> Unit = {},
-    onDoneClicked: () -> Unit = {},
     onEditClicked: () -> Unit = {},
     onHealthCheckClicked: () -> Unit = {},
     onBackupKeyClicked: () -> Unit = {},
@@ -772,16 +775,6 @@ private fun SignerInfoContent(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    if (justAdded && isHotKey.not()) {
-                        NcPrimaryDarkButton(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 16.dp),
-                            onClick = onDoneClicked
-                        ) {
-                            Text(text = stringResource(id = R.string.nc_text_done))
-                        }
-                    }
                     if (isMyKey) {
                         NcPrimaryDarkButton(
                             modifier = Modifier
@@ -796,15 +789,21 @@ private fun SignerInfoContent(
                         }
                     }
                     if (isSoftwareSigner) {
+                        val viewText = if (uiState.hasXprv) {
+                            stringResource(id = R.string.nc_view_xprv)
+                        } else {
+                            stringResource(id = R.string.nc_view_seed_phrase)
+                        }
+                        
                         val buttonText = if (remainingTimeMs > 0) {
                             val totalMinutes = (remainingTimeMs / (60 * 1000)).toInt()
                             val hours = totalMinutes / 60
                             val minutes = totalMinutes % 60
                             val timeString =
                                 String.format(Locale.getDefault(), "%02d:%02d", hours, minutes)
-                            stringResource(id = R.string.nc_view_seed_phrase) + " in $timeString"
+                            "$viewText in $timeString"
                         } else {
-                            stringResource(id = R.string.nc_view_seed_phrase)
+                            viewText
                         }
 
                         if (uiState.seedPhraseViewTimestamp != null && remainingTimeMs <= 0) {
@@ -943,6 +942,7 @@ private fun SignerInfoContent(
         if (showSecurityTimeoutDialog) {
             SecurityTimeoutDialog(
                 remainingTimeMs = remainingTimeMs,
+                isXprv = uiState.hasXprv,
                 onDismiss = {
                     showSecurityTimeoutDialog = false
                 },
@@ -1012,7 +1012,6 @@ fun HealthCheckHistoryItem(history: HealthCheckHistory, onHistoryItemClick: () -
 @Composable
 private fun SignerInfoScreenPreview() {
     SignerInfoContent(
-        justAdded = true,
         uiState = SignerInfoState(
             signerName = "Key",
             masterSigner = MasterSigner(
@@ -1026,7 +1025,6 @@ private fun SignerInfoScreenPreview() {
 @Composable
 private fun SignerInfoAssistedScreenPreview() {
     SignerInfoContent(
-        justAdded = true,
         uiState = SignerInfoState(
             signerName = "Key",
             masterSigner = MasterSigner(
