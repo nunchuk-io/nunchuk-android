@@ -42,7 +42,7 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetCompoundSignersUseCase
 import com.nunchuk.android.usecase.GetSignerFromMasterSignerUseCase
 import com.nunchuk.android.usecase.GetUnusedSignerFromMasterSignerUseCase
-import com.nunchuk.android.usecase.SendSignerPassphrase
+import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
 import com.nunchuk.android.usecase.free.groupwallet.GetGroupSandboxUseCase
 import com.nunchuk.android.usecase.signer.GetSignerUseCase
 import com.nunchuk.android.usecase.signer.GetSupportedSignersUseCase
@@ -68,7 +68,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ConfigureWalletViewModel @Inject constructor(
     private val getCompoundSignersUseCase: GetCompoundSignersUseCase,
-    private val sendSignerPassphrase: SendSignerPassphrase,
+    private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
     private val masterSignerMapper: MasterSignerMapper,
     private val getUnusedSignerFromMasterSignerUseCase: GetUnusedSignerFromMasterSignerUseCase,
     private val getSignerFromMasterSignerUseCase: GetSignerFromMasterSignerUseCase,
@@ -225,10 +225,17 @@ class ConfigureWalletViewModel @Inject constructor(
 
     fun verifyPassphrase(signer: SignerModel, passphrase: String) {
         viewModelScope.launch {
-            sendSignerPassphrase.execute(signer.id, passphrase).onException {
-                _event.emit(ConfigureWalletEvent.ShowError(it.message.orEmpty()))
+            sendSignerPassphraseUseCase(
+                SendSignerPassphraseUseCase.Param(
+                    signerId = signer.id,
+                    passphrase = passphrase
+                )
+            ).onSuccess {
+                updateStateSelectedSigner(true, signer)
+            }.onFailure { exception ->
+                _event.emit(ConfigureWalletEvent.ShowError(exception.message.orEmpty()))
                 updateStateSelectedSigner(false, signer)
-            }.collect { updateStateSelectedSigner(true, signer) }
+            }
         }
     }
 

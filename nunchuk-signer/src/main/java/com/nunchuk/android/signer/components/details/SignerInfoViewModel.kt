@@ -64,7 +64,7 @@ import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.GetRemoteSignerUseCase
 import com.nunchuk.android.usecase.HealthCheckHistoryUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
-import com.nunchuk.android.usecase.SendSignerPassphrase
+import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
 import com.nunchuk.android.usecase.UpdateMasterSignerUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.byzantine.KeyHealthCheckUseCase
@@ -100,7 +100,7 @@ internal class SignerInfoViewModel @Inject constructor(
     private val updateMasterSignerUseCase: UpdateMasterSignerUseCase,
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
     private val healthCheckMasterSignerUseCase: HealthCheckMasterSignerUseCase,
-    private val sendSignerPassphrase: SendSignerPassphrase,
+    private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
     private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
     private val healthCheckTapSignerUseCase: HealthCheckTapSignerUseCase,
     private val topUpXpubTapSignerUseCase: TopUpXpubTapSignerUseCase,
@@ -284,11 +284,16 @@ internal class SignerInfoViewModel @Inject constructor(
     fun handleHealthCheck(masterSigner: MasterSigner, passPhrase: String? = null) {
         if (passPhrase != null) {
             viewModelScope.launch {
-                sendSignerPassphrase.execute(masterSigner.id, passPhrase)
-                    .flowOn(Dispatchers.IO)
-                    .onException { _event.emit(HealthCheckErrorEvent(it.message.orEmpty())) }
-                    .flowOn(Dispatchers.Main)
-                    .collect { healthCheck(masterSigner) }
+                sendSignerPassphraseUseCase(
+                    SendSignerPassphraseUseCase.Param(
+                        signerId = masterSigner.id,
+                        passphrase = passPhrase
+                    )
+                ).onSuccess {
+                    healthCheck(masterSigner)
+                }.onFailure { exception ->
+                    _event.emit(HealthCheckErrorEvent(exception.message.orEmpty()))
+                }
             }
         } else {
             healthCheck(masterSigner)

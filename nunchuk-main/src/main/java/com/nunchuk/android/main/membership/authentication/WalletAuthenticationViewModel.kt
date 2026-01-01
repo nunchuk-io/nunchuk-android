@@ -53,7 +53,7 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.TransactionStatus
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
-import com.nunchuk.android.usecase.SendSignerPassphrase
+import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
 import com.nunchuk.android.usecase.byzantine.DeleteGroupDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.FinalizeDummyTransactionUseCase
 import com.nunchuk.android.usecase.byzantine.GetDummyTxRequestTokenUseCase
@@ -105,7 +105,7 @@ class WalletAuthenticationViewModel @Inject constructor(
     private val application: Application,
     private val syncGroupWalletUseCase: SyncGroupWalletUseCase,
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
-    private val sendSignerPassphrase: SendSignerPassphrase,
+    private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
     private val clearSignerPassphraseUseCase: ClearSignerPassphraseUseCase,
 ) : ViewModel() {
 
@@ -576,12 +576,16 @@ class WalletAuthenticationViewModel @Inject constructor(
     fun handlePassphrase(passphrase: String) {
         val currentSigner = getInteractSingleSigner() ?: return
         viewModelScope.launch {
-            sendSignerPassphrase.execute(currentSigner.masterSignerId, passphrase)
-                .flowOn(Dispatchers.IO)
-                .onException {
-                    _event.emit(WalletAuthenticationEvent.ShowError(it.message.orUnknownError()))
-                }
-                .collect { handleSignSoftware(currentSigner, true) }
+            sendSignerPassphraseUseCase(
+                SendSignerPassphraseUseCase.Param(
+                    signerId = currentSigner.masterSignerId,
+                    passphrase = passphrase
+                )
+            ).onSuccess {
+                handleSignSoftware(currentSigner, true)
+            }.onFailure { exception ->
+                _event.emit(WalletAuthenticationEvent.ShowError(exception.message.orUnknownError()))
+            }
         }
     }
 
