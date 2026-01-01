@@ -70,6 +70,7 @@ import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.byzantine.KeyHealthCheckUseCase
 import com.nunchuk.android.usecase.membership.GetAssistedKeysUseCase
 import com.nunchuk.android.usecase.membership.UpdateServerKeyNameUseCase
+import com.nunchuk.android.usecase.signer.ClearSignerPassphraseUseCase
 import com.nunchuk.android.usecase.signer.GetSeedPhraseViewTimestampUseCase
 import com.nunchuk.android.usecase.signer.HasSignerMasterXprvUseCase
 import com.nunchuk.android.usecase.signer.HasSignerMnemonicUseCase
@@ -119,6 +120,7 @@ internal class SignerInfoViewModel @Inject constructor(
     private val getSeedPhraseViewTimestampUseCase: GetSeedPhraseViewTimestampUseCase,
     private val hasSignerMnemonicUseCase: HasSignerMnemonicUseCase,
     private val hasSignerMasterXprvUseCase: HasSignerMasterXprvUseCase,
+    private val clearSignerPassphraseUseCase: ClearSignerPassphraseUseCase,
     savedStateHandle: SavedStateHandle,
     getAssistedKeysUseCase: GetAssistedKeysUseCase,
 ) : ViewModel() {
@@ -502,10 +504,35 @@ internal class SignerInfoViewModel @Inject constructor(
 
     fun removeSeedPhraseViewTimestamp(masterFingerprint: String) {
         viewModelScope.launch {
-            viewModelScope.launch {
-                saveSeedPhraseViewTimestampUseCase(SaveSeedPhraseViewTimestampUseCase.Param(masterFingerprint, -1))
-                _state.update { state -> state.copy(seedPhraseViewTimestamp = null) }
+            saveSeedPhraseViewTimestampUseCase(SaveSeedPhraseViewTimestampUseCase.Param(masterFingerprint, -1))
+            _state.update { state -> state.copy(seedPhraseViewTimestamp = null) }
+        }
+    }
+
+    fun checkPassphrase(
+        masterSignerId: String,
+        passphrase: String,
+    ) {
+        viewModelScope.launch {
+            sendSignerPassphraseUseCase(
+                SendSignerPassphraseUseCase.Param(
+                    signerId = masterSignerId,
+                    passphrase = passphrase
+                )
+            ).onSuccess {
+                clearSignerPassphraseUseCase(masterSignerId)
+                _state.update {
+                    it.copy(
+                        passphrase = passphrase
+                    )
+                }
+            }.onFailure { exception ->
+                _event.emit(SignerInfoEvent.Error(exception))
             }
         }
+    }
+
+    fun onPassphraseConsumed() {
+        _state.update { it.copy(passphrase = null) }
     }
 }

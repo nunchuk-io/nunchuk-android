@@ -69,4 +69,5 @@ data class SignerInfoState(
     val seedPhraseViewTimestamp: Long? = null,
     val hasMnemonic: Boolean = false,
     val hasXprv: Boolean = false,
+    val passphrase: String? = null,
 )

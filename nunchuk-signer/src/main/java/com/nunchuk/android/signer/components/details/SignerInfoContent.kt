@@ -58,6 +58,8 @@ import com.nunchuk.android.compose.NcOutlineButton
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcInputDialog
+import com.nunchuk.android.compose.dialog.NcInputType
 import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.compose.latoBold
 import com.nunchuk.android.compose.textPrimary
@@ -74,6 +76,7 @@ import com.nunchuk.android.utils.healthCheckLabel
 import com.nunchuk.android.utils.healthCheckTimeColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import timber.log.Timber
 import java.util.Locale
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
@@ -88,7 +91,9 @@ fun SignerInfoContent(
     onHealthCheckClicked: () -> Unit = {},
     onBackupKeyClicked: () -> Unit = {},
     onHistoryItemClick: (HealthCheckHistory) -> Unit = {},
-    onViewSeedPhraseClicked: () -> Unit = {}
+    onViewSeedPhraseClicked: (String?) -> Unit = {},
+    onPassphraseSubmitted: (String) -> Unit = {},
+    onPassphraseConsume: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val label by remember(uiState.lastHealthCheckTimeMillis) {
@@ -100,8 +105,20 @@ fun SignerInfoContent(
     val isMyKey = uiState.masterSigner?.isVisible ?: uiState.remoteSigner?.isVisible ?: false
     val isHotKey = uiState.masterSigner?.isNeedBackup == true
     val isSoftwareSigner = uiState.masterSigner?.type == SignerType.SOFTWARE
+    val needPassphrase = uiState.masterSigner?.device?.needPassPhraseSent == true
     var showSecurityTimeoutDialog by remember { mutableStateOf(false) }
+    var showPassphraseDialog by remember { mutableStateOf(false) }
     var remainingTimeMs by remember { mutableLongStateOf(0L) }
+
+    LaunchedEffect(uiState.passphrase) {
+        if (!uiState.passphrase.isNullOrEmpty()) {
+            if (uiState.seedPhraseViewTimestamp == null) {
+                showSecurityTimeoutDialog = true
+            }
+            onViewSeedPhraseClicked(uiState.passphrase)
+            onPassphraseConsume()
+        }
+    }
 
     LaunchedEffect(uiState.seedPhraseViewTimestamp) {
         val timestamp = uiState.seedPhraseViewTimestamp
@@ -118,7 +135,7 @@ fun SignerInfoContent(
         }
     }
 
-    com.nunchuk.android.compose.NunchukTheme {
+    NunchukTheme {
         Scaffold(
             modifier = Modifier.Companion.navigationBarsPadding(),
             topBar = {
@@ -320,7 +337,13 @@ fun SignerInfoContent(
                         if (uiState.seedPhraseViewTimestamp != null && remainingTimeMs <= 0) {
                             NcOutlineButton(
                                 modifier = Modifier.Companion.fillMaxWidth(),
-                                onClick = onViewSeedPhraseClicked
+                                onClick = {
+                                    if (needPassphrase) {
+                                        showPassphraseDialog = true
+                                    } else {
+                                        onViewSeedPhraseClicked(null)
+                                    }
+                                }
                             ) {
                                 Text(text = buttonText)
                             }
@@ -330,8 +353,12 @@ fun SignerInfoContent(
                                 modifier = Modifier.Companion.fillMaxWidth(),
                                 enabled = isEnabled,
                                 onClick = {
-                                    onViewSeedPhraseClicked()
-                                    showSecurityTimeoutDialog = true
+                                    if (needPassphrase) {
+                                        showPassphraseDialog = true
+                                    } else {
+                                        onViewSeedPhraseClicked(null)
+                                        showSecurityTimeoutDialog = true
+                                    }
                                 }
                             ) {
                                 Text(
@@ -451,6 +478,24 @@ fun SignerInfoContent(
                     }
                 }
             }
+        }
+
+        if (showPassphraseDialog) {
+            NcInputDialog(
+                title = stringResource(id = R.string.nc_transaction_enter_passphrase),
+                inputType = NcInputType.PASSWORD,
+                isMaskedInput = true,
+                onConfirmed = { passphrase ->
+                    showPassphraseDialog = false
+                    onPassphraseSubmitted(passphrase)
+                },
+                onCanceled = {
+                    showPassphraseDialog = false
+                },
+                onDismiss = {
+                    showPassphraseDialog = false
+                }
+            )
         }
 
         if (showSecurityTimeoutDialog) {

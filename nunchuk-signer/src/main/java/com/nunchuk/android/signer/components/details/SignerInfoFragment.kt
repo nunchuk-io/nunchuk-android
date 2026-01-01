@@ -109,7 +109,7 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                                 backupHotKeySignerId = args.id
                             )
                         },
-                        onViewSeedPhraseClicked = {
+                        onViewSeedPhraseClicked = { passphrase ->
                             if (uiState.seedPhraseViewTimestamp == null) {
                                 viewModel.saveSeedPhraseViewTimestamp(args.id)
                             } else {
@@ -118,16 +118,24 @@ class SignerInfoFragment : BaseShareSaveFileFragment<ViewBinding>(),
                                     navigator.openAddSoftwareSignerScreen(
                                         activityContext = requireActivity(),
                                         masterSignerId = args.id,
+                                        passphrase = passphrase.orEmpty()
                                     )
                                 } else {
                                     navigator.openCreateNewSeedScreen(
                                         activityContext = requireActivity(),
                                         masterSignerId = args.id,
-                                        passphrase = ""
+                                        passphrase = passphrase.orEmpty()
                                     )
                                 }
                             }
-                        }
+                        },
+                        onPassphraseSubmitted = { passphrase ->
+                            viewModel.checkPassphrase(
+                                masterSignerId = args.id,
+                                passphrase = passphrase,
+                            )
+                        },
+                        onPassphraseConsume = viewModel::onPassphraseConsumed
                     )
                 }
 
