@@ -33,6 +33,8 @@ import com.nunchuk.android.core.matrix.SessionHolder
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.qr.startQRCodeScan
 import com.nunchuk.android.core.util.MAX_NOTE_LENGTH
+import com.nunchuk.android.core.util.hideLoading
+import com.nunchuk.android.core.util.showLoading
 import com.nunchuk.android.core.wallet.WalletBottomSheetResult
 import com.nunchuk.android.core.wallet.WalletComposeBottomSheet
 import com.nunchuk.android.nav.args.AddReceiptArgs
@@ -242,6 +244,14 @@ class AddReceiptFragment : BaseFragment<ActivityTransactionAddReceiptBinding>() 
                 isSelectMode = true,
                 isFromParse = true
             )
+
+            is AddReceiptEvent.Loading -> {
+                if (event.isLoading) {
+                    showLoading()
+                } else {
+                    hideLoading()
+                }
+            }
 
             AddReceiptEvent.NoOp -> Unit
         }

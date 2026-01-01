@@ -34,6 +34,7 @@ sealed class AddReceiptEvent {
         val isMiniscript: Boolean,
     ) : AddReceiptEvent()
     data object ParseBtcUriEvent : AddReceiptEvent()
+    data class Loading(val isLoading: Boolean) : AddReceiptEvent()
     data object NoOp : AddReceiptEvent()
 }
 

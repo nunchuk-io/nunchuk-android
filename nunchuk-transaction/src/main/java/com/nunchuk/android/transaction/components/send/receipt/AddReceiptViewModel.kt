@@ -167,26 +167,30 @@ internal class AddReceiptViewModel @Inject constructor(
 
     fun parseBtcUriAndContinue(content: String) {
         viewModelScope.launch {
+            setEvent(AddReceiptEvent.Loading(true))
             val result = parseBtcUriUseCase(content)
             if (result.isSuccess) {
                 val btcUri = result.getOrThrow()
                 updateState { copy(address = btcUri.address) }
-                handleContinueEvent(true)
-            } else {
-                handleContinueEvent(true)
             }
+            handleContinueEvent(true)
         }
     }
 
     fun handleContinueEvent(isCreateTransaction: Boolean) {
         viewModelScope.launch {
+            setEvent(AddReceiptEvent.Loading(true))
             val currentState = getState()
             val address = currentState.address
             when {
-                address.isEmpty() -> event(AddressRequiredEvent)
+                address.isEmpty() -> {
+                    setEvent(AddReceiptEvent.Loading(false))
+                    event(AddressRequiredEvent)
+                }
                 else -> {
                     val result =
                         checkAddressValidUseCase(CheckAddressValidUseCase.Params(listOf(address)))
+                    setEvent(AddReceiptEvent.Loading(false))
                     if (result.isSuccess && result.getOrThrow().isEmpty()) {
                         setEvent(
                             AcceptedAddressEvent(
