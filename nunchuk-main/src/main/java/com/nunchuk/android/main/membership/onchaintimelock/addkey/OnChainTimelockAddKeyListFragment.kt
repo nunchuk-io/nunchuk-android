@@ -148,10 +148,10 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
 
     private val isKeyHolderLimited: Boolean
         get() = args.role == AssistedWalletRole.KEYHOLDER_LIMITED.name
-    
+
     private val isFacilitatorAdmin: Boolean
         get() = args.role?.toRole?.isFacilitatorAdmin == true
-        
+
     private var currentKeyData: AddKeyOnChainData? = null
 
     private val addTapSignerLauncher =
@@ -200,7 +200,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             }
         }
     }
-    
+
     private fun showFacilitatorInfoDialog() {
         NCInfoDialog(requireActivity())
             .showDialog(message = getString(R.string.nc_info_facilitator))
@@ -329,7 +329,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 }
             }
         }
-        
+
         if (isFacilitatorAdmin) {
             showFacilitatorInfoDialog()
         }
@@ -422,13 +422,13 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 is AddKeyListEvent.HandleSignerTypeLogic -> {
                     handleSignerTypeLogic(event.type, event.tag)
                 }
-                
+
                 is AddKeyListEvent.UpdateSignerTag -> {
                     handleSignerTypeLogic(event.signer.type, event.signer.tags.firstOrNull())
                 }
             }
         }
-        
+
         // Handle shouldShowKeyAdded for group wallet
         flowObserver(viewModel.state) { state ->
             if (state.shouldShowKeyAdded) {
@@ -439,7 +439,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
             }
         }
     }
-    
+
     private fun onAddAllKey() {
         if (viewModel.isGroupWallet) {
             findNavController().popBackStack(R.id.addGroupKeyStepFragment, false)
