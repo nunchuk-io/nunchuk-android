@@ -38,12 +38,14 @@ import com.nunchuk.android.main.membership.model.toAddKeyOnChainDataList
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.main.membership.model.toSteps
 import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.MembershipStepInfo
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.Chain
@@ -69,6 +71,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -106,14 +109,19 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     val event = _event.asSharedFlow()
     private var loadJob: Job? = null
 
+    // Get args from SavedStateHandle (for navigation arguments)
+    val groupId: String = savedStateHandle.get<String>("group_id") ?: ""
+    val isAddOnly: Boolean = savedStateHandle.get<Boolean>("is_add_only") ?: false
+    val isGroupWallet: Boolean get() = groupId.isNotEmpty()
+
     private val currentStep =
         savedStateHandle.getStateFlow<MembershipStep?>(KEY_CURRENT_STEP, null)
 
     private val membershipStepState =
         getMembershipStepUseCase(
             GetMembershipStepUseCase.Param(
-                membershipStepManager.localMembershipPlan,
-                ""
+                plan = if (isGroupWallet) MembershipPlan.NONE else membershipStepManager.localMembershipPlan,
+                groupId = groupId
             )
         ).map { it.getOrElse { emptyList() } }
             .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
@@ -131,6 +139,14 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     private var pendingTapSignerSignerModel: SignerModel? = null
 
     init {
+        // Handle key added event for group wallet (isAddOnly mode)
+        if (isAddOnly) {
+            viewModelScope.launch {
+                pushEventManager.event.filterIsInstance<PushEvent.KeyAddedToGroup>().collect {
+                    _state.update { it.copy(shouldShowKeyAdded = true) }
+                }
+            }
+        }
         viewModelScope.launch {
             currentStep.filterNotNull().collect {
                 membershipStepManager.setCurrentStep(it)
@@ -201,18 +217,23 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                     _state.update { it.copy(missingBackupKeys = nfcMissingBackupKeys) }
                 }
         }
-        viewModelScope.launch {
-            checkRequestAddDesktopKeyStatusUseCase(
-                CheckRequestAddDesktopKeyStatusUseCase.Param(
-                    membershipStepManager.localMembershipPlan
+        // Only check desktop key status for personal wallet
+        if (!isGroupWallet) {
+            viewModelScope.launch {
+                checkRequestAddDesktopKeyStatusUseCase(
+                    CheckRequestAddDesktopKeyStatusUseCase.Param(
+                        membershipStepManager.localMembershipPlan
+                    )
                 )
-            )
+            }
         }
         viewModelScope.launch {
             pushEventManager.event.collect { event ->
                 when (event) {
                     is PushEvent.DraftWalletTimelockSet -> {
-                        refresh()
+                        if (!isGroupWallet || event.groupId == groupId) {
+                            refresh()
+                        }
                     }
 
                     else -> {}
@@ -226,13 +247,18 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         if (loadJob?.isActive == true) return
         loadJob = viewModelScope.launch {
             _state.update { it.copy(isRefresh = true) }
-            syncDraftWalletUseCase("").onSuccess { draft ->
+            syncDraftWalletUseCase(groupId).onSuccess { draft ->
                 loadSigners()
-                _state.update { it.copy(walletType = WalletType.MINISCRIPT) }
+                _state.update {
+                    it.copy(
+                        walletType = WalletType.MINISCRIPT,
+                        groupWalletType = draft.config.toGroupWalletType()
+                    )
+                }
                 draft.config.toGroupWalletType()?.let { type ->
                     if (_keys.value.isEmpty()) {
                         val steps = type.toSteps(
-                            isPersonalWallet = true,
+                            isPersonalWallet = !isGroupWallet,
                             walletType = WalletType.MINISCRIPT
                         )
                         _keys.value = steps.toAddKeyOnChainDataList()
@@ -246,6 +272,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     private suspend fun loadSigners() {
         getAllSignersUseCase(false).onSuccess { pair ->
             _state.update {
+                val singleSigner = pair.second.distinctBy { it.masterFingerprint }
                 singleSigners.apply {
                     clear()
                     addAll(pair.second)
@@ -256,7 +283,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                 }
                 val signers = pair.first.map { signer ->
                     masterSignerMapper(signer)
-                } + pair.second.map { signer -> signer.toModel() }
+                } + singleSigner.map { signer -> signer.toModel() }
                 it.copy(
                     signers = signers
                 )
@@ -278,7 +305,8 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                 SyncKeyUseCase.Param(
                     step = currentStep,
                     signer = actualSigner,
-                    walletType = WalletType.MINISCRIPT
+                    walletType = WalletType.MINISCRIPT,
+                    groupId = groupId
                 )
             ).onFailure {
                 _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
@@ -299,7 +327,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                             userKeyFileName = ""
                         )
                     ),
-                    groupId = ""
+                    groupId = groupId
                 )
             )
 
@@ -333,12 +361,24 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                         updateRemoteSignerUseCase.execute(singleSigner.copy(tags = listOf(tag)))
                     if (result is Result.Success) {
                         loadSigners()
-                        onSelectedExistingHardwareSigner(singleSigner.copy(tags = listOf(tag)))
+                        if (isGroupWallet) {
+                            _event.emit(
+                                AddKeyListEvent.UpdateSignerTag(
+                                    signer.copy(tags = listOf(tag))
+                                )
+                            )
+                        } else {
+                            onSelectedExistingHardwareSigner(singleSigner.copy(tags = listOf(tag)))
+                        }
                     } else {
                         _event.emit(AddKeyListEvent.ShowError((result as Result.Error).exception.message.orUnknownError()))
                     }
                 }
         }
+    }
+
+    fun markHandledShowKeyAdded() {
+        _state.update { it.copy(shouldShowKeyAdded = false) }
     }
 
     fun onAddKeyClicked(data: AddKeyOnChainData) {
@@ -523,7 +563,8 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                 step = membershipStepManager.currentStep
                     ?: throw IllegalArgumentException("Current step empty"),
                 signer = signer,
-                walletType = WalletType.MINISCRIPT
+                walletType = WalletType.MINISCRIPT,
+                groupId = groupId
             )
         ).onFailure {
             _event.emit(AddKeyListEvent.ShowError(it.message.orUnknownError()))
@@ -548,7 +589,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
                         userKeyFileName = ""
                     )
                 ),
-                groupId = ""
+                groupId = groupId
             )
         )
 
@@ -613,23 +654,37 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         }
     }
 
-    private fun getStepInfo(step: MembershipStep) =
-        membershipStepState.value.filter {
-            it.plan == membershipStepManager.localMembershipPlan
-        }.find { it.step == step } ?: run {
-            MembershipStepInfo(
-                step = step,
-                plan = membershipStepManager.localMembershipPlan,
-                groupId = ""
-            )
+    private fun getStepInfo(step: MembershipStep): MembershipStepInfo {
+        return if (isGroupWallet) {
+            membershipStepState.value.find { it.step == step } ?: run {
+                MembershipStepInfo(step = step, groupId = groupId)
+            }
+        } else {
+            membershipStepState.value.filter {
+                it.plan == membershipStepManager.localMembershipPlan
+            }.find { it.step == step } ?: run {
+                MembershipStepInfo(
+                    step = step,
+                    plan = membershipStepManager.localMembershipPlan,
+                    groupId = ""
+                )
+            }
         }
+    }
 
-    fun getHardwareSigners(tag: SignerTag) =
-        _state.value.signers.filter {
-            isSignerExist(it.fingerPrint).not() && it.type == SignerType.HARDWARE && it.tags.contains(
-                tag
-            )
+    fun getHardwareSigners(tag: SignerTag): List<SignerModel> {
+        return if (isGroupWallet) {
+            _state.value.signers.filter {
+                it.type == SignerType.HARDWARE && it.tags.contains(tag)
+            }
+        } else {
+            _state.value.signers.filter {
+                isSignerExist(it.fingerPrint).not() && it.type == SignerType.HARDWARE && it.tags.contains(
+                    tag
+                )
+            }
         }
+    }
 
     private fun getBackUpFileName(extra: String): String {
         return runCatching {
@@ -772,6 +827,7 @@ sealed class AddKeyListEvent {
     data object SelectAirgapType : AddKeyListEvent()
     data class HandleSignerTypeLogic(val type: SignerType, val tag: SignerTag?) : AddKeyListEvent()
     data class ShowError(val message: String) : AddKeyListEvent()
+    data class UpdateSignerTag(val signer: SignerModel) : AddKeyListEvent()
 }
 
 data class AddKeyListState(
@@ -779,6 +835,8 @@ data class AddKeyListState(
     val isRefresh: Boolean = false,
     val signers: List<SignerModel> = emptyList(),
     val walletType: WalletType? = null,
+    val groupWalletType: GroupWalletType? = null,
     val requestCacheTapSignerXpubEvent: Boolean = false,
-    val missingBackupKeys: List<AddKeyOnChainData> = emptyList()
+    val missingBackupKeys: List<AddKeyOnChainData> = emptyList(),
+    val shouldShowKeyAdded: Boolean = false
 )

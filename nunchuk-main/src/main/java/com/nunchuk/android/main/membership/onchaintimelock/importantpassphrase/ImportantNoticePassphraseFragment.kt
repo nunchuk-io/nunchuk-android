@@ -74,12 +74,9 @@ class ImportantNoticePassphraseFragment : MembershipFragment(), BottomSheetOptio
         super.onViewCreated(view, savedInstanceState)
         setFragmentResultListener(OnChainSignerIntroFragment.REQUEST_KEY) { _, bundle ->
             val filteredSigners = bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
-            val activity = requireActivity() as MembershipActivity
             val destinationId = if (args.onChainAddSignerParam?.isReplaceKeyFlow() == true) {
                 // Navigate back to replace keys fragment when in replace key flow
                 R.id.onChainReplaceKeysFragment
-            } else if (activity.groupId.isNotEmpty()) {
-                R.id.onChainTimelockByzantineAddKeyFragment
             } else {
                 R.id.onChainTimelockAddKeyListFragment
             }

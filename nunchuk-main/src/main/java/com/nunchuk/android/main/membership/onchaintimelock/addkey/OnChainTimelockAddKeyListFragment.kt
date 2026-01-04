@@ -64,13 +64,14 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResultListener
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcDashLineBox
 import com.nunchuk.android.compose.NcOutlineButton
@@ -108,6 +109,7 @@ import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
@@ -121,6 +123,7 @@ import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
+import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -133,9 +136,13 @@ import java.util.TimeZone
 @AndroidEntryPoint
 class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptionListener {
 
-    private val viewModel by activityViewModels<OnChainTimelockAddKeyListViewModel>()
+    private val viewModel by viewModels<OnChainTimelockAddKeyListViewModel>()
+    private val args: OnChainTimelockAddKeyListFragmentArgs by navArgs()
 
     private var selectedSignerTag: SignerTag? = null
+    
+    private val isKeyHolderLimited: Boolean
+        get() = args.role == AssistedWalletRole.KEYHOLDER_LIMITED.name
     private var currentKeyData: AddKeyOnChainData? = null
 
     private val addTapSignerLauncher =
@@ -164,18 +171,30 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     viewModel,
                     membershipStepManager,
                     ::handleShowMore,
+                    groupId = args.groupId.orEmpty(),
+                    isAddOnly = args.isAddOnly,
+                    role = args.role,
                     onConfigTimelockClicked = { data ->
+                        if (isKeyHolderLimited) {
+                            showFacilitatorInfoDialog()
+                            return@AddKeyListScreen
+                        }
                         val timelockExtra =
                             data.stepDataMap[MembershipStep.TIMELOCK]?.timelock
                         findNavController().navigate(
                             OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToOnChainSetUpTimelockFragment(
-                                groupId = (activity as MembershipActivity).groupId,
+                                groupId = args.groupId ?: (activity as MembershipActivity).groupId,
                                 timelockExtra = timelockExtra
                             )
                         )
                     })
             }
         }
+    }
+    
+    private fun showFacilitatorInfoDialog() {
+        NCInfoDialog(requireActivity())
+            .showDialog(message = getString(R.string.nc_info_facilitator))
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -380,10 +399,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     }
                 }
 
-                AddKeyListEvent.OnAddAllKey -> findNavController().popBackStack(
-                    R.id.addKeyStepFragment,
-                    false
-                )
+                AddKeyListEvent.OnAddAllKey -> onAddAllKey()
 
                 is AddKeyListEvent.ShowError -> showError(event.message)
                 AddKeyListEvent.SelectAirgapType -> {
@@ -393,7 +409,29 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 is AddKeyListEvent.HandleSignerTypeLogic -> {
                     handleSignerTypeLogic(event.type, event.tag)
                 }
+                
+                is AddKeyListEvent.UpdateSignerTag -> {
+                    handleSignerTypeLogic(event.signer.type, event.signer.tags.firstOrNull())
+                }
             }
+        }
+        
+        // Handle shouldShowKeyAdded for group wallet
+        flowObserver(viewModel.state) { state ->
+            if (state.shouldShowKeyAdded) {
+                viewModel.markHandledShowKeyAdded()
+                findNavController().navigate(
+                    OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToKeyAddedToGroupWalletFragment()
+                )
+            }
+        }
+    }
+    
+    private fun onAddAllKey() {
+        if (viewModel.isGroupWallet) {
+            findNavController().popBackStack(R.id.addGroupKeyStepFragment, false)
+        } else {
+            findNavController().popBackStack(R.id.addKeyStepFragment, false)
         }
     }
 
@@ -403,10 +441,18 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
 
         when (nextStep) {
             MembershipStep.ADD_SEVER_KEY -> {
-                navigator.openConfigServerKeyActivity(
-                    activityContext = requireActivity(),
-                    groupStep = MembershipStage.NONE
-                )
+                if (viewModel.isGroupWallet) {
+                    navigator.openConfigGroupServerKeyActivity(
+                        activityContext = requireActivity(),
+                        groupStep = MembershipStage.NONE,
+                        groupId = args.groupId.orEmpty()
+                    )
+                } else {
+                    navigator.openConfigServerKeyActivity(
+                        activityContext = requireActivity(),
+                        groupStep = MembershipStage.NONE
+                    )
+                }
             }
 
             else -> handleHardwareKeyAdd(
@@ -420,6 +466,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         // Get the next step to determine what to add
         val nextStep = data.getNextStepToAdd() ?: data.type
         val allSigners = data.getAllSigners()
+        val groupId = args.groupId ?: (activity as MembershipActivity).groupId
 
         if (allSigners.isEmpty()) {
             // No signers exist, check if this is inheritance key or hardware key
@@ -435,7 +482,7 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 findNavController().navigate(
                     OnChainTimelockAddKeyListFragmentDirections.actionOnChainTimelockAddKeyListFragmentToSignerIntroFragment(
                         walletId = (activity as MembershipActivity).walletId,
-                        groupId = (activity as MembershipActivity).groupId,
+                        groupId = groupId,
                         supportedSigners = null,
                         keyFlow = 0,
                         onChainAddSignerParam = OnChainAddSignerParam(
@@ -505,11 +552,12 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
     }
 
     private fun openSetupColdCard() {
+        val groupId = args.groupId ?: (activity as MembershipActivity).groupId
         navigator.openSetupMk4(
             activity = requireActivity(),
             args = SetupMk4Args(
                 fromMembershipFlow = true,
-                groupId = (activity as MembershipActivity).groupId,
+                groupId = groupId,
                 walletId = (activity as MembershipActivity).walletId,
                 onChainAddSignerParam = OnChainAddSignerParam(
                     flags = if (currentKeyData?.type?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
@@ -522,12 +570,13 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
     }
 
     private fun openSetupTapSigner() {
+        val groupId = args.groupId ?: (activity as MembershipActivity).groupId
         addTapSignerLauncher.launch(
             NfcSetupActivity.buildIntent(
                 activity = requireActivity(),
                 setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
                 fromMembershipFlow = true,
-                groupId = (activity as MembershipActivity).groupId,
+                groupId = groupId,
                 walletId = (activity as MembershipActivity).walletId,
                 onChainAddSignerParam = OnChainAddSignerParam(
                     flags = if (currentKeyData?.type?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
@@ -580,11 +629,15 @@ fun AddKeyListScreen(
     viewModel: OnChainTimelockAddKeyListViewModel = viewModel(),
     membershipStepManager: MembershipStepManager,
     onMoreClicked: () -> Unit = {},
+    groupId: String = "",
+    isAddOnly: Boolean = false,
+    role: String? = null,
     onConfigTimelockClicked: (AddKeyOnChainData) -> Unit
 ) {
     val keys by viewModel.key.collectAsStateWithLifecycle()
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     val remainingTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
+    val isGroupWallet = groupId.isNotEmpty()
     OnChainTimelockAddKeyListContent(
         onContinueClicked = viewModel::onContinueClicked,
         onAddClicked = viewModel::onAddKeyClicked,
@@ -596,7 +649,8 @@ fun AddKeyListScreen(
         refresh = viewModel::refresh,
         isRefreshing = uiState.isRefresh,
         onConfigTimelockClicked = onConfigTimelockClicked,
-        onChangeTimelockClicked = onConfigTimelockClicked
+        onChangeTimelockClicked = onConfigTimelockClicked,
+        isGroupWallet = isGroupWallet
     )
 }
 
@@ -612,7 +666,8 @@ fun OnChainTimelockAddKeyListContent(
     onVerifyClicked: (data: AddKeyOnChainData) -> Unit = {},
     onAddClicked: (data: AddKeyOnChainData) -> Unit = {},
     refresh: () -> Unit = { },
-    onChangeTimelockClicked: (data: AddKeyOnChainData) -> Unit = {}
+    onChangeTimelockClicked: (data: AddKeyOnChainData) -> Unit = {},
+    isGroupWallet: Boolean = false
 ) {
     val state = rememberPullRefreshState(isRefreshing, refresh)
 
@@ -678,7 +733,11 @@ fun OnChainTimelockAddKeyListContent(
                                     append("Before the timelock")
                                 }
                                 append(
-                                    ", spending requires two signatures from a 2-of-4 multisig:"
+                                    if (isGroupWallet) {
+                                        ", spending requires three signatures from a 3-of-5 multisig:"
+                                    } else {
+                                        ", spending requires two signatures from a 2-of-4 multisig:"
+                                    }
                                 )
                             },
                             style = NunchukTheme.typography.body
@@ -716,7 +775,11 @@ fun OnChainTimelockAddKeyListContent(
                                         append("After the timelock")
                                     }
                                     append(
-                                        ", spending only requires one signature from a 1-of-3 multisig. The keyset remains the same, minus the Platform key."
+                                        if (isGroupWallet) {
+                                            ", spending only requires two signatures from a 2-of-4 multisig. The keyset remains the same, minus the Platform key."
+                                        } else {
+                                            ", spending only requires one signature from a 1-of-3 multisig. The keyset remains the same, minus the Platform key."
+                                        }
                                     )
                                 },
                                 style = NunchukTheme.typography.body

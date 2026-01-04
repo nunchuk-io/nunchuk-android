@@ -319,10 +319,8 @@ class OnChainSignerIntroFragment : MembershipFragment() {
         if (args.onChainAddSignerParam != null) {
             val targetFragmentId = if (args.onChainAddSignerParam!!.isReplaceKeyFlow()) {
                 R.id.onChainReplaceKeysFragment
-            } else if (args.groupId.isNullOrEmpty()) {
-                R.id.onChainTimelockAddKeyListFragment
             } else {
-                R.id.onChainTimelockByzantineAddKeyFragment
+                R.id.onChainTimelockAddKeyListFragment
             }
             findNavController().popBackStack(targetFragmentId, false)
         } else {

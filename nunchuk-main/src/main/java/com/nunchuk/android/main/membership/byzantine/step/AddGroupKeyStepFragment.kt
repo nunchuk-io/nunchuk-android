@@ -122,7 +122,7 @@ class AddGroupKeyStepFragment : MembershipFragment() {
             }
             WalletType.MINISCRIPT -> {
                 findNavController().navigate(
-                    AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToOnChainTimelockByzantineAddKeyFragment(
+                    AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToOnChainTimelockAddKeyListFragment(
                         groupId = groupId,
                         role = viewModel.getRole().name,
                         isAddOnly = false
