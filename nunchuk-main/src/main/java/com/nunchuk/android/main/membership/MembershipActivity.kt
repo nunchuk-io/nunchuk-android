@@ -167,6 +167,7 @@ class MembershipActivity : BaseWalletConfigActivity<ActivityNavigationBinding>()
         const val EXTRA_GROUP_STEP = "group_step"
         const val EXTRA_KEY_WALLET_ID = "wallet_id"
         const val EXTRA_INHERITANCE_TYPE = "inheritance_type"
+        const val EXTRA_CHANGE_TIMELOCK_FLOW = "change_timelock_flow"
         private const val REQUEST_NFC_TOPUP_XPUBS = 2001
 
         fun buildIntent(

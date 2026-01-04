@@ -69,6 +69,9 @@ class AddKeyStepViewModel @Inject constructor(
     private val inheritanceType = 
         savedStateHandle.getStateFlow(MembershipActivity.EXTRA_INHERITANCE_TYPE, null as String?)
 
+    private val changeTimelockFlow =
+        savedStateHandle.getStateFlow(MembershipActivity.EXTRA_CHANGE_TIMELOCK_FLOW, -1)
+
     private val _event = MutableSharedFlow<AddKeyStepEvent>()
     val event = _event.asSharedFlow()
 
@@ -186,7 +189,11 @@ class AddKeyStepViewModel @Inject constructor(
                 if (inheritanceType.value == InheritancePlanType.ON_CHAIN.name) {
                     _event.emit(AddKeyStepEvent.OpenOnChainTimelockExplanation)
                 } else {
-                    _event.emit(AddKeyStepEvent.OpenAddKeyList(draftWalletType))
+                    if (changeTimelockFlow.value == 1) {
+                        _event.emit(AddKeyStepEvent.OpenInheritancePlanType)
+                    } else {
+                        _event.emit(AddKeyStepEvent.OpenAddKeyList(draftWalletType))
+                    }
                 }
             }
         }
@@ -221,4 +228,5 @@ sealed class AddKeyStepEvent {
     object SetupInheritanceSetupDone : AddKeyStepEvent()
     object OpenOnChainTimelockExplanation : AddKeyStepEvent()
     data class UpdateReplaceWalletId(val walletId: String) : AddKeyStepEvent()
+    object OpenInheritancePlanType : AddKeyStepEvent()
 }

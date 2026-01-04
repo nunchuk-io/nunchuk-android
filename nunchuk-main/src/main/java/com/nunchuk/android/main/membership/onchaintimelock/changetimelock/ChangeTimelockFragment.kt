@@ -133,6 +133,10 @@ private fun ChangeTimelockContent(
             ClickAbleText(stringResource(R.string.nc_change_to_on_chain_timelock_hint)),
             ClickAbleText(stringResource(R.string.nc_read_more), onClick = onReadMoreClicked),
         )
+        1 -> listOf(
+            ClickAbleText(stringResource(R.string.nc_change_to_off_chain_timelock_hint)),
+            ClickAbleText(stringResource(R.string.nc_read_more), onClick = onReadMoreClicked),
+        )
         else -> emptyList()
     }
 

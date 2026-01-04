@@ -15,5 +15,6 @@ data class InheritancePlanTypeUiState(
     val setupPreference: String? = null,
     val walletId: String? = null,
     val groupId: String? = null,
+    val fromAddKeyStep: Boolean = false,
     val orderedPlanTypes: List<InheritancePlanType> = listOf(InheritancePlanType.OFF_CHAIN, InheritancePlanType.ON_CHAIN)
 )

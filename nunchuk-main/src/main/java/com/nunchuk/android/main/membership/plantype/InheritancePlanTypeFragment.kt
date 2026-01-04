@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
@@ -73,7 +74,11 @@ class InheritancePlanTypeFragment : MembershipFragment() {
                 InheritancePlanTypeScreen(
                     viewModel = viewModel,
                     onContinueClicked = {
-                        if (uiState.changeTimelockFlow != -1) {
+                        if (uiState.fromAddKeyStep) {
+                            findNavController().navigate(
+                                InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToAddKeyListFragment()
+                            )
+                        } else if (uiState.changeTimelockFlow != -1) {
                             findNavController().navigate(
                                 InheritancePlanTypeFragmentDirections.actionInheritancePlanTypeFragmentToChangeTimeLockFragment(
                                     walletId = uiState.walletId ?: "",
@@ -141,17 +146,22 @@ private fun InheritancePlanTypeScreen(
         orderedPlanTypes = uiState.orderedPlanTypes,
         onPlanTypeSelected = viewModel::onPlanTypeSelected,
         onContinueClicked = onContinueClicked,
-        changeTimelockFlow = uiState.changeTimelockFlow
+        changeTimelockFlow = uiState.changeTimelockFlow,
+        fromAddKeyStep = uiState.fromAddKeyStep
     )
 }
 
 @Composable
 private fun InheritancePlanTypeContent(
     selectedPlanType: InheritancePlanType? = InheritancePlanType.OFF_CHAIN,
-    orderedPlanTypes: List<InheritancePlanType> = listOf(InheritancePlanType.ON_CHAIN, InheritancePlanType.OFF_CHAIN),
+    orderedPlanTypes: List<InheritancePlanType> = listOf(
+        InheritancePlanType.ON_CHAIN,
+        InheritancePlanType.OFF_CHAIN
+    ),
     onPlanTypeSelected: (InheritancePlanType) -> Unit = {},
     onContinueClicked: () -> Unit = {},
-    changeTimelockFlow: Int = -1
+    changeTimelockFlow: Int = -1,
+    fromAddKeyStep: Boolean = false
 ) {
     val isChangeTimelockFlow = changeTimelockFlow != -1
     val buttonText = when (changeTimelockFlow) {
@@ -208,6 +218,7 @@ private fun InheritancePlanTypeContent(
                         planType = planType,
                         isSelected = selectedPlanType == planType,
                         isChangeTimelockFlow = isChangeTimelockFlow,
+                        fromAddKeyStep = fromAddKeyStep,
                         onPlanTypeSelected = onPlanTypeSelected
                     )
                 }
@@ -224,7 +235,7 @@ private fun InheritancePlanTypeContent(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = if (isChangeTimelockFlow) "Read the in-depth comparison." else stringResource(
+                        text = if (fromAddKeyStep) "You can change the plan later (new wallet required). Not sure which to choose? Read the in-depth comparison." else if (isChangeTimelockFlow) "Read the in-depth comparison." else stringResource(
                             R.string.nc_change_plan_later
                         ),
                         style = NunchukTheme.typography.titleSmall,
@@ -241,8 +252,11 @@ private fun InheritancePlanTypeOption(
     planType: InheritancePlanType,
     isSelected: Boolean,
     isChangeTimelockFlow: Boolean,
+    fromAddKeyStep: Boolean,
     onPlanTypeSelected: (InheritancePlanType) -> Unit
 ) {
+    // Disable ON_CHAIN when opened from AddKeyStepFragment
+    val isDisabled = fromAddKeyStep && planType == InheritancePlanType.ON_CHAIN
     when (planType) {
         InheritancePlanType.OFF_CHAIN -> {
             // Off-chain timelock option
@@ -314,18 +328,21 @@ private fun InheritancePlanTypeOption(
                 }
             }
         }
+
         InheritancePlanType.ON_CHAIN -> {
             // On-chain timelock option
             NcRadioButtonOption(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(if (fromAddKeyStep) 0.4f else 1f),
                 isSelected = isSelected,
                 onClick = {
-                    if (isChangeTimelockFlow.not()) {
+                    if (isChangeTimelockFlow.not() && !isDisabled) {
                         onPlanTypeSelected(InheritancePlanType.ON_CHAIN)
                     }
                 },
-                showRadioButton = isChangeTimelockFlow.not(),
-                customBackgroundColor = if (isChangeTimelockFlow) MaterialTheme.colorScheme.lightGray else null
+                showRadioButton = isChangeTimelockFlow.not() && !isDisabled,
+                customBackgroundColor = if (fromAddKeyStep) null else if (isChangeTimelockFlow) MaterialTheme.colorScheme.lightGray else null
             ) {
                 Column {
                     Row(
