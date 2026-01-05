@@ -136,11 +136,16 @@ private fun ChangeTimelockContent(
         else -> emptyList()
     }
 
+    val bgIllustrationRes = when (changeTimelockFlow) {
+        0 -> R.drawable.bg_change_onchain_timelock_illustrations
+        else -> R.drawable.bg_change_offchain_timelock_illustrations
+    }
+
     NunchukTheme {
         Scaffold(
             topBar = {
                 NcImageAppBar(
-                    backgroundRes = R.drawable.bg_timelock_illustrations,
+                    backgroundRes = bgIllustrationRes,
                     title = ""
                 )
             }

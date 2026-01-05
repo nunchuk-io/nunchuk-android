@@ -30,8 +30,6 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.membership.CheckSignMessageTapsignerSignInUseCase
 import com.nunchuk.android.core.domain.membership.GetSignatureFromColdCardPsbt
-import com.nunchuk.android.core.guestmode.SignInMode
-import com.nunchuk.android.core.guestmode.SignInModeHolder
 import com.nunchuk.android.core.nfc.NfcScanInfo
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -68,7 +66,6 @@ class SignInAuthenticationViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val updateDummyTransactionSignInUseCase: UpdateDummyTransactionSignInUseCase,
     private val signInViaDigitalSignatureUseCase: SignInViaDigitalSignatureUseCase,
-    private val signInModeHolder: SignInModeHolder,
     private val initNunchukUseCase: InitNunchukUseCase,
     private val accountManager: AccountManager,
     ) : ViewModel() {
