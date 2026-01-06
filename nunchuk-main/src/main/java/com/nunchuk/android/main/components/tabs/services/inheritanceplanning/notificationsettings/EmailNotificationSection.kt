@@ -54,7 +54,7 @@ fun EmailNotificationSection(
         ) {
             Text(
                 text = emailSettings.email,
-                style = NunchukTheme.typography.title
+                style = NunchukTheme.typography.body
             )
             Icon(
                 painter = painterResource(

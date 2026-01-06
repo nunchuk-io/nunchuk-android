@@ -203,18 +203,13 @@ fun InheritanceNotificationSettingsScreenContent(
                 })
             },
             bottomBar = {
-                val continueBtnText =
-                    if (isSetupFlow) stringResource(id = R.string.nc_text_continue) else stringResource(
-                        id = R.string.nc_update_notification_preferences
-                    )
-
                 NcPrimaryDarkButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
                     onClick = onContinueClick
                 ) {
-                    Text(text = continueBtnText)
+                    Text(text = stringResource(id = R.string.nc_text_continue))
                 }
             }
         ) { innerPadding ->
@@ -251,7 +246,7 @@ fun InheritanceNotificationSettingsScreenContent(
                     // Owner email display
                     Text(
                         text = userEmail,
-                        style = NunchukTheme.typography.title,
+                        style = NunchukTheme.typography.body,
                     )
 
                     HorizontalDivider(
