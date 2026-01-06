@@ -362,7 +362,7 @@ private fun InheritancePlanTypeOption(
                             )
                             Text(
                                 text = stringResource(R.string.nc_enforced_on_bitcoin),
-                                style = NunchukTheme.typography.caption.copy(
+                                style = NunchukTheme.typography.bodySmall.copy(
                                     fontStyle = FontStyle.Italic
                                 ),
                                 color = MaterialTheme.colorScheme.textPrimary,
@@ -384,7 +384,11 @@ private fun InheritancePlanTypeOption(
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                 append("Pros: ")
                             }
-                            append(stringResource(R.string.nc_on_chain_pros))
+                            append("Your Beneficiary can claim the inheritance ")
+                            withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
+                                append("with or without")
+                            }
+                            append(" Nunchuk's assistance once the timelock expires.")
                         },
                         style = NunchukTheme.typography.body,
                         modifier = Modifier.padding(top = 12.dp)
