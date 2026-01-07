@@ -624,7 +624,9 @@ fun DatePickerField(
                         set(Calendar.MINUTE, currentCal.get(Calendar.MINUTE))
                     }
                     datePickerDialog = false
-                }
+                },
+                convertLocalToUtc = true,
+                defaultDate = calendar.value.timeInMillis,
             )
         }
 

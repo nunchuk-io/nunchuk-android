@@ -23,10 +23,30 @@ fun NcDatePickerDialog(
     onConfirm: (Long) -> Unit,
     dateValidator: (Long) -> Boolean = { it > System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1) },
     defaultDate: Long? = null,
+    convertLocalToUtc: Boolean = false,
 ) {
     val calendar = Calendar.getInstance()
+    val initialDateMillis = defaultDate?.let { localMillis ->
+        if (convertLocalToUtc) {
+            val localCalendar = Calendar.getInstance().apply {
+                timeInMillis = localMillis
+            }
+            val utcCalendar = Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
+                set(Calendar.YEAR, localCalendar.get(Calendar.YEAR))
+                set(Calendar.MONTH, localCalendar.get(Calendar.MONTH))
+                set(Calendar.DAY_OF_MONTH, localCalendar.get(Calendar.DAY_OF_MONTH))
+                set(Calendar.HOUR_OF_DAY, 12)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            utcCalendar.timeInMillis
+        } else {
+            localMillis
+        }
+    } ?: calendar.timeInMillis
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = defaultDate ?: calendar.timeInMillis,
+        initialSelectedDateMillis = initialDateMillis,
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
                 return dateValidator(utcTimeMillis)

@@ -359,6 +359,7 @@ private fun OnChainSetUpTimelockContent(
                             selectedDate = newCalendar
                             datePickerDialog = false
                         },
+                        convertLocalToUtc = true,
                         defaultDate = selectedDate.timeInMillis
                     )
                 }
