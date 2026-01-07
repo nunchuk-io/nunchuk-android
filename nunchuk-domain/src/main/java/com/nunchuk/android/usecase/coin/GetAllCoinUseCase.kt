@@ -34,7 +34,7 @@ class GetAllCoinUseCase @Inject constructor(
     override suspend fun execute(parameters: String): List<UnspentOutput> {
         val coins = nunchukNativeSdk.getUnspentOutputs(parameters)
         return if (coins.isNotEmpty() && coins.first().lockBased != MiniscriptTimelockBased.NONE) {
-            coins.sortedByDescending { it.time }
+            coins.sortedBy { it.time }
         } else {
             coins.sortedWith(compareByDescending<UnspentOutput> { it.amount.value }.thenBy { it.time })
         }
