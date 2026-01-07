@@ -95,6 +95,8 @@ object ApiErrorCode {
     const val UNAUTHORIZED = 401
     const val NOT_FOUND = 404
     const val TRANSACTION_CANCEL = 410
+    const val INHERITANCE_PLAN_NOT_FOUND = 831
+    const val INHERITANCE_PLAN_NOT_ACTIVE = 803
 }
 
 const val UNKNOWN_ERROR = "Unknown error, please try again!"
