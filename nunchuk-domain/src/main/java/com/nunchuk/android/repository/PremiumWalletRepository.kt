@@ -244,7 +244,7 @@ interface PremiumWalletRepository {
         timezone: String
     ): String
 
-    suspend fun generateInheritanceClaimStatusUserData(magic: String, bsms: String? = null): String
+    suspend fun generateInheritanceClaimStatusUserData(magic: String, bsms: String? = null, messageId: String? = null): String
 
     suspend fun generateInheritanceClaimCreateTransactionUserData(
         magic: String,
@@ -254,6 +254,7 @@ interface PremiumWalletRepository {
         antiFeeSniping: Boolean,
         subtractFeeFromAmount: Boolean?,
         bsms: String? = null,
+        messageId: String? = null,
     ): String
 
     suspend fun inheritanceClaimStatus(

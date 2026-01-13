@@ -17,23 +17,19 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.model
+package com.nunchuk.android.core.data.model.membership
 
-import android.os.Parcelable
-import com.nunchuk.android.type.WalletType
-import kotlinx.parcelize.Parcelize
+import com.google.gson.annotations.SerializedName
 
-@Parcelize
-data class InheritanceClaimingInit(
-    val walletType: WalletType,
-    val walletLocalId: String,
-    val inheritanceKeyCount: Int,
-    val keyOrigins: List<KeyOrigin> = emptyList()
-) : Parcelable
+class InheritanceClaimSigningChallengeResponse(
+    @SerializedName("message")
+    val message: SigningChallengeMessage? = null
+)
 
-@Parcelize
-data class KeyOrigin(
-    val xfp: String,
-    val derivationPath: String
-) : Parcelable
+class SigningChallengeMessage(
+    @SerializedName("id")
+    val id: String? = null,
+    @SerializedName("message")
+    val message: String? = null
+)
 

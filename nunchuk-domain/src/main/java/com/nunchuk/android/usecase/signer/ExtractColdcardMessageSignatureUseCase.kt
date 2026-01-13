@@ -17,23 +17,22 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.model
+package com.nunchuk.android.usecase.signer
 
-import android.os.Parcelable
-import com.nunchuk.android.type.WalletType
-import kotlinx.parcelize.Parcelize
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-@Parcelize
-data class InheritanceClaimingInit(
-    val walletType: WalletType,
-    val walletLocalId: String,
-    val inheritanceKeyCount: Int,
-    val keyOrigins: List<KeyOrigin> = emptyList()
-) : Parcelable
-
-@Parcelize
-data class KeyOrigin(
-    val xfp: String,
-    val derivationPath: String
-) : Parcelable
+class ExtractColdcardMessageSignatureUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val nativeSdk: NunchukNativeSdk
+) : UseCase<String, String>(dispatcher) {
+    override suspend fun execute(parameters: String): String {
+        return nativeSdk.extractColdcardMessageSignature(
+            value = parameters
+        )
+    }
+}
 

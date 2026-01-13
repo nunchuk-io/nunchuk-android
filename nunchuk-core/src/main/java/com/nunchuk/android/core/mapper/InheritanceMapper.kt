@@ -6,11 +6,13 @@ import com.nunchuk.android.core.data.model.membership.InheritanceClaimingInitRes
 import com.nunchuk.android.core.data.model.membership.InheritanceDto
 import com.nunchuk.android.core.data.model.membership.InheritanceKeyDto
 import com.nunchuk.android.core.data.model.membership.InheritanceNotificationPreferencesDto
+import com.nunchuk.android.core.data.model.membership.KeyOriginDto
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceClaimingInit
 import com.nunchuk.android.model.InheritanceKey
 import com.nunchuk.android.model.InheritancePendingRequest
 import com.nunchuk.android.model.InheritanceStatus
+import com.nunchuk.android.model.KeyOrigin
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.type.WalletType
@@ -66,7 +68,15 @@ internal fun InheritanceClaimingInitResponse.toInheritanceClaimingInit(): Inheri
     return InheritanceClaimingInit(
         walletType = walletType.toWalletType() ?: WalletType.MULTI_SIG,
         walletLocalId = walletLocalId.orEmpty(),
-        inheritanceKeyCount = inheritanceKeyCount ?: 0
+        inheritanceKeyCount = inheritanceKeyCount ?: 0,
+        keyOrigins = keyOrigins?.map { it.toKeyOrigin() } ?: emptyList()
+    )
+}
+
+private fun KeyOriginDto.toKeyOrigin(): KeyOrigin {
+    return KeyOrigin(
+        xfp = xfp.orEmpty(),
+        derivationPath = derivationPath.orEmpty()
     )
 }
 

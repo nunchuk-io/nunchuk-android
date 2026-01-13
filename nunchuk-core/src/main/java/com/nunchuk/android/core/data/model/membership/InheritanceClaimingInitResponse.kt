@@ -27,7 +27,16 @@ class InheritanceClaimingInitResponse(
     @SerializedName("wallet_local_id")
     val walletLocalId: String? = null,
     @SerializedName("inheritance_key_count")
-    val inheritanceKeyCount: Int? = null
+    val inheritanceKeyCount: Int? = null,
+    @SerializedName("key_origins")
+    val keyOrigins: List<KeyOriginDto>? = null
+)
+
+class KeyOriginDto(
+    @SerializedName("xfp")
+    val xfp: String? = null,
+    @SerializedName("derivation_path")
+    val derivationPath: String? = null
 )
 
 class InheritanceClaimingDownloadWalletResponse(

@@ -36,13 +36,11 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BTC_SATOSHI_EXCHANGE_RATE
 import com.nunchuk.android.core.util.SelectWalletType
-import com.nunchuk.android.core.util.isMiniscript
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.addkey.addInheritanceKey
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.addkey.navigateToAddInheritanceKey
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.backuppassword.claimBackupPassword
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.backuppassword.navigateToClaimBackupPassword
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.bufferperiod.claimBufferPeriod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.bufferperiod.navigateToClaimBufferPeriod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.claimnote.ClaimNoteRoute
@@ -198,7 +196,9 @@ private fun ClaimInheritanceGraph(
                     )
                 }
 
-                ClaimInheritanceEvent.SignerAdded -> navController.popBackStack<ClaimMagicPhraseRoute>(false)
+                ClaimInheritanceEvent.SignerAdded -> navController.popBackStack<ClaimMagicPhraseRoute>(
+                    false
+                )
             }
             activityViewModel.onEventHandled()
         }
@@ -304,17 +304,13 @@ private fun ClaimInheritanceGraph(
                 },
                 onContinue = { magicPhrase, initResult ->
                     activityViewModel.updateClaimInit(magicPhrase, initResult)
-                    if (initResult.walletType.isMiniscript()) {
-                        if (initResult.inheritanceKeyCount > 1) {
-                            navController.navigateToAddInheritanceKey(
-                                index = 1,
-                                totalKeys = initResult.inheritanceKeyCount
-                            )
-                        } else {
-                            navController.navigateToPrepareInheritanceKey()
-                        }
+                    if (initResult.inheritanceKeyCount > 1) {
+                        navController.navigateToAddInheritanceKey(
+                            index = 1,
+                            totalKeys = initResult.inheritanceKeyCount
+                        )
                     } else {
-                        navController.navigateToClaimBackupPassword(magicPhrase)
+                        navController.navigateToPrepareInheritanceKey()
                     }
                 },
             )

@@ -2,8 +2,10 @@ package com.nunchuk.android.core.data.api
 
 import com.nunchuk.android.core.data.model.InheritanceClaimingInitRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimingDownloadWalletRequest
+import com.nunchuk.android.core.data.model.InheritanceClaimSigningChallengeRequest
 import com.nunchuk.android.core.data.model.membership.InheritanceClaimingInitResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceClaimingDownloadWalletResponse
+import com.nunchuk.android.core.data.model.membership.InheritanceClaimSigningChallengeResponse
 import com.nunchuk.android.core.network.Data
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -25,4 +27,9 @@ internal interface ClaimInheritanceApi {
     suspend fun getClaimingWallet(
         @Path("local_id") localId: String
     ): Data<InheritanceClaimingDownloadWalletResponse>
+
+    @POST("/v1.1/user-wallets/inheritance/claiming/signing-challenge")
+    suspend fun inheritanceClaimingSigningChallenge(
+        @Body payload: InheritanceClaimSigningChallengeRequest
+    ): Data<InheritanceClaimSigningChallengeResponse>
 }
