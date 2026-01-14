@@ -20,9 +20,11 @@
 package com.nunchuk.android.wallet.components.config
 
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentManager
 import com.nunchuk.android.core.base.BaseBottomSheet
@@ -33,7 +35,11 @@ class WalletUpdateBottomSheet : BaseBottomSheet<DialogUpdateWalletBottomSheetBin
 
     private lateinit var listener: (String) -> Unit
 
-    private val args: WalletUpdateBottomSheetArgs by lazy { WalletUpdateBottomSheetArgs.deserializeFrom(arguments) }
+    private val args: WalletUpdateBottomSheetArgs by lazy {
+        WalletUpdateBottomSheetArgs.deserializeFrom(
+            arguments
+        )
+    }
 
     override fun initializeBinding(
         inflater: LayoutInflater,
@@ -48,7 +54,8 @@ class WalletUpdateBottomSheet : BaseBottomSheet<DialogUpdateWalletBottomSheetBin
 
     private fun setupViews() {
         binding.editWalletName.text?.append(args.walletName)
-
+        binding.editWalletName.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        binding.editWalletName.imeOptions = EditorInfo.IME_ACTION_DONE
         binding.editWalletName.addTextChangedCallback {
             binding.btnSave.isVisible = it.trim().isNotEmpty()
         }
