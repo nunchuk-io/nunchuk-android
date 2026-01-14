@@ -8,7 +8,7 @@
  * of the License, or (at your option) any later version.                 *
  *                                                                        *
  * This program is distributed in the hope that it will be useful,        *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+ * WITHOUT ANY WARRANTY; without even the implied warranty of         *
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
  * GNU General Public License for more details.                           *
  *                                                                        *
@@ -17,41 +17,21 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.repository
+package com.nunchuk.android.core.domain.membership
 
-import com.nunchuk.android.model.InheritanceClaimingInit
-import com.nunchuk.android.model.SingleSigner
-import com.nunchuk.android.model.WalletServer
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.inheritance.ClaimSigningChallenge
-import com.nunchuk.android.type.SignerTag
-import kotlinx.coroutines.flow.Flow
+import com.nunchuk.android.repository.InheritanceRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import javax.inject.Inject
 
-interface InheritanceRepository {
-    suspend fun inheritanceClaimingInit(magic: String): InheritanceClaimingInit
-
-    suspend fun downloadWallet(
-        magic: String,
-        keys: List<SingleSigner>
-    ): WalletServer
-
-    suspend fun isClaimWallet(walletId: String): Boolean
-
-    fun getClaimWalletsFlow(): Flow<Set<String>>
-
-    suspend fun getClaimingWallet(localId: String): WalletServer
-
-    suspend fun requestAddKeyForInheritance(magic: String, signerTags: List<SignerTag>): String
-
-    suspend fun checkKeyAddedForInheritance(
-        magic: String,
-        requestId: String?
-    ): Boolean
-
-    suspend fun deletePendingRequestsByMagic(magic: String)
-
-    suspend fun getAddedKeys(magic: String): Map<String, SingleSigner>
-
-    fun isCurrentUserClaimedWallet(): Flow<Boolean>
-
-    suspend fun inheritanceClaimingSigningChallenge(magic: String): ClaimSigningChallenge
+class GetClaimSigningChallengeUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val inheritanceRepository: InheritanceRepository,
+) : UseCase<String, ClaimSigningChallenge>(dispatcher) {
+    
+    override suspend fun execute(parameters: String): ClaimSigningChallenge {
+        return inheritanceRepository.inheritanceClaimingSigningChallenge(parameters)
+    }
 }

@@ -479,6 +479,10 @@
     <string name="nc_i_have_hardware_device">I have a hardware device initialized with the inheritance key</string>
     <string name="nc_i_have_seed_phrase_backup">I have a seed phrase backup for the inheritance key</string>
     
+    <!-- Verify inheritance message screen -->
+    <string name="nc_verify_inheritance_key">Verify Inheritance Key</string>
+    <string name="nc_sign_message">Sign Message</string>
+    
     <!-- Restore seed phrase to hardware device screen -->
     <string name="nc_restore_seed_phrase_hardware_device">Restore seed phrase to hardware device</string>
     <string name="nc_restore_hardware_step_1">Make sure your hardware and firmware are Miniscript-compatible</string>

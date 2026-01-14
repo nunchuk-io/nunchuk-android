@@ -8,6 +8,7 @@ import com.nunchuk.android.core.base.MutableSaveStateFlow
 import com.nunchuk.android.core.base.update
 import com.nunchuk.android.core.domain.ParseWalletDescriptorUseCase
 import com.nunchuk.android.core.domain.membership.DownloadWalletForClaimUseCase
+import com.nunchuk.android.core.domain.membership.GetClaimSigningChallengeUseCase
 import com.nunchuk.android.core.domain.membership.GetClaimingWalletUseCase
 import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
@@ -19,6 +20,7 @@ import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.model.InheritanceClaimingInit
+import com.nunchuk.android.model.inheritance.ClaimSigningChallenge
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
@@ -49,6 +51,7 @@ class ClaimInheritanceViewModel @Inject constructor(
     private val parseWalletDescriptorUseCase: ParseWalletDescriptorUseCase,
     private val getAddedKeysForInheritanceUseCase: GetAddedKeysForInheritanceUseCase,
     private val deletePendingRequestsByMagicUseCase: DeletePendingRequestsByMagicUseCase,
+    private val getClaimSigningChallengeUseCase: GetClaimSigningChallengeUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val handledRequestIds = mutableSetOf<String>()
@@ -177,7 +180,15 @@ class ClaimInheritanceViewModel @Inject constructor(
             }
         } else {
             _claimData.update { it.copy(signers = it.signers + signer) }
-            if (claimData.value.signers.size == claimData.value.requiredKeyCount) {
+            val isOffChainClaim = !_claimData.value.isOnChainClaim
+            if (isOffChainClaim) {
+                _uiState.update {
+                    it.copy(
+                        event = ClaimInheritanceEvent.SignMessage(signer),
+                        isLoading = false
+                    )
+                }
+            } else if (claimData.value.signers.size == claimData.value.requiredKeyCount) {
                 _uiState.update {
                     it.copy(
                         event = ClaimInheritanceEvent.SignerAdded
@@ -311,6 +322,26 @@ class ClaimInheritanceViewModel @Inject constructor(
         }
     }
 
+    fun generateClaimSigningChallenge() {
+        viewModelScope.launch {
+            val currentData = _claimData.value
+            if (currentData.challenge == null && currentData.magic.isNotEmpty()) {
+                getClaimSigningChallengeUseCase(currentData.magic)
+                    .onSuccess { challenge ->
+                        _claimData.update { it.copy(challenge = challenge) }
+                    }
+                    .onFailure { e ->
+                        Timber.e(e)
+                        _uiState.update {
+                            it.copy(
+                                event = ClaimInheritanceEvent.ShowError(e.message.orUnknownError()),
+                            )
+                        }
+                    }
+            }
+        }
+    }
+
     private companion object {
         private const val KEY_CLAIM_DATA = "claim_data"
         private const val INHERITED_KEY_NAME = "Inheritance key"
@@ -334,6 +365,7 @@ sealed class ClaimInheritanceEvent {
     data object AddMoreSigners : ClaimInheritanceEvent()
     data object KeyAlreadyAdded : ClaimInheritanceEvent()
     data object SignerAdded : ClaimInheritanceEvent()
+    data class SignMessage(val signer: SignerModel) : ClaimInheritanceEvent()
 }
 
 @Parcelize
@@ -345,11 +377,12 @@ data class ClaimData(
     val requiredKeyCount: Int = 1,
     val walletType: WalletType = WalletType.MULTI_SIG,
     val bsms: String? = null,
+    val challenge: ClaimSigningChallenge? = null
 ) : Parcelable {
     val requiredSigners: List<SignerModel>
         get() = signers.takeIf { bsms.isNullOrEmpty() }.orEmpty().toList()
 
     val isOnChainClaim: Boolean
-        get() = !bsms.isNullOrEmpty()
+        get() = !bsms.isNullOrEmpty() || walletType == WalletType.MINISCRIPT
 }
 

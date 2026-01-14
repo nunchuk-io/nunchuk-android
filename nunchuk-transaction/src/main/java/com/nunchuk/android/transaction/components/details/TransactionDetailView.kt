@@ -57,6 +57,7 @@ import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.miniscript.ScriptMode
 import com.nunchuk.android.compose.miniscript.ScriptNodeData
 import com.nunchuk.android.compose.miniscript.ScriptNodeTree
+import com.nunchuk.android.compose.signer.TransactionSignerView
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.core.miniscript.MiniscriptUtil
 import com.nunchuk.android.core.signer.SignerModel

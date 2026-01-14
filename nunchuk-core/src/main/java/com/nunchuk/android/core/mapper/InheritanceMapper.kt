@@ -2,6 +2,7 @@ package com.nunchuk.android.core.mapper
 
 import com.nunchuk.android.core.data.model.byzantine.toWalletType
 import com.nunchuk.android.core.data.model.membership.BeneficiaryNotificationDto
+import com.nunchuk.android.core.data.model.membership.InheritanceClaimSigningChallengeResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceClaimingInitResponse
 import com.nunchuk.android.core.data.model.membership.InheritanceDto
 import com.nunchuk.android.core.data.model.membership.InheritanceKeyDto
@@ -13,6 +14,7 @@ import com.nunchuk.android.model.InheritanceKey
 import com.nunchuk.android.model.InheritancePendingRequest
 import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyOrigin
+import com.nunchuk.android.model.inheritance.ClaimSigningChallenge
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
 import com.nunchuk.android.model.inheritance.InheritanceNotificationSettings
 import com.nunchuk.android.type.WalletType
@@ -92,5 +94,14 @@ internal fun BeneficiaryNotificationDto.toEmailNotificationSettings(): EmailNoti
 private fun InheritanceKeyDto.toInheritanceKey(): InheritanceKey {
     return InheritanceKey(
         xfp = xfp.orEmpty()
+    )
+}
+
+internal fun InheritanceClaimSigningChallengeResponse.toClaimSigningChallenge(): ClaimSigningChallenge {
+    val message = message
+        ?: throw IllegalStateException("Message is missing in signing challenge response")
+    return ClaimSigningChallenge(
+        id = message.id.orEmpty(),
+        message = message.message.orEmpty()
     )
 }

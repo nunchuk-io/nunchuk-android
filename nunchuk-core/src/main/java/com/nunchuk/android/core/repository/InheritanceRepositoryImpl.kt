@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.repository
 
 import com.nunchuk.android.core.account.AccountManager
+import com.nunchuk.android.core.data.model.InheritanceClaimSigningChallengeRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimingDownloadWalletRequest
 import com.nunchuk.android.core.data.model.InheritanceClaimingInitRequest
 import com.nunchuk.android.core.data.model.membership.DesktopKeyRequest
@@ -29,6 +30,7 @@ import com.nunchuk.android.core.exception.RequestAddKeyCancelException
 import com.nunchuk.android.core.gateway.SignerGateway
 import com.nunchuk.android.core.manager.UserWalletApiManager
 import com.nunchuk.android.core.mapper.ServerSignerMapper
+import com.nunchuk.android.core.mapper.toClaimSigningChallenge
 import com.nunchuk.android.core.mapper.toInheritanceClaimingInit
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.persistence.NcDataStore
@@ -37,6 +39,7 @@ import com.nunchuk.android.model.InheritanceClaimingInit
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.WalletServer
+import com.nunchuk.android.model.inheritance.ClaimSigningChallenge
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.persistence.dao.RequestAddKeyDao
 import com.nunchuk.android.persistence.entity.RequestAddKeyEntity
@@ -284,6 +287,12 @@ internal class InheritanceRepositoryImpl @Inject constructor(
             val userId = chatId + chain.toString()
             claimWallets.isNotEmpty() || claimedUserIds.contains(userId)
         }
+    }
+
+    override suspend fun inheritanceClaimingSigningChallenge(magic: String): ClaimSigningChallenge {
+        val request = InheritanceClaimSigningChallengeRequest(magic = magic)
+        val response = userWalletApiManager.claimInheritanceApi.inheritanceClaimingSigningChallenge(request)
+        return response.data.toClaimSigningChallenge()
     }
 }
 

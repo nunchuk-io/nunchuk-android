@@ -104,7 +104,7 @@ ext {
     hiltDeps = [
             processor     : "com.google.dagger:hilt-compiler:${hiltVersion}",
             hilt          : "com.google.dagger:hilt-android:${hiltVersion}",
-            hiltNavigation: "androidx.hilt:hilt-navigation-compose:1.0.0",
+            hiltNavigation: "androidx.hilt:hilt-navigation-compose:1.2.0",
     ]
 
     imageLoaderDeps = [

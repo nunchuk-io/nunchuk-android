@@ -1,7 +1,6 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim
 
 import android.app.Activity
-import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,14 +18,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.showNunchukSnackbar
-import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.network.ApiErrorCode.INHERITANCE_PLAN_NOT_ACTIVE
+import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
@@ -41,6 +41,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.addkey.addInheritanceKey
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.addkey.navigateToAddInheritanceKey
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.backuppassword.claimBackupPassword
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.backuppassword.navigateToClaimBackupPassword
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.bufferperiod.claimBufferPeriod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.bufferperiod.navigateToClaimBufferPeriod
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.claimnote.ClaimNoteRoute
@@ -57,6 +58,8 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.preparerecover.recoverInheritanceKey
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.restorehardware.navigateToRestoreSeedPhraseHardware
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.restorehardware.restoreSeedPhraseHardware
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.navigateToVerifyInheritanceMessage
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage.verifyInheritanceMessage
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.withdrawbitcoin.claimWithdrawBitcoin
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.withdrawbitcoin.navigateToClaimWithdrawBitcoin
 import com.nunchuk.android.model.Amount
@@ -69,32 +72,28 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 
 @AndroidEntryPoint
-class ClaimInheritanceActivity : BaseComposeActivity() {
+class ClaimInheritanceActivity : BaseNfcActivity<ViewBinding>() {
     private val viewModel: ClaimInheritanceViewModel by viewModels()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-
+    override fun initializeBinding(): ViewBinding = ViewBinding {
         val args = ClaimArgs.deserializeFrom(intent)
 
         if (!args.bsms.isNullOrEmpty()) {
             viewModel.getInheritanceStatus(bsms = args.bsms)
             viewModel.getClaimingWallet(bsms = args.bsms.orEmpty())
         }
-
-        setContentView(
-            ComposeView(this).apply {
-                setContent {
-                    ClaimInheritanceGraph(
-                        args = args,
-                        activity = this@ClaimInheritanceActivity,
-                        navigator = navigator,
-                        pushEventManager = pushEventManager,
-                    )
-                }
+        ComposeView(this).apply {
+            setContent {
+                ClaimInheritanceGraph(
+                    args = args,
+                    activity = this@ClaimInheritanceActivity,
+                    navigator = navigator,
+                    pushEventManager = pushEventManager,
+                )
             }
-        )
+        }
+    }.also {
+        enableEdgeToEdge()
     }
 }
 
@@ -199,6 +198,10 @@ private fun ClaimInheritanceGraph(
                 ClaimInheritanceEvent.SignerAdded -> navController.popBackStack<ClaimMagicPhraseRoute>(
                     false
                 )
+
+                is ClaimInheritanceEvent.SignMessage -> {
+                    navController.navigateToVerifyInheritanceMessage()
+                }
             }
             activityViewModel.onEventHandled()
         }
@@ -259,7 +262,12 @@ private fun ClaimInheritanceGraph(
                         }
 
                         InheritanceOption.SEED_PHRASE -> {
-                            navController.navigateToRecoverInheritanceKey()
+                            if (claimData.isOnChainClaim) {
+                                navController.navigateToRecoverInheritanceKey()
+                            } else {
+                                activityViewModel.generateClaimSigningChallenge()
+                                navController.navigateToClaimBackupPassword(claimData.magic)
+                            }
                         }
                     }
                 },
@@ -375,6 +383,18 @@ private fun ClaimInheritanceGraph(
                             type = UploadConfigurationType.RegisterOnly
                         )
                     }
+                },
+            )
+            verifyInheritanceMessage(
+                snackState = snackbarHostState,
+                onBackPressed = {
+                    navController.popBackStack()
+                },
+                onContinue = {
+                    // Handle continue action
+                },
+                onSignClick = { message ->
+                    // Handle sign action
                 },
             )
             claimWithdrawBitcoin(

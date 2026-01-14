@@ -26,6 +26,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.backgroundMidGray
 import com.nunchuk.android.compose.fillBeeswax
 import com.nunchuk.android.compose.provider.SignersModelProvider
+import com.nunchuk.android.compose.signer.TransactionSignerView
 import com.nunchuk.android.compose.strokePrimary
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.SignerModel

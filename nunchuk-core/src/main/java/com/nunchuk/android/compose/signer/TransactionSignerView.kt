@@ -1,4 +1,4 @@
-package com.nunchuk.android.transaction.components.details
+package com.nunchuk.android.compose.signer
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,10 +18,9 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.provider.SignerModelProvider
-import com.nunchuk.android.compose.signer.SignerCard
+import com.nunchuk.android.core.R
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.canSign
-import com.nunchuk.android.transaction.R
 import com.nunchuk.android.type.SignerType
 
 @Composable
