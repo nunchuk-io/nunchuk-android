@@ -12,6 +12,7 @@ import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.main.membership.model.toGroupWalletType
 import com.nunchuk.android.model.Period
 import com.nunchuk.android.model.Result
+import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.Wallet
 import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.byzantine.GroupWalletType
@@ -116,7 +117,9 @@ class InheritancePlanningViewModel @Inject constructor(
                 walletType = wallet.walletType,
                 setupOrReviewParam = it.setupOrReviewParam.copy(
                     activationDate = if (wallet.walletType == WalletType.MINISCRIPT) wallet.timelock.timelockValue * 1000 else it.setupOrReviewParam.activationDate,
-                    selectedZoneId = wallet.timelock.timezone.takeIf { zone -> zone.isNotEmpty() } ?: it.setupOrReviewParam.selectedZoneId
+                    selectedZoneId = wallet.timelock.timezone.takeIf { zone -> zone.isNotEmpty() } ?: it.setupOrReviewParam.selectedZoneId,
+                    timelockBased = wallet.timelock.based,
+                    blockHeight = wallet.timelock.blockHeight
                 )
             )
         }
@@ -225,6 +228,8 @@ sealed class InheritancePlanningParam {
         val groupId: String = "",
         val dummyTransactionId: String = "",
         val inheritanceKeys: List<String> = emptyList(),
+        val timelockBased: TimelockBased = TimelockBased.TIME_LOCK,
+        val blockHeight: Long? = null,
     ) : InheritancePlanningParam()
 }
 

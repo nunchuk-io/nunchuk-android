@@ -23,6 +23,8 @@ import com.nunchuk.android.core.data.model.CalculateRequiredSignaturesSecurityQu
 import com.nunchuk.android.core.data.model.ChangeEmailRequest
 import com.nunchuk.android.core.data.model.ChangeEmailSignatureRequest
 import com.nunchuk.android.core.data.model.ConfigSecurityQuestionPayload
+import com.nunchuk.android.core.data.model.ConvertTimelockRequest
+import com.nunchuk.android.core.data.model.ConvertTimelockResponse
 import com.nunchuk.android.core.data.model.CreateSecurityQuestionRequest
 import com.nunchuk.android.core.data.model.CreateSecurityQuestionResponse
 import com.nunchuk.android.core.data.model.CreateServerKeyResponse
@@ -765,4 +767,9 @@ internal interface UserWalletsApi {
         @Query("limit") limit: Int,
         @Query("statuses") statuses: List<String>,
     ): Data<GetWalletsResponse>
+
+    @POST("/v1.1/user-wallets/timelock/convert")
+    suspend fun convertTimelock(
+        @Body payload: ConvertTimelockRequest
+    ): Data<ConvertTimelockResponse>
 }

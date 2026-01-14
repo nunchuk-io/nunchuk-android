@@ -5,8 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.ui.TimeZoneDetail
+import com.nunchuk.android.model.TimelockBased
+import com.nunchuk.android.model.TimelockExtra
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupFromCacheUseCase
+import com.nunchuk.android.usecase.membership.ConvertTimelockUseCase
 import com.nunchuk.android.usecase.membership.CreateTimelockUseCase
 import com.nunchuk.android.usecase.replace.ReplaceTimelockUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,6 +23,8 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 import javax.inject.Inject
 
+private const val UNIX_Y2K38_THRESHOLD = 2147483648L // Jan 19, 2038 03:14:08 UTC
+
 @HiltViewModel
 class OnChainSetUpTimelockViewModel @Inject constructor(
     private val membershipStepManager: MembershipStepManager,
@@ -27,6 +32,7 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
     private val replaceTimelockUseCase: ReplaceTimelockUseCase,
     private val pushEventManager: PushEventManager,
     private val getUserWalletConfigsSetupFromCacheUseCase: GetUserWalletConfigsSetupFromCacheUseCase,
+    private val convertTimelockUseCase: ConvertTimelockUseCase,
 ) : ViewModel() {
 
     val remainTime = membershipStepManager.remainingTime
@@ -39,6 +45,17 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
 
     init {
         loadMaxTimelockYears()
+    }
+
+    fun initFromTimelockExtra(timelockExtra: TimelockExtra?) {
+        if (timelockExtra != null && timelockExtra.based == TimelockBased.HEIGHT_LOCK) {
+            _state.update {
+                it.copy(
+                    isBlockBased = true,
+                    blockHeight = timelockExtra.blockHeight
+                )
+            }
+        }
     }
 
     private fun loadMaxTimelockYears() {
@@ -88,7 +105,13 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
             if (actualYearsDifference > maxTimelockYears) {
                 _state.update {
                     it.copy(
-                        pendingTimelockData = PendingTimelockData(selectedDate, selectedTimeZone, groupId),
+                        pendingTimelockData = PendingTimelockData(
+                            selectedDate = selectedDate,
+                            selectedTimeZone = selectedTimeZone,
+                            groupId = groupId,
+                            isReplaceKeyFlow = isReplaceKeyFlow,
+                            walletId = walletId
+                        ),
                         showConfirmTimelockDateDialog = true
                     )
                 }
@@ -100,6 +123,98 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
         }
     }
 
+    fun onConfirmBlockBasedTimelock() {
+        viewModelScope.launch {
+            _state.value.pendingTimelockData?.let { data ->
+                _state.update {
+                    it.copy(
+                        showBlockBasedTimelockDialog = false,
+                        isLoading = true
+                    )
+                }
+
+                val timelockValue = data.selectedDate.timeInMillis / 1000
+
+                // Call ConvertTimelockUseCase to get the block height
+                val result = convertTimelockUseCase(
+                    ConvertTimelockUseCase.Param(
+                        value = timelockValue,
+                        timezone = data.selectedTimeZone.id,
+                        based = TimelockBased.TIME_LOCK,
+                        blockHeight = 0L
+                    )
+                )
+
+                result.onSuccess { convertedTimelock ->
+                    _state.update {
+                        it.copy(
+                            isBlockBased = true,
+                            blockHeight = convertedTimelock.blockHeight,
+                            isLoading = false
+                        )
+                    }
+                }.onFailure { e ->
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            pendingTimelockData = null
+                        )
+                    }
+                    _event.emit(OnChainSetUpTimelockEvent.Error(e.message ?: "Failed to convert timelock"))
+                }
+            }
+        }
+    }
+
+    fun onDismissBlockBasedTimelockDialog() {
+        _state.update {
+            it.copy(
+                showBlockBasedTimelockDialog = false,
+                pendingTimelockData = null
+            )
+        }
+    }
+
+    fun onDateChanged(selectedDate: Calendar, selectedTimeZone: TimeZoneDetail) {
+        val timelockValue = selectedDate.timeInMillis / 1000
+        if (timelockValue >= UNIX_Y2K38_THRESHOLD) {
+            if (!_state.value.isBlockBased) {
+                // Date exceeds Y2K38 threshold, show block-based timelock dialog
+                _state.update {
+                    it.copy(
+                        pendingTimelockData = PendingTimelockData(
+                            selectedDate = selectedDate,
+                            selectedTimeZone = selectedTimeZone,
+                            groupId = null
+                        ),
+                        showBlockBasedTimelockDialog = true
+                    )
+                }
+            } else {
+                _state.update {
+                    it.copy(
+                        pendingTimelockData = PendingTimelockData(
+                            selectedDate = selectedDate,
+                            selectedTimeZone = selectedTimeZone,
+                            groupId = null
+                        ),
+                        showBlockBasedTimelockDialog = false
+                    )
+                }
+                onConfirmBlockBasedTimelock()
+            }
+        } else if (_state.value.isBlockBased) {
+            // Date is changed to before Y2K38 threshold, reset block-based state
+            _state.update {
+                it.copy(
+                    isBlockBased = false,
+                    blockHeight = null,
+                    pendingTimelockData = null
+                )
+            }
+        }
+    }
+
     fun onConfirmTimelockDate() {
         _state.value.pendingTimelockData?.let { data ->
             _state.update {
@@ -108,7 +223,13 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
                     pendingTimelockData = null
                 )
             }
-            createTimelock(data.selectedDate, data.selectedTimeZone, data.groupId)
+            createTimelock(
+                selectedDate = data.selectedDate,
+                selectedTimeZone = data.selectedTimeZone,
+                groupId = data.groupId,
+                isReplaceKeyFlow = data.isReplaceKeyFlow,
+                walletId = data.walletId
+            )
         }
     }
 
@@ -132,6 +253,8 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             val timelockValue = selectedDate.timeInMillis / 1000
+            val isBlockBased = _state.value.isBlockBased
+            val blockHeight = _state.value.blockHeight
 
             if (isReplaceKeyFlow && walletId != null) {
                 // Use ReplaceTimelockUseCase for replace key flow
@@ -140,7 +263,9 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
                         groupId = groupId,
                         walletId = walletId,
                         timelockValue = timelockValue,
-                        timezone = selectedTimeZone.id
+                        timezone = selectedTimeZone.id,
+                        based = if (isBlockBased) TimelockBased.HEIGHT_LOCK else TimelockBased.TIME_LOCK,
+                        blockHeight = blockHeight
                     )
                 )
 
@@ -161,7 +286,9 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
                         groupId = groupId,
                         timelockValue = timelockValue,
                         timezone = selectedTimeZone.id,
-                        plan = membershipStepManager.localMembershipPlan
+                        plan = membershipStepManager.localMembershipPlan,
+                        based = if (isBlockBased) TimelockBased.HEIGHT_LOCK else TimelockBased.TIME_LOCK,
+                        blockHeight = blockHeight
                     )
                 )
 
@@ -183,14 +310,20 @@ class OnChainSetUpTimelockViewModel @Inject constructor(
 data class PendingTimelockData(
     val selectedDate: Calendar,
     val selectedTimeZone: TimeZoneDetail,
-    val groupId: String?
+    val groupId: String?,
+    val isReplaceKeyFlow: Boolean = false,
+    val walletId: String? = null
 )
 
 data class OnChainSetUpTimelockState(
     val showConfirmTimelockDateDialog: Boolean = false,
     val showInvalidDateDialog: Boolean = false,
+    val showBlockBasedTimelockDialog: Boolean = false,
     val maxTimelockYears: Int? = null,
-    val pendingTimelockData: PendingTimelockData? = null
+    val pendingTimelockData: PendingTimelockData? = null,
+    val isBlockBased: Boolean = false,
+    val blockHeight: Long? = null,
+    val isLoading: Boolean = false
 )
 
 sealed class OnChainSetUpTimelockEvent {

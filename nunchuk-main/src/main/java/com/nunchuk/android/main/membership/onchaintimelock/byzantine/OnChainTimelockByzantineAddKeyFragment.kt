@@ -103,6 +103,7 @@ import com.nunchuk.android.main.membership.onchaintimelock.importantpassphrase.I
 import com.nunchuk.android.main.membership.signer.OnChainSignerIntroFragment
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
+import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
@@ -124,6 +125,7 @@ import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -997,6 +999,8 @@ private fun ConfigItem(
     // Check if this is a TIMELOCK step with timelock data configured
     val isTimelockWithData = item.type == MembershipStep.TIMELOCK &&
             item.stepDataMap[MembershipStep.TIMELOCK]?.timelock?.value.orDefault(0) > 0
+    val timelockExtra = item.stepDataMap[MembershipStep.TIMELOCK]?.timelock
+    val isHeightLock = timelockExtra?.based == TimelockBased.HEIGHT_LOCK
 
     Row(
         modifier = Modifier.padding(12.dp),
@@ -1008,14 +1012,16 @@ private fun ConfigItem(
                 .weight(1.0f)
                 .padding(start = 8.dp)
         ) {
-            Text(
-                text = if (item.type == MembershipStep.TIMELOCK && isTimelockWithData) "After" else item.type.getLabel(
-                    context = LocalContext.current,
-                    isStandard = isStandard,
-                    isOnChain = true
-                ),
-                style = NunchukTheme.typography.body
-            )
+            if (isHeightLock.not()) {
+                Text(
+                    text = if (item.type == MembershipStep.TIMELOCK && isTimelockWithData) "After" else item.type.getLabel(
+                        context = LocalContext.current,
+                        isStandard = isStandard,
+                        isOnChain = true
+                    ),
+                    style = NunchukTheme.typography.body
+                )
+            }
             if (item.shouldShowAcctXBadge()) {
                 Row(modifier = Modifier.padding(top = 4.dp)) {
                     val firstAcctLabel = signers.firstOrNull()?.let { firstSigner ->
@@ -1051,19 +1057,27 @@ private fun ConfigItem(
                 }
             }
             if (isTimelockWithData) {
-                val timelockExtra = item.stepDataMap[MembershipStep.TIMELOCK]?.timelock
+                // First line: Date (with "Est." prefix for HEIGHT_LOCK)
                 val formattedDate = timelockExtra?.let {
                     val dateFormat = SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.getDefault())
-                    // Use the timezone from TimelockExtra to display the date in the correct timezone
                     it.timezone?.let { timezoneId ->
                         dateFormat.timeZone = TimeZone.getTimeZone(timezoneId)
                     }
-                    dateFormat.format(Date(it.value * 1000)) // Convert seconds to milliseconds
+                    val dateStr = dateFormat.format(Date(it.value * 1000))
+                    if (isHeightLock) "Est. $dateStr" else dateStr
                 } ?: ""
                 Text(
                     text = formattedDate,
                     style = NunchukTheme.typography.body
                 )
+                // Second line: Block Height (only for HEIGHT_LOCK)
+                if (isHeightLock && timelockExtra?.blockHeight != null) {
+                    val formattedBlockHeight = NumberFormat.getNumberInstance(Locale.US).format(timelockExtra.blockHeight)
+                    Text(
+                        text = stringResource(R.string.nc_block_height_with_value, formattedBlockHeight),
+                        style = NunchukTheme.typography.bodySmall
+                    )
+                }
             }
         }
         if (onAddClicked != null) {

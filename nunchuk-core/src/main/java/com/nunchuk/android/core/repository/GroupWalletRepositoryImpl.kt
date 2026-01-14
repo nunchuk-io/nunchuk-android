@@ -4,6 +4,7 @@ import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.core.data.model.byzantine.DraftWalletDto
 import com.nunchuk.android.core.data.model.byzantine.HealthCheckRequest
 import com.nunchuk.android.core.data.model.byzantine.toDomainModel
+import com.nunchuk.android.core.data.model.byzantine.toDraftWalletTimelock
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.byzantine.toWalletType
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
@@ -196,7 +197,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
             signers = draftWallet.signers.map { it.toModel() },
             walletType = draftWallet.walletType.toWalletType(),
-            timelock = draftWallet.timelock?.value ?: 0L,
+            timelock = draftWallet.timelock.toDraftWalletTimelock(),
             replaceWallet = draftWallet.replaceWallet.toModel()
         )
     }
@@ -337,7 +338,7 @@ internal class GroupWalletRepositoryImpl @Inject constructor(
             isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
             signers = draftWallet.signers.map { it.toModel() },
             walletType = draftWallet.walletType.toWalletType(),
-            timelock = draftWallet.timelock?.value ?: 0L,
+            timelock = draftWallet.timelock.toDraftWalletTimelock(),
             replaceWallet = draftWallet.replaceWallet.toModel()
         )
     }

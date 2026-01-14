@@ -20,36 +20,32 @@
 package com.nunchuk.android.usecase.membership
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.MembershipPlan
+import com.nunchuk.android.model.ConvertedTimelock
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class CreateTimelockUseCase @Inject constructor(
-    private val premiumWalletRepository: PremiumWalletRepository,
+class ConvertTimelockUseCase @Inject constructor(
+    private val repository: PremiumWalletRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : UseCase<CreateTimelockUseCase.Param, Unit>(ioDispatcher) {
+) : UseCase<ConvertTimelockUseCase.Param, ConvertedTimelock>(ioDispatcher) {
 
-    override suspend fun execute(parameters: Param) {
-        return premiumWalletRepository.createDraftWalletTimelock(
-            groupId = parameters.groupId,
-            timelockValue = parameters.timelockValue,
+    override suspend fun execute(parameters: Param): ConvertedTimelock {
+        return repository.convertTimelock(
+            value = parameters.value,
             timezone = parameters.timezone,
-            plan = parameters.plan,
             based = parameters.based,
             blockHeight = parameters.blockHeight
         )
     }
 
     data class Param(
-        val groupId: String?,
-        val timelockValue: Long,
-        val timezone: String,
-        val plan: MembershipPlan,
+        val value: Long = 0L,
+        val timezone: String = "",
         val based: TimelockBased = TimelockBased.TIME_LOCK,
-        val blockHeight: Long? = null
+        val blockHeight: Long = 0L
     )
 }
 

@@ -25,7 +25,9 @@ import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.CalculateRequiredSignaturesExt
+import com.nunchuk.android.model.ConvertedTimelock
 import com.nunchuk.android.model.CreateWalletResult
+import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.FinalizeReplaceWalletResult
 import com.nunchuk.android.model.GroupChat
@@ -363,7 +365,9 @@ interface PremiumWalletRepository {
         groupId: String?,
         timelockValue: Long,
         timezone: String,
-        plan: MembershipPlan
+        plan: MembershipPlan,
+        based: TimelockBased = TimelockBased.TIME_LOCK,
+        blockHeight: Long? = null
     )
     suspend fun cancelRequestIdIfNeed(groupId: String, step: MembershipStep)
     suspend fun getPermissionGroupWallet(type: GroupWalletType): DefaultPermissions
@@ -545,6 +549,15 @@ interface PremiumWalletRepository {
         groupId: String?,
         walletId: String,
         timelockValue: Long,
-        timezone: String
+        timezone: String,
+        based: TimelockBased = TimelockBased.TIME_LOCK,
+        blockHeight: Long? = null
     )
+
+    suspend fun convertTimelock(
+        value: Long,
+        timezone: String,
+        based: TimelockBased,
+        blockHeight: Long
+    ): ConvertedTimelock
 }

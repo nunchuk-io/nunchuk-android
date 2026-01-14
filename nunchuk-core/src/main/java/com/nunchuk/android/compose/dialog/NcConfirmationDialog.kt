@@ -74,7 +74,8 @@ fun NcConfirmationDialog(
                     Text(
                         text = negativeButtonText,
                         style = NunchukTheme.typography.title,
-                        color = MaterialTheme.colorScheme.textPrimary
+                        color = MaterialTheme.colorScheme.textPrimary,
+                        fontWeight = FontWeight.Bold
                     )
                 }
                 NcPrimaryDarkButton(

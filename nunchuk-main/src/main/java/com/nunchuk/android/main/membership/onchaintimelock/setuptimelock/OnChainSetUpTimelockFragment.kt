@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,12 +17,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,6 +46,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
+import com.nunchuk.android.compose.HighlightMessageType
 import com.nunchuk.android.compose.NcDatePickerDialog
 import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcHintMessage
@@ -51,6 +58,8 @@ import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.compose.dialog.NcInfoDialog
+import com.nunchuk.android.compose.fillInputText
+import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.compose.timezone.NcTimeZoneField
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.ui.TimeZoneDetail
@@ -126,6 +135,10 @@ private fun OnChainSetUpTimelockScreen(
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    LaunchedEffect(timelockExtra) {
+        viewModel.initFromTimelockExtra(timelockExtra)
+    }
+
     OnChainSetUpTimelockContent(
         onMoreClicked = onMoreClicked,
         onContinueClicked = { selectedDate, selectedTimeZone ->
@@ -137,15 +150,23 @@ private fun OnChainSetUpTimelockScreen(
                 walletId = walletId
             )
         },
+        onDateChanged = { selectedDate, selectedTimeZone ->
+            viewModel.onDateChanged(selectedDate, selectedTimeZone)
+        },
         remainTime = remainTime,
         timelockExtra = timelockExtra,
         showConfirmDialog = state.showConfirmTimelockDateDialog,
         showInvalidDateDialog = state.showInvalidDateDialog,
+        showBlockBasedTimelockDialog = state.showBlockBasedTimelockDialog,
         maxTimelockYears = state.maxTimelockYears,
         isReplaceKeyFlow = isReplaceKeyFlow,
+        isBlockBased = state.isBlockBased,
+        blockHeight = state.blockHeight,
         onConfirmTimelockDate = { viewModel.onConfirmTimelockDate() },
         onDismissConfirmDialog = { viewModel.onDismissConfirmTimelockDateDialog() },
-        onDismissInvalidDateDialog = { viewModel.onDismissInvalidDateDialog() }
+        onDismissInvalidDateDialog = { viewModel.onDismissInvalidDateDialog() },
+        onConfirmBlockBasedTimelock = { viewModel.onConfirmBlockBasedTimelock() },
+        onDismissBlockBasedTimelockDialog = { viewModel.onDismissBlockBasedTimelockDialog() }
     )
 }
 
@@ -156,12 +177,18 @@ private fun OnChainSetUpTimelockContent(
     isReplaceKeyFlow: Boolean = false,
     onMoreClicked: () -> Unit = {},
     onContinueClicked: (Calendar, TimeZoneDetail) -> Unit = { _, _ -> },
+    onDateChanged: (Calendar, TimeZoneDetail) -> Unit = { _, _ -> },
     showConfirmDialog: Boolean = false,
     showInvalidDateDialog: Boolean = false,
+    showBlockBasedTimelockDialog: Boolean = false,
     maxTimelockYears: Int? = null,
+    isBlockBased: Boolean = false,
+    blockHeight: Long? = null,
     onConfirmTimelockDate: () -> Unit = {},
     onDismissConfirmDialog: () -> Unit = {},
     onDismissInvalidDateDialog: () -> Unit = {},
+    onConfirmBlockBasedTimelock: () -> Unit = {},
+    onDismissBlockBasedTimelockDialog: () -> Unit = {},
 ) {
     var selectedTimeZone by remember {
         mutableStateOf(
@@ -299,6 +326,7 @@ private fun OnChainSetUpTimelockContent(
                         value = selectedDateText,
                         readOnly = true,
                         enabled = false,
+                        disableBackgroundColor = MaterialTheme.colorScheme.fillInputText,
                         onClick = {
                             datePickerDialog = true
                         },
@@ -309,7 +337,7 @@ private fun OnChainSetUpTimelockContent(
                                     .clickable {
                                         datePickerDialog = true
                                     },
-                                painter = painterResource(id = com.nunchuk.android.core.R.drawable.ic_calendar),
+                                painter = painterResource(id = R.drawable.ic_calendar),
                                 contentDescription = ""
                             )
                         },
@@ -323,6 +351,7 @@ private fun OnChainSetUpTimelockContent(
                         value = selectedTimeText,
                         readOnly = true,
                         enabled = false,
+                        disableBackgroundColor = MaterialTheme.colorScheme.fillInputText,
                         onClick = {
                             timePickerDialog = true
                         },
@@ -333,11 +362,53 @@ private fun OnChainSetUpTimelockContent(
                                     .clickable {
                                         timePickerDialog = true
                                     },
-                                painter = painterResource(id = com.nunchuk.android.core.R.drawable.ic_clock),
+                                painter = painterResource(id = R.drawable.ic_clock),
                                 contentDescription = ""
                             )
                         },
                         onValueChange = {}
+                    )
+                }
+
+                // Block Height field (shown only when block-based)
+                if (isBlockBased && blockHeight != null) {
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 16.dp, top = 12.dp, end = 16.dp)
+                            .fillMaxWidth()
+                            .background(
+                                color = colorResource(id = R.color.nc_grey_light),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                    ) {
+                        NcTextField(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            title = stringResource(id = R.string.nc_block_height),
+                            value = "%,d".format(blockHeight),
+                            enabled = false,
+                            textStyle = NunchukTheme.typography.body.copy(
+                                color = MaterialTheme.colorScheme.textSecondary
+                            ),
+                            disableBackgroundColor = colorResource(id = R.color.nc_grey_light),
+                            roundBoxRadius = 12.dp,
+                            onValueChange = {}
+                        )
+                    }
+
+                    // Block height estimate warning
+                    NcHintMessage(
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
+                        type = HighlightMessageType.WARNING,
+                        messages = listOf(
+                            ClickAbleText(
+                                content = stringResource(
+                                    id = R.string.nc_block_height_estimate_warning,
+                                    "%,d".format(blockHeight)
+                                )
+                            )
+                        )
                     )
                 }
 
@@ -357,6 +428,7 @@ private fun OnChainSetUpTimelockContent(
                                         set(Calendar.MINUTE, selectedDate.get(Calendar.MINUTE))
                                     }
                             selectedDate = newCalendar
+                            onDateChanged(newCalendar, selectedTimeZone)
                             datePickerDialog = false
                         },
                         convertLocalToUtc = true,
@@ -379,6 +451,7 @@ private fun OnChainSetUpTimelockContent(
                                         set(Calendar.MINUTE, minute)
                                     }
                             selectedDate = newCalendar
+                            onDateChanged(newCalendar, selectedTimeZone)
                             timePickerDialog = false
                         }
                     )
@@ -415,6 +488,18 @@ private fun OnChainSetUpTimelockContent(
             onPositiveClick = onDismissInvalidDateDialog
         )
     }
+
+    // Block-based timelock dialog
+    if (showBlockBasedTimelockDialog) {
+        NcConfirmationDialog(
+            title = stringResource(id = R.string.nc_block_based_timelock_title),
+            message = stringResource(id = R.string.nc_block_based_timelock_message),
+            positiveButtonText = stringResource(id = com.nunchuk.android.widget.R.string.nc_text_confirm),
+            negativeButtonText = stringResource(id = R.string.nc_change_date),
+            onPositiveClick = onConfirmBlockBasedTimelock,
+            onDismiss = onDismissBlockBasedTimelockDialog
+        )
+    }
 }
 
 @Preview
@@ -424,6 +509,21 @@ private fun OnChainSetUpTimelockScreenPreview() {
         remainTime = 0,
         timelockExtra = null,
         onMoreClicked = {},
-        onContinueClicked = { _, _ -> }
+        onContinueClicked = { _, _ -> },
+        onDateChanged = { _, _ -> }
+    )
+}
+
+@Preview
+@Composable
+private fun OnChainSetUpTimelockScreenBlockBasedPreview() {
+    OnChainSetUpTimelockContent(
+        remainTime = 0,
+        timelockExtra = null,
+        onMoreClicked = {},
+        onContinueClicked = { _, _ -> },
+        onDateChanged = { _, _ -> },
+        isBlockBased = true,
+        blockHeight = 1500123
     )
 }

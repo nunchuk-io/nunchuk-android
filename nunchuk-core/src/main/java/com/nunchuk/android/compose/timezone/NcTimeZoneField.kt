@@ -22,6 +22,7 @@ package com.nunchuk.android.compose.timezone
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcTextField
+import com.nunchuk.android.compose.fillInputText
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.ui.TimeZoneDetail
 import com.nunchuk.android.core.ui.TimeZoneSelectionDialog
@@ -58,6 +60,7 @@ fun NcTimeZoneField(
         value = displayText,
         readOnly = true,
         enabled = false,
+        disableBackgroundColor = MaterialTheme.colorScheme.fillInputText,
         onClick = {
             showTimeZoneDialog = true
         },

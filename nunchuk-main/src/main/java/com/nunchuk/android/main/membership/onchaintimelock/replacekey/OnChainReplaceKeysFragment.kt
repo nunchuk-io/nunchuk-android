@@ -100,6 +100,7 @@ import com.nunchuk.android.main.membership.model.resId
 import com.nunchuk.android.main.membership.onchaintimelock.importantpassphrase.ImportantNoticePassphraseFragment
 import com.nunchuk.android.main.membership.signer.OnChainSignerIntroFragment
 import com.nunchuk.android.model.OnChainReplaceKeyStep
+import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.TimelockExtra
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
@@ -118,6 +119,7 @@ import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.NCInfoDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -168,7 +170,9 @@ class OnChainReplaceKeysFragment : Fragment() {
                                 groupId = args.groupId,
                                 timelockExtra = TimelockExtra(
                                     value = walletTimelock?.timelockValue ?: 0L,
-                                    timezone = walletTimelock?.timezone ?: ""
+                                    timezone = walletTimelock?.timezone ?: "",
+                                    based = walletTimelock?.based ?: TimelockBased.TIME_LOCK,
+                                    blockHeight = walletTimelock?.blockHeight
                                 ),
                                 isReplaceKeyFlow = true,
                                 walletId = (activity as MembershipActivity).walletId
@@ -1163,11 +1167,13 @@ private fun TimelockReplaceCard(
     val isTimelockWithData = (data.newTimelock ?: data.originalTimelock) != null
     val isTimelockReplaced = data.newTimelock != null
     val displayedTimelock = data.newTimelock ?: data.originalTimelock
-    val formattedDate = if (isTimelockWithData) {
-        val dateFormat =
-            SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.getDefault())
-        dateFormat.timeZone = TimeZone.getTimeZone(displayedTimelock?.timezone)
-        dateFormat.format(Date(displayedTimelock?.timelockValue!! * 1000))
+    val isHeightLock = displayedTimelock?.based == TimelockBased.HEIGHT_LOCK
+    // First line: Date (with "Est." prefix for HEIGHT_LOCK)
+    val formattedDate = if (isTimelockWithData && displayedTimelock != null) {
+        val dateFormat = SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.getDefault())
+        dateFormat.timeZone = TimeZone.getTimeZone(displayedTimelock.timezone)
+        val dateStr = dateFormat.format(Date(displayedTimelock.timelockValue * 1000))
+        if (isHeightLock) "Est. $dateStr" else dateStr
     } else ""
     Column(
         modifier = modifier
@@ -1197,16 +1203,25 @@ private fun TimelockReplaceCard(
                         .weight(1.0f)
                         .padding(start = 8.dp)
                 ) {
-                    Text(
-                        text = if (isTimelockWithData) "After" else stringResource(R.string.nc_timelock),
-                        style = NunchukTheme.typography.body
-                    )
+                    if (isHeightLock.not()) {
+                        Text(
+                            text = if (isTimelockWithData) "After" else stringResource(R.string.nc_timelock),
+                            style = NunchukTheme.typography.body
+                        )
+                    }
                     if (isTimelockWithData) {
                         Text(
-                            modifier = Modifier.padding(top = 4.dp),
                             text = formattedDate,
                             style = NunchukTheme.typography.body
                         )
+                        // Second line: Block Height (only for HEIGHT_LOCK)
+                        if (isHeightLock && displayedTimelock?.blockHeight != null) {
+                            val formattedBlockHeight = NumberFormat.getNumberInstance(Locale.US).format(displayedTimelock.blockHeight)
+                            Text(
+                                text = stringResource(R.string.nc_block_height_with_value, formattedBlockHeight),
+                                style = NunchukTheme.typography.bodySmall
+                            )
+                        }
                     }
                 }
                 NcOutlineButton(
@@ -1232,7 +1247,7 @@ private fun TimelockReplaceCard(
                     contentDescription = "Replace icon"
                 )
 
-                val formattedDate = data.originalTimelock?.let {
+                val formattedOriginalDate = data.originalTimelock?.let {
                     val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
                     it.timezone.let { timezoneId ->
                         dateFormat.timeZone = TimeZone.getTimeZone(timezoneId)
@@ -1240,8 +1255,8 @@ private fun TimelockReplaceCard(
                     dateFormat.format(Date(it.timelockValue * 1000))
                 } ?: ""
                 Text(
-                    text = if (formattedDate.isNotEmpty()) {
-                        "Replacing existing timelock ($formattedDate)"
+                    text = if (formattedOriginalDate.isNotEmpty()) {
+                        "Replacing existing timelock ($formattedOriginalDate)"
                     } else {
                         "Replacing existing timelock"
                     },

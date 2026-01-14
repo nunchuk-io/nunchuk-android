@@ -17,39 +17,39 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase.membership
+package com.nunchuk.android.core.data.model
 
-import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.model.MembershipPlan
+import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.model.ConvertedTimelock
 import com.nunchuk.android.model.TimelockBased
-import com.nunchuk.android.repository.PremiumWalletRepository
-import com.nunchuk.android.usecase.UseCase
-import kotlinx.coroutines.CoroutineDispatcher
-import javax.inject.Inject
 
-class CreateTimelockUseCase @Inject constructor(
-    private val premiumWalletRepository: PremiumWalletRepository,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : UseCase<CreateTimelockUseCase.Param, Unit>(ioDispatcher) {
+internal data class ConvertTimelockRequest(
+    @SerializedName("timelock")
+    val timelock: TimelockDto
+)
 
-    override suspend fun execute(parameters: Param) {
-        return premiumWalletRepository.createDraftWalletTimelock(
-            groupId = parameters.groupId,
-            timelockValue = parameters.timelockValue,
-            timezone = parameters.timezone,
-            plan = parameters.plan,
-            based = parameters.based,
-            blockHeight = parameters.blockHeight
-        )
-    }
+internal data class TimelockDto(
+    @SerializedName("value")
+    val value: Long = 0L,
+    @SerializedName("timezone")
+    val timezone: String = "",
+    @SerializedName("based")
+    val based: String = "TIME_LOCK",
+    @SerializedName("block_height")
+    val blockHeight: Long = 0L
+)
 
-    data class Param(
-        val groupId: String?,
-        val timelockValue: Long,
-        val timezone: String,
-        val plan: MembershipPlan,
-        val based: TimelockBased = TimelockBased.TIME_LOCK,
-        val blockHeight: Long? = null
+internal data class ConvertTimelockResponse(
+    @SerializedName("converted_timelock")
+    val convertedTimelock: TimelockDto?
+)
+
+internal fun TimelockDto.toConvertedTimelock(): ConvertedTimelock {
+    return ConvertedTimelock(
+        value = value,
+        timezone = timezone,
+        based = runCatching { TimelockBased.valueOf(based) }.getOrDefault(TimelockBased.TIME_LOCK),
+        blockHeight = blockHeight
     )
 }
 

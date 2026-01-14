@@ -2,7 +2,9 @@ package com.nunchuk.android.core.data.model.byzantine
 
 import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.core.data.model.membership.SignerServerDto
+import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.WalletConfig
+import com.nunchuk.android.model.byzantine.DraftWalletTimelock
 import com.nunchuk.android.type.WalletType
 
 internal data class DraftWalletResponse(
@@ -30,7 +32,9 @@ internal data class WalletConfigDto(
 
 internal data class TimelockDto(
     @SerializedName("value") val value: Long = 0L,
-    @SerializedName("timezone") val timezone: String? = null
+    @SerializedName("timezone") val timezone: String? = null,
+    @SerializedName("based") val based: String? = null,
+    @SerializedName("block_height") val blockHeight: Long? = null
 )
 
 internal data class ReplaceWalletDto(
@@ -62,4 +66,13 @@ internal fun ReplaceWalletDto?.toModel(): com.nunchuk.android.model.byzantine.Re
             localId = it.localId.orEmpty()
         )
     }
+}
+
+internal fun TimelockDto?.toDraftWalletTimelock(): DraftWalletTimelock {
+    return DraftWalletTimelock(
+        value = this?.value ?: 0L,
+        timezone = this?.timezone.orEmpty(),
+        based = runCatching { TimelockBased.valueOf(this?.based.orEmpty()) }.getOrDefault(TimelockBased.TIME_LOCK),
+        blockHeight = this?.blockHeight
+    )
 }

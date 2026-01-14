@@ -164,7 +164,7 @@ class AddGroupKeyStepViewModel @Inject constructor(
             _isSetupRecoverKeyDone.value = draftWallet.isMasterSecurityQuestionSet
             val isConfigDone = if (draftWallet.walletType == WalletType.MINISCRIPT) {
                 val isSignerCountCorrect = draftWallet.signers.size == draftWallet.config.n * 2 - 1
-                val isTimelockSet = draftWallet.timelock > 0
+                val isTimelockSet = draftWallet.timelock.value > 0
                 val areInheritanceSignersVerified = draftWallet.signers.all { signer ->
                     !signer.tags.contains(SignerTag.INHERITANCE.name) || signer.verifyType != VerifyType.NONE
                 }

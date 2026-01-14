@@ -28,9 +28,12 @@ import com.nunchuk.android.core.data.model.CalculateRequiredSignaturesSecurityQu
 import com.nunchuk.android.core.data.model.ChangeEmailRequest
 import com.nunchuk.android.core.data.model.ChangeEmailSignatureRequest
 import com.nunchuk.android.core.data.model.ConfigSecurityQuestionPayload
+import com.nunchuk.android.core.data.model.ConvertTimelockRequest
 import com.nunchuk.android.core.data.model.CreateSecurityQuestionRequest
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
 import com.nunchuk.android.core.data.model.CreateTimelockPayload
+import com.nunchuk.android.core.data.model.TimelockDto
+import com.nunchuk.android.core.data.model.toConvertedTimelock
 import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
 import com.nunchuk.android.core.data.model.EmptyRequest
 import com.nunchuk.android.core.data.model.InheritanceByzantineRequestPlanning
@@ -59,6 +62,7 @@ import com.nunchuk.android.core.data.model.byzantine.SavedAddressRequest
 import com.nunchuk.android.core.data.model.byzantine.WalletConfigDto
 import com.nunchuk.android.core.data.model.byzantine.WalletConfigRequest
 import com.nunchuk.android.core.data.model.byzantine.toDomainModel
+import com.nunchuk.android.core.data.model.byzantine.toDraftWalletTimelock
 import com.nunchuk.android.core.data.model.byzantine.toModel
 import com.nunchuk.android.core.data.model.byzantine.toSavedAddress
 import com.nunchuk.android.core.data.model.byzantine.toWalletType
@@ -133,9 +137,11 @@ import com.nunchuk.android.model.GroupStatus
 import com.nunchuk.android.model.HealthCheckHistory
 import com.nunchuk.android.model.HealthReminder
 import com.nunchuk.android.model.HistoryPeriod
+import com.nunchuk.android.model.ConvertedTimelock
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.model.InheritanceCheck
+import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipPlan
@@ -2034,12 +2040,16 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         groupId: String?,
         timelockValue: Long,
         timezone: String,
-        plan: MembershipPlan
+        plan: MembershipPlan,
+        based: TimelockBased,
+        blockHeight: Long?
     ) {
         val payload = CreateTimelockPayload(
             timelock = TimelockPayload(
                 value = timelockValue,
-                timezone = timezone
+                timezone = timezone,
+                based = based.name,
+                blockHeight = blockHeight
             )
         )
         val response = if (groupId.isNullOrEmpty()) {
@@ -2994,7 +3004,9 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             timelock = status.timelock?.let {
                 WalletTimelock(
                     timelockValue = it.value,
-                    timezone = it.timezone ?: ""
+                    timezone = it.timezone ?: "",
+                    based = runCatching { TimelockBased.valueOf(it.based.orEmpty()) }.getOrDefault(TimelockBased.TIME_LOCK),
+                    blockHeight = it.blockHeight
                 )
             }
         )
@@ -3098,7 +3110,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             isMasterSecurityQuestionSet = draftWallet.isMasterSecurityQuestionSet,
             signers = draftWallet.signers.map { it.toModel() },
             walletType = draftWallet.walletType.toWalletType(),
-            timelock = draftWallet.timelock?.value ?: 0L,
+            timelock = draftWallet.timelock.toDraftWalletTimelock(),
             replaceWallet = draftWallet.replaceWallet.toModel()
         )
     }
@@ -3107,13 +3119,17 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         groupId: String?,
         walletId: String,
         timelockValue: Long,
-        timezone: String
+        timezone: String,
+        based: TimelockBased,
+        blockHeight: Long?
     ) {
         val verifyToken = ncDataStore.passwordToken.first()
         val payload = CreateTimelockPayload(
             timelock = TimelockPayload(
                 value = timelockValue,
-                timezone = timezone
+                timezone = timezone,
+                based = based.name,
+                blockHeight = blockHeight
             )
         )
         val response = if (!groupId.isNullOrEmpty()) {
@@ -3133,6 +3149,27 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         if (response.isSuccess.not()) {
             throw response.error
         }
+    }
+
+    override suspend fun convertTimelock(
+        value: Long,
+        timezone: String,
+        based: TimelockBased,
+        blockHeight: Long
+    ): ConvertedTimelock {
+        val payload = ConvertTimelockRequest(
+            timelock = TimelockDto(
+                value = value,
+                timezone = timezone,
+                based = based.name,
+                blockHeight = blockHeight
+            )
+        )
+        val response = userWalletApiManager.walletApi.convertTimelock(payload)
+        if (response.isSuccess.not()) {
+            throw response.error
+        }
+        return response.data.convertedTimelock?.toConvertedTimelock() ?: throw NullPointerException("convertedTimelock is null")
     }
 
     private fun getHeaders(

@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.data.model.membership
 
 import com.google.gson.annotations.SerializedName
+import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.WalletServer
 import com.nunchuk.android.model.WalletTimelock
 import com.nunchuk.android.model.toMembershipPlan
@@ -55,6 +56,8 @@ data class ReplaceByDto(
 data class TimelockDto(
     @SerializedName("value") val value: Long = 0L,
     @SerializedName("timezone") val timezone: String? = null,
+    @SerializedName("based") val based: String? = null,
+    @SerializedName("block_height") val blockHeight: Long? = null,
 )
 
 internal fun WalletDto.toModel(): WalletServer {
@@ -75,8 +78,10 @@ internal fun WalletDto.toModel(): WalletServer {
         sendBsmsEmail = sendBsmsEmail,
         requiresRegistration = requiresRegistration == true,
         timelock = WalletTimelock(
-        timelockValue = timelock?.value ?: 0L,
-            timezone = timelock?.timezone ?: ""
+            timelockValue = timelock?.value ?: 0L,
+            timezone = timelock?.timezone ?: "",
+            based = runCatching { TimelockBased.valueOf(timelock?.based.orEmpty()) }.getOrDefault(TimelockBased.TIME_LOCK),
+            blockHeight = timelock?.blockHeight
         )
     )
 }

@@ -21,6 +21,7 @@ package com.nunchuk.android.model
 
 import android.os.Parcelable
 import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
 import com.nunchuk.android.type.SignerType
 import kotlinx.parcelize.Parcelize
 
@@ -29,7 +30,10 @@ private val gson = Gson()
 @Parcelize
 data class TimelockExtra(
     val value: Long = 0L,
-    val timezone: String? = null
+    val timezone: String? = null,
+    val based: TimelockBased = TimelockBased.TIME_LOCK,
+    @SerializedName("block_height")
+    val blockHeight: Long? = null
 ) : Parcelable
 
 data class MembershipStepInfo(

@@ -217,7 +217,7 @@ private fun OnChainTimelockExplanationContent(
                 }
 
                 // Instruction about inheritance key (only show when inheritance is allowed)
-                if (allowInheritance) {
+                if (allowInheritance || isGroupWallet.not()) {
                     Text(
                         text = if (isGroupWallet) stringResource(R.string.nc_select_inheritance_key_group_instruction) else stringResource(R.string.nc_select_inheritance_key_instruction),
                         style = NunchukTheme.typography.body

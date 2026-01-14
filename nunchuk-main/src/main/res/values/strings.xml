@@ -513,6 +513,11 @@
     <string name="nc_confirm_timelock_date_message">The selected date is more than %1$d years in the future. Your Beneficiary will not be able to access the funds until this date. Is this correct?</string>
     <string name="nc_invalid_date_title">Invalid date</string>
     <string name="nc_invalid_date_message">The timelock date cannot be in the past. Please select a future date.</string>
+    <string name="nc_block_based_timelock_title">Block-Based Timelock</string>
+    <string name="nc_block_based_timelock_message">Dates after Jan 19, 2038 exceed the limit for time-based timelocks. We have automatically switched to a block-based timelock instead.\n\nNote: The actual unlock time for a block-based timelock may fluctuate by several weeks or months depending on the network hashing power.</string>
+    <string name="nc_block_height">Block Height</string>
+    <string name="nc_block_height_with_value">%1$s Block Height</string>
+    <string name="nc_block_height_estimate_warning">This date and time is an estimate only. Funds are locked strictly by Block Height %1$s, regardless of calendar time.</string>
     <string name="nc_inheritance_notify_pref_on_chain_desc">Would you like us to notify the Beneficiary or Trustee about the inheritance plan?</string>
     <string name="nc_view_wallet">View wallet</string>
 </resources>

@@ -20,6 +20,7 @@
 package com.nunchuk.android.usecase.replace
 
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -34,7 +35,9 @@ class ReplaceTimelockUseCase @Inject constructor(
             groupId = parameters.groupId,
             walletId = parameters.walletId,
             timelockValue = parameters.timelockValue,
-            timezone = parameters.timezone
+            timezone = parameters.timezone,
+            based = parameters.based,
+            blockHeight = parameters.blockHeight
         )
     }
 
@@ -42,7 +45,9 @@ class ReplaceTimelockUseCase @Inject constructor(
         val groupId: String?,
         val walletId: String,
         val timelockValue: Long,
-        val timezone: String
+        val timezone: String,
+        val based: TimelockBased = TimelockBased.TIME_LOCK,
+        val blockHeight: Long? = null
     )
 }
 

@@ -91,6 +91,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningParam
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
 import com.nunchuk.android.model.Period
+import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.byzantine.isMasterOrAdmin
 import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.inheritance.EmailNotificationSettings
@@ -568,6 +569,8 @@ fun InheritanceReviewPlanScreenContent(
                                     ),
                                     timeZoneId = setupOrReviewParam.selectedZoneId,
                                     editable = isEditable && !isMiniscriptWallet,
+                                    isHeightLock = setupOrReviewParam.timelockBased == TimelockBased.HEIGHT_LOCK,
+                                    blockHeight = setupOrReviewParam.blockHeight,
                                     onClick = {
                                         onEditActivationDateClick()
                                     }

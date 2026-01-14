@@ -6,6 +6,8 @@ import com.nunchuk.android.type.WalletType
 data class WalletTimelock(
     val timelockValue: Long = 0L,
     val timezone: String = "",
+    val based: TimelockBased = TimelockBased.TIME_LOCK,
+    val blockHeight: Long? = null
 )
 
 data class WalletServer(
