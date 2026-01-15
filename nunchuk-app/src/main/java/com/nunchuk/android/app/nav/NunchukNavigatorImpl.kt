@@ -51,8 +51,10 @@ import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboa
 import com.nunchuk.android.main.membership.byzantine.primaryowner.PrimaryOwnerActivity
 import com.nunchuk.android.main.membership.key.desktop.AddDesktopKeyActivity
 import com.nunchuk.android.main.membership.onchaintimelock.backupseedphrase.BackUpSeedPhraseActivity
-import com.nunchuk.android.main.membership.onchaintimelock.checkfirmware.CheckFirmwareActivity
 import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
+import com.nunchuk.android.main.membership.signer.SignerIntroActivity
+import com.nunchuk.android.model.signer.SupportedSigner
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.main.rollover.RollOverWalletActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
 import com.nunchuk.android.model.Amount
@@ -489,19 +491,39 @@ interface AppNavigatorDelegate : AppNavigator {
         MiniscriptActivity.start(activityContext, args)
     }
 
-    override fun openCheckFirmwareActivity(
-        activityContext: Context,
-        launcher: ActivityResultLauncher<Intent>?,
-        args: CheckFirmwareArgs
-    ) {
-        CheckFirmwareActivity.navigate(activityContext, launcher, args)
-    }
-
     override fun openBackUpSeedPhraseActivity(
         activityContext: Context,
         args: BackUpSeedPhraseArgs
     ) {
         BackUpSeedPhraseActivity.start(activityContext, args)
+    }
+
+    override fun openSignerIntroScreen(
+        launcher: ActivityResultLauncher<Intent>?,
+        activityContext: Context,
+        walletId: String,
+        groupId: String?,
+        supportedSigners: List<SupportedSigner>?,
+        keyFlow: Int,
+        onChainAddSignerParam: OnChainAddSignerParam?
+    ) {
+        launcher?.launch(
+            SignerIntroActivity.buildIntent(
+                activityContext = activityContext,
+                walletId = walletId,
+                groupId = groupId,
+                supportedSigners = supportedSigners,
+                keyFlow = keyFlow,
+                onChainAddSignerParam = onChainAddSignerParam
+            )
+        ) ?: SignerIntroActivity.start(
+            activityContext = activityContext,
+            walletId = walletId,
+            groupId = groupId,
+            supportedSigners = supportedSigners,
+            keyFlow = keyFlow,
+            onChainAddSignerParam = onChainAddSignerParam
+        )
     }
 
     override fun returnMembershipScreen() {

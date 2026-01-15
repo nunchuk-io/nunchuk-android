@@ -17,7 +17,7 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.signer
+package com.nunchuk.android.main.membership.signer
 
 import android.app.Activity
 import android.content.Context
@@ -26,9 +26,16 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.portal.PortalDeviceArgs
@@ -41,16 +48,22 @@ import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
+import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.args.AddAirSignerArgs
-import com.nunchuk.android.nav.args.CheckFirmwareArgs
 import com.nunchuk.android.nav.args.SetupMk4Args
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.signer.KeyType
+import com.nunchuk.android.signer.SignerIntroEvent
+import com.nunchuk.android.signer.SignerIntroViewModel
+import com.nunchuk.android.signer.mk4.Mk4Activity
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.type.SignerTag
+import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.utils.parcelableArrayList
 import com.nunchuk.android.widget.NCInfoDialog
@@ -74,27 +87,22 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
     private val viewModel: SignerIntroViewModel by viewModels()
 
-    private val checkFirmwareLauncher = registerForActivityResult(
+    private val signerResultLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == RESULT_OK && result.data != null) {
-            val filteredSigners =
-                result.data?.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
-            if (!filteredSigners.isNullOrEmpty()) {
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            val signer = result.data?.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
+            if (signer != null) {
                 val intent = Intent().apply {
-                    putParcelableArrayListExtra(
-                        GlobalResultKey.EXTRA_SIGNERS,
-                        ArrayList(filteredSigners)
-                    )
+                    putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
                 }
-                setResult(RESULT_OK, intent)
-                finish()
-            } else {
+                setResult(Activity.RESULT_OK, intent)
                 finish()
             }
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -106,77 +114,93 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 
             setContent {
-                // Handle ViewModel events
-                LaunchedEffect(Unit) {
-                    viewModel.event.collect { event ->
-                        when (event) {
-                            is SignerIntroEvent.ShowFilteredTapSigners -> {
-                                onFilteredTapSignersReady(event.signers)
-                            }
+                val navHostController = rememberNavController()
+                var showTapSignerBottomSheet by remember { mutableStateOf(false) }
+                var filteredTapSigners by remember { mutableStateOf<List<SignerModel>>(emptyList()) }
 
-                            SignerIntroEvent.OpenSetupTapSigner -> {
+                NavHost(
+                    navController = navHostController,
+                    startDestination = SignerIntroDestination
+                ) {
+                    signerIntroDestination(
+                        viewModel = viewModel,
+                        keyFlow = keyFlow,
+                        supportedSigners = supportedSigners,
+                        onChainAddSignerParam = onChainAddSignerParam,
+                        onClick = { keyType: KeyType ->
+                            when (keyType) {
+                                KeyType.TAPSIGNER -> handleTapSignerSelection()
+                                KeyType.COLDCARD -> handleColdCardSelection(navHostController)
+                                KeyType.JADE -> handleJadeSelection(navHostController)
+                                KeyType.PORTAL -> openPortalScreen()
+                                KeyType.SEEDSIGNER -> handleSelectAddAirgapType(SignerTag.SEEDSIGNER)
+                                KeyType.KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
+                                KeyType.FOUNDATION -> handleSelectAddAirgapType(SignerTag.PASSPORT)
+                                KeyType.SOFTWARE -> openAddSoftwareSignerScreen()
+                                KeyType.GENERIC_AIRGAP -> openAddAirSignerIntroScreen()
+                                KeyType.LEDGER -> handleHardwareSignerSelection(SignerTag.LEDGER)
+                                KeyType.BITBOX -> handleHardwareSignerSelection(SignerTag.BITBOX)
+                                KeyType.TREZOR -> handleHardwareSignerSelection(SignerTag.TREZOR)
+                                else -> {}
+                            }
+                        },
+                        onMoreClicked = ::handleShowMore,
+                        onFilteredTapSignersReady = { signers ->
+                            filteredTapSigners = signers
+                            showTapSignerBottomSheet = true
+                        },
+                        onNavigateToSetupTapSigner = ::navigateToSetupTapSigner
+                    )
+
+                    checkFirmwareDestination(
+                        onChainAddSignerParam = onChainAddSignerParam,
+                        onMoreClicked = ::handleShowMore,
+                        onFilteredSignersReady = { signer ->
+                            val intent = Intent().apply {
+                                putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
+                            }
+                            setResult(RESULT_OK, intent)
+                            finish()
+                        },
+                        onOpenNextScreen = { signerTag ->
+                            when (signerTag) {
+                                SignerTag.COLDCARD -> openSetupMk4()
+                                SignerTag.JADE -> openAddAirSignerForJade()
+                                else -> {}
+                            }
+                        }
+                    )
+                }
+                
+                if (showTapSignerBottomSheet) {
+                    NunchukTheme {
+                        SelectSignerBottomSheet(
+                            args = TapSignerListBottomSheetFragmentArgs(
+                                signers = filteredTapSigners.toTypedArray(),
+                                type = SignerType.NFC,
+                                description = "",
+                                ignoreIndexCheckForAcctX = true
+                            ),
+                            onDismiss = {
+                                showTapSignerBottomSheet = false
+                            },
+                            onAddExistKey = { signer ->
+                                showTapSignerBottomSheet = false
+                                val intent = Intent().apply {
+                                    putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
+                                }
+                                setResult(Activity.RESULT_OK, intent)
+                                finish()
+                            },
+                            onAddNewKey = {
+                                showTapSignerBottomSheet = false
                                 navigateToSetupTapSigner()
                             }
-
-                            is SignerIntroEvent.Error -> {}
-
-                            SignerIntroEvent.RestartWizardSuccess -> {
-                                navigator.openMembershipActivity(
-                                    activityContext = this@SignerIntroActivity,
-                                    groupStep = MembershipStage.NONE,
-                                    isPersonalWallet = membershipStepManager.isPersonalWallet(),
-                                    isClearTop = true,
-                                    quickWalletParam = null
-                                )
-                                setResult(Activity.RESULT_OK)
-                                finish()
-                            }
-                        }
+                        )
                     }
                 }
-
-                SignerIntroScreen(
-                    keyFlow = keyFlow,
-                    supportedSigners = supportedSigners,
-                    viewModel = viewModel,
-                    onChainAddSignerParam = onChainAddSignerParam,
-                    onClick = { keyType: KeyType ->
-                        when (keyType) {
-                            KeyType.TAPSIGNER -> handleTapSignerSelection()
-                            KeyType.COLDCARD -> handleColdCardSelection()
-                            KeyType.JADE -> handleJadeSelection()
-                            KeyType.PORTAL -> openPortalScreen()
-                            KeyType.SEEDSIGNER -> handleSelectAddAirgapType(SignerTag.SEEDSIGNER)
-                            KeyType.KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
-                            KeyType.FOUNDATION -> handleSelectAddAirgapType(SignerTag.PASSPORT)
-                            KeyType.SOFTWARE -> openAddSoftwareSignerScreen()
-                            KeyType.GENERIC_AIRGAP -> openAddAirSignerIntroScreen()
-                            KeyType.LEDGER -> {
-                                if (onChainAddSignerParam?.isClaiming == true) {
-                                    navigator.openAddDesktopKey(
-                                        this@SignerIntroActivity,
-                                        signerTag = SignerTag.LEDGER,
-                                        step = MembershipStep.SETUP_INHERITANCE,
-                                        isInheritanceKey = true,
-                                        magic = onChainAddSignerParam?.magic.orEmpty()
-                                    )
-                                }
-                            }
-                            else -> {}
-                        }
-                    },
-                    onMoreClicked = ::handleShowMore
-                )
             }
         })
-    }
-
-    private fun onFilteredTapSignersReady(filteredSigners: List<SignerModel>) {
-        val intent = Intent().apply {
-            putParcelableArrayListExtra(GlobalResultKey.EXTRA_SIGNERS, ArrayList(filteredSigners))
-        }
-        setResult(Activity.RESULT_OK, intent)
-        finish()
     }
 
     private fun handleTapSignerSelection() {
@@ -187,16 +211,13 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         }
     }
 
-    private fun handleColdCardSelection() {
+    private fun handleColdCardSelection(navController: androidx.navigation.NavHostController) {
         if (onChainAddSignerParam == null || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
             openSetupMk4()
         } else {
-            navigator.openCheckFirmwareActivity(
-                activityContext = this,
-                launcher = checkFirmwareLauncher,
-                args = CheckFirmwareArgs(
-                    signerTag = SignerTag.COLDCARD,
-                    onChainAddSignerParam = onChainAddSignerParam,
+            navController.navigate(
+                CheckFirmwareDestination(
+                    signerTagName = SignerTag.COLDCARD.name,
                     walletId = walletId,
                     groupId = groupId
                 )
@@ -204,31 +225,29 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         }
     }
 
-    private fun handleJadeSelection() {
+    private fun handleJadeSelection(navController: androidx.navigation.NavHostController) {
         if (onChainAddSignerParam == null || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
             handleSelectAddAirgapType(SignerTag.JADE)
         } else {
-            navigator.openCheckFirmwareActivity(
-                activityContext = this,
-                launcher = checkFirmwareLauncher,
-                args = CheckFirmwareArgs(
-                    signerTag = SignerTag.JADE,
-                    onChainAddSignerParam = onChainAddSignerParam,
+            navController.navigate(
+                CheckFirmwareDestination(
+                    signerTagName = SignerTag.JADE.name,
                     walletId = walletId,
                     groupId = groupId
                 )
             )
         }
     }
-
-    private fun handleSelectAddAirgapType(tag: SignerTag?) {
+    
+    private fun openAddAirSignerForJade() {
         navigator.openAddAirSignerScreen(
             activityContext = this,
             args = AddAirSignerArgs(
                 isMembershipFlow = onChainAddSignerParam != null,
-                tag = tag,
+                tag = SignerTag.JADE,
                 groupId = groupId,
                 walletId = walletId,
+                replacedXfp = onChainAddSignerParam?.replaceInfo?.replacedXfp,
                 onChainAddSignerParam = onChainAddSignerParam,
                 step = membershipStepManager.currentStep
             )
@@ -236,18 +255,74 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         finish()
     }
 
-    private fun openSetupMk4() {
-        navigator.openSetupMk4(
-            activity = this,
-            args = SetupMk4Args(
-                fromMembershipFlow = onChainAddSignerParam != null,
-                isFromAddKey = true,
-                groupId = groupId,
-                walletId = walletId,
-                onChainAddSignerParam = onChainAddSignerParam,
+    private fun handleHardwareSignerSelection(tag: SignerTag) {
+        if (onChainAddSignerParam != null && onChainAddSignerParam?.isClaiming == false) {
+            val intent = Intent().apply {
+                putExtra(GlobalResultKey.EXTRA_SIGNER_TAG, tag)
+            }
+            setResult(Activity.RESULT_OK, intent)
+            finish()
+        } else if (onChainAddSignerParam?.isClaiming == true) {
+            navigator.openAddDesktopKey(
+                this,
+                signerTag = tag,
+                step = MembershipStep.SETUP_INHERITANCE,
+                isInheritanceKey = true,
+                magic = onChainAddSignerParam?.magic.orEmpty()
             )
+        }
+    }
+    
+    private fun handleSelectAddAirgapType(tag: SignerTag?) {
+        val args = AddAirSignerArgs(
+            isMembershipFlow = onChainAddSignerParam != null,
+            tag = tag,
+            groupId = groupId,
+            walletId = walletId,
+            onChainAddSignerParam = onChainAddSignerParam,
+            step = membershipStepManager.currentStep
         )
-        finish()
+
+        if (onChainAddSignerParam != null) {
+            navigator.openAddAirSignerScreenForResult(
+                launcher = signerResultLauncher,
+                activityContext = this,
+                args = args
+            )
+        } else {
+            navigator.openAddAirSignerScreen(
+                activityContext = this,
+                args = args
+            )
+            finish()
+        }
+    }
+
+    private fun openSetupMk4() {
+        val args = SetupMk4Args(
+            fromMembershipFlow = onChainAddSignerParam != null,
+            isFromAddKey = true,
+            groupId = groupId,
+            walletId = walletId,
+            replacedXfp = onChainAddSignerParam?.replaceInfo?.replacedXfp,
+            onChainAddSignerParam = onChainAddSignerParam,
+        )
+
+        if (onChainAddSignerParam != null) {
+            // Start Mk4Activity for result so we can get the created signer back
+            signerResultLauncher.launch(
+                Mk4Activity.buildIntent(
+                    activity = this,
+                    args = args
+                )
+            )
+        } else {
+            navigator.openSetupMk4(
+                activity = this,
+                args = args
+            )
+            finish()
+        }
     }
 
     private fun openPortalScreen() {
@@ -289,15 +364,28 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     }
 
     private fun navigateToSetupTapSigner() {
-        startActivity(
-            NfcSetupActivity.buildIntent(
-                activity = this,
-                setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
-                walletId = walletId,
-                groupId = groupId,
+        if (onChainAddSignerParam != null) {
+            signerResultLauncher.launch(
+                NfcSetupActivity.buildIntent(
+                    activity = this,
+                    setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
+                    walletId = walletId,
+                    groupId = groupId,
+                    fromMembershipFlow = true,
+                    onChainAddSignerParam = onChainAddSignerParam
+                )
             )
-        )
-        finish()
+        } else {
+            startActivity(
+                NfcSetupActivity.buildIntent(
+                    activity = this,
+                    setUpAction = NfcSetupActivity.SETUP_TAP_SIGNER,
+                    walletId = walletId,
+                    groupId = groupId,
+                )
+            )
+            finish()
+        }
     }
 
     private fun observeEvent() {
