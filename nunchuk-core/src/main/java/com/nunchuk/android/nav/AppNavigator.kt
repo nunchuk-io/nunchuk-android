@@ -36,8 +36,10 @@ import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.core.signer.KeyFlow
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
-import com.nunchuk.android.nav.args.CheckFirmwareArgs
 import com.nunchuk.android.nav.args.ClaimArgs
 import com.nunchuk.android.nav.args.MiniscriptArgs
 import com.nunchuk.android.type.WalletType
@@ -187,15 +189,19 @@ interface AppNavigator {
         args: MiniscriptArgs
     )
 
-    fun openCheckFirmwareActivity(
-        activityContext: Context,
-        launcher: ActivityResultLauncher<Intent>? = null,
-        args: CheckFirmwareArgs
-    )
-
     fun openBackUpSeedPhraseActivity(
         activityContext: Context,
         args: BackUpSeedPhraseArgs
+    )
+
+    fun openSignerIntroScreen(
+        launcher: ActivityResultLauncher<Intent>? = null,
+        activityContext: Context,
+        walletId: String = "",
+        groupId: String? = null,
+        supportedSigners: List<SupportedSigner>? = null,
+        @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
+        onChainAddSignerParam: OnChainAddSignerParam? = null,
     )
 
     fun returnMembershipScreen()

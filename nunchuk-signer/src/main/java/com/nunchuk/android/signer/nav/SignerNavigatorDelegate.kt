@@ -26,13 +26,10 @@ import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.domain.membership.WalletsExistingKey
 import com.nunchuk.android.core.signer.KeyFlow
-import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.model.PrimaryKey
 import com.nunchuk.android.model.SatsCardSlot
-import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.SignerNavigator
 import com.nunchuk.android.nav.args.AddAirSignerArgs
-import com.nunchuk.android.signer.SignerIntroActivity
 import com.nunchuk.android.signer.components.add.AddAirgapSignerActivity
 import com.nunchuk.android.signer.components.add.ScanDynamicQRActivity
 import com.nunchuk.android.signer.components.details.SignerInfoActivity
@@ -56,34 +53,6 @@ import com.nunchuk.android.signer.software.components.recover.RecoverSeedActivit
 import com.nunchuk.android.type.SignerType
 
 interface SignerNavigatorDelegate : SignerNavigator {
-
-    override fun openSignerIntroScreen(
-        launcher: ActivityResultLauncher<Intent>?,
-        activityContext: Context,
-        walletId: String,
-        groupId: String?,
-        supportedSigners: List<SupportedSigner>?,
-        keyFlow: Int,
-        onChainAddSignerParam: OnChainAddSignerParam?
-    ) {
-        launcher?.launch(
-            SignerIntroActivity.buildIntent(
-                activityContext = activityContext,
-                walletId = walletId,
-                groupId = groupId,
-                supportedSigners = supportedSigners,
-                keyFlow = keyFlow,
-                onChainAddSignerParam = onChainAddSignerParam
-            )
-        ) ?: SignerIntroActivity.start(
-            activityContext = activityContext,
-            walletId = walletId,
-            groupId = groupId,
-            supportedSigners = supportedSigners,
-            keyFlow = keyFlow,
-            onChainAddSignerParam = onChainAddSignerParam
-        )
-    }
 
     override fun openSignerInfoScreen(
         activityContext: Context,

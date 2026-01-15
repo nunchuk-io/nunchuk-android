@@ -85,9 +85,18 @@
         <activity android:name="com.nunchuk.android.main.MainComposeActivity" />
 
         <activity
-            android:name=".membership.onchaintimelock.checkfirmware.CheckFirmwareActivity"
+            android:name=".membership.signer.SignerIntroActivity"
+            android:exported="true"
+            android:label="@string/nc_add_signer_title"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light" />
+            android:theme="@style/NunchukNoActionBar.Light">
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".membership.onchaintimelock.backupseedphrase.BackUpSeedPhraseActivity"

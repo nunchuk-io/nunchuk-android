@@ -18,20 +18,6 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
-            android:name=".SignerIntroActivity"
-            android:exported="true"
-            android:label="@string/nc_add_signer_title"
-            android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light">
-            <intent-filter>
-                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-            </intent-filter>
-        </activity>
-
-        <activity
             android:name=".components.add.ScanDynamicQRActivity"
             android:label="Add passport signers"
             android:screenOrientation="portrait"

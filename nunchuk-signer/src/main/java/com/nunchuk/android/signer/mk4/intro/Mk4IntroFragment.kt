@@ -57,6 +57,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
@@ -175,12 +176,18 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                         )
                                     }
                                 } else {
-                                    requireActivity().setResult(Activity.RESULT_OK)
-                                    navigator.returnMembershipScreen()
+                                    val intent = Intent().apply {
+                                        putExtra(GlobalResultKey.EXTRA_SIGNER, it.signer.toModel())
+                                    }
+                                    requireActivity().setResult(Activity.RESULT_OK, intent)
+                                    requireActivity().finish()
                                 }
                             } else {
-                                requireActivity().setResult(Activity.RESULT_OK)
-                                navigator.returnMembershipScreen()
+                                val intent = Intent().apply {
+                                    putExtra(GlobalResultKey.EXTRA_SIGNER, it.signer.toModel())
+                                }
+                                requireActivity().setResult(Activity.RESULT_OK, intent)
+                                requireActivity().finish()
                             }
                         } else {
                             mk4ViewModel.setOrUpdate(
