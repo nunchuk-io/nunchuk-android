@@ -20,6 +20,7 @@
 package com.nunchuk.android.signer.components.add
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -68,6 +69,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.sheet.SheetOptionType
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.hideLoading
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
@@ -79,6 +81,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.share.result.GlobalResult
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerErrorEvent
 import com.nunchuk.android.signer.components.add.AddAirgapSignerEvent.AddAirgapSignerSuccessEvent
@@ -238,12 +241,18 @@ class AddAirgapSignerFragment : BaseCameraFragment<ViewBinding>(),
                     )
                 }
             } else {
-                activity.setResult(Activity.RESULT_OK)
-                navigator.returnMembershipScreen()
+                val intent = Intent().apply {
+                    putExtra(GlobalResultKey.EXTRA_SIGNER, signer.toModel())
+                }
+                activity.setResult(Activity.RESULT_OK, intent)
+                activity.finish()
             }
         } else if (onChainAddSignerParam != null) {
-            activity.setResult(Activity.RESULT_OK)
-            navigator.returnMembershipScreen()
+            val intent = Intent().apply {
+                putExtra(GlobalResultKey.EXTRA_SIGNER, signer.toModel())
+            }
+            activity.setResult(Activity.RESULT_OK, intent)
+            activity.finish()
         } else {
             openSignerInfo(signer)
         }

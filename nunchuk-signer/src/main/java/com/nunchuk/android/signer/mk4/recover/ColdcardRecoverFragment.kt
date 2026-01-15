@@ -20,6 +20,7 @@
 package com.nunchuk.android.signer.mk4.recover
 
 import android.app.Activity.RESULT_OK
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -63,6 +64,7 @@ import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.COLDCARD_GUIDE_URL
 import com.nunchuk.android.core.util.ClickAbleText
@@ -76,6 +78,7 @@ import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResult
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.components.add.PASSPORT_EXTRA_KEYS
 import com.nunchuk.android.signer.components.add.ScanDynamicQRActivity
@@ -180,12 +183,18 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                                                 )
                                             }
                                         } else {
-                                            requireActivity().setResult(RESULT_OK)
-                                            navigator.returnMembershipScreen()
+                                            val intent = Intent().apply {
+                                                putExtra(GlobalResultKey.EXTRA_SIGNER, event.signer.toModel())
+                                            }
+                                            requireActivity().setResult(RESULT_OK, intent)
+                                            requireActivity().finish()
                                         }
                                     } else {
-                                        requireActivity().setResult(RESULT_OK)
-                                        navigator.returnMembershipScreen()
+                                        val intent = Intent().apply {
+                                            putExtra(GlobalResultKey.EXTRA_SIGNER, event.signer.toModel())
+                                        }
+                                        requireActivity().setResult(RESULT_OK, intent)
+                                        requireActivity().finish()
                                     }
                                 } else {
                                     mk4ViewModel.setOrUpdate(
