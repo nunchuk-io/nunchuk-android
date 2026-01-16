@@ -18,8 +18,7 @@ data object VerifyInheritanceMessageRoute
 fun NavGraphBuilder.verifyInheritanceMessage(
     snackState: SnackbarHostState,
     onBackPressed: () -> Unit = {},
-    onContinue: () -> Unit = {},
-    onSignClick: (String) -> Unit = {},
+    addMoreSigner: () -> Unit = {},
 ) {
     composable<VerifyInheritanceMessageRoute> {
         val activity = LocalActivity.current as ComponentActivity
@@ -27,17 +26,17 @@ fun NavGraphBuilder.verifyInheritanceMessage(
             hiltViewModel(viewModelStoreOwner = activity)
         val claimData by activityViewModel.claimData.collectAsStateWithLifecycle()
 
-        val signer = claimData.signers.last()
-        val message = claimData.challenge?.message.orEmpty()
-
-        VerifyInheritanceMessageScreen(
-            snackState = snackState,
-            message = message,
-            signer = signer,
-            onBackPressed = onBackPressed,
-            onContinue = onContinue,
-            onSignClick = onSignClick,
-        )
+        if (claimData.challenge != null) {
+            VerifyInheritanceMessageScreen(
+                snackState = snackState,
+                claimData = claimData,
+                onBackPressed = onBackPressed,
+                addMoreSigner = addMoreSigner,
+                onSuccess = { inheritanceAdditional ->
+                    activityViewModel.updateInheritanceAdditional(inheritanceAdditional)
+                },
+            )
+        }
     }
 }
 

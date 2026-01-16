@@ -106,7 +106,7 @@ fun SignerIntroScreen(
                     )
                 } else {
                     StaticSignerSelection(
-                        supportedSigners = supportedSigners,
+                        supportedSigners = supportedSigners.ifEmpty { state.supportedSigners },
                         isDisableAll = isDisableAll,
                         isGenericAirgapEnable = isGenericAirgapEnable,
                         onClick = onClick

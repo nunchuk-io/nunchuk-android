@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class SignerIntroState(
-    val filteredTapSigners: List<SignerModel> = emptyList(),
+    val allSigners: List<SignerModel> = emptyList(),
     val supportedSigners: List<SupportedSigner> = emptyList(),
     val supportedSignerConfigs: List<SupportedSignerConfig> = emptyList(),
     val isAddInheritanceSigner: Boolean = false,
@@ -79,7 +79,15 @@ class SignerIntroViewModel @Inject constructor(
         this.onChainAddSignerParam = onChainAddSignerParam
         if (onChainAddSignerParam != null) {
             _state.update { it.copy(isAddInheritanceSigner = onChainAddSignerParam.isAddInheritanceSigner() || onChainAddSignerParam.isVerifyBackupSeedPhrase()) }
-            fetchUserWalletConfigs()
+            if (onChainAddSignerParam.isAddInheritanceOffChainSigner()) {
+                _state.update {
+                    it.copy(
+                        supportedSigners = offChainInheritanceKeyTypes
+                    )
+                }
+            } else {
+                fetchUserWalletConfigs()
+            }
             fetchAndFilterTapSigners()
         }
     }
@@ -110,7 +118,7 @@ class SignerIntroViewModel @Inject constructor(
                 type = SignerType.valueOf(config.signerType),
                 tag = config.signerTag?.let { SignerTag.valueOf(it) },
                 walletType = WalletType.valueOf(config.walletType),
-                addressType = AddressType.NATIVE_SEGWIT // Default address type
+                addressType = AddressType.NATIVE_SEGWIT
             )
         }
     }
@@ -126,9 +134,7 @@ class SignerIntroViewModel @Inject constructor(
     private fun fetchAndFilterTapSigners() {
         viewModelScope.launch {
             getAllSignersUseCase(true).onSuccess { (masterSigners, singleSigners) ->
-                val allSigners = mapSigners(singleSigners, masterSigners)
-                val filtered = filterTapSignersByTypeAndIndex(allSigners)
-                _state.update { it.copy(filteredTapSigners = filtered) }
+                _state.update { it.copy(allSigners = mapSigners(singleSigners, masterSigners)) }
             }
         }
     }
@@ -137,27 +143,27 @@ class SignerIntroViewModel @Inject constructor(
         singleSigners: List<SingleSigner>,
         masterSigners: List<MasterSigner>
     ): List<SignerModel> {
-        return masterSigners.map { masterSignerMapper(it) } + 
-               singleSigners.map(SingleSigner::toModel)
+        return masterSigners.map { masterSignerMapper(it) } +
+                singleSigners.map(SingleSigner::toModel)
     }
 
-    private fun filterTapSignersByTypeAndIndex(signers: List<SignerModel>): List<SignerModel> {
-        return signers.filter { signer ->
-            val matchesType = signer.type == SignerType.NFC
-
-            return@filter matchesType
+    private fun filterSignerByType(type: SignerType, tag: SignerTag? = null): List<SignerModel> {
+        return state.value.allSigners.filter { signer ->
+            signer.type == type || (tag != null && signer.tags.contains(tag))
         }
     }
 
-    fun onTapSignerContinueClicked() {
+    fun showExistingSignerOrCreateNew(type: SignerType, tag: SignerTag? = null) {
         viewModelScope.launch {
-            val signers = _state.value.filteredTapSigners
-                .filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }
+            val signers = filterSignerByType(
+                type,
+                tag
+            ).filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }
                 .let { filterExistingSigners(it) }
             if (signers.isNotEmpty()) {
-                _event.emit(SignerIntroEvent.ShowFilteredTapSigners(signers))
+                _event.emit(SignerIntroEvent.ShowFilteredSigners(type, signers))
             } else {
-                _event.emit(SignerIntroEvent.OpenSetupTapSigner)
+                _event.emit(SignerIntroEvent.OpenSetupSigner(type, tag))
             }
         }
     }
@@ -195,9 +201,32 @@ class SignerIntroViewModel @Inject constructor(
     }
 }
 
+private val offChainInheritanceKeyTypes = listOf(
+    SupportedSigner(
+        type = SignerType.COLDCARD_NFC,
+        tag = null,
+        walletType = WalletType.MULTI_SIG,
+        addressType = AddressType.NATIVE_SEGWIT
+    ),
+    SupportedSigner(
+        type = SignerType.NFC,
+        tag = null,
+        walletType = WalletType.MULTI_SIG,
+        addressType = AddressType.NATIVE_SEGWIT
+    ),
+    SupportedSigner(
+        type = SignerType.SOFTWARE,
+        tag = null,
+        walletType = WalletType.MULTI_SIG,
+        addressType = AddressType.NATIVE_SEGWIT
+    )
+)
+
 sealed class SignerIntroEvent {
-    data class ShowFilteredTapSigners(val signers: List<SignerModel>) : SignerIntroEvent()
-    data object OpenSetupTapSigner : SignerIntroEvent()
+    data class ShowFilteredSigners(val type: SignerType, val signers: List<SignerModel>) :
+        SignerIntroEvent()
+
+    data class OpenSetupSigner(val type: SignerType, val tag: SignerTag?) : SignerIntroEvent()
     data object RestartWizardSuccess : SignerIntroEvent()
     data class Error(val message: String) : SignerIntroEvent()
 }

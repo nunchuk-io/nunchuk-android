@@ -20,18 +20,19 @@ data class OnChainAddSignerParam(
         const val FLAG_ADD_INHERITANCE_SIGNER = 0x01 // Binary: 0001
         const val FLAG_VERIFY_BACKUP_SEED_PHRASE = 0x02 // Binary: 0010
         const val FLAG_ADD_SIGNER = 0x04 // Binary: 0100
+        const val FLAG_ADD_INHERITANCE_OFF_CHAIN_SIGNER = 0x08 // Binary: 1000
     }
 
     fun isAddInheritanceSigner(): Boolean {
-        return flags == FLAG_ADD_INHERITANCE_SIGNER
+        return flags and FLAG_ADD_INHERITANCE_SIGNER != 0
+    }
+
+    fun isAddInheritanceOffChainSigner(): Boolean {
+        return flags and FLAG_ADD_INHERITANCE_OFF_CHAIN_SIGNER != 0
     }
 
     fun isVerifyBackupSeedPhrase(): Boolean {
-        return flags == FLAG_VERIFY_BACKUP_SEED_PHRASE
-    }
-
-    fun isAddSigner(): Boolean {
-        return flags == FLAG_ADD_SIGNER
+        return flags and FLAG_VERIFY_BACKUP_SEED_PHRASE != 0
     }
 
     fun isReplaceKeyFlow(): Boolean {

@@ -67,7 +67,7 @@ import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.ClaimArgs
 import com.nunchuk.android.nav.args.UploadConfigurationType
 import com.nunchuk.android.share.result.GlobalResultKey
-import com.nunchuk.android.utils.parcelableArrayList
+import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 
@@ -131,10 +131,10 @@ private fun ClaimInheritanceGraph(
         ActivityResultContracts.StartActivityForResult()
     ) {
         if (it.resultCode == Activity.RESULT_OK) {
-            val signers = it.data?.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
-            if (!signers.isNullOrEmpty()) {
+            val signer = it.data?.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
+            if (signer != null) {
                 navController.popBackStack<ClaimMagicPhraseRoute>(false)
-                activityViewModel.addSigner(signers.first())
+                activityViewModel.addSigner(signer)
             }
         }
     }
@@ -202,6 +202,22 @@ private fun ClaimInheritanceGraph(
                 is ClaimInheritanceEvent.SignMessage -> {
                     navController.navigateToVerifyInheritanceMessage()
                 }
+
+                ClaimInheritanceEvent.GenerateChallengeSuccess -> {
+                    val flags = if (claimData.isOnChainClaim) {
+                        OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER
+                    } else {
+                        OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER or OnChainAddSignerParam.FLAG_ADD_INHERITANCE_OFF_CHAIN_SIGNER
+                    }
+                    navigator.openSignerIntroScreen(
+                        launcher = signerIntroLauncher,
+                        activityContext = activity,
+                        onChainAddSignerParam = OnChainAddSignerParam(
+                            flags = flags,
+                            magic = claimData.magic
+                        )
+                    )
+                }
             }
             activityViewModel.onEventHandled()
         }
@@ -251,21 +267,13 @@ private fun ClaimInheritanceGraph(
                 onContinue = { option ->
                     when (option) {
                         InheritanceOption.HARDWARE_DEVICE -> {
-                            navigator.openSignerIntroScreen(
-                                launcher = signerIntroLauncher,
-                                activityContext = activity,
-                                onChainAddSignerParam = OnChainAddSignerParam(
-                                    flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
-                                    magic = claimData.magic
-                                )
-                            )
+                            activityViewModel.generateClaimSigningChallengeIfNeeded()
                         }
 
                         InheritanceOption.SEED_PHRASE -> {
                             if (claimData.isOnChainClaim) {
                                 navController.navigateToRecoverInheritanceKey()
                             } else {
-                                activityViewModel.generateClaimSigningChallenge()
                                 navController.navigateToClaimBackupPassword(claimData.magic)
                             }
                         }
@@ -390,12 +398,12 @@ private fun ClaimInheritanceGraph(
                 onBackPressed = {
                     navController.popBackStack()
                 },
-                onContinue = {
-                    // Handle continue action
-                },
-                onSignClick = { message ->
-                    // Handle sign action
-                },
+                addMoreSigner = {
+                    navController.navigateToAddInheritanceKey(
+                        index = claimData.signers.size.inc(),
+                        totalKeys = claimData.requiredKeyCount
+                    )
+                }
             )
             claimWithdrawBitcoin(
                 snackState = snackbarHostState,

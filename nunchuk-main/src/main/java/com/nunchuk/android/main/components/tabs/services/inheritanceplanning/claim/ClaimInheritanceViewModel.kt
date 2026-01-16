@@ -322,12 +322,17 @@ class ClaimInheritanceViewModel @Inject constructor(
         }
     }
 
-    fun generateClaimSigningChallenge() {
+    fun generateClaimSigningChallengeIfNeeded() {
         viewModelScope.launch {
             val currentData = _claimData.value
-            if (currentData.challenge == null && currentData.magic.isNotEmpty()) {
+            if (currentData.challenge == null && currentData.magic.isNotEmpty() && !currentData.isOnChainClaim) {
                 getClaimSigningChallengeUseCase(currentData.magic)
                     .onSuccess { challenge ->
+                        _uiState.update {
+                            it.copy(
+                                event = ClaimInheritanceEvent.GenerateChallengeSuccess,
+                            )
+                        }
                         _claimData.update { it.copy(challenge = challenge) }
                     }
                     .onFailure { e ->
@@ -338,8 +343,18 @@ class ClaimInheritanceViewModel @Inject constructor(
                             )
                         }
                     }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        event = ClaimInheritanceEvent.GenerateChallengeSuccess,
+                    )
+                }
             }
         }
+    }
+
+    fun updateInheritanceAdditional(inheritanceAdditional: InheritanceAdditional) {
+        _claimData.update { it.copy(inheritanceAdditional = inheritanceAdditional) }
     }
 
     private companion object {
@@ -366,6 +381,7 @@ sealed class ClaimInheritanceEvent {
     data object KeyAlreadyAdded : ClaimInheritanceEvent()
     data object SignerAdded : ClaimInheritanceEvent()
     data class SignMessage(val signer: SignerModel) : ClaimInheritanceEvent()
+    data object GenerateChallengeSuccess : ClaimInheritanceEvent()
 }
 
 @Parcelize

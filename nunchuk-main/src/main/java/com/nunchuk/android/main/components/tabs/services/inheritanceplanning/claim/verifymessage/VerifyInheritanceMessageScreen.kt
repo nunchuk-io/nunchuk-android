@@ -37,10 +37,13 @@ import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.compose.signer.TransactionSignerView
 import com.nunchuk.android.core.R
+import com.nunchuk.android.core.data.model.membership.SigningChallengeMessage
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimData
+import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.type.SignerType
 import kotlinx.coroutines.flow.filter
 import com.nunchuk.android.main.R as MainR
@@ -49,16 +52,22 @@ import com.nunchuk.android.main.R as MainR
 fun VerifyInheritanceMessageScreen(
     modifier: Modifier = Modifier,
     snackState: SnackbarHostState,
-    message: String,
-    signer: SignerModel,
+    claimData: ClaimData,
     onBackPressed: () -> Unit = {},
-    onContinue: () -> Unit = {},
-    onSignClick: (String) -> Unit = {},
+    addMoreSigner: () -> Unit = {},
+    onSuccess: (InheritanceAdditional) -> Unit = {},
 ) {
+    val signer = claimData.signers.last()
+    val challenge = claimData.challenge
+    val signingChallengeMessage = SigningChallengeMessage(
+        id = challenge?.id,
+        message = challenge?.message
+    )
+    
     val viewModel =
         hiltViewModel<VerifyInheritanceMessageViewModel, VerifyInheritanceMessageViewModel.Factory>(
             creationCallback = { factory ->
-                factory.create(signer, message)
+                factory.create(signer, signingChallengeMessage)
             }
         )
     val activity = LocalActivity.current as ComponentActivity
@@ -74,11 +83,11 @@ fun VerifyInheritanceMessageScreen(
                         type = NcToastType.ERROR
                     )
                 }
-                VerifyInheritanceMessageEvent.SignSuccess -> {
-
-                }
                 VerifyInheritanceMessageEvent.NoSignatureDetected -> {
 
+                }
+                is VerifyInheritanceMessageEvent.GetInheritanceClaimStateSuccess -> {
+                    onSuccess(event.inheritanceAdditional)
                 }
             }
         }
@@ -97,16 +106,20 @@ fun VerifyInheritanceMessageScreen(
     VerifyInheritanceMessageContent(
         modifier = modifier,
         snackState = snackState,
-        message = message,
+        message = signingChallengeMessage.message.orEmpty(),
         signer = signer,
         uiState = uiState,
         onBackPressed = onBackPressed,
-        onContinue = onContinue,
+        onContinue = {
+            if (claimData.requiredKeyCount > claimData.signers.size) {
+                addMoreSigner()
+            } else {
+                viewModel.getInheritanceClaimState(claimData.magic)
+            }
+        },
         onSignClick = { messageToSign ->
             if (signer.type == SignerType.NFC) {
                 (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_HEALTH_CHECK)
-            } else {
-                onSignClick(messageToSign)
             }
         },
     )

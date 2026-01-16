@@ -43,25 +43,26 @@ class GetInheritanceClaimStateUseCase @Inject constructor(
             messageId = parameters.messageId
         )
         val signatures = arrayListOf<String>()
-        val singleSigners = arrayListOf<SingleSigner>()
-        parameters.signerModels.forEachIndexed { index, signerModel ->
-            val signer = nunchukNativeSdk.getSignerFromMasterSigner(
-                masterSignerId = signerModel.id, path = parameters.derivationPaths[index]
-            )
-            val messagesToSign = nunchukNativeSdk.getHealthCheckMessage(userData)
-            val signature = nunchukNativeSdk.signHealthCheckMessage(signer, messagesToSign)
-            signatures.add(signature)
-            singleSigners.add(signer)
+        if (parameters.signatures.isEmpty()) {
+            parameters.signerModels.forEachIndexed { index, signerModel ->
+                val signer = nunchukNativeSdk.getSignerFromMasterSigner(
+                    masterSignerId = signerModel.id, path = parameters.derivationPaths[index]
+                )
+                val messagesToSign = nunchukNativeSdk.getHealthCheckMessage(userData)
+                val signature = nunchukNativeSdk.signHealthCheckMessage(signer, messagesToSign)
+                signatures.add(signature)
+            }
         }
         return userWalletRepository.inheritanceClaimStatus(
             userData = userData,
-            masterFingerprints = singleSigners.map { it.masterFingerprint },
-            signatures = signatures
+            masterFingerprints = parameters.signerModels.map { it.id },
+            signatures = signatures.ifEmpty { parameters.signatures }
         )
     }
 
     data class Param(
         val signerModels: List<SignerModel> = emptyList(),
+        val signatures: List<String> = emptyList(),
         val magic: String,
         val derivationPaths: List<String> = emptyList(),
         val bsms: String? = null,

@@ -30,6 +30,7 @@ import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSigner
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.type.AddressType
@@ -77,6 +78,7 @@ class AddNfcNameViewModel @Inject constructor(
         index: Int,
         walletId: String,
         groupId: String,
+        onChainAddSignerParam: OnChainAddSignerParam?
     ) {
         isoDep ?: return
         viewModelScope.launch {
@@ -91,7 +93,7 @@ class AddNfcNameViewModel @Inject constructor(
                     isoDep,
                     cvc,
                     name,
-                    _state.value.replace
+                    if (onChainAddSignerParam != null) true else _state.value.replace
                 )
             ).onSuccess { signer ->
                 _state.update { it.copy(signer = signer) }
@@ -104,6 +106,8 @@ class AddNfcNameViewModel @Inject constructor(
                         loadSingleSigner(index, isoDep, cvc, signer, walletId)
                     } else if (index >= 0 && groupId.isNotEmpty()) {
                         addKeyToFreeGroup(isoDep, cvc, signer, index)
+                    } else if (onChainAddSignerParam != null) {
+                        loadSignerForClaim(isoDep, cvc, signer, onChainAddSignerParam.keyIndex, onChainAddSignerParam)
                     }
                     _event.emit(AddNfcNameEvent.Success(signer))
                 }
@@ -118,6 +122,43 @@ class AddNfcNameViewModel @Inject constructor(
                 }
             }
             _event.emit(AddNfcNameEvent.Loading(false))
+        }
+    }
+
+    private suspend fun loadSignerForClaim(
+        isoDep: IsoDep,
+        cvc: String,
+        signer: MasterSigner,
+        index: Int,
+        onChainAddSignerParam: OnChainAddSignerParam
+    ) {
+        val walletType = if (onChainAddSignerParam.isAddInheritanceOffChainSigner()) {
+            WalletType.MULTI_SIG
+        } else {
+            WalletType.MINISCRIPT
+        }
+        if (index > 0) {
+            getSignerFromTapsignerMasterSignerUseCase(
+                GetSignerFromTapsignerMasterSignerUseCase.Data(
+                    isoDep = isoDep,
+                    cvc = cvc,
+                    masterSignerId = signer.id,
+                    index = index,
+                    walletType = walletType
+                )
+            )
+        }
+        getSignerFromMasterSignerUseCase(
+            GetSignerFromMasterSignerUseCase.Param(
+                xfp = signer.id,
+                walletType = walletType,
+                addressType = AddressType.NATIVE_SEGWIT,
+                index = index.coerceAtLeast(0)
+            )
+        ).map {
+            if (it != null) {
+                pushEventManager.push(PushEvent.ClaimSignerAdded(it))
+            }
         }
     }
 

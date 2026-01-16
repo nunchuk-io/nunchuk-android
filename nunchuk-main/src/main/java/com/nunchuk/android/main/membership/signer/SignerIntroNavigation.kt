@@ -1,14 +1,12 @@
 package com.nunchuk.android.main.membership.signer
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.signer.KeyType
-import com.nunchuk.android.signer.SignerIntroEvent
 import com.nunchuk.android.signer.SignerIntroScreen
 import com.nunchuk.android.signer.SignerIntroViewModel
 import kotlinx.serialization.Serializable
@@ -23,8 +21,6 @@ fun NavGraphBuilder.signerIntroDestination(
     onChainAddSignerParam: OnChainAddSignerParam?,
     onClick: (KeyType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
-    onFilteredTapSignersReady: (List<SignerModel>) -> Unit = {},
-    onNavigateToSetupTapSigner: () -> Unit = {}
 ) {
     composable<SignerIntroDestination> {
         SignerIntroNavigationScreen(
@@ -34,8 +30,6 @@ fun NavGraphBuilder.signerIntroDestination(
             onChainAddSignerParam = onChainAddSignerParam,
             onClick = onClick,
             onMoreClicked = onMoreClicked,
-            onFilteredTapSignersReady = onFilteredTapSignersReady,
-            onNavigateToSetupTapSigner = onNavigateToSetupTapSigner
         )
     }
 }
@@ -48,25 +42,7 @@ private fun SignerIntroNavigationScreen(
     onChainAddSignerParam: OnChainAddSignerParam? = null,
     onClick: (KeyType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
-    onFilteredTapSignersReady: (List<SignerModel>) -> Unit = {},
-    onNavigateToSetupTapSigner: () -> Unit = {}
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.event.collect { event ->
-            when (event) {
-                is SignerIntroEvent.ShowFilteredTapSigners -> {
-                    onFilteredTapSignersReady(event.signers)
-                }
-
-                SignerIntroEvent.OpenSetupTapSigner -> {
-                    onNavigateToSetupTapSigner()
-                }
-
-                else -> {}
-            }
-        }
-    }
-
     SignerIntroScreen(
         keyFlow = keyFlow,
         supportedSigners = supportedSigners,

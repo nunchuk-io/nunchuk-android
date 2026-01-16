@@ -3,9 +3,12 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 import android.nfc.tech.IsoDep
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.data.model.membership.SigningChallengeMessage
+import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCase
 import com.nunchuk.android.core.domain.signer.SignMessageByTapSignerUseCase
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.model.SignedMessage
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
@@ -29,9 +32,12 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     private val signMessageBySoftwareKeyUseCase: SignMessageBySoftwareKeyUseCase,
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
+    private val getInheritanceClaimStateUseCase: GetInheritanceClaimStateUseCase,
     @Assisted private val signer: SignerModel,
-    @Assisted private val message: String
+    @Assisted private val challenge: SigningChallengeMessage
 ) : ViewModel() {
+    private val message: String = challenge.message.orEmpty()
+    private val messageId: String = challenge.id.orEmpty()
 
     private val _state = MutableStateFlow(VerifyInheritanceMessageUiState())
     val state = _state.asStateFlow()
@@ -73,8 +79,6 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
                 _state.update { it.copy(signedMessage = signedMessage) }
                 if (signedMessage?.signature.isNullOrEmpty()) {
                     _event.emit(VerifyInheritanceMessageEvent.NoSignatureDetected)
-                } else {
-                    _event.emit(VerifyInheritanceMessageEvent.SignSuccess)
                 }
             }.onFailure { error ->
                 Timber.e(error, "Failed to sign message by TapSigner")
@@ -120,8 +124,6 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
                 _state.update { it.copy(signedMessage = signedMessage) }
                 if (signedMessage?.signature.isNullOrEmpty()) {
                     _event.emit(VerifyInheritanceMessageEvent.NoSignatureDetected)
-                } else {
-                    _event.emit(VerifyInheritanceMessageEvent.SignSuccess)
                 }
             }.onFailure { error ->
                 Timber.e(error, "Failed to sign message by software")
@@ -137,9 +139,41 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
         _state.update { it.copy(signedMessage = null) }
     }
 
+    fun getInheritanceClaimState(magic: String) {
+        viewModelScope.launch {
+            val signedMessage = _state.value.signedMessage
+            val signature = signedMessage?.signature.orEmpty()
+            
+            if (signature.isEmpty()) {
+                _event.emit(VerifyInheritanceMessageEvent.ShowError("No signature available"))
+                return@launch
+            }
+
+            _state.update { it.copy(loadingType = LoadingType.Normal) }
+            
+            getInheritanceClaimStateUseCase(
+                GetInheritanceClaimStateUseCase.Param(
+                    signerModels = listOf(signer),
+                    signatures = listOf(signature),
+                    magic = magic,
+                    messageId = messageId
+                )
+            ).onSuccess { inheritanceAdditional ->
+                _event.emit(VerifyInheritanceMessageEvent.GetInheritanceClaimStateSuccess(inheritanceAdditional))
+            }.onFailure { error ->
+                Timber.e(error, "Failed to get inheritance claim state")
+                _event.emit(VerifyInheritanceMessageEvent.ShowError(error.message.orUnknownError()))
+            }
+            _state.update { it.copy(loadingType = null) }
+        }
+    }
+
     @AssistedFactory
     interface Factory {
-        fun create(signer: SignerModel, message: String): VerifyInheritanceMessageViewModel
+        fun create(
+            signer: SignerModel,
+            challenge: SigningChallengeMessage
+        ): VerifyInheritanceMessageViewModel
     }
 }
 
@@ -155,6 +189,6 @@ enum class LoadingType {
 
 sealed class VerifyInheritanceMessageEvent {
     object NoSignatureDetected : VerifyInheritanceMessageEvent()
-    object SignSuccess : VerifyInheritanceMessageEvent()
     data class ShowError(val message: String) : VerifyInheritanceMessageEvent()
+    data class GetInheritanceClaimStateSuccess(val inheritanceAdditional: InheritanceAdditional) : VerifyInheritanceMessageEvent()
 }

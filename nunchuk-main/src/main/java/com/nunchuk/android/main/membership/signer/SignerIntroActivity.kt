@@ -27,6 +27,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -90,13 +91,13 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     private val signerResultLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+        if (result.resultCode == RESULT_OK && result.data != null) {
             val signer = result.data?.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
             if (signer != null) {
                 val intent = Intent().apply {
                     putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
                 }
-                setResult(Activity.RESULT_OK, intent)
+                setResult(RESULT_OK, intent)
                 finish()
             }
         }
@@ -115,8 +116,35 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
             setContent {
                 val navHostController = rememberNavController()
-                var showTapSignerBottomSheet by remember { mutableStateOf(false) }
-                var filteredTapSigners by remember { mutableStateOf<List<SignerModel>>(emptyList()) }
+                var showSignerBottomSheet by remember { mutableStateOf(false) }
+                var filteredSigners by remember { mutableStateOf<List<SignerModel>>(emptyList()) }
+
+                LaunchedEffect(Unit) {
+                    viewModel.event.collect { event ->
+                        when (event) {
+                            is SignerIntroEvent.ShowFilteredSigners -> {
+                                filteredSigners = event.signers
+                                showSignerBottomSheet = true
+                            }
+
+                            is SignerIntroEvent.OpenSetupSigner -> {
+                                when(event.type) {
+                                    SignerType.NFC -> navigateToSetupTapSigner()
+                                    SignerType.COLDCARD_NFC -> openSetupMk4()
+                                    SignerType.AIRGAP -> {
+                                        when(event.tag) {
+                                            SignerTag.JADE -> openAddAirSignerForJade()
+                                            else -> handleSelectAddAirgapType(event.tag)
+                                        }
+                                    }
+                                    else -> { /* no-op */ }
+                                }
+                            }
+
+                            else -> {}
+                        }
+                    }
+                }
 
                 NavHost(
                     navController = navHostController,
@@ -145,11 +173,6 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                             }
                         },
                         onMoreClicked = ::handleShowMore,
-                        onFilteredTapSignersReady = { signers ->
-                            filteredTapSigners = signers
-                            showTapSignerBottomSheet = true
-                        },
-                        onNavigateToSetupTapSigner = ::navigateToSetupTapSigner
                     )
 
                     checkFirmwareDestination(
@@ -172,28 +195,28 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     )
                 }
                 
-                if (showTapSignerBottomSheet) {
+                if (showSignerBottomSheet) {
                     NunchukTheme {
                         SelectSignerBottomSheet(
                             args = TapSignerListBottomSheetFragmentArgs(
-                                signers = filteredTapSigners.toTypedArray(),
+                                signers = filteredSigners.toTypedArray(),
                                 type = SignerType.NFC,
                                 description = "",
                                 ignoreIndexCheckForAcctX = true
                             ),
                             onDismiss = {
-                                showTapSignerBottomSheet = false
+                                showSignerBottomSheet = false
                             },
                             onAddExistKey = { signer ->
-                                showTapSignerBottomSheet = false
+                                showSignerBottomSheet = false
                                 val intent = Intent().apply {
                                     putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
                                 }
-                                setResult(Activity.RESULT_OK, intent)
+                                setResult(RESULT_OK, intent)
                                 finish()
                             },
                             onAddNewKey = {
-                                showTapSignerBottomSheet = false
+                                showSignerBottomSheet = false
                                 navigateToSetupTapSigner()
                             }
                         )
@@ -205,14 +228,15 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
     private fun handleTapSignerSelection() {
         if (onChainAddSignerParam != null) {
-            viewModel.onTapSignerContinueClicked()
+            viewModel.showExistingSignerOrCreateNew(SignerType.NFC)
         } else {
             navigateToSetupTapSigner()
         }
     }
 
     private fun handleColdCardSelection(navController: androidx.navigation.NavHostController) {
-        if (onChainAddSignerParam == null || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
+        val onChainAddSignerParam = onChainAddSignerParam
+        if (onChainAddSignerParam == null || onChainAddSignerParam.isVerifyBackupSeedPhrase() || onChainAddSignerParam.isAddInheritanceOffChainSigner()) {
             openSetupMk4()
         } else {
             navController.navigate(
@@ -364,6 +388,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     }
 
     private fun navigateToSetupTapSigner() {
+        val onChainAddSignerParam = onChainAddSignerParam
         if (onChainAddSignerParam != null) {
             signerResultLauncher.launch(
                 NfcSetupActivity.buildIntent(
