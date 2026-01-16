@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -40,7 +41,8 @@ data class SignerIntroState(
     val supportedSignerConfigs: List<SupportedSignerConfig> = emptyList(),
     val isAddInheritanceSigner: Boolean = false,
     val dynamicSupportedSigners: List<SupportedSigner> = emptyList(),
-    val showDynamicSelection: Boolean = false
+    val showDynamicSelection: Boolean = false,
+    val isGenericAirgapEnable: Boolean = false
 )
 
 @HiltViewModel
@@ -57,6 +59,7 @@ class SignerIntroViewModel @Inject constructor(
     val remainTime = membershipStepManager.remainingTime
 
     private var onChainAddSignerParam: OnChainAddSignerParam? = null
+    private var keyFlow: Int = KeyFlow.NONE
     private var isTestNet: Boolean = false
 
     private val _state = MutableStateFlow(SignerIntroState())
@@ -75,21 +78,53 @@ class SignerIntroViewModel @Inject constructor(
         }
     }
 
-    fun init(onChainAddSignerParam: OnChainAddSignerParam?) {
+    fun init(
+        onChainAddSignerParam: OnChainAddSignerParam?,
+        supportedSigners: List<SupportedSigner> = emptyList(),
+        keyFlow: Int = KeyFlow.NONE
+    ) {
         this.onChainAddSignerParam = onChainAddSignerParam
+        this.keyFlow = keyFlow
+
+        if (supportedSigners.isNotEmpty()) {
+            _state.update {
+                it.copy(
+                    supportedSigners = supportedSigners,
+                    isGenericAirgapEnable = calculateIsGenericAirgapEnable(supportedSigners)
+                )
+            }
+        }
+
         if (onChainAddSignerParam != null) {
             _state.update { it.copy(isAddInheritanceSigner = onChainAddSignerParam.isAddInheritanceSigner() || onChainAddSignerParam.isVerifyBackupSeedPhrase()) }
             if (onChainAddSignerParam.isAddInheritanceOffChainSigner()) {
                 _state.update {
                     it.copy(
-                        supportedSigners = offChainInheritanceKeyTypes
+                        supportedSigners = offChainInheritanceKeyTypes,
+                        isGenericAirgapEnable = calculateIsGenericAirgapEnable(offChainInheritanceKeyTypes)
                     )
                 }
             } else {
                 fetchUserWalletConfigs()
             }
             fetchAndFilterTapSigners()
+        } else {
+            if (supportedSigners.isEmpty()) {
+                _state.update {
+                    it.copy(
+                        isGenericAirgapEnable = calculateIsGenericAirgapEnable(emptyList())
+                    )
+                }
+            }
         }
+    }
+
+    private fun calculateIsGenericAirgapEnable(
+        supportedSigners: List<SupportedSigner>,
+    ): Boolean {
+        val isDisableAll = keyFlow != KeyFlow.NONE
+        return (supportedSigners.isEmpty()
+                || supportedSigners.any { it.type == SignerType.AIRGAP && it.tag == null }) && isDisableAll.not()
     }
 
     private fun fetchUserWalletConfigs() {
@@ -100,7 +135,8 @@ class SignerIntroViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             supportedSignerConfigs = walletConfigs.supportedSigners,
-                            supportedSigners = supportedSigners
+                            supportedSigners = supportedSigners,
+                            isGenericAirgapEnable = calculateIsGenericAirgapEnable(supportedSigners),
                         )
                     }
                     updateDynamicSupportedSigners()
@@ -211,6 +247,75 @@ private val offChainInheritanceKeyTypes = listOf(
     SupportedSigner(
         type = SignerType.NFC,
         tag = null,
+        walletType = WalletType.MULTI_SIG,
+        addressType = AddressType.NATIVE_SEGWIT
+    ),
+    SupportedSigner(
+        type = SignerType.SOFTWARE,
+        tag = null,
+        walletType = WalletType.MULTI_SIG,
+        addressType = AddressType.NATIVE_SEGWIT
+    )
+)
+
+val defaultSupportedSigners = listOf(
+    SupportedSigner(
+        type = SignerType.NFC,
+        tag = null,
+        walletType = WalletType.MULTI_SIG,
+        addressType = AddressType.NATIVE_SEGWIT
+    ),
+    SupportedSigner(
+        type = SignerType.COLDCARD_NFC,
+        tag = null,
+        walletType = WalletType.MULTI_SIG,
+        addressType = AddressType.NATIVE_SEGWIT
+    ),
+    SupportedSigner(
+        type = SignerType.AIRGAP,
+        tag = SignerTag.JADE,
+        walletType = WalletType.MULTI_SIG,
+        addressType = AddressType.NATIVE_SEGWIT
+    ),
+    SupportedSigner(
+        type = SignerType.PORTAL_NFC,
+        tag = null,
+        walletType = WalletType.MULTI_SIG,
+        addressType = AddressType.NATIVE_SEGWIT
+    ),
+    SupportedSigner(
+        type = SignerType.AIRGAP,
+        tag = SignerTag.SEEDSIGNER,
+        walletType = WalletType.MULTI_SIG,
+        addressType = AddressType.NATIVE_SEGWIT
+    ),
+    SupportedSigner(
+        type = SignerType.AIRGAP,
+        tag = SignerTag.KEYSTONE,
+        walletType = WalletType.MULTI_SIG,
+        addressType = AddressType.NATIVE_SEGWIT
+    ),
+    SupportedSigner(
+        type = SignerType.AIRGAP,
+        tag = SignerTag.PASSPORT,
+        walletType = WalletType.MULTI_SIG,
+        addressType = AddressType.NATIVE_SEGWIT
+    ),
+    SupportedSigner(
+        type = SignerType.HARDWARE,
+        tag = SignerTag.LEDGER,
+        walletType = WalletType.MULTI_SIG,
+        addressType = AddressType.NATIVE_SEGWIT
+    ),
+    SupportedSigner(
+        type = SignerType.HARDWARE,
+        tag = SignerTag.BITBOX,
+        walletType = WalletType.MULTI_SIG,
+        addressType = AddressType.NATIVE_SEGWIT
+    ),
+    SupportedSigner(
+        type = SignerType.HARDWARE,
+        tag = SignerTag.TREZOR,
         walletType = WalletType.MULTI_SIG,
         addressType = AddressType.NATIVE_SEGWIT
     ),

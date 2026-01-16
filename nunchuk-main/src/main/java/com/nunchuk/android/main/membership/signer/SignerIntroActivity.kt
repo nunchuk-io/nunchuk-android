@@ -109,7 +109,11 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         enableEdgeToEdge()
         observeEvent()
 
-        viewModel.init(onChainAddSignerParam)
+        viewModel.init(
+            onChainAddSignerParam = onChainAddSignerParam,
+            supportedSigners = supportedSigners,
+            keyFlow = keyFlow
+        )
 
         setContentView(ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -153,7 +157,6 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     signerIntroDestination(
                         viewModel = viewModel,
                         keyFlow = keyFlow,
-                        supportedSigners = supportedSigners,
                         onChainAddSignerParam = onChainAddSignerParam,
                         onClick = { keyType: KeyType ->
                             when (keyType) {

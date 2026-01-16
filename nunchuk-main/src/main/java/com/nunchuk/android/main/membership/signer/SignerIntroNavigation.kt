@@ -5,7 +5,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
-import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.signer.KeyType
 import com.nunchuk.android.signer.SignerIntroScreen
 import com.nunchuk.android.signer.SignerIntroViewModel
@@ -17,7 +16,6 @@ object SignerIntroDestination
 fun NavGraphBuilder.signerIntroDestination(
     viewModel: SignerIntroViewModel,
     keyFlow: Int,
-    supportedSigners: List<SupportedSigner>,
     onChainAddSignerParam: OnChainAddSignerParam?,
     onClick: (KeyType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
@@ -26,7 +24,6 @@ fun NavGraphBuilder.signerIntroDestination(
         SignerIntroNavigationScreen(
             viewModel = viewModel,
             keyFlow = keyFlow,
-            supportedSigners = supportedSigners,
             onChainAddSignerParam = onChainAddSignerParam,
             onClick = onClick,
             onMoreClicked = onMoreClicked,
@@ -38,14 +35,12 @@ fun NavGraphBuilder.signerIntroDestination(
 private fun SignerIntroNavigationScreen(
     viewModel: SignerIntroViewModel,
     keyFlow: Int = 0,
-    supportedSigners: List<SupportedSigner> = emptyList(),
     onChainAddSignerParam: OnChainAddSignerParam? = null,
     onClick: (KeyType) -> Unit = {},
     onMoreClicked: () -> Unit = {},
 ) {
     SignerIntroScreen(
         keyFlow = keyFlow,
-        supportedSigners = supportedSigners,
         viewModel = viewModel,
         onChainAddSignerParam = onChainAddSignerParam,
         onClick = onClick,
