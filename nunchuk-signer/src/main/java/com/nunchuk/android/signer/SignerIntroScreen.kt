@@ -54,67 +54,67 @@ fun SignerIntroScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isDisableAll = keyFlow != KeyFlow.NONE
-    NunchukTheme {
-        Scaffold(topBar = {
-            NcTopAppBar(
-                title = "",
-                isBack = false,
-                actions = {
-                    if (onChainAddSignerParam != null && onChainAddSignerParam.isClaiming.not()) {
-                        IconButton(onClick = onMoreClicked) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "More icon"
-                            )
-                        }
+    Scaffold(topBar = {
+        NcTopAppBar(
+            title = "",
+            isBack = false,
+            actions = {
+                if (onChainAddSignerParam != null && onChainAddSignerParam.isClaiming.not()) {
+                    IconButton(onClick = onMoreClicked) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_more),
+                            contentDescription = "More icon"
+                        )
                     }
                 }
-            )
-        }) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
-                    .navigationBarsPadding()
-                    .fillMaxHeight()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                Text(
-                    text = if (onChainAddSignerParam?.isAddInheritanceSigner() == true) stringResource(
-                        R.string.nc_add_inheritance_key
-                    ) else if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) stringResource(
-                        R.string.nc_re_add_restored_key
-                    ) else stringResource(
-                        R.string.nc_add_key
-                    ),
-                    style = NunchukTheme.typography.heading
-                )
-                Text(
-                    modifier = Modifier.padding(top = 4.dp),
-                    text = stringResource(R.string.nc_select_your_key_type),
-                    style = NunchukTheme.typography.body
-                )
-
-                val (signersToDisplay, originalSupportedSigners) = when {
-                    state.dynamicSupportedSigners.isNotEmpty() && onChainAddSignerParam != null -> {
-                        state.dynamicSupportedSigners to state.dynamicSupportedSigners
-                    }
-                    state.supportedSigners.isNotEmpty() -> {
-                        state.supportedSigners to state.supportedSigners
-                    }
-                    else -> {
-                        defaultSupportedSigners to emptyList()
-                    }
-                }
-                
-                SignerSelection(
-                    supportedSigners = signersToDisplay,
-                    originalSupportedSigners = originalSupportedSigners,
-                    isDisableAll = isDisableAll,
-                    isGenericAirgapEnable = state.isGenericAirgapEnable,
-                    onClick = onClick
-                )
             }
+        )
+    }) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+                .navigationBarsPadding()
+                .fillMaxHeight()
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text(
+                text = if (onChainAddSignerParam?.isAddInheritanceSigner() == true) stringResource(
+                    R.string.nc_add_inheritance_key
+                ) else if (onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) stringResource(
+                    R.string.nc_re_add_restored_key
+                ) else stringResource(
+                    R.string.nc_add_key
+                ),
+                style = NunchukTheme.typography.heading
+            )
+            Text(
+                modifier = Modifier.padding(top = 4.dp),
+                text = stringResource(R.string.nc_select_your_key_type),
+                style = NunchukTheme.typography.body
+            )
+
+            val (signersToDisplay, originalSupportedSigners) = when {
+                state.dynamicSupportedSigners.isNotEmpty() && onChainAddSignerParam != null -> {
+                    state.dynamicSupportedSigners to state.dynamicSupportedSigners
+                }
+
+                state.supportedSigners.isNotEmpty() -> {
+                    state.supportedSigners to state.supportedSigners
+                }
+
+                else -> {
+                    defaultSupportedSigners to emptyList()
+                }
+            }
+
+            SignerSelection(
+                supportedSigners = signersToDisplay,
+                originalSupportedSigners = originalSupportedSigners,
+                isDisableAll = isDisableAll,
+                isGenericAirgapEnable = state.isGenericAirgapEnable,
+                onClick = onClick
+            )
         }
     }
 }
@@ -129,17 +129,17 @@ internal fun SignerSelection(
 ) {
     val cardSigners = mutableListOf<SupportedSigner>()
     val softwareSigner = supportedSigners.firstOrNull { it.type == SignerType.SOFTWARE }
-    
+
     supportedSigners.forEach { signer ->
         if (signer.type != SignerType.SOFTWARE) {
             cardSigners.add(signer)
         }
     }
-    
+
     val signerItemsData = cardSigners.mapNotNull { signer ->
         mapSupportedSignerToItemData(signer, originalSupportedSigners, isDisableAll)
     }
-    
+
     signerItemsData.chunked(2).forEach { rowItems ->
         Row(
             modifier = Modifier
@@ -157,28 +157,28 @@ internal fun SignerSelection(
                     isDisabled = itemData.isDisabled
                 )
             }
-            
+
             if (rowItems.size == 1) {
                 Spacer(modifier = Modifier.weight(1f))
             }
         }
     }
-    
+
     if (softwareSigner != null) {
         HorizontalDivider(
             modifier = Modifier.padding(vertical = 16.dp)
         )
-        
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable(enabled = !isDisableAll) { 
-                onClick(KeyType.SOFTWARE) 
+            modifier = Modifier.clickable(enabled = !isDisableAll) {
+                onClick(KeyType.SOFTWARE)
             }
         ) {
             NcCircleImage(
                 resId = R.drawable.ic_logo_dark_small,
             )
-            
+
             Column(modifier = Modifier.padding(start = 12.dp)) {
                 Text(
                     text = stringResource(R.string.nc_software),
@@ -193,7 +193,7 @@ internal fun SignerSelection(
             }
         }
     }
-    
+
     if (isGenericAirgapEnable) {
         Row(
             modifier = Modifier
@@ -208,7 +208,7 @@ internal fun SignerSelection(
             NcCircleImage(
                 resId = R.drawable.ic_split,
             )
-            
+
             Text(
                 modifier = Modifier.padding(start = 12.dp),
                 text = stringResource(R.string.nc_generic_airgap),
@@ -254,7 +254,7 @@ private fun mapSupportedSignerToItemData(
                     title = stringResource(id = R.string.nc_jade),
                     keyType = KeyType.JADE,
                     isDisabled = allSupportedSigners.isNotEmpty()
-                        && !allSupportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.JADE || it.tag == null) } || isDisableAll
+                            && !allSupportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.JADE || it.tag == null) } || isDisableAll
                 )
 
                 SignerTag.SEEDSIGNER -> SignerItemData(
@@ -262,7 +262,7 @@ private fun mapSupportedSignerToItemData(
                     title = stringResource(id = R.string.nc_seedsigner),
                     keyType = KeyType.SEEDSIGNER,
                     isDisabled = allSupportedSigners.isNotEmpty()
-                        && !allSupportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.SEEDSIGNER || it.tag == null) } || isDisableAll
+                            && !allSupportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.SEEDSIGNER || it.tag == null) } || isDisableAll
                 )
 
                 SignerTag.KEYSTONE -> SignerItemData(
@@ -270,7 +270,7 @@ private fun mapSupportedSignerToItemData(
                     title = stringResource(id = R.string.nc_keystone),
                     keyType = KeyType.KEYSTONE,
                     isDisabled = allSupportedSigners.isNotEmpty()
-                        && !allSupportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.KEYSTONE || it.tag == null) } || isDisableAll
+                            && !allSupportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.KEYSTONE || it.tag == null) } || isDisableAll
                 )
 
                 SignerTag.PASSPORT -> SignerItemData(
@@ -278,7 +278,7 @@ private fun mapSupportedSignerToItemData(
                     title = stringResource(id = R.string.nc_foundation),
                     keyType = KeyType.FOUNDATION,
                     isDisabled = allSupportedSigners.isNotEmpty()
-                        && !allSupportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.PASSPORT || it.tag == null) } || isDisableAll
+                            && !allSupportedSigners.any { it.type == SignerType.AIRGAP && (it.tag == SignerTag.PASSPORT || it.tag == null) } || isDisableAll
                 )
 
                 else -> null

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
+import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
@@ -21,10 +22,14 @@ import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
+import com.nunchuk.android.usecase.CreateSoftwareSignerUseCase
+import com.nunchuk.android.usecase.DeleteMasterSignerUseCase
+import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupFromCacheUseCase
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
 import com.nunchuk.android.usecase.membership.RestartWizardUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
+import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +38,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 data class SignerIntroState(
@@ -54,6 +60,11 @@ class SignerIntroViewModel @Inject constructor(
     private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
     private val restartWizardUseCase: RestartWizardUseCase,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
+    private val createSoftwareSignerUseCase: CreateSoftwareSignerUseCase,
+    private val getMasterFingerprintUseCase: GetMasterFingerprintUseCase,
+    private val deleteMasterSignerUseCase: DeleteMasterSignerUseCase,
+    private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase,
+    private val singleSignerMapper: SingleSignerMapper,
 ) : ViewModel() {
 
     val remainTime = membershipStepManager.remainingTime
@@ -101,7 +112,9 @@ class SignerIntroViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         supportedSigners = offChainInheritanceKeyTypes,
-                        isGenericAirgapEnable = calculateIsGenericAirgapEnable(offChainInheritanceKeyTypes)
+                        isGenericAirgapEnable = calculateIsGenericAirgapEnable(
+                            offChainInheritanceKeyTypes
+                        )
                     )
                 }
             } else {
@@ -241,6 +254,33 @@ class SignerIntroViewModel @Inject constructor(
             _event.emit(SignerIntroEvent.OpenSetupSigner(type, tag))
         }
     }
+
+    fun createSoftwareSignerFromMnemonic(mnemonic: String, passphrase: String, signerName: String) {
+        viewModelScope.launch {
+            runCatching {
+                getMasterFingerprintUseCase(
+                    GetMasterFingerprintUseCase.Param(
+                        mnemonic = mnemonic,
+                        passphrase = passphrase
+                    )
+                ).getOrThrow()?.let {
+                    deleteMasterSignerUseCase(it).getOrThrow()
+                }
+            }
+
+            createSoftwareSignerUseCase(
+                CreateSoftwareSignerUseCase.Param(
+                    name = signerName,
+                    mnemonic = mnemonic,
+                )
+            ).onSuccess { signer ->
+                _event.emit(SignerIntroEvent.CreateSoftwareSignerSuccess(masterSignerMapper(signer)))
+            }.onFailure { e ->
+                Timber.e(e)
+                _event.emit(SignerIntroEvent.Error(e.message.orUnknownError()))
+            }
+        }
+    }
 }
 
 private val offChainInheritanceKeyTypes = listOf(
@@ -334,11 +374,15 @@ val defaultSupportedSigners = listOf(
 )
 
 sealed class SignerIntroEvent {
-    data class ShowFilteredSigners(val type: SignerType, val tag: SignerTag?, val signers: List<SignerModel>) :
-        SignerIntroEvent()
+    data class ShowFilteredSigners(
+        val type: SignerType,
+        val tag: SignerTag?,
+        val signers: List<SignerModel>
+    ) : SignerIntroEvent()
 
     data class OpenSetupSigner(val type: SignerType, val tag: SignerTag?) : SignerIntroEvent()
     data object RestartWizardSuccess : SignerIntroEvent()
     data class Error(val message: String) : SignerIntroEvent()
+    data class CreateSoftwareSignerSuccess(val signer: SignerModel) : SignerIntroEvent()
 }
 

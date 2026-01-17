@@ -123,30 +123,28 @@ private fun CheckFirmwareNavigationScreen(
     )
 
     if (showSignerBottomSheet && filteredSigners.isNotEmpty()) {
-        NunchukTheme {
-            SelectSignerBottomSheet(
-                sheetState = bottomSheetState,
-                onDismiss = {
-                    showSignerBottomSheet = false
-                },
-                onAddExistKey = { signer ->
-                    showSignerBottomSheet = false
-                    onFilteredSignersReady(signer)
-                },
-                onAddNewKey = {
-                    showSignerBottomSheet = false
-                    onOpenNextScreen()
-                },
-                args = TapSignerListBottomSheetFragmentArgs(
-                    signers = filteredSigners.toTypedArray(),
-                    type = when (args.signerTag) {
-                        SignerTag.COLDCARD -> SignerType.COLDCARD_NFC
-                        SignerTag.JADE -> SignerType.AIRGAP
-                        else -> SignerType.UNKNOWN
-                    }
-                )
+        SelectSignerBottomSheet(
+            sheetState = bottomSheetState,
+            onDismiss = {
+                showSignerBottomSheet = false
+            },
+            onAddExistKey = { signer ->
+                showSignerBottomSheet = false
+                onFilteredSignersReady(signer)
+            },
+            onAddNewKey = {
+                showSignerBottomSheet = false
+                onOpenNextScreen()
+            },
+            args = TapSignerListBottomSheetFragmentArgs(
+                signers = filteredSigners.toTypedArray(),
+                type = when (args.signerTag) {
+                    SignerTag.COLDCARD -> SignerType.COLDCARD_NFC
+                    SignerTag.JADE -> SignerType.AIRGAP
+                    else -> SignerType.UNKNOWN
+                }
             )
-        }
+        )
     }
 }
 
@@ -212,11 +210,12 @@ private fun CheckFirmwareContent(
                     )
                     if (firmwareVersion.isNotEmpty()) {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.W700)) {
-                            val versionText = if (firmwareVersion.contains("or above", ignoreCase = true)) {
-                                "$firmwareVersion."
-                            } else {
-                                "$firmwareVersion or above."
-                            }
+                            val versionText =
+                                if (firmwareVersion.contains("or above", ignoreCase = true)) {
+                                    "$firmwareVersion."
+                                } else {
+                                    "$firmwareVersion or above."
+                                }
                             append(versionText)
                         }
                     } else {

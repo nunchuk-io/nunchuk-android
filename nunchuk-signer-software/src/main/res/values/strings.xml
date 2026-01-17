@@ -65,10 +65,8 @@
     <string name="nc_review_seed_phrase">Review seed phrase</string>
     <string name="nc_before_you_start">Before you start</string>
     <string name="nc_set_passphrase_optional">Set passphrase (optional)</string>
-    <string name="nc_recover_key_via_xprv">Recover key via XPRV</string>
     <string name="nc_please_enter_the_master_private_key_xprv">Please enter the master private key (XPRV).</string>
     <string name="nc_xprv">XPRV</string>
-    <string name="nc_recover_key_via_seed">Recover key via seed</string>
     <string name="nc_added_hot_key_success">You have successfully backed up this key</string>
     <string name="nc_key_has_been_added">%1$s has been added</string>
     <string name="nc_create_software_key">Create software key</string>

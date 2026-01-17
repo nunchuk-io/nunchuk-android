@@ -34,9 +34,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.nunchuk.android.compose.NcSelectableBottomSheet
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseComposeActivity
@@ -86,6 +88,9 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     private val onChainAddSignerParam by lazy {
         intent.parcelable<OnChainAddSignerParam>(EXTRA_ONCHAIN_ADD_SIGNER_PARAM)
     }
+    private val isClaiming by lazy {
+        onChainAddSignerParam?.isClaiming == true
+    }
 
     private val viewModel: SignerIntroViewModel by viewModels()
 
@@ -95,11 +100,21 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         if (result.resultCode == RESULT_OK && result.data != null) {
             val signer = result.data?.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
             if (signer != null) {
-                val intent = Intent().apply {
-                    putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
-                }
-                setResult(RESULT_OK, intent)
-                finish()
+                returnSigner(signer)
+            }
+        }
+    }
+
+    private val recoverSeedLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            val mnemonic = result.data?.getStringExtra(GlobalResultKey.MNEMONIC).orEmpty()
+            val passphrase = result.data?.getStringExtra(GlobalResultKey.PASSPHRASE).orEmpty()
+            if (mnemonic.isNotEmpty()) {
+                val signerCount = viewModel.state.value.allSigners.size + 1
+                val signerName = "Inheritance key #$signerCount"
+                viewModel.createSoftwareSignerFromMnemonic(mnemonic, passphrase, signerName)
             }
         }
     }
@@ -125,6 +140,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                 var filteredSigners by remember { mutableStateOf<List<SignerModel>>(emptyList()) }
                 var signerType by remember { mutableStateOf<SignerType?>(null) }
                 var signerTag by remember { mutableStateOf<SignerTag?>(null) }
+                var showRecoverSheet by remember { mutableStateOf(false) }
 
                 LaunchedEffect(Unit) {
                     viewModel.event.collect { event ->
@@ -137,17 +153,26 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                             }
 
                             is SignerIntroEvent.OpenSetupSigner -> {
-                                when(event.type) {
+                                when (event.type) {
                                     SignerType.NFC -> navigateToSetupTapSigner()
                                     SignerType.COLDCARD_NFC -> openSetupMk4()
-                                    SignerType.SOFTWARE -> createNewSoftware()
+                                    SignerType.SOFTWARE -> {
+                                        if (isClaiming) {
+                                            showRecoverSheet = true
+                                        } else {
+                                            createNewSoftware()
+                                        }
+                                    }
+
                                     SignerType.AIRGAP -> {
-                                        when(event.tag) {
+                                        when (event.tag) {
                                             SignerTag.JADE -> openAddAirSignerForJade()
                                             else -> handleSelectAddAirgapType(event.tag)
                                         }
                                     }
-                                    else -> { /* no-op */ }
+
+                                    else -> { /* no-op */
+                                    }
                                 }
                             }
 
@@ -156,85 +181,109 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     }
                 }
 
-                NavHost(
-                    navController = navHostController,
-                    startDestination = SignerIntroDestination
-                ) {
-                    signerIntroDestination(
-                        viewModel = viewModel,
-                        keyFlow = keyFlow,
-                        onChainAddSignerParam = onChainAddSignerParam,
-                        onClick = { keyType: KeyType ->
-                            when (keyType) {
-                                KeyType.TAPSIGNER -> handleTapSignerSelection()
-                                KeyType.COLDCARD -> handleColdCardSelection(navHostController)
-                                KeyType.JADE -> handleJadeSelection(navHostController)
-                                KeyType.PORTAL -> openPortalScreen()
-                                KeyType.SEEDSIGNER -> handleSelectAddAirgapType(SignerTag.SEEDSIGNER)
-                                KeyType.KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
-                                KeyType.FOUNDATION -> handleSelectAddAirgapType(SignerTag.PASSPORT)
-                                KeyType.SOFTWARE -> openAddSoftwareSignerScreen()
-                                KeyType.GENERIC_AIRGAP -> openAddAirSignerIntroScreen()
-                                KeyType.LEDGER -> handleHardwareSignerSelection(SignerTag.LEDGER)
-                                KeyType.BITBOX -> handleHardwareSignerSelection(SignerTag.BITBOX)
-                                KeyType.TREZOR -> handleHardwareSignerSelection(SignerTag.TREZOR)
-                                else -> {}
-                            }
-                        },
-                        onMoreClicked = ::handleShowMore,
-                    )
+                NunchukTheme {
+                    NavHost(
+                        navController = navHostController,
+                        startDestination = SignerIntroDestination
+                    ) {
+                        signerIntroDestination(
+                            viewModel = viewModel,
+                            keyFlow = keyFlow,
+                            onChainAddSignerParam = onChainAddSignerParam,
+                            onClick = { keyType: KeyType ->
+                                when (keyType) {
+                                    KeyType.TAPSIGNER -> handleTapSignerSelection()
+                                    KeyType.COLDCARD -> handleColdCardSelection(navHostController)
+                                    KeyType.JADE -> handleJadeSelection(navHostController)
+                                    KeyType.PORTAL -> openPortalScreen()
+                                    KeyType.SEEDSIGNER -> handleSelectAddAirgapType(SignerTag.SEEDSIGNER)
+                                    KeyType.KEYSTONE -> handleSelectAddAirgapType(SignerTag.KEYSTONE)
+                                    KeyType.FOUNDATION -> handleSelectAddAirgapType(SignerTag.PASSPORT)
+                                    KeyType.SOFTWARE -> showSoftwareSigners()
+                                    KeyType.GENERIC_AIRGAP -> openAddAirSignerIntroScreen()
+                                    KeyType.LEDGER -> handleHardwareSignerSelection(SignerTag.LEDGER)
+                                    KeyType.BITBOX -> handleHardwareSignerSelection(SignerTag.BITBOX)
+                                    KeyType.TREZOR -> handleHardwareSignerSelection(SignerTag.TREZOR)
+                                    else -> {}
+                                }
+                            },
+                            onMoreClicked = ::handleShowMore,
+                        )
 
-                    checkFirmwareDestination(
-                        onChainAddSignerParam = onChainAddSignerParam,
-                        onMoreClicked = ::handleShowMore,
-                        onFilteredSignersReady = { signer ->
-                            val intent = Intent().apply {
-                                putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
+                        checkFirmwareDestination(
+                            onChainAddSignerParam = onChainAddSignerParam,
+                            onMoreClicked = ::handleShowMore,
+                            onFilteredSignersReady = { signer ->
+                                returnSigner(signer)
+                            },
+                            onOpenNextScreen = { signerTag ->
+                                when (signerTag) {
+                                    SignerTag.COLDCARD -> openSetupMk4()
+                                    SignerTag.JADE -> openAddAirSignerForJade()
+                                    else -> {}
+                                }
                             }
-                            setResult(RESULT_OK, intent)
-                            finish()
-                        },
-                        onOpenNextScreen = { signerTag ->
-                            when (signerTag) {
-                                SignerTag.COLDCARD -> openSetupMk4()
-                                SignerTag.JADE -> openAddAirSignerForJade()
-                                else -> {}
-                            }
-                        }
-                    )
-                }
-                
-                if (showSignerBottomSheet && filteredSigners.isNotEmpty()) {
-                    NunchukTheme {
-                        SelectSignerBottomSheet(
-                            args = TapSignerListBottomSheetFragmentArgs(
-                                signers = filteredSigners.toTypedArray(),
-                                type = signerType ?: SignerType.UNKNOWN,
-                                description = "",
-                                ignoreIndexCheckForAcctX = true
+                        )
+                    }
+
+                    if (showSignerBottomSheet && filteredSigners.isNotEmpty()) {
+                            SelectSignerBottomSheet(
+                                args = TapSignerListBottomSheetFragmentArgs(
+                                    signers = filteredSigners.toTypedArray(),
+                                    type = signerType ?: SignerType.UNKNOWN,
+                                    description = "",
+                                    ignoreIndexCheckForAcctX = true
+                                ),
+                                onDismiss = {
+                                    showSignerBottomSheet = false
+                                },
+                                onAddExistKey = { signer ->
+                                    showSignerBottomSheet = false
+                                    returnSigner(signer)
+                                },
+                                onAddNewKey = {
+                                    showSignerBottomSheet = false
+                                    signerType?.let { signerType ->
+                                        viewModel.createNewSigner(signerType, signerTag)
+                                    }
+                                }
+                            )
+                    }
+
+                    if (showRecoverSheet) {
+                        NcSelectableBottomSheet(
+                            options = listOf(
+                                stringResource(R.string.nc_recover_key_via_seed),
+                                stringResource(R.string.nc_recover_key_via_xprv),
                             ),
+                            onSelected = {
+                                if (it == 0) {
+                                    onRecoverSeedClicked()
+                                } else {
+                                    onRecoverXprvClicked()
+                                }
+                                showRecoverSheet = false
+                            },
                             onDismiss = {
-                                showSignerBottomSheet = false
+                                showRecoverSheet = false
                             },
-                            onAddExistKey = { signer ->
-                                showSignerBottomSheet = false
-                                val intent = Intent().apply {
-                                    putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
-                                }
-                                setResult(RESULT_OK, intent)
-                                finish()
-                            },
-                            onAddNewKey = {
-                                showSignerBottomSheet = false
-                                signerType?.let { signerType ->
-                                    viewModel.createNewSigner(signerType, signerTag)
-                                }
-                            }
                         )
                     }
                 }
             }
         })
+    }
+
+    private fun onRecoverSeedClicked() {
+        navigator.openRecoverSeedScreen(
+            launcher = recoverSeedLauncher,
+            activityContext = this,
+            keyFlow = KeyFlow.ADD_AND_RETURN_PASSPHRASE
+        )
+    }
+
+    private fun onRecoverXprvClicked() {
+
     }
 
     private fun handleTapSignerSelection() {
@@ -275,7 +324,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             )
         }
     }
-    
+
     private fun openAddAirSignerForJade() {
         navigator.openAddAirSignerScreen(
             activityContext = this,
@@ -309,7 +358,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             )
         }
     }
-    
+
     private fun handleSelectAddAirgapType(tag: SignerTag?) {
         val args = AddAirSignerArgs(
             isMembershipFlow = onChainAddSignerParam != null,
@@ -387,7 +436,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         finish()
     }
 
-    private fun openAddSoftwareSignerScreen() {
+    private fun showSoftwareSigners() {
         if (onChainAddSignerParam != null && onChainAddSignerParam?.isClaiming == true) {
             viewModel.showExistingSignerOrCreateNew(SignerType.SOFTWARE)
         } else {
@@ -445,14 +494,28 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                         isClearTop = true,
                         quickWalletParam = null
                     )
-                    setResult(Activity.RESULT_OK)
+                    setResult(RESULT_OK)
                     finish()
                 }
+
+                is SignerIntroEvent.CreateSoftwareSignerSuccess -> {
+                    returnSigner(event.signer)
+                }
+
                 is SignerIntroEvent.Error -> {
                 }
+
                 else -> {}
             }
         }
+    }
+
+    private fun returnSigner(signer: SignerModel) {
+        val intent = Intent().apply {
+            putExtra(GlobalResultKey.EXTRA_SIGNER, signer)
+        }
+        setResult(RESULT_OK, intent)
+        finish()
     }
 
     private fun handleShowMore() {
