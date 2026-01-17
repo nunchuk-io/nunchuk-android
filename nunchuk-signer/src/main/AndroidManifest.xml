@@ -40,13 +40,15 @@
             android:name=".mk4.Mk4Activity"
             android:label="Mk4 Activity"
             android:screenOrientation="portrait"
-            android:theme="@style/NunchukNoActionBar.Light" />
+            android:theme="@style/NunchukNoActionBar.Light"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
         <activity
             android:name="com.nunchuk.android.signer.portal.PortalDeviceActivity"
             android:label="Portal"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />
-        <activity android:name=".satscard.wallets.SelectWalletActivity"
+        <activity
+            android:name=".satscard.wallets.SelectWalletActivity"
             android:label="Select Wallet"
             android:screenOrientation="portrait"
             android:theme="@style/NunchukNoActionBar.Light" />

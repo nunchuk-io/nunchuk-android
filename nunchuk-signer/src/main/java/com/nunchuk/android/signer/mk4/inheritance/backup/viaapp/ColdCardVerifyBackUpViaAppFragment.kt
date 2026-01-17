@@ -5,9 +5,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
@@ -16,20 +18,21 @@ import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -40,11 +43,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
+import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.controlTextPrimary
+import com.nunchuk.android.compose.fillDenim
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.signer.R
@@ -70,6 +74,7 @@ class ColdCardVerifyBackupViaAppFragment : MembershipFragment() {
                         ColdCardVerifyBackupViaAppEvent.OnVerifyBackUpKeySuccess -> {
                             handleBackUpKeySuccess()
                         }
+
                         is ColdCardVerifyBackupViaAppEvent.ShowError -> {
                             showError(event.throwable?.message)
                         }
@@ -85,7 +90,9 @@ class ColdCardVerifyBackupViaAppFragment : MembershipFragment() {
     ): View = content {
         val remainTime by membershipStepManager.remainingTime.collectAsStateWithLifecycle()
         val state by viewModel.state.collectAsStateWithLifecycle()
-        ColdCardVerifyBackupViaAppScreen(remainTime = remainTime, suggestions = state.suggestions,
+        ColdCardVerifyBackupViaAppScreen(
+            remainTime = remainTime,
+            suggestions = state.suggestions,
             backUpPassword = state._backUpPassword,
             isShowVerifyError = state.showVerifyError,
             onBackUpPasswordTextChange = {
@@ -99,8 +106,10 @@ class ColdCardVerifyBackupViaAppFragment : MembershipFragment() {
                 val masterSignerId = mk4ViewModel.coldCardBackUpParam.xfp
                 val filePath = mk4ViewModel.coldCardBackUpParam.filePath
                 if (keyId.isNotEmpty()) {
-                    viewModel.onReplaceKeyVerified(masterSignerId, keyId, filePath,
-                        groupId = groupId, walletId = walletId.orEmpty())
+                    viewModel.onReplaceKeyVerified(
+                        masterSignerId, keyId, filePath,
+                        groupId = groupId, walletId = walletId.orEmpty()
+                    )
                 } else {
                     viewModel.onContinueClicked(groupId, masterSignerId, filePath)
                 }
@@ -128,42 +137,59 @@ internal fun ColdCardVerifyBackupViaAppScreen(
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
 
-    NunchukTheme {
-        Scaffold(modifier = Modifier.navigationBarsPadding()
-            , topBar = {
-            NcImageAppBar(
-                backgroundRes = R.drawable.bg_coldcard_backup_pass_illustration,
-                title = if (remainTime <= 0) "" else stringResource(
-                    id = R.string.nc_estimate_remain_time,
-                    remainTime
-                )
-            )
-        }, bottomBar = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    onClick = onContinue
-                ) {
-                    Text(
-                        text = "Continue",
-                        style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.controlTextPrimary)
-                    )
-                }
-            }
+    LaunchedEffect(suggestions.isNotEmpty()) {
+        if (suggestions.isNotEmpty()) {
+            delay(300L)
+            bringIntoViewRequester.bringIntoView()
+        }
+    }
 
-        }) { innerPadding ->
+    NunchukTheme {
+        Scaffold(
+            modifier = Modifier
+                .navigationBarsPadding()
+                .imePadding(),
+            topBar = {
+                NcTopAppBar(
+                    backgroundColor = MaterialTheme.colorScheme.fillDenim,
+                    title = if (remainTime <= 0) "" else stringResource(
+                        id = R.string.nc_estimate_remain_time,
+                        remainTime
+                    )
+                )
+            },
+            bottomBar = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        onClick = onContinue
+                    ) {
+                        Text(
+                            text = "Continue",
+                            style = NunchukTheme.typography.title.copy(color = MaterialTheme.colorScheme.controlTextPrimary)
+                        )
+                    }
+                }
+
+            },
+        ) { innerPadding ->
             Column(
                 modifier = Modifier
-                    .fillMaxHeight()
                     .padding(innerPadding)
-                    .navigationBarsPadding()
+                    .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
             ) {
+                Image(
+                    modifier = Modifier.fillMaxWidth(),
+                    painter = painterResource(id = R.drawable.bg_coldcard_backup_pass_illustration),
+                    contentScale = ContentScale.Crop,
+                    contentDescription = "Background",
+                )
                 Text(
                     modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp),
                     text = "Verify backup via the app",
@@ -179,7 +205,6 @@ internal fun ColdCardVerifyBackupViaAppScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     title = "Backup Password",
                     inputBoxHeight = 128.dp,
                     error = if (isShowVerifyError) "Decryption failed, please try again." else "",
