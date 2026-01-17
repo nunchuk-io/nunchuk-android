@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.tapsigner.intro
 
+import android.app.Activity
 import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -63,6 +64,7 @@ import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.tapsigner.BaseChangeTapSignerNameFragment
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
@@ -213,9 +215,9 @@ class AddTapSignerIntroFragment : BaseChangeTapSignerNameFragment() {
                 is AddTapSignerIntroEvent.ReturnSignerModel -> {
                     val signerModel = it.singleSigner.toModel()
                     requireActivity().setResult(
-                        android.app.Activity.RESULT_OK,
+                        Activity.RESULT_OK,
                         android.content.Intent().apply {
-                            putExtra(com.nunchuk.android.share.result.GlobalResultKey.EXTRA_SIGNER, signerModel)
+                            putExtra(GlobalResultKey.EXTRA_SIGNER, signerModel)
                         }
                     )
                     requireActivity().finish()

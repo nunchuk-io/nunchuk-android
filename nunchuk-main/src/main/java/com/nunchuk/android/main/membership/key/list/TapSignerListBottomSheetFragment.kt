@@ -197,7 +197,7 @@ private fun TapSignerListContent(
         SignerType.AIRGAP -> "Air-gapped key(s)"
         SignerType.HARDWARE -> "Wired key(s)"
         SignerType.SOFTWARE -> "Software key(s)"
-        else -> ""
+        else -> "key(s)"
     }
     val screenHeightDp = LocalConfiguration.current.screenHeightDp
     Column(

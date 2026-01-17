@@ -167,7 +167,7 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                             if (args.isAddInheritanceKey || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
                                 if (onChainAddSignerParam != null) {
                                     if (onChainAddSignerParam.isClaiming) {
-                                        requireActivity().finish()
+                                        returnSigner(event.signer)
                                     } else if (onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true && onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
                                         if (event.signer.masterFingerprint == onChainAddSignerParam.currentSigner?.fingerPrint) {
                                             if (onChainAddSignerParam.isReplaceKeyFlow()) {
@@ -183,18 +183,10 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                                                 )
                                             }
                                         } else {
-                                            val intent = Intent().apply {
-                                                putExtra(GlobalResultKey.EXTRA_SIGNER, event.signer.toModel())
-                                            }
-                                            requireActivity().setResult(RESULT_OK, intent)
-                                            requireActivity().finish()
+                                            returnSigner(event.signer)
                                         }
                                     } else {
-                                        val intent = Intent().apply {
-                                            putExtra(GlobalResultKey.EXTRA_SIGNER, event.signer.toModel())
-                                        }
-                                        requireActivity().setResult(RESULT_OK, intent)
-                                        requireActivity().finish()
+                                        returnSigner(event.signer)
                                     }
                                 } else {
                                     mk4ViewModel.setOrUpdate(
@@ -297,6 +289,14 @@ class ColdcardRecoverFragment : MembershipFragment(), BottomSheetOptionListener 
                     }
                 }
         }
+    }
+
+    private fun returnSigner(signer: SingleSigner) {
+        val intent = Intent().apply {
+            putExtra(GlobalResultKey.EXTRA_SIGNER, signer.toModel())
+        }
+        requireActivity().setResult(RESULT_OK, intent)
+        requireActivity().finish()
     }
 
     override fun onOptionClicked(option: SheetOption) {
@@ -470,6 +470,7 @@ private fun ColdcardRecoverContent(
                                 )
                             }
                         }
+
                         isScanQRCode -> stringResource(R.string.nc_export_xpub_coldcard_scan_qr_code_desc)
                         else -> stringResource(R.string.nc_export_xpub_coldcard_desc)
                     }

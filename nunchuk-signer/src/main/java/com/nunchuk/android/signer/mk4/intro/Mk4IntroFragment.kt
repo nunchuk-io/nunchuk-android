@@ -57,10 +57,10 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
-import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.sheet.BottomSheetOption
 import com.nunchuk.android.core.sheet.BottomSheetOptionListener
 import com.nunchuk.android.core.sheet.SheetOption
+import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.util.BackUpSeedPhraseType
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.isRecommendedMultiSigPath
@@ -160,7 +160,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                     if (args.isAddInheritanceKey || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
                         if (onChainAddSignerParam != null) {
                             if (onChainAddSignerParam.isClaiming) {
-                                requireActivity().finish()
+                                returnSigner(it.signer)
                             } else if (onChainAddSignerParam.currentSigner?.fingerPrint?.isNotEmpty() == true && onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
                                 if (it.signer.masterFingerprint == onChainAddSignerParam.currentSigner?.fingerPrint) {
                                     if (onChainAddSignerParam.isReplaceKeyFlow()) {
@@ -183,11 +183,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                                     requireActivity().finish()
                                 }
                             } else {
-                                val intent = Intent().apply {
-                                    putExtra(GlobalResultKey.EXTRA_SIGNER, it.signer.toModel())
-                                }
-                                requireActivity().setResult(Activity.RESULT_OK, intent)
-                                requireActivity().finish()
+                                returnSigner(it.signer)
                             }
                         } else {
                             mk4ViewModel.setOrUpdate(
@@ -202,8 +198,7 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
                             )
                         }
                     } else {
-                        requireActivity().setResult(Activity.RESULT_OK)
-                        requireActivity().finish()
+                        returnSigner(it.signer)
                     }
                 }
 
@@ -306,6 +301,14 @@ class Mk4IntroFragment : MembershipFragment(), BottomSheetOptionListener {
             viewModel.getWalletsFromColdCard(it.records)
             nfcViewModel.clearScanInfo()
         }
+    }
+
+    private fun returnSigner(signer: SingleSigner) {
+        val intent = Intent().apply {
+            putExtra(GlobalResultKey.EXTRA_SIGNER, signer.toModel())
+        }
+        requireActivity().setResult(Activity.RESULT_OK, intent)
+        requireActivity().finish()
     }
 
     private fun parseWalletSuccess(wallet: Wallet?) {

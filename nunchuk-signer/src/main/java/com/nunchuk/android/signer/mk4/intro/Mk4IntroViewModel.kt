@@ -31,8 +31,6 @@ import com.nunchuk.android.core.domain.coldcard.ExtractWalletsFromColdCard
 import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.domain.wallet.ParseMk4WalletUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
-import com.nunchuk.android.core.push.PushEvent
-import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.toModel
 import com.nunchuk.android.core.signer.toSingleSigner
@@ -92,7 +90,6 @@ class Mk4IntroViewModel @Inject constructor(
     private val checkExistingKeyUseCase: CheckExistingKeyUseCase,
     private val replaceKeyUseCase: ReplaceKeyUseCase,
     private val getReplaceSignerNameUseCase: GetReplaceSignerNameUseCase,
-    private val pushEventManager: PushEventManager,
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -226,7 +223,7 @@ class Mk4IntroViewModel @Inject constructor(
                     if (createSignerResult.isSuccess) {
                         // force type coldcard nfc in case we import hardware key first
                         if (onChainAddSignerParam?.isClaiming == true) {
-                            pushEventManager.push(PushEvent.ClaimSignerAdded(signer))
+                            // No Ops
                         } else if (replacedXfp.isNullOrEmpty()) {
                             val coldcardSigner =
                                 createSignerResult.getOrThrow()
@@ -259,8 +256,7 @@ class Mk4IntroViewModel @Inject constructor(
                                         groupId = groupId
                                     )
                                 )
-                            }
-                                .onFailure {
+                            }.onFailure {
                                 _event.emit(Mk4IntroViewEvent.ShowError(it.message.orUnknownError()))
                                 return@launch
                             }

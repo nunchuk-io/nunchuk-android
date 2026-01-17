@@ -82,7 +82,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
                 }
             }.onFailure { error ->
                 Timber.e(error, "Failed to sign message by TapSigner")
-                _event.emit(VerifyInheritanceMessageEvent.ShowError(error.message.orUnknownError()))
+                _event.emit(VerifyInheritanceMessageEvent.NfcError(error))
             }
             _state.update { it.copy(loadingType = null) }
         }
@@ -190,5 +190,6 @@ enum class LoadingType {
 sealed class VerifyInheritanceMessageEvent {
     object NoSignatureDetected : VerifyInheritanceMessageEvent()
     data class ShowError(val message: String) : VerifyInheritanceMessageEvent()
+    data class NfcError(val e: Throwable) : VerifyInheritanceMessageEvent()
     data class GetInheritanceClaimStateSuccess(val inheritanceAdditional: InheritanceAdditional) : VerifyInheritanceMessageEvent()
 }

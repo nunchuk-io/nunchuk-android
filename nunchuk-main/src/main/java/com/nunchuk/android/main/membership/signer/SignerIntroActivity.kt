@@ -123,12 +123,16 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                 val navHostController = rememberNavController()
                 var showSignerBottomSheet by remember { mutableStateOf(false) }
                 var filteredSigners by remember { mutableStateOf<List<SignerModel>>(emptyList()) }
+                var signerType by remember { mutableStateOf<SignerType?>(null) }
+                var signerTag by remember { mutableStateOf<SignerTag?>(null) }
 
                 LaunchedEffect(Unit) {
                     viewModel.event.collect { event ->
                         when (event) {
                             is SignerIntroEvent.ShowFilteredSigners -> {
                                 filteredSigners = event.signers
+                                signerType = event.type
+                                signerTag = event.tag
                                 showSignerBottomSheet = true
                             }
 
@@ -200,12 +204,12 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     )
                 }
                 
-                if (showSignerBottomSheet) {
+                if (showSignerBottomSheet && filteredSigners.isNotEmpty()) {
                     NunchukTheme {
                         SelectSignerBottomSheet(
                             args = TapSignerListBottomSheetFragmentArgs(
                                 signers = filteredSigners.toTypedArray(),
-                                type = SignerType.NFC,
+                                type = signerType ?: SignerType.UNKNOWN,
                                 description = "",
                                 ignoreIndexCheckForAcctX = true
                             ),
@@ -222,7 +226,9 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                             },
                             onAddNewKey = {
                                 showSignerBottomSheet = false
-                                navigateToSetupTapSigner()
+                                signerType?.let { signerType ->
+                                    viewModel.createNewSigner(signerType, signerTag)
+                                }
                             }
                         )
                     }
@@ -241,7 +247,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
 
     private fun handleColdCardSelection(navController: NavHostController) {
         val onChainAddSignerParam = onChainAddSignerParam
-        if (onChainAddSignerParam == null || onChainAddSignerParam.isVerifyBackupSeedPhrase() || onChainAddSignerParam.isAddInheritanceOffChainSigner()) {
+        if (onChainAddSignerParam == null || onChainAddSignerParam.isVerifyBackupSeedPhrase()) {
             openSetupMk4()
         } else if (onChainAddSignerParam.isAddInheritanceOffChainSigner()) {
             viewModel.showExistingSignerOrCreateNew(SignerType.COLDCARD_NFC, SignerTag.COLDCARD)
@@ -340,7 +346,6 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         )
 
         if (onChainAddSignerParam != null) {
-            // Start Mk4Activity for result so we can get the created signer back
             signerResultLauncher.launch(
                 Mk4Activity.buildIntent(
                     activity = this,
@@ -412,7 +417,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     walletId = walletId,
                     groupId = groupId,
                     fromMembershipFlow = true,
-                    signerIndex = onChainAddSignerParam.keyIndex,
+                    signerIndex = onChainAddSignerParam.keyIndex.coerceAtLeast(0),
                     onChainAddSignerParam = onChainAddSignerParam
                 )
             )

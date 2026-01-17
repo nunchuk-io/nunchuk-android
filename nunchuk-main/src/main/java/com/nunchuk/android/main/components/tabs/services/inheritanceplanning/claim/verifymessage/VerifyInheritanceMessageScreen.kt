@@ -42,6 +42,7 @@ import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimData
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.type.SignerType
@@ -92,6 +93,13 @@ fun VerifyInheritanceMessageScreen(
                 }
                 is VerifyInheritanceMessageEvent.GetInheritanceClaimStateSuccess -> {
                     onSuccess(event.inheritanceAdditional)
+                }
+
+                is VerifyInheritanceMessageEvent.NfcError -> if (!nfcViewModel.handleNfcError(event.e)) {
+                    snackState.showNunchukSnackbar(
+                        message = event.e.message.orUnknownError(),
+                        type = NcToastType.ERROR
+                    )
                 }
             }
         }

@@ -197,7 +197,7 @@ class SignerIntroViewModel @Inject constructor(
             ).filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }
                 .let { filterExistingSigners(it) }
             if (signers.isNotEmpty()) {
-                _event.emit(SignerIntroEvent.ShowFilteredSigners(type, signers))
+                _event.emit(SignerIntroEvent.ShowFilteredSigners(type, tag, signers))
             } else {
                 _event.emit(SignerIntroEvent.OpenSetupSigner(type, tag))
             }
@@ -233,6 +233,12 @@ class SignerIntroViewModel @Inject constructor(
                 }.onFailure {
                     _event.emit(SignerIntroEvent.Error(it.message.orUnknownError()))
                 }
+        }
+    }
+
+    fun createNewSigner(type: SignerType, tag: SignerTag? = null) {
+        viewModelScope.launch {
+            _event.emit(SignerIntroEvent.OpenSetupSigner(type, tag))
         }
     }
 }
@@ -328,7 +334,7 @@ val defaultSupportedSigners = listOf(
 )
 
 sealed class SignerIntroEvent {
-    data class ShowFilteredSigners(val type: SignerType, val signers: List<SignerModel>) :
+    data class ShowFilteredSigners(val type: SignerType, val tag: SignerTag?, val signers: List<SignerModel>) :
         SignerIntroEvent()
 
     data class OpenSetupSigner(val type: SignerType, val tag: SignerTag?) : SignerIntroEvent()
