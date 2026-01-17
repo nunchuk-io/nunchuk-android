@@ -20,6 +20,7 @@ import com.nunchuk.android.core.signer.toSingleSigner
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.model.InheritanceClaimingInit
+import com.nunchuk.android.model.KeyOrigin
 import com.nunchuk.android.model.inheritance.ClaimSigningChallenge
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.WalletType
@@ -96,7 +97,8 @@ class ClaimInheritanceViewModel @Inject constructor(
                 signers = emptySet(),
                 magic = magicPhrase,
                 requiredKeyCount = init.inheritanceKeyCount,
-                walletType = init.walletType
+                walletType = init.walletType,
+                keyOrigins = init.keyOrigins,
             )
         }
     }
@@ -392,6 +394,7 @@ data class ClaimData(
     val inheritanceAdditional: InheritanceAdditional? = null,
     val requiredKeyCount: Int = 1,
     val walletType: WalletType = WalletType.MULTI_SIG,
+    val keyOrigins: List<KeyOrigin> = emptyList(),
     val bsms: String? = null,
     val challenge: ClaimSigningChallenge? = null
 ) : Parcelable {

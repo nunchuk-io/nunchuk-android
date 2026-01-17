@@ -45,8 +45,10 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimData
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.widget.NCInputDialog
 import kotlinx.coroutines.flow.filter
 import com.nunchuk.android.main.R as MainR
+import com.nunchuk.android.transaction.R as TransactionR
 
 @Composable
 fun VerifyInheritanceMessageScreen(
@@ -57,7 +59,9 @@ fun VerifyInheritanceMessageScreen(
     addMoreSigner: () -> Unit = {},
     onSuccess: (InheritanceAdditional) -> Unit = {},
 ) {
-    val signer = claimData.signers.last()
+    val localSigner = claimData.signers.last()
+    val path = claimData.keyOrigins.find { it.xfp == localSigner.fingerPrint }?.derivationPath.orEmpty()
+    val signer = if (localSigner.isMasterSigner) localSigner.copy(derivationPath = path) else localSigner
     val challenge = claimData.challenge
     val signingChallengeMessage = SigningChallengeMessage(
         id = challenge?.id,
@@ -118,8 +122,25 @@ fun VerifyInheritanceMessageScreen(
             }
         },
         onSignClick = { messageToSign ->
-            if (signer.type == SignerType.NFC) {
-                (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_HEALTH_CHECK)
+            when (signer.type) {
+                SignerType.NFC -> {
+                    (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_HEALTH_CHECK)
+                }
+                SignerType.SOFTWARE -> {
+                    if (viewModel.needPassphrase()) {
+                        NCInputDialog(activity).showDialog(
+                            title = activity.getString(TransactionR.string.nc_transaction_enter_passphrase),
+                            onConfirmed = { passphrase ->
+                                viewModel.handlePassphrase(passphrase)
+                            }
+                        )
+                    } else {
+                        viewModel.signMessageBySoftware()
+                    }
+                }
+                else -> {
+                    // Handle other signer types if needed
+                }
             }
         },
     )

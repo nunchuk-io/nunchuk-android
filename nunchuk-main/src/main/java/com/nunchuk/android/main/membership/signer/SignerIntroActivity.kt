@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.nunchuk.android.compose.NunchukTheme
@@ -135,6 +136,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                                 when(event.type) {
                                     SignerType.NFC -> navigateToSetupTapSigner()
                                     SignerType.COLDCARD_NFC -> openSetupMk4()
+                                    SignerType.SOFTWARE -> createNewSoftware()
                                     SignerType.AIRGAP -> {
                                         when(event.tag) {
                                             SignerTag.JADE -> openAddAirSignerForJade()
@@ -237,10 +239,12 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         }
     }
 
-    private fun handleColdCardSelection(navController: androidx.navigation.NavHostController) {
+    private fun handleColdCardSelection(navController: NavHostController) {
         val onChainAddSignerParam = onChainAddSignerParam
         if (onChainAddSignerParam == null || onChainAddSignerParam.isVerifyBackupSeedPhrase() || onChainAddSignerParam.isAddInheritanceOffChainSigner()) {
             openSetupMk4()
+        } else if (onChainAddSignerParam.isAddInheritanceOffChainSigner()) {
+            viewModel.showExistingSignerOrCreateNew(SignerType.COLDCARD_NFC, SignerTag.COLDCARD)
         } else {
             navController.navigate(
                 CheckFirmwareDestination(
@@ -252,7 +256,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         }
     }
 
-    private fun handleJadeSelection(navController: androidx.navigation.NavHostController) {
+    private fun handleJadeSelection(navController: NavHostController) {
         if (onChainAddSignerParam == null || onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
             handleSelectAddAirgapType(SignerTag.JADE)
         } else {
@@ -379,6 +383,14 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     }
 
     private fun openAddSoftwareSignerScreen() {
+        if (onChainAddSignerParam != null && onChainAddSignerParam?.isClaiming == true) {
+            viewModel.showExistingSignerOrCreateNew(SignerType.SOFTWARE)
+        } else {
+            createNewSoftware()
+        }
+    }
+
+    private fun createNewSoftware() {
         val primaryKeyFlow =
             if (walletId.isNotEmpty()) KeyFlow.REPLACE_KEY_IN_FREE_WALLET else keyFlow
         navigator.openAddSoftwareSignerScreen(
@@ -400,6 +412,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     walletId = walletId,
                     groupId = groupId,
                     fromMembershipFlow = true,
+                    signerIndex = onChainAddSignerParam.keyIndex,
                     onChainAddSignerParam = onChainAddSignerParam
                 )
             )
