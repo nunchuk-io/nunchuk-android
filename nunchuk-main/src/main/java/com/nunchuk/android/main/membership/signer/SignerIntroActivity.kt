@@ -119,6 +119,19 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
         }
     }
 
+    private val xprvLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            val xprv = result.data?.getStringExtra(GlobalResultKey.XPRV).orEmpty()
+            if (xprv.isNotEmpty()) {
+                val signerCount = viewModel.state.value.allSigners.size + 1
+                val signerName = "Inheritance key #$signerCount"
+                viewModel.createSoftwareSignerFromXprv(xprv, signerName)
+            }
+        }
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -283,7 +296,12 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     }
 
     private fun onRecoverXprvClicked() {
-
+        navigator.openAddSoftwareSignerScreen(
+            activityContext = this,
+            keyFlow = KeyFlow.ADD_AND_RETURN,
+            launcher = xprvLauncher,
+            masterSignerId = ""
+        )
     }
 
     private fun handleTapSignerSelection() {
@@ -466,7 +484,6 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     walletId = walletId,
                     groupId = groupId,
                     fromMembershipFlow = true,
-                    signerIndex = onChainAddSignerParam.keyIndex.coerceAtLeast(0),
                     onChainAddSignerParam = onChainAddSignerParam
                 )
             )

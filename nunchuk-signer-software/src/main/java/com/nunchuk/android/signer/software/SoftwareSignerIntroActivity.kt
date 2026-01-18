@@ -34,6 +34,7 @@ import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.KeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.core.signer.KeyFlow.isSignInFlow
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.software.components.intro.CreateSoftwareNavKey
 import com.nunchuk.android.signer.software.components.intro.RecoverByXprvNavKey
 import com.nunchuk.android.signer.software.components.intro.createSoftwareKeyIntro
@@ -65,8 +66,8 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
         intent.getStringExtra(EXTRA_WALLET_ID).orEmpty()
     }
 
-    private val masterSignerId: String by lazy {
-        intent.getStringExtra(EXTRA_MASTER_SIGNER_ID).orEmpty()
+    private val masterSignerId: String? by lazy {
+        intent.getStringExtra(EXTRA_MASTER_SIGNER_ID)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -117,10 +118,10 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
                 val navigationController = rememberNavController()
                 NavHost(
                     navController = navigationController,
-                    startDestination = if (masterSignerId.isEmpty()) {
+                    startDestination = if (masterSignerId == null) {
                         CreateSoftwareNavKey
                     } else {
-                        RecoverByXprvNavKey(masterSignerId)
+                        RecoverByXprvNavKey(masterSignerId.orEmpty())
                     }
                 ) {
                     createSoftwareKeyIntro(
@@ -175,6 +176,13 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
 
     private fun onRecoverFromXprv(xprv: String) {
         when {
+            keyFlow == KeyFlow.ADD_AND_RETURN -> {
+                setResult(RESULT_OK, Intent().apply {
+                    putExtra(GlobalResultKey.XPRV, xprv)
+                })
+                finish()
+            }
+
             setPassphraseViewModel.isGroupAssistedWallet(groupId) || !replacedXfp.isNullOrEmpty() -> {
                 val signerName = if (!replacedXfp.isNullOrEmpty()) {
                     viewModel.state.value.replaceSignerName
@@ -246,21 +254,39 @@ class SoftwareSignerIntroActivity : BaseComposeActivity() {
             groupId: String? = null,
             replacedXfp: String? = null,
             walletId: String = "",
-            masterSignerId: String = "",
+            masterSignerId: String? = null,
         ) {
             activityContext.startActivity(
-                Intent(
+                buildIntent(
                     activityContext,
-                    SoftwareSignerIntroActivity::class.java
-                ).apply {
-                    putExtra(EXTRA_PRIMARY_KEY_FLOW, primaryKeyFlow)
-                    putExtra(EXTRA_PASSPHRASE, passphrase)
-                    groupId?.let { putExtra(EXTRA_GROUP_ID, it) }
-                    replacedXfp?.let { putExtra(EXTRA_REPLACED_XFP, it) }
-                    putExtra(EXTRA_WALLET_ID, walletId)
-                    putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
-                },
+                    primaryKeyFlow,
+                    passphrase,
+                    groupId,
+                    replacedXfp,
+                    walletId,
+                    masterSignerId
+                )
             )
+        }
+
+        fun buildIntent(
+            activityContext: Context,
+            primaryKeyFlow: Int = KeyFlow.NONE,
+            passphrase: String = "",
+            groupId: String? = null,
+            replacedXfp: String? = null,
+            walletId: String = "",
+            masterSignerId: String? = null,
+        ) = Intent(
+            activityContext,
+            SoftwareSignerIntroActivity::class.java
+        ).apply {
+            putExtra(EXTRA_PRIMARY_KEY_FLOW, primaryKeyFlow)
+            putExtra(EXTRA_PASSPHRASE, passphrase)
+            groupId?.let { putExtra(EXTRA_GROUP_ID, it) }
+            replacedXfp?.let { putExtra(EXTRA_REPLACED_XFP, it) }
+            putExtra(EXTRA_WALLET_ID, walletId)
+            putExtra(EXTRA_MASTER_SIGNER_ID, masterSignerId)
         }
     }
 }

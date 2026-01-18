@@ -44,7 +44,7 @@ class CreateSoftwareSignerByXprvUseCase @Inject constructor(
     data class Param(
         val name: String,
         val xprv: String,
-        val isPrimaryKey: Boolean,
+        val isPrimaryKey: Boolean = false,
         val replace: Boolean = false,
         val primaryDecoyPin: String = "",
     )

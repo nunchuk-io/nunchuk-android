@@ -43,6 +43,7 @@ object GlobalResultKey {
     const val EXTRA_INDEX = "_u"
     const val EXTRA_SIGNER_TAG = "_v"
     const val PASSPHRASE = "_w"
+    const val XPRV = "_x"
 }
 
 object GlobalResult {

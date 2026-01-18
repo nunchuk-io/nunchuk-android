@@ -60,16 +60,17 @@ interface SignerNavigator {
 
     /**
      * @param passphrase only need for replacing primary key
-     * @param masterSignerId used for viewing XPRV when provided
+     * @param masterSignerId used for viewing XPRV when provided or recover by XPRV, refactor later
      */
     fun openAddSoftwareSignerScreen(
         activityContext: Context,
+        launcher: ActivityResultLauncher<Intent>? = null,
         passphrase: String = "",
         @KeyFlow.PrimaryFlowInfo keyFlow: Int = KeyFlow.NONE,
         groupId: String? = null,
         replacedXfp: String? = null,
         walletId: String = "",
-        masterSignerId: String = "",
+        masterSignerId: String? = null,
     )
 
     /**

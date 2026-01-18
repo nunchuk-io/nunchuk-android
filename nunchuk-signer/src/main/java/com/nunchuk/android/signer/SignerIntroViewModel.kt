@@ -28,8 +28,8 @@ import com.nunchuk.android.usecase.GetMasterFingerprintUseCase
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupFromCacheUseCase
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
 import com.nunchuk.android.usecase.membership.RestartWizardUseCase
+import com.nunchuk.android.usecase.signer.CreateSoftwareSignerByXprvUseCase
 import com.nunchuk.android.usecase.signer.GetAllSignersUseCase
-import com.nunchuk.android.usecase.signer.GetDefaultSignerFromMasterSignerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,10 +61,9 @@ class SignerIntroViewModel @Inject constructor(
     private val restartWizardUseCase: RestartWizardUseCase,
     private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
     private val createSoftwareSignerUseCase: CreateSoftwareSignerUseCase,
+    private val createSoftwareSignerByXprvUseCase: CreateSoftwareSignerByXprvUseCase,
     private val getMasterFingerprintUseCase: GetMasterFingerprintUseCase,
     private val deleteMasterSignerUseCase: DeleteMasterSignerUseCase,
-    private val getDefaultSignerFromMasterSignerUseCase: GetDefaultSignerFromMasterSignerUseCase,
-    private val singleSignerMapper: SingleSignerMapper,
 ) : ViewModel() {
 
     val remainTime = membershipStepManager.remainingTime
@@ -272,6 +271,23 @@ class SignerIntroViewModel @Inject constructor(
                 CreateSoftwareSignerUseCase.Param(
                     name = signerName,
                     mnemonic = mnemonic,
+                )
+            ).onSuccess { signer ->
+                _event.emit(SignerIntroEvent.CreateSoftwareSignerSuccess(masterSignerMapper(signer)))
+            }.onFailure { e ->
+                Timber.e(e)
+                _event.emit(SignerIntroEvent.Error(e.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun createSoftwareSignerFromXprv(xprv: String, signerName: String) {
+        viewModelScope.launch {
+            createSoftwareSignerByXprvUseCase(
+                CreateSoftwareSignerByXprvUseCase.Param(
+                    name = signerName,
+                    xprv = xprv,
+                    replace = true
                 )
             ).onSuccess { signer ->
                 _event.emit(SignerIntroEvent.CreateSoftwareSignerSuccess(masterSignerMapper(signer)))

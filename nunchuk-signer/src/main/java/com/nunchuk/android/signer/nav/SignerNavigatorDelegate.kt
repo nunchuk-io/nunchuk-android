@@ -111,14 +111,25 @@ interface SignerNavigatorDelegate : SignerNavigator {
 
     override fun openAddSoftwareSignerScreen(
         activityContext: Context,
+        launcher: ActivityResultLauncher<Intent>?,
         passphrase: String,
         keyFlow: Int,
         groupId: String?,
         replacedXfp: String?,
         walletId: String,
-        masterSignerId: String,
+        masterSignerId: String?
     ) {
-        SoftwareSignerIntroActivity.start(
+        launcher?.launch(
+            SoftwareSignerIntroActivity.buildIntent(
+                activityContext = activityContext,
+                primaryKeyFlow = keyFlow,
+                passphrase = passphrase,
+                groupId = groupId,
+                replacedXfp = replacedXfp,
+                walletId = walletId,
+                masterSignerId = masterSignerId
+            )
+        ) ?: SoftwareSignerIntroActivity.start(
             activityContext = activityContext,
             passphrase = passphrase,
             primaryKeyFlow = keyFlow,
