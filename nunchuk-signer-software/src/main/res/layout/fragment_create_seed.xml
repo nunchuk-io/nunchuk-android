@@ -57,12 +57,11 @@
         android:background="@drawable/nc_rounded_whisper_background"
         android:drawableStart="@drawable/ic_info"
         app:drawableTint="@color/nc_text_primary"
+        style="@style/NCText.Title.Small"
         android:drawablePadding="@dimen/nc_padding_8"
         android:paddingVertical="@dimen/nc_padding_8"
         android:paddingHorizontal="@dimen/nc_padding_16"
         android:text="@string/nc_ssigner_new_seed_warning"
-        android:textColor="@color/nc_text_primary"
-        android:textSize="@dimen/nc_text_size_12"
         app:layout_constraintBottom_toTopOf="@+id/btnContinue"
         app:layout_constraintStart_toStartOf="parent" />
 
