@@ -651,6 +651,12 @@ class NcDataStore @Inject constructor(
             it.remove(membershipPlansKey)
             it.remove(walletBannerStatesKey)
             it.remove(claimWallets)
+            val keysToRemove = it.asMap().keys.filter { key ->
+                key.name.startsWith("seed_phrase_view_timestamp_")
+            }
+            keysToRemove.forEach { key ->
+                it.remove(key)
+            }
         }
     }
 }
