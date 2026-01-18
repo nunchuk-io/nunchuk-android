@@ -76,7 +76,6 @@ import com.nunchuk.android.utils.healthCheckLabel
 import com.nunchuk.android.utils.healthCheckTimeColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import timber.log.Timber
 import java.util.Locale
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
@@ -484,7 +483,9 @@ fun SignerInfoContent(
             NcInputDialog(
                 title = stringResource(id = R.string.nc_transaction_enter_passphrase),
                 inputType = NcInputType.PASSWORD,
+                confirmText = stringResource(R.string.nc_ok),
                 isMaskedInput = true,
+                placeholder = stringResource(R.string.nc_signer_passphrase),
                 onConfirmed = { passphrase ->
                     showPassphraseDialog = false
                     onPassphraseSubmitted(passphrase)
