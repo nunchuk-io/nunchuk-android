@@ -303,12 +303,11 @@ fun InheritanceReviewPlanGroupScreenContent(
                             val timeZoneId = if (uiState.isMiniscriptWallet) {
                                 sharedUiState.setupOrReviewParam.selectedZoneId
                             } else {
-                                "" // Device default timezone
+                                newData?.timezone.orEmpty()
                             }
-                            
+
                             val activationDateTimeText = formatDateTimeInTimezone(
                                 timestamp = timestamp,
-                                timeZoneId = timeZoneId,
                                 isOnChainTimelock = uiState.isMiniscriptWallet
                             )
                             

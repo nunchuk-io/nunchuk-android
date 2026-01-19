@@ -78,10 +78,9 @@ import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningViewModel
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.reviewplan.formatDateInTimezone
 import com.nunchuk.android.share.membership.MembershipFragment
-import com.nunchuk.android.utils.simpleGlobalDateFormat
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.Date
 import java.util.TimeZone
 
 @AndroidEntryPoint
@@ -140,12 +139,19 @@ fun InheritanceActivationDateScreen(
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
 
     var selectedTimeZone by remember {
-        mutableStateOf(TimeZone.getDefault().id.toTimeZoneDetail() ?: TimeZoneDetail())
+        val initialTimeZone = if (inheritanceViewModel.setupOrReviewParam.selectedZoneId.isNotEmpty()) {
+            inheritanceViewModel.setupOrReviewParam.selectedZoneId.toTimeZoneDetail()
+        } else {
+            TimeZone.getDefault().id.toTimeZoneDetail()
+        }
+        mutableStateOf(initialTimeZone ?: TimeZoneDetail())
     }
     var selectedDate by remember { mutableLongStateOf(inheritanceViewModel.setupOrReviewParam.activationDate) }
     var showDatePicker by remember { mutableStateOf(false) }
 
-    val date = if (selectedDate > 0) Date(selectedDate).simpleGlobalDateFormat() else ""
+    val date = if (selectedDate > 0) {
+        formatDateInTimezone(selectedDate)
+    } else ""
 
     InheritanceActivationDateScreenContent(
         remainTime = remainTime,
@@ -168,6 +174,7 @@ fun InheritanceActivationDateScreen(
     if (showDatePicker) {
         NcDatePickerDialog(
             onDismissRequest = { showDatePicker = false },
+            defaultDate = selectedDate.takeIf { it > 0 },
             onConfirm = { timeInMillis ->
                 selectedDate = timeInMillis
                 showDatePicker = false

@@ -564,7 +564,6 @@ fun InheritanceReviewPlanScreenContent(
                                 ActivationDateItem(
                                     activationDate = formatDateTimeInTimezone(
                                         timestamp = setupOrReviewParam.activationDate,
-                                        timeZoneId = setupOrReviewParam.selectedZoneId,
                                         isOnChainTimelock = isMiniscriptWallet
                                     ),
                                     timeZoneId = setupOrReviewParam.selectedZoneId,

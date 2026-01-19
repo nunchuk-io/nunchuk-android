@@ -29,20 +29,13 @@ import java.util.TimeZone
 /**
  * Formats a timestamp in the specified timezone
  * @param timestamp The timestamp to format
- * @param timeZoneId The timezone ID (e.g., "Africa/Bamako")
  * @param isOnChainTimelock If true, includes time (MM/dd/yyyy HH:mm), if false, date only (MM/dd/yyyy)
  * @return Formatted date string
  */
-fun formatDateTimeInTimezone(timestamp: Long, timeZoneId: String, isOnChainTimelock: Boolean): String {
+fun formatDateTimeInTimezone(timestamp: Long, isOnChainTimelock: Boolean): String {
     if (timestamp <= 0) return ""
 
-    val timeZone = if (timeZoneId.isNotEmpty()) {
-        TimeZone.getTimeZone(timeZoneId)
-    } else {
-        TimeZone.getDefault()
-    }
-
-    val calendar = Calendar.getInstance(timeZone).apply {
+    val calendar = Calendar.getInstance().apply {
         timeInMillis = timestamp
     }
 
@@ -63,16 +56,10 @@ fun formatDateTimeInTimezone(timestamp: Long, timeZoneId: String, isOnChainTimel
  * Formats a timestamp with date only in the specified timezone
  * Format: "MM/dd/yyyy" (e.g., "07/25/2025")
  */
-fun formatDateInTimezone(timestamp: Long, timeZoneId: String): String {
+fun formatDateInTimezone(timestamp: Long): String {
     if (timestamp <= 0) return ""
 
-    val timeZone = if (timeZoneId.isNotEmpty()) {
-        TimeZone.getTimeZone(timeZoneId)
-    } else {
-        TimeZone.getDefault()
-    }
-
-    val calendar = Calendar.getInstance(timeZone).apply {
+    val calendar = Calendar.getInstance().apply {
         timeInMillis = timestamp
     }
 
