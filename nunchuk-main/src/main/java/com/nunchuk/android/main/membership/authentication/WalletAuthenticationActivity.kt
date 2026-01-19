@@ -96,7 +96,8 @@ class WalletAuthenticationActivity : BasePortalActivity<ActivityNavigationBindin
             groupId: String? = null,
             dummyTransactionId: String? = null,
             action: String? = null,
-            newEmail: String? = null
+            newEmail: String? = null,
+            isSignInSignatureFlow: Boolean = false
         ) {
             val intent = Intent(activityContext, WalletAuthenticationActivity::class.java).apply {
                 putExtras(
@@ -108,7 +109,8 @@ class WalletAuthenticationActivity : BasePortalActivity<ActivityNavigationBindin
                         groupId = groupId,
                         dummyTransactionId = dummyTransactionId,
                         action = action,
-                        newEmail = newEmail
+                        newEmail = newEmail,
+                        isSignInSignatureFlow = isSignInSignatureFlow
                     ).toBundle()
                 )
             }

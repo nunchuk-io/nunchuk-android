@@ -29,7 +29,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import com.nunchuk.android.auth.components.authentication.SignInAuthenticationActivity
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTextField
 import com.nunchuk.android.compose.NcTopAppBar
@@ -37,6 +36,7 @@ import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.model.VerificationType
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -66,12 +66,15 @@ class EnterXPUBActivity : BaseComposeActivity() {
                 is EnterXPUBEvent.Error -> NCToastMessage(this).showError(event.message.orEmpty())
                 is EnterXPUBEvent.Loading -> showOrHideLoading(event.loading)
                 is EnterXPUBEvent.Success -> {
-                    SignInAuthenticationActivity.start(
-                        requiredSignatures = event.requiredSignatures,
-                        launcher = null,
+                    navigator.openWalletAuthentication(
                         activityContext = this,
+                        walletId = "",
+                        requiredSignatures = event.requiredSignatures,
+                        type = VerificationType.SIGN_DUMMY_TX,
+                        groupId = "",
                         dummyTransactionId = event.dummyTransactionId,
-                        signInData = event.signInData
+                        userData = event.signInData,
+                        isSignInSignatureFlow = true
                     )
                 }
             }

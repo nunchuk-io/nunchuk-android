@@ -34,6 +34,7 @@ import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.referral.ReferralArgs
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
@@ -53,8 +54,6 @@ import com.nunchuk.android.main.membership.key.desktop.AddDesktopKeyActivity
 import com.nunchuk.android.main.membership.onchaintimelock.backupseedphrase.BackUpSeedPhraseActivity
 import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
 import com.nunchuk.android.main.membership.signer.SignerIntroActivity
-import com.nunchuk.android.model.signer.SupportedSigner
-import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.main.rollover.RollOverWalletActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
 import com.nunchuk.android.model.Amount
@@ -66,10 +65,10 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
-import com.nunchuk.android.nav.args.CheckFirmwareArgs
 import com.nunchuk.android.nav.args.ClaimArgs
 import com.nunchuk.android.nav.args.MainComposeArgs
 import com.nunchuk.android.nav.args.MembershipArgs
@@ -413,6 +412,7 @@ interface AppNavigatorDelegate : AppNavigator {
         dummyTransactionId: String?,
         action: String?,
         newEmail: String?,
+        isSignInSignatureFlow: Boolean
     ) {
         WalletAuthenticationActivity.start(
             walletId = walletId,
@@ -424,7 +424,8 @@ interface AppNavigatorDelegate : AppNavigator {
             groupId = groupId,
             dummyTransactionId = dummyTransactionId,
             action = action,
-            newEmail = newEmail
+            newEmail = newEmail,
+            isSignInSignatureFlow = isSignInSignatureFlow
         )
     }
 

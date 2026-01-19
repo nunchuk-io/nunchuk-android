@@ -26,6 +26,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -58,6 +59,7 @@ import com.nunchuk.android.compose.NcIcon
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.core.R as CoreR
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.main.R
@@ -85,27 +87,43 @@ class DummyTransactionIntroFragment : Fragment() {
             setContent {
                 val uiState by activityViewModel.state.collectAsStateWithLifecycle()
                 val isGroup = !args.groupId.isNullOrEmpty()
+                val isSignInFlow = args.isSignInSignatureFlow
                 DummyTransactionIntroContent(
                     isGroup = isGroup,
+                    isSignInFlow = isSignInFlow,
                     pendingSignature = uiState.pendingSignature,
                     dummyTransactionType = uiState.dummyTransactionType,
                     onContinueClicked = {
-                        if (!args.dummyTransactionId.isNullOrEmpty()) {
-                            activityViewModel.finalizeDummyTransaction(false)
-                        } else {
+                        if (isSignInFlow) {
                             findNavController().navigate(
                                 DummyTransactionIntroFragmentDirections.actionDummyTransactionIntroToDummyTransactionDetailsFragment(
                                     activityViewModel.getWalletId()
                                 )
                             )
+                        } else {
+                            if (!args.dummyTransactionId.isNullOrEmpty()) {
+                                activityViewModel.finalizeDummyTransaction(false)
+                            } else {
+                                findNavController().navigate(
+                                    DummyTransactionIntroFragmentDirections.actionDummyTransactionIntroToDummyTransactionDetailsFragment(
+                                        activityViewModel.getWalletId()
+                                    )
+                                )
+                            }
                         }
                     },
                     onCancelClicked = {
-                        activityViewModel.finalizeDummyTransaction(true)
+                        if (isSignInFlow) {
+                            requireActivity().finish()
+                        } else {
+                            activityViewModel.finalizeDummyTransaction(true)
+                        }
                     },
                     onRemoveDummyTransaction = {
-                        activityViewModel.deleteDummyTransaction()
-                        requireActivity().finish()
+                        if (!isSignInFlow) {
+                            activityViewModel.deleteDummyTransaction()
+                            requireActivity().finish()
+                        }
                     }
                 )
             }
@@ -134,39 +152,62 @@ class DummyTransactionIntroFragment : Fragment() {
 @Composable
 fun DummyTransactionIntroContent(
     isGroup: Boolean = false,
+    isSignInFlow: Boolean = false,
     pendingSignature: Int = 0,
     dummyTransactionType: DummyTransactionType = DummyTransactionType.NONE,
     onContinueClicked: () -> Unit = {},
     onCancelClicked: () -> Unit = {},
     onRemoveDummyTransaction: () -> Unit = {},
 ) {
-    val title = when (dummyTransactionType) {
-        DummyTransactionType.HEALTH_CHECK_REQUEST,
-        DummyTransactionType.HEALTH_CHECK_PENDING,
-        -> stringResource(R.string.nc_health_check_procedure)
-        DummyTransactionType.KEY_RECOVERY_REQUEST -> stringResource(R.string.nc_key_recovery_requested)
-        DummyTransactionType.CANCEL_RECURRING_PAYMENT -> stringResource(R.string.nc_cancel_recurring_payment)
-        else -> stringResource(R.string.nc_signatures_required)
+    val title = if (isSignInFlow) {
+        stringResource(R.string.nc_signatures_required)
+    } else {
+        when (dummyTransactionType) {
+            DummyTransactionType.HEALTH_CHECK_REQUEST,
+            DummyTransactionType.HEALTH_CHECK_PENDING,
+            -> stringResource(R.string.nc_health_check_procedure)
+            DummyTransactionType.KEY_RECOVERY_REQUEST -> stringResource(R.string.nc_key_recovery_requested)
+            DummyTransactionType.CANCEL_RECURRING_PAYMENT -> stringResource(R.string.nc_cancel_recurring_payment)
+            else -> stringResource(R.string.nc_signatures_required)
+        }
     }
-    val firstSentence = when (dummyTransactionType) {
-        DummyTransactionType.HEALTH_CHECK_REQUEST,
-        DummyTransactionType.HEALTH_CHECK_PENDING,
-        -> stringResource(R.string.nc_complete_a_health_check)
-        DummyTransactionType.REQUEST_INHERITANCE_PLANNING -> stringResource(R.string.nc_authorize_inheritance_planning_request)
-        DummyTransactionType.KEY_RECOVERY_REQUEST -> stringResource(R.string.nc_approve_key_recovery)
-        DummyTransactionType.CREATE_RECURRING_PAYMENT -> stringResource(R.string.nc_authorize_this_payment)
-        DummyTransactionType.CANCEL_RECURRING_PAYMENT -> stringResource(R.string.nc_authorize_this_cancellation)
-        DummyTransactionType.CANCEL_INHERITANCE_PLAN -> stringResource(R.string.nc_change_the_email_address)
-        else -> stringResource(R.string.nc_authorize_these_change)
+    
+    val descriptionText = if (isSignInFlow) {
+        stringResource(
+            CoreR.string.nc_dummy_transaction_sign_in_desc,
+            stringResource(CoreR.string.nc_sign_in_to_your_account),
+            Amount(value = 10000).getCurrencyAmount()
+        )
+    } else {
+        val firstSentence = when (dummyTransactionType) {
+            DummyTransactionType.HEALTH_CHECK_REQUEST,
+            DummyTransactionType.HEALTH_CHECK_PENDING,
+            -> stringResource(R.string.nc_complete_a_health_check)
+            DummyTransactionType.REQUEST_INHERITANCE_PLANNING -> stringResource(R.string.nc_authorize_inheritance_planning_request)
+            DummyTransactionType.KEY_RECOVERY_REQUEST -> stringResource(R.string.nc_approve_key_recovery)
+            DummyTransactionType.CREATE_RECURRING_PAYMENT -> stringResource(R.string.nc_authorize_this_payment)
+            DummyTransactionType.CANCEL_RECURRING_PAYMENT -> stringResource(R.string.nc_authorize_this_cancellation)
+            DummyTransactionType.CANCEL_INHERITANCE_PLAN -> stringResource(R.string.nc_change_the_email_address)
+            else -> stringResource(R.string.nc_authorize_these_change)
+        }
+        val lastSentences = when {
+            dummyTransactionType == DummyTransactionType.HEALTH_CHECK_REQUEST -> stringResource(R.string.nc_use_health_check_key_to_sign)
+            dummyTransactionType == DummyTransactionType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_use_health_check_key_to_sign)
+            isGroup && pendingSignature > 1 -> stringResource(id = R.string.nc_dummy_transaction_key_holder_desc)
+            else -> ""
+        }
+        stringResource(
+            R.string.nc_dummy_transaction_desc,
+            firstSentence,
+            Amount(value = 10000).getCurrencyAmount(),
+            lastSentences
+        )
     }
-    val lastSentences = when {
-        dummyTransactionType == DummyTransactionType.HEALTH_CHECK_REQUEST -> stringResource(R.string.nc_use_health_check_key_to_sign)
-        dummyTransactionType == DummyTransactionType.HEALTH_CHECK_PENDING -> stringResource(R.string.nc_use_health_check_key_to_sign)
-        isGroup && pendingSignature > 1 -> stringResource(id = R.string.nc_dummy_transaction_key_holder_desc)
-        else -> ""
-    }
-    BackHandler {
-        onRemoveDummyTransaction()
+    
+    if (!isSignInFlow) {
+        BackHandler {
+            onRemoveDummyTransaction()
+        }
     }
     NunchukTheme {
         Scaffold { innerPadding ->
@@ -184,12 +225,7 @@ fun DummyTransactionIntroContent(
                 )
                 NcHighlightText(
                     modifier = Modifier.padding(16.dp),
-                    text = stringResource(
-                        R.string.nc_dummy_transaction_desc,
-                        firstSentence,
-                        Amount(value = 10000).getCurrencyAmount(),
-                        lastSentences
-                    )
+                    text = descriptionText
                 )
                 Spacer(modifier = Modifier.weight(1.0f))
                 Row(

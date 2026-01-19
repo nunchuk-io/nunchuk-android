@@ -74,6 +74,7 @@ import com.nunchuk.android.transaction.components.details.TransactionDetailView
 import com.nunchuk.android.transaction.components.details.TransactionDetailsState
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.utils.NotificationUtils
 import com.nunchuk.android.utils.parcelable
 import com.nunchuk.android.widget.NCInputDialog
 import com.nunchuk.android.widget.NCToastMessage
@@ -280,6 +281,16 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
                         is WalletAuthenticationEvent.FinalizeDummyTxSuccess,
                         is WalletAuthenticationEvent.ShowError,
                             -> Unit
+
+                        is WalletAuthenticationEvent.SignInSuccess -> {
+                            hideLoading()
+                            if (NotificationUtils.areNotificationsEnabled(requireContext()).not()) {
+                                navigator.openTurnNotificationScreen(requireActivity())
+                            } else {
+                                navigator.openMainScreen(requireActivity(), isClearTask = true)
+                            }
+                            requireActivity().finish()
+                        }
 
                         WalletAuthenticationEvent.NoSignatureDetected -> showWarning(getString(R.string.nc_no_new_signatures_detected))
                     }
