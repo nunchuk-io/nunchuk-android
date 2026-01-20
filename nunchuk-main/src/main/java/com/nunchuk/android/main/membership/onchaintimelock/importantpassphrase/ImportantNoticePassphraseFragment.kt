@@ -1,12 +1,9 @@
 package com.nunchuk.android.main.membership.onchaintimelock.importantpassphrase
 
-import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,7 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.clearFragmentResult
 import androidx.fragment.app.setFragmentResult
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -45,23 +44,16 @@ import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
+import com.nunchuk.android.main.membership.signer.OnChainSignerIntroFragment
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
-import com.nunchuk.android.utils.parcelable
+import com.nunchuk.android.utils.parcelableArrayList
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class ImportantNoticePassphraseFragment : MembershipFragment(), BottomSheetOptionListener {
     private val viewModel: ImportantNoticePassphraseViewModel by viewModels()
     private val args: ImportantNoticePassphraseFragmentArgs by navArgs()
-
-    private val signerIntroLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-            handleSignerIntroResult(result.data!!)
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -78,39 +70,45 @@ class ImportantNoticePassphraseFragment : MembershipFragment(), BottomSheetOptio
         }
     }
 
-    private fun handleSignerIntroResult(data: Intent) {
-        val signer = data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
-        val destinationId = if (args.onChainAddSignerParam?.isReplaceKeyFlow() == true) {
-            R.id.onChainReplaceKeysFragment
-        } else {
-            R.id.onChainTimelockAddKeyListFragment
-        }
-
-        if (signer != null) {
-            val resultBundle = Bundle().apply {
-                putParcelable(GlobalResultKey.EXTRA_SIGNER, signer)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setFragmentResultListener(OnChainSignerIntroFragment.REQUEST_KEY) { _, bundle ->
+            val filteredSigners = bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
+            val destinationId = if (args.onChainAddSignerParam?.isReplaceKeyFlow() == true) {
+                // Navigate back to replace keys fragment when in replace key flow
+                R.id.onChainReplaceKeysFragment
+            } else {
+                R.id.onChainTimelockAddKeyListFragment
             }
-            setFragmentResult(REQUEST_KEY, resultBundle)
-            findNavController().popBackStack(destinationId, false)
-        } else {
-            findNavController().popBackStack(destinationId, false)
+
+            if (!filteredSigners.isNullOrEmpty()) {
+                val resultBundle = Bundle().apply {
+                    putParcelableArrayList(GlobalResultKey.EXTRA_SIGNERS, ArrayList(filteredSigners))
+                }
+                setFragmentResult(REQUEST_KEY, resultBundle)
+                findNavController().popBackStack(destinationId, false)
+            } else {
+                findNavController().popBackStack(destinationId, false)
+            }
+            clearFragmentResult(OnChainSignerIntroFragment.REQUEST_KEY)
         }
     }
 
     private fun handleContinueClick() {
         val activity = requireActivity() as MembershipActivity
         val existingParam = args.onChainAddSignerParam
-        navigator.openSignerIntroScreen(
-            launcher = signerIntroLauncher,
-            activityContext = activity,
-            walletId = activity.walletId,
-            groupId = activity.groupId,
-            supportedSigners = null,
-            onChainAddSignerParam = OnChainAddSignerParam(
-                flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
-                keyIndex = 0,
-                replaceInfo = existingParam?.replaceInfo,
-                existingSigners = existingParam?.existingSigners ?: emptyList()
+        findNavController().navigate(
+            ImportantNoticePassphraseFragmentDirections.actionImportantNoticePassphraseFragmentToSignerIntroFragment(
+                walletId = activity.walletId,
+                groupId = activity.groupId,
+                supportedSigners = null,
+                keyFlow = 0,
+                onChainAddSignerParam = OnChainAddSignerParam(
+                        flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
+                        keyIndex = 0,
+                        replaceInfo = existingParam?.replaceInfo,
+                        existingSigners = existingParam?.existingSigners ?: emptyList()
+                    )
             )
         )
     }
