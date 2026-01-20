@@ -39,8 +39,7 @@ data class SignerIntroState(
     val supportedSigners: List<SupportedSigner> = emptyList(),
     val supportedSignerConfigs: List<SupportedSignerConfig> = emptyList(),
     val isAddInheritanceSigner: Boolean = false,
-    val dynamicSupportedSigners: List<SupportedSigner> = emptyList(),
-    val showDynamicSelection: Boolean = false
+    val dynamicSupportedSigners: List<SupportedSigner> = emptyList()
 )
 
 @HiltViewModel

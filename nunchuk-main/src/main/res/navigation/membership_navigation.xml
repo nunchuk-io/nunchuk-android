@@ -210,8 +210,22 @@
                 app:nullable="true" />
         </action>
         <action
+            android:id="@+id/action_onChainTimelockAddKeyListFragment_to_customKeyAccountFragmentFragment"
+            app:destination="@id/customKeyAccountFragmentFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
             android:id="@+id/action_onChainTimelockAddKeyListFragment_to_onChainSetUpTimelockFragment"
             app:destination="@id/onChainSetUpTimelockFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_onChainTimelockAddKeyListFragment_to_signerIntroFragment"
+            app:destination="@id/signerIntroFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -505,6 +519,13 @@
             android:defaultValue="@null"
             app:argType="com.nunchuk.android.core.signer.OnChainAddSignerParam"
             app:nullable="true" />
+        <action
+            android:id="@+id/action_importantNoticePassphraseFragment_to_signerIntroFragment"
+            app:destination="@id/signerIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
@@ -1089,9 +1110,70 @@
                 app:argType="com.nunchuk.android.core.signer.OnChainAddSignerParam"
                 app:nullable="true" />
         </action>
+        <action
+            android:id="@+id/action_onChainReplaceKeysFragment_to_signerIntroFragment"
+            app:destination="@id/signerIntroFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim">
+            <argument
+                android:name="wallet_id"
+                android:defaultValue="@null"
+                app:argType="string"
+                app:nullable="true" />
+            <argument
+                android:name="group_id"
+                android:defaultValue="@null"
+                app:argType="string"
+                app:nullable="true" />
+            <argument
+                android:name="supported_signers"
+                android:defaultValue="@null"
+                app:argType="com.nunchuk.android.model.signer.SupportedSigner[]"
+                app:nullable="true" />
+            <argument
+                android:name="key_flow"
+                android:defaultValue="0"
+                app:argType="integer" />
+        </action>
     </fragment>
 
     <include app:graph="@navigation/add_desktop_key_navigation" />
 
+    <fragment
+        android:id="@+id/signerIntroFragment"
+        android:name="com.nunchuk.android.main.membership.signer.OnChainSignerIntroFragment"
+        android:label="SignerIntroFragment">
+        
+        <argument
+            android:name="wallet_id"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        
+        <argument
+            android:name="group_id"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        
+        <argument
+            android:name="supported_signers"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.signer.SupportedSigner[]"
+            app:nullable="true" />
+        
+        <argument
+            android:name="key_flow"
+            android:defaultValue="0"
+            app:argType="integer" />
+        
+        <argument
+            android:name="onChainAddSignerParam"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.core.signer.OnChainAddSignerParam"
+            app:nullable="true" />
+    </fragment>
 
 </navigation>

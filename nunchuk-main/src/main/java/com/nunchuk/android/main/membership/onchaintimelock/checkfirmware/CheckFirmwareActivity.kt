@@ -1,6 +1,12 @@
-package com.nunchuk.android.main.membership.signer
+package com.nunchuk.android.main.membership.onchaintimelock.checkfirmware
 
+import android.content.Context
 import android.content.Intent
+import android.os.Bundle
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,66 +37,135 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.key.list.SelectSignerBottomSheet
 import com.nunchuk.android.main.membership.key.list.TapSignerListBottomSheetFragmentArgs
-import com.nunchuk.android.main.membership.onchaintimelock.checkfirmware.CheckFirmwareEvent
-import com.nunchuk.android.main.membership.onchaintimelock.checkfirmware.CheckFirmwareViewModel
+import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
+import com.nunchuk.android.nav.args.SetupMk4Args
+import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
-import kotlinx.serialization.Serializable
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-@Serializable
-data class CheckFirmwareDestination(
-    val signerTagName: String,
-    val walletId: String = "",
-    val groupId: String = ""
-)
+@AndroidEntryPoint
+class CheckFirmwareActivity : BaseComposeActivity() {
 
-fun NavGraphBuilder.checkFirmwareDestination(
-    onChainAddSignerParam: OnChainAddSignerParam?,
-    onMoreClicked: () -> Unit = {},
-    onFilteredSignersReady: (SignerModel) -> Unit = {},
-    onOpenNextScreen: (SignerTag) -> Unit = {}
-) {
-    composable<CheckFirmwareDestination> { backStackEntry ->
-        val destination = backStackEntry.toRoute<CheckFirmwareDestination>()
-        val signerTag = SignerTag.valueOf(destination.signerTagName)
-        val args = CheckFirmwareArgs(
-            signerTag = signerTag,
-            onChainAddSignerParam = onChainAddSignerParam,
-            walletId = destination.walletId,
-            groupId = destination.groupId
-        )
-        CheckFirmwareNavigationScreen(
-            args = args,
-            onMoreClicked = onMoreClicked,
-            onFilteredSignersReady = onFilteredSignersReady,
-            onOpenNextScreen = { onOpenNextScreen(signerTag) }
-        )
+    @Inject
+    lateinit var membershipStepManager: MembershipStepManager
+
+    private val args: CheckFirmwareArgs by lazy {
+        CheckFirmwareArgs.deserializeFrom(intent)
+    }
+
+    private val viewModel: CheckFirmwareViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel.init(args)
+
+        enableEdgeToEdge()
+        setContent {
+            ColdCardCheckFirmwareScreen(
+                args = args,
+                viewModel = viewModel,
+                onFilteredSignersReady = { signers ->
+                    val resultIntent = Intent().apply {
+                        putParcelableArrayListExtra(
+                            GlobalResultKey.EXTRA_SIGNERS,
+                            ArrayList(signers)
+                        )
+                    }
+                    setResult(RESULT_OK, resultIntent)
+                    finish()
+                },
+                onOpenNextScreen = ::openNextScreen
+            )
+        }
+    }
+
+    private fun openNextScreen() {
+        when (args.signerTag) {
+            SignerTag.COLDCARD -> {
+                navigator.openSetupMk4(
+                    activity = this,
+                    args = SetupMk4Args(
+                        fromMembershipFlow = args.onChainAddSignerParam != null,
+                        isFromAddKey = true,
+                        groupId = args.groupId,
+                        walletId = args.walletId,
+                        replacedXfp = args.onChainAddSignerParam?.replaceInfo?.replacedXfp,
+                        onChainAddSignerParam = args.onChainAddSignerParam,
+                    )
+                )
+            }
+
+            SignerTag.JADE -> {
+                navigator.openAddAirSignerScreen(
+                    activityContext = this,
+                    args = AddAirSignerArgs(
+                        isMembershipFlow = args.onChainAddSignerParam != null,
+                        tag = SignerTag.JADE,
+                        groupId = args.groupId,
+                        walletId = args.walletId,
+                        replacedXfp = args.onChainAddSignerParam?.replaceInfo?.replacedXfp,
+                        onChainAddSignerParam = args.onChainAddSignerParam,
+                        step = membershipStepManager.currentStep
+                    )
+                )
+            }
+
+            else -> {
+                // Handle other signer types if needed
+            }
+        }
+        // Return result to SignerIntroFragment to handle navigation
+        val resultIntent = Intent().apply {
+            putExtra(EXTRA_OPEN_NEXT_SCREEN, true)
+        }
+        setResult(RESULT_OK, resultIntent)
+        finish()
+    }
+
+    companion object {
+        const val EXTRA_OPEN_NEXT_SCREEN = "EXTRA_OPEN_NEXT_SCREEN"
+
+        fun navigate(
+            context: Context,
+            launcher: ActivityResultLauncher<Intent>?,
+            args: CheckFirmwareArgs
+        ) {
+            val intent = Intent(context, CheckFirmwareActivity::class.java).apply {
+                putExtras(args.buildBundle())
+            }
+            if (launcher == null) {
+                context.startActivity(intent)
+            } else {
+                launcher.launch(intent)
+            }
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CheckFirmwareNavigationScreen(
+private fun ColdCardCheckFirmwareScreen(
     args: CheckFirmwareArgs,
-    viewModel: CheckFirmwareViewModel = hiltViewModel(),
+    viewModel: CheckFirmwareViewModel = viewModel(),
     onMoreClicked: () -> Unit = {},
-    onFilteredSignersReady: (SignerModel) -> Unit = {},
+    onFilteredSignersReady: (List<SignerModel>) -> Unit = {},
     onOpenNextScreen: () -> Unit = {}
 ) {
     val remainTime by viewModel.remainTime.collectAsStateWithLifecycle()
@@ -100,11 +175,14 @@ private fun CheckFirmwareNavigationScreen(
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(Unit) {
-        viewModel.init(args)
         viewModel.event.collect { event ->
             when (event) {
                 is CheckFirmwareEvent.ShowFilteredSigners -> {
-                    showSignerBottomSheet = true
+                    if (args.onChainAddSignerParam?.isClaiming == true) {
+                        showSignerBottomSheet = true
+                    } else {
+                        onFilteredSignersReady(event.signers)
+                    }
                 }
 
                 CheckFirmwareEvent.OpenNextScreen -> {
@@ -114,7 +192,7 @@ private fun CheckFirmwareNavigationScreen(
         }
     }
 
-    CheckFirmwareContent(
+    ColdCardCheckFirmwareContent(
         args = args,
         onMoreClicked = onMoreClicked,
         remainTime = remainTime,
@@ -131,7 +209,7 @@ private fun CheckFirmwareNavigationScreen(
                 },
                 onAddExistKey = { signer ->
                     showSignerBottomSheet = false
-                    onFilteredSignersReady(signer)
+                    onFilteredSignersReady(listOf(signer))
                 },
                 onAddNewKey = {
                     showSignerBottomSheet = false
@@ -151,7 +229,7 @@ private fun CheckFirmwareNavigationScreen(
 }
 
 @Composable
-private fun CheckFirmwareContent(
+private fun ColdCardCheckFirmwareContent(
     args: CheckFirmwareArgs,
     remainTime: Int = 0,
     firmwareVersion: String = "",
@@ -267,3 +345,14 @@ private fun CheckFirmwareContent(
         }
     }
 }
+
+@Preview
+@Composable
+private fun ColdCardCheckFirmwareScreenPreview() {
+    ColdCardCheckFirmwareContent(
+        args = CheckFirmwareArgs(
+            signerTag = SignerTag.COLDCARD
+        ),
+    )
+}
+

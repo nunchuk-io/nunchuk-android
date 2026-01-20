@@ -99,7 +99,7 @@ fun SignerIntroScreen(
                     style = NunchukTheme.typography.body
                 )
 
-                if (state.dynamicSupportedSigners.isNotEmpty() && onChainAddSignerParam != null) {
+                if (onChainAddSignerParam != null) {
                     DynamicSignerSelection(
                         dynamicSupportedSigners = state.dynamicSupportedSigners,
                         onClick = onClick

@@ -1,7 +1,6 @@
 package com.nunchuk.android.main.membership.onchaintimelock.replacekey
 
 import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -99,6 +98,7 @@ import com.nunchuk.android.main.membership.model.AddReplaceKeyOnChainData
 import com.nunchuk.android.main.membership.model.ReplaceStepData
 import com.nunchuk.android.main.membership.model.resId
 import com.nunchuk.android.main.membership.onchaintimelock.importantpassphrase.ImportantNoticePassphraseFragment
+import com.nunchuk.android.main.membership.signer.OnChainSignerIntroFragment
 import com.nunchuk.android.model.OnChainReplaceKeyStep
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.TimelockExtra
@@ -136,14 +136,6 @@ class OnChainReplaceKeysFragment : Fragment() {
     private val args by navArgs<OnChainReplaceKeysFragmentArgs>()
     private var selectedSignerTag: SignerTag? = null
     private var currentKeyData: AddReplaceKeyOnChainData? = null
-
-    private val signerIntroLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-            handleSignerIntroResult(result.data!!)
-        }
-    }
 
     private val addTapSignerLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -256,7 +248,51 @@ class OnChainReplaceKeysFragment : Fragment() {
             }
             clearFragmentResult(ImportantNoticePassphraseFragment.REQUEST_KEY)
         }
-        // Removed: Fragment result listener replaced with signerIntroLauncher activity result
+        setFragmentResultListener(OnChainSignerIntroFragment.REQUEST_KEY) { _, bundle ->
+            val filteredSigners =
+                bundle.parcelableArrayList<SignerModel>(GlobalResultKey.EXTRA_SIGNERS)
+            val signerModel = bundle.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
+            val requestDesktopSignerTag =
+                bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
+            val signerTag =
+                requestDesktopSignerTag ?: filteredSigners?.firstOrNull()?.tags?.firstOrNull { it != SignerTag.INHERITANCE }
+            selectedSignerTag = signerTag
+            val isFromNfcSetup =
+                bundle.getBoolean(OnChainSignerIntroFragment.EXTRA_IS_FROM_NFC_SETUP, false)
+
+            when {
+                isFromNfcSetup && signerModel != null -> {
+                    viewModel.addExistingTapSignerKey(
+                        signerModel,
+                        currentKeyData,
+                        (activity as MembershipActivity).walletId
+                    )
+                }
+
+                !filteredSigners.isNullOrEmpty() -> {
+                    findNavController().navigate(
+                        OnChainReplaceKeysFragmentDirections.actionOnChainReplaceKeysFragmentToTapSignerListBottomSheetFragment(
+                            filteredSigners.toTypedArray(),
+                            if (filteredSigners.first().type == SignerType.COLDCARD_NFC || filteredSigners.first().tags.contains(
+                                    SignerTag.COLDCARD
+                                )
+                            ) {
+                                SignerType.COLDCARD_NFC
+                            } else {
+                                filteredSigners.first().type
+                            },
+                            "",
+                            true
+                        )
+                    )
+                }
+
+                signerTag != null -> {
+                    handleHardwareSignerTag(signerTag)
+                }
+            }
+            clearFragmentResult(OnChainSignerIntroFragment.REQUEST_KEY)
+        }
 
         setFragmentResultListener(ColdCardIntroFragment.REQUEST_KEY) { _, bundle ->
             val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
@@ -304,47 +340,6 @@ class OnChainReplaceKeysFragment : Fragment() {
             .showDialog(message = getString(R.string.nc_info_facilitator))
     }
 
-    private fun handleSignerIntroResult(data: Intent) {
-        val signerModel = data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
-        val requestDesktopSignerTag =
-            data.getSerializableExtra(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
-        val signerTag =
-            requestDesktopSignerTag ?: signerModel?.tags?.firstOrNull { it != SignerTag.INHERITANCE }
-        selectedSignerTag = signerTag
-
-        when {
-            signerModel != null -> {
-                // Handle single signer
-                val signer = signerModel
-                val signerType = if (signer.type == SignerType.COLDCARD_NFC || signer.tags.contains(SignerTag.COLDCARD)) {
-                    SignerType.COLDCARD_NFC
-                } else {
-                    signer.type
-                }
-                when (signerType) {
-                    SignerType.NFC -> viewModel.addExistingTapSignerKey(
-                        signer,
-                        currentKeyData,
-                        (activity as MembershipActivity).walletId
-                    )
-
-                    else -> {
-                        val selectedSignerTag = selectedSignerTag
-                        if (signer.type == SignerType.AIRGAP && signer.tags.isEmpty() && selectedSignerTag != null) {
-                            viewModel.onUpdateSignerTag(signer, selectedSignerTag)
-                        } else {
-                            viewModel.handleSignerNewIndex(signer.toSingleSigner())
-                        }
-                    }
-                }
-            }
-
-            signerTag != null -> {
-                handleHardwareSignerTag(signerTag)
-            }
-        }
-    }
-    
     private fun handleHardwareSignerTag(tag: SignerTag) {
         selectedSignerTag = tag
         val hardwareSigners = viewModel.getHardwareSigners(tag)
@@ -493,24 +488,25 @@ class OnChainReplaceKeysFragment : Fragment() {
                     )
                 )
             } else {
-                // For hardware keys, open signer intro activity
+                // For hardware keys, open signer intro fragment
                 val currentStep = viewModel.getCurrentStep()
-                navigator.openSignerIntroScreen(
-                    launcher = signerIntroLauncher,
-                    activityContext = requireActivity(),
-                    walletId = (activity as MembershipActivity).walletId,
-                    groupId = args.groupId,
-                    supportedSigners = null,
-                    onChainAddSignerParam = OnChainAddSignerParam(
-                        flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
-                        keyIndex = allSigners.size,
-                        currentSigner = allSigners.firstOrNull(),
-                        replaceInfo = currentStep?.let {
-                            OnChainAddSignerParam.ReplaceInfo(
-                                replacedXfp = viewModel.replacedXfp,
-                                step = it
-                            )
-                        }
+                findNavController().navigate(
+                    OnChainReplaceKeysFragmentDirections.actionOnChainReplaceKeysFragmentToSignerIntroFragment(
+                        walletId = (activity as MembershipActivity).walletId,
+                        groupId = args.groupId,
+                        supportedSigners = null,
+                        keyFlow = 0,
+                        onChainAddSignerParam = OnChainAddSignerParam(
+                            flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
+                            keyIndex = allSigners.size,
+                            currentSigner = allSigners.firstOrNull(),
+                            replaceInfo = currentStep?.let {
+                                OnChainAddSignerParam.ReplaceInfo(
+                                    replacedXfp = viewModel.replacedXfp,
+                                    step = it
+                                )
+                            }
+                        )
                     )
                 )
             }
