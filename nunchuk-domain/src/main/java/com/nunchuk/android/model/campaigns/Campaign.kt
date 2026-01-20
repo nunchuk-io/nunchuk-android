@@ -10,14 +10,14 @@ data class Campaign(
     val referrerDescriptionHtml: String,
     val referrerBannerUrl: String,
     val cta: String,
-    val profileCta: String,
+    val profileCta: String?,
     val dismissible: Boolean,
     val isDismissed: Boolean,
     val type: CampaignType?,
 ) : Parcelable {
     companion object {
         fun empty() = Campaign(
-            "", "", "", "", "", "",
+            "", "", "", "", "", null,
             dismissible = false,
             isDismissed = false,
             type = CampaignType.GENERAL
