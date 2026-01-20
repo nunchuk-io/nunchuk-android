@@ -68,6 +68,7 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.byzantine.DummyTransactionType
 import com.nunchuk.android.model.byzantine.isInheritanceFlow
 import com.nunchuk.android.nav.args.MembershipArgs
+import com.nunchuk.android.share.model.SignFlowType
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.components.details.TransactionDetailView
@@ -420,8 +421,8 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
             launcher = importTxLauncher,
             activityContext = requireActivity(),
             txToSign = walletAuthenticationViewModel.getDataToSign(),
-            isDummyTx = true,
             walletId = walletAuthenticationViewModel.getWalletId(),
+            signFlowType = SignFlowType.NormalDummy,
             isBBQR = isBBQR
         )
     }

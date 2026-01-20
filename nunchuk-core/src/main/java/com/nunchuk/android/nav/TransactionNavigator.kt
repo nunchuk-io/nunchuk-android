@@ -37,6 +37,7 @@ import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.args.AddReceiptType
+import com.nunchuk.android.share.model.SignFlowType
 
 interface TransactionNavigator {
 
@@ -152,9 +153,8 @@ interface TransactionNavigator {
         walletId: String = "",
         txId: String = "",
         txToSign: String = "",
-        isDummyTx: Boolean = false,
-        isBBQR: Boolean = false,
-        isSignInFlow: Boolean = false
+        signFlowType: SignFlowType = SignFlowType.Normal,
+        isBBQR: Boolean = false
     )
 
     fun openReplaceTransactionFee(

@@ -3,6 +3,8 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 import android.nfc.tech.IsoDep
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,12 +15,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
@@ -30,8 +37,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
+import com.nunchuk.android.compose.NcSelectableBottomSheetWithIcon
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.SelectableItem
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.compose.showNunchukSnackbar
@@ -45,39 +54,51 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimData
 import com.nunchuk.android.model.InheritanceAdditional
+import com.nunchuk.android.nav.NunchukNavigator
+import com.nunchuk.android.share.model.SignFlowType
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.widget.NCInputDialog
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 import com.nunchuk.android.main.R as MainR
 import com.nunchuk.android.transaction.R as TransactionR
+import com.nunchuk.android.widget.R as WidgetR
 
 @Composable
 fun VerifyInheritanceMessageScreen(
     modifier: Modifier = Modifier,
     snackState: SnackbarHostState,
     claimData: ClaimData,
+    navigator: NunchukNavigator,
     onBackPressed: () -> Unit = {},
     addMoreSigner: () -> Unit = {},
     onSuccess: (InheritanceAdditional) -> Unit = {},
 ) {
     val localSigner = claimData.signers.last()
-    val path = claimData.keyOrigins.find { it.xfp == localSigner.fingerPrint }?.derivationPath.orEmpty()
-    val signer = if (localSigner.isMasterSigner) localSigner.copy(derivationPath = path) else localSigner
+    val path =
+        claimData.keyOrigins.find { it.xfp == localSigner.fingerPrint }?.derivationPath.orEmpty()
+    val signer =
+        if (localSigner.isMasterSigner) localSigner.copy(derivationPath = path) else localSigner
     val challenge = claimData.challenge
     val signingChallengeMessage = SigningChallengeMessage(
         id = challenge?.id,
         message = challenge?.message
     )
-    
+
     val viewModel =
-        hiltViewModel<VerifyInheritanceMessageViewModel, VerifyInheritanceMessageViewModel.Factory>(
-            creationCallback = { factory ->
-                factory.create(signer, signingChallengeMessage)
-            }
-        )
+        hiltViewModel<VerifyInheritanceMessageViewModel, VerifyInheritanceMessageViewModel.Factory> { factory ->
+            factory.create(signer, signingChallengeMessage)
+        }
+    val exportTransactionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+
+    }
     val activity = LocalActivity.current as ComponentActivity
     val nfcViewModel = hiltViewModel<NfcViewModel>(viewModelStoreOwner = activity)
     val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.event.collect { event ->
@@ -88,9 +109,11 @@ fun VerifyInheritanceMessageScreen(
                         type = NcToastType.ERROR
                     )
                 }
+
                 VerifyInheritanceMessageEvent.NoSignatureDetected -> {
 
                 }
+
                 is VerifyInheritanceMessageEvent.GetInheritanceClaimStateSuccess -> {
                     onSuccess(event.inheritanceAdditional)
                 }
@@ -129,11 +152,31 @@ fun VerifyInheritanceMessageScreen(
                 viewModel.getInheritanceClaimState(claimData.magic)
             }
         },
+        onExportViaQr = {
+            coroutineScope.launch {
+                val data = viewModel.generateColdCardSignedDataIfNeeded()
+                if (data.isNotEmpty()) {
+                    navigator.openExportTransactionScreen(
+                        launcher = exportTransactionLauncher,
+                        activityContext = activity,
+                        txToSign = data,
+                        signFlowType = SignFlowType.ClaimDummy,
+                    )
+                }
+            }
+        },
+        onExportViaFile = {
+            // TODO: Implement export message via file
+        },
+        onExportViaNfc = {
+            // TODO: Implement export message via NFC
+        },
         onSignClick = { messageToSign ->
             when (signer.type) {
                 SignerType.NFC -> {
                     (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_HEALTH_CHECK)
                 }
+
                 SignerType.SOFTWARE -> {
                     if (viewModel.needPassphrase()) {
                         NCInputDialog(activity).showDialog(
@@ -146,14 +189,14 @@ fun VerifyInheritanceMessageScreen(
                         viewModel.signMessageBySoftware()
                     }
                 }
-                else -> {
-                    // Handle other signer types if needed
-                }
+
+                else -> Unit
             }
         },
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerifyInheritanceMessageContent(
     modifier: Modifier = Modifier,
@@ -163,18 +206,27 @@ fun VerifyInheritanceMessageContent(
     uiState: VerifyInheritanceMessageUiState,
     onBackPressed: () -> Unit = {},
     onContinue: () -> Unit = {},
+    onExportViaQr: () -> Unit = {},
+    onExportViaFile: () -> Unit = {},
+    onExportViaNfc: () -> Unit = {},
     onSignClick: (String) -> Unit = {},
 ) {
     val isMessageSigned = uiState.signedMessage != null
 
+    var showColdCardOptionsSheet by remember { mutableStateOf(false) }
+    var showExportOptionsSheet by remember { mutableStateOf(false) }
+    val coldCardOptionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val exportOptionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     val loadingType = uiState.loadingType
     if (loadingType != null) {
-        when(loadingType) {
+        when (loadingType) {
             LoadingType.Normal -> NcLoadingDialog()
             LoadingType.Nfc -> NcLoadingDialog(
                 title = stringResource(id = R.string.nc_please_wait),
                 customMessage = stringResource(id = R.string.nc_keep_holding_nfc)
             )
+
             LoadingType.ColdCard -> NcLoadingDialog(
                 title = stringResource(id = R.string.nc_data_transfer_in_progress),
                 customMessage = stringResource(id = R.string.nc_keep_hold_coldcard_until_finish)
@@ -249,10 +301,76 @@ fun VerifyInheritanceMessageContent(
                 isSigned = isMessageSigned,
                 canSign = true,
                 onSignClick = {
-                    onSignClick(message)
+                    if (signer.type == SignerType.COLDCARD_NFC || signer.tags.contains(SignerTag.COLDCARD)) {
+                        showColdCardOptionsSheet = true
+                    } else {
+                        onSignClick(message)
+                    }
                 }
             )
         }
+    }
+
+    if (showColdCardOptionsSheet) {
+        NcSelectableBottomSheetWithIcon(
+            sheetState = coldCardOptionsSheetState,
+            items = listOf(
+                SelectableItem(
+                    resId = WidgetR.drawable.ic_export,
+                    text = stringResource(R.string.nc_transaction_export_transaction)
+                ),
+                SelectableItem(
+                    resId = WidgetR.drawable.ic_import,
+                    text = stringResource(R.string.nc_import_signature)
+                )
+            ),
+            onSelected = { index ->
+                when (index) {
+                    0 -> {
+                        showColdCardOptionsSheet = false
+                        showExportOptionsSheet = true
+                    }
+
+                    1 -> {
+                        showColdCardOptionsSheet = false
+                    }
+                }
+            },
+            onDismiss = {
+                showColdCardOptionsSheet = false
+            }
+        )
+    }
+
+    if (showExportOptionsSheet) {
+        NcSelectableBottomSheetWithIcon(
+            sheetState = exportOptionsSheetState,
+            items = listOf(
+                SelectableItem(
+                    resId = WidgetR.drawable.ic_export,
+                    text = stringResource(R.string.nc_export_via_file)
+                ),
+                SelectableItem(
+                    resId = WidgetR.drawable.ic_qr,
+                    text = stringResource(R.string.nc_export_via_qr)
+                ),
+                SelectableItem(
+                    resId = WidgetR.drawable.ic_nfc,
+                    text = stringResource(R.string.nc_export_via_nfc)
+                )
+            ),
+            onSelected = { index ->
+                showExportOptionsSheet = false
+                when (index) {
+                    0 -> onExportViaFile()
+                    1 -> onExportViaQr()
+                    2 -> onExportViaNfc()
+                }
+            },
+            onDismiss = {
+                showExportOptionsSheet = false
+            }
+        )
     }
 }
 

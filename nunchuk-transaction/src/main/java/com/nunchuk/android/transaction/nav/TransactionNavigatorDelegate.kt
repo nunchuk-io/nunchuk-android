@@ -37,6 +37,7 @@ import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.nav.TransactionNavigator
 import com.nunchuk.android.nav.args.AddReceiptType
+import com.nunchuk.android.share.model.SignFlowType
 import com.nunchuk.android.transaction.components.address.SavedAddressActivity
 import com.nunchuk.android.transaction.components.details.TransactionDetailsArgs
 import com.nunchuk.android.transaction.components.details.fee.ReplaceFeeActivity
@@ -269,18 +270,16 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         walletId: String,
         txId: String,
         txToSign: String,
-        isDummyTx: Boolean,
-        isBBQR: Boolean,
-        isSignInFlow: Boolean
+        signFlowType: SignFlowType,
+        isBBQR: Boolean
     ) {
         val intent = ExportTransactionActivity.buildIntent(
             activityContext = activityContext,
             walletId = walletId,
             txId = txId,
             txToSign = txToSign,
-            isDummyTx = isDummyTx,
-            isBBQR = isBBQR,
-            isSignInFlow = isSignInFlow
+            signFlowType = signFlowType,
+            isBBQR = isBBQR
         )
         if (launcher != null) {
             launcher.launch(intent)

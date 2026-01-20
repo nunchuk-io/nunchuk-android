@@ -56,6 +56,7 @@ import com.nunchuk.android.core.util.showOrHideNfcLoading
 import com.nunchuk.android.core.util.showSuccess
 import com.nunchuk.android.core.util.truncatedAddress
 import com.nunchuk.android.model.Transaction
+import com.nunchuk.android.share.model.SignFlowType
 import com.nunchuk.android.share.model.TransactionOption
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.TransactionStatus
@@ -380,9 +381,8 @@ class SignInDummyTransactionDetailsFragment :
             launcher = importTxLauncher,
             activityContext = requireActivity(),
             txToSign = signInAuthenticationViewModel.getDataToSign(),
-            isDummyTx = true,
-            isBBQR = isBBQR,
-            isSignInFlow = true
+            signFlowType = SignFlowType.SignInDummy,
+            isBBQR = isBBQR
         )
     }
 

@@ -395,6 +395,7 @@ private fun ClaimInheritanceGraph(
             )
             verifyInheritanceMessage(
                 snackState = snackbarHostState,
+                navigator = navigator,
                 onBackPressed = {
                     navController.popBackStack()
                 },

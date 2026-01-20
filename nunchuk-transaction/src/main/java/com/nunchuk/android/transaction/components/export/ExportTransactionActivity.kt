@@ -26,6 +26,7 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.nunchuk.android.core.base.BaseActivity
 import com.nunchuk.android.core.qr.convertToQRCode
@@ -36,6 +37,7 @@ import com.nunchuk.android.core.util.MEDIUM_DENSITY
 import com.nunchuk.android.core.util.ULTRA_DENSITY
 import com.nunchuk.android.core.util.densityToLevel
 import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.share.model.SignFlowType
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.ExportTransactionError
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.LoadingEvent
 import com.nunchuk.android.transaction.databinding.ActivityExportTransactionBinding
@@ -118,6 +120,8 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
 
     private fun setupViews() {
         val densities = listOf(LOW_DENSITY, MEDIUM_DENSITY, HIGH_DENSITY, ULTRA_DENSITY)
+        binding.tvDensity.isVisible = args.signFlowType != SignFlowType.ClaimDummy
+        binding.slider.isVisible =  binding.tvDensity.isVisible
         binding.slider.addOnChangeListener { _, value, fromUser ->
             if (fromUser) {
                 showQrJob?.cancel()
@@ -160,15 +164,19 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
     }
 
     private fun openImportTransactionScreen() {
+        val isDummyTx = args.signFlowType is SignFlowType.NormalDummy ||
+                args.signFlowType is SignFlowType.SignInDummy ||
+                args.signFlowType is SignFlowType.ClaimDummy
+        val isSignInFlow = args.signFlowType is SignFlowType.SignInDummy
         navigator.openImportTransactionScreen(
             launcher = launcher,
             activityContext = this,
             walletId = args.walletId,
             masterFingerPrint = args.masterFingerPrint,
             initEventId = args.initEventId,
-            isDummyTx = args.isDummyTx,
+            isDummyTx = isDummyTx,
             isFinishWhenError = true,
-            isSignInFlow = args.isSignInFlow
+            isSignInFlow = isSignInFlow
         )
     }
 
@@ -188,9 +196,8 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
             txToSign: String = "",
             initEventId: String = "",
             masterFingerPrint: String = "",
-            isDummyTx: Boolean = false,
-            isBBQR: Boolean = false,
-            isSignInFlow: Boolean = false
+            signFlowType: SignFlowType = SignFlowType.Normal,
+            isBBQR: Boolean = false
         ): Intent {
             return ExportTransactionArgs(
                 walletId = walletId,
@@ -198,9 +205,8 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
                 txToSign = txToSign,
                 initEventId = initEventId,
                 masterFingerPrint = masterFingerPrint,
-                isDummyTx = isDummyTx,
-                isBBQR = isBBQR,
-                isSignInFlow = isSignInFlow
+                signFlowType = signFlowType,
+                isBBQR = isBBQR
             ).buildIntent(activityContext)
         }
     }

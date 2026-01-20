@@ -25,10 +25,12 @@ import com.nunchuk.android.core.domain.settings.GetQrDensitySettingUseCase
 import com.nunchuk.android.core.domain.settings.UpdateQrDensitySettingUseCase
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.toBBQRDensity
+import com.nunchuk.android.share.model.SignFlowType
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.ExportTransactionError
 import com.nunchuk.android.usecase.ExportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.membership.ExportKeystoneDummyTransaction
 import com.nunchuk.android.usecase.qr.ExportBBQRTransactionUseCase
+import com.nunchuk.android.usecase.signer.ExportBBQRJSONUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
@@ -48,6 +50,7 @@ internal class ExportTransactionViewModel @Inject constructor(
     private val getQrDensitySettingUseCase: GetQrDensitySettingUseCase,
     private val updateQrDensitySettingUseCase: UpdateQrDensitySettingUseCase,
     private val exportBBQRTransactionUseCase: ExportBBQRTransactionUseCase,
+    private val exportBBQRJSONUseCase: ExportBBQRJSONUseCase,
 ) : NunchukViewModel<ExportTransactionState, ExportTransactionEvent>() {
 
     private lateinit var args: ExportTransactionArgs
@@ -81,17 +84,41 @@ internal class ExportTransactionViewModel @Inject constructor(
     }
 
     private fun handleExportTransactionQRs() {
-        if (isDummyTxFlow) {
-            exportDummyKeystoneTransaction()
-        } else if (args.isBBQR) {
-            exportTransactionBBQR()
-        } else {
-            exportTransactionToQRs()
+        when (args.signFlowType) {
+            SignFlowType.ClaimDummy -> exportClaimDummyTransaction()
+            SignFlowType.Normal -> if (args.isBBQR) {
+                exportTransactionBBQR()
+            } else {
+                exportTransactionToQRs()
+            }
+
+            SignFlowType.NormalDummy -> exportDummyKeystoneTransaction()
+            SignFlowType.SignInDummy -> exportDummyKeystoneTransaction()
+        }
+    }
+
+    private fun exportClaimDummyTransaction() {
+        exportTransactionJob?.cancel()
+        exportTransactionJob = viewModelScope.launch {
+            exportBBQRJSONUseCase(
+                ExportBBQRJSONUseCase.Param(
+                    value = args.txToSign,
+                )
+            ).onSuccess {
+                updateState {
+                    copy(qrStrings = it)
+                }
+            }.onFailure {
+                if (it !is CancellationException) {
+                    setEvent(ExportTransactionError(it.message.orUnknownError()))
+                }
+            }
         }
     }
 
     private fun exportTransactionBBQR() {
-        viewModelScope.launch {
+        exportTransactionJob?.cancel()
+        exportTransactionJob = viewModelScope.launch {
             val convertDensity = getState().density.toBBQRDensity()
             exportBBQRTransactionUseCase(
                 ExportBBQRTransactionUseCase.Params(
@@ -149,5 +176,7 @@ internal class ExportTransactionViewModel @Inject constructor(
         get() = getState().qrStrings
 
     private val isDummyTxFlow: Boolean
-        get() = args.isDummyTx
+        get() = args.signFlowType is SignFlowType.NormalDummy ||
+                args.signFlowType is SignFlowType.SignInDummy ||
+                args.signFlowType is SignFlowType.ClaimDummy
 }

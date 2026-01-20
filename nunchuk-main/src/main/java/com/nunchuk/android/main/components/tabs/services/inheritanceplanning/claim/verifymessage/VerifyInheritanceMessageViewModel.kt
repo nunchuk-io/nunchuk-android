@@ -10,9 +10,11 @@ import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.model.SignedMessage
+import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
+import com.nunchuk.android.usecase.signer.GenerateColdCardHealthCheckMessageStringUseCase
 import com.nunchuk.android.usecase.signer.SignMessageBySoftwareKeyUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -33,6 +35,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
     private val getInheritanceClaimStateUseCase: GetInheritanceClaimStateUseCase,
+    private val generateColdCardHealthCheckMessageStringUseCase: GenerateColdCardHealthCheckMessageStringUseCase,
     @Assisted private val signer: SignerModel,
     @Assisted private val challenge: SigningChallengeMessage
 ) : ViewModel() {
@@ -139,18 +142,35 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
         _state.update { it.copy(signedMessage = null) }
     }
 
+    suspend fun generateColdCardSignedDataIfNeeded(): String {
+        val currentState = _state.value
+        if (!currentState.coldcardSignedData.isNullOrEmpty()) return currentState.coldcardSignedData
+        return generateColdCardHealthCheckMessageStringUseCase(
+            GenerateColdCardHealthCheckMessageStringUseCase.Param(
+                derivationPath = signer.derivationPath,
+                message = message,
+                addressType = AddressType.NATIVE_SEGWIT
+            )
+        ).onSuccess { coldcardSignedData ->
+            _state.update { it.copy(coldcardSignedData = coldcardSignedData) }
+        }.getOrElse { error ->
+            _event.emit(VerifyInheritanceMessageEvent.ShowError(error.message.orUnknownError()))
+            ""
+        }
+    }
+
     fun getInheritanceClaimState(magic: String) {
         viewModelScope.launch {
             val signedMessage = _state.value.signedMessage
             val signature = signedMessage?.signature.orEmpty()
-            
+
             if (signature.isEmpty()) {
                 _event.emit(VerifyInheritanceMessageEvent.ShowError("No signature available"))
                 return@launch
             }
 
             _state.update { it.copy(loadingType = LoadingType.Normal) }
-            
+
             getInheritanceClaimStateUseCase(
                 GetInheritanceClaimStateUseCase.Param(
                     signerModels = listOf(signer),
@@ -159,7 +179,11 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
                     messageId = messageId
                 )
             ).onSuccess { inheritanceAdditional ->
-                _event.emit(VerifyInheritanceMessageEvent.GetInheritanceClaimStateSuccess(inheritanceAdditional))
+                _event.emit(
+                    VerifyInheritanceMessageEvent.GetInheritanceClaimStateSuccess(
+                        inheritanceAdditional
+                    )
+                )
             }.onFailure { error ->
                 Timber.e(error, "Failed to get inheritance claim state")
                 _event.emit(VerifyInheritanceMessageEvent.ShowError(error.message.orUnknownError()))
@@ -180,7 +204,8 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
 data class VerifyInheritanceMessageUiState(
     val signedMessage: SignedMessage? = null,
     val needPassphrase: Boolean = false,
-    val loadingType: LoadingType? = null
+    val loadingType: LoadingType? = null,
+    val coldcardSignedData: String? = null
 )
 
 enum class LoadingType {
@@ -191,5 +216,6 @@ sealed class VerifyInheritanceMessageEvent {
     object NoSignatureDetected : VerifyInheritanceMessageEvent()
     data class ShowError(val message: String) : VerifyInheritanceMessageEvent()
     data class NfcError(val e: Throwable) : VerifyInheritanceMessageEvent()
-    data class GetInheritanceClaimStateSuccess(val inheritanceAdditional: InheritanceAdditional) : VerifyInheritanceMessageEvent()
+    data class GetInheritanceClaimStateSuccess(val inheritanceAdditional: InheritanceAdditional) :
+        VerifyInheritanceMessageEvent()
 }

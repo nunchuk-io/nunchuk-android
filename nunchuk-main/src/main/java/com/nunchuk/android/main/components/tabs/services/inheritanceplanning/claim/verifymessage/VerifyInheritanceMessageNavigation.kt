@@ -10,6 +10,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimInheritanceViewModel
+import com.nunchuk.android.nav.NunchukNavigator
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -17,6 +18,7 @@ data object VerifyInheritanceMessageRoute
 
 fun NavGraphBuilder.verifyInheritanceMessage(
     snackState: SnackbarHostState,
+    navigator: NunchukNavigator,
     onBackPressed: () -> Unit = {},
     addMoreSigner: () -> Unit = {},
 ) {
@@ -30,6 +32,7 @@ fun NavGraphBuilder.verifyInheritanceMessage(
             VerifyInheritanceMessageScreen(
                 snackState = snackState,
                 claimData = claimData,
+                navigator = navigator,
                 onBackPressed = onBackPressed,
                 addMoreSigner = addMoreSigner,
                 onSuccess = { inheritanceAdditional ->
