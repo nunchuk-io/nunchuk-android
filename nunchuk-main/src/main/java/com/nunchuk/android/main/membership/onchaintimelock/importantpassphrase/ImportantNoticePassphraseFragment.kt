@@ -47,6 +47,7 @@ import com.nunchuk.android.main.R
 import com.nunchuk.android.main.membership.MembershipActivity
 import com.nunchuk.android.share.membership.MembershipFragment
 import com.nunchuk.android.share.result.GlobalResultKey
+import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.utils.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -80,15 +81,17 @@ class ImportantNoticePassphraseFragment : MembershipFragment(), BottomSheetOptio
 
     private fun handleSignerIntroResult(data: Intent) {
         val signer = data.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
+        val signerTag = data.getSerializableExtra(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
         val destinationId = if (args.onChainAddSignerParam?.isReplaceKeyFlow() == true) {
             R.id.onChainReplaceKeysFragment
         } else {
             R.id.onChainTimelockAddKeyListFragment
         }
-
-        if (signer != null) {
+        
+        if (signer != null || signerTag != null) {
             val resultBundle = Bundle().apply {
                 putParcelable(GlobalResultKey.EXTRA_SIGNER, signer)
+                putSerializable(GlobalResultKey.EXTRA_SIGNER_TAG, signerTag)
             }
             setFragmentResult(REQUEST_KEY, resultBundle)
             findNavController().popBackStack(destinationId, false)

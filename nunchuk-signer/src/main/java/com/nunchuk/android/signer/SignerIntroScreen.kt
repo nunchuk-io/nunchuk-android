@@ -113,6 +113,7 @@ fun SignerIntroScreen(
                 originalSupportedSigners = originalSupportedSigners,
                 isDisableAll = isDisableAll,
                 isGenericAirgapEnable = state.isGenericAirgapEnable,
+                onChainAddSignerParam = onChainAddSignerParam,
                 onClick = onClick
             )
         }
@@ -125,6 +126,7 @@ internal fun SignerSelection(
     originalSupportedSigners: List<SupportedSigner>,
     isDisableAll: Boolean,
     isGenericAirgapEnable: Boolean,
+    onChainAddSignerParam: OnChainAddSignerParam? = null,
     onClick: (KeyType) -> Unit
 ) {
     val cardSigners = mutableListOf<SupportedSigner>()
@@ -137,7 +139,7 @@ internal fun SignerSelection(
     }
 
     val signerItemsData = cardSigners.mapNotNull { signer ->
-        mapSupportedSignerToItemData(signer, originalSupportedSigners, isDisableAll)
+        mapSupportedSignerToItemData(signer, originalSupportedSigners, isDisableAll, onChainAddSignerParam)
     }
 
     signerItemsData.chunked(2).forEach { rowItems ->
@@ -230,7 +232,8 @@ private data class SignerItemData(
 private fun mapSupportedSignerToItemData(
     signer: SupportedSigner,
     allSupportedSigners: List<SupportedSigner>,
-    isDisableAll: Boolean
+    isDisableAll: Boolean,
+    onChainAddSignerParam: OnChainAddSignerParam? = null
 ): SignerItemData? {
     return when (signer.type) {
         SignerType.NFC -> SignerItemData(
@@ -293,13 +296,14 @@ private fun mapSupportedSignerToItemData(
         )
 
         SignerType.HARDWARE -> {
+            val isHardwareDisabled = onChainAddSignerParam == null
             when (signer.tag) {
                 SignerTag.LEDGER -> SignerItemData(
                     iconRes = R.drawable.ic_ledger_hardware,
                     title = stringResource(id = R.string.nc_ledger),
                     subtitle = stringResource(id = R.string.nc_desktop_only),
                     keyType = KeyType.LEDGER,
-                    isDisabled = true
+                    isDisabled = isHardwareDisabled
                 )
 
                 SignerTag.TREZOR -> SignerItemData(
@@ -307,7 +311,7 @@ private fun mapSupportedSignerToItemData(
                     title = stringResource(id = R.string.nc_trezor),
                     subtitle = stringResource(id = R.string.nc_desktop_only),
                     keyType = KeyType.TREZOR,
-                    isDisabled = true
+                    isDisabled = isHardwareDisabled
                 )
 
                 SignerTag.BITBOX -> SignerItemData(
@@ -315,7 +319,7 @@ private fun mapSupportedSignerToItemData(
                     title = stringResource(id = R.string.nc_bitbox),
                     subtitle = stringResource(id = R.string.nc_desktop_only),
                     keyType = KeyType.BITBOX,
-                    isDisabled = true
+                    isDisabled = isHardwareDisabled
                 )
 
                 else -> null

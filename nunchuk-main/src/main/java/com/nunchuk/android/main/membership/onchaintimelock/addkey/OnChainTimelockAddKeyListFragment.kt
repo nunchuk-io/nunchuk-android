@@ -249,7 +249,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         }
         setFragmentResultListener(ImportantNoticePassphraseFragment.REQUEST_KEY) { _, bundle ->
             val signer = bundle.parcelable<SignerModel>(GlobalResultKey.EXTRA_SIGNER)
-            handleSignerIntroResult(signer, null)
+            val signerTag = bundle.getSerializable(GlobalResultKey.EXTRA_SIGNER_TAG) as? SignerTag
+            handleSignerIntroResult(signer, signerTag)
             clearFragmentResult(ImportantNoticePassphraseFragment.REQUEST_KEY)
         }
 
