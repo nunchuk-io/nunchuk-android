@@ -120,8 +120,7 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
 
     private fun setupViews() {
         val densities = listOf(LOW_DENSITY, MEDIUM_DENSITY, HIGH_DENSITY, ULTRA_DENSITY)
-        binding.tvDensity.isVisible = args.signFlowType != SignFlowType.ClaimDummy
-        binding.slider.isVisible =  binding.tvDensity.isVisible
+        binding.sliderGroup.isVisible = args.signFlowType != SignFlowType.ClaimDummy
         binding.slider.addOnChangeListener { _, value, fromUser ->
             if (fromUser) {
                 showQrJob?.cancel()

@@ -106,6 +106,12 @@
         style="@style/NCText.Body"
         android:layout_height="wrap_content"/>
 
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/sliderGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="slider,tv_low,tv_medium,tv_high,tv_ultra_high,tv_density" />
+
     <com.nunchuk.android.widget.NCFontButton
         android:id="@+id/btnImportSignature"
         style="@style/NCPrimaryButton.Light"

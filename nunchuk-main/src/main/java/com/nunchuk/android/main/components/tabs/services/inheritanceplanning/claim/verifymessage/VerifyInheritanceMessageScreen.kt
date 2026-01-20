@@ -1,6 +1,9 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.nfc.tech.IsoDep
+import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -32,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcImageAppBar
@@ -50,6 +54,7 @@ import com.nunchuk.android.core.data.model.membership.SigningChallengeMessage
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
+import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimData
@@ -93,11 +98,21 @@ fun VerifyInheritanceMessageScreen(
     val exportTransactionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-
+        // handle import signature result if needed
     }
     val activity = LocalActivity.current as ComponentActivity
-    val nfcViewModel = hiltViewModel<NfcViewModel>(viewModelStoreOwner = activity)
     val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val data = uiState.coldcardSignedData.orEmpty()
+            if (data.isNotEmpty()) {
+                viewModel.saveLocalFile(data)
+            }
+        }
+    }
+    val nfcViewModel = hiltViewModel<NfcViewModel>(viewModelStoreOwner = activity)
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -123,6 +138,25 @@ fun VerifyInheritanceMessageScreen(
                         message = event.e.message.orUnknownError(),
                         type = NcToastType.ERROR
                     )
+                }
+
+                is VerifyInheritanceMessageEvent.ExportToFileSuccess -> {
+                    val controller = IntentSharingController.from(activity)
+                    controller.shareFile(event.filePath)
+                }
+
+                is VerifyInheritanceMessageEvent.SaveLocalFile -> {
+                    if (event.isSuccess) {
+                        snackState.showNunchukSnackbar(
+                            message = activity.getString(R.string.nc_save_file_success),
+                            type = NcToastType.SUCCESS
+                        )
+                    } else {
+                        snackState.showNunchukSnackbar(
+                            message = activity.getString(R.string.nc_save_file_failed),
+                            type = NcToastType.ERROR
+                        )
+                    }
                 }
             }
         }
@@ -165,8 +199,33 @@ fun VerifyInheritanceMessageScreen(
                 }
             }
         },
-        onExportViaFile = {
-            // TODO: Implement export message via file
+        onSaveFile = {
+            coroutineScope.launch {
+                val data = viewModel.generateColdCardSignedDataIfNeeded()
+                if (data.isNotEmpty()) {
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                        if (ContextCompat.checkSelfPermission(
+                                activity,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        } else {
+                            viewModel.saveLocalFile(data)
+                        }
+                    } else {
+                        viewModel.saveLocalFile(data)
+                    }
+                }
+            }
+        },
+        onShareFile = {
+            coroutineScope.launch {
+                val data = viewModel.generateColdCardSignedDataIfNeeded()
+                if (data.isNotEmpty()) {
+                    viewModel.exportTransactionToFile(data)
+                }
+            }
         },
         onExportViaNfc = {
             // TODO: Implement export message via NFC
@@ -207,16 +266,19 @@ fun VerifyInheritanceMessageContent(
     onBackPressed: () -> Unit = {},
     onContinue: () -> Unit = {},
     onExportViaQr: () -> Unit = {},
-    onExportViaFile: () -> Unit = {},
     onExportViaNfc: () -> Unit = {},
+    onSaveFile: () -> Unit = {},
+    onShareFile: () -> Unit = {},
     onSignClick: (String) -> Unit = {},
 ) {
     val isMessageSigned = uiState.signedMessage != null
 
     var showColdCardOptionsSheet by remember { mutableStateOf(false) }
     var showExportOptionsSheet by remember { mutableStateOf(false) }
+    var showSaveShareSheet by remember { mutableStateOf(false) }
     val coldCardOptionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val exportOptionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val saveShareSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val loadingType = uiState.loadingType
     if (loadingType != null) {
@@ -362,13 +424,42 @@ fun VerifyInheritanceMessageContent(
             onSelected = { index ->
                 showExportOptionsSheet = false
                 when (index) {
-                    0 -> onExportViaFile()
+                    0 -> {
+                        showSaveShareSheet = true
+                    }
+
                     1 -> onExportViaQr()
                     2 -> onExportViaNfc()
                 }
             },
             onDismiss = {
                 showExportOptionsSheet = false
+            }
+        )
+    }
+
+    if (showSaveShareSheet) {
+        NcSelectableBottomSheetWithIcon(
+            sheetState = saveShareSheetState,
+            items = listOf(
+                SelectableItem(
+                    resId = WidgetR.drawable.ic_export,
+                    text = stringResource(R.string.nc_save_file)
+                ),
+                SelectableItem(
+                    resId = WidgetR.drawable.ic_share,
+                    text = stringResource(R.string.nc_share_file)
+                )
+            ),
+            onSelected = { index ->
+                showSaveShareSheet = false
+                when (index) {
+                    0 -> onSaveFile()
+                    1 -> onShareFile()
+                }
+            },
+            onDismiss = {
+                showSaveShareSheet = false
             }
         )
     }

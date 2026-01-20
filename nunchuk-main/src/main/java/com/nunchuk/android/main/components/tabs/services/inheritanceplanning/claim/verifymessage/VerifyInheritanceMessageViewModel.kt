@@ -7,12 +7,16 @@ import com.nunchuk.android.core.data.model.membership.SigningChallengeMessage
 import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCase
 import com.nunchuk.android.core.domain.signer.SignMessageByTapSignerUseCase
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.model.InheritanceAdditional
+import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SignedMessage
 import com.nunchuk.android.type.AddressType
 import com.nunchuk.android.type.SignerType
+import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
+import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
 import com.nunchuk.android.usecase.signer.GenerateColdCardHealthCheckMessageStringUseCase
 import com.nunchuk.android.usecase.signer.SignMessageBySoftwareKeyUseCase
@@ -27,6 +31,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.FileOutputStream
 
 @HiltViewModel(assistedFactory = VerifyInheritanceMessageViewModel.Factory::class)
 class VerifyInheritanceMessageViewModel @AssistedInject constructor(
@@ -36,6 +41,8 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
     private val getInheritanceClaimStateUseCase: GetInheritanceClaimStateUseCase,
     private val generateColdCardHealthCheckMessageStringUseCase: GenerateColdCardHealthCheckMessageStringUseCase,
+    private val createShareFileUseCase: CreateShareFileUseCase,
+    private val saveLocalFileUseCase: SaveLocalFileUseCase,
     @Assisted private val signer: SignerModel,
     @Assisted private val challenge: SigningChallengeMessage
 ) : ViewModel() {
@@ -192,6 +199,49 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
         }
     }
 
+    fun exportTransactionToFile(dataToSign: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(loadingType = LoadingType.Normal) }
+            when (val result = createShareFileUseCase.execute("coldcard_message.txt")) {
+                is Result.Success -> exportTransaction(result.data, dataToSign)
+                is Result.Error -> {
+                    _event.emit(VerifyInheritanceMessageEvent.ShowError(result.exception.messageOrUnknownError()))
+                    _state.update { it.copy(loadingType = null) }
+                }
+            }
+        }
+    }
+
+    private fun exportTransaction(filePath: String, dataToSign: String) {
+        viewModelScope.launch {
+            val result = runCatching {
+                FileOutputStream(filePath).use {
+                    it.write(dataToSign.toByteArray(Charsets.UTF_8))
+                }
+            }
+            _state.update { it.copy(loadingType = null) }
+            if (result.isSuccess) {
+                _event.emit(VerifyInheritanceMessageEvent.ExportToFileSuccess(filePath))
+            } else {
+                _event.emit(VerifyInheritanceMessageEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun saveLocalFile(dataToSign: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(loadingType = LoadingType.Normal) }
+            val result = saveLocalFileUseCase(
+                SaveLocalFileUseCase.Params(
+                    fileName = "coldcard_message.txt",
+                    fileContent = dataToSign
+                )
+            )
+            _state.update { it.copy(loadingType = null) }
+            _event.emit(VerifyInheritanceMessageEvent.SaveLocalFile(result.isSuccess))
+        }
+    }
+
     @AssistedFactory
     interface Factory {
         fun create(
@@ -218,4 +268,6 @@ sealed class VerifyInheritanceMessageEvent {
     data class NfcError(val e: Throwable) : VerifyInheritanceMessageEvent()
     data class GetInheritanceClaimStateSuccess(val inheritanceAdditional: InheritanceAdditional) :
         VerifyInheritanceMessageEvent()
+    data class ExportToFileSuccess(val filePath: String) : VerifyInheritanceMessageEvent()
+    data class SaveLocalFile(val isSuccess: Boolean) : VerifyInheritanceMessageEvent()
 }
