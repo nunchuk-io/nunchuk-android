@@ -2,6 +2,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
 import android.os.Build
@@ -100,6 +101,13 @@ fun VerifyInheritanceMessageScreen(
         ActivityResultContracts.StartActivityForResult()
     ) {
         // handle import signature result if needed
+    }
+    val importFileLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            viewModel.importSignatureFromFile(it)
+        }
     }
     val activity = LocalActivity.current as ComponentActivity
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -245,6 +253,15 @@ fun VerifyInheritanceMessageScreen(
                 }
             }
         },
+        onImportViaFile = {
+            importFileLauncher.launch("*/*")
+        },
+        onImportViaQr = {
+            // TODO: Implement import signature via QR
+        },
+        onImportViaNfc = {
+            // TODO: Implement import signature via NFC
+        },
         onExportViaNfc = {
             coroutineScope.launch {
                 val data = viewModel.generateColdCardSignedDataIfNeeded()
@@ -289,18 +306,23 @@ fun VerifyInheritanceMessageContent(
     onBackPressed: () -> Unit = {},
     onContinue: () -> Unit = {},
     onExportViaQr: () -> Unit = {},
-    onExportViaNfc: () -> Unit = {},
-    onSaveFile: () -> Unit = {},
-    onShareFile: () -> Unit = {},
-    onSignClick: (String) -> Unit = {},
+        onExportViaNfc: () -> Unit = {},
+        onSaveFile: () -> Unit = {},
+        onShareFile: () -> Unit = {},
+        onImportViaFile: () -> Unit = {},
+        onImportViaQr: () -> Unit = {},
+        onImportViaNfc: () -> Unit = {},
+        onSignClick: (String) -> Unit = {},
 ) {
     val isMessageSigned = uiState.signedMessage != null
 
     var showColdCardOptionsSheet by remember { mutableStateOf(false) }
     var showExportOptionsSheet by remember { mutableStateOf(false) }
+    var showImportOptionsSheet by remember { mutableStateOf(false) }
     var showSaveShareSheet by remember { mutableStateOf(false) }
     val coldCardOptionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val exportOptionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val importOptionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val saveShareSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val loadingType = uiState.loadingType
@@ -418,6 +440,7 @@ fun VerifyInheritanceMessageContent(
 
                     1 -> {
                         showColdCardOptionsSheet = false
+                        showImportOptionsSheet = true
                     }
                 }
             },
@@ -457,6 +480,37 @@ fun VerifyInheritanceMessageContent(
             },
             onDismiss = {
                 showExportOptionsSheet = false
+            }
+        )
+    }
+
+    if (showImportOptionsSheet) {
+        NcSelectableBottomSheetWithIcon(
+            sheetState = importOptionsSheetState,
+            items = listOf(
+                SelectableItem(
+                    resId = WidgetR.drawable.ic_import,
+                    text = stringResource(R.string.nc_import_via_file)
+                ),
+                SelectableItem(
+                    resId = WidgetR.drawable.ic_qr,
+                    text = stringResource(R.string.nc_import_via_qr)
+                ),
+                SelectableItem(
+                    resId = WidgetR.drawable.ic_nfc,
+                    text = stringResource(R.string.nc_import_via_nfc)
+                )
+            ),
+            onSelected = { index ->
+                showImportOptionsSheet = false
+                when (index) {
+                    0 -> onImportViaFile()
+                    1 -> onImportViaQr()
+                    2 -> onImportViaNfc()
+                }
+            },
+            onDismiss = {
+                showImportOptionsSheet = false
             }
         )
     }

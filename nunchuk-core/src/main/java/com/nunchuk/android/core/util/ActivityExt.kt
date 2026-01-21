@@ -167,6 +167,17 @@ fun getFileFromUri(contentResolver: ContentResolver, uri: Uri, directory: File):
     null
 }
 
+fun getFileContentFromUri(contentResolver: ContentResolver, uri: Uri): String? = try {
+    contentResolver.openInputStream(uri)?.use { inputStream ->
+        inputStream.bufferedReader().use { reader ->
+            reader.readText()
+        }
+    }
+} catch (t: Throwable) {
+    CrashlyticsReporter.recordException(t)
+    null
+}
+
 fun <T> AppCompatActivity.flowObserver(
     flow: Flow<T>,
     state: Lifecycle.State = Lifecycle.State.STARTED,

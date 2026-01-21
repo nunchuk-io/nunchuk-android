@@ -1,16 +1,20 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage
 
+import android.content.Context
+import android.net.Uri
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.data.model.membership.SigningChallengeMessage
-import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
+import com.nunchuk.android.core.domain.coldcard.SendDataToMk4UseCase
 import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCase
 import com.nunchuk.android.core.domain.signer.SignMessageByTapSignerUseCase
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.getFileContentFromUri
 import com.nunchuk.android.core.util.messageOrUnknownError
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SignedMessage
@@ -20,18 +24,21 @@ import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
+import com.nunchuk.android.usecase.signer.ExtractColdcardMessageSignatureUseCase
 import com.nunchuk.android.usecase.signer.GenerateColdCardHealthCheckMessageStringUseCase
 import com.nunchuk.android.usecase.signer.SignMessageBySoftwareKeyUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.FileOutputStream
 
@@ -45,7 +52,10 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     private val generateColdCardHealthCheckMessageStringUseCase: GenerateColdCardHealthCheckMessageStringUseCase,
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
-    private val exportRawPsbtToMk4UseCase: ExportRawPsbtToMk4UseCase,
+    private val sendDataToMk4UseCase: SendDataToMk4UseCase,
+    private val extractColdcardMessageSignatureUseCase: ExtractColdcardMessageSignatureUseCase,
+    @ApplicationContext private val applicationContext: Context,
+    @IoDispatcher private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher,
     @Assisted private val signer: SignerModel,
     @Assisted private val challenge: SigningChallengeMessage
 ) : ViewModel() {
@@ -258,8 +268,8 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     private fun exportToMk4(dataToSign: String, ndef: Ndef) {
         viewModelScope.launch {
             _state.update { it.copy(loadingType = LoadingType.ColdCard) }
-            val result = exportRawPsbtToMk4UseCase(
-                ExportRawPsbtToMk4UseCase.Data(dataToSign, ndef)
+            val result = sendDataToMk4UseCase(
+                SendDataToMk4UseCase.Data(dataToSign, ndef)
             )
             _state.update { it.copy(loadingType = null) }
             if (result.isSuccess) {
@@ -267,6 +277,29 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
             } else {
                 _event.emit(VerifyInheritanceMessageEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
             }
+        }
+    }
+
+    fun importSignatureFromFile(uri: Uri) {
+        viewModelScope.launch {
+            _state.update { it.copy(loadingType = LoadingType.Normal) }
+            try {
+                val fileContent = withContext(ioDispatcher) {
+                    getFileContentFromUri(applicationContext.contentResolver, uri)
+                } ?: throw Exception("Failed to read file content")
+
+                val signature = extractColdcardMessageSignatureUseCase(fileContent).getOrThrow()
+                _state.update {
+                    it.copy(
+                        signedMessage = SignedMessage(
+                            signature = signature,
+                        ),
+                    )
+                }
+            } catch (e: Exception) {
+                _event.emit(VerifyInheritanceMessageEvent.ShowError(e.message.orUnknownError()))
+            }
+            _state.update { it.copy(loadingType = null) }
         }
     }
 
