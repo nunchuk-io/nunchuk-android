@@ -1,9 +1,11 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage
 
 import android.nfc.tech.IsoDep
+import android.nfc.tech.Ndef
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.data.model.membership.SigningChallengeMessage
+import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
 import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCase
 import com.nunchuk.android.core.domain.signer.SignMessageByTapSignerUseCase
 import com.nunchuk.android.core.signer.SignerModel
@@ -43,6 +45,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     private val generateColdCardHealthCheckMessageStringUseCase: GenerateColdCardHealthCheckMessageStringUseCase,
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
+    private val exportRawPsbtToMk4UseCase: ExportRawPsbtToMk4UseCase,
     @Assisted private val signer: SignerModel,
     @Assisted private val challenge: SigningChallengeMessage
 ) : ViewModel() {
@@ -242,6 +245,31 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
         }
     }
 
+    fun handleExportTransactionToMk4(ndef: Ndef) {
+        viewModelScope.launch {
+            generateColdCardSignedDataIfNeeded()
+            val coldcardSignedData = _state.value.coldcardSignedData
+            if (!coldcardSignedData.isNullOrEmpty()) {
+                exportToMk4(coldcardSignedData, ndef)
+            }
+        }
+    }
+
+    private fun exportToMk4(dataToSign: String, ndef: Ndef) {
+        viewModelScope.launch {
+            _state.update { it.copy(loadingType = LoadingType.ColdCard) }
+            val result = exportRawPsbtToMk4UseCase(
+                ExportRawPsbtToMk4UseCase.Data(dataToSign, ndef)
+            )
+            _state.update { it.copy(loadingType = null) }
+            if (result.isSuccess) {
+                _event.emit(VerifyInheritanceMessageEvent.ExportTransactionToColdcardSuccess)
+            } else {
+                _event.emit(VerifyInheritanceMessageEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
     @AssistedFactory
     interface Factory {
         fun create(
@@ -268,6 +296,8 @@ sealed class VerifyInheritanceMessageEvent {
     data class NfcError(val e: Throwable) : VerifyInheritanceMessageEvent()
     data class GetInheritanceClaimStateSuccess(val inheritanceAdditional: InheritanceAdditional) :
         VerifyInheritanceMessageEvent()
+
     data class ExportToFileSuccess(val filePath: String) : VerifyInheritanceMessageEvent()
     data class SaveLocalFile(val isSuccess: Boolean) : VerifyInheritanceMessageEvent()
+    object ExportTransactionToColdcardSuccess : VerifyInheritanceMessageEvent()
 }

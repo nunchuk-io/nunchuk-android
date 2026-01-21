@@ -3,6 +3,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 import android.Manifest
 import android.content.pm.PackageManager
 import android.nfc.tech.IsoDep
+import android.nfc.tech.Ndef
 import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
@@ -158,6 +159,13 @@ fun VerifyInheritanceMessageScreen(
                         )
                     }
                 }
+
+                VerifyInheritanceMessageEvent.ExportTransactionToColdcardSuccess -> {
+                    snackState.showNunchukSnackbar(
+                        message = activity.getString(R.string.nc_transaction_exported),
+                        type = NcToastType.SUCCESS
+                    )
+                }
             }
         }
     }
@@ -168,6 +176,16 @@ fun VerifyInheritanceMessageScreen(
             .collect { nfcScanInfo ->
                 val isoDep = IsoDep.get(nfcScanInfo.tag) ?: return@collect
                 viewModel.signMessageByTapSigner(isoDep, nfcViewModel.inputCvc.orEmpty())
+                nfcViewModel.clearScanInfo()
+            }
+    }
+
+    LaunchedEffect(Unit) {
+        nfcViewModel.nfcScanInfo
+            .filter { it.requestCode == BaseNfcActivity.REQUEST_MK4_EXPORT_TRANSACTION }
+            .collect { scanInfo ->
+                val ndef = Ndef.get(scanInfo.tag) ?: return@collect
+                viewModel.handleExportTransactionToMk4(ndef)
                 nfcViewModel.clearScanInfo()
             }
     }
@@ -228,7 +246,12 @@ fun VerifyInheritanceMessageScreen(
             }
         },
         onExportViaNfc = {
-            // TODO: Implement export message via NFC
+            coroutineScope.launch {
+                val data = viewModel.generateColdCardSignedDataIfNeeded()
+                if (data.isNotEmpty()) {
+                    (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_MK4_EXPORT_TRANSACTION)
+                }
+            }
         },
         onSignClick = { messageToSign ->
             when (signer.type) {
