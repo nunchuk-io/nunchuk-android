@@ -171,7 +171,7 @@ fun RecoverByXprvContent(
                             coroutineScope.launch {
                                 snackState.showSnackbar(
                                     NcSnackbarVisuals(
-                                        message = context.getString(R.string.nc_copied_to_clipboard),
+                                        message = context.getString(SignerSoftwareR.string.nc_xprv_copied_to_clipboard),
                                         type = NcToastType.SUCCESS
                                     )
                                 )

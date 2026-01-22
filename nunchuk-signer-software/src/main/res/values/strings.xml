@@ -75,4 +75,5 @@
     <string name="nc_create_software_key_desc">A software key will be generated locally on this device. To ensure security, keep this device safe to prevent unauthorized access. [B]Deleting the app will also delete the software key.[/B]</string>
     <string name="nc_create_back_up_key_now">Create and back up key now</string>
     <string name="nc_create_now_back_up_key_later">Create key now, back up later</string>
+    <string name="nc_xprv_copied_to_clipboard">XPRV copied to clipboard</string>
 </resources>
