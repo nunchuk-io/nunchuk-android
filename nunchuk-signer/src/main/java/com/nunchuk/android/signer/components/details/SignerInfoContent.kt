@@ -114,8 +114,6 @@ fun SignerInfoContent(
             if (uiState.seedPhraseViewTimestamp == null) {
                 showSecurityTimeoutDialog = true
             }
-            onViewSeedPhraseClicked(uiState.passphrase)
-            onPassphraseConsume()
         }
     }
 
@@ -355,7 +353,6 @@ fun SignerInfoContent(
                                     if (needPassphrase) {
                                         showPassphraseDialog = true
                                     } else {
-                                        onViewSeedPhraseClicked(null)
                                         showSecurityTimeoutDialog = true
                                     }
                                 }
@@ -507,6 +504,8 @@ fun SignerInfoContent(
                     showSecurityTimeoutDialog = false
                 },
                 onConfirm = {
+                    onViewSeedPhraseClicked(uiState.passphrase)
+                    onPassphraseConsume()
                     showSecurityTimeoutDialog = false
                 },
             )
