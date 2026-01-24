@@ -24,11 +24,13 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.arch.vm.NunchukViewModel
 import com.nunchuk.android.core.domain.ParseQRCodeFromPhotoUseCase
 import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.share.model.SignFlowType
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionSuccess
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransaction
 import com.nunchuk.android.usecase.membership.ParseKeystoneDummyTransactionSignIn
 import com.nunchuk.android.usecase.qr.AnalyzeQrUseCase
+import com.nunchuk.android.usecase.signer.ExtractColdcardMessageSignatureFromQrUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers.IO
@@ -49,7 +51,8 @@ internal class ImportTransactionViewModel @Inject constructor(
     private val parseKeystoneDummyTransaction: ParseKeystoneDummyTransaction,
     private val parseKeystoneDummyTransactionSignIn: ParseKeystoneDummyTransactionSignIn,
     private val analyzeQrUseCase: AnalyzeQrUseCase,
-    private val parseQRCodeFromPhotoUseCase: ParseQRCodeFromPhotoUseCase
+    private val parseQRCodeFromPhotoUseCase: ParseQRCodeFromPhotoUseCase,
+    private val extractColdcardMessageSignatureFromQrUseCase: ExtractColdcardMessageSignatureFromQrUseCase
 ) : NunchukViewModel<Unit, ImportTransactionEvent>() {
     private val _state = MutableStateFlow(ImportTransactionState())
     val uiState = _state.asStateFlow()
@@ -101,25 +104,36 @@ internal class ImportTransactionViewModel @Inject constructor(
         if (isProcessing) return
         viewModelScope.launch {
             isProcessing = true
-            val result = if (args.isSignInFlow) {
-                parseKeystoneDummyTransactionSignIn(
-                    ParseKeystoneDummyTransactionSignIn.Param(
+            when (args.signFlowType) {
+                is SignFlowType.SignInDummy -> {
+                    parseKeystoneDummyTransactionSignIn(
+                        ParseKeystoneDummyTransactionSignIn.Param(
+                            qrDataList.toList()
+                        )
+                    ).onSuccess {
+                        setEvent(ImportTransactionSuccess(it))
+                    }
+                }
+                is SignFlowType.ClaimDummy -> {
+                    extractColdcardMessageSignatureFromQrUseCase(
                         qrDataList.toList()
-                    )
-                )
-            } else {
-                parseKeystoneDummyTransaction(
-                    ParseKeystoneDummyTransaction.Param(
-                        args.walletId,
-                        qrDataList.toList()
-                    )
-                )
-            }
-            result.onSuccess {
-                setEvent(ImportTransactionSuccess(it))
-            }.onFailure {
+                    ).onSuccess {
+                        setEvent(ImportTransactionSuccess(signature = it))
+                    }
+                }
+                else -> {
+                    parseKeystoneDummyTransaction(
+                        ParseKeystoneDummyTransaction.Param(
+                            args.walletId,
+                            qrDataList.toList()
+                        )
+                    ).onSuccess {
+                        setEvent(ImportTransactionSuccess(it))
+                    }
+                }
+            }.onFailure { e ->
                 if (_state.value.progress >= 100) {
-                    setEvent(ImportTransactionEvent.ImportTransactionError(result.exceptionOrNull()?.message.orUnknownError()))
+                    setEvent(ImportTransactionEvent.ImportTransactionError(e.message.orUnknownError()))
                 }
             }
             isProcessing = false
@@ -152,7 +166,9 @@ internal class ImportTransactionViewModel @Inject constructor(
     }
 
     private val isDummyFlow: Boolean
-        get() = args.isDummyTx
+        get() = args.signFlowType is SignFlowType.NormalDummy || 
+                args.signFlowType is SignFlowType.SignInDummy || 
+                args.signFlowType is SignFlowType.ClaimDummy
 }
 
 data class ImportTransactionState(val progress: Double = 0.0)

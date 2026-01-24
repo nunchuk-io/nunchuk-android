@@ -68,8 +68,8 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
-                setResult(Activity.RESULT_OK, it.data)
+            if (it.resultCode == RESULT_OK) {
+                setResult(RESULT_OK, it.data)
                 finish()
             }
         }
@@ -163,19 +163,14 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
     }
 
     private fun openImportTransactionScreen() {
-        val isDummyTx = args.signFlowType is SignFlowType.NormalDummy ||
-                args.signFlowType is SignFlowType.SignInDummy ||
-                args.signFlowType is SignFlowType.ClaimDummy
-        val isSignInFlow = args.signFlowType is SignFlowType.SignInDummy
         navigator.openImportTransactionScreen(
             launcher = launcher,
             activityContext = this,
             walletId = args.walletId,
             masterFingerPrint = args.masterFingerPrint,
             initEventId = args.initEventId,
-            isDummyTx = isDummyTx,
-            isFinishWhenError = true,
-            isSignInFlow = isSignInFlow
+            signFlowType = args.signFlowType,
+            isFinishWhenError = true
         )
     }
 

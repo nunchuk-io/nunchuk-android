@@ -432,7 +432,7 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
             launcher = importTxLauncher,
             activityContext = requireActivity(),
             walletId = walletAuthenticationViewModel.getWalletId(),
-            isDummyTx = true
+            signFlowType = SignFlowType.NormalDummy
         )
     }
 

@@ -1,6 +1,7 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.verifymessage
 
 import android.Manifest
+import android.app.Activity
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.nfc.tech.IsoDep
@@ -63,6 +64,7 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.model.SignFlowType
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.widget.NCInputDialog
@@ -99,8 +101,23 @@ fun VerifyInheritanceMessageScreen(
         }
     val exportTransactionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
-    ) {
-        // handle import signature result if needed
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val signature = result.data?.getStringExtra(GlobalResultKey.SIGNATURE)
+            signature?.let {
+                viewModel.importSignature(it)
+            }
+        }
+    }
+    val importTransactionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val signature = result.data?.getStringExtra(GlobalResultKey.SIGNATURE)
+            signature?.let {
+                viewModel.importSignature(it)
+            }
+        }
     }
     val importFileLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
@@ -257,7 +274,11 @@ fun VerifyInheritanceMessageScreen(
             importFileLauncher.launch("*/*")
         },
         onImportViaQr = {
-            // TODO: Implement import signature via QR
+            navigator.openImportTransactionScreen(
+                launcher = importTransactionLauncher,
+                activityContext = activity,
+                signFlowType = SignFlowType.ClaimDummy
+            )
         },
         onImportViaNfc = {
             // TODO: Implement import signature via NFC

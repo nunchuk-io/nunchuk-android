@@ -303,6 +303,43 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
         }
     }
 
+    fun importSignatureFromTransaction(psbt: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(loadingType = LoadingType.Normal) }
+            try {
+                val signature = extractColdcardMessageSignatureUseCase(psbt).getOrThrow()
+                _state.update {
+                    it.copy(
+                        signedMessage = SignedMessage(
+                            signature = signature,
+                        ),
+                    )
+                }
+            } catch (e: Exception) {
+                _event.emit(VerifyInheritanceMessageEvent.ShowError(e.message.orUnknownError()))
+            }
+            _state.update { it.copy(loadingType = null) }
+        }
+    }
+
+    fun importSignature(signature: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(loadingType = LoadingType.Normal) }
+            try {
+                _state.update {
+                    it.copy(
+                        signedMessage = SignedMessage(
+                            signature = signature,
+                        ),
+                    )
+                }
+            } catch (e: Exception) {
+                _event.emit(VerifyInheritanceMessageEvent.ShowError(e.message.orUnknownError()))
+            }
+            _state.update { it.copy(loadingType = null) }
+        }
+    }
+
     @AssistedFactory
     interface Factory {
         fun create(

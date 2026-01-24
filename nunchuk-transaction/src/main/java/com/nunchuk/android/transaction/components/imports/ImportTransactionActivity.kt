@@ -30,6 +30,7 @@ import com.nunchuk.android.core.base.BaseCameraActivity
 import com.nunchuk.android.core.base.ScannerViewComposer
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.share.model.SignFlowType
 import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.imports.ImportTransactionEvent.ImportTransactionError
@@ -89,9 +90,10 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
         if (event.transaction != null) {
             intent.apply {
                 putExtra(GlobalResultKey.TRANSACTION_EXTRA, event.transaction)
+                putExtra(GlobalResultKey.SIGNATURE, event.signature)
             }
         }
-        setResult(Activity.RESULT_OK, intent)
+        setResult(RESULT_OK, intent)
         hideLoading()
         finish()
     }
@@ -147,17 +149,15 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
             walletId: String = "",
             masterFingerPrint: String = "",
             initEventId: String = "",
-            isDummyTx: Boolean = false,
-            isFinishWhenError: Boolean = false,
-            isSignInFlow: Boolean = false
+            signFlowType: SignFlowType = SignFlowType.Normal,
+            isFinishWhenError: Boolean = false
         ): Intent {
             return ImportTransactionArgs(
                 walletId = walletId,
                 masterFingerPrint = masterFingerPrint,
                 initEventId = initEventId,
-                isDummyTx = isDummyTx,
-                isFinishWhenError = isFinishWhenError,
-                isSignInFlow = isSignInFlow
+                signFlowType = signFlowType,
+                isFinishWhenError = isFinishWhenError
             ).buildIntent(activityContext)
         }
     }

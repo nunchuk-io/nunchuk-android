@@ -23,32 +23,31 @@ import android.content.Context
 import android.content.Intent
 import com.nunchuk.android.arch.args.ActivityArgs
 import com.nunchuk.android.core.util.getStringValue
+import com.nunchuk.android.share.model.SignFlowType
+import com.nunchuk.android.utils.parcelable
 
 data class ImportTransactionArgs(
     val walletId: String,
     val masterFingerPrint: String,
     val initEventId: String,
-    val isDummyTx: Boolean,
-    val isFinishWhenError: Boolean,
-    val isSignInFlow: Boolean
+    val signFlowType: SignFlowType,
+    val isFinishWhenError: Boolean
 ) : ActivityArgs {
 
     override fun buildIntent(activityContext: Context) = Intent(activityContext, ImportTransactionActivity::class.java).apply {
         putExtra(EXTRA_WALLET_ID, walletId)
         putExtra(EXTRA_MASTER_FINGER_PRINT, masterFingerPrint)
         putExtra(EXTRA_INIT_EVENT_ID, initEventId)
-        putExtra(EXTRA_IS_DUMMY_TX, isDummyTx)
+        putExtra(EXTRA_SIGN_FLOW_TYPE, signFlowType)
         putExtra(EXTRA_IS_FINISH_WHEN_ERROR, isFinishWhenError)
-        putExtra(EXTRA_IS_SIGN_IN_FLOW, isSignInFlow)
     }
 
     companion object {
         private const val EXTRA_WALLET_ID = "a"
         private const val EXTRA_MASTER_FINGER_PRINT = "c"
         private const val EXTRA_INIT_EVENT_ID = "d"
-        private const val EXTRA_IS_DUMMY_TX = "e"
+        private const val EXTRA_SIGN_FLOW_TYPE = "e"
         private const val EXTRA_IS_FINISH_WHEN_ERROR = "f"
-        private const val EXTRA_IS_SIGN_IN_FLOW = "g"
 
         fun deserializeFrom(intent: Intent): ImportTransactionArgs {
             val extras = intent.extras
@@ -56,9 +55,8 @@ data class ImportTransactionArgs(
                 walletId = extras.getStringValue(EXTRA_WALLET_ID),
                 masterFingerPrint = extras.getStringValue(EXTRA_MASTER_FINGER_PRINT),
                 initEventId = extras.getStringValue(EXTRA_INIT_EVENT_ID),
-                isDummyTx = extras?.getBoolean(EXTRA_IS_DUMMY_TX) ?: false,
-                isFinishWhenError = extras?.getBoolean(EXTRA_IS_FINISH_WHEN_ERROR) ?: false,
-                isSignInFlow = extras?.getBoolean(EXTRA_IS_SIGN_IN_FLOW) ?: false
+                signFlowType = extras?.parcelable<SignFlowType>(EXTRA_SIGN_FLOW_TYPE) ?: SignFlowType.Normal,
+                isFinishWhenError = extras?.getBoolean(EXTRA_IS_FINISH_WHEN_ERROR) ?: false
             )
         }
     }

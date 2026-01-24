@@ -139,12 +139,11 @@ interface TransactionNavigator {
     fun openImportTransactionScreen(
         launcher: ActivityResultLauncher<Intent>? = null,
         activityContext: Activity,
-        walletId: String,
+        walletId: String = "",
         masterFingerPrint: String = "",
         initEventId: String = "",
-        isDummyTx: Boolean = false,
-        isFinishWhenError: Boolean = false,
-        isSignInFlow: Boolean = false
+        signFlowType: SignFlowType = SignFlowType.Normal,
+        isFinishWhenError: Boolean = false
     )
 
     fun openExportTransactionScreen(

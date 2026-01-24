@@ -391,8 +391,7 @@ class SignInDummyTransactionDetailsFragment :
             launcher = importTxLauncher,
             activityContext = requireActivity(),
             walletId = "",
-            isSignInFlow = true,
-            isDummyTx = true
+            signFlowType = SignFlowType.SignInDummy
         )
     }
 

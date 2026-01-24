@@ -244,18 +244,16 @@ interface TransactionNavigatorDelegate : TransactionNavigator {
         walletId: String,
         masterFingerPrint: String,
         initEventId: String,
-        isDummyTx: Boolean,
-        isFinishWhenError: Boolean,
-        isSignInFlow: Boolean
+        signFlowType: SignFlowType,
+        isFinishWhenError: Boolean
     ) {
         val intent = ImportTransactionActivity.buildIntent(
             activityContext = activityContext,
             walletId = walletId,
             masterFingerPrint = masterFingerPrint,
             initEventId = initEventId,
-            isDummyTx = isDummyTx,
-            isFinishWhenError = isFinishWhenError,
-            isSignInFlow = isSignInFlow
+            signFlowType = signFlowType,
+            isFinishWhenError = isFinishWhenError
         )
         if (launcher != null) {
             launcher.launch(intent)
