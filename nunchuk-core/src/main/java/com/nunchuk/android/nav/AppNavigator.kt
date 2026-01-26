@@ -25,6 +25,8 @@ import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.referral.ReferralArgs
+import com.nunchuk.android.core.signer.KeyFlow
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
@@ -36,8 +38,6 @@ import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.byzantine.GroupWalletType
-import com.nunchuk.android.core.signer.KeyFlow
-import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.ClaimArgs
