@@ -61,8 +61,7 @@ fun ClaimBackupPasswordScreen(
         signers: List<SignerModel>,
         magic: String,
         inheritanceAdditional: InheritanceAdditional,
-        derivationPaths: List<String>
-    ) -> Unit = { _, _, _, _ -> },
+    ) -> Unit = { _, _, _ -> },
     viewModel: InheritanceClaimInputViewModel = hiltViewModel(),
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -92,7 +91,6 @@ fun ClaimBackupPasswordScreen(
                         event.signers,
                         event.magic,
                         event.inheritanceAdditional,
-                        event.derivationPaths
                     )
                 }
             }

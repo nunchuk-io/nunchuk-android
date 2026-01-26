@@ -27,17 +27,20 @@ import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.share.model.ExtendTransaction
 import com.nunchuk.android.usecase.UseCase
+import com.nunchuk.android.usecase.signer.GetRemoteOrMasterSignerUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
 class InheritanceClaimCreateTransactionUseCase @Inject constructor(
     @IoDispatcher dispatcher: CoroutineDispatcher,
     private val userWalletRepository: PremiumWalletRepository,
+    private val getRemoteOrMasterSignerUseCase: GetRemoteOrMasterSignerUseCase,
     private val nunchukNativeSdk: NunchukNativeSdk
 ) : UseCase<InheritanceClaimCreateTransactionUseCase.Param, ExtendTransaction>(
     dispatcher
 ) {
     override suspend fun execute(parameters: Param): ExtendTransaction {
+        val isDraft = parameters.isDraft || !parameters.messageId.isNullOrEmpty()
         val userData = userWalletRepository.generateInheritanceClaimCreateTransactionUserData(
             magic = parameters.magic,
             address = parameters.address,
@@ -50,15 +53,30 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
         )
         val signatures = arrayListOf<String>()
         val singleSigners = arrayListOf<SingleSigner>()
-        parameters.masterSignerIds.forEachIndexed { index, masterSignerId ->
-            val signer = nunchukNativeSdk.getSignerFromMasterSigner(
-                masterSignerId = masterSignerId,
-                path = parameters.derivationPaths[index]
-            )
-            val messagesToSign = nunchukNativeSdk.getHealthCheckMessage(userData)
-            val signature = nunchukNativeSdk.signHealthCheckMessage(signer, messagesToSign)
-            signatures.add(signature)
-            singleSigners.add(signer)
+        if (parameters.signatures.isEmpty()) {
+            parameters.masterSignerIds.forEachIndexed { index, masterSignerId ->
+                val signer = getRemoteOrMasterSignerUseCase(
+                    GetRemoteOrMasterSignerUseCase.Data(
+                        id = masterSignerId,
+                        derivationPath = parameters.derivationPaths[index]
+                    )
+                ).getOrThrow()
+                val messagesToSign = nunchukNativeSdk.getHealthCheckMessage(userData)
+                val signature = nunchukNativeSdk.signHealthCheckMessage(signer, messagesToSign)
+                signatures.add(signature)
+                singleSigners.add(signer)
+            }
+        } else {
+            parameters.masterSignerIds.forEachIndexed { index, masterSignerId ->
+                val signer = getRemoteOrMasterSignerUseCase(
+                    GetRemoteOrMasterSignerUseCase.Data(
+                        id = masterSignerId,
+                        derivationPath = parameters.derivationPaths[index]
+                    )
+                ).getOrThrow()
+                singleSigners.add(signer)
+            }
+            signatures.addAll(parameters.signatures)
         }
         val transactionResponse = userWalletRepository.inheritanceClaimCreateTransaction(
             userData = userData,
@@ -71,11 +89,11 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
             subAmount = transactionResponse.subAmount.toString(),
             fee = transactionResponse.fee.toString(),
             feeRate = transactionResponse.feeRate.toString(),
-            isDraft = parameters.isDraft,
+            isDraft = isDraft,
             bsms = parameters.bsms,
             subtractFeeFromAmount = transactionResponse.subtractFeeFromAmount
         )
-        if (parameters.isDraft) {
+        if (isDraft) {
             return if (parameters.bsms.isNullOrEmpty()) {
                 ExtendTransaction(transaction.copy(changeIndex = transactionResponse.changePos))
             } else {
@@ -116,6 +134,7 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
         val antiFeeSniping: Boolean,
         val bsms: String? = null,
         val subtractFeeFromAmount: Boolean? = null,
-        val messageId: String? = null
+        val messageId: String? = null,
+        val signatures: List<String> = emptyList()
     )
 }

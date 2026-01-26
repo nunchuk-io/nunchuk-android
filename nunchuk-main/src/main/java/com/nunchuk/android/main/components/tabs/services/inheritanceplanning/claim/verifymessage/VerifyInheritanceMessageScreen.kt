@@ -83,6 +83,7 @@ fun VerifyInheritanceMessageScreen(
     onBackPressed: () -> Unit = {},
     addMoreSigner: () -> Unit = {},
     onSuccess: (InheritanceAdditional) -> Unit = {},
+    onSigned: (String) -> Unit = {},
 ) {
     val localSigner = claimData.signers.last()
     val path =
@@ -140,6 +141,13 @@ fun VerifyInheritanceMessageScreen(
     }
     val nfcViewModel = hiltViewModel<NfcViewModel>(viewModelStoreOwner = activity)
     val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(uiState.signedMessage) {
+        val signedMessage = uiState.signedMessage
+        if (signedMessage != null) {
+            onSigned(signedMessage.signature)
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.event.collect { event ->
@@ -235,7 +243,11 @@ fun VerifyInheritanceMessageScreen(
             if (claimData.requiredKeyCount > claimData.signers.size) {
                 addMoreSigner()
             } else {
-                viewModel.getInheritanceClaimState(claimData.magic)
+                viewModel.getInheritanceClaimState(
+                    magic = claimData.magic,
+                    signers = claimData.signers,
+                    signatures = claimData.signatures
+                )
             }
         },
         onExportViaQr = {
@@ -336,13 +348,13 @@ fun VerifyInheritanceMessageContent(
     onBackPressed: () -> Unit = {},
     onContinue: () -> Unit = {},
     onExportViaQr: () -> Unit = {},
-        onExportViaNfc: () -> Unit = {},
-        onSaveFile: () -> Unit = {},
-        onShareFile: () -> Unit = {},
-        onImportViaFile: () -> Unit = {},
-        onImportViaQr: () -> Unit = {},
-        onImportViaNfc: () -> Unit = {},
-        onSignClick: (String) -> Unit = {},
+    onExportViaNfc: () -> Unit = {},
+    onSaveFile: () -> Unit = {},
+    onShareFile: () -> Unit = {},
+    onImportViaFile: () -> Unit = {},
+    onImportViaQr: () -> Unit = {},
+    onImportViaNfc: () -> Unit = {},
+    onSignClick: (String) -> Unit = {},
 ) {
     val isMessageSigned = uiState.signedMessage != null
 

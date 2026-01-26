@@ -325,6 +325,8 @@ class EstimatedFeeViewModel @Inject constructor(
                 bsms = claimInheritanceTxParam?.bsms,
                 antiFeeSniping = getAntiFeeSniping(),
                 subtractFeeFromAmount = getState().subtractFeeFromAmount,
+                signatures = claimInheritanceTxParam?.signatures.orEmpty(),
+                messageId = claimInheritanceTxParam?.messageId
             )
         )
         _event.emit(EstimatedFeeEvent.Loading(false))

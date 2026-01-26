@@ -22,7 +22,6 @@ package com.nunchuk.android.core.domain.membership
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.InheritanceAdditional
-import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.repository.PremiumWalletRepository
 import com.nunchuk.android.usecase.UseCase

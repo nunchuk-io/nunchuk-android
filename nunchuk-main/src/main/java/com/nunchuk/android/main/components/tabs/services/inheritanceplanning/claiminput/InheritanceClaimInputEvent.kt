@@ -30,7 +30,6 @@ sealed class InheritanceClaimInputEvent {
         val inheritanceAdditional: InheritanceAdditional,
         val signers: List<SignerModel>,
         val magic: String,
-        val derivationPaths: List<String>
     ) : InheritanceClaimInputEvent()
 }
 

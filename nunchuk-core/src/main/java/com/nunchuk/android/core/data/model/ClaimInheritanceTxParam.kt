@@ -11,7 +11,9 @@ data class ClaimInheritanceTxParam(
     val totalAmount: Double = 0.0,
     val customAmount: Double = 0.0,
     val bsms: String? = null,
-    val isUseWallet: Boolean = true
+    val isUseWallet: Boolean = true,
+    val signatures: List<String> = emptyList(),
+    val messageId: String? = null
 ) : Parcelable {
     companion object {
         fun empty() = ClaimInheritanceTxParam()

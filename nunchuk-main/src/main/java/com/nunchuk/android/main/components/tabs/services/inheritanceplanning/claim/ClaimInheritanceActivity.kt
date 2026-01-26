@@ -341,14 +341,13 @@ private fun ClaimInheritanceGraph(
                         message = context.getString(R.string.nc_no_inheritance_plan_found_desc)
                     )
                 },
-                onSuccess = { signers, magic, inheritanceAdditional, derivationPaths ->
+                onSuccess = { signers, magic, inheritanceAdditional ->
                     val bufferPeriodCountdown = inheritanceAdditional.bufferPeriodCountdown
                     if (bufferPeriodCountdown == null) {
                         activityViewModel.setClaimNoteData(
                             signers,
                             magic,
                             inheritanceAdditional,
-                            derivationPaths
                         )
                     } else {
                         navController.navigateToClaimBufferPeriod(bufferPeriodCountdown)
@@ -419,7 +418,9 @@ private fun ClaimInheritanceGraph(
                                 magicalPhrase = claimData.magic.trim(),
                                 derivationPaths = claimData.derivationPaths,
                                 totalAmount = walletBalance,
-                                bsms = claimData.bsms
+                                bsms = claimData.bsms,
+                                signatures = claimData.signatures,
+                                messageId = claimData.challenge?.id
                             )
                         )
                     }
@@ -436,7 +437,8 @@ private fun ClaimInheritanceGraph(
                                 derivationPaths = claimData.derivationPaths,
                                 totalAmount = walletBalance,
                                 isUseWallet = true,
-                                bsms = claimData.bsms
+                                bsms = claimData.bsms,
+                                signatures = claimData.signatures
                             )
                         )
                     }
@@ -452,7 +454,9 @@ private fun ClaimInheritanceGraph(
                                     derivationPaths = claimData.derivationPaths,
                                     totalAmount = walletBalance,
                                     isUseWallet = true,
-                                    bsms = claimData.bsms
+                                    bsms = claimData.bsms,
+                                    signatures = claimData.signatures,
+                                    messageId = claimData.challenge?.id
                                 ),
                                 type = SelectWalletType.TYPE_INHERITANCE_WALLET
                             )
@@ -477,7 +481,8 @@ private fun ClaimInheritanceGraph(
                                 derivationPaths = claimData.derivationPaths,
                                 totalAmount = walletBalance,
                                 isUseWallet = false,
-                                bsms = claimData.bsms
+                                bsms = claimData.bsms,
+                                signatures = claimData.signatures
                             )
                         )
                     }

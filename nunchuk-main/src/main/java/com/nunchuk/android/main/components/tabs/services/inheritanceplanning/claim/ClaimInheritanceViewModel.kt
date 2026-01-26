@@ -77,14 +77,12 @@ class ClaimInheritanceViewModel @Inject constructor(
         signers: List<SignerModel>,
         magic: String,
         inheritanceAdditional: InheritanceAdditional,
-        derivationPaths: List<String>
     ) {
         deletePendingRequests(magic)
         _claimData.update {
             it.copy(
                 signers = signers.toSet(),
                 magic = magic,
-                derivationPaths = derivationPaths,
                 inheritanceAdditional = inheritanceAdditional,
             )
         }
@@ -95,6 +93,7 @@ class ClaimInheritanceViewModel @Inject constructor(
         _claimData.update {
             it.copy(
                 signers = emptySet(),
+                signatures = emptyList(),
                 magic = magicPhrase,
                 requiredKeyCount = init.inheritanceKeyCount,
                 walletType = init.walletType,
@@ -359,6 +358,15 @@ class ClaimInheritanceViewModel @Inject constructor(
         _claimData.update { it.copy(inheritanceAdditional = inheritanceAdditional) }
     }
 
+    fun addSignature(signature: String) {
+        val currentData = _claimData.value
+        _claimData.update {
+            it.copy(
+                signatures = currentData.signatures + signature
+            )
+        }
+    }
+
     private companion object {
         private const val KEY_CLAIM_DATA = "claim_data"
         private const val INHERITED_KEY_NAME = "Inheritance key"
@@ -389,8 +397,8 @@ sealed class ClaimInheritanceEvent {
 @Parcelize
 data class ClaimData(
     val signers: Set<SignerModel> = emptySet(),
+    val signatures: List<String> = emptyList(),
     val magic: String = "",
-    val derivationPaths: List<String> = emptyList(),
     val inheritanceAdditional: InheritanceAdditional? = null,
     val requiredKeyCount: Int = 1,
     val walletType: WalletType = WalletType.MULTI_SIG,
@@ -403,5 +411,7 @@ data class ClaimData(
 
     val isOnChainClaim: Boolean
         get() = !bsms.isNullOrEmpty() || walletType == WalletType.MINISCRIPT
+
+    val derivationPaths = keyOrigins.map { it.derivationPath }
 }
 

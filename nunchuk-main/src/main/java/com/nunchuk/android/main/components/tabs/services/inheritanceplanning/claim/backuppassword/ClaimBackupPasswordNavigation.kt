@@ -22,8 +22,7 @@ fun NavGraphBuilder.claimBackupPassword(
         signers: List<SignerModel>,
         magic: String,
         inheritanceAdditional: InheritanceAdditional,
-        derivationPaths: List<String>
-    ) -> Unit = { _, _, _, _ -> },
+    ) -> Unit = { _, _, _, -> },
 ) {
     composable<ClaimBackupPasswordRoute> {
         val route = it.toRoute<ClaimBackupPasswordRoute>()

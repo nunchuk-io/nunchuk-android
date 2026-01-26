@@ -182,7 +182,11 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
         }
     }
 
-    fun getInheritanceClaimState(magic: String) {
+    fun getInheritanceClaimState(
+        magic: String,
+        signers: Set<SignerModel>,
+        signatures: List<String>
+    ) {
         viewModelScope.launch {
             val signedMessage = _state.value.signedMessage
             val signature = signedMessage?.signature.orEmpty()
@@ -196,8 +200,8 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
 
             getInheritanceClaimStateUseCase(
                 GetInheritanceClaimStateUseCase.Param(
-                    signerModels = listOf(signer),
-                    signatures = listOf(signature),
+                    signerModels = signers.toList(),
+                    signatures = signatures,
                     magic = magic,
                     messageId = messageId
                 )

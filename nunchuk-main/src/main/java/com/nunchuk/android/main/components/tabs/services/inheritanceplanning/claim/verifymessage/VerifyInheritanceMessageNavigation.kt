@@ -38,6 +38,7 @@ fun NavGraphBuilder.verifyInheritanceMessage(
                 onSuccess = { inheritanceAdditional ->
                     activityViewModel.updateInheritanceAdditional(inheritanceAdditional)
                 },
+                onSigned = activityViewModel::addSignature
             )
         }
     }

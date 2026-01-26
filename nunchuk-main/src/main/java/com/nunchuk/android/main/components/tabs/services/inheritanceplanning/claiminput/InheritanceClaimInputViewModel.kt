@@ -143,7 +143,6 @@ class InheritanceClaimInputViewModel @Inject constructor(
                     inheritanceAdditional = result.getOrThrow(),
                     signers = signers,
                     magic = magic,
-                    derivationPaths = derivationPaths
                 )
             )
         } else {
