@@ -2,6 +2,7 @@ package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cl
 
 import android.content.Context
 import android.net.Uri
+import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
 import androidx.lifecycle.ViewModel
@@ -25,6 +26,7 @@ import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
 import com.nunchuk.android.usecase.signer.ExtractColdcardMessageSignatureUseCase
+import com.nunchuk.android.usecase.signer.ExtractColdcardSignatureFromRecordsUseCase
 import com.nunchuk.android.usecase.signer.GenerateColdCardHealthCheckMessageStringUseCase
 import com.nunchuk.android.usecase.signer.SignMessageBySoftwareKeyUseCase
 import dagger.assisted.Assisted
@@ -54,6 +56,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
     private val sendDataToMk4UseCase: SendDataToMk4UseCase,
     private val extractColdcardMessageSignatureUseCase: ExtractColdcardMessageSignatureUseCase,
+    private val extractColdcardSignatureFromRecordsUseCase: ExtractColdcardSignatureFromRecordsUseCase,
     @ApplicationContext private val applicationContext: Context,
     @IoDispatcher private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher,
     @Assisted private val signer: SignerModel,
@@ -303,25 +306,6 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
         }
     }
 
-    fun importSignatureFromTransaction(psbt: String) {
-        viewModelScope.launch {
-            _state.update { it.copy(loadingType = LoadingType.Normal) }
-            try {
-                val signature = extractColdcardMessageSignatureUseCase(psbt).getOrThrow()
-                _state.update {
-                    it.copy(
-                        signedMessage = SignedMessage(
-                            signature = signature,
-                        ),
-                    )
-                }
-            } catch (e: Exception) {
-                _event.emit(VerifyInheritanceMessageEvent.ShowError(e.message.orUnknownError()))
-            }
-            _state.update { it.copy(loadingType = null) }
-        }
-    }
-
     fun importSignature(signature: String) {
         viewModelScope.launch {
             _state.update { it.copy(loadingType = LoadingType.Normal) }
@@ -336,6 +320,26 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
             } catch (e: Exception) {
                 _event.emit(VerifyInheritanceMessageEvent.ShowError(e.message.orUnknownError()))
             }
+            _state.update { it.copy(loadingType = null) }
+        }
+    }
+
+    fun importSignatureFromNfc(records: List<NdefRecord>) {
+        viewModelScope.launch {
+            _state.update { it.copy(loadingType = LoadingType.ColdCard) }
+            extractColdcardSignatureFromRecordsUseCase(records.toTypedArray())
+                .onSuccess { signature ->
+                    _state.update {
+                        it.copy(
+                            signedMessage = SignedMessage(
+                                signature = signature,
+                            ),
+                        )
+                    }
+                }
+                .onFailure { e ->
+                    _event.emit(VerifyInheritanceMessageEvent.ShowError(e.message.orUnknownError()))
+                }
             _state.update { it.copy(loadingType = null) }
         }
     }

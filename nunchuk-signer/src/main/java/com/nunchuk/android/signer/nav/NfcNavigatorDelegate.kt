@@ -139,6 +139,19 @@ interface NfcNavigatorDelegate : NfcNavigator {
         )
     }
 
+    override fun openRecoverTapSigner(
+        launcher: ActivityResultLauncher<Intent>?,
+        activity: Activity,
+        fromMembershipFlow: Boolean,
+    ) {
+        val intent = NfcSetupActivity.buildIntent(
+            activity = activity,
+            setUpAction = NfcSetupActivity.RECOVER_NFC,
+            fromMembershipFlow = fromMembershipFlow,
+        )
+        launcher?.launch(intent) ?: activity.startActivity(intent)
+    }
+
     override fun openPortalScreen(
         launcher: ActivityResultLauncher<Intent>?,
         activity: Activity,

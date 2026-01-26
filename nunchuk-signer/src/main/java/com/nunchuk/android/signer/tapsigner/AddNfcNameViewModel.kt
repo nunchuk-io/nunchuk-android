@@ -28,9 +28,11 @@ import com.nunchuk.android.core.domain.CreateTapSignerUseCase
 import com.nunchuk.android.core.domain.GetTapSignerBackupUseCase
 import com.nunchuk.android.core.domain.signer.GetSignerFromTapsignerMasterSignerUseCase
 import com.nunchuk.android.core.helper.CheckAssistedSignerExistenceHelper
+import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.type.AddressType
@@ -56,6 +58,7 @@ class AddNfcNameViewModel @Inject constructor(
     private val getSignerFromTapsignerMasterSignerUseCase: GetSignerFromTapsignerMasterSignerUseCase,
     private val pushEventManager: PushEventManager,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
+    private val masterSignerMapper: MasterSignerMapper,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -217,7 +220,10 @@ class AddNfcNameViewModel @Inject constructor(
             updateMasterSignerUseCase(parameters = masterSigner.copy(name = updateSignerName))
                 .onSuccess {
                     _event.emit(
-                        AddNfcNameEvent.Success(masterSigner.copy(name = updateSignerName))
+                        AddNfcNameEvent.Success(
+                            masterSigner = masterSigner.copy(name = updateSignerName),
+                            signer = masterSignerMapper(masterSigner)
+                        )
                     )
                 }.onFailure { e ->
                     _event.emit(AddNfcNameEvent.UpdateError(e))
@@ -236,7 +242,9 @@ data class AddNfcNameState(
 
 sealed class AddNfcNameEvent {
     data class Loading(val isLoading: Boolean) : AddNfcNameEvent()
-    data class Success(val masterSigner: MasterSigner) : AddNfcNameEvent()
+    data class Success(val masterSigner: MasterSigner, val signer: SignerModel? = null) :
+        AddNfcNameEvent()
+
     data class BackUpSuccess(val filePath: String) : AddNfcNameEvent()
     data class Error(val e: Throwable?) : AddNfcNameEvent()
     data class UpdateError(val e: Throwable?) : AddNfcNameEvent()

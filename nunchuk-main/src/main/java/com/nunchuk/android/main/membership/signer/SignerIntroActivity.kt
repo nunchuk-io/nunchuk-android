@@ -240,27 +240,27 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                     }
 
                     if (showSignerBottomSheet && filteredSigners.isNotEmpty()) {
-                            SelectSignerBottomSheet(
-                                args = TapSignerListBottomSheetFragmentArgs(
-                                    signers = filteredSigners.toTypedArray(),
-                                    type = signerType ?: SignerType.UNKNOWN,
-                                    description = "",
-                                    ignoreIndexCheckForAcctX = true
-                                ),
-                                onDismiss = {
-                                    showSignerBottomSheet = false
-                                },
-                                onAddExistKey = { signer ->
-                                    showSignerBottomSheet = false
-                                    returnSigner(signer)
-                                },
-                                onAddNewKey = {
-                                    showSignerBottomSheet = false
-                                    signerType?.let { signerType ->
-                                        viewModel.createNewSigner(signerType, signerTag)
-                                    }
+                        SelectSignerBottomSheet(
+                            args = TapSignerListBottomSheetFragmentArgs(
+                                signers = filteredSigners.toTypedArray(),
+                                type = signerType ?: SignerType.UNKNOWN,
+                                description = "",
+                                ignoreIndexCheckForAcctX = true
+                            ),
+                            onDismiss = {
+                                showSignerBottomSheet = false
+                            },
+                            onAddExistKey = { signer ->
+                                showSignerBottomSheet = false
+                                returnSigner(signer)
+                            },
+                            onAddNewKey = {
+                                showSignerBottomSheet = false
+                                signerType?.let { signerType ->
+                                    viewModel.createNewSigner(signerType, signerTag)
                                 }
-                            )
+                            }
+                        )
                     }
 
                     if (showRecoverSheet) {
@@ -268,12 +268,13 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
                             options = listOf(
                                 stringResource(R.string.nc_recover_key_via_seed),
                                 stringResource(R.string.nc_recover_key_via_xprv),
+                                stringResource(R.string.nc_recover_tapsigner_key_from_backup),
                             ),
                             onSelected = {
-                                if (it == 0) {
-                                    onRecoverSeedClicked()
-                                } else {
-                                    onRecoverXprvClicked()
+                                when (it) {
+                                    0 -> onRecoverSeedClicked()
+                                    1 -> onRecoverXprvClicked()
+                                    2 -> onRecoverTapSignerClicked()
                                 }
                                 showRecoverSheet = false
                             },
@@ -301,6 +302,14 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
             keyFlow = KeyFlow.ADD_AND_RETURN,
             launcher = xprvLauncher,
             masterSignerId = ""
+        )
+    }
+
+    private fun onRecoverTapSignerClicked() {
+        navigator.openRecoverTapSigner(
+            launcher = signerResultLauncher,
+            activity = this,
+            fromMembershipFlow = true
         )
     }
 

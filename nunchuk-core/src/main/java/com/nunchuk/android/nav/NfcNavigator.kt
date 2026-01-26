@@ -79,6 +79,12 @@ interface NfcNavigator {
         isOnChainBackUp: Boolean = false,
     )
 
+    fun openRecoverTapSigner(
+        launcher: ActivityResultLauncher<Intent>? = null,
+        activity: Activity,
+        fromMembershipFlow: Boolean,
+    )
+
     fun openPortalScreen(
         launcher: ActivityResultLauncher<Intent>? = null,
         activity: Activity, args: PortalDeviceArgs

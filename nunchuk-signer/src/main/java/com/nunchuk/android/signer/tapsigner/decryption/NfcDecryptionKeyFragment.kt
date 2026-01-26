@@ -19,11 +19,14 @@
 
 package com.nunchuk.android.signer.tapsigner.decryption
 
+import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.net.toUri
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -32,8 +35,11 @@ import com.nunchuk.android.core.nfc.NfcViewModel
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.MasterSigner
+import com.nunchuk.android.share.result.GlobalResultKey
 import com.nunchuk.android.signer.R
 import com.nunchuk.android.signer.databinding.FragmentDecryptionKeyBinding
+import com.nunchuk.android.signer.tapsigner.AddNfcNameEvent
+import com.nunchuk.android.signer.tapsigner.AddNfcNameViewModel
 import com.nunchuk.android.signer.tapsigner.NfcSetupActivity
 import com.nunchuk.android.widget.NCToastMessage
 import com.nunchuk.android.widget.util.heightExtended
@@ -42,8 +48,12 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class NfcDecryptionKeyFragment : BaseFragment<FragmentDecryptionKeyBinding>() {
     private val viewModel by viewModels<NfcDecryptionKeyViewModel>()
+    private val nameNfcViewModel by viewModels<AddNfcNameViewModel>()
     private val nfcViewModel by activityViewModels<NfcViewModel>()
-    private val uri: Uri by lazy(LazyThreadSafetyMode.NONE) { Uri.parse(requireArguments().getString(EXTRA_URI_STRING)) }
+    private val uri: Uri by lazy(LazyThreadSafetyMode.NONE) {
+        requireArguments().getString(
+            EXTRA_URI_STRING, ""
+        ).toUri() }
 
     override fun initializeBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentDecryptionKeyBinding {
         return FragmentDecryptionKeyBinding.inflate(inflater, container, false)
@@ -65,11 +75,31 @@ class NfcDecryptionKeyFragment : BaseFragment<FragmentDecryptionKeyBinding>() {
                 else -> {}
             }
         }
+        flowObserver(nameNfcViewModel.event) {
+            when (it) {
+                is AddNfcNameEvent.UpdateError -> showError(it.e)
+                is AddNfcNameEvent.Success -> {
+                    requireActivity().setResult(
+                        Activity.RESULT_OK,
+                        Intent().apply {
+                            putExtra(GlobalResultKey.EXTRA_SIGNER, it.signer)
+                        }
+                    )
+                    requireActivity().finish()
+                }
+                else -> Unit
+            }
+        }
     }
 
     private fun handleImportSuccess(masterSigner: MasterSigner) {
         nfcViewModel.updateMasterSigner(masterSigner)
-        findNavController().navigate(R.id.addNfcNameFragment)
+        val fromMembershipFlow = (requireActivity() as NfcSetupActivity).fromMembershipFlow
+        if (fromMembershipFlow) {
+            nameNfcViewModel.updateName(masterSigner, "Inheritance Key")
+        } else {
+            findNavController().navigate(R.id.addNfcNameFragment)
+        }
     }
 
     private fun showError(e: Throwable?) {

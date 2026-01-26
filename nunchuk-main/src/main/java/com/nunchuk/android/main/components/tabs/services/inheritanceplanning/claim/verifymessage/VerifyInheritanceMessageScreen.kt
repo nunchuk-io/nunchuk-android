@@ -215,6 +215,15 @@ fun VerifyInheritanceMessageScreen(
             }
     }
 
+    LaunchedEffect(Unit) {
+        nfcViewModel.nfcScanInfo
+            .filter { it.requestCode == BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE }
+            .collect { scanInfo ->
+                viewModel.importSignatureFromNfc(scanInfo.records)
+                nfcViewModel.clearScanInfo()
+            }
+    }
+
     VerifyInheritanceMessageContent(
         modifier = modifier,
         snackState = snackState,
@@ -281,7 +290,7 @@ fun VerifyInheritanceMessageScreen(
             )
         },
         onImportViaNfc = {
-            // TODO: Implement import signature via NFC
+            (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE)
         },
         onExportViaNfc = {
             coroutineScope.launch {
