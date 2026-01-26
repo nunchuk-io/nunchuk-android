@@ -104,7 +104,6 @@ class GroupDashboardViewModel @Inject constructor(
     private val keyHealthCheckUseCase: KeyHealthCheckUseCase,
     private val getAssistedWalletsFlowUseCase: GetAssistedWalletsFlowUseCase,
     private val getInheritanceUseCase: GetInheritanceUseCase,
-
     private val setRegisterAirgapUseCase: SetRegisterAirgapUseCase,
     private val calculateRequiredSignaturesInheritanceUseCase: CalculateRequiredSignaturesInheritanceUseCase,
     private val restartWizardUseCase: RestartWizardUseCase,

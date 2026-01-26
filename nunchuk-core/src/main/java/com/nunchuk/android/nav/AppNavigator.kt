@@ -25,8 +25,6 @@ import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.referral.ReferralArgs
-import com.nunchuk.android.core.signer.KeyFlow
-import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
@@ -56,7 +54,6 @@ interface AppNavigator {
         isPersonalWallet: Boolean = false,
         groupWalletType: GroupWalletType? = null,
         slug: String? = null,
-        walletTypeName: String? = null,
         walletType: WalletType? = null,
         isClearTop: Boolean = false,
         quickWalletParam: QuickWalletParam? = null,

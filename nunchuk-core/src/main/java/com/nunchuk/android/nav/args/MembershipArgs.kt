@@ -35,7 +35,6 @@ data class MembershipArgs(
     val isPersonalWallet: Boolean = false,
     val groupWalletType: GroupWalletType? = null,
     val slug: String? = null,
-    val walletTypeName: String? = null,
     val walletType: WalletType? = null,
     val quickWalletParam: QuickWalletParam? = null,
     val inheritanceType: String? = null,
@@ -50,7 +49,6 @@ data class MembershipArgs(
         putBoolean(IS_PERSONAL_WALLET, isPersonalWallet)
         putSerializable(GROUP_WALLET_TYPE, groupWalletType)
         putString(SLUG, slug)
-        putString(WALLET_TYPE_NAME, walletTypeName)
         putSerializable(WALLET_TYPE, walletType)
         putParcelable(QUICK_WALLET_PARAM, quickWalletParam)
         putString(INHERITANCE_TYPE, inheritanceType)
@@ -65,7 +63,6 @@ data class MembershipArgs(
         const val IS_PERSONAL_WALLET = "is_personal"
         const val GROUP_WALLET_TYPE = "group_wallet_type"
         const val SLUG = "slug"
-        const val WALLET_TYPE_NAME = "wallet_type_name"
         const val WALLET_TYPE = "wallet_type"
         const val QUICK_WALLET_PARAM = "quick_wallet_param"
         const val INHERITANCE_TYPE = "inheritance_type"
@@ -80,7 +77,6 @@ data class MembershipArgs(
             isPersonalWallet = intent.extras?.getBoolean(IS_PERSONAL_WALLET, false) ?: false,
             groupWalletType = intent.extras?.serializable(GROUP_WALLET_TYPE),
             slug = intent.extras?.getString(SLUG),
-            walletTypeName = intent.extras?.getString(WALLET_TYPE_NAME),
             walletType = intent.extras?.serializable(WALLET_TYPE),
             quickWalletParam = intent.extras?.parcelable(QUICK_WALLET_PARAM),
             inheritanceType = intent.extras?.getString(INHERITANCE_TYPE),

@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.account.AccountManager
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
 import com.nunchuk.android.model.byzantine.toRole
+import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.user.IsViewPendingGroupUseCase
 import com.nunchuk.android.usecase.user.SetViewPendingGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,6 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class GroupPendingIntroViewModel @Inject constructor(
     private val getGroupUseCase: GetGroupUseCase,
+    private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val isViewPendingGroupUseCase: IsViewPendingGroupUseCase,
     private val setViewPendingGroupUseCase: SetViewPendingGroupUseCase,
     private val accountManager: AccountManager,
@@ -33,21 +36,25 @@ class GroupPendingIntroViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
             isViewPendingGroupUseCase(args.groupId).onSuccess { isView ->
                 val group =
                     getGroupUseCase(GetGroupUseCase.Params(args.groupId)).map { it.getOrNull() }.firstOrNull()
                 val email = accountManager.getAccount().email
+                val walletType = syncDraftWalletUseCase(args.groupId).getOrNull()?.walletType
                 _state.update {
                     it.copy(
                         isViewPendingWallet = isView,
                         masterName = group?.getMasterName().orEmpty(),
-                        role = group?.members?.find { member -> member.emailOrUsername == email }?.role.toRole
+                        role = group?.members?.find { member -> member.emailOrUsername == email }?.role.toRole,
+                        walletType = walletType,
                     )
                 }
                 if (!isView) {
                     setViewPendingGroupUseCase(args.groupId)
                 }
             }
+            _state.update { it.copy(isLoading = false) }
         }
     }
 
@@ -55,13 +62,16 @@ class GroupPendingIntroViewModel @Inject constructor(
         _state.update { it.copy(isViewPendingWallet = false) }
     }
 
-    fun isKeyHolderLimit() = state.value.role == AssistedWalletRole.KEYHOLDER_LIMITED
+    fun isOnChainWallet() =
+        state.value.walletType == WalletType.MINISCRIPT
 
     fun getRole() = state.value.role
 }
 
 data class GroupPendingIntroUiState(
+    val isLoading: Boolean = false,
     val masterName: String = "",
     val isViewPendingWallet: Boolean = false,
     val role: AssistedWalletRole = AssistedWalletRole.NONE,
+    val walletType: WalletType? = null
 )

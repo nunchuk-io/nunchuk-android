@@ -28,6 +28,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcTopAppBar
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.main.R
 import dagger.hilt.android.AndroidEntryPoint
@@ -51,13 +52,23 @@ class GroupPendingIntroFragment : Fragment() {
     }
 
     private fun openGroupIntro() {
-        findNavController().navigate(
-            GroupPendingIntroFragmentDirections.actionGroupPendingIntroFragmentToAddByzantineKeyListFragment(
-                groupId = args.groupId,
-                isAddOnly = true,
-                role = viewModel.getRole().toString(),
+        if (viewModel.isOnChainWallet()) {
+            findNavController().navigate(
+                GroupPendingIntroFragmentDirections.actionGroupPendingIntroFragmentToOnChainTimelockAddKeyListFragment(
+                    groupId = args.groupId,
+                    isAddOnly = true,
+                    role = viewModel.getRole().toString(),
+                )
             )
-        )
+        } else {
+            findNavController().navigate(
+                GroupPendingIntroFragmentDirections.actionGroupPendingIntroFragmentToAddByzantineKeyListFragment(
+                    groupId = args.groupId,
+                    isAddOnly = true,
+                    role = viewModel.getRole().toString(),
+                )
+            )
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -86,42 +97,46 @@ private fun GroupPendingIntroContent(
     onContinue: () -> Unit = {},
 ) {
     NunchukTheme {
-        Scaffold(
-            modifier = Modifier
-                .statusBarsPadding()
-                .navigationBarsPadding(),
-            topBar = {
-                NcTopAppBar(title = "", isBack = false)
-            },
-            bottomBar = {
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    onClick = onContinue
+        if (uiState.isLoading) {
+            NcLoadingDialog()
+        } else {
+            Scaffold(
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .navigationBarsPadding(),
+                topBar = {
+                    NcTopAppBar(title = "", isBack = false)
+                },
+                bottomBar = {
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        onClick = onContinue
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_text_continue))
+                    }
+                },
+            ) { innerPadding ->
+                Column(
+                    Modifier
+                        .padding(paddingValues = innerPadding)
+                        .padding(horizontal = 16.dp)
                 ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
-                }
-            },
-        ) { innerPadding ->
-            Column(
-                Modifier
-                    .padding(paddingValues = innerPadding)
-                    .padding(horizontal = 16.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.nc_group_wallet_creation_pending),
-                    style = NunchukTheme.typography.heading
-                )
-                Text(
-                    modifier = Modifier.padding(top = 16.dp),
-                    text = stringResource(
-                        R.string.nc_group_wallet_creation_pending_desc,
-                        uiState.masterName
-                    ),
-                    style = NunchukTheme.typography.body
-                )
+                    Text(
+                        text = stringResource(R.string.nc_group_wallet_creation_pending),
+                        style = NunchukTheme.typography.heading
+                    )
+                    Text(
+                        modifier = Modifier.padding(top = 16.dp),
+                        text = stringResource(
+                            R.string.nc_group_wallet_creation_pending_desc,
+                            uiState.masterName
+                        ),
+                        style = NunchukTheme.typography.body
+                    )
 
+                }
             }
         }
     }
