@@ -34,6 +34,7 @@ import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.referral.ReferralArgs
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
@@ -43,6 +44,7 @@ import com.nunchuk.android.main.MainComposeActivity
 import com.nunchuk.android.main.components.tabs.services.emergencylockdown.EmergencyLockdownActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.InheritancePlanningActivity
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimInheritanceActivity
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimTransactionActivity
 import com.nunchuk.android.main.components.tabs.services.keyrecovery.KeyRecoveryActivity
 import com.nunchuk.android.main.groupwallet.FreeGroupWalletActivity
 import com.nunchuk.android.main.membership.MembershipActivity
@@ -53,8 +55,6 @@ import com.nunchuk.android.main.membership.key.desktop.AddDesktopKeyActivity
 import com.nunchuk.android.main.membership.onchaintimelock.backupseedphrase.BackUpSeedPhraseActivity
 import com.nunchuk.android.main.membership.policy.ConfigServerKeyActivity
 import com.nunchuk.android.main.membership.signer.SignerIntroActivity
-import com.nunchuk.android.model.signer.SupportedSigner
-import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.main.rollover.RollOverWalletActivity
 import com.nunchuk.android.messages.nav.MessageNavigatorDelegate
 import com.nunchuk.android.model.Amount
@@ -66,10 +66,12 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.ClaimArgs
+import com.nunchuk.android.nav.args.ClaimTransactionArgs
 import com.nunchuk.android.nav.args.MainComposeArgs
 import com.nunchuk.android.nav.args.MembershipArgs
 import com.nunchuk.android.nav.args.MiniscriptArgs
@@ -534,5 +536,18 @@ interface AppNavigatorDelegate : AppNavigator {
             activityClass = ClaimInheritanceActivity::class.java,
             activityContext = activityContext,
         )
+    }
+
+    override fun openClaimTransactionScreen(
+        activityContext: Context,
+        args: ClaimTransactionArgs
+    ) {
+        val intent = args.buildIntent(activityContext).apply {
+            setClassName(
+                activityContext,
+                ClaimTransactionActivity::class.java.name
+            )
+        }
+        activityContext.startActivity(intent)
     }
 }

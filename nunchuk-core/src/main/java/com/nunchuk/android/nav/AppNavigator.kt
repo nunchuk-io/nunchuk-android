@@ -41,6 +41,7 @@ import com.nunchuk.android.model.byzantine.GroupWalletType
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
 import com.nunchuk.android.nav.args.ClaimArgs
+import com.nunchuk.android.nav.args.ClaimTransactionArgs
 import com.nunchuk.android.nav.args.MiniscriptArgs
 import com.nunchuk.android.type.WalletType
 
@@ -213,4 +214,9 @@ interface AppNavigator {
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         activityContext.startActivity(intent)
     }
+
+    fun openClaimTransactionScreen(
+        activityContext: Context,
+        args: ClaimTransactionArgs
+    )
 }

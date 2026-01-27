@@ -30,7 +30,6 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
-import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
@@ -40,11 +39,13 @@ import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.SelectWalletType.TYPE_INHERITANCE_WALLET
 import com.nunchuk.android.core.util.SelectWalletType.TYPE_UNSEAL_SWEEP_ACTIVE_SLOT
 import com.nunchuk.android.core.util.flowObserver
+import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.core.util.showError
 import com.nunchuk.android.core.util.showOrHideLoading
 import com.nunchuk.android.model.Amount
+import com.nunchuk.android.nav.args.ClaimTransactionArgs
 import com.nunchuk.android.share.model.ExtendTransaction
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
@@ -164,9 +165,19 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
     }
 
     private fun navigateToTransactionDetail(extendTransaction: ExtendTransaction) {
-        ActivityManager.popUntilRoot()
+//        ActivityManager.popUntilRoot()
         val transaction = extendTransaction.transaction
-        if (extendTransaction.walletId.isNullOrEmpty()) {
+        if (transaction.isPendingSignatures()) {
+            navigator.openClaimTransactionScreen(
+                activityContext = requireActivity(),
+                args = ClaimTransactionArgs(
+                    transaction = transaction,
+                    masterSignerIds = args.claimParam?.masterSignerIds.orEmpty(),
+                    derivationPaths = args.claimParam?.derivationPaths.orEmpty(),
+                    magic = args.claimParam?.magicalPhrase.orEmpty(),
+                )
+            )
+        } else if (extendTransaction.walletId.isNullOrEmpty()) {
             if (viewModel.selectedWalletId.isNotEmpty()) {
                 navigator.openWalletDetailsScreen(requireContext(), viewModel.selectedWalletId)
             }
