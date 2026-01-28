@@ -21,10 +21,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,10 +42,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcImageAppBar
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
-import com.nunchuk.android.compose.NcSelectableBottomSheetWithIcon
 import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
-import com.nunchuk.android.compose.SelectableItem
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.provider.SignerModelProvider
 import com.nunchuk.android.compose.showNunchukSnackbar
@@ -74,7 +70,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import com.nunchuk.android.main.R as MainR
 import com.nunchuk.android.transaction.R as TransactionR
-import com.nunchuk.android.widget.R as WidgetR
 
 @Composable
 fun VerifyInheritanceMessageScreen(
@@ -105,17 +100,7 @@ fun VerifyInheritanceMessageScreen(
         hiltViewModel<VerifyInheritanceMessageViewModel, VerifyInheritanceMessageViewModel.Factory> { factory ->
             factory.create(signer, signingChallengeMessage)
         }
-    val exportTransactionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val signature = result.data?.getStringExtra(GlobalResultKey.SIGNATURE)
-            signature?.let {
-                viewModel.importSignature(it)
-            }
-        }
-    }
-    val importTransactionLauncher = rememberLauncherForActivityResult(
+    val importOrExportTransactionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -274,7 +259,7 @@ fun VerifyInheritanceMessageScreen(
                 val data = viewModel.generateColdCardSignedDataIfNeeded()
                 if (data.isNotEmpty()) {
                     navigator.openExportTransactionScreen(
-                        launcher = exportTransactionLauncher,
+                        launcher = importOrExportTransactionLauncher,
                         activityContext = activity,
                         txToSign = data,
                         signFlowType = SignFlowType.ClaimDummy,
@@ -315,7 +300,7 @@ fun VerifyInheritanceMessageScreen(
         },
         onImportViaQr = {
             navigator.openImportTransactionScreen(
-                launcher = importTransactionLauncher,
+                launcher = importOrExportTransactionLauncher,
                 activityContext = activity,
                 signFlowType = SignFlowType.ClaimDummy
             )
@@ -356,7 +341,6 @@ fun VerifyInheritanceMessageScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerifyInheritanceMessageContent(
     modifier: Modifier = Modifier,
@@ -378,13 +362,6 @@ fun VerifyInheritanceMessageContent(
     val isMessageSigned = uiState.signedMessage != null
 
     var showColdCardOptionsSheet by remember { mutableStateOf(false) }
-    var showExportOptionsSheet by remember { mutableStateOf(false) }
-    var showImportOptionsSheet by remember { mutableStateOf(false) }
-    var showSaveShareSheet by remember { mutableStateOf(false) }
-    val coldCardOptionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val exportOptionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val importOptionsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val saveShareSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val loadingType = uiState.loadingType
     if (loadingType != null) {
@@ -479,128 +456,21 @@ fun VerifyInheritanceMessageContent(
         }
     }
 
-    if (showColdCardOptionsSheet) {
-        NcSelectableBottomSheetWithIcon(
-            sheetState = coldCardOptionsSheetState,
-            items = listOf(
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_export,
-                    text = stringResource(R.string.nc_transaction_export_transaction)
-                ),
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_import,
-                    text = stringResource(R.string.nc_import_signature)
-                )
-            ),
-            onSelected = { index ->
-                when (index) {
-                    0 -> {
-                        showColdCardOptionsSheet = false
-                        showExportOptionsSheet = true
-                    }
-
-                    1 -> {
-                        showColdCardOptionsSheet = false
-                        showImportOptionsSheet = true
-                    }
-                }
-            },
-            onDismiss = {
-                showColdCardOptionsSheet = false
-            }
+    ColdCardSigningBottomSheets(
+        showColdCardOptions = showColdCardOptionsSheet,
+        onDismissColdCardOptions = {
+            showColdCardOptionsSheet = false
+        },
+        callbacks = ColdCardSigningCallbacks(
+            onExportViaQr = onExportViaQr,
+            onExportViaNfc = onExportViaNfc,
+            onImportViaFile = onImportViaFile,
+            onImportViaQr = onImportViaQr,
+            onImportViaNfc = onImportViaNfc,
+            onSaveFile = onSaveFile,
+            onShareFile = onShareFile,
         )
-    }
-
-    if (showExportOptionsSheet) {
-        NcSelectableBottomSheetWithIcon(
-            sheetState = exportOptionsSheetState,
-            items = listOf(
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_export,
-                    text = stringResource(R.string.nc_export_via_file)
-                ),
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_qr,
-                    text = stringResource(R.string.nc_export_via_qr)
-                ),
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_nfc,
-                    text = stringResource(R.string.nc_export_via_nfc)
-                )
-            ),
-            onSelected = { index ->
-                showExportOptionsSheet = false
-                when (index) {
-                    0 -> {
-                        showSaveShareSheet = true
-                    }
-
-                    1 -> onExportViaQr()
-                    2 -> onExportViaNfc()
-                }
-            },
-            onDismiss = {
-                showExportOptionsSheet = false
-            }
-        )
-    }
-
-    if (showImportOptionsSheet) {
-        NcSelectableBottomSheetWithIcon(
-            sheetState = importOptionsSheetState,
-            items = listOf(
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_import,
-                    text = stringResource(R.string.nc_import_via_file)
-                ),
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_qr,
-                    text = stringResource(R.string.nc_import_via_qr)
-                ),
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_nfc,
-                    text = stringResource(R.string.nc_import_via_nfc)
-                )
-            ),
-            onSelected = { index ->
-                showImportOptionsSheet = false
-                when (index) {
-                    0 -> onImportViaFile()
-                    1 -> onImportViaQr()
-                    2 -> onImportViaNfc()
-                }
-            },
-            onDismiss = {
-                showImportOptionsSheet = false
-            }
-        )
-    }
-
-    if (showSaveShareSheet) {
-        NcSelectableBottomSheetWithIcon(
-            sheetState = saveShareSheetState,
-            items = listOf(
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_export,
-                    text = stringResource(R.string.nc_save_file)
-                ),
-                SelectableItem(
-                    resId = WidgetR.drawable.ic_share,
-                    text = stringResource(R.string.nc_share_file)
-                )
-            ),
-            onSelected = { index ->
-                showSaveShareSheet = false
-                when (index) {
-                    0 -> onSaveFile()
-                    1 -> onShareFile()
-                }
-            },
-            onDismiss = {
-                showSaveShareSheet = false
-            }
-        )
-    }
+    )
 }
 
 @PreviewLightDark

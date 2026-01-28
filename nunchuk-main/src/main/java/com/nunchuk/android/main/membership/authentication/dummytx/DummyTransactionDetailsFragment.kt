@@ -37,6 +37,7 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
 import androidx.viewbinding.ViewBinding
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.base.BaseShareSaveFileFragment
 import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.domain.membership.TargetAction
@@ -125,27 +126,29 @@ class DummyTransactionDetailsFragment : BaseShareSaveFileFragment<ViewBinding>()
 
                 val transaction = walletAuthenticationUiState.transaction
                 if (transaction != null) {
-                    TransactionDetailView(
-                        isDummyTx = true,
-                        walletId = viewModel.args.walletId,
-                        txId = "",
-                        state = TransactionDetailsState(
-                            transaction = transaction.copy(
-                                signers = walletAuthenticationUiState.signatures.mapValues { true },
-                                // fake number of required signatures
-                                m = walletAuthenticationUiState.pendingSignature + walletAuthenticationUiState.signatures.size
+                    NunchukTheme {
+                        TransactionDetailView(
+                            isDummyTx = true,
+                            walletId = viewModel.args.walletId,
+                            txId = "",
+                            state = TransactionDetailsState(
+                                transaction = transaction.copy(
+                                    signers = walletAuthenticationUiState.signatures.mapValues { true },
+                                    // fake number of required signatures
+                                    m = walletAuthenticationUiState.pendingSignature + walletAuthenticationUiState.signatures.size
+                                ),
+                                signers = walletAuthenticationUiState.walletSigner,
+                                enabledSigners = walletAuthenticationUiState.enabledSigners
                             ),
-                            signers = walletAuthenticationUiState.walletSigner,
-                            enabledSigners = walletAuthenticationUiState.enabledSigners
-                        ),
-                        miniscriptUiState = miniscriptUiState.copy(
-                            signedSigners = walletAuthenticationUiState.signatures.mapValues { true }
-                        ),
-                        onSignClick = {
-                            walletAuthenticationViewModel.onSignerSelect(it)
-                        },
-                        onShowMore = ::handleMenuMore
-                    )
+                            miniscriptUiState = miniscriptUiState.copy(
+                                signedSigners = walletAuthenticationUiState.signatures.mapValues { true }
+                            ),
+                            onSignClick = {
+                                walletAuthenticationViewModel.onSignerSelect(it)
+                            },
+                            onShowMore = ::handleMenuMore
+                        )
+                    }
                 }
             }
         }

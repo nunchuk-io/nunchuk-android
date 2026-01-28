@@ -172,7 +172,7 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
             GenerateColdCardHealthCheckMessageStringUseCase.Param(
                 derivationPath = signer.derivationPath,
                 message = message,
-                addressType = AddressType.NATIVE_SEGWIT
+                addressType = AddressType.LEGACY
             )
         ).onSuccess { coldcardSignedData ->
             _state.update { it.copy(coldcardSignedData = coldcardSignedData) }

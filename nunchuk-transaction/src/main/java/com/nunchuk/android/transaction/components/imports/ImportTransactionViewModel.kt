@@ -105,7 +105,7 @@ internal class ImportTransactionViewModel @Inject constructor(
         viewModelScope.launch {
             isProcessing = true
             when (args.signFlowType) {
-                is SignFlowType.SignInDummy -> {
+                is SignFlowType.SignInDummy, is SignFlowType.NormalDummy -> {
                     parseKeystoneDummyTransactionSignIn(
                         ParseKeystoneDummyTransactionSignIn.Param(
                             qrDataList.toList()

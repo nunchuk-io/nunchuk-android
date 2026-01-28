@@ -54,7 +54,7 @@ class GetInheritanceClaimStateUseCase @Inject constructor(
         }
         return userWalletRepository.inheritanceClaimStatus(
             userData = userData,
-            masterFingerprints = parameters.signerModels.map { it.id },
+            masterFingerprints = parameters.signerModels.map { it.fingerPrint },
             signatures = signatures.ifEmpty { parameters.signatures }
         )
     }

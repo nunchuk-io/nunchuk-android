@@ -6,12 +6,17 @@ import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.SignTapSignerPsbtUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
+import com.nunchuk.android.core.util.messageOrUnknownError
+import com.nunchuk.android.core.util.orUnknownError
+import com.nunchuk.android.model.Result
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nav.args.ClaimTransactionArgs
 import com.nunchuk.android.transaction.components.details.TransactionDetailsState
 import com.nunchuk.android.transaction.components.details.TransactionMiniscriptUiState
+import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
+import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
 import com.nunchuk.android.usecase.membership.InheritanceClaimingClaimUseCase
 import com.nunchuk.android.usecase.signer.GetRemoteOrMasterSignerUseCase
@@ -20,12 +25,15 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.FileOutputStream
 
 @HiltViewModel(assistedFactory = ClaimTransactionViewModel.Factory::class)
 class ClaimTransactionViewModel @AssistedInject constructor(
@@ -36,6 +44,8 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
     private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
     private val inheritanceClaimingClaimUseCase: InheritanceClaimingClaimUseCase,
+    private val createShareFileUseCase: CreateShareFileUseCase,
+    private val saveLocalFileUseCase: SaveLocalFileUseCase,
     @Assisted private val args: ClaimTransactionArgs
 ) : ViewModel() {
 
@@ -51,6 +61,9 @@ class ClaimTransactionViewModel @AssistedInject constructor(
 
     private val _needPassphrase = MutableStateFlow<String?>(null)
     val needPassphrase: StateFlow<String?> = _needPassphrase.asStateFlow()
+
+    private val _event = MutableSharedFlow<ClaimTransactionEvent>()
+    val event = _event.asSharedFlow()
 
     init {
         loadSigners()
@@ -234,6 +247,54 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         }
     }
 
+    fun updateTransactionFromImport(transaction: Transaction) {
+        _state.update { it.copy(transaction = transaction) }
+        checkAndClaimIfAllSigned(transaction)
+    }
+
+    fun saveLocalFile(psbt: String) {
+        viewModelScope.launch {
+            _loadingType.update { LoadingType.Normal }
+            val result = saveLocalFileUseCase(
+                SaveLocalFileUseCase.Params(
+                    fileName = "transaction.psbt",
+                    fileContent = psbt
+                )
+            )
+            _loadingType.update { null }
+            _event.emit(ClaimTransactionEvent.SaveLocalFile(result.isSuccess))
+        }
+    }
+
+    fun exportTransactionToFile(psbt: String) {
+        viewModelScope.launch {
+            _loadingType.update { LoadingType.Normal }
+            when (val result = createShareFileUseCase.execute("transaction.psbt")) {
+                is Result.Success -> writePsbtToFile(result.data, psbt)
+                is Result.Error -> {
+                    _event.emit(ClaimTransactionEvent.ShowError(result.exception.messageOrUnknownError()))
+                    _loadingType.update { null }
+                }
+            }
+        }
+    }
+
+    private fun writePsbtToFile(filePath: String, psbt: String) {
+        viewModelScope.launch {
+            val result = runCatching {
+                FileOutputStream(filePath).use {
+                    it.write(psbt.toByteArray(Charsets.UTF_8))
+                }
+            }
+            _loadingType.update { null }
+            if (result.isSuccess) {
+                _event.emit(ClaimTransactionEvent.ExportToFileSuccess(filePath))
+            } else {
+                _event.emit(ClaimTransactionEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
     enum class LoadingType {
         Normal, Nfc
     }
@@ -244,4 +305,10 @@ class ClaimTransactionViewModel @AssistedInject constructor(
             args: ClaimTransactionArgs
         ): ClaimTransactionViewModel
     }
+}
+
+sealed class ClaimTransactionEvent {
+    data class SaveLocalFile(val isSuccess: Boolean) : ClaimTransactionEvent()
+    data class ExportToFileSuccess(val filePath: String) : ClaimTransactionEvent()
+    data class ShowError(val message: String) : ClaimTransactionEvent()
 }

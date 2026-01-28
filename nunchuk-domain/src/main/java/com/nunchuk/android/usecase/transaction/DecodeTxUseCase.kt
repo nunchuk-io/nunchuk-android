@@ -17,25 +17,38 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase.signer
+package com.nunchuk.android.usecase.transaction
 
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.SingleSigner
+import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.nativelib.NunchukNativeSdk
 import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class GetRemoteOrMasterSignerUseCase @Inject constructor(
-    @IoDispatcher private val dispatcher: CoroutineDispatcher,
-    private val nativeSdk: NunchukNativeSdk
-) : UseCase<GetRemoteOrMasterSignerUseCase.Data, SingleSigner>(dispatcher) {
+class DecodeTxUseCase @Inject constructor(
+    private val nativeSdk: NunchukNativeSdk,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+) : UseCase<DecodeTxUseCase.Param, Transaction>(ioDispatcher) {
 
-    class Data(val id: String, val derivationPath: String)
-
-    override suspend fun execute(parameters: Data): SingleSigner {
-        return runCatching {
-            nativeSdk.getRemoteSigner(parameters.id, parameters.derivationPath)
-        }.getOrElse { nativeSdk.getSignerFromMasterSigner(parameters.id, parameters.derivationPath) }
+    override suspend fun execute(parameters: Param): Transaction {
+        return nativeSdk.decodeTx(
+            signers = parameters.signers,
+            psbt = parameters.psbt,
+            subAmount = parameters.subAmount,
+            feeRate = parameters.feeRate,
+            fee = parameters.fee,
+            subtractFeeFromAmount = parameters.subtractFeeFromAmount
+        )
     }
+
+    data class Param(
+        val signers: List<SingleSigner>,
+        val psbt: String,
+        val subAmount: String,
+        val feeRate: String,
+        val fee: String,
+        val subtractFeeFromAmount: Boolean = true
+    )
 }

@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -106,6 +107,7 @@ fun TransactionDetailView(
     txId: String,
     state: TransactionDetailsState = TransactionDetailsState(),
     miniscriptUiState: TransactionMiniscriptUiState = TransactionMiniscriptUiState(),
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onShowMore: () -> Unit = {},
     onSignClick: (SignerModel) -> Unit = {},
     onBroadcastClick: () -> Unit = {},
@@ -149,422 +151,421 @@ fun TransactionDetailView(
         transaction.signedSigner.map { it.toModel() }.toSet()
     }
 
-    NunchukTheme {
-        NcScaffold(
-            modifier = Modifier.systemBarsPadding(),
-            topBar = {
-                NcTopAppBar(
-                    title = stringResource(R.string.nc_transaction_details),
-                    textStyle = NunchukTheme.typography.titleLarge,
-                    isBack = false,
-                    actions = {
-                        IconButton(onClick = onShowMore) {
-                            NcIcon(
-                                painter = painterResource(id = R.drawable.ic_more),
-                                contentDescription = "Back",
-                            )
-                        }
+    NcScaffold(
+        modifier = Modifier.systemBarsPadding(),
+        snackState = snackbarHostState,
+        topBar = {
+            NcTopAppBar(
+                title = stringResource(R.string.nc_transaction_details),
+                textStyle = NunchukTheme.typography.titleLarge,
+                isBack = false,
+                actions = {
+                    IconButton(onClick = onShowMore) {
+                        NcIcon(
+                            painter = painterResource(id = R.drawable.ic_more),
+                            contentDescription = "Back",
+                        )
                     }
-                )
-            },
-            bottomBar = {
-                TransactionDetailBottomBar(
-                    transaction = transaction,
+                }
+            )
+        },
+        bottomBar = {
+            TransactionDetailBottomBar(
+                transaction = transaction,
+                inheritanceClaimTxDetailInfo = inheritanceClaimTxDetailInfo,
+                state = state,
+                miniscriptUiState = miniscriptUiState,
+                onBroadcastClick = onBroadcastClick,
+                onViewOnBlockExplorer = onViewOnBlockExplorer
+            )
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+        ) {
+            item {
+                TransactionHeader(
+                    isDummyTx = isDummyTx,
                     inheritanceClaimTxDetailInfo = inheritanceClaimTxDetailInfo,
-                    state = state,
-                    miniscriptUiState = miniscriptUiState,
-                    onBroadcastClick = onBroadcastClick,
-                    onViewOnBlockExplorer = onViewOnBlockExplorer
+                    isTimelockedActive = miniscriptUiState.isTimelockedActive,
+                    transaction = state.transaction,
+                    serverTransaction = state.serverTransaction,
+                    allTxCoins = state.coins,
+                    outputs = outputs,
+                    userRole = state.userRole,
+                    showDetail = showDetail,
+                    onShowDetails = { showDetail = !showDetail },
+                    onManageCoinClick = onManageCoinClick
                 )
             }
-        ) { innerPadding ->
-            LazyColumn(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-            ) {
+
+            if (showDetail) {
                 item {
-                    TransactionHeader(
-                        isDummyTx = isDummyTx,
-                        inheritanceClaimTxDetailInfo = inheritanceClaimTxDetailInfo,
-                        isTimelockedActive = miniscriptUiState.isTimelockedActive,
-                        transaction = state.transaction,
-                        serverTransaction = state.serverTransaction,
-                        allTxCoins = state.coins,
-                        outputs = outputs,
-                        userRole = state.userRole,
-                        showDetail = showDetail,
-                        onShowDetails = { showDetail = !showDetail },
-                        onManageCoinClick = onManageCoinClick
+                    Text(
+                        text = if (state.transaction.isReceive)
+                            stringResource(R.string.nc_transaction_receive_at)
+                        else stringResource(R.string.nc_transaction_send_to),
+                        style = NunchukTheme.typography.titleSmall,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(color = MaterialTheme.colorScheme.backgroundMidGray)
+                            .padding(16.dp),
                     )
                 }
 
-                if (showDetail) {
+                itemsIndexed(outputs) { index, output ->
+                    TransactionOutputItem(
+                        savedAddresses = state.savedAddress,
+                        output = output,
+                        onCopyText = onCopyText,
+                        hideFiatCurrency = state.hideFiatCurrency
+                    )
+
+                    if (!transaction.isReceive || index < outputs.lastIndex) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.backgroundMidGray,
+                            thickness = 1.dp
+                        )
+                    }
+                }
+
+                if (!transaction.isReceive) {
+                    item {
+                        TransactionEstimateFee(
+                            modifier = Modifier.padding(top = 24.dp),
+                            fee = transaction.fee,
+                            hideFiatCurrency = state.hideFiatCurrency
+                        )
+                    }
+
+                    item {
+                        TransactionTotalAmount(
+                            modifier = Modifier.padding(top = 16.dp),
+                            total = transaction.totalAmount,
+                            hideFiatCurrency = state.hideFiatCurrency
+                        )
+                    }
+                }
+
+                if (hasChange && inheritanceClaimTxDetailInfo == null) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 16.dp)
+                                .fillMaxWidth()
+                                .background(color = MaterialTheme.colorScheme.backgroundMidGray)
+                                .padding(16.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.nc_transaction_change_address),
+                                style = NunchukTheme.typography.titleSmall,
+                            )
+
+                            if (changeCoin != null) {
+                                Text(
+                                    text = stringResource(R.string.nc_edit),
+                                    style = NunchukTheme.typography.bodySmall.copy(
+                                        textDecoration = TextDecoration.Underline
+                                    ),
+                                    modifier = Modifier
+                                        .align(Alignment.CenterEnd)
+                                        .clickable(onClick = { onEditChangeCoin(changeCoin) }),
+                                )
+                            }
+                        }
+                    }
+
+                    item {
+                        ChangeAddressView(
+                            txOutput = transaction.outputs[transaction.changeIndex],
+                            output = changeCoin,
+                            tags = state.tags,
+                            hideFiatCurrency = state.hideFiatCurrency
+                        )
+                    }
+                }
+
+                if (txId.isNotEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = if (transaction.isReceive) 0.dp else 16.dp)
+                                .fillMaxWidth()
+                                .background(color = MaterialTheme.colorScheme.backgroundMidGray)
+                                .padding(16.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.nc_transaction_note),
+                                style = NunchukTheme.typography.titleSmall,
+                            )
+
+                            Text(
+                                text = stringResource(R.string.nc_edit),
+                                style = NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .clickable(onClick = onEditNote),
+                            )
+                        }
+                    }
+
                     item {
                         Text(
-                            text = if (state.transaction.isReceive)
-                                stringResource(R.string.nc_transaction_receive_at)
-                            else stringResource(R.string.nc_transaction_send_to),
-                            style = NunchukTheme.typography.titleSmall,
+                            text = transaction.memo,
+                            style = NunchukTheme.typography.body,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
+                        )
+                    }
+                } else {
+                    item {
+                        Spacer(modifier = Modifier.padding(bottom = 16.dp))
+                    }
+                }
+
+                if (state.txInputCoins.isNotEmpty()) {
+                    item {
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(color = MaterialTheme.colorScheme.backgroundMidGray)
-                                .padding(16.dp),
-                        )
-                    }
-
-                    itemsIndexed(outputs) { index, output ->
-                        TransactionOutputItem(
-                            savedAddresses = state.savedAddress,
-                            output = output,
-                            onCopyText = onCopyText,
-                            hideFiatCurrency = state.hideFiatCurrency
-                        )
-
-                        if (!transaction.isReceive || index < outputs.lastIndex) {
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                color = MaterialTheme.colorScheme.backgroundMidGray,
-                                thickness = 1.dp
+                                .padding(horizontal = 16.dp, vertical = 10.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.nc_show_input_coins),
+                                style = NunchukTheme.typography.titleSmall,
+                                modifier = Modifier.align(Alignment.CenterStart),
                             )
-                        }
-                    }
-
-                    if (!transaction.isReceive) {
-                        item {
-                            TransactionEstimateFee(
-                                modifier = Modifier.padding(top = 24.dp),
-                                fee = transaction.fee,
-                                hideFiatCurrency = state.hideFiatCurrency
-                            )
-                        }
-
-                        item {
-                            TransactionTotalAmount(
-                                modifier = Modifier.padding(top = 16.dp),
-                                total = transaction.totalAmount,
-                                hideFiatCurrency = state.hideFiatCurrency
-                            )
-                        }
-                    }
-
-                    if (hasChange && inheritanceClaimTxDetailInfo == null) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .padding(top = 16.dp)
-                                    .fillMaxWidth()
-                                    .background(color = MaterialTheme.colorScheme.backgroundMidGray)
-                                    .padding(16.dp)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.nc_transaction_change_address),
-                                    style = NunchukTheme.typography.titleSmall,
-                                )
-
-                                if (changeCoin != null) {
-                                    Text(
-                                        text = stringResource(R.string.nc_edit),
-                                        style = NunchukTheme.typography.bodySmall.copy(
-                                            textDecoration = TextDecoration.Underline
-                                        ),
-                                        modifier = Modifier
-                                            .align(Alignment.CenterEnd)
-                                            .clickable(onClick = { onEditChangeCoin(changeCoin) }),
-                                    )
-                                }
-                            }
-                        }
-
-                        item {
-                            ChangeAddressView(
-                                txOutput = transaction.outputs[transaction.changeIndex],
-                                output = changeCoin,
-                                tags = state.tags,
-                                hideFiatCurrency = state.hideFiatCurrency
-                            )
-                        }
-                    }
-
-                    if (txId.isNotEmpty()) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .padding(top = if (transaction.isReceive) 0.dp else 16.dp)
-                                    .fillMaxWidth()
-                                    .background(color = MaterialTheme.colorScheme.backgroundMidGray)
-                                    .padding(16.dp)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.nc_transaction_note),
-                                    style = NunchukTheme.typography.titleSmall,
-                                )
-
-                                Text(
-                                    text = stringResource(R.string.nc_edit),
-                                    style = NunchukTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
-                                    modifier = Modifier
-                                        .align(Alignment.CenterEnd)
-                                        .clickable(onClick = onEditNote),
+                            CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
+                                NcSwitch(
+                                    checked = showInputCoin,
+                                    onCheckedChange = { showInputCoin = it },
+                                    modifier = Modifier.align(Alignment.CenterEnd),
                                 )
                             }
                         }
+                    }
 
+                }
+                if (showInputCoin) {
+                    items(
+                        state.txInputCoins.take(30),
+                        key = { "${it.txid} - ${it.vout}" },
+                    ) { input ->
+                        PreviewCoinCard(
+                            output = input,
+                            mode = MODE_VIEW_ONLY,
+                            tags = state.tags
+                        )
+                    }
+
+                    if (state.txInputCoins.size > 30) {
                         item {
                             Text(
-                                text = transaction.memo,
-                                style = NunchukTheme.typography.body,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                                text = stringResource(
+                                    R.string.nc_more_address,
+                                    state.txInputCoins.size - 30
+                                ),
+                                style = NunchukTheme.typography.bodySmall.copy(textAlign = TextAlign.Center),
                             )
-                        }
-                    } else {
-                        item {
-                            Spacer(modifier = Modifier.padding(bottom = 16.dp))
-                        }
-                    }
-
-                    if (state.txInputCoins.isNotEmpty()) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(color = MaterialTheme.colorScheme.backgroundMidGray)
-                                    .padding(horizontal = 16.dp, vertical = 10.dp)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.nc_show_input_coins),
-                                    style = NunchukTheme.typography.titleSmall,
-                                    modifier = Modifier.align(Alignment.CenterStart),
-                                )
-                                CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
-                                    NcSwitch(
-                                        checked = showInputCoin,
-                                        onCheckedChange = { showInputCoin = it },
-                                        modifier = Modifier.align(Alignment.CenterEnd),
-                                    )
-                                }
-                            }
-                        }
-
-                    }
-                    if (showInputCoin) {
-                        items(
-                            state.txInputCoins.take(30),
-                            key = { "${it.txid} - ${it.vout}" },
-                        ) { input ->
-                            PreviewCoinCard(
-                                output = input,
-                                mode = MODE_VIEW_ONLY,
-                                tags = state.tags
-                            )
-                        }
-
-                        if (state.txInputCoins.size > 30) {
-                            item {
-                                Text(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    text = stringResource(
-                                        R.string.nc_more_address,
-                                        state.txInputCoins.size - 30
-                                    ),
-                                    style = NunchukTheme.typography.bodySmall.copy(textAlign = TextAlign.Center),
-                                )
-                            }
                         }
                     }
                 }
+            }
 
-                if (miniscriptUiState.isTimelockedActive) {
+            if (miniscriptUiState.isTimelockedActive) {
+                item {
+                    TimeLockUtilView(
+                        lockedTime = miniscriptUiState.lockedTime,
+                        lockedBase = miniscriptUiState.lockedBase
+                    )
+                }
+            }
+
+            if (!state.transaction.isReceive && miniscriptUiState.isMiniscriptWallet && miniscriptUiState.signerMap.isNotEmpty() && !isMiniscriptTaprootSingleKeyPathTransaction) {
+                item {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        val scriptNode = miniscriptUiState.scriptNode
+                            ?: MiniscriptUtil.buildMusigNode(state.wallet.totalRequireSigns)
+                        // TODO find better way to handle this
+                        val rootKeySetStatus =
+                            if (state.transaction.keySetStatus.isNotEmpty()) {
+                                mapOf("1" to state.transaction.keySetStatus[0])
+                            } else {
+                                emptyMap()
+                            }
+                        ScriptNodeTree(
+                            node = scriptNode,
+                            data = ScriptNodeData(
+                                mode = ScriptMode.SIGN,
+                                signers = miniscriptUiState.signerMap,
+                                showBip32Path = false,
+                                signedSigners = signedSigner,
+                                signedXfp = miniscriptUiState.signedSigners.ifEmpty { transaction.signers },
+                                satisfiableMap = miniscriptUiState.satisfiableMap,
+                                signedHash = miniscriptUiState.signedHash,
+                                collapsedNode = miniscriptUiState.collapsedNode,
+                                topLevelDisableNode = miniscriptUiState.topLevelDisableNode,
+                                onPreImageClick = { scriptNode ->
+                                    preImageScriptMode = scriptNode
+                                },
+                                coinGroups = miniscriptUiState.coinGroups,
+                                keySetStatues = miniscriptUiState.keySetStatues + rootKeySetStatus,
+                                lockBased = miniscriptUiState.lockedBase,
+                                inputCoins = state.txInputCoins,
+                                transactionStatus = state.transaction.status,
+                                serverTransaction = state.serverTransaction,
+                                enableSignerSize = state.enabledSigners.size
+                            ),
+                            onChangeBip32Path = { _, _ -> },
+                            onActionKey = { nodeId, signer ->
+                                onSetPendingSignNodeId(nodeId)
+                                signer?.let(onSignClick)
+                            }
+                        )
+                    }
+                }
+            }
+            // taproot key set view
+            else if (transaction.keySetStatus.isNotEmpty() && !isMiniscriptTaprootSingleKeyPathTransaction) {
+                if (firstKeySet != null) {
                     item {
-                        TimeLockUtilView(
-                            lockedTime = miniscriptUiState.lockedTime,
-                            lockedBase = miniscriptUiState.lockedBase
+                        KeySetView(
+                            signers = signerMap,
+                            keySetIndex = state.defaultKeySetIndex,
+                            requiredSignatures = transaction.m,
+                            keySet = firstKeySet,
+                            onSignClick = onSignClick
                         )
                     }
                 }
 
-                if (!state.transaction.isReceive && miniscriptUiState.isMiniscriptWallet && miniscriptUiState.signerMap.isNotEmpty() && !isMiniscriptTaprootSingleKeyPathTransaction) {
+                if (isValueKeySetDisable) {
                     item {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            val scriptNode = miniscriptUiState.scriptNode
-                                ?: MiniscriptUtil.buildMusigNode(state.wallet.totalRequireSigns)
-                            // TODO find better way to handle this
-                            val rootKeySetStatus =
-                                if (state.transaction.keySetStatus.isNotEmpty()) {
-                                    mapOf("1" to state.transaction.keySetStatus[0])
-                                } else {
-                                    emptyMap()
-                                }
-                            ScriptNodeTree(
-                                node = scriptNode,
-                                data = ScriptNodeData(
-                                    mode = ScriptMode.SIGN,
-                                    signers = miniscriptUiState.signerMap,
-                                    showBip32Path = false,
-                                    signedSigners = signedSigner,
-                                    signedXfp = miniscriptUiState.signedSigners.ifEmpty { transaction.signers },
-                                    satisfiableMap = miniscriptUiState.satisfiableMap,
-                                    signedHash = miniscriptUiState.signedHash,
-                                    collapsedNode = miniscriptUiState.collapsedNode,
-                                    topLevelDisableNode = miniscriptUiState.topLevelDisableNode,
-                                    onPreImageClick = { scriptNode ->
-                                        preImageScriptMode = scriptNode
-                                    },
-                                    coinGroups = miniscriptUiState.coinGroups,
-                                    keySetStatues = miniscriptUiState.keySetStatues + rootKeySetStatus,
-                                    lockBased = miniscriptUiState.lockedBase,
-                                    inputCoins = state.txInputCoins,
-                                    transactionStatus = state.transaction.status,
-                                    serverTransaction = state.serverTransaction,
-                                    enableSignerSize = state.enabledSigners.size
-                                ),
-                                onChangeBip32Path = { _, _ -> },
-                                onActionKey = { nodeId, signer ->
-                                    onSetPendingSignNodeId(nodeId)
-                                    signer?.let(onSignClick)
-                                }
-                            )
-                        }
+                        OtherKeySetView(
+                            toggleExpand = {
+                                isExpanded = !isExpanded
+                            },
+                            count = transaction.keySetStatus.size,
+                            isExpanded = isExpanded,
+                            isValueKeySetDisable = true
+                        )
+                    }
+                } else {
+                    item {
+                        OtherKeySetView(
+                            modifier = Modifier.padding(top = 16.dp),
+                            toggleExpand = {
+                                isExpanded = !isExpanded
+                            },
+                            count = transaction.keySetStatus.size - 1,
+                            isExpanded = isExpanded,
+                            isValueKeySetDisable = false
+                        )
                     }
                 }
-                // taproot key set view
-                else if (transaction.keySetStatus.isNotEmpty() && !isMiniscriptTaprootSingleKeyPathTransaction) {
-                    if (firstKeySet != null) {
+
+                if (isExpanded) {
+                    val finalKeySet = if (isValueKeySetDisable) {
+                        keySetMap
+                    } else {
+                        keySetMap.filter { it.key != state.defaultKeySetIndex }
+                    }
+                    finalKeySet.forEach { (index, keySetStatus) ->
                         item {
                             KeySetView(
                                 signers = signerMap,
-                                keySetIndex = state.defaultKeySetIndex,
+                                keySetIndex = index,
                                 requiredSignatures = transaction.m,
-                                keySet = firstKeySet,
-                                onSignClick = onSignClick
+                                keySet = keySetStatus,
+                                onSignClick = onSignClick,
+                                showDivider = index < finalKeySet.size.dec(),
+                                isValueKeySetDisable = isValueKeySetDisable
                             )
-                        }
-                    }
-
-                    if (isValueKeySetDisable) {
-                        item {
-                            OtherKeySetView(
-                                toggleExpand = {
-                                    isExpanded = !isExpanded
-                                },
-                                count = transaction.keySetStatus.size,
-                                isExpanded = isExpanded,
-                                isValueKeySetDisable = true
-                            )
-                        }
-                    } else {
-                        item {
-                            OtherKeySetView(
-                                modifier = Modifier.padding(top = 16.dp),
-                                toggleExpand = {
-                                    isExpanded = !isExpanded
-                                },
-                                count = transaction.keySetStatus.size - 1,
-                                isExpanded = isExpanded,
-                                isValueKeySetDisable = false
-                            )
-                        }
-                    }
-
-                    if (isExpanded) {
-                        val finalKeySet = if (isValueKeySetDisable) {
-                            keySetMap
-                        } else {
-                            keySetMap.filter { it.key != state.defaultKeySetIndex }
-                        }
-                        finalKeySet.forEach { (index, keySetStatus) ->
-                            item {
-                                KeySetView(
-                                    signers = signerMap,
-                                    keySetIndex = index,
-                                    requiredSignatures = transaction.m,
-                                    keySet = keySetStatus,
-                                    onSignClick = onSignClick,
-                                    showDivider = index < finalKeySet.size.dec(),
-                                    isValueKeySetDisable = isValueKeySetDisable
-                                )
-                            }
                         }
                     }
                 }
-                // normal transaction signer view
-                else if (!transaction.isReceive && inheritanceClaimTxDetailInfo == null && state.signers.isNotEmpty()) {
-                    item {
-                        PendingSignatureStatusView(
-                            isTaproot = addressType.isTaproot(),
-                            pendingSigners = transaction.getPendingSignatures(),
-                            status = transaction.status
-                        )
-                    }
+            }
+            // normal transaction signer view
+            else if (!transaction.isReceive && inheritanceClaimTxDetailInfo == null && state.signers.isNotEmpty()) {
+                item {
+                    PendingSignatureStatusView(
+                        isTaproot = addressType.isTaproot(),
+                        pendingSigners = transaction.getPendingSignatures(),
+                        status = transaction.status
+                    )
+                }
 
-                    itemsIndexed(state.signers) { index, signer ->
-                        TransactionSignerView(
-                            modifier = Modifier
-                                .padding(top = 16.dp)
-                                .padding(horizontal = 16.dp),
-                            signer = signer,
-                            showValueKey = index < transaction.m && addressType.isTaproot() && !isValueKeySetDisable && !miniscriptUiState.isMiniscriptWallet,
-                            isSigned = transaction.signers.isNotEmpty() && transaction.signers[signer.fingerPrint] ?: false,
-                            canSign = !transaction.status.signDone() && (state.enabledSigners.isEmpty() || state.enabledSigners.contains(
-                                signer.fingerPrint
-                            )),
-                            onSignClick = onSignClick,
-                        ) {
-                            val isSigned =
-                                transaction.signers.isNotEmpty() && transaction.signers[signer.fingerPrint] ?: false
-                            val serverTransaction = state.serverTransaction
-                            val spendingLimitMessage =
-                                serverTransaction?.spendingLimitMessage.orEmpty()
-                            val cosignedTime = serverTransaction?.signedInMilis ?: 0L
-                            if (serverTransaction?.isCosigning == true) {
-                                Text(
-                                    text = stringResource(R.string.nc_co_signing_in_progress),
-                                    style = NunchukTheme.typography.bodySmall,
-                                    color = colorResource(R.color.nc_beeswax_dark),
-                                )
-                            } else if (spendingLimitMessage.isNotEmpty()) {
-                                Text(
-                                    text = serverTransaction?.spendingLimitMessage.orEmpty(),
-                                    style = NunchukTheme.typography.bodySmall,
-                                    color = colorResource(R.color.nc_beeswax_dark),
-                                )
-                            } else if (cosignedTime > 0L && isSigned.not() && transaction.status.isPendingSignatures()) {
-                                val cosignDate = Date(cosignedTime)
-                                val content = if (DateUtils.isToday(cosignedTime)) {
-                                    "${stringResource(R.string.nc_cosign_at)} [B]${cosignDate.formatByHour()}[/B]"
-                                } else {
-                                    "${stringResource(R.string.nc_cosign_at)} [B]${cosignDate.formatByHour()} ${cosignDate.formatByWeek()}[/B]"
-                                }
-                                NcHighlightText(
-                                    text = content,
-                                    style = NunchukTheme.typography.bodySmall.copy(
-                                        color = colorResource(R.color.nc_beeswax_dark)
-                                    ),
-                                )
+                itemsIndexed(state.signers) { index, signer ->
+                    TransactionSignerView(
+                        modifier = Modifier
+                            .padding(top = 16.dp)
+                            .padding(horizontal = 16.dp),
+                        signer = signer,
+                        showValueKey = index < transaction.m && addressType.isTaproot() && !isValueKeySetDisable && !miniscriptUiState.isMiniscriptWallet,
+                        isSigned = transaction.signers.isNotEmpty() && transaction.signers[signer.fingerPrint] ?: false,
+                        canSign = !transaction.status.signDone() && (state.enabledSigners.isEmpty() || state.enabledSigners.contains(
+                            signer.fingerPrint
+                        )),
+                        onSignClick = onSignClick,
+                    ) {
+                        val isSigned =
+                            transaction.signers.isNotEmpty() && transaction.signers[signer.fingerPrint] ?: false
+                        val serverTransaction = state.serverTransaction
+                        val spendingLimitMessage =
+                            serverTransaction?.spendingLimitMessage.orEmpty()
+                        val cosignedTime = serverTransaction?.signedInMilis ?: 0L
+                        if (serverTransaction?.isCosigning == true) {
+                            Text(
+                                text = stringResource(R.string.nc_co_signing_in_progress),
+                                style = NunchukTheme.typography.bodySmall,
+                                color = colorResource(R.color.nc_beeswax_dark),
+                            )
+                        } else if (spendingLimitMessage.isNotEmpty()) {
+                            Text(
+                                text = serverTransaction?.spendingLimitMessage.orEmpty(),
+                                style = NunchukTheme.typography.bodySmall,
+                                color = colorResource(R.color.nc_beeswax_dark),
+                            )
+                        } else if (cosignedTime > 0L && isSigned.not() && transaction.status.isPendingSignatures()) {
+                            val cosignDate = Date(cosignedTime)
+                            val content = if (DateUtils.isToday(cosignedTime)) {
+                                "${stringResource(R.string.nc_cosign_at)} [B]${cosignDate.formatByHour()}[/B]"
+                            } else {
+                                "${stringResource(R.string.nc_cosign_at)} [B]${cosignDate.formatByHour()} ${cosignDate.formatByWeek()}[/B]"
                             }
+                            NcHighlightText(
+                                text = content,
+                                style = NunchukTheme.typography.bodySmall.copy(
+                                    color = colorResource(R.color.nc_beeswax_dark)
+                                ),
+                            )
                         }
                     }
                 }
             }
         }
+    }
 
-        if (preImageScriptMode != null) {
-            NcPreimageBottomSheet(
-                sheetState = preimageBottomSheetState,
-                walletId = walletId,
-                txId = txId,
-                node = preImageScriptMode!!,
-                onSuccess = { scriptNodeId ->
-                    onPreimageSuccess(scriptNodeId)
-                    preImageScriptMode = null
-                },
-                onDismiss = {
-                    preImageScriptMode = null
-                }
-            )
-        }
+    if (preImageScriptMode != null) {
+        NcPreimageBottomSheet(
+            sheetState = preimageBottomSheetState,
+            walletId = walletId,
+            txId = txId,
+            node = preImageScriptMode!!,
+            onSuccess = { scriptNodeId ->
+                onPreimageSuccess(scriptNodeId)
+                preImageScriptMode = null
+            },
+            onDismiss = {
+                preImageScriptMode = null
+            }
+        )
     }
 }
 

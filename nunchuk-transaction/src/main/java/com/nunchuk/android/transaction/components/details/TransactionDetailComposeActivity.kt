@@ -12,6 +12,7 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.core.domain.data.SignTransaction
 import com.nunchuk.android.core.manager.NcToastManager
 import com.nunchuk.android.core.nfc.BaseComposePortalActivity
@@ -176,69 +177,71 @@ class TransactionDetailComposeActivity : BaseComposePortalActivity(), InputBotto
         setContent {
             val state by viewModel.state.collectAsStateWithLifecycle()
             val miniscriptUiState by viewModel.miniscriptState.collectAsStateWithLifecycle()
-            TransactionDetailView(
-                inheritanceClaimTxDetailInfo = args.inheritanceClaimTxDetailInfo,
-                walletId = args.walletId,
-                txId = args.txId,
-                state = state,
-                miniscriptUiState = miniscriptUiState,
-                onShowMore = { handleMenuMore() },
-                onSignClick = { signer ->
-                    viewModel.setCurrentSigner(signer)
-                    when (signer.type) {
-                        SignerType.COLDCARD_NFC -> showSignByMk4Options()
-                        SignerType.NFC -> {
-                            startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
-                        }
-                        SignerType.AIRGAP, SignerType.UNKNOWN -> showSignByAirgapOptions()
-                        SignerType.HARDWARE -> showError(getString(R.string.nc_use_desktop_app_to_sign))
-                        SignerType.PORTAL_NFC -> handlePortalAction(
-                            SignTransaction(
-                                signer.fingerPrint,
-                                viewModel.getTransaction().psbt
+            NunchukTheme {
+                TransactionDetailView(
+                    inheritanceClaimTxDetailInfo = args.inheritanceClaimTxDetailInfo,
+                    walletId = args.walletId,
+                    txId = args.txId,
+                    state = state,
+                    miniscriptUiState = miniscriptUiState,
+                    onShowMore = { handleMenuMore() },
+                    onSignClick = { signer ->
+                        viewModel.setCurrentSigner(signer)
+                        when (signer.type) {
+                            SignerType.COLDCARD_NFC -> showSignByMk4Options()
+                            SignerType.NFC -> {
+                                startNfcFlow(REQUEST_NFC_SIGN_TRANSACTION)
+                            }
+                            SignerType.AIRGAP, SignerType.UNKNOWN -> showSignByAirgapOptions()
+                            SignerType.HARDWARE -> showError(getString(R.string.nc_use_desktop_app_to_sign))
+                            SignerType.PORTAL_NFC -> handlePortalAction(
+                                SignTransaction(
+                                    signer.fingerPrint,
+                                    viewModel.getTransaction().psbt
+                                )
                             )
-                        )
-                        else -> viewModel.handleSignSoftwareKey(signer)
-                    }
-                },
-                onBroadcastClick = viewModel::handleBroadcastEvent,
-                onViewOnBlockExplorer = viewModel::handleViewBlockchainEvent,
-                onManageCoinClick = {
-                    when (viewModel.coins().size) {
-                        1 -> navigator.openCoinDetail(
-                            launcher = coinLauncher,
-                            context = this,
-                            walletId = args.walletId,
-                            viewModel.coins().first()
-                        )
+                            else -> viewModel.handleSignSoftwareKey(signer)
+                        }
+                    },
+                    onBroadcastClick = viewModel::handleBroadcastEvent,
+                    onViewOnBlockExplorer = viewModel::handleViewBlockchainEvent,
+                    onManageCoinClick = {
+                        when (viewModel.coins().size) {
+                            1 -> navigator.openCoinDetail(
+                                launcher = coinLauncher,
+                                context = this,
+                                walletId = args.walletId,
+                                viewModel.coins().first()
+                            )
 
-                        else -> navigator.openCoinList(
+                            else -> navigator.openCoinList(
+                                launcher = coinLauncher,
+                                context = this,
+                                walletId = args.walletId,
+                                txId = args.txId
+                            )
+                        }
+                    },
+                    onEditNote = {
+                        InputBottomSheet.show(
+                            fragmentManager = supportFragmentManager,
+                            currentInput = viewModel.getTransaction().memo,
+                            title = getString(R.string.nc_transaction_note)
+                        )
+                    },
+                    onEditChangeCoin = { coin ->
+                        navigator.openCoinDetail(
                             launcher = coinLauncher,
                             context = this,
                             walletId = args.walletId,
-                            txId = args.txId
+                            output = coin
                         )
-                    }
-                },
-                onEditNote = {
-                    InputBottomSheet.show(
-                        fragmentManager = supportFragmentManager,
-                        currentInput = viewModel.getTransaction().memo,
-                        title = getString(R.string.nc_transaction_note)
-                    )
-                },
-                onEditChangeCoin = { coin ->
-                    navigator.openCoinDetail(
-                        launcher = coinLauncher,
-                        context = this,
-                        walletId = args.walletId,
-                        output = coin
-                    )
-                },
-                onCopyText = { handleCopyContent(it) },
-                onPreimageSuccess = viewModel::handlePreimageSuccess,
-                onSetPendingSignNodeId = viewModel::setPendingNodeId
-            )
+                    },
+                    onCopyText = { handleCopyContent(it) },
+                    onPreimageSuccess = viewModel::handlePreimageSuccess,
+                    onSetPendingSignNodeId = viewModel::setPendingNodeId
+                )
+            }
         }
 
         if (args.inheritanceClaimTxDetailInfo != null && args.transaction != null) {

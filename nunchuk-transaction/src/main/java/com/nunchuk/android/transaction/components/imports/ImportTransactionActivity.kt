@@ -86,12 +86,9 @@ class ImportTransactionActivity : BaseCameraActivity<ActivityImportTransactionBi
     }
 
     private fun onImportTransactionSuccess(event: ImportTransactionSuccess) {
-        val intent = Intent()
-        if (event.transaction != null) {
-            intent.apply {
-                putExtra(GlobalResultKey.TRANSACTION_EXTRA, event.transaction)
-                putExtra(GlobalResultKey.SIGNATURE, event.signature)
-            }
+        val intent = Intent().apply {
+            putExtra(GlobalResultKey.TRANSACTION_EXTRA, event.transaction)
+            putExtra(GlobalResultKey.SIGNATURE, event.signature)
         }
         setResult(RESULT_OK, intent)
         hideLoading()

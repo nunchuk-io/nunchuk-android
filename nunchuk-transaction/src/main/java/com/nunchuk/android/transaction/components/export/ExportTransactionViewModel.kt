@@ -174,9 +174,4 @@ internal class ExportTransactionViewModel @Inject constructor(
 
     val qrStrings: List<String>
         get() = getState().qrStrings
-
-    private val isDummyTxFlow: Boolean
-        get() = args.signFlowType is SignFlowType.NormalDummy ||
-                args.signFlowType is SignFlowType.SignInDummy ||
-                args.signFlowType is SignFlowType.ClaimDummy
 }

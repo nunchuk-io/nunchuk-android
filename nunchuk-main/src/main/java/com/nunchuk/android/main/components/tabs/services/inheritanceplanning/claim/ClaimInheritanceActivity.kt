@@ -431,7 +431,7 @@ private fun ClaimInheritanceGraph(
                             walletId = "",
                             availableAmount = walletBalance,
                             claimInheritanceTxParam = ClaimInheritanceTxParam(
-                                masterSignerIds = claimData.requiredSigners.map { it.id },
+                                masterSignerIds = claimData.requiredSigners.map { it.fingerPrint },
                                 magicalPhrase = claimData.magic.trim(),
                                 derivationPaths = claimData.derivationPaths,
                                 totalAmount = walletBalance,
@@ -449,7 +449,7 @@ private fun ClaimInheritanceGraph(
                             slots = emptyList(),
                             type = SelectWalletType.TYPE_INHERITANCE_WALLET,
                             claimInheritanceTxParam = ClaimInheritanceTxParam(
-                                masterSignerIds = claimData.requiredSigners.map { it.id },
+                                masterSignerIds = claimData.requiredSigners.map { it.fingerPrint },
                                 magicalPhrase = claimData.magic.trim(),
                                 derivationPaths = claimData.derivationPaths,
                                 totalAmount = walletBalance,
@@ -466,7 +466,7 @@ private fun ClaimInheritanceGraph(
                             activityContext = activity,
                             quickWalletParam = QuickWalletParam(
                                 claimInheritanceTxParam = ClaimInheritanceTxParam(
-                                    masterSignerIds = claimData.requiredSigners.map { it.id },
+                                    masterSignerIds = claimData.requiredSigners.map { it.fingerPrint },
                                     magicalPhrase = claimData.magic.trim(),
                                     derivationPaths = claimData.derivationPaths,
                                     totalAmount = walletBalance,
@@ -493,7 +493,7 @@ private fun ClaimInheritanceGraph(
                             subtractFeeFromAmount = true,
                             sweepType = sweepType,
                             claimInheritanceTxParam = ClaimInheritanceTxParam(
-                                masterSignerIds = claimData.requiredSigners.map { it.id },
+                                masterSignerIds = claimData.requiredSigners.map { it.fingerPrint },
                                 magicalPhrase = claimData.magic.trim(),
                                 derivationPaths = claimData.derivationPaths,
                                 totalAmount = walletBalance,
