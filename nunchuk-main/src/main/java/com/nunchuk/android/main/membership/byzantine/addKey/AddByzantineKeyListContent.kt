@@ -78,7 +78,7 @@ fun AddByzantineKeyListContent(
                         }
                     })
             }, bottomBar = {
-                if (isAddOnly.not()) {
+                if (isAddOnly.not() && role != AssistedWalletRole.KEYHOLDER_LIMITED) {
                     NcPrimaryDarkButton(
                         modifier = Modifier
                             .fillMaxWidth()

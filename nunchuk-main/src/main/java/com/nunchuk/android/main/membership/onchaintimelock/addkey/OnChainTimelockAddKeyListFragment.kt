@@ -49,6 +49,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -110,6 +113,8 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.VerifyType
 import com.nunchuk.android.model.byzantine.AssistedWalletRole
+import com.nunchuk.android.model.byzantine.isFacilitatorAdmin
+import com.nunchuk.android.model.byzantine.toRole
 import com.nunchuk.android.model.isAddInheritanceKey
 import com.nunchuk.android.nav.args.AddAirSignerArgs
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
@@ -143,6 +148,10 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
 
     private val isKeyHolderLimited: Boolean
         get() = args.role == AssistedWalletRole.KEYHOLDER_LIMITED.name
+    
+    private val isFacilitatorAdmin: Boolean
+        get() = args.role?.toRole?.isFacilitatorAdmin == true
+        
     private var currentKeyData: AddKeyOnChainData? = null
 
     private val addTapSignerLauncher =
@@ -319,6 +328,10 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                     viewModel.resetRequestCacheTapSignerXpub()
                 }
             }
+        }
+        
+        if (isFacilitatorAdmin) {
+            showFacilitatorInfoDialog()
         }
     }
 
@@ -650,7 +663,9 @@ fun AddKeyListScreen(
         isRefreshing = uiState.isRefresh,
         onConfigTimelockClicked = onConfigTimelockClicked,
         onChangeTimelockClicked = onConfigTimelockClicked,
-        isGroupWallet = isGroupWallet
+        isGroupWallet = isGroupWallet,
+        isAddOnly = isAddOnly,
+        role = role?.toRole ?: AssistedWalletRole.NONE
     )
 }
 
@@ -667,7 +682,9 @@ fun OnChainTimelockAddKeyListContent(
     onAddClicked: (data: AddKeyOnChainData) -> Unit = {},
     refresh: () -> Unit = { },
     onChangeTimelockClicked: (data: AddKeyOnChainData) -> Unit = {},
-    isGroupWallet: Boolean = false
+    isGroupWallet: Boolean = false,
+    isAddOnly: Boolean = false,
+    role: AssistedWalletRole = AssistedWalletRole.NONE,
 ) {
     val state = rememberPullRefreshState(isRefreshing, refresh)
 
@@ -688,22 +705,24 @@ fun OnChainTimelockAddKeyListContent(
                 )
             },
             bottomBar = {
-                NcPrimaryDarkButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    onClick = onContinueClicked,
-                    enabled = keys.all { data ->
-                        data.steps.all { step ->
-                            data.stepDataMap[step]?.isComplete == true
-                        }
-                    } && keys.filter { it.type.isAddInheritanceKey }
-                        .all { it.verifyType != VerifyType.NONE }
-                            && keys.filter { data ->
-                        data.signers?.any { it.type == SignerType.NFC } == true
-                    }.all { it.verifyType != VerifyType.NONE }
-                ) {
-                    Text(text = stringResource(id = R.string.nc_text_continue))
+                if (isAddOnly.not() && role != AssistedWalletRole.KEYHOLDER_LIMITED) {
+                    NcPrimaryDarkButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        onClick = onContinueClicked,
+                        enabled = keys.all { data ->
+                            data.steps.all { step ->
+                                data.stepDataMap[step]?.isComplete == true
+                            }
+                        } && keys.filter { it.type.isAddInheritanceKey }
+                            .all { it.verifyType != VerifyType.NONE }
+                                && keys.filter { data ->
+                            data.signers?.any { it.type == SignerType.NFC } == true
+                        }.all { it.verifyType != VerifyType.NONE }
+                    ) {
+                        Text(text = stringResource(id = R.string.nc_text_continue))
+                    }
                 }
             },
         ) { innerPadding ->
@@ -745,13 +764,19 @@ fun OnChainTimelockAddKeyListContent(
                     }
 
                     items(keys.filter { it.type != MembershipStep.TIMELOCK }) { key ->
-                        AddKeyCard(
-                            item = key,
-                            onAddClicked = onAddClicked,
-                            onVerifyClicked = onVerifyClicked,
-                            onChangeTimelockClicked = onChangeTimelockClicked,
-                            isMissingBackup = uiState.missingBackupKeys.contains(key) && key.signers?.firstOrNull()?.type == SignerType.NFC
-                        )
+                        BlurView(
+                            isBlur = (key.signers?.firstOrNull()?.isVisible == false || key.type == MembershipStep.ADD_SEVER_KEY) && role == AssistedWalletRole.KEYHOLDER_LIMITED,
+                        ) { modifier ->
+                            AddKeyCard(
+                                modifier = modifier,
+                                item = key,
+                                onAddClicked = onAddClicked,
+                                onVerifyClicked = onVerifyClicked,
+                                onChangeTimelockClicked = onChangeTimelockClicked,
+                                isMissingBackup = uiState.missingBackupKeys.contains(key) && key.signers?.firstOrNull()?.type == SignerType.NFC,
+                                isDisabled = role.isFacilitatorAdmin
+                            )
+                        }
                     }
                     item {
                         Text(
@@ -785,14 +810,20 @@ fun OnChainTimelockAddKeyListContent(
                                 style = NunchukTheme.typography.body
                             )
                             Column {
-                                AddKeyCard(
-                                    item = timelockKey,
-                                    onAddClicked = {
-                                        onConfigTimelockClicked(it)
-                                    },
-                                    onVerifyClicked = onVerifyClicked,
-                                    onChangeTimelockClicked = onChangeTimelockClicked
-                                )
+                                BlurView(
+                                    isBlur = role == AssistedWalletRole.KEYHOLDER_LIMITED,
+                                ) { modifier ->
+                                    AddKeyCard(
+                                        modifier = modifier,
+                                        item = timelockKey,
+                                        onAddClicked = {
+                                            onConfigTimelockClicked(it)
+                                        },
+                                        onVerifyClicked = onVerifyClicked,
+                                        onChangeTimelockClicked = onChangeTimelockClicked,
+                                        isDisabled = role.isFacilitatorAdmin
+                                    )
+                                }
                             }
                         }
                     }
@@ -801,6 +832,22 @@ fun OnChainTimelockAddKeyListContent(
                 PullRefreshIndicator(isRefreshing, state, Modifier.align(Alignment.TopCenter))
             }
         }
+    }
+}
+
+@Composable
+private fun BlurView(
+    isBlur: Boolean,
+    content: @Composable (modifier: Modifier) -> Unit,
+) {
+    if (isBlur) {
+        content(
+            Modifier.graphicsLayer {
+                renderEffect = BlurEffect(16f, 16f, TileMode.Decal)
+            }
+        )
+    } else {
+        content(Modifier)
     }
 }
 
