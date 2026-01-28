@@ -47,6 +47,8 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.claimnote.ClaimNoteRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.claimnote.claimNote
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.claimnote.navigateToClaimNote
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.exportcomplete.exportComplete
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.exportcomplete.navigateToExportComplete
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.magicphrase.ClaimMagicPhraseRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.magicphrase.claimMagicPhrase
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.noinheritancefound.inheritanceError
@@ -89,6 +91,7 @@ class ClaimInheritanceActivity : BaseNfcActivity<ViewBinding>() {
                     activity = this@ClaimInheritanceActivity,
                     navigator = navigator,
                     pushEventManager = pushEventManager,
+                    activityViewModel = viewModel
                 )
             }
         }
@@ -218,6 +221,8 @@ private fun ClaimInheritanceGraph(
                         )
                     )
                 }
+
+                ClaimInheritanceEvent.ImportFile -> return@LaunchedEffect
             }
             activityViewModel.onEventHandled()
         }
@@ -403,6 +408,18 @@ private fun ClaimInheritanceGraph(
                         index = claimData.signers.size.inc(),
                         totalKeys = claimData.requiredKeyCount
                     )
+                },
+                onNavigateToExportComplete = {
+                    navController.navigateToExportComplete()
+                }
+            )
+            exportComplete(
+                onImportSignature = {
+                    navController.popBackStack()
+                    activityViewModel.showImportFile()
+                },
+                onCancel = {
+                    navController.popBackStack()
                 }
             )
             claimWithdrawBitcoin(

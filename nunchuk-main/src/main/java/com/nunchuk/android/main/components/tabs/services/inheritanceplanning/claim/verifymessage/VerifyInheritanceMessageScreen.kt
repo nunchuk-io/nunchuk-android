@@ -61,6 +61,8 @@ import com.nunchuk.android.core.share.IntentSharingController
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimData
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimInheritanceEvent
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimUiState
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.share.model.SignFlowType
@@ -78,12 +80,15 @@ import com.nunchuk.android.widget.R as WidgetR
 fun VerifyInheritanceMessageScreen(
     modifier: Modifier = Modifier,
     snackState: SnackbarHostState,
+    sharedUiState: ClaimUiState,
     claimData: ClaimData,
     navigator: NunchukNavigator,
     onBackPressed: () -> Unit = {},
     addMoreSigner: () -> Unit = {},
     onSuccess: (InheritanceAdditional) -> Unit = {},
     onSigned: (String) -> Unit = {},
+    onNavigateToExportComplete: () -> Unit = {},
+    onEventHandled: () -> Unit = {},
 ) {
     val localSigner = claimData.signers.last()
     val path =
@@ -141,6 +146,18 @@ fun VerifyInheritanceMessageScreen(
     }
     val nfcViewModel = hiltViewModel<NfcViewModel>(viewModelStoreOwner = activity)
     val coroutineScope = rememberCoroutineScope()
+    
+    LaunchedEffect(sharedUiState.event) {
+        val event = sharedUiState.event
+        when (event) {
+            is ClaimInheritanceEvent.ImportFile -> {
+                importFileLauncher.launch("*/*")
+                onEventHandled()
+            }
+
+            else -> {}
+        }
+    }
 
     LaunchedEffect(uiState.signedMessage) {
         val signedMessage = uiState.signedMessage
@@ -177,6 +194,7 @@ fun VerifyInheritanceMessageScreen(
                 is VerifyInheritanceMessageEvent.ExportToFileSuccess -> {
                     val controller = IntentSharingController.from(activity)
                     controller.shareFile(event.filePath)
+                    onNavigateToExportComplete()
                 }
 
                 is VerifyInheritanceMessageEvent.SaveLocalFile -> {
@@ -185,6 +203,7 @@ fun VerifyInheritanceMessageScreen(
                             message = activity.getString(R.string.nc_save_file_success),
                             type = NcToastType.SUCCESS
                         )
+                        onNavigateToExportComplete()
                     } else {
                         snackState.showNunchukSnackbar(
                             message = activity.getString(R.string.nc_save_file_failed),

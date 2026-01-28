@@ -481,6 +481,9 @@
     
     <!-- Verify inheritance message screen -->
     <string name="nc_verify_inheritance_key">Verify Inheritance Key</string>
+    <string name="nc_export_via_file">Export via file</string>
+    <string name="nc_export_completed">Export completed</string>
+    <string name="nc_export_completed_instructions">Continue on COLDCARD via:\nAdvanced/Tools > File Management > Sign Text File.\n\nOnce signing is done, select [B]Import signature[/B].</string>
     <string name="nc_sign_message">Sign Message</string>
     
     <!-- Restore seed phrase to hardware device screen -->

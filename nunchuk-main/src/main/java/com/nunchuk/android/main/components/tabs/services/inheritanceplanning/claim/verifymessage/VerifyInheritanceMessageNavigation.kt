@@ -21,24 +21,29 @@ fun NavGraphBuilder.verifyInheritanceMessage(
     navigator: NunchukNavigator,
     onBackPressed: () -> Unit = {},
     addMoreSigner: () -> Unit = {},
+    onNavigateToExportComplete: () -> Unit = {},
 ) {
     composable<VerifyInheritanceMessageRoute> {
         val activity = LocalActivity.current as ComponentActivity
         val activityViewModel: ClaimInheritanceViewModel =
             hiltViewModel(viewModelStoreOwner = activity)
         val claimData by activityViewModel.claimData.collectAsStateWithLifecycle()
+        val uiState by activityViewModel.uiState.collectAsStateWithLifecycle()
 
         if (claimData.challenge != null) {
             VerifyInheritanceMessageScreen(
                 snackState = snackState,
                 claimData = claimData,
                 navigator = navigator,
+                sharedUiState = uiState,
                 onBackPressed = onBackPressed,
                 addMoreSigner = addMoreSigner,
                 onSuccess = { inheritanceAdditional ->
                     activityViewModel.updateInheritanceAdditional(inheritanceAdditional)
                 },
-                onSigned = activityViewModel::addSignature
+                onSigned = activityViewModel::addSignature,
+                onNavigateToExportComplete = onNavigateToExportComplete,
+                onEventHandled = activityViewModel::onEventHandled
             )
         }
     }

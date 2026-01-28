@@ -294,6 +294,14 @@ class ClaimInheritanceViewModel @Inject constructor(
         }
     }
 
+    fun showImportFile() {
+        _uiState.update {
+            it.copy(
+                event = ClaimInheritanceEvent.ImportFile,
+            )
+        }
+    }
+
     fun onEventHandled() {
         _uiState.update { it.copy(event = null) }
     }
@@ -392,6 +400,7 @@ sealed class ClaimInheritanceEvent {
     data object SignerAdded : ClaimInheritanceEvent()
     data class SignMessage(val signer: SignerModel) : ClaimInheritanceEvent()
     data object GenerateChallengeSuccess : ClaimInheritanceEvent()
+    data object ImportFile : ClaimInheritanceEvent()
 }
 
 @Parcelize

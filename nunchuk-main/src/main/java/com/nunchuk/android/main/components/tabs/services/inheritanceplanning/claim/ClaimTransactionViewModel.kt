@@ -46,8 +46,8 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     private val _miniscriptState = MutableStateFlow(TransactionMiniscriptUiState())
     val miniscriptState: StateFlow<TransactionMiniscriptUiState> = _miniscriptState.asStateFlow()
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    private val _loadingType = MutableStateFlow<LoadingType?>(null)
+    val loadingType: StateFlow<LoadingType?> = _loadingType.asStateFlow()
 
     private val _needPassphrase = MutableStateFlow<String?>(null)
     val needPassphrase: StateFlow<String?> = _needPassphrase.asStateFlow()
@@ -63,7 +63,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         }
 
         viewModelScope.launch {
-            _isLoading.update { true }
+            _loadingType.update { LoadingType.Normal }
             try {
                 val signers = mutableListOf<SignerModel>()
 
@@ -95,7 +95,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load signers")
             } finally {
-                _isLoading.update { false }
+                _loadingType.update { null }
             }
         }
     }
@@ -143,7 +143,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
 
     private fun signSoftwarePsbt(singleSigner: SingleSigner) {
         viewModelScope.launch {
-            _isLoading.update { true }
+            _loadingType.update { LoadingType.Normal }
             val transaction = args.transaction
 
             val result = signSoftwarePsbtUseCase(
@@ -158,7 +158,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
                 )
             )
 
-            _isLoading.update { false }
+            _loadingType.update { null }
 
             if (result.isSuccess) {
                 val signedTransaction = result.getOrThrow()
@@ -176,7 +176,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
 
     fun signTapSignerPsbt(isoDep: IsoDep, cvc: String) {
         viewModelScope.launch {
-            _isLoading.update { true }
+            _loadingType.update { LoadingType.Nfc }
             val transaction = args.transaction
 
             val result = signTapSignerPsbtUseCase(
@@ -192,7 +192,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
                 )
             )
 
-            _isLoading.update { false }
+            _loadingType.update { null }
 
             if (result.isSuccess) {
                 val signedTransaction = result.getOrThrow()
@@ -212,7 +212,7 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         val signedCount = transaction.signers.values.count { it }
         if (signedCount == args.masterSignerIds.size) {
             viewModelScope.launch {
-                _isLoading.update { true }
+                _loadingType.update { LoadingType.Normal }
                 inheritanceClaimingClaimUseCase(
                     InheritanceClaimingClaimUseCase.Param(
                         magic = args.magic,
@@ -229,9 +229,13 @@ class ClaimTransactionViewModel @AssistedInject constructor(
                 }.onFailure { exception ->
                     Timber.e(exception, "Failed to claim inheritance transaction")
                 }
-                _isLoading.update { false }
+                _loadingType.update { null }
             }
         }
+    }
+
+    enum class LoadingType {
+        Normal, Nfc
     }
 
     @AssistedFactory

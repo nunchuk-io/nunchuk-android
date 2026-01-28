@@ -13,9 +13,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.viewbinding.ViewBinding
 import com.nunchuk.android.compose.NunchukTheme
+import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
+import com.nunchuk.android.main.R
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimTransactionViewModel.LoadingType
 import com.nunchuk.android.nav.args.ClaimTransactionArgs
 import com.nunchuk.android.transaction.components.details.TransactionDetailView
 import com.nunchuk.android.type.SignerType
@@ -59,6 +62,7 @@ private fun ClaimTransactionScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val miniscriptState by viewModel.miniscriptState.collectAsStateWithLifecycle()
     val needPassphrase by viewModel.needPassphrase.collectAsStateWithLifecycle()
+    val loadingType by viewModel.loadingType.collectAsStateWithLifecycle()
 
     // Handle NFC scanning for tap signer
     LaunchedEffect(Unit) {
@@ -82,6 +86,17 @@ private fun ClaimTransactionScreen(
                 onConfirmed = { passphrase ->
                     viewModel.handlePassphrase(passphrase)
                 }
+            )
+        }
+    }
+
+    val type = loadingType
+    if (type != null) {
+        when (type) {
+            LoadingType.Normal -> NcLoadingDialog()
+            LoadingType.Nfc -> NcLoadingDialog(
+                title = context.getString(R.string.nc_please_wait),
+                customMessage = context.getString(R.string.nc_keep_holding_nfc)
             )
         }
     }
