@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.nfc.tech.IsoDep
+import android.nfc.tech.Ndef
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.enableEdgeToEdge
@@ -27,6 +28,7 @@ import com.nunchuk.android.compose.NcToastType
 import com.nunchuk.android.compose.NunchukTheme
 import com.nunchuk.android.compose.dialog.NcLoadingDialog
 import com.nunchuk.android.compose.showNunchukSnackbar
+import com.nunchuk.android.core.R as CoreR
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
@@ -128,6 +130,18 @@ private fun ClaimTransactionScreen(
                         type = NcToastType.ERROR
                     )
                 }
+                ClaimTransactionEvent.ExportTransactionToMk4Success -> {
+                    snackbarHostState.showNunchukSnackbar(
+                        message = context.getString(R.string.nc_transaction_exported),
+                        type = NcToastType.SUCCESS
+                    )
+                }
+                ClaimTransactionEvent.ImportTransactionFromMk4Success -> {
+                    snackbarHostState.showNunchukSnackbar(
+                        message = context.getString(com.nunchuk.android.transaction.R.string.nc_signed_transaction),
+                        type = NcToastType.SUCCESS
+                    )
+                }
             }
         }
     }
@@ -155,6 +169,27 @@ private fun ClaimTransactionScreen(
             }
     }
 
+    // Handle NFC export PSBT to ColdCard Mk4
+    LaunchedEffect(Unit) {
+        nfcViewModel.nfcScanInfo
+            .filter { it.requestCode == BaseNfcActivity.REQUEST_MK4_EXPORT_TRANSACTION }
+            .collect { scanInfo ->
+                val ndef = Ndef.get(scanInfo.tag) ?: return@collect
+                viewModel.handleExportTransactionToMk4(ndef)
+                nfcViewModel.clearScanInfo()
+            }
+    }
+
+    // Handle NFC import PSBT from ColdCard Mk4
+    LaunchedEffect(Unit) {
+        nfcViewModel.nfcScanInfo
+            .filter { it.requestCode == BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE }
+            .collect { scanInfo ->
+                viewModel.handleImportTransactionFromMk4(scanInfo.records)
+                nfcViewModel.clearScanInfo()
+            }
+    }
+
     // Handle passphrase dialog
     LaunchedEffect(needPassphrase) {
         needPassphrase?.let { id ->
@@ -174,6 +209,10 @@ private fun ClaimTransactionScreen(
             LoadingType.Nfc -> NcLoadingDialog(
                 title = context.getString(R.string.nc_please_wait),
                 customMessage = context.getString(R.string.nc_keep_holding_nfc)
+            )
+            LoadingType.ColdCard -> NcLoadingDialog(
+                title = context.getString(CoreR.string.nc_data_transfer_in_progress),
+                customMessage = context.getString(CoreR.string.nc_keep_hold_coldcard_until_finish)
             )
         }
     }
@@ -221,15 +260,17 @@ private fun ClaimTransactionScreen(
             onDismissColdCardOptions = { showColdCardOptionsSheet = false },
             callbacks = ColdCardSigningCallbacks(
                 onExportViaQr = {
-                    val psbt = state.transaction.psbt
-                    if (psbt.isNotEmpty()) {
-                        navigator.openExportTransactionScreen(
-                            launcher = importOrExportTransactionLauncher,
-                            activityContext = activity,
-                            txToSign = psbt,
-                            signFlowType = SignFlowType.NormalDummy,
-                            isBBQR = true
-                        )
+                    coroutineScope.launch {
+                        val psbt = state.transaction.psbt
+                        if (psbt.isNotEmpty()) {
+                            navigator.openExportTransactionScreen(
+                                launcher = importOrExportTransactionLauncher,
+                                activityContext = activity,
+                                txToSign = psbt,
+                                signFlowType = SignFlowType.NormalDummy,
+                                isBBQR = true
+                            )
+                        }
                     }
                 },
                 onImportViaQr = {
@@ -237,6 +278,21 @@ private fun ClaimTransactionScreen(
                         launcher = importOrExportTransactionLauncher,
                         activityContext = activity,
                         signFlowType = SignFlowType.NormalDummy
+                    )
+                },
+                onExportViaNfc = {
+                    coroutineScope.launch {
+                        val psbt = state.transaction.psbt
+                        if (psbt.isNotEmpty()) {
+                            (activity as NfcActionListener).startNfcFlow(
+                                BaseNfcActivity.REQUEST_MK4_EXPORT_TRANSACTION
+                            )
+                        }
+                    }
+                },
+                onImportViaNfc = {
+                    (activity as NfcActionListener).startNfcFlow(
+                        BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE
                     )
                 },
                 onSaveFile = {

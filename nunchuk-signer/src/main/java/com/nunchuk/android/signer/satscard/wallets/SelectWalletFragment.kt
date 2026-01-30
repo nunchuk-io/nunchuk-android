@@ -30,6 +30,7 @@ import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.core.base.BaseFragment
 import com.nunchuk.android.core.data.model.TxReceipt
 import com.nunchuk.android.core.data.model.isInheritanceClaimFlow
+import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.core.nfc.NfcActionListener
 import com.nunchuk.android.core.nfc.NfcViewModel
@@ -165,7 +166,7 @@ class SelectWalletFragment : BaseFragment<FragmentSelectWalletSweepBinding>() {
     }
 
     private fun navigateToTransactionDetail(extendTransaction: ExtendTransaction) {
-//        ActivityManager.popUntilRoot()
+        navigator.returnToMainScreen(requireActivity())
         val transaction = extendTransaction.transaction
         if (transaction.isPendingSignatures()) {
             navigator.openClaimTransactionScreen(

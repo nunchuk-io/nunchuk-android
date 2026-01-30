@@ -1,9 +1,12 @@
 package com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim
 
+import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
+import android.nfc.tech.Ndef
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nunchuk.android.core.domain.SignTapSignerPsbtUseCase
+import com.nunchuk.android.core.domain.coldcard.ExportRawPsbtToMk4UseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.messageOrUnknownError
@@ -19,8 +22,10 @@ import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
 import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
 import com.nunchuk.android.usecase.membership.InheritanceClaimingClaimUseCase
+import com.nunchuk.android.usecase.signer.GetPsbtFromMk4UseCase
 import com.nunchuk.android.usecase.signer.GetRemoteOrMasterSignerUseCase
 import com.nunchuk.android.usecase.signer.SignSoftwarePsbtUseCase
+import com.nunchuk.android.usecase.transaction.DecodeTxUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -46,6 +51,9 @@ class ClaimTransactionViewModel @AssistedInject constructor(
     private val inheritanceClaimingClaimUseCase: InheritanceClaimingClaimUseCase,
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
+    private val exportRawPsbtToMk4UseCase: ExportRawPsbtToMk4UseCase,
+    private val getPsbtFromMk4UseCase: GetPsbtFromMk4UseCase,
+    private val decodeTxUseCase: DecodeTxUseCase,
     @Assisted private val args: ClaimTransactionArgs
 ) : ViewModel() {
 
@@ -295,8 +303,50 @@ class ClaimTransactionViewModel @AssistedInject constructor(
         }
     }
 
+    fun handleExportTransactionToMk4(ndef: Ndef) {
+        viewModelScope.launch {
+            val psbt = _state.value.transaction.psbt
+            if (psbt.isEmpty()) return@launch
+            _loadingType.update { LoadingType.ColdCard }
+            val result = exportRawPsbtToMk4UseCase(ExportRawPsbtToMk4UseCase.Data(psbt, ndef))
+            _loadingType.update { null }
+            if (result.isSuccess) {
+                _event.emit(ClaimTransactionEvent.ExportTransactionToMk4Success)
+            } else {
+                _event.emit(ClaimTransactionEvent.ShowError(result.exceptionOrNull()?.message.orUnknownError()))
+            }
+        }
+    }
+
+    fun handleImportTransactionFromMk4(records: List<NdefRecord>) {
+        viewModelScope.launch {
+            _loadingType.update { LoadingType.ColdCard }
+            getPsbtFromMk4UseCase(records.toTypedArray()).onSuccess { importedPsbt ->
+                val currentTx = _state.value.transaction
+                decodeTxUseCase(
+                    DecodeTxUseCase.Param(
+                        signers = _singleSigners,
+                        psbt = importedPsbt,
+                        subAmount = currentTx.subAmount.value.toString(),
+                        feeRate = currentTx.feeRate.value.toString(),
+                        fee = currentTx.fee.value.toString(),
+                        subtractFeeFromAmount = currentTx.subtractFeeFromAmount
+                    )
+                ).onSuccess { transaction ->
+                    updateTransactionFromImport(transaction)
+                    _event.emit(ClaimTransactionEvent.ImportTransactionFromMk4Success)
+                }.onFailure {
+                    _event.emit(ClaimTransactionEvent.ShowError(it.message.orUnknownError()))
+                }
+            }.onFailure {
+                _event.emit(ClaimTransactionEvent.ShowError(it.message.orUnknownError()))
+            }
+            _loadingType.update { null }
+        }
+    }
+
     enum class LoadingType {
-        Normal, Nfc
+        Normal, Nfc, ColdCard
     }
 
     @AssistedFactory
@@ -311,4 +361,6 @@ sealed class ClaimTransactionEvent {
     data class SaveLocalFile(val isSuccess: Boolean) : ClaimTransactionEvent()
     data class ExportToFileSuccess(val filePath: String) : ClaimTransactionEvent()
     data class ShowError(val message: String) : ClaimTransactionEvent()
+    data object ExportTransactionToMk4Success : ClaimTransactionEvent()
+    data object ImportTransactionFromMk4Success : ClaimTransactionEvent()
 }
