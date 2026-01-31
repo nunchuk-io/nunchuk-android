@@ -23,23 +23,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.nunchuk.android.compose.dialog.NcConfirmationDialog
 import com.nunchuk.android.signer.R
-import java.util.Locale
 
 @Composable
 fun SecurityTimeoutDialog(
-    remainingTimeMs: Long,
     isXprv: Boolean = false,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit = onDismiss,
 ) {
-    val totalMinutes = (remainingTimeMs / (60 * 1000)).toInt()
-    val hours = totalMinutes / 60
-    val minutes = totalMinutes % 60
-    val timeString = String.format(Locale.getDefault(), "%02d:%02d", hours, minutes)
-
     val message = stringResource(
-        id = if (isXprv) R.string.nc_security_timeout_message_xprv else R.string.nc_security_timeout_message,
-        timeString
+        id = if (isXprv) R.string.nc_security_timeout_message_xprv else R.string.nc_security_timeout_message
     )
 
     NcConfirmationDialog(

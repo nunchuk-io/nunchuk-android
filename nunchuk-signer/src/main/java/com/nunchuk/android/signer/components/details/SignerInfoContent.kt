@@ -498,7 +498,6 @@ fun SignerInfoContent(
 
         if (showSecurityTimeoutDialog) {
             SecurityTimeoutDialog(
-                remainingTimeMs = remainingTimeMs,
                 isXprv = uiState.hasXprv,
                 onDismiss = {
                     showSecurityTimeoutDialog = false

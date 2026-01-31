@@ -218,7 +218,7 @@
     <string name="nc_view_seed_phrase">View seed phrase</string>
     <string name="nc_view_xprv">View XPRV</string>
     <string name="nc_security_timeout">Security Timeout</string>
-    <string name="nc_security_timeout_message">For security reasons, you\'ll need to wait %1$s before you can view your seed phrase.</string>
-    <string name="nc_security_timeout_message_xprv">For security reasons, you\'ll need to wait %1$s before you can view your XPRV.</string>
+    <string name="nc_security_timeout_message">For your security, there\'s a 2-hour waiting period before you can view your seed phrase.</string>
+    <string name="nc_security_timeout_message_xprv">For your security, there\'s a 2-hour waiting period before you can view your XPRV.</string>
     <string name="nc_confirm">Confirm</string>
 </resources>
