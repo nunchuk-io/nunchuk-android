@@ -322,7 +322,7 @@ fun SignerInfoContent(
                             val timeString =
                                 String.Companion.format(
                                     Locale.getDefault(),
-                                    "%02d:%02d",
+                                    "%dh:%02dm",
                                     hours,
                                     minutes
                                 )
