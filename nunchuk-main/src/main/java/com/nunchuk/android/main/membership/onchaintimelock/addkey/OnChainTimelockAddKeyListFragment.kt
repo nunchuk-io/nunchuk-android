@@ -764,15 +764,16 @@ fun OnChainTimelockAddKeyListContent(
                     }
 
                     items(keys.filter { it.type != MembershipStep.TIMELOCK }) { key ->
+                        val keyIsBlur = (key.signers?.firstOrNull()?.isVisible == false || key.type == MembershipStep.ADD_SEVER_KEY) && role == AssistedWalletRole.KEYHOLDER_LIMITED
                         BlurView(
-                            isBlur = (key.signers?.firstOrNull()?.isVisible == false || key.type == MembershipStep.ADD_SEVER_KEY) && role == AssistedWalletRole.KEYHOLDER_LIMITED,
+                            isBlur = keyIsBlur,
                         ) { modifier ->
                             AddKeyCard(
                                 modifier = modifier,
                                 item = key,
-                                onAddClicked = onAddClicked,
-                                onVerifyClicked = onVerifyClicked,
-                                onChangeTimelockClicked = onChangeTimelockClicked,
+                                onAddClicked = { if (!keyIsBlur) onAddClicked(it) },
+                                onVerifyClicked = { if (!keyIsBlur) onVerifyClicked(it) },
+                                onChangeTimelockClicked = { if (!keyIsBlur) onChangeTimelockClicked(it) },
                                 isMissingBackup = uiState.missingBackupKeys.contains(key) && key.signers?.firstOrNull()?.type == SignerType.NFC,
                                 isDisabled = role.isFacilitatorAdmin
                             )
@@ -810,17 +811,16 @@ fun OnChainTimelockAddKeyListContent(
                                 style = NunchukTheme.typography.body
                             )
                             Column {
+                                val timelockIsBlur = role == AssistedWalletRole.KEYHOLDER_LIMITED
                                 BlurView(
-                                    isBlur = role == AssistedWalletRole.KEYHOLDER_LIMITED,
+                                    isBlur = timelockIsBlur,
                                 ) { modifier ->
                                     AddKeyCard(
                                         modifier = modifier,
                                         item = timelockKey,
-                                        onAddClicked = {
-                                            onConfigTimelockClicked(it)
-                                        },
-                                        onVerifyClicked = onVerifyClicked,
-                                        onChangeTimelockClicked = onChangeTimelockClicked,
+                                        onAddClicked = { if (!timelockIsBlur) onConfigTimelockClicked(it) },
+                                        onVerifyClicked = { if (!timelockIsBlur) onVerifyClicked(it) },
+                                        onChangeTimelockClicked = { if (!timelockIsBlur) onChangeTimelockClicked(it) },
                                         isDisabled = role.isFacilitatorAdmin
                                     )
                                 }
