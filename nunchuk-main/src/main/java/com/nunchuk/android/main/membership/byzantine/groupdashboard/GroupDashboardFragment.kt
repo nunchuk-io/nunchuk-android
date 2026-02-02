@@ -154,7 +154,10 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
 
     private fun showInheritanceMessage(dummyTransactionType: DummyTransactionType) {
         val message = when (dummyTransactionType) {
-            DummyTransactionType.CREATE_INHERITANCE_PLAN -> getString(R.string.nc_inheritance_has_been_created)
+            DummyTransactionType.CREATE_INHERITANCE_PLAN -> {
+                viewModel.getInheritance(isAlertFlow = true)
+                getString(R.string.nc_inheritance_has_been_created)
+            }
             DummyTransactionType.UPDATE_INHERITANCE_PLAN -> {
                 if (args.groupId?.isNotEmpty() == true) {
                     getString(R.string.nc_inheritance_has_been_updated)
