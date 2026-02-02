@@ -165,7 +165,10 @@ class ClaimInheritanceViewModel @Inject constructor(
     }
 
     fun addSigner(signer: SignerModel) {
-        if (_claimData.value.signers.contains(signer)) {
+        val hasSigner = _claimData.value.signers.any {
+            it.fingerPrint == signer.fingerPrint && it.derivationPath == signer.derivationPath
+        }
+        if (hasSigner) {
             _uiState.update {
                 it.copy(
                     event = ClaimInheritanceEvent.KeyAlreadyAdded,
@@ -327,6 +330,7 @@ sealed class ClaimInheritanceEvent {
         val errorCode: Int,
         val message: String
     ) : ClaimInheritanceEvent()
+
     data object AddMoreSigners : ClaimInheritanceEvent()
     data object KeyAlreadyAdded : ClaimInheritanceEvent()
     data object SignerAdded : ClaimInheritanceEvent()
