@@ -2,6 +2,7 @@ package com.nunchuk.android.main.membership.onchaintimelock.checkfirmware
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toModel
@@ -10,6 +11,7 @@ import com.nunchuk.android.model.MasterSigner
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.nav.args.CheckFirmwareArgs
 import com.nunchuk.android.share.membership.MembershipStepManager
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.usecase.GetIndexFromPathUseCase
@@ -21,6 +23,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -33,11 +36,13 @@ class CheckFirmwareViewModel @Inject constructor(
     private val getIndexFromPathUseCase: GetIndexFromPathUseCase,
     private val getUserWalletConfigsSetupFromCacheUseCase: GetUserWalletConfigsSetupFromCacheUseCase,
     private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
+    private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
 ) : ViewModel() {
 
     val remainTime = membershipStepManager.remainingTime
 
     private lateinit var args: CheckFirmwareArgs
+    private var isTestNet: Boolean = false
 
     private val _filteredSigners = MutableStateFlow<List<SignerModel>>(emptyList())
     val filteredSigners = _filteredSigners.asStateFlow()
@@ -47,6 +52,16 @@ class CheckFirmwareViewModel @Inject constructor(
 
     private val _event = MutableSharedFlow<CheckFirmwareEvent>()
     val event = _event.asSharedFlow()
+
+    init {
+        viewModelScope.launch {
+            getChainSettingFlowUseCase(Unit)
+                .map { it.getOrDefault(Chain.MAIN) }
+                .collect {
+                    isTestNet = it == Chain.TESTNET
+                }
+        }
+    }
 
     fun init(args: CheckFirmwareArgs) {
         this.args = args
@@ -114,7 +129,9 @@ class CheckFirmwareViewModel @Inject constructor(
 
     fun onContinueClicked() {
         viewModelScope.launch {
-            val signers = _filteredSigners.value.filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }
+            val signers = _filteredSigners.value
+                .filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }
+                .let { filterExistingSigners(it) }
             if (args.onChainAddSignerParam?.isVerifyBackupSeedPhrase() == true) {
                 _event.emit(CheckFirmwareEvent.OpenNextScreen)
             } else if (signers.isNotEmpty()) {
@@ -123,6 +140,26 @@ class CheckFirmwareViewModel @Inject constructor(
                 _event.emit(CheckFirmwareEvent.OpenNextScreen)
             }
         }
+    }
+
+    private fun filterExistingSigners(signers: List<SignerModel>): List<SignerModel> {
+        val existingSigners = args.onChainAddSignerParam?.existingSigners ?: return signers
+        if (existingSigners.isEmpty()) return signers
+        return signers.filter { signer ->
+            val signerDerivationPath = signer.derivationPath.ifEmpty {
+                getPath(index = if (signer.index <= 0) 0 else signer.index)
+            }
+            existingSigners.none { existing ->
+                val existingDerivationPath = existing.derivationPath.ifEmpty {
+                    getPath(index = if (existing.index <= 0) 0 else existing.index)
+                }
+                existing.fingerPrint == signer.fingerPrint && existingDerivationPath == signerDerivationPath
+            }
+        }
+    }
+
+    private fun getPath(index: Int): String {
+        return if (isTestNet) "m/48h/1h/${index}h/2h" else "m/48h/0h/${index}h/2h"
     }
 }
 

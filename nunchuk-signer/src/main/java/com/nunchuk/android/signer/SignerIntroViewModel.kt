@@ -2,6 +2,7 @@ package com.nunchuk.android.signer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.domain.settings.GetChainSettingFlowUseCase
 import com.nunchuk.android.core.mapper.MasterSignerMapper
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.signer.SignerModel
@@ -15,6 +16,7 @@ import com.nunchuk.android.model.SupportedSignerConfig
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.AddressType
+import com.nunchuk.android.type.Chain
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
 import com.nunchuk.android.type.WalletType
@@ -27,6 +29,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -47,17 +50,29 @@ class SignerIntroViewModel @Inject constructor(
     private val getUserWalletConfigsSetupFromCacheUseCase: GetUserWalletConfigsSetupFromCacheUseCase,
     private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
     private val restartWizardUseCase: RestartWizardUseCase,
+    private val getChainSettingFlowUseCase: GetChainSettingFlowUseCase,
 ) : ViewModel() {
 
     val remainTime = membershipStepManager.remainingTime
 
     private var onChainAddSignerParam: OnChainAddSignerParam? = null
+    private var isTestNet: Boolean = false
 
     private val _state = MutableStateFlow(SignerIntroState())
     val state = _state.asStateFlow()
 
     private val _event = MutableSharedFlow<SignerIntroEvent>()
     val event = _event.asSharedFlow()
+
+    init {
+        viewModelScope.launch {
+            getChainSettingFlowUseCase(Unit)
+                .map { it.getOrDefault(Chain.MAIN) }
+                .collect {
+                    isTestNet = it == Chain.TESTNET
+                }
+        }
+    }
 
     fun init(onChainAddSignerParam: OnChainAddSignerParam?) {
         this.onChainAddSignerParam = onChainAddSignerParam
@@ -135,13 +150,35 @@ class SignerIntroViewModel @Inject constructor(
 
     fun onTapSignerContinueClicked() {
         viewModelScope.launch {
-            val signers = _state.value.filteredTapSigners.filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }
-           if (signers.isNotEmpty()) {
+            val signers = _state.value.filteredTapSigners
+                .filter { signer -> signer.derivationPath.isRecommendedMultiSigPath }
+                .let { filterExistingSigners(it) }
+            if (signers.isNotEmpty()) {
                 _event.emit(SignerIntroEvent.ShowFilteredTapSigners(signers))
             } else {
                 _event.emit(SignerIntroEvent.OpenSetupTapSigner)
             }
         }
+    }
+
+    private fun filterExistingSigners(signers: List<SignerModel>): List<SignerModel> {
+        val existingSigners = onChainAddSignerParam?.existingSigners ?: return signers
+        if (existingSigners.isEmpty()) return signers
+        return signers.filter { signer ->
+            val signerDerivationPath = signer.derivationPath.ifEmpty {
+                getPath(index = if (signer.index <= 0) 0 else signer.index)
+            }
+            existingSigners.none { existing ->
+                val existingDerivationPath = existing.derivationPath.ifEmpty {
+                    getPath(index = if (existing.index <= 0) 0 else existing.index)
+                }
+                existing.fingerPrint == signer.fingerPrint && existingDerivationPath == signerDerivationPath
+            }
+        }
+    }
+
+    private fun getPath(index: Int): String {
+        return if (isTestNet) "m/48h/1h/${index}h/2h" else "m/48h/0h/${index}h/2h"
     }
 
     fun resetWizard(plan: MembershipPlan, groupId: String) {

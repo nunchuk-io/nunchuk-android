@@ -347,6 +347,10 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
         }
     }
 
+    private fun getAllExistingSigners(): List<SignerModel> {
+        return viewModel.key.value.flatMap { it.getAllSigners() }
+    }
+
     private fun openRequestAddDesktopKey(tag: SignerTag) {
         membershipStepManager.currentStep?.let { step ->
             findNavController().navigate(
@@ -371,7 +375,8 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 onChainAddSignerParam = OnChainAddSignerParam(
                     flags = if (nextStep?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
                     keyIndex = currentKeyData?.getAllSigners()?.size ?: 0,
-                    currentSigner = currentKeyData?.getAllSigners()?.firstOrNull()
+                    currentSigner = currentKeyData?.getAllSigners()?.firstOrNull(),
+                    existingSigners = getAllExistingSigners()
             ))
         )
     }
@@ -456,7 +461,10 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 // For inheritance key, navigate to inheritance intro screen
                 findNavController().navigate(
                     OnChainTimelockByzantineAddKeyFragmentDirections.actionOnChainTimelockByzantineAddKeyFragmentToInheritanceKeyIntroFragment(
-                        inheritanceType = InheritancePlanType.ON_CHAIN
+                        inheritanceType = InheritancePlanType.ON_CHAIN,
+                        onChainAddSignerParam = OnChainAddSignerParam(
+                            existingSigners = getAllExistingSigners()
+                        )
                     )
                 )
             } else {
@@ -470,7 +478,8 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                         onChainAddSignerParam = OnChainAddSignerParam(
                             flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
                             keyIndex = allSigners.size,
-                            currentSigner = allSigners.firstOrNull()
+                            currentSigner = allSigners.firstOrNull(),
+                            existingSigners = getAllExistingSigners()
                         )
                     )
                 )
@@ -543,7 +552,8 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 onChainAddSignerParam = OnChainAddSignerParam(
                     flags = if (nextStep?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
                     keyIndex = currentKeyData?.getAllSigners()?.size ?: 0,
-                    currentSigner = currentKeyData?.getAllSigners()?.firstOrNull()
+                    currentSigner = currentKeyData?.getAllSigners()?.firstOrNull(),
+                    existingSigners = getAllExistingSigners()
                 )
             )
         )
@@ -596,7 +606,8 @@ class OnChainTimelockByzantineAddKeyFragment : MembershipFragment(), BottomSheet
                 onChainAddSignerParam = OnChainAddSignerParam(
                     flags = if (nextStep?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
                     keyIndex = currentKeyData?.getAllSigners()?.size ?: 0,
-                    currentSigner = currentKeyData?.getAllSigners()?.firstOrNull()
+                    currentSigner = currentKeyData?.getAllSigners()?.firstOrNull(),
+                    existingSigners = getAllExistingSigners()
                 )
             )
         )

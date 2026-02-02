@@ -332,6 +332,10 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
         }
     }
 
+    private fun getAllExistingSigners(): List<SignerModel> {
+        return viewModel.key.value.flatMap { it.getAllSigners() }
+    }
+
     private fun openRequestAddDesktopKey(tag: SignerTag) {
         membershipStepManager.currentStep?.let { step ->
             findNavController().navigate(
@@ -353,7 +357,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 onChainAddSignerParam = OnChainAddSignerParam(
                     flags = if (currentKeyData?.type?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
                     keyIndex = currentKeyData?.signers?.size ?: 0,
-                    currentSigner = currentKeyData?.signers?.firstOrNull()
+                    currentSigner = currentKeyData?.signers?.firstOrNull(),
+                    existingSigners = getAllExistingSigners()
                 )
             )
         )
@@ -436,7 +441,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                         onChainAddSignerParam = OnChainAddSignerParam(
                             flags = OnChainAddSignerParam.FLAG_ADD_SIGNER,
                             keyIndex = allSigners.size,
-                            currentSigner = allSigners.firstOrNull()
+                            currentSigner = allSigners.firstOrNull(),
+                            existingSigners = getAllExistingSigners()
                         )
                     )
                 )
@@ -508,7 +514,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 onChainAddSignerParam = OnChainAddSignerParam(
                     flags = if (currentKeyData?.type?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
                     keyIndex = currentKeyData?.signers?.size ?: 0,
-                    currentSigner = currentKeyData?.signers?.firstOrNull()
+                    currentSigner = currentKeyData?.signers?.firstOrNull(),
+                    existingSigners = getAllExistingSigners()
                 )
             )
         )
@@ -525,7 +532,8 @@ class OnChainTimelockAddKeyListFragment : MembershipFragment(), BottomSheetOptio
                 onChainAddSignerParam = OnChainAddSignerParam(
                     flags = if (currentKeyData?.type?.isAddInheritanceKey == true) OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER else OnChainAddSignerParam.FLAG_ADD_SIGNER,
                     keyIndex = currentKeyData?.signers?.size ?: 0,
-                    currentSigner = currentKeyData?.signers?.firstOrNull()
+                    currentSigner = currentKeyData?.signers?.firstOrNull(),
+                    existingSigners = getAllExistingSigners()
                 )
             )
         )

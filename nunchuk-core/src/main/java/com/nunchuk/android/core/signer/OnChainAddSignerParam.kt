@@ -10,7 +10,8 @@ data class OnChainAddSignerParam(
     val keyIndex: Int = -1,
     val currentSigner: SignerModel? = null,
     val magic: String = "",
-    val replaceInfo: ReplaceInfo? = null
+    val replaceInfo: ReplaceInfo? = null,
+    val existingSigners: List<SignerModel> = emptyList()
 ) : Parcelable {
 
     val isClaiming: Boolean

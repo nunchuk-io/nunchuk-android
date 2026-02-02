@@ -109,7 +109,8 @@ class ImportantNoticePassphraseFragment : MembershipFragment(), BottomSheetOptio
                 onChainAddSignerParam = OnChainAddSignerParam(
                         flags = OnChainAddSignerParam.FLAG_ADD_INHERITANCE_SIGNER,
                         keyIndex = 0,
-                        replaceInfo = existingParam?.replaceInfo
+                        replaceInfo = existingParam?.replaceInfo,
+                        existingSigners = existingParam?.existingSigners ?: emptyList()
                     )
             )
         )
