@@ -40,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.nunchuk.android.compose.NCLabelWithIndex
 import com.nunchuk.android.compose.NcImageAppBar
@@ -50,6 +51,7 @@ import com.nunchuk.android.compose.SpanIndicator
 import com.nunchuk.android.core.util.openExternalLink
 import com.nunchuk.android.main.R
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.sharesecret.InheritanceShareSecretType
+import com.nunchuk.android.main.membership.byzantine.groupdashboard.GroupDashboardActivity
 import com.nunchuk.android.share.membership.MembershipFragment
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -68,7 +70,11 @@ class InheritanceHowItWorksFragment : MembershipFragment() {
                 InheritanceHowItWorksScreen(
                     type = args.type,
                     onDoneClick = {
-                        activity?.finish()
+                        if (activity is GroupDashboardActivity) {
+                            findNavController().popBackStack(R.id.groupDashboardFragment, false)
+                        } else {
+                            activity?.finish()
+                        }
                     }
                 )
             }
