@@ -444,10 +444,11 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     psbt = psbt
                 )
             ).onSuccess { extendedTransaction ->
+                val isAlreadySignedByServer = isSignByServerKey(extendedTransaction.transaction)
                 _event.emit(
                     SignTransactionSuccess(
                         status = extendedTransaction.transaction.status,
-                        serverSigned = isSignByServerKey(extendedTransaction.transaction)
+                        serverSigned = isAlreadySignedByServer
                     )
                 )
                 _state.update {
@@ -458,6 +459,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                 }
                 if (isMiniscriptWallet()) {
                     getSignedSigners(extendedTransaction.transaction)
+                    if (isAlreadySignedByServer) loadLocalTransaction()
                 }
             }.onFailure {
                 if (it.isNoInternetException) {

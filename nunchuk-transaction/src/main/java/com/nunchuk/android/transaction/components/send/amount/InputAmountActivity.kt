@@ -241,7 +241,7 @@ class InputAmountActivity : BaseActivity<ActivityTransactionInputAmountBinding>(
                 getString(R.string.nc_transaction_switch_to_currency_data, LOCAL_CURRENCY)
 
             val secondaryCurrency = if (LOCAL_CURRENCY == USD_CURRENCY) {
-                state.amountUSD.formatCurrencyDecimal()
+                state.amountUSD.formatCurrencyDecimal(maxFractionDigits = USD_FRACTION_DIGITS)
             } else {
                 "${state.amountUSD.formatDecimal(maxFractionDigits = USD_FRACTION_DIGITS)} $LOCAL_CURRENCY"
             }
