@@ -144,7 +144,7 @@ fun TransactionDetailView(
     val isMiniscriptTaprootSingleKeyPathTransaction =
         addressType.isTaproot() && miniscriptUiState.isMiniscriptWallet && state.defaultKeySetIndex == 0 && state.wallet.totalRequireSigns == 1
 
-    val signedSigner = remember(transaction.signedSigner.size) {
+    val signedSigner = remember(transaction.signedSigner) {
         transaction.signedSigner.map { it.toModel() }.toSet()
     }
 
