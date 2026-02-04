@@ -112,12 +112,21 @@ fun SelectScriptPathPolicyScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                Text(
-                    text = stringResource(R.string.nc_select_signing_policy_desc),
-                    style = NunchukTheme.typography.body,
-                    color = MaterialTheme.colorScheme.textPrimary,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+                if (isSelectingMode) {
+                    Text(
+                        text = stringResource(R.string.nc_select_signing_policy_desc),
+                        style = NunchukTheme.typography.body,
+                        color = MaterialTheme.colorScheme.textPrimary,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.nc_select_signing_path_among_less_than_3_policies, signingPaths.size),
+                        style = NunchukTheme.typography.body,
+                        color = MaterialTheme.colorScheme.textPrimary,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
 
                 if (!isSelectingMode) {
                     LazyColumn(
@@ -152,7 +161,7 @@ fun SelectScriptPathPolicyScreen(
                                     ScriptNodeTree(
                                         node = scriptNode,
                                         data = ScriptNodeData(
-                                            mode = ScriptMode.VIEW,
+                                            mode = ScriptMode.SINGLE_SELECT,
                                             signers = signers,
                                             duplicateSignerKeys = emptySet(),
                                             signingPath = signingPath,

@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -88,6 +89,7 @@ enum class ScriptMode {
     VIEW,
     CONFIG,
     SIGN,
+    SINGLE_SELECT,
     SELECTING
 }
 
@@ -114,7 +116,7 @@ fun ScriptNodeTree(
         data.mode == ScriptMode.CONFIG -> Modifier
         data.mode == ScriptMode.SIGN && (node.type == ScriptNodeType.AFTER.name || node.type == ScriptNodeType.OLDER.name) -> Modifier
         data.mode == ScriptMode.SIGN && isSatisfiableNode -> Modifier
-        data.mode == ScriptMode.VIEW && isNormalNode -> Modifier
+        (data.mode == ScriptMode.VIEW || data.mode == ScriptMode.SINGLE_SELECT) && isNormalNode -> Modifier
         data.mode == ScriptMode.SELECTING && !isPathDisabled -> Modifier
         isPathDisabled -> Modifier.alpha(0.4f)
         else -> Modifier.alpha(0.4f)
@@ -1041,7 +1043,7 @@ fun ThreshMultiItem(
             }
 
             // Show pending conditions or enough conditions collected
-            if (data.mode == ScriptMode.SIGN && isSatisfiable  && !data.transactionStatus.isConfirmed()) {
+            if (data.mode == ScriptMode.SIGN && isSatisfiable && !data.transactionStatus.isConfirmed()) {
                 Row(
                     modifier = Modifier
                         .then(modifier)
@@ -1366,8 +1368,10 @@ fun TreeBranchContainer(
     val indentationPadding = if (indentationLevel > 0) (indentationLevel * 10).dp else 0.dp
     val shouldDrawLine = drawLine && indentationLevel > 0
     val showThreadCurve = indentationLevel > 0
+    val showExpand = (data.collapsedNode?.id == node.id && node.type != ScriptNodeType.PK.name)
+            || ((data.mode == ScriptMode.SELECTING || data.mode == ScriptMode.SINGLE_SELECT) && node.type == ScriptNodeType.MULTI.name)
     var showDetail by remember(node.id) {
-        mutableStateOf(data.collapsedNode?.id != node.id)
+        mutableStateOf(!showExpand)
     }
 
     Box(
@@ -1388,47 +1392,58 @@ fun TreeBranchContainer(
             }
     ) {
         content(modifier, showThreadCurve, showDetail)
-        if (data.collapsedNode?.id == node.id && node.type != ScriptNodeType.PK.name) {
-            Row(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = if (showThreadCurve) 10.dp else 0.dp)
-                    .clickable { showDetail = !showDetail },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = if (showDetail) stringResource(R.string.nc_collapse)
-                    else stringResource(R.string.nc_expand),
-                    style = NunchukTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.textPrimary
-                )
-                NcIcon(
-                    painter = painterResource(id = if (showDetail) R.drawable.ic_collapse else R.drawable.ic_expand),
-                    contentDescription = null,
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopEnd),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            if (showExpand) {
+                Row(
                     modifier = Modifier
-                        .padding(start = 4.dp)
-                        .size(16.dp),
-                    tint = MaterialTheme.colorScheme.textPrimary
-                )
-            }
-        } else if (data.mode == ScriptMode.SELECTING && node.id.size > 1) {
-            if (node.id.size == 2 || data.signingPath.contains(node.id.take(node.id.size - 1))) {
-                val isNodeDisabled = data.isPathDisabled(node.id)
-                val isNodeFollowingParent = data.subNodeFollowParents.contains(node.id)
-                if (!isNodeFollowingParent || data.signingPath.path.contains(node.id)) {
-                    NcCheckBox(
-                        modifier = Modifier
-                            .padding(top = if (node.type == ScriptNodeType.PK.name) 16.dp else 0.dp)
-                            .size(24.dp)
-                            .align(Alignment.TopEnd),
-                        checked = data.signingPath.path.contains(node.id),
-                        enabled = !isNodeDisabled && !data.subNodeFollowParents.contains(node.id),
-                        onCheckedChange = { checked ->
-                            if (!isNodeDisabled) {
-                                data.onPathSelectionChange(node.id, checked)
-                            }
-                        }
+                        .padding(top = if (showThreadCurve) 10.dp else 0.dp)
+                        .clickable { showDetail = !showDetail },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.graphicsLayer(
+                            alpha = 1f
+                        ),
+                        text = if (showDetail) stringResource(R.string.nc_collapse)
+                        else stringResource(R.string.nc_expand),
+                        style = NunchukTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.textPrimary
                     )
+                    NcIcon(
+                        painter = painterResource(id = if (showDetail) R.drawable.ic_collapse else R.drawable.ic_expand),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .graphicsLayer(
+                                alpha = 1f
+                            )
+                            .padding(start = 4.dp)
+                            .size(16.dp),
+                        tint = MaterialTheme.colorScheme.textPrimary
+                    )
+                }
+            }
+            if (data.mode == ScriptMode.SELECTING && node.id.size > 1) {
+                if (node.id.size == 2 || data.signingPath.contains(node.id.take(node.id.size - 1))) {
+                    val isNodeDisabled = data.isPathDisabled(node.id)
+                    val isNodeFollowingParent = data.subNodeFollowParents.contains(node.id)
+                    if (!isNodeFollowingParent || data.signingPath.path.contains(node.id)) {
+                        NcCheckBox(
+                            modifier = Modifier
+                                .padding(top = if (node.type == ScriptNodeType.PK.name) 16.dp else if (showThreadCurve) 10.dp else 0.dp)
+                                .size(24.dp),
+                            checked = data.signingPath.path.contains(node.id),
+                            enabled = !isNodeDisabled && !data.subNodeFollowParents.contains(node.id),
+                            onCheckedChange = { checked ->
+                                if (!isNodeDisabled) {
+                                    data.onPathSelectionChange(node.id, checked)
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }

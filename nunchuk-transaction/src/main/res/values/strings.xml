@@ -118,4 +118,5 @@
     <string name="nc_timelocked_until_block">Timelocked until block %1$d</string>
     <string name="nc_preimage_revealed_success">Preimage revealed successfully</string>
     <string name="nc_available_coins">Available coins</string>
+    <string name="nc_select_signing_path_among_less_than_3_policies">Among the %1$d policies, select the policy you\'ll use to sign this spend. After selection, only that policy can sign and broadcast the transaction.</string>
 </resources>
