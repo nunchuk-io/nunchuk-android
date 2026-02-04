@@ -106,17 +106,22 @@ fun ScriptNodeTree(
 ) {
     val isNormalNode =
         data.signingPath.path.isEmpty() || signingPathContainsNodeId(data.signingPath.path, node.id)
+    val isParentNormalNode = data.signingPath.path.isEmpty() || signingPathContainsNodeId(
+        data.signingPath.path,
+        node.id.dropLast(1)
+    )
     val isInDisableBranch = data.topLevelDisableNode != null
             && node.id.size >= data.topLevelDisableNode.id.size
             && node.idString.startsWith(data.topLevelDisableNode.idString)
     val isSatisfiableNode = data.satisfiableMap[node.idString] != false
-
     val isPathDisabled = data.mode == ScriptMode.SELECTING && data.isPathDisabled(node.id)
     val nodeModifier = when {
         data.mode == ScriptMode.CONFIG -> Modifier
         data.mode == ScriptMode.SIGN && (node.type == ScriptNodeType.AFTER.name || node.type == ScriptNodeType.OLDER.name) -> Modifier
         data.mode == ScriptMode.SIGN && isSatisfiableNode -> Modifier
-        (data.mode == ScriptMode.VIEW || data.mode == ScriptMode.SINGLE_SELECT) && isNormalNode -> Modifier
+        data.mode == ScriptMode.VIEW || data.mode == ScriptMode.SINGLE_SELECT -> {
+            if (!isNormalNode && isParentNormalNode) Modifier.alpha(0.4f) else Modifier
+        }
         data.mode == ScriptMode.SELECTING && !isPathDisabled -> Modifier
         isPathDisabled -> Modifier.alpha(0.4f)
         else -> Modifier.alpha(0.4f)
