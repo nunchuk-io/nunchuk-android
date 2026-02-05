@@ -83,10 +83,12 @@ internal class ClaimWalletRepositoryImpl @Inject constructor(
                 )
             if (response.isSuccess.not()) throw response.error
             response.data.transactions.forEach { transition ->
-                transition.transactionId?.let {
-                    nunchukNativeSdk.deleteTransaction(
-                        walletId = walletId, txId = transition.transactionId
-                    )
+                runCatching {
+                    transition.transactionId?.let {
+                        nunchukNativeSdk.deleteTransaction(
+                            walletId = walletId, txId = transition.transactionId
+                        )
+                    }
                 }
             }
             if (response.data.transactions.size < TRANSACTION_PAGE_COUNT) return

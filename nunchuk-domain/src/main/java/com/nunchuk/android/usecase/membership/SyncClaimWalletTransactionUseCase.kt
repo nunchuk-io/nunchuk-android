@@ -31,7 +31,9 @@ class SyncClaimWalletTransactionUseCase @Inject constructor(
 ) : UseCase<String, Unit>(ioDispatcher) {
 
     override suspend fun execute(parameters: String) {
-        repository.syncTransaction(parameters)
+        runCatching {
+            repository.syncTransaction(parameters)
+        }
         repository.syncDeletedTransaction(parameters)
     }
 }
