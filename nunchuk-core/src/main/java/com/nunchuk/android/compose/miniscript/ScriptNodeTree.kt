@@ -21,6 +21,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +34,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -93,6 +94,8 @@ enum class ScriptMode {
     SELECTING
 }
 
+private val LocalScriptContentAlpha = compositionLocalOf { 1f }
+
 @Composable
 fun ScriptNodeTree(
     node: ScriptNode,
@@ -106,32 +109,28 @@ fun ScriptNodeTree(
 ) {
     val isNormalNode =
         data.signingPath.path.isEmpty() || signingPathContainsNodeId(data.signingPath.path, node.id)
-    val isParentNormalNode = data.signingPath.path.isEmpty() || signingPathContainsNodeId(
-        data.signingPath.path,
-        node.id.dropLast(1)
-    )
     val isInDisableBranch = data.topLevelDisableNode != null
             && node.id.size >= data.topLevelDisableNode.id.size
             && node.idString.startsWith(data.topLevelDisableNode.idString)
     val isSatisfiableNode = data.satisfiableMap[node.idString] != false
     val isPathDisabled = data.mode == ScriptMode.SELECTING && data.isPathDisabled(node.id)
-    val nodeModifier = when {
-        data.mode == ScriptMode.CONFIG -> Modifier
-        data.mode == ScriptMode.SIGN && (node.type == ScriptNodeType.AFTER.name || node.type == ScriptNodeType.OLDER.name) -> Modifier
-        data.mode == ScriptMode.SIGN && isSatisfiableNode -> Modifier
-        data.mode == ScriptMode.VIEW || data.mode == ScriptMode.SINGLE_SELECT -> {
-            if (!isNormalNode && isParentNormalNode) Modifier.alpha(0.4f) else Modifier
-        }
-        data.mode == ScriptMode.SELECTING && !isPathDisabled -> Modifier
-        isPathDisabled -> Modifier.alpha(0.4f)
-        else -> Modifier.alpha(0.4f)
+    val contentAlpha = when {
+        data.mode == ScriptMode.CONFIG -> 1f
+        data.mode == ScriptMode.SIGN && (node.type == ScriptNodeType.AFTER.name || node.type == ScriptNodeType.OLDER.name) -> 1f
+        data.mode == ScriptMode.SIGN && isSatisfiableNode -> 1f
+        (data.mode == ScriptMode.VIEW || data.mode == ScriptMode.SINGLE_SELECT) && isNormalNode -> 1f
+        data.mode == ScriptMode.SELECTING && !isPathDisabled -> 1f
+        isPathDisabled -> 0.6f
+        else -> 0.6f
     }
+    val nodeModifier = Modifier
     when (node.type) {
         ScriptNodeType.ANDOR.name, ScriptNodeType.AND.name, ScriptNodeType.OR.name, ScriptNodeType.OR_TAPROOT.name -> {
             TreeBranchContainer(
                 node = node,
                 data = data,
                 modifier = nodeModifier,
+                contentAlpha = contentAlpha,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier, showThreadCurve, showDetail ->
@@ -171,6 +170,7 @@ fun ScriptNodeTree(
                 node = node,
                 data = data,
                 modifier = nodeModifier,
+                contentAlpha = contentAlpha,
                 drawLine = isLastItem.not(),
                 indentationLevel = level,
             ) { modifier, showThreadCurve, showDetail ->
@@ -201,6 +201,7 @@ fun ScriptNodeTree(
                 node = node,
                 data = data,
                 modifier = nodeModifier,
+                contentAlpha = contentAlpha,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier, showThreadCurve, showDetail ->
@@ -234,6 +235,7 @@ fun ScriptNodeTree(
                 node = node,
                 data = data,
                 modifier = nodeModifier,
+                contentAlpha = contentAlpha,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier, showThreadCurve, showDetail ->
@@ -273,6 +275,7 @@ fun ScriptNodeTree(
                 node = node,
                 data = data,
                 modifier = nodeModifier,
+                contentAlpha = contentAlpha,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier, showThreadCurve, showDetail ->
@@ -302,7 +305,8 @@ fun ScriptNodeTree(
             TreeBranchContainer(
                 node = node,
                 data = data,
-                modifier = Modifier,
+                modifier = nodeModifier,
+                contentAlpha = contentAlpha,
                 drawLine = isLastItem.not(),
                 indentationLevel = level
             ) { modifier, showThreadCurve, showDetail ->
@@ -704,18 +708,20 @@ fun AndOrView(
         }
     }
 
+    val alpha = LocalScriptContentAlpha.current
     Column(modifier = modifier) {
         Box(
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().alpha(alpha)
             ) {
                 if (isShowCurve) {
-                    CurveView()
+                    CurveView(Modifier.alpha(alpha))
                 }
                 Column(
                     modifier = Modifier
+                        .alpha(alpha)
                         .padding(top = if (isShowCurve) 10.dp else 0.dp)
                         .padding(start = padStart.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -749,6 +755,7 @@ fun AndOrView(
             if (data.mode == ScriptMode.SIGN && data.satisfiableMap[node.idString] != false && !data.transactionStatus.isConfirmed()) {
                 Row(
                     modifier = Modifier
+                        .alpha(alpha)
                         .align(Alignment.TopEnd)
                         .padding(start = 8.dp)
                         .padding(top = if (isShowCurve) 10.dp else 0.dp),
@@ -807,17 +814,20 @@ fun MusigItem(
     val round = if (keySet?.status == TransactionStatus.PENDING_NONCE) 1 else 2
     val isCompleted = keySet?.status?.signDone() == true
 
+    val alpha = LocalScriptContentAlpha.current
     Column {
         Row(
             modifier = Modifier
+                .alpha(alpha)
                 .fillMaxWidth()
                 .padding(bottom = 4.dp)
         ) {
             if (showThreadCurve) {
-                CurveView(Modifier.then(modifier))
+                CurveView(Modifier.then(modifier).alpha(alpha))
             }
             Column(
                 modifier = Modifier
+                    .alpha(alpha)
                     .then(modifier)
                     .weight(1f)
                     .padding(top = topPadding.dp)
@@ -872,7 +882,7 @@ fun MusigItem(
                     round == 1 && requiredSignatures == pendingFromKeySet -> MaterialTheme.colorScheme.textSecondary
                     else -> colorResource(R.color.nc_grey_g7)
                 }
-                Row(modifier = Modifier.align(Alignment.CenterVertically)) {
+                Row(modifier = Modifier.alpha(alpha).align(Alignment.CenterVertically)) {
                     Text(
                         text = if (isCompleted) "Completed" else "Round ${round}/2",
                         style = NunchukTheme.typography.titleSmall.copy(color = textColor),
@@ -1018,17 +1028,20 @@ fun ThreshMultiItem(
         }
     }
 
+    val alpha = LocalScriptContentAlpha.current
     Column {
         Row(
             modifier = Modifier
+                .alpha(alpha)
                 .fillMaxWidth()
                 .padding(bottom = 4.dp)
         ) {
             if (showThreadCurve) {
-                CurveView(Modifier.then(modifier))
+                CurveView(Modifier.then(modifier).alpha(alpha))
             }
             Column(
                 modifier = Modifier
+                    .alpha(alpha)
                     .then(modifier)
                     .weight(1f)
                     .padding(top = topPadding.dp)
@@ -1051,6 +1064,7 @@ fun ThreshMultiItem(
             if (data.mode == ScriptMode.SIGN && isSatisfiable && !data.transactionStatus.isConfirmed()) {
                 Row(
                     modifier = Modifier
+                        .alpha(alpha)
                         .then(modifier)
                         .padding(start = 8.dp)
                         .padding(top = topPadding.dp),
@@ -1150,15 +1164,16 @@ fun TimelockItem(
         else -> false
     } else false
 
+    val alpha = LocalScriptContentAlpha.current
     Column(modifier = modifier) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().alpha(alpha),
         ) {
             if (showThreadCurve) {
-                CurveView()
+                CurveView(Modifier.alpha(alpha))
             }
 
-            Row(modifier = Modifier.padding(top = 10.dp)) {
+            Row(modifier = Modifier.alpha(alpha).padding(top = 10.dp)) {
                 NcIcon(
                     painter = painterResource(R.drawable.ic_timer),
                     contentDescription = null,
@@ -1225,22 +1240,25 @@ fun HashlockItem(
     content: @Composable () -> Unit = {},
 ) {
     val description = if (data.showBip32Path) node.descriptionText else ""
+    val alpha = LocalScriptContentAlpha.current
     Column(modifier = modifier) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().alpha(alpha),
         ) {
             if (showThreadCurve) {
-                CurveView()
+                CurveView(Modifier.alpha(alpha))
             }
             NcIcon(
                 painter = painterResource(R.drawable.ic_hash),
                 contentDescription = null,
                 modifier = Modifier
+                    .alpha(alpha)
                     .padding(top = 10.dp)
                     .size(20.dp)
             )
             Column(
                 modifier = Modifier
+                    .alpha(alpha)
                     .padding(top = 10.dp)
                     .weight(1f)
                     .padding(start = 8.dp)
@@ -1290,16 +1308,18 @@ fun KeyItem(
     bottomContent: @Composable ColumnScope.() -> Unit = {},
     actionContent: @Composable RowScope.() -> Unit = {}
 ) {
+    val alpha = LocalScriptContentAlpha.current
     Row(
         modifier = modifier
             .padding(vertical = 10.dp)
             .fillMaxWidth()
     ) {
         if (showThreadCurve) {
-            CurveView()
+            CurveView(Modifier.alpha(alpha))
         }
         Row(
             modifier = Modifier
+                .alpha(alpha)
                 .weight(1f),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -1365,6 +1385,7 @@ fun TreeBranchContainer(
     node: ScriptNode,
     data: ScriptNodeData,
     modifier: Modifier = Modifier,
+    contentAlpha: Float = 1f,
     drawLine: Boolean = true,
     itemHeight: Float = 0f,
     indentationLevel: Int = 0,
@@ -1385,7 +1406,7 @@ fun TreeBranchContainer(
             .drawBehind {
                 val stroke = Stroke(width = 3.5f)
                 val lineX = 2.5f
-                val color = Color(0xFF757575)
+                val color = Color(0xFF757575).copy(alpha = contentAlpha)
                 if (shouldDrawLine) {
                     drawLine(
                         color = color,
@@ -1396,7 +1417,9 @@ fun TreeBranchContainer(
                 }
             }
     ) {
-        content(modifier, showThreadCurve, showDetail)
+        CompositionLocalProvider(LocalScriptContentAlpha provides contentAlpha) {
+            content(modifier, showThreadCurve, showDetail)
+        }
         Row(
             modifier = Modifier
                 .align(Alignment.TopEnd),
@@ -1410,9 +1433,6 @@ fun TreeBranchContainer(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        modifier = Modifier.graphicsLayer(
-                            alpha = 1f
-                        ),
                         text = if (showDetail) stringResource(R.string.nc_collapse)
                         else stringResource(R.string.nc_expand),
                         style = NunchukTheme.typography.bodySmall,
@@ -1422,9 +1442,6 @@ fun TreeBranchContainer(
                         painter = painterResource(id = if (showDetail) R.drawable.ic_collapse else R.drawable.ic_expand),
                         contentDescription = null,
                         modifier = Modifier
-                            .graphicsLayer(
-                                alpha = 1f
-                            )
                             .padding(start = 4.dp)
                             .size(16.dp),
                         tint = MaterialTheme.colorScheme.textPrimary
@@ -1467,6 +1484,7 @@ fun KeyContainer(
     val indentationPadding = if (indentationLevel > 0) (indentationLevel * 10).dp else 0.dp
     val shouldDrawLine = drawLine && indentationLevel > 0
     val showThreadCurve = indentationLevel > 0
+    val lineAlpha = LocalScriptContentAlpha.current
 
     Box(
         modifier = modifier
@@ -1474,7 +1492,7 @@ fun KeyContainer(
             .drawBehind {
                 val stroke = Stroke(width = 3.5f)
                 val lineX = 2.5f
-                val color = Color(0xFF757575)
+                val color = Color(0xFF757575).copy(alpha = lineAlpha)
                 if (shouldDrawLine) {
                     drawLine(
                         color = color,
