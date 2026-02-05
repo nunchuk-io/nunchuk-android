@@ -800,7 +800,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     groupId = assistedWalletManager.getGroupId(walletId),
                     walletId = walletId,
                     txId = txId,
-                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
+                    isAssistedWallet = assistedWalletManager.isSyncableWallet(walletId)
                 )
             ).onException {
                 if (it is NCNativeException && it.message.contains("-2003")) {
