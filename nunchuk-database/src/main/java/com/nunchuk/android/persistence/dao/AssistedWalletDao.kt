@@ -21,6 +21,7 @@ package com.nunchuk.android.persistence.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import com.nunchuk.android.persistence.BaseDao
 import com.nunchuk.android.persistence.TABLE_ASSISTED_WALLET
 import com.nunchuk.android.persistence.entity.AssistedWalletEntity
@@ -35,7 +36,7 @@ interface AssistedWalletDao : BaseDao<AssistedWalletEntity> {
     fun getAssistedWallets(): List<AssistedWalletEntity>
 
     @Query("DELETE FROM $TABLE_ASSISTED_WALLET where local_id in (:ids)")
-    suspend fun deleteBatch(ids: List<String>) : Int
+    suspend fun deleteBatch(ids: List<String>): Int
 
     @Query("DELETE FROM $TABLE_ASSISTED_WALLET")
     suspend fun deleteAll()
@@ -49,6 +50,16 @@ interface AssistedWalletDao : BaseDao<AssistedWalletEntity> {
     @Query("DELETE FROM $TABLE_ASSISTED_WALLET WHERE group_id IN (:groupIds)")
     suspend fun deleteByGroupIds(groupIds: List<String>): Int
 
+    @Query("SELECT * FROM $TABLE_ASSISTED_WALLET WHERE local_id NOT IN (:ids) AND group_id = ''")
+    suspend fun getPersonalWalletsExcept(ids: List<String>): List<AssistedWalletEntity>
+
     @Query("DELETE FROM $TABLE_ASSISTED_WALLET WHERE local_id NOT IN (:ids) AND group_id = ''")
-    suspend fun deleteAllPersonalWalletsExcept(ids: List<String>): Int
+    suspend fun deletePersonalWalletsExceptInternal(ids: List<String>): Int
+
+    @Transaction
+    suspend fun deleteAllPersonalWalletsExcept(ids: List<String>): List<AssistedWalletEntity> {
+        val toDelete = getPersonalWalletsExcept(ids)
+        deletePersonalWalletsExceptInternal(ids)
+        return toDelete
+    }
 }

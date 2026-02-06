@@ -47,15 +47,15 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/nc_padding_16"
         android:layout_marginTop="@dimen/nc_padding_8"
-        android:background="@drawable/nc_wallet_warning_background"
         android:drawablePadding="@dimen/nc_padding_8"
         android:gravity="center_vertical"
         android:padding="@dimen/nc_padding_12"
-        android:text="@string/nc_assisted_wallet_downgrade_hint"
         android:visibility="gone"
         app:drawableStartCompat="@drawable/ic_info"
         app:drawableTint="@color/nc_text_primary"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        tools:background="@drawable/nc_wallet_warning_background"
+        tools:text="@string/nc_assisted_wallet_downgrade_hint"
         tools:visibility="visible" />
 
     <Space
@@ -150,14 +150,14 @@
         android:foreground="?attr/selectableItemBackground"
         android:gravity="center_vertical"
         android:paddingHorizontal="@dimen/nc_padding_8"
-        android:visibility="gone"
-        tools:visibility="visible"
         android:paddingVertical="@dimen/nc_padding_4"
         android:textColor="@color/nc_white_color"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/cashAmount"
-        tools:text="Spendable now: 7,620,930 sat" />
+        tools:text="Spendable now: 7,620,930 sat"
+        tools:visibility="visible" />
 
     <com.nunchuk.android.widget.NCFontTextView
         android:id="@+id/viewWalletConfig"

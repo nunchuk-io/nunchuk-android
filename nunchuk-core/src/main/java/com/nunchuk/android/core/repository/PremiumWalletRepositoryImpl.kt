@@ -422,6 +422,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         var isNeedReload = false
 
         val keyPolicyMap = hashMapOf<String, KeyPolicy>()
+        val walletStatus = result.data.wallets.associate { it.localId to it.status }
         result.data.wallets.filter {
             it.localId.isNullOrEmpty().not() && it.status != WALLET_DELETED_STATUS
         }.forEach { walletServer ->
@@ -432,15 +433,18 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
             if (saveWalletToLib(walletServer, assistedKeys)) isNeedReload = true
         }
-        val planWalletCreated = hashMapOf<String, String>()
         val wallets = result.data.wallets.filter { it.status != WALLET_DELETED_STATUS }
-        val deleteCount =
-            assistedWalletDao.deleteAllPersonalWalletsExcept(wallets.map { it.localId.orEmpty() })
+        val deletedWallets =
+            assistedWalletDao.deleteAllPersonalWalletsExcept(wallets.map { it.localId.orEmpty() }).map { it.localId }
+        val inactiveIds = deletedWallets
+            .filter { walletStatus[it] != WALLET_DELETED_STATUS }
+        if (inactiveIds.isNotEmpty()) {
+            ncDataStore.appendInactiveAssistedWalletIds(inactiveIds)
+        }
         if (wallets.isNotEmpty()) {
             updateOrInsertWallet(wallets = wallets)
         }
         ncDataStore.setAssistedKey(assistedKeys)
-        result.data.wallets.forEach { planWalletCreated[it.slug.orEmpty()] = it.localId.orEmpty() }
 
         val claimingWallets = mutableListOf<WalletDto>()
         var page = 0
@@ -465,7 +469,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         ncDataStore.setClaimWallets(claimingWallets.map { it.localId.orEmpty() }.toSet())
 
         return WalletServerSync(
-            keyPolicyMap = keyPolicyMap, isNeedReload = isNeedReload || deleteCount > 0
+            keyPolicyMap = keyPolicyMap, isNeedReload = isNeedReload || deletedWallets.isNotEmpty()
         )
     }
 
@@ -1718,6 +1722,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 )
             }
         }
+    }
+
+    override fun getInactiveAssistedWalletIdsFlow(): Flow<Set<String>> {
+        return ncDataStore.inactiveAssistedWalletIdsFlow
     }
 
     override suspend fun clearLocalData() {
