@@ -125,7 +125,8 @@ class AddGroupKeyStepFragment : MembershipFragment() {
                     AddGroupKeyStepFragmentDirections.actionAddGroupKeyStepFragmentToOnChainTimelockAddKeyListFragment(
                         groupId = groupId,
                         role = viewModel.getRole().name,
-                        isAddOnly = false
+                        isAddOnly = false,
+                        config = viewModel.getConfig()
                     )
                 )
             }

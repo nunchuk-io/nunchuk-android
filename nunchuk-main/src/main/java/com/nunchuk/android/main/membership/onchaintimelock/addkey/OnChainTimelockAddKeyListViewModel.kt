@@ -112,6 +112,7 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     // Get args from SavedStateHandle (for navigation arguments)
     val groupId: String = savedStateHandle.get<String>("group_id") ?: ""
     val isAddOnly: Boolean = savedStateHandle.get<Boolean>("is_add_only") ?: false
+    private val configArg: com.nunchuk.android.model.WalletConfig? = savedStateHandle.get<com.nunchuk.android.model.WalletConfig>("config")
     val isGroupWallet: Boolean get() = groupId.isNotEmpty()
 
     private val currentStep =
@@ -139,6 +140,10 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
     private var pendingTapSignerSignerModel: SignerModel? = null
 
     init {
+        configArg?.let { config ->
+            initializeKeysFromConfig(config)
+        }
+        
         // Handle key added event for group wallet (isAddOnly mode)
         if (isAddOnly) {
             viewModelScope.launch {
@@ -248,24 +253,28 @@ class OnChainTimelockAddKeyListViewModel @Inject constructor(
         loadJob = viewModelScope.launch {
             _state.update { it.copy(isRefresh = true) }
             syncDraftWalletUseCase(groupId).onSuccess { draft ->
+                initializeKeysFromConfig(draft.config)
                 loadSigners()
-                _state.update {
-                    it.copy(
-                        walletType = WalletType.MINISCRIPT,
-                        groupWalletType = draft.config.toGroupWalletType()
-                    )
-                }
-                draft.config.toGroupWalletType()?.let { type ->
-                    if (_keys.value.isEmpty()) {
-                        val steps = type.toSteps(
-                            isPersonalWallet = !isGroupWallet,
-                            walletType = WalletType.MINISCRIPT
-                        )
-                        _keys.value = steps.toAddKeyOnChainDataList()
-                    }
-                }
             }
             _state.update { it.copy(isRefresh = false) }
+        }
+    }
+    
+    private fun initializeKeysFromConfig(config: com.nunchuk.android.model.WalletConfig) {
+        _state.update {
+            it.copy(
+                walletType = WalletType.MINISCRIPT,
+                groupWalletType = config.toGroupWalletType()
+            )
+        }
+        config.toGroupWalletType()?.let { type ->
+            if (_keys.value.isEmpty()) {
+                val steps = type.toSteps(
+                    isPersonalWallet = !isGroupWallet,
+                    walletType = WalletType.MINISCRIPT
+                )
+                _keys.value = steps.toAddKeyOnChainDataList()
+            }
         }
     }
 

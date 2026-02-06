@@ -143,7 +143,9 @@ class AddKeyStepFragment : MembershipFragment() {
             }
             WalletType.MINISCRIPT -> {
                 findNavController().navigate(
-                    AddKeyStepFragmentDirections.actionAddKeyStepFragmentToOnChainTimelockAddKeyListFragment()
+                    AddKeyStepFragmentDirections.actionAddKeyStepFragmentToOnChainTimelockAddKeyListFragment(
+                        config = viewModel.getConfig()
+                    )
                 )
             }
             else -> {}
