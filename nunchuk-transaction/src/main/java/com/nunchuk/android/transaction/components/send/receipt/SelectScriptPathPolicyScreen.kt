@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import com.nunchuk.android.compose.NcHighlightText
 import com.nunchuk.android.compose.NcPrimaryDarkButton
 import com.nunchuk.android.compose.NcScaffold
 import com.nunchuk.android.compose.NcTopAppBar
@@ -67,6 +69,15 @@ fun SelectScriptPathPolicyScreen(
     var currentPath by rememberSaveable { mutableStateOf(SigningPath(emptyList())) }
     var disabledPaths by rememberSaveable { mutableStateOf(emptySet<List<Int>>()) }
     val isSelectingMode = signingPaths.size > 7 && isSelectingPathEnabled
+
+    LaunchedEffect(scriptNode) {
+        if (scriptNode.type == ScriptNodeType.AND.name) {
+            val defaultPaths = scriptNode.subs.map { subNode ->
+                subNode.id
+            }
+            currentPath = SigningPath(defaultPaths)
+        }
+    }
 
     NunchukTheme {
         NcScaffold(
@@ -120,10 +131,12 @@ fun SelectScriptPathPolicyScreen(
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 } else {
-                    Text(
-                        text = stringResource(R.string.nc_select_signing_path_among_less_than_3_policies, signingPaths.size),
-                        style = NunchukTheme.typography.body,
-                        color = MaterialTheme.colorScheme.textPrimary,
+                    NcHighlightText(
+                        text = stringResource(
+                            R.string.nc_select_signing_path_among_less_than_3_policies,
+                            signingPaths.size
+                        ),
+                        style = NunchukTheme.typography.body.copy(color = MaterialTheme.colorScheme.textPrimary),
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }

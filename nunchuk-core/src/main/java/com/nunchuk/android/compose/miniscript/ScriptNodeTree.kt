@@ -714,7 +714,9 @@ fun AndOrView(
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().alpha(alpha)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(alpha)
             ) {
                 if (isShowCurve) {
                     CurveView(Modifier.alpha(alpha))
@@ -823,7 +825,9 @@ fun MusigItem(
                 .padding(bottom = 4.dp)
         ) {
             if (showThreadCurve) {
-                CurveView(Modifier.then(modifier).alpha(alpha))
+                CurveView(Modifier
+                    .then(modifier)
+                    .alpha(alpha))
             }
             Column(
                 modifier = Modifier
@@ -882,7 +886,9 @@ fun MusigItem(
                     round == 1 && requiredSignatures == pendingFromKeySet -> MaterialTheme.colorScheme.textSecondary
                     else -> colorResource(R.color.nc_grey_g7)
                 }
-                Row(modifier = Modifier.alpha(alpha).align(Alignment.CenterVertically)) {
+                Row(modifier = Modifier
+                    .alpha(alpha)
+                    .align(Alignment.CenterVertically)) {
                     Text(
                         text = if (isCompleted) "Completed" else "Round ${round}/2",
                         style = NunchukTheme.typography.titleSmall.copy(color = textColor),
@@ -1037,7 +1043,9 @@ fun ThreshMultiItem(
                 .padding(bottom = 4.dp)
         ) {
             if (showThreadCurve) {
-                CurveView(Modifier.then(modifier).alpha(alpha))
+                CurveView(Modifier
+                    .then(modifier)
+                    .alpha(alpha))
             }
             Column(
                 modifier = Modifier
@@ -1167,13 +1175,17 @@ fun TimelockItem(
     val alpha = LocalScriptContentAlpha.current
     Column(modifier = modifier) {
         Row(
-            modifier = Modifier.fillMaxWidth().alpha(alpha),
+            modifier = Modifier
+                .fillMaxWidth()
+                .alpha(alpha),
         ) {
             if (showThreadCurve) {
                 CurveView(Modifier.alpha(alpha))
             }
 
-            Row(modifier = Modifier.alpha(alpha).padding(top = 10.dp)) {
+            Row(modifier = Modifier
+                .alpha(alpha)
+                .padding(top = 10.dp)) {
                 NcIcon(
                     painter = painterResource(R.drawable.ic_timer),
                     contentDescription = null,
@@ -1243,7 +1255,9 @@ fun HashlockItem(
     val alpha = LocalScriptContentAlpha.current
     Column(modifier = modifier) {
         Row(
-            modifier = Modifier.fillMaxWidth().alpha(alpha),
+            modifier = Modifier
+                .fillMaxWidth()
+                .alpha(alpha),
         ) {
             if (showThreadCurve) {
                 CurveView(Modifier.alpha(alpha))
@@ -1435,11 +1449,13 @@ fun TreeBranchContainer(
                     Text(
                         text = if (showDetail) stringResource(R.string.nc_collapse)
                         else stringResource(R.string.nc_expand),
-                        style = NunchukTheme.typography.bodySmall,
+                        style = NunchukTheme.typography.titleSmall.copy(
+                            textDecoration = TextDecoration.Underline
+                        ),
                         color = MaterialTheme.colorScheme.textPrimary
                     )
                     NcIcon(
-                        painter = painterResource(id = if (showDetail) R.drawable.ic_collapse else R.drawable.ic_expand),
+                        painter = painterResource(id = if (showDetail) R.drawable.ic_caret_up else R.drawable.ic_caret_down),
                         contentDescription = null,
                         modifier = Modifier
                             .padding(start = 4.dp)
