@@ -571,6 +571,7 @@ class TransactionConfirmViewModel @Inject constructor(
 
     fun checkMiniscriptSigningPolicyTransaction(txId: String) {
         viewModelScope.launch {
+            _event.emit(LoadingEvent())
             getTransaction2UseCase(
                 GetTransaction2UseCase.Params(
                     walletId = walletId,
@@ -634,6 +635,7 @@ class TransactionConfirmViewModel @Inject constructor(
 
     fun checkMiniscriptSigningPolicy(isSelectPath: Boolean = false) {
         viewModelScope.launch {
+            _event.emit(LoadingEvent())
             fetchFeeRateIfNeeded()
             estimateFeeForSigningPathsUseCase(
                 EstimateFeeForSigningPathsUseCase.Params(

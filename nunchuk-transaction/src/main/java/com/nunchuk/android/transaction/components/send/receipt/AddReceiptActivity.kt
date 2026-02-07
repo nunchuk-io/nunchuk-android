@@ -338,6 +338,7 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
     }
 
     private fun signingPathSelected(signingPath: SigningPath?) {
+        hideLoading()
         setResult(RESULT_OK, Intent().apply {
             putExtra(
                 GlobalResultKey.SIGNING_PATH,
