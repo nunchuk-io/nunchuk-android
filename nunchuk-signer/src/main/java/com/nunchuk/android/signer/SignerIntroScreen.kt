@@ -30,7 +30,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nunchuk.android.compose.NcCircleImage
 import com.nunchuk.android.compose.NcIcon
@@ -40,6 +39,7 @@ import com.nunchuk.android.compose.lightGray
 import com.nunchuk.android.compose.textSecondary
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.OnChainAddSignerParam
+import com.nunchuk.android.core.signer.getSelectKeyTypeSubtitleRes
 import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -53,6 +53,23 @@ fun SignerIntroScreen(
     onMoreClicked: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    SignerIntroScreenContent(
+        state = state,
+        keyFlow = keyFlow,
+        onChainAddSignerParam = onChainAddSignerParam,
+        onClick = onClick,
+        onMoreClicked = onMoreClicked,
+    )
+}
+
+@Composable
+fun SignerIntroScreenContent(
+    state: SignerIntroState,
+    keyFlow: Int = KeyFlow.NONE,
+    onChainAddSignerParam: OnChainAddSignerParam? = null,
+    onClick: (KeyType) -> Unit = {},
+    onMoreClicked: () -> Unit = {},
+) {
     val isDisableAll = keyFlow != KeyFlow.NONE
     Scaffold(topBar = {
         NcTopAppBar(
@@ -90,7 +107,7 @@ fun SignerIntroScreen(
             )
             Text(
                 modifier = Modifier.padding(top = 4.dp),
-                text = stringResource(R.string.nc_select_your_key_type),
+                text = stringResource(onChainAddSignerParam.getSelectKeyTypeSubtitleRes()),
                 style = NunchukTheme.typography.body
             )
 
@@ -139,7 +156,12 @@ internal fun SignerSelection(
     }
 
     val signerItemsData = cardSigners.mapNotNull { signer ->
-        mapSupportedSignerToItemData(signer, originalSupportedSigners, isDisableAll, onChainAddSignerParam)
+        mapSupportedSignerToItemData(
+            signer,
+            originalSupportedSigners,
+            isDisableAll,
+            onChainAddSignerParam
+        )
     }
 
     signerItemsData.chunked(2).forEach { rowItems ->
@@ -388,9 +410,15 @@ internal fun SignerItem(
 @PreviewLightDark
 @Composable
 fun SignerIntroScreenContentPreview() {
-    SignerIntroScreen(
-        viewModel = hiltViewModel()
-    )
+    NunchukTheme {
+        SignerIntroScreenContent(
+            state = SignerIntroState(supportedSigners = defaultSupportedSigners),
+            keyFlow = KeyFlow.NONE,
+            onChainAddSignerParam = null,
+            onClick = {},
+            onMoreClicked = {},
+        )
+    }
 }
 
 @PreviewLightDark

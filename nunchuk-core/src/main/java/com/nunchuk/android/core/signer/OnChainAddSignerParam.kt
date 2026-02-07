@@ -1,6 +1,7 @@
 package com.nunchuk.android.core.signer
 
 import android.os.Parcelable
+import com.nunchuk.android.core.R
 import com.nunchuk.android.model.OnChainReplaceKeyStep
 import kotlinx.parcelize.Parcelize
 
@@ -44,4 +45,13 @@ data class OnChainAddSignerParam(
         val replacedXfp: String,
         val step: OnChainReplaceKeyStep?
     ) : Parcelable
+}
+
+/**
+ * Returns the string resource id for the "select key type" subtitle on the signer intro screen.
+ * Use with [androidx.compose.ui.res.stringResource] in Compose.
+ */
+fun OnChainAddSignerParam?.getSelectKeyTypeSubtitleRes(): Int = when {
+    this?.isAddInheritanceOffChainSigner() == true -> R.string.nc_add_inheritance_key_to_nunchuk
+    else -> R.string.nc_select_your_key_type
 }

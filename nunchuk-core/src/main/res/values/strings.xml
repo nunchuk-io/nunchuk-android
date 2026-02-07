@@ -146,6 +146,7 @@
     <string name="nc_add_inheritance_key">Add inheritance key</string>
     <string name="nc_re_add_restored_key">Re-add the restored key</string>
     <string name="nc_select_your_key_type">Select your key type:</string>
+    <string name="nc_add_inheritance_key_to_nunchuk">Let\'s now add the inheritance key to Nunchuk.</string>
     <string name="nc_export_via_nfc">Export via NFC</string>
     <string name="nc_export_via_file">Export via file</string>
     <string name="nc_export_via_file_advance">Export via file (Advanced)</string>
