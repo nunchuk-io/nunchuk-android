@@ -29,18 +29,35 @@ import com.nunchuk.android.main.R
 @Composable
 fun PrepareInheritanceKeyScreen(
     modifier: Modifier = Modifier,
+    isOnChainClaim: Boolean = true,
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     onBackPressed: () -> Unit = {},
     onContinue: (InheritanceOption) -> Unit = {},
 ) {
     var selectedOption by remember { mutableStateOf(InheritanceOption.HARDWARE_DEVICE) }
 
+    val backgroundRes = if (isOnChainClaim) {
+        R.drawable.nc_bg_prepare_inheritance_key
+    } else {
+        R.drawable.bg_claim_inheritance_illustration
+    }
+    val titleRes = if (isOnChainClaim) {
+        R.string.nc_prepare_inheritance_key
+    } else {
+        R.string.nc_claim_inheritance
+    }
+    val secondOptionTextRes = if (isOnChainClaim) {
+        R.string.nc_i_have_seed_phrase_backup
+    } else {
+        R.string.nc_i_have_backup_password_inheritance_key
+    }
+
     NcScaffold(
         modifier = modifier.navigationBarsPadding(),
         snackState = snackState,
         topBar = {
             NcImageAppBar(
-                backgroundRes = R.drawable.nc_bg_prepare_inheritance_key,
+                backgroundRes = backgroundRes,
                 onClosedClicked = onBackPressed,
             )
         },
@@ -63,17 +80,18 @@ fun PrepareInheritanceKeyScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
-                text = stringResource(R.string.nc_prepare_inheritance_key),
+                text = stringResource(titleRes),
                 style = NunchukTheme.typography.heading,
                 modifier = Modifier.padding(top = 24.dp)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = stringResource(R.string.nc_prepare_inheritance_key_desc),
-                style = NunchukTheme.typography.body
-            )
+            if (isOnChainClaim) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = stringResource(R.string.nc_prepare_inheritance_key_desc),
+                    style = NunchukTheme.typography.body
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -97,14 +115,14 @@ fun PrepareInheritanceKeyScreen(
                         style = NunchukTheme.typography.title
                     )
                 }
-                
+
                 NcRadioOption(
                     modifier = Modifier.fillMaxWidth(),
                     isSelected = selectedOption == InheritanceOption.SEED_PHRASE,
                     onClick = { selectedOption = InheritanceOption.SEED_PHRASE }
                 ) {
                     Text(
-                        text = stringResource(R.string.nc_i_have_seed_phrase_backup),
+                        text = stringResource(secondOptionTextRes),
                         style = NunchukTheme.typography.title
                     )
                 }
@@ -123,5 +141,13 @@ enum class InheritanceOption {
 private fun PrepareInheritanceKeyScreenPreview() {
     NunchukTheme {
         PrepareInheritanceKeyScreen()
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun PrepareInheritanceKeyScreenOffChainPreview() {
+    NunchukTheme {
+        PrepareInheritanceKeyScreen(isOnChainClaim = false)
     }
 }
