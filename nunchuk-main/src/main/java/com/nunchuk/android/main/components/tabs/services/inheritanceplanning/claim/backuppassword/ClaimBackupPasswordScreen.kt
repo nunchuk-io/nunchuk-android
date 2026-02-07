@@ -52,9 +52,10 @@ import com.nunchuk.android.signer.R as SignerR
 
 @Composable
 fun ClaimBackupPasswordScreen(
+    modifier: Modifier = Modifier,
     snackState: SnackbarHostState,
     magicPhrase: String,
-    modifier: Modifier = Modifier,
+    requiredKeyCount: Int = 2,
     onBackPressed: () -> Unit = {},
     onNoInheritancePlanFound: () -> Unit = {},
     onSuccess: (
@@ -114,6 +115,7 @@ fun ClaimBackupPasswordScreen(
         snackState = snackState,
         onBackPressed = onBackPressed,
         backupPasswords = state.backupPasswords,
+        requiredKeyCount = requiredKeyCount,
         isLoading = isLoading,
         onBackupPasswordTextChange = { text, index ->
             viewModel.updateBackupPassword(text, index)
@@ -131,11 +133,13 @@ private fun ClaimBackupPasswordContent(
     snackState: SnackbarHostState,
     onBackPressed: () -> Unit = {},
     backupPasswords: List<String> = listOf("", ""),
+    requiredKeyCount: Int = 2,
     isLoading: Boolean = false,
     onContinueClick: () -> Unit = {},
     onBackupPasswordTextChange: (String, Int) -> Unit = { _, _ -> },
 ) {
     val listState = rememberLazyListState()
+    val visiblePasswords = backupPasswords.take(requiredKeyCount.coerceIn(1, 2))
 
     if (isLoading) {
         NcLoadingDialog()
@@ -152,7 +156,7 @@ private fun ClaimBackupPasswordContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                enabled = backupPasswords.any { it.countWords() >= 1 } && !isLoading,
+                enabled = visiblePasswords.all { it.countWords() >= 1 } && !isLoading,
                 onClick = onContinueClick,
             ) {
                 Text(text = stringResource(id = SignerR.string.nc_text_continue))
@@ -184,7 +188,7 @@ private fun ClaimBackupPasswordContent(
                 )
             }
             item {
-                backupPasswords.forEachIndexed { index, backupPassword ->
+                visiblePasswords.forEachIndexed { index, backupPassword ->
                     NcTextField(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -219,6 +223,18 @@ private fun ClaimBackupPasswordScreenPreview() {
     NunchukTheme {
         ClaimBackupPasswordContent(
             snackState = remember { SnackbarHostState() }
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun ClaimBackupPasswordScreenSingleKeyPreview() {
+    NunchukTheme {
+        ClaimBackupPasswordContent(
+            snackState = remember { SnackbarHostState() },
+            backupPasswords = listOf(""),
+            requiredKeyCount = 1,
         )
     }
 }

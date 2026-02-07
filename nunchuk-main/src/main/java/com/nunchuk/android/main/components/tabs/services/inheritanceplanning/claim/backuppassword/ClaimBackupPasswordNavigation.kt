@@ -11,7 +11,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ClaimBackupPasswordRoute(
-    val magicPhrase: String
+    val magicPhrase: String,
+    val requiredKeyCount: Int = 2,
 )
 
 fun NavGraphBuilder.claimBackupPassword(
@@ -29,6 +30,7 @@ fun NavGraphBuilder.claimBackupPassword(
         ClaimBackupPasswordScreen(
             snackState = snackState,
             magicPhrase = route.magicPhrase,
+            requiredKeyCount = route.requiredKeyCount,
             onBackPressed = onBackPressed,
             onNoInheritancePlanFound = onNoInheritancePlanFound,
             onSuccess = onSuccess,
@@ -36,7 +38,7 @@ fun NavGraphBuilder.claimBackupPassword(
     }
 }
 
-fun NavController.navigateToClaimBackupPassword(magicPhrase: String) {
-    navigate(ClaimBackupPasswordRoute(magicPhrase = magicPhrase))
+fun NavController.navigateToClaimBackupPassword(magicPhrase: String, requiredKeyCount: Int = 2) {
+    navigate(ClaimBackupPasswordRoute(magicPhrase = magicPhrase, requiredKeyCount = requiredKeyCount))
 }
 

@@ -279,7 +279,7 @@ private fun ClaimInheritanceGraph(
                             if (claimData.isOnChainClaim) {
                                 navController.navigateToRecoverInheritanceKey()
                             } else {
-                                navController.navigateToClaimBackupPassword(claimData.magic)
+                                navController.navigateToClaimBackupPassword(claimData.magic, claimData.requiredKeyCount)
                             }
                         }
                     }
