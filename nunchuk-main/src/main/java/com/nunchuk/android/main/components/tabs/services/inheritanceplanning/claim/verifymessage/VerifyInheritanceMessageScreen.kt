@@ -131,7 +131,8 @@ fun VerifyInheritanceMessageScreen(
     }
     val nfcViewModel = hiltViewModel<NfcViewModel>(viewModelStoreOwner = activity)
     val coroutineScope = rememberCoroutineScope()
-    
+    var showColdCardOptionsSheet by remember { mutableStateOf(false) }
+
     LaunchedEffect(sharedUiState.event) {
         val event = sharedUiState.event
         when (event) {
@@ -254,75 +255,12 @@ fun VerifyInheritanceMessageScreen(
                 )
             }
         },
-        onExportViaQr = {
-            coroutineScope.launch {
-                val data = viewModel.generateColdCardSignedDataIfNeeded()
-                if (data.isNotEmpty()) {
-                    navigator.openExportTransactionScreen(
-                        launcher = importOrExportTransactionLauncher,
-                        activityContext = activity,
-                        txToSign = data,
-                        signFlowType = SignFlowType.ClaimDummy,
-                    )
-                }
-            }
-        },
-        onSaveFile = {
-            coroutineScope.launch {
-                val data = viewModel.generateColdCardSignedDataIfNeeded()
-                if (data.isNotEmpty()) {
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                        if (ContextCompat.checkSelfPermission(
-                                activity,
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE
-                            ) != PackageManager.PERMISSION_GRANTED
-                        ) {
-                            requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        } else {
-                            viewModel.saveLocalFile(data)
-                        }
-                    } else {
-                        viewModel.saveLocalFile(data)
-                    }
-                }
-            }
-        },
-        onShareFile = {
-            coroutineScope.launch {
-                val data = viewModel.generateColdCardSignedDataIfNeeded()
-                if (data.isNotEmpty()) {
-                    viewModel.exportTransactionToFile(data)
-                }
-            }
-        },
-        onImportViaFile = {
-            importFileLauncher.launch("*/*")
-        },
-        onImportViaQr = {
-            navigator.openImportTransactionScreen(
-                launcher = importOrExportTransactionLauncher,
-                activityContext = activity,
-                signFlowType = SignFlowType.ClaimDummy
-            )
-        },
-        onImportViaNfc = {
-            (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE)
-        },
-        onExportViaNfc = {
-            coroutineScope.launch {
-                val data = viewModel.generateColdCardSignedDataIfNeeded()
-                if (data.isNotEmpty()) {
-                    (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_MK4_EXPORT_TRANSACTION)
-                }
-            }
-        },
         onSignClick = { messageToSign ->
-            when (signer.type) {
-                SignerType.NFC -> {
+            when {
+                signer.type == SignerType.NFC -> {
                     (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_NFC_HEALTH_CHECK)
                 }
-
-                SignerType.SOFTWARE -> {
+                signer.type == SignerType.SOFTWARE -> {
                     if (viewModel.needPassphrase()) {
                         NCInputDialog(activity).showDialog(
                             title = activity.getString(TransactionR.string.nc_transaction_enter_passphrase),
@@ -334,10 +272,81 @@ fun VerifyInheritanceMessageScreen(
                         viewModel.signMessageBySoftware()
                     }
                 }
-
+                signer.type == SignerType.COLDCARD_NFC || signer.tags.contains(SignerTag.COLDCARD) -> {
+                    showColdCardOptionsSheet = true
+                }
                 else -> Unit
             }
         },
+    )
+
+    ColdCardSigningBottomSheets(
+        showColdCardOptions = showColdCardOptionsSheet,
+        onDismissColdCardOptions = {
+            showColdCardOptionsSheet = false
+        },
+        callbacks = ColdCardSigningCallbacks(
+            onExportViaQr = {
+                coroutineScope.launch {
+                    val data = viewModel.generateColdCardSignedDataIfNeeded()
+                    if (data.isNotEmpty()) {
+                        navigator.openExportTransactionScreen(
+                            launcher = importOrExportTransactionLauncher,
+                            activityContext = activity,
+                            txToSign = data,
+                            signFlowType = SignFlowType.ClaimDummy,
+                        )
+                    }
+                }
+            },
+            onExportViaNfc = {
+                coroutineScope.launch {
+                    val data = viewModel.generateColdCardSignedDataIfNeeded()
+                    if (data.isNotEmpty()) {
+                        (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_MK4_EXPORT_TRANSACTION)
+                    }
+                }
+            },
+            onImportViaFile = { importFileLauncher.launch("*/*") },
+            onImportViaQr = {
+                navigator.openImportTransactionScreen(
+                    launcher = importOrExportTransactionLauncher,
+                    activityContext = activity,
+                    signFlowType = SignFlowType.ClaimDummy
+                )
+            },
+            onImportViaNfc = {
+                (activity as NfcActionListener).startNfcFlow(BaseNfcActivity.REQUEST_MK4_IMPORT_SIGNATURE)
+            },
+            onSaveFile = {
+                coroutineScope.launch {
+                    val data = viewModel.generateColdCardSignedDataIfNeeded()
+                    if (data.isNotEmpty()) {
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                            if (ContextCompat.checkSelfPermission(
+                                    activity,
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                                ) != PackageManager.PERMISSION_GRANTED
+                            ) {
+                                requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            } else {
+                                viewModel.saveLocalFile(data)
+                            }
+                        } else {
+                            viewModel.saveLocalFile(data)
+                        }
+                    }
+                }
+            },
+            onShareFile = {
+                coroutineScope.launch {
+                    val data = viewModel.generateColdCardSignedDataIfNeeded()
+                    if (data.isNotEmpty()) {
+                        viewModel.exportTransactionToFile(data)
+                    }
+                }
+            },
+        )
     )
 }
 
@@ -350,18 +359,9 @@ fun VerifyInheritanceMessageContent(
     uiState: VerifyInheritanceMessageUiState,
     onBackPressed: () -> Unit = {},
     onContinue: () -> Unit = {},
-    onExportViaQr: () -> Unit = {},
-    onExportViaNfc: () -> Unit = {},
-    onSaveFile: () -> Unit = {},
-    onShareFile: () -> Unit = {},
-    onImportViaFile: () -> Unit = {},
-    onImportViaQr: () -> Unit = {},
-    onImportViaNfc: () -> Unit = {},
     onSignClick: (String) -> Unit = {},
 ) {
     val isMessageSigned = uiState.signedMessage != null
-
-    var showColdCardOptionsSheet by remember { mutableStateOf(false) }
 
     val loadingType = uiState.loadingType
     if (loadingType != null) {
@@ -445,32 +445,10 @@ fun VerifyInheritanceMessageContent(
                 showValueKey = false,
                 isSigned = isMessageSigned,
                 canSign = true,
-                onSignClick = {
-                    if (signer.type == SignerType.COLDCARD_NFC || signer.tags.contains(SignerTag.COLDCARD)) {
-                        showColdCardOptionsSheet = true
-                    } else {
-                        onSignClick(message)
-                    }
-                }
+                onSignClick = { onSignClick(message) }
             )
         }
     }
-
-    ColdCardSigningBottomSheets(
-        showColdCardOptions = showColdCardOptionsSheet,
-        onDismissColdCardOptions = {
-            showColdCardOptionsSheet = false
-        },
-        callbacks = ColdCardSigningCallbacks(
-            onExportViaQr = onExportViaQr,
-            onExportViaNfc = onExportViaNfc,
-            onImportViaFile = onImportViaFile,
-            onImportViaQr = onImportViaQr,
-            onImportViaNfc = onImportViaNfc,
-            onSaveFile = onSaveFile,
-            onShareFile = onShareFile,
-        )
-    )
 }
 
 @PreviewLightDark
