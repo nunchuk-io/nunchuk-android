@@ -12,6 +12,7 @@ import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupFromCacheUseCase
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
 import com.nunchuk.android.usecase.membership.RestartWizardUseCase
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.wallet.InitWalletConfigUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -29,6 +30,7 @@ class InheritancePlanTypeViewModel @Inject constructor(
     private val getUserWalletConfigsSetupFromCacheUseCase: GetUserWalletConfigsSetupFromCacheUseCase,
     private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
     private val restartWizardUseCase: RestartWizardUseCase,
+    private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val applicationScope: CoroutineScope,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -119,13 +121,17 @@ class InheritancePlanTypeViewModel @Inject constructor(
                 null -> return@launch
             }
             
-            runCatching {
-                restartWizardUseCase(
-                    RestartWizardUseCase.Param(
-                        plan = plan,
-                        groupId = _state.value.groupId.orEmpty()
+            val result = syncDraftWalletUseCase(_state.value.groupId.orEmpty()).getOrNull()
+            
+            if (result != null) {
+                runCatching {
+                    restartWizardUseCase(
+                        RestartWizardUseCase.Param(
+                            plan = plan,
+                            groupId = _state.value.groupId.orEmpty()
+                        )
                     )
-                )
+                }
             }
             
             initWalletConfigUseCase(
