@@ -35,21 +35,24 @@
                     style="@style/NCToolbar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:navigationIcon="@drawable/ic_back" />
+                    app:navigationIcon="@drawable/ic_back">
+
+                    <TextView
+                        android:id="@+id/toolbar_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        style="@style/NCText.Title"
+                        android:layout_gravity="center"
+                        android:textSize="18sp"
+                        android:textColor="@color/nc_text_primary"
+                        android:text="@string/nc_set_up_cvc" />
+
+                </androidx.appcompat.widget.Toolbar>
             </FrameLayout>
 
-            <TextView
-                android:id="@+id/toolbarTitle"
-                style="@style/NCText.Heading"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/nc_padding_16"
-                android:layout_marginTop="@dimen/nc_padding_16"
-                android:text="@string/nc_set_up_cvc" />
-
             <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv_existing_cvc_label"
                 style="@style/NCText.EditText.Title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
