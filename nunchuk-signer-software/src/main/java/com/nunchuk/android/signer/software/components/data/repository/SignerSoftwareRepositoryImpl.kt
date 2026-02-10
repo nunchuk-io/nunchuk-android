@@ -20,6 +20,7 @@
 package com.nunchuk.android.signer.software.components.data.repository
 
 import com.nunchuk.android.core.network.CODE_SUCCESS
+import com.nunchuk.android.core.persistence.NcDataStore
 import com.nunchuk.android.model.PKeySignInResponse
 import com.nunchuk.android.model.PKeySignUpResponse
 import com.nunchuk.android.model.UserResponse
@@ -28,7 +29,8 @@ import com.nunchuk.android.signer.software.components.data.api.*
 import javax.inject.Inject
 
 internal class SignerSoftwareRepositoryImpl @Inject constructor(
-    private val api: SignerSoftwareApi
+    private val api: SignerSoftwareApi,
+    private val dataStore: NcDataStore
 ) : SignerSoftwareRepository {
 
     override suspend fun getPKeyNonce(address: String?, username: String): String {
@@ -92,6 +94,14 @@ internal class SignerSoftwareRepositoryImpl @Inject constructor(
 
     override suspend fun pKeyDeleteAccount(signedMessage: String) {
         api.deletePKey(PKeyDeleteKeyPayload(signedMessage))
+    }
+
+    override suspend fun saveSeedPhraseViewTimestamp(masterFingerprint: String, timestamp: Long) {
+        dataStore.setSeedPhraseViewTimestamp(masterFingerprint, timestamp)
+    }
+
+    override suspend fun getSeedPhraseViewTimestamp(masterFingerprint: String): Long? {
+        return dataStore.getSeedPhraseViewTimestamp(masterFingerprint)
     }
 
 }

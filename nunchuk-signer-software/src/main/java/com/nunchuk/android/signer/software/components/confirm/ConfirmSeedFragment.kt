@@ -21,11 +21,9 @@ package com.nunchuk.android.signer.software.components.confirm
 
 import android.app.Activity
 import android.os.Bundle
-import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.text.bold
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -41,7 +39,6 @@ import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.C
 import com.nunchuk.android.signer.software.components.confirm.ConfirmSeedEvent.SelectedIncorrectWordEvent
 import com.nunchuk.android.signer.software.databinding.FragmentConfirmSeedBinding
 import com.nunchuk.android.type.SignerType
-import com.nunchuk.android.widget.NCInfoDialog
 import com.nunchuk.android.widget.NCToastMessage
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -91,24 +88,7 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
 
     private fun confirmBeforeOpenNewScreen() {
         if (args.backupHotKeySignerId.isEmpty()) {
-            NCInfoDialog(requireActivity()).showDialog(
-                message = SpannableStringBuilder().bold {
-                    append(getString(R.string.nc_seed_phase_confirmation_desc_one))
-                }.append(getString(R.string.nc_seed_phase_confirmation_desc_two)),
-                btnInfo = getString(R.string.nc_i_ve_backed_it_up),
-                btnYes = getString(R.string.nc_review_seed_phrase),
-                onYesClick = {
-                    if (args.isQuickWallet) {
-                        findNavController().popBackStack()
-                    } else {
-                        requireActivity().finish()
-                    }
-                },
-                onInfoClick = {
-                    openSetPassphrase()
-                },
-                showTextButton = true
-            )
+            openSetPassphrase()
         } else {
             viewModel.markHotKeyBackedUp()
             NcToastManager.scheduleShowMessage(getString(R.string.nc_added_hot_key_success))
@@ -196,7 +176,7 @@ class ConfirmSeedFragment : BaseFragment<FragmentConfirmSeedBinding>() {
         binding.recyclerView.layoutManager = LinearLayoutManager(requireActivity())
         binding.recyclerView.adapter = adapter
         binding.toolbar.setNavigationOnClickListener {
-            activity?.onBackPressed()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
         binding.btnContinue.setOnClickListener { viewModel.handleContinueEvent() }
     }

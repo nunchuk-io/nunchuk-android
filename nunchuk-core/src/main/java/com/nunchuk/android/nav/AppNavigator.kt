@@ -54,7 +54,6 @@ interface AppNavigator {
         isPersonalWallet: Boolean = false,
         groupWalletType: GroupWalletType? = null,
         slug: String? = null,
-        walletTypeName: String? = null,
         walletType: WalletType? = null,
         isClearTop: Boolean = false,
         quickWalletParam: QuickWalletParam? = null,
@@ -125,7 +124,8 @@ interface AppNavigator {
         groupId: String? = null,
         dummyTransactionId: String? = null,
         action: String? = null,
-        newEmail: String? = null
+        newEmail: String? = null,
+        isSignInSignatureFlow: Boolean = false
     )
 
     fun openGroupDashboardScreen(

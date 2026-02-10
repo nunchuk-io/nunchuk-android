@@ -73,20 +73,13 @@ class OnChainTimelockExplanationFragment : MembershipFragment() {
                     allowInheritance = allowInheritance,
                     viewModel = viewModel,
                     onContinueClicked = {
-                        if (groupId.isNotEmpty()) {
-                            val role = args.role.orEmpty()
-                            findNavController().navigate(
-                                OnChainTimelockExplanationFragmentDirections.actionOnChainTimelockExplanationFragmentToOnChainTimelockByzantineAddKeyFragment(
-                                    groupId = groupId,
-                                    role = role,
-                                    isAddOnly = false
-                                )
+                        findNavController().navigate(
+                            OnChainTimelockExplanationFragmentDirections.actionOnChainTimelockExplanationFragmentToOnChainTimelockAddKeyListFragment(
+                                groupId = groupId.ifEmpty { null },
+                                role = args.role,
+                                isAddOnly = false
                             )
-                        } else {
-                            findNavController().navigate(
-                                OnChainTimelockExplanationFragmentDirections.actionOnChainTimelockExplanationFragmentToOnChainTimelockAddKeyListFragment()
-                            )
-                        }
+                        )
                     },
                     onMoreClicked = ::handleShowMore
                 )

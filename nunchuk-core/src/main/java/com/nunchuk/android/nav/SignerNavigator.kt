@@ -72,6 +72,7 @@ interface SignerNavigator {
 
     /**
      * @param passphrase only need for replacing primary key
+     * @param masterSignerId used for viewing XPRV when provided
      */
     fun openAddSoftwareSignerScreen(
         activityContext: Context,
@@ -80,6 +81,7 @@ interface SignerNavigator {
         groupId: String? = null,
         replacedXfp: String? = null,
         walletId: String = "",
+        masterSignerId: String = "",
     )
 
     /**
@@ -94,6 +96,7 @@ interface SignerNavigator {
         replacedXfp: String? = null,
         numberOfWords: Int = 24,
         backupHotKeySignerId: String = "",
+        masterSignerId: String = "",
     )
 
     /**

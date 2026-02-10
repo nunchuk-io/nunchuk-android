@@ -81,6 +81,13 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_addKeyStepFragment_to_inheritancePlanTypeFragment"
+            app:destination="@id/inheritancePlanTypeFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
@@ -100,13 +107,6 @@
         <action
             android:id="@+id/action_onChainTimelockExplanationFragment_to_onChainTimelockAddKeyListFragment"
             app:destination="@id/onChainTimelockAddKeyListFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <action
-            android:id="@+id/action_onChainTimelockExplanationFragment_to_onChainTimelockByzantineAddKeyFragment"
-            app:destination="@id/onChainTimelockByzantineAddKeyFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -162,6 +162,27 @@
         android:id="@+id/onChainTimelockAddKeyListFragment"
         android:name="com.nunchuk.android.main.membership.onchaintimelock.addkey.OnChainTimelockAddKeyListFragment"
         android:label="OnChainTimelockAddKeyListFragment">
+
+        <argument
+            android:name="group_id"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="is_add_only"
+            android:defaultValue="false"
+            app:argType="boolean" />
+        <argument
+            android:name="role"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="config"
+            android:defaultValue="@null"
+            app:argType="com.nunchuk.android.model.WalletConfig"
+            app:nullable="true" />
+
         <action
             android:id="@+id/action_onChainTimelockAddKeyListFragment_to_tapSignerListBottomSheetFragment"
             app:destination="@id/tapSignerListBottomSheetFragment" />
@@ -214,6 +235,13 @@
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_onChainTimelockAddKeyListFragment_to_keyAddedToGroupWalletFragment"
+            app:destination="@id/keyAddedToGroupWalletFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
@@ -243,90 +271,6 @@
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/onChainTimelockByzantineAddKeyFragment"
-        android:name="com.nunchuk.android.main.membership.onchaintimelock.byzantine.OnChainTimelockByzantineAddKeyFragment"
-        android:label="OnChainTimelockByzantineAddKeyFragment">
-
-        <argument
-            android:name="group_id"
-            app:argType="string" />
-        <argument
-            android:name="is_add_only"
-            android:defaultValue="false"
-            app:argType="boolean" />
-        <argument
-            android:name="role"
-            app:argType="string" />
-
-        <action
-            android:id="@+id/action_onChainTimelockByzantineAddKeyFragment_to_inheritanceKeyIntroFragment"
-            app:destination="@id/inheritanceKeyIntroFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <action
-            android:id="@+id/action_onChainTimelockByzantineAddKeyFragment_to_tapSignerListBottomSheetFragment"
-            app:destination="@id/tapSignerListBottomSheetFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <action
-            android:id="@+id/action_onChainTimelockByzantineAddKeyFragment_to_addDesktopKeyFragment"
-            app:destination="@id/add_desktop_key_navigation"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim">
-
-            <argument
-                android:name="signer_tag"
-                app:argType="com.nunchuk.android.type.SignerTag" />
-
-            <argument
-                android:name="step"
-                app:argType="com.nunchuk.android.model.MembershipStep" />
-
-            <argument
-                android:name="group_id"
-                android:defaultValue="@null"
-                app:argType="string"
-                app:nullable="true" />
-
-        </action>
-
-        <action
-            android:id="@+id/action_onChainTimelockByzantineAddKeyFragment_to_keyAddedToGroupWalletFragment"
-            app:destination="@id/keyAddedToGroupWalletFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <action
-            android:id="@+id/action_onChainTimelockByzantineAddKeyFragment_to_customKeyAccountFragmentFragment"
-            app:destination="@id/customKeyAccountFragmentFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <action
-            android:id="@+id/action_onChainTimelockByzantineAddKeyFragment_to_signerIntroFragment"
-            app:destination="@id/signerIntroFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-        <action
-            android:id="@+id/action_onChainTimelockByzantineAddKeyFragment_to_onChainSetUpTimelockFragment"
-            app:destination="@id/onChainSetUpTimelockFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
 
     <fragment
@@ -374,9 +318,21 @@
             app:argType="string"
             app:nullable="true" />
 
+        <argument
+            android:name="from_add_key_step"
+            android:defaultValue="false"
+            app:argType="boolean" />
+
         <action
             android:id="@+id/action_inheritancePlanTypeFragment_to_changeTimeLockFragment"
             app:destination="@id/changeTimeLockFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+        <action
+            android:id="@+id/action_inheritancePlanTypeFragment_to_addKeyListFragment"
+            app:destination="@id/addKeyListFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -828,8 +784,8 @@
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 
         <action
-            android:id="@+id/action_addGroupKeyStepFragment_to_onChainTimelockByzantineAddKeyFragment"
-            app:destination="@id/onChainTimelockByzantineAddKeyFragment"
+            android:id="@+id/action_addGroupKeyStepFragment_to_onChainTimelockAddKeyListFragment"
+            app:destination="@id/onChainTimelockAddKeyListFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -846,9 +802,19 @@
         android:id="@+id/groupPendingIntroFragment"
         android:name="com.nunchuk.android.main.membership.byzantine.intro.GroupPendingIntroFragment"
         android:label="GroupPendingIntroFragment">
+
         <argument
             android:name="group_id"
             app:argType="string" />
+        <action
+            android:id="@+id/action_groupPendingIntroFragment_to_onChainTimelockAddKeyListFragment"
+            app:destination="@id/onChainTimelockAddKeyListFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:popUpTo="@id/groupPendingIntroFragment"
+            app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_groupPendingIntroFragment_to_addByzantineKeyListFragment"
             app:destination="@id/addByzantineKeyListFragment"

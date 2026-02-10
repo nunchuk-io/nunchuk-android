@@ -64,12 +64,17 @@ import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.GetRemoteSignerUseCase
 import com.nunchuk.android.usecase.HealthCheckHistoryUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
-import com.nunchuk.android.usecase.SendSignerPassphrase
+import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
 import com.nunchuk.android.usecase.UpdateMasterSignerUseCase
 import com.nunchuk.android.usecase.UpdateRemoteSignerUseCase
 import com.nunchuk.android.usecase.byzantine.KeyHealthCheckUseCase
 import com.nunchuk.android.usecase.membership.GetAssistedKeysUseCase
 import com.nunchuk.android.usecase.membership.UpdateServerKeyNameUseCase
+import com.nunchuk.android.usecase.signer.ClearSignerPassphraseUseCase
+import com.nunchuk.android.usecase.signer.GetSeedPhraseViewTimestampUseCase
+import com.nunchuk.android.usecase.signer.HasSignerMasterXprvUseCase
+import com.nunchuk.android.usecase.signer.HasSignerMnemonicUseCase
+import com.nunchuk.android.usecase.signer.SaveSeedPhraseViewTimestampUseCase
 import com.nunchuk.android.utils.onException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -96,7 +101,7 @@ internal class SignerInfoViewModel @Inject constructor(
     private val updateMasterSignerUseCase: UpdateMasterSignerUseCase,
     private val updateRemoteSignerUseCase: UpdateRemoteSignerUseCase,
     private val healthCheckMasterSignerUseCase: HealthCheckMasterSignerUseCase,
-    private val sendSignerPassphrase: SendSignerPassphrase,
+    private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
     private val getTapSignerBackupUseCase: GetTapSignerBackupUseCase,
     private val healthCheckTapSignerUseCase: HealthCheckTapSignerUseCase,
     private val topUpXpubTapSignerUseCase: TopUpXpubTapSignerUseCase,
@@ -111,6 +116,11 @@ internal class SignerInfoViewModel @Inject constructor(
     private val assistedWalletManager: AssistedWalletManager,
     private val keyHealthCheckUseCase: KeyHealthCheckUseCase,
     private val saveLocalFileUseCase: SaveLocalFileUseCase,
+    private val saveSeedPhraseViewTimestampUseCase: SaveSeedPhraseViewTimestampUseCase,
+    private val getSeedPhraseViewTimestampUseCase: GetSeedPhraseViewTimestampUseCase,
+    private val hasSignerMnemonicUseCase: HasSignerMnemonicUseCase,
+    private val hasSignerMasterXprvUseCase: HasSignerMasterXprvUseCase,
+    private val clearSignerPassphraseUseCase: ClearSignerPassphraseUseCase,
     savedStateHandle: SavedStateHandle,
     getAssistedKeysUseCase: GetAssistedKeysUseCase,
 ) : ViewModel() {
@@ -183,6 +193,21 @@ internal class SignerInfoViewModel @Inject constructor(
             delay(500)
             val assistedWalletIds = checkAssistedSignerExistenceHelper.getAssistedWallets(signer)
             _state.update { state -> state.copy(assistedWalletIds = assistedWalletIds) }
+        }
+        
+        viewModelScope.launch {
+            if (args.isMasterSigner && args.signerType == SignerType.SOFTWARE) {
+                val timestamp = getSeedPhraseViewTimestampUseCase(args.id).getOrNull()?.takeIf { it > 0L }
+                val hasMnemonic = hasSignerMnemonicUseCase(args.id).getOrDefault(false)
+                val hasXprv = hasSignerMasterXprvUseCase(args.id).getOrDefault(false)
+                _state.update { state -> 
+                    state.copy(
+                        seedPhraseViewTimestamp = timestamp,
+                        hasMnemonic = hasMnemonic,
+                        hasXprv = hasXprv
+                    )
+                }
+            }
         }
     }
 
@@ -261,11 +286,16 @@ internal class SignerInfoViewModel @Inject constructor(
     fun handleHealthCheck(masterSigner: MasterSigner, passPhrase: String? = null) {
         if (passPhrase != null) {
             viewModelScope.launch {
-                sendSignerPassphrase.execute(masterSigner.id, passPhrase)
-                    .flowOn(Dispatchers.IO)
-                    .onException { _event.emit(HealthCheckErrorEvent(it.message.orEmpty())) }
-                    .flowOn(Dispatchers.Main)
-                    .collect { healthCheck(masterSigner) }
+                sendSignerPassphraseUseCase(
+                    SendSignerPassphraseUseCase.Param(
+                        signerId = masterSigner.id,
+                        passphrase = passPhrase
+                    )
+                ).onSuccess {
+                    healthCheck(masterSigner)
+                }.onFailure { exception ->
+                    _event.emit(HealthCheckErrorEvent(exception.message.orEmpty()))
+                }
             }
         } else {
             healthCheck(masterSigner)
@@ -463,4 +493,46 @@ internal class SignerInfoViewModel @Inject constructor(
             isMasterSigner = args.isMasterSigner,
             type = args.signerType
         )
+
+    fun saveSeedPhraseViewTimestamp(masterFingerprint: String) {
+        viewModelScope.launch {
+            val timeStamp = System.currentTimeMillis()
+            saveSeedPhraseViewTimestampUseCase(SaveSeedPhraseViewTimestampUseCase.Param(masterFingerprint, timeStamp))
+            _state.update { state -> state.copy(seedPhraseViewTimestamp = timeStamp) }
+        }
+    }
+
+    fun removeSeedPhraseViewTimestamp(masterFingerprint: String) {
+        viewModelScope.launch {
+            saveSeedPhraseViewTimestampUseCase(SaveSeedPhraseViewTimestampUseCase.Param(masterFingerprint, -1))
+            _state.update { state -> state.copy(seedPhraseViewTimestamp = null) }
+        }
+    }
+
+    fun checkPassphrase(
+        masterSignerId: String,
+        passphrase: String,
+    ) {
+        viewModelScope.launch {
+            sendSignerPassphraseUseCase(
+                SendSignerPassphraseUseCase.Param(
+                    signerId = masterSignerId,
+                    passphrase = passphrase
+                )
+            ).onSuccess {
+                clearSignerPassphraseUseCase(masterSignerId)
+                _state.update {
+                    it.copy(
+                        passphrase = passphrase
+                    )
+                }
+            }.onFailure { exception ->
+                _event.emit(SignerInfoEvent.Error(exception))
+            }
+        }
+    }
+
+    fun onPassphraseConsumed() {
+        _state.update { it.copy(passphrase = null) }
+    }
 }

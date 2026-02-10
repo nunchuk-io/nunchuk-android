@@ -51,4 +51,8 @@ interface SignerSoftwareRepository {
     suspend fun pKeyChangeKey(newKey: String, oldSignedMessage: String, newSignedMessage: String)
 
     suspend fun pKeyDeleteAccount(signedMessage: String)
+
+    suspend fun saveSeedPhraseViewTimestamp(masterFingerprint: String, timestamp: Long)
+
+    suspend fun getSeedPhraseViewTimestamp(masterFingerprint: String): Long?
 }

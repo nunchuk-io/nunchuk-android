@@ -194,7 +194,6 @@ internal class WalletDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             selectedWalletUseCase(args.walletId)
         }
-        syncServerTransaction()
         getCoins()
         viewModelScope.launch {
             pushEventManager.event.collect { event ->
@@ -202,7 +201,7 @@ internal class WalletDetailsViewModel @Inject constructor(
                     || (event is PushEvent.ServerTransactionEvent && event.walletId == args.walletId)
                     || (event is PushEvent.WalletChanged && event.walletId == args.walletId)
                 ) {
-                    syncData()
+                    syncServerTransaction(true)
                 }
             }
         }
@@ -454,7 +453,7 @@ internal class WalletDetailsViewModel @Inject constructor(
         }
     }
 
-    fun syncServerTransaction() {
+    fun syncServerTransaction(shouldReload: Boolean = false) {
         viewModelScope.launch {
             if (assistedWalletManager.isActiveAssistedWallet(args.walletId)) {
                 syncTransactionFromServer(false)
@@ -463,6 +462,9 @@ internal class WalletDetailsViewModel @Inject constructor(
                 if (isClaimWallet) {
                     syncTransactionFromServer(true)
                 }
+            }
+            if (shouldReload) {
+                getTransactionHistory()
             }
         }
     }

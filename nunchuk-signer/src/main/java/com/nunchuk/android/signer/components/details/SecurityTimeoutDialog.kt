@@ -17,27 +17,30 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase
+package com.nunchuk.android.signer.components.details
 
-import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.nativelib.NunchukNativeSdk
-import kotlinx.coroutines.CoroutineDispatcher
-import javax.inject.Inject
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.nunchuk.android.compose.dialog.NcConfirmationDialog
+import com.nunchuk.android.signer.R
 
-class CheckAddressValidUseCase @Inject constructor(
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val nativeSdk: NunchukNativeSdk
-) : UseCase<CheckAddressValidUseCase.Params, List<String>>(ioDispatcher) {
+@Composable
+fun SecurityTimeoutDialog(
+    isXprv: Boolean = false,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit = onDismiss,
+) {
+    val message = stringResource(
+        id = if (isXprv) R.string.nc_security_timeout_message_xprv else R.string.nc_security_timeout_message
+    )
 
-    override suspend fun execute(parameters: Params): List<String> {
-        val invalidAddressList = arrayListOf<String>()
-        parameters.addresses.forEach {
-            if (runCatching { nativeSdk.isSilentPaymentAddress(it) || nativeSdk.isValidAddress(it) }.getOrDefault(false).not()) invalidAddressList.add(it)
-        }
-        return invalidAddressList
-    }
-
-    data class Params(
-        val addresses: List<String>
+    NcConfirmationDialog(
+        title = stringResource(id = R.string.nc_security_timeout),
+        message = message,
+        positiveButtonText = stringResource(id = R.string.nc_confirm),
+        negativeButtonText = stringResource(id = com.nunchuk.android.core.R.string.nc_cancel),
+        onPositiveClick = onConfirm,
+        onDismiss = onDismiss
     )
 }
+

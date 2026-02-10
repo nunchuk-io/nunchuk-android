@@ -100,6 +100,7 @@ class AddKeyStepFragment : MembershipFragment() {
                 AddKeyStepEvent.SetupInheritanceSetupDone -> requireActivity().finish()
                 AddKeyStepEvent.OpenOnChainTimelockExplanation -> handleOpenOnChainTimelockExplanation()
                 is AddKeyStepEvent.UpdateReplaceWalletId -> (requireActivity() as? MembershipActivity)?.setOnChainReplaceWalletId(event.walletId)
+                AddKeyStepEvent.OpenInheritancePlanType -> handleOpenInheritancePlanType()
             }
         }
     }
@@ -142,7 +143,9 @@ class AddKeyStepFragment : MembershipFragment() {
             }
             WalletType.MINISCRIPT -> {
                 findNavController().navigate(
-                    AddKeyStepFragmentDirections.actionAddKeyStepFragmentToOnChainTimelockAddKeyListFragment()
+                    AddKeyStepFragmentDirections.actionAddKeyStepFragmentToOnChainTimelockAddKeyListFragment(
+                        config = viewModel.getConfig()
+                    )
                 )
             }
             else -> {}
@@ -155,6 +158,14 @@ class AddKeyStepFragment : MembershipFragment() {
 
     private fun handleOpenOnChainTimelockExplanation() {
         findNavController().navigate(AddKeyStepFragmentDirections.actionAddKeyStepFragmentToOnChainTimelockExplanationFragment())
+    }
+
+    private fun handleOpenInheritancePlanType() {
+        findNavController().navigate(
+            AddKeyStepFragmentDirections.actionAddKeyStepFragmentToInheritancePlanTypeFragment(
+                fromAddKeyStep = true
+            )
+        )
     }
 }
 

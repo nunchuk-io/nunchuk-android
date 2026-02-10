@@ -61,6 +61,12 @@
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
+
+        <argument
+            android:name="is_sign_in_signature_flow"
+            app:argType="boolean"
+            android:defaultValue="false"/>
+
     </activity>
     <fragment
         android:id="@+id/answerSecurityQuestionFragment2"

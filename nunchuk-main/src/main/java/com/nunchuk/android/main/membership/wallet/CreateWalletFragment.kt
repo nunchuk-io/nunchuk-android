@@ -48,6 +48,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -265,7 +266,7 @@ fun CreateWalletScreenContent(
                     title = stringResource(id = R.string.nc_wallet_name),
                     value = walletName,
                     onValueChange = onWalletNameTextChange,
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done)
                 )
 
                 Row(

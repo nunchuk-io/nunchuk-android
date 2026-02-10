@@ -26,6 +26,7 @@ import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.core.base.BaseComposeActivity
 import com.nunchuk.android.core.data.model.ClaimInheritanceTxParam
 import com.nunchuk.android.core.data.model.QuickWalletParam
+import com.nunchuk.android.core.network.ApiErrorCode.INHERITANCE_PLAN_NOT_ACTIVE
 import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.push.PushEvent
 import com.nunchuk.android.core.push.PushEventManager
@@ -49,8 +50,8 @@ import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.cla
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.claimnote.navigateToClaimNote
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.magicphrase.ClaimMagicPhraseRoute
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.magicphrase.claimMagicPhrase
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.noinheritancefound.navigateToNoInheritancePlanFound
-import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.noinheritancefound.noInheritancePlanFound
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.noinheritancefound.inheritanceError
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.noinheritancefound.navigateToInheritanceError
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.preparerecover.InheritanceOption
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.preparerecover.navigateToPrepareInheritanceKey
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.preparerecover.navigateToRecoverInheritanceKey
@@ -155,8 +156,21 @@ private fun ClaimInheritanceGraph(
     LaunchedEffect(sharedUiState.event) {
         sharedUiState.event?.let { event ->
             when (event) {
-                is ClaimInheritanceEvent.NavigateToNoInheritanceFound -> {
-                    navController.navigateToNoInheritancePlanFound()
+                is ClaimInheritanceEvent.NavigateToInheritanceError -> {
+                    val title = if (event.errorCode == INHERITANCE_PLAN_NOT_ACTIVE) {
+                        context.getString(R.string.nc_inheritance_error_title)
+                    } else {
+                        context.getString(R.string.nc_no_inheritance_plan_found)
+                    }
+                    val message = if (event.errorCode == INHERITANCE_PLAN_NOT_ACTIVE) {
+                        event.message
+                    } else {
+                        context.getString(R.string.nc_no_inheritance_plan_found_desc)
+                    }
+                    navController.navigateToInheritanceError(
+                        title = title,
+                        message = message
+                    )
                 }
 
                 is ClaimInheritanceEvent.AddMoreSigners -> {
@@ -310,7 +324,10 @@ private fun ClaimInheritanceGraph(
                     navController.popBackStack()
                 },
                 onNoInheritancePlanFound = {
-                    navController.navigateToNoInheritancePlanFound()
+                    navController.navigateToInheritanceError(
+                        title = context.getString(R.string.nc_no_inheritance_plan_found),
+                        message = context.getString(R.string.nc_no_inheritance_plan_found_desc)
+                    )
                 },
                 onSuccess = { signers, magic, inheritanceAdditional, derivationPaths ->
                     val bufferPeriodCountdown = inheritanceAdditional.bufferPeriodCountdown
@@ -335,10 +352,11 @@ private fun ClaimInheritanceGraph(
                     activity.finish()
                 },
             )
-            noInheritancePlanFound(
+            inheritanceError(
                 snackState = snackbarHostState,
                 onCloseClick = {
-                    activity.finish()
+                    activityViewModel.reset()
+                    navController.popBackStack<ClaimMagicPhraseRoute>(false)
                 },
             )
             claimNote(

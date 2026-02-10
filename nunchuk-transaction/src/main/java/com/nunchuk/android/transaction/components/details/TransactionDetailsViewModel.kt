@@ -123,7 +123,7 @@ import com.nunchuk.android.usecase.ImportTransactionUseCase
 import com.nunchuk.android.usecase.IsPreimageRevealedUseCase
 import com.nunchuk.android.usecase.IsScriptNodeSatisfiableUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
-import com.nunchuk.android.usecase.SendSignerPassphrase
+import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
 import com.nunchuk.android.usecase.SignTransactionUseCase
 import com.nunchuk.android.usecase.UpdateTransactionMemo
 import com.nunchuk.android.usecase.byzantine.GetGroupUseCase
@@ -174,7 +174,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
     private val signRoomTransactionUseCase: SignRoomTransactionUseCase,
     private val broadcastTransactionUseCase: BroadcastTransactionUseCase,
     private val broadcastRoomTransactionUseCase: BroadcastRoomTransactionUseCase,
-    private val sendSignerPassphrase: SendSignerPassphrase,
+    private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val exportTransactionUseCase: ExportTransactionUseCase,
     private val getContactsUseCase: GetContactsUseCase,
@@ -800,7 +800,7 @@ internal class TransactionDetailsViewModel @Inject constructor(
                     groupId = assistedWalletManager.getGroupId(walletId),
                     walletId = walletId,
                     txId = txId,
-                    isAssistedWallet = assistedWalletManager.isActiveAssistedWallet(walletId)
+                    isAssistedWallet = assistedWalletManager.isSyncableWallet(walletId)
                 )
             ).onException {
                 if (it is NCNativeException && it.message.contains("-2003")) {
@@ -997,9 +997,16 @@ internal class TransactionDetailsViewModel @Inject constructor(
             if (device.needPassPhraseSent) {
                 _event.emit(PromptInputPassphrase {
                     viewModelScope.launch {
-                        sendSignerPassphrase.execute(signer.id, it).flowOn(IO)
-                            .onException { _event.emit(TransactionDetailsError(it.message.orEmpty())) }
-                            .collect { signTransaction(device, signer.id) }
+                        sendSignerPassphraseUseCase(
+                            SendSignerPassphraseUseCase.Param(
+                                signerId = signer.id,
+                                passphrase = it
+                            )
+                        ).onSuccess {
+                            signTransaction(device, signer.id)
+                        }.onFailure { exception ->
+                            _event.emit(TransactionDetailsError(exception.message.orEmpty()))
+                        }
                     }
                 })
             } else {

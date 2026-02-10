@@ -32,8 +32,6 @@ import com.nunchuk.android.core.data.model.ConvertTimelockRequest
 import com.nunchuk.android.core.data.model.CreateSecurityQuestionRequest
 import com.nunchuk.android.core.data.model.CreateServerKeysPayload
 import com.nunchuk.android.core.data.model.CreateTimelockPayload
-import com.nunchuk.android.core.data.model.TimelockDto
-import com.nunchuk.android.core.data.model.toConvertedTimelock
 import com.nunchuk.android.core.data.model.DeleteAssistedWalletRequest
 import com.nunchuk.android.core.data.model.EmptyRequest
 import com.nunchuk.android.core.data.model.InheritanceByzantineRequestPlanning
@@ -51,6 +49,7 @@ import com.nunchuk.android.core.data.model.RequestRecoverKeyRequest
 import com.nunchuk.android.core.data.model.SecurityQuestionsUpdateRequest
 import com.nunchuk.android.core.data.model.SyncTransactionRequest
 import com.nunchuk.android.core.data.model.TapSignerPayload
+import com.nunchuk.android.core.data.model.TimelockDto
 import com.nunchuk.android.core.data.model.TimelockPayload
 import com.nunchuk.android.core.data.model.UpdateKeyPayload
 import com.nunchuk.android.core.data.model.UpdateWalletPayload
@@ -92,6 +91,7 @@ import com.nunchuk.android.core.data.model.membership.toServerTransaction
 import com.nunchuk.android.core.data.model.membership.toTransactionStatus
 import com.nunchuk.android.core.data.model.membership.toWalletOption
 import com.nunchuk.android.core.data.model.replacement.replacementsToModel
+import com.nunchuk.android.core.data.model.toConvertedTimelock
 import com.nunchuk.android.core.domain.membership.TargetAction
 import com.nunchuk.android.core.exception.RequestAddKeyCancelException
 import com.nunchuk.android.core.exception.RequestAddSameKeyException
@@ -128,6 +128,7 @@ import com.nunchuk.android.model.ByzantineGroup
 import com.nunchuk.android.model.CalculateRequiredSignatures
 import com.nunchuk.android.model.CalculateRequiredSignaturesAction
 import com.nunchuk.android.model.CalculateRequiredSignaturesExt
+import com.nunchuk.android.model.ConvertedTimelock
 import com.nunchuk.android.model.CreateWalletResult
 import com.nunchuk.android.model.DefaultPermissions
 import com.nunchuk.android.model.FinalizeReplaceWalletResult
@@ -137,11 +138,9 @@ import com.nunchuk.android.model.GroupStatus
 import com.nunchuk.android.model.HealthCheckHistory
 import com.nunchuk.android.model.HealthReminder
 import com.nunchuk.android.model.HistoryPeriod
-import com.nunchuk.android.model.ConvertedTimelock
 import com.nunchuk.android.model.Inheritance
 import com.nunchuk.android.model.InheritanceAdditional
 import com.nunchuk.android.model.InheritanceCheck
-import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.InheritanceStatus
 import com.nunchuk.android.model.KeyPolicy
 import com.nunchuk.android.model.MembershipPlan
@@ -157,6 +156,7 @@ import com.nunchuk.android.model.SignerExtra
 import com.nunchuk.android.model.SingleSigner
 import com.nunchuk.android.model.SpendingPolicy
 import com.nunchuk.android.model.SpendingTimeUnit
+import com.nunchuk.android.model.TimelockBased
 import com.nunchuk.android.model.Transaction
 import com.nunchuk.android.model.TransactionAdditional
 import com.nunchuk.android.model.UserWalletConfigsSetup
@@ -422,6 +422,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         var isNeedReload = false
 
         val keyPolicyMap = hashMapOf<String, KeyPolicy>()
+        val walletStatus = result.data.wallets.associate { it.localId to it.status }
         result.data.wallets.filter {
             it.localId.isNullOrEmpty().not() && it.status != WALLET_DELETED_STATUS
         }.forEach { walletServer ->
@@ -432,15 +433,18 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             )
             if (saveWalletToLib(walletServer, assistedKeys)) isNeedReload = true
         }
-        val planWalletCreated = hashMapOf<String, String>()
         val wallets = result.data.wallets.filter { it.status != WALLET_DELETED_STATUS }
-        val deleteCount =
-            assistedWalletDao.deleteAllPersonalWalletsExcept(wallets.map { it.localId.orEmpty() })
+        val deletedWallets =
+            assistedWalletDao.deleteAllPersonalWalletsExcept(wallets.map { it.localId.orEmpty() }).map { it.localId }
+        val inactiveIds = deletedWallets
+            .filter { walletStatus[it] != WALLET_DELETED_STATUS }
+        if (inactiveIds.isNotEmpty()) {
+            ncDataStore.appendInactiveAssistedWalletIds(inactiveIds)
+        }
         if (wallets.isNotEmpty()) {
             updateOrInsertWallet(wallets = wallets)
         }
         ncDataStore.setAssistedKey(assistedKeys)
-        result.data.wallets.forEach { planWalletCreated[it.slug.orEmpty()] = it.localId.orEmpty() }
 
         val claimingWallets = mutableListOf<WalletDto>()
         var page = 0
@@ -465,7 +469,7 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
         ncDataStore.setClaimWallets(claimingWallets.map { it.localId.orEmpty() }.toSet())
 
         return WalletServerSync(
-            keyPolicyMap = keyPolicyMap, isNeedReload = isNeedReload || deleteCount > 0
+            keyPolicyMap = keyPolicyMap, isNeedReload = isNeedReload || deletedWallets.isNotEmpty()
         )
     }
 
@@ -1561,25 +1565,29 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
             }
             if (response.isSuccess.not()) throw response.error
             response.data.transactions.forEach { transition ->
-                Timber.d("${transition.transactionId} - $transition")
-                if (transition.psbt.isNullOrEmpty().not()) {
-                    val importTx = nunchukNativeSdk.importPsbt(walletId, transition.psbt)
-                    if (transition.note.isNullOrEmpty().not() && importTx.memo != transition.note) {
-                        nunchukNativeSdk.updateTransactionMemo(
-                            walletId, importTx.txId, transition.note
+                runCatching {
+                    Timber.d("${transition.transactionId} - $transition")
+                    if (transition.psbt.isNullOrEmpty().not()) {
+                        val importTx = nunchukNativeSdk.importPsbt(walletId, transition.psbt)
+                        if (transition.note.isNullOrEmpty()
+                                .not() && importTx.memo != transition.note
+                        ) {
+                            nunchukNativeSdk.updateTransactionMemo(
+                                walletId, importTx.txId, transition.note
+                            )
+                        }
+                        updateScheduleTransactionIfNeed(
+                            walletId, transition.transactionId.orEmpty(), transition
                         )
-                    }
-                    updateScheduleTransactionIfNeed(
-                        walletId, transition.transactionId.orEmpty(), transition
-                    )
 
-                    updateReplaceTransactionIdIfNeed(walletId, importTx, transition)
+                        updateReplaceTransactionIdIfNeed(walletId, importTx, transition)
 
-                    if (transition.type == ServerTransactionType.SCHEDULED) {
-                        serverTransactionCache.put(
-                            transition.transactionId.orEmpty(),
-                            transition.toServerTransaction()
-                        )
+                        if (transition.type == ServerTransactionType.SCHEDULED) {
+                            serverTransactionCache.put(
+                                transition.transactionId.orEmpty(),
+                                transition.toServerTransaction()
+                            )
+                        }
                     }
                 }
             }
@@ -1714,6 +1722,10 @@ internal class PremiumWalletRepositoryImpl @Inject constructor(
                 )
             }
         }
+    }
+
+    override fun getInactiveAssistedWalletIdsFlow(): Flow<Set<String>> {
+        return ncDataStore.inactiveAssistedWalletIdsFlow
     }
 
     override suspend fun clearLocalData() {

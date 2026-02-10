@@ -17,27 +17,21 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase
+package com.nunchuk.android.usecase.signer
 
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.repository.SignerSoftwareRepository
+import com.nunchuk.android.usecase.UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-class CheckAddressValidUseCase @Inject constructor(
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val nativeSdk: NunchukNativeSdk
-) : UseCase<CheckAddressValidUseCase.Params, List<String>>(ioDispatcher) {
-
-    override suspend fun execute(parameters: Params): List<String> {
-        val invalidAddressList = arrayListOf<String>()
-        parameters.addresses.forEach {
-            if (runCatching { nativeSdk.isSilentPaymentAddress(it) || nativeSdk.isValidAddress(it) }.getOrDefault(false).not()) invalidAddressList.add(it)
-        }
-        return invalidAddressList
+class GetSeedPhraseViewTimestampUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val repository: SignerSoftwareRepository
+) : UseCase<String, Long?>(dispatcher) {
+    
+    override suspend fun execute(parameters: String): Long? {
+        return repository.getSeedPhraseViewTimestamp(parameters)
     }
-
-    data class Params(
-        val addresses: List<String>
-    )
 }
+

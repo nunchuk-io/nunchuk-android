@@ -17,22 +17,25 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase
+package com.nunchuk.android.usecase.signer
 
-import com.nunchuk.android.nativelib.NunchukNativeSdk
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import com.nunchuk.android.domain.di.IoDispatcher
+import com.nunchuk.android.repository.SignerSoftwareRepository
+import com.nunchuk.android.usecase.UseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
-interface SendSignerPassphrase {
-    fun execute(signerId: String, passphrase: String): Flow<Unit>
-}
-
-internal class SendSignerPassphraseImpl @Inject constructor(
-    private val nativeSdk: NunchukNativeSdk
-) : SendSignerPassphrase {
-
-    override fun execute(signerId: String, passphrase: String): Flow<Unit> = flow {
-        emit(nativeSdk.sendSignerPassphrase(signerId, passphrase))
+class SaveSeedPhraseViewTimestampUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val repository: SignerSoftwareRepository
+) : UseCase<SaveSeedPhraseViewTimestampUseCase.Param, Unit>(dispatcher) {
+    override suspend fun execute(parameters: Param): Unit {
+        repository.saveSeedPhraseViewTimestamp(parameters.masterFingerprint, parameters.timestamp)
     }
+
+    data class Param(
+        val masterFingerprint: String,
+        val timestamp: Long = System.currentTimeMillis()
+    )
 }
+

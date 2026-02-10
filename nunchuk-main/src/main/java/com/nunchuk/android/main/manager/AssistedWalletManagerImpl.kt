@@ -21,6 +21,7 @@ package com.nunchuk.android.main.manager
 
 import com.nunchuk.android.core.domain.GetAssistedWalletsFlowUseCase
 import com.nunchuk.android.core.domain.membership.GetClaimWalletsFlowUseCase
+import com.nunchuk.android.core.domain.membership.GetInactiveAssistedWalletIdsFlowUseCase
 import com.nunchuk.android.manager.AssistedWalletManager
 import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.membership.AssistedWalletBrief
@@ -37,6 +38,7 @@ internal class AssistedWalletManagerImpl @Inject constructor(
     applicationScope: CoroutineScope,
     getGroupsUseCase: GetGroupsUseCase,
     getClaimWalletsFlowUseCase: GetClaimWalletsFlowUseCase,
+    getInactiveAssistedWalletIdsFlowUseCase: GetInactiveAssistedWalletIdsFlowUseCase,
 ) : AssistedWalletManager {
 
     private val _assistedGroups = getGroupsUseCase(Unit).map {
@@ -56,6 +58,10 @@ internal class AssistedWalletManagerImpl @Inject constructor(
         it.getOrThrow().toSet()
     }.stateIn(applicationScope, SharingStarted.Eagerly, emptySet())
 
+    private val _inactiveAssistedWalletIds = getInactiveAssistedWalletIdsFlowUseCase(Unit).map {
+        it.getOrElse { emptySet() }
+    }.stateIn(applicationScope, SharingStarted.Eagerly, emptySet())
+
     override fun isActiveAssistedWallet(walletId: String): Boolean {
         return _assistedWalletBrief.value[walletId]?.status == WalletStatus.ACTIVE.name
     }
@@ -65,7 +71,8 @@ internal class AssistedWalletManagerImpl @Inject constructor(
     }
 
     override fun isInactiveAssistedWallet(walletId: String): Boolean {
-        return _assistedWalletBrief.value[walletId]?.status?.let { status -> status != WalletStatus.ACTIVE.name && status != WalletStatus.LOCKED.name } != false
+        return _inactiveAssistedWalletIds.value.contains(walletId)
+                && _assistedWalletBrief.value[walletId]?.status?.let { status -> status != WalletStatus.ACTIVE.name && status != WalletStatus.LOCKED.name } != false
     }
 
     override fun getWalletAlias(walletId: String): String {
@@ -87,6 +94,8 @@ internal class AssistedWalletManagerImpl @Inject constructor(
     }
 
     override fun isSyncableWallet(walletId: String): Boolean {
-        return _assistedWalletBrief.value[walletId]?.status == WalletStatus.ACTIVE.name || _claimableWallets.value.contains(walletId)
+        return _assistedWalletBrief.value[walletId]?.status == WalletStatus.ACTIVE.name || _claimableWallets.value.contains(
+            walletId
+        )
     }
 }

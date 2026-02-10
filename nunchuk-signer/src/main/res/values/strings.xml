@@ -33,6 +33,7 @@
     <string name="nc_txt_run_health_check_error_event">%s is not healthy</string>
     <string name="nc_add_nfc_key">Add NFC key</string>
     <string name="nc_existing_cvc">Starting PIN</string>
+    <string name="nc_existing_pin">Existing PIN</string>
     <string name="nc_set_up_nfc_key">Set up NFC key</string>
     <string name="nc_set_up_cvc">Set up PIN</string>
     <string name="nc_new_cvc">New PIN</string>
@@ -215,4 +216,10 @@
     <string name="nc_please_back_up_your_key">Please back up your key.</string>
     <string name="nc_do_it_now">Do it now.</string>
     <string name="nc_pending_backup">Pending backup</string>
+    <string name="nc_view_seed_phrase">View seed phrase</string>
+    <string name="nc_view_xprv">View XPRV</string>
+    <string name="nc_security_timeout">Security Timeout</string>
+    <string name="nc_security_timeout_message">For your security, there\'s a 2-hour waiting period before you can view your seed phrase.</string>
+    <string name="nc_security_timeout_message_xprv">For your security, there\'s a 2-hour waiting period before you can view your XPRV.</string>
+    <string name="nc_confirm">Confirm</string>
 </resources>

@@ -17,27 +17,20 @@
  *                                                                        *
  **************************************************************************/
 
-package com.nunchuk.android.usecase
+package com.nunchuk.android.core.domain.membership
 
+import com.nunchuk.android.FlowUseCase
 import com.nunchuk.android.domain.di.IoDispatcher
-import com.nunchuk.android.nativelib.NunchukNativeSdk
+import com.nunchuk.android.repository.PremiumWalletRepository
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class CheckAddressValidUseCase @Inject constructor(
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    private val nativeSdk: NunchukNativeSdk
-) : UseCase<CheckAddressValidUseCase.Params, List<String>>(ioDispatcher) {
-
-    override suspend fun execute(parameters: Params): List<String> {
-        val invalidAddressList = arrayListOf<String>()
-        parameters.addresses.forEach {
-            if (runCatching { nativeSdk.isSilentPaymentAddress(it) || nativeSdk.isValidAddress(it) }.getOrDefault(false).not()) invalidAddressList.add(it)
-        }
-        return invalidAddressList
+class GetInactiveAssistedWalletIdsFlowUseCase @Inject constructor(
+    @IoDispatcher dispatcher: CoroutineDispatcher,
+    private val premiumWalletRepository: PremiumWalletRepository,
+) : FlowUseCase<Unit, Set<String>>(dispatcher) {
+    override fun execute(parameters: Unit): Flow<Set<String>> {
+        return premiumWalletRepository.getInactiveAssistedWalletIdsFlow()
     }
-
-    data class Params(
-        val addresses: List<String>
-    )
 }

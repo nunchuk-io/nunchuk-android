@@ -43,6 +43,7 @@ import com.nunchuk.android.usecase.wallet.GetServerWalletUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import timber.log.Timber
 import javax.inject.Inject
 
 class HandlePushMessageUseCase @Inject constructor(
@@ -59,6 +60,7 @@ class HandlePushMessageUseCase @Inject constructor(
     private val deleteKeyInWalletUseCase: DeleteKeyInWalletUseCase,
 ) : UseCase<TimelineEvent, Unit>(dispatcher) {
     override suspend fun execute(parameters: TimelineEvent) {
+        Timber.d("execute for eventId: $parameters")
         when {
             parameters.isTransactionHandleErrorMessageEvent() || parameters.isServerTransactionEvent() -> {
                 val result = isHandledEventUseCase.invoke(parameters.eventId)

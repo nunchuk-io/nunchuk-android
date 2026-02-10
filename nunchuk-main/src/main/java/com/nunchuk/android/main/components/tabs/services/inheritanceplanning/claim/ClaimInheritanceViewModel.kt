@@ -11,6 +11,8 @@ import com.nunchuk.android.core.domain.membership.DownloadWalletForClaimUseCase
 import com.nunchuk.android.core.domain.membership.GetClaimingWalletUseCase
 import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCase
 import com.nunchuk.android.core.mapper.SingleSignerMapper
+import com.nunchuk.android.core.network.ApiErrorCode.INHERITANCE_PLAN_NOT_ACTIVE
+import com.nunchuk.android.core.network.ApiErrorCode.INHERITANCE_PLAN_NOT_FOUND
 import com.nunchuk.android.core.network.NunchukApiException
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.signer.toSingleSigner
@@ -60,6 +62,12 @@ class ClaimInheritanceViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ClaimUiState())
     val uiState: StateFlow<ClaimUiState> = _uiState
+
+    fun reset() {
+        _claimData.update { ClaimData() }
+        _uiState.update { ClaimUiState() }
+        handledRequestIds.clear()
+    }
 
     fun setClaimNoteData(
         signers: List<SignerModel>,
@@ -157,7 +165,10 @@ class ClaimInheritanceViewModel @Inject constructor(
     }
 
     fun addSigner(signer: SignerModel) {
-        if (_claimData.value.signers.contains(signer)) {
+        val hasSigner = _claimData.value.signers.any {
+            it.fingerPrint == signer.fingerPrint && it.derivationPath == signer.derivationPath
+        }
+        if (hasSigner) {
             _uiState.update {
                 it.copy(
                     event = ClaimInheritanceEvent.KeyAlreadyAdded,
@@ -202,10 +213,13 @@ class ClaimInheritanceViewModel @Inject constructor(
             }
             getInheritanceStatus(currentData.magic, wallet.bsms)
         }.onFailure { e ->
-            if (e is NunchukApiException && e.code == 831) {
+            if (e is NunchukApiException && (e.code == INHERITANCE_PLAN_NOT_FOUND || e.code == INHERITANCE_PLAN_NOT_ACTIVE)) {
                 _uiState.update {
                     it.copy(
-                        event = ClaimInheritanceEvent.NavigateToNoInheritanceFound,
+                        event = ClaimInheritanceEvent.NavigateToInheritanceError(
+                            errorCode = e.code,
+                            message = e.message
+                        ),
                         isLoading = false
                     )
                 }
@@ -312,7 +326,11 @@ data class ClaimUiState(
 
 sealed class ClaimInheritanceEvent {
     data class ShowError(val message: String) : ClaimInheritanceEvent()
-    data object NavigateToNoInheritanceFound : ClaimInheritanceEvent()
+    data class NavigateToInheritanceError(
+        val errorCode: Int,
+        val message: String
+    ) : ClaimInheritanceEvent()
+
     data object AddMoreSigners : ClaimInheritanceEvent()
     data object KeyAlreadyAdded : ClaimInheritanceEvent()
     data object SignerAdded : ClaimInheritanceEvent()

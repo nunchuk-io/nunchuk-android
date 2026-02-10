@@ -34,8 +34,10 @@ import com.nunchuk.android.compose.controlTextPrimary
 import com.nunchuk.android.core.signer.KeyFlow
 import com.nunchuk.android.core.signer.KeyFlow.isPrimaryKeyFlow
 import com.nunchuk.android.signer.software.R
+import kotlinx.serialization.Serializable
 
-const val createSoftwareKeyIntroRoute = "create_software_key_intro"
+@Serializable
+data object CreateSoftwareNavKey
 
 fun NavGraphBuilder.createSoftwareKeyIntro(
     isSupportXprv: Boolean,
@@ -44,7 +46,7 @@ fun NavGraphBuilder.createSoftwareKeyIntro(
     onRecoverSeedClicked: () -> Unit = {},
     onRecoverXprvClicked: () -> Unit = {},
 ) {
-    composable(createSoftwareKeyIntroRoute) {
+    composable<CreateSoftwareNavKey> {
         CreateSoftwareKeyIntroScreen(
             isSupportXprv = isSupportXprv,
             onContinueClicked = onContinueClicked,

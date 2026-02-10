@@ -253,10 +253,10 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             is TransactionConfirmEvent.AssignTagError,
             is TransactionConfirmEvent.AssignTagSuccess,
             is TransactionConfirmEvent.DraftTaprootTransactionSuccess,
-            is TransactionConfirmEvent.ChooseSigningPolicy,
+            is TransactionConfirmEvent.ChooseSigningPolicy, is TransactionConfirmEvent.AutoSelectSigningPath -> hideLoading()
+
             is TransactionConfirmEvent.ShowTimeLockNotice,
             is TransactionConfirmEvent.CustomizeTransaction,
-            is TransactionConfirmEvent.AutoSelectSigningPath,
             is TransactionConfirmEvent.ChooseSigningPathsSuccess -> Unit
         }
     }

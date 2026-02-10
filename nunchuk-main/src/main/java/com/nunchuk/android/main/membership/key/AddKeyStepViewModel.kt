@@ -30,6 +30,7 @@ import com.nunchuk.android.model.MembershipPlan
 import com.nunchuk.android.model.MembershipStage
 import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.VerifyType
+import com.nunchuk.android.model.WalletConfig
 import com.nunchuk.android.share.membership.MembershipStepManager
 import com.nunchuk.android.type.SignerTag
 import com.nunchuk.android.type.SignerType
@@ -69,6 +70,9 @@ class AddKeyStepViewModel @Inject constructor(
     private val inheritanceType = 
         savedStateHandle.getStateFlow(MembershipActivity.EXTRA_INHERITANCE_TYPE, null as String?)
 
+    private val changeTimelockFlow =
+        savedStateHandle.getStateFlow(MembershipActivity.EXTRA_CHANGE_TIMELOCK_FLOW, -1)
+
     private val _event = MutableSharedFlow<AddKeyStepEvent>()
     val event = _event.asSharedFlow()
 
@@ -85,6 +89,8 @@ class AddKeyStepViewModel @Inject constructor(
     private val _draftWalletType = MutableStateFlow<WalletType?>(null)
     val draftWalletType: WalletType?
         get() = _draftWalletType.value
+    
+    private var draftWalletConfig: WalletConfig? = null
 
     private val _isConfigKeyDone = MutableStateFlow(false)
     val isConfigKeyDone = _isConfigKeyDone.asStateFlow()
@@ -142,6 +148,7 @@ class AddKeyStepViewModel @Inject constructor(
         refreshJob = viewModelScope.launch {
             val draftWallet = syncDraftWalletUseCase("").getOrNull() ?: return@launch
             _draftWalletType.value = draftWallet.walletType
+            draftWalletConfig = draftWallet.config
             
             draftWallet.replaceWallet?.localId?.let { localId ->
                 _event.emit(AddKeyStepEvent.UpdateReplaceWalletId(localId))
@@ -186,7 +193,11 @@ class AddKeyStepViewModel @Inject constructor(
                 if (inheritanceType.value == InheritancePlanType.ON_CHAIN.name) {
                     _event.emit(AddKeyStepEvent.OpenOnChainTimelockExplanation)
                 } else {
-                    _event.emit(AddKeyStepEvent.OpenAddKeyList(draftWalletType))
+                    if (changeTimelockFlow.value == 1) {
+                        _event.emit(AddKeyStepEvent.OpenInheritancePlanType)
+                    } else {
+                        _event.emit(AddKeyStepEvent.OpenAddKeyList(draftWalletType))
+                    }
                 }
             }
         }
@@ -204,6 +215,8 @@ class AddKeyStepViewModel @Inject constructor(
         savedStateHandle[MembershipActivity.EXTRA_GROUP_STEP] = MembershipStage.SETUP_INHERITANCE
         savedStateHandle[MembershipActivity.EXTRA_KEY_WALLET_ID] = walletId
     }
+    
+    fun getConfig(): WalletConfig? = draftWalletConfig
 
     companion object {
         private const val KEY_CURRENT_STEP = "current_step"
@@ -221,4 +234,5 @@ sealed class AddKeyStepEvent {
     object SetupInheritanceSetupDone : AddKeyStepEvent()
     object OpenOnChainTimelockExplanation : AddKeyStepEvent()
     data class UpdateReplaceWalletId(val walletId: String) : AddKeyStepEvent()
+    object OpenInheritancePlanType : AddKeyStepEvent()
 }

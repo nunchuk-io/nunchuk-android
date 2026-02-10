@@ -331,6 +331,8 @@ interface PremiumWalletRepository {
 
     fun getAssistedWalletsLocal(): Flow<List<AssistedWalletBrief>>
 
+    fun getInactiveAssistedWalletIdsFlow(): Flow<Set<String>>
+
     suspend fun clearLocalData()
 
     suspend fun calculateRequiredSignaturesDeleteAssistedWallet(

@@ -36,8 +36,6 @@ import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCase
 import com.nunchuk.android.usecase.ImportKeystoneTransactionUseCaseImpl
 import com.nunchuk.android.usecase.NewAddressUseCase
 import com.nunchuk.android.usecase.NewAddressUseCaseImpl
-import com.nunchuk.android.usecase.SendSignerPassphrase
-import com.nunchuk.android.usecase.SendSignerPassphraseImpl
 import com.nunchuk.android.usecase.ValueFromAmountUseCase
 import com.nunchuk.android.usecase.ValueFromAmountUseCaseImpl
 import dagger.Binds
@@ -69,9 +67,6 @@ internal interface TransactionDomainModule {
 
     @Binds
     fun bindValueFromAmountUseCase(useCase: ValueFromAmountUseCaseImpl): ValueFromAmountUseCase
-
-    @Binds
-    fun bindSendSignerPassphrase(useCase: SendSignerPassphraseImpl): SendSignerPassphrase
 
     @Binds
     fun bindImportKeystoneTransactionUseCase(useCase: ImportKeystoneTransactionUseCaseImpl): ImportKeystoneTransactionUseCase

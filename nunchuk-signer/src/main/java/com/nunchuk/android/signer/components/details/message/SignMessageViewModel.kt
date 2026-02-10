@@ -31,7 +31,7 @@ import com.nunchuk.android.usecase.CreateShareFileUseCase
 import com.nunchuk.android.usecase.GetMasterSignerUseCase
 import com.nunchuk.android.usecase.IsValidDerivationPathUseCase
 import com.nunchuk.android.usecase.SaveLocalFileUseCase
-import com.nunchuk.android.usecase.SendSignerPassphrase
+import com.nunchuk.android.usecase.SendSignerPassphraseUseCase
 import com.nunchuk.android.usecase.signer.GetHealthCheckPathUseCase
 import com.nunchuk.android.usecase.signer.SignMessageBySoftwareKeyUseCase
 import com.nunchuk.android.utils.onException
@@ -58,7 +58,7 @@ class SignMessageViewModel @Inject constructor(
     private val createShareFileUseCase: CreateShareFileUseCase,
     private val savedStateHandle: SavedStateHandle,
     private val getMasterSignerUseCase: GetMasterSignerUseCase,
-    private val sendSignerPassphrase: SendSignerPassphrase,
+    private val sendSignerPassphraseUseCase: SendSignerPassphraseUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val saveLocalFileUseCase: SaveLocalFileUseCase
 ) : ViewModel() {
@@ -130,11 +130,16 @@ class SignMessageViewModel @Inject constructor(
 
     fun handleHealthCheck(passPhrase: String) {
         viewModelScope.launch {
-            sendSignerPassphrase.execute(args.masterSignerId, passPhrase)
-                .flowOn(Dispatchers.IO)
-                .onException { _event.emit(SignMessageEvent.ShowError(it)) }
-                .flowOn(Dispatchers.Main)
-                .collect { signMessageBySoftware() }
+            sendSignerPassphraseUseCase(
+                SendSignerPassphraseUseCase.Param(
+                    signerId = args.masterSignerId,
+                    passphrase = passPhrase
+                )
+            ).onSuccess {
+                signMessageBySoftware()
+            }.onFailure { exception ->
+                _event.emit(SignMessageEvent.ShowError(exception))
+            }
         }
     }
 

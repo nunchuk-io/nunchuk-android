@@ -1,8 +1,11 @@
 package com.nunchuk.android.signer.software.components.intro
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.nunchuk.android.model.StateEvent
+import com.nunchuk.android.usecase.signer.GetSignerMasterXprvUseCase
 import com.nunchuk.android.usecase.signer.IsValidXprvUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,16 +16,48 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RecoverByXprvViewModel @Inject constructor(
-    private val isValidXprvUseCase: IsValidXprvUseCase
+    private val isValidXprvUseCase: IsValidXprvUseCase,
+    private val getSignerMasterXprvUseCase: GetSignerMasterXprvUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val _state = MutableStateFlow(RecoverByXprvViewState())
+    private val masterSignerId: String = savedStateHandle.toRoute<RecoverByXprvNavKey>().masterSignerId
+    private val isViewMode: Boolean = masterSignerId.isNotEmpty()
+    
+    private val _state = MutableStateFlow(
+        RecoverByXprvViewState(
+            isViewMode = isViewMode,
+        )
+    )
     val state = _state.asStateFlow()
 
+    init {
+        if (masterSignerId.isNotEmpty()) {
+            loadXprv()
+        }
+    }
+
+    private fun loadXprv() {
+        viewModelScope.launch {
+            getSignerMasterXprvUseCase(masterSignerId).onSuccess { xprv ->
+                _state.update { it.copy(xprv = xprv) }
+            }.onFailure { e ->
+                _state.update { 
+                    it.copy(
+                        event = StateEvent.String(e.message.orEmpty())
+                    )
+                }
+            }
+        }
+    }
+
     fun onXprvChanged(xprv: String) {
-        _state.update { it.copy(xprv = xprv, error = "") }
+        if (!isViewMode) {
+            _state.update { it.copy(xprv = xprv, error = "") }
+        }
     }
 
     fun validateXprv(xprv: String) {
+        if (isViewMode) return
         _state.update { it.copy(xprv = xprv) }
         viewModelScope.launch {
             isValidXprvUseCase(xprv).onSuccess { isValid ->
@@ -46,4 +81,5 @@ data class RecoverByXprvViewState(
     val xprv: String = "",
     val error: String = "",
     val event: StateEvent = StateEvent.None,
+    val isViewMode: Boolean = false,
 )

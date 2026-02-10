@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nunchuk.android.compose.NcCircleImage
@@ -26,23 +25,29 @@ import com.nunchuk.android.main.R as MainR
 import com.nunchuk.android.widget.R as WidgetR
 
 @Composable
-fun NoInheritancePlanFoundScreen(
+fun InheritanceErrorScreen(
     snackState: SnackbarHostState,
     modifier: Modifier = Modifier,
     onCloseClick: () -> Unit = {},
+    title: String,
+    customMessage: String,
 ) {
-    NoInheritancePlanFoundContent(
+    InheritanceErrorContent(
         modifier = modifier,
         snackState = snackState,
         onCloseClick = onCloseClick,
+        displayTitle = title,
+        description = customMessage,
     )
 }
 
 @Composable
-private fun NoInheritancePlanFoundContent(
+private fun InheritanceErrorContent(
     modifier: Modifier = Modifier,
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     onCloseClick: () -> Unit = {},
+    displayTitle: String,
+    description: String,
 ) {
     NcScaffold(
         modifier = modifier.navigationBarsPadding(),
@@ -60,7 +65,7 @@ private fun NoInheritancePlanFoundContent(
                     .padding(16.dp),
                 onClick = onCloseClick,
             ) {
-                Text(text = stringResource(id = WidgetR.string.nc_text_close))
+                Text(text = stringResource(id = WidgetR.string.nc_text_done))
             }
         }
     ) { innerPadding ->
@@ -75,21 +80,20 @@ private fun NoInheritancePlanFoundContent(
                     .padding(top = 16.dp)
                     .size(80.dp)
                     .align(Alignment.CenterHorizontally),
-                iconSize = 60.dp,
+                iconSize = 48.dp,
                 size = 96.dp,
                 color = colorResource(id = WidgetR.color.nc_red_tint_color),
                 iconTintColor = colorResource(id = WidgetR.color.nc_orange_dark_color),
-                resId = WidgetR.drawable.ic_warning_outline
+                resId = WidgetR.drawable.ic_info
             )
             Spacer(modifier = Modifier.padding(top = 24.dp))
             Text(
-                text = stringResource(MainR.string.nc_no_inheritance_plan_found),
+                text = displayTitle,
                 style = NunchukTheme.typography.heading,
-                textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.padding(top = 16.dp))
             Text(
-                text = stringResource(MainR.string.nc_no_inheritance_plan_found_desc),
+                text = description,
                 style = NunchukTheme.typography.body,
             )
         }
@@ -98,9 +102,13 @@ private fun NoInheritancePlanFoundContent(
 
 @PreviewLightDark
 @Composable
-private fun NoInheritancePlanFoundScreenPreview() {
+private fun InheritanceErrorScreenPreview() {
     NunchukTheme {
-        NoInheritancePlanFoundContent()
+        InheritanceErrorContent(
+            onCloseClick = {},
+            displayTitle = stringResource(id = MainR.string.nc_no_inheritance_plan_found),
+            description = stringResource(id = MainR.string.nc_no_inheritance_plan_found_desc)
+        )
     }
 }
 

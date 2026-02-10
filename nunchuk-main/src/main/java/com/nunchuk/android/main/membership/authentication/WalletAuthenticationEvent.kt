@@ -56,6 +56,7 @@ sealed class WalletAuthenticationEvent {
     data object NoInternetConnectionToSign : WalletAuthenticationEvent()
     data object NoInternetConnectionForceSync : WalletAuthenticationEvent()
     data object NoSignatureDetected : WalletAuthenticationEvent()
+    data class SignInSuccess(val token: String, val deviceId: String) : WalletAuthenticationEvent()
 }
 
 data class WalletAuthenticationState(

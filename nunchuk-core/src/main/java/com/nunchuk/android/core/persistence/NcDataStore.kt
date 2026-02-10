@@ -91,6 +91,11 @@ class NcDataStore @Inject constructor(
     private val userWalletConfigsSetupKey = stringPreferencesKey("user_wallet_configs_setup")
     private val claimWallets = stringSetPreferencesKey("claim_wallets")
     private val claimedWalletUserIds = stringSetPreferencesKey("claimed_wallet_user_ids")
+    private val inactiveAssistedWalletIdsKey = stringSetPreferencesKey("inactive_assisted_wallet_ids")
+    
+    private fun getSeedPhraseViewTimestampKey(masterFingerprint: String): Preferences.Key<Long> {
+        return longPreferencesKey("seed_phrase_view_timestamp_$masterFingerprint")
+    }
 
     /**
      * Current membership plan key
@@ -349,6 +354,20 @@ class NcDataStore @Inject constructor(
     val claimedWalletUserIdsFlow: Flow<Set<String>>
         get() = context.dataStore.data.map {
             it[claimedWalletUserIds] ?: emptySet()
+        }
+
+    suspend fun appendInactiveAssistedWalletIds(ids: List<String>) {
+        if (ids.isEmpty()) return
+        val current = inactiveAssistedWalletIdsFlow.first().toMutableSet()
+        current.addAll(ids)
+        context.dataStore.edit {
+            it[inactiveAssistedWalletIdsKey] = current
+        }
+    }
+
+    val inactiveAssistedWalletIdsFlow: Flow<Set<String>>
+        get() = context.dataStore.data.map {
+            it[inactiveAssistedWalletIdsKey] ?: emptySet()
         }
 
     suspend fun setFeeJsonString(feeJson: String) {
@@ -623,6 +642,15 @@ class NcDataStore @Inject constructor(
         }
     }
 
+    suspend fun setSeedPhraseViewTimestamp(masterFingerprint: String, timestamp: Long) {
+        context.dataStore.edit {
+            it[getSeedPhraseViewTimestampKey(masterFingerprint)] = timestamp
+        }
+    }
+
+    suspend fun getSeedPhraseViewTimestamp(masterFingerprint: String): Long? {
+        return context.dataStore.data.first()[getSeedPhraseViewTimestampKey(masterFingerprint)]
+    }
 
     suspend fun clear() {
         context.dataStore.edit {
@@ -638,6 +666,13 @@ class NcDataStore @Inject constructor(
             it.remove(membershipPlansKey)
             it.remove(walletBannerStatesKey)
             it.remove(claimWallets)
+            it.remove(inactiveAssistedWalletIdsKey)
+            val keysToRemove = it.asMap().keys.filter { key ->
+                key.name.startsWith("seed_phrase_view_timestamp_")
+            }
+            keysToRemove.forEach { key ->
+                it.remove(key)
+            }
         }
     }
 }

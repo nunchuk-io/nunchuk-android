@@ -4,24 +4,31 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object NoInheritancePlanFoundRoute
+data class InheritanceErrorRoute(
+    val title: String,
+    val message: String
+)
 
-fun NavGraphBuilder.noInheritancePlanFound(
+fun NavGraphBuilder.inheritanceError(
     snackState: SnackbarHostState,
     onCloseClick: () -> Unit = {},
 ) {
-    composable<NoInheritancePlanFoundRoute> {
-        NoInheritancePlanFoundScreen(
+    composable<InheritanceErrorRoute> { backStackEntry ->
+        val route = backStackEntry.toRoute<InheritanceErrorRoute>()
+        InheritanceErrorScreen(
             snackState = snackState,
             onCloseClick = onCloseClick,
+            title = route.title,
+            customMessage = route.message,
         )
     }
 }
 
-fun NavController.navigateToNoInheritancePlanFound() {
-    navigate(NoInheritancePlanFoundRoute)
+fun NavController.navigateToInheritanceError(title: String, message: String) {
+    navigate(InheritanceErrorRoute(title = title, message = message))
 }
 

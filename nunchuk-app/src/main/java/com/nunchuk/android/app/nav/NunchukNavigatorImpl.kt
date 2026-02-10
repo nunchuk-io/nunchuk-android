@@ -34,6 +34,7 @@ import com.nunchuk.android.contact.nav.ContactNavigatorDelegate
 import com.nunchuk.android.core.data.model.QuickWalletParam
 import com.nunchuk.android.core.manager.ActivityManager
 import com.nunchuk.android.core.referral.ReferralArgs
+import com.nunchuk.android.core.signer.OnChainAddSignerParam
 import com.nunchuk.android.core.util.InheritancePlanFlow
 import com.nunchuk.android.core.util.InheritanceSourceFlow
 import com.nunchuk.android.core.util.PrimaryOwnerFlow
@@ -64,6 +65,7 @@ import com.nunchuk.android.model.MembershipStep
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.byzantine.GroupWalletType
+import com.nunchuk.android.model.signer.SupportedSigner
 import com.nunchuk.android.nav.AppNavigator
 import com.nunchuk.android.nav.NunchukNavigator
 import com.nunchuk.android.nav.args.BackUpSeedPhraseArgs
@@ -248,7 +250,6 @@ interface AppNavigatorDelegate : AppNavigator {
         isPersonalWallet: Boolean,
         groupWalletType: GroupWalletType?,
         slug: String?,
-        walletTypeName: String?,
         walletType: WalletType?,
         isClearTop: Boolean,
         quickWalletParam: QuickWalletParam?,
@@ -263,7 +264,6 @@ interface AppNavigatorDelegate : AppNavigator {
             isPersonalWallet = isPersonalWallet,
             groupWalletType = groupWalletType,
             slug = slug,
-            walletTypeName = walletTypeName,
             walletType = walletType,
             quickWalletParam = quickWalletParam,
             inheritanceType = inheritanceType,
@@ -411,6 +411,7 @@ interface AppNavigatorDelegate : AppNavigator {
         dummyTransactionId: String?,
         action: String?,
         newEmail: String?,
+        isSignInSignatureFlow: Boolean
     ) {
         WalletAuthenticationActivity.start(
             walletId = walletId,
@@ -422,7 +423,8 @@ interface AppNavigatorDelegate : AppNavigator {
             groupId = groupId,
             dummyTransactionId = dummyTransactionId,
             action = action,
-            newEmail = newEmail
+            newEmail = newEmail,
+            isSignInSignatureFlow = isSignInSignatureFlow
         )
     }
 

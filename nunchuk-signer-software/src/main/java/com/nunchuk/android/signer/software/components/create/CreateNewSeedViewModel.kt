@@ -29,6 +29,7 @@ import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.
 import com.nunchuk.android.signer.software.components.create.CreateNewSeedEvent.OpenSelectPhraseEvent
 import com.nunchuk.android.usecase.GenerateMnemonicUseCase
 import com.nunchuk.android.usecase.GetHotKeyMnemonicUseCase
+import com.nunchuk.android.usecase.signer.GetSignerMnemonicUseCase
 import com.nunchuk.android.usecase.wallet.GetHotWalletMnemonicUseCase
 import com.nunchuk.android.usecase.wallet.GetWalletDetail2UseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,12 +43,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class CreateNewSeedViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val generateMnemonicUseCase: GenerateMnemonicUseCase,
-    private val savedStateHandle: SavedStateHandle,
     private val getHotWalletMnemonicUseCase: GetHotWalletMnemonicUseCase,
     private val getWalletDetail2UseCase: GetWalletDetail2UseCase,
     private val getHotKeyMnemonicUseCase: GetHotKeyMnemonicUseCase,
     private val assistedWalletManager: AssistedWalletManager,
+    private val getSignerMnemonicUseCase: GetSignerMnemonicUseCase,
 ) : ViewModel() {
     private val _event = MutableSharedFlow<CreateNewSeedEvent>()
     private val _state = MutableStateFlow(CreateNewSeedState())
@@ -56,7 +58,23 @@ internal class CreateNewSeedViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun init() {
-        if (args.backupHotKeySignerId.isNotEmpty()) {
+        if (args.masterSignerId.isNotEmpty()) {
+            viewModelScope.launch {
+                getSignerMnemonicUseCase(
+                    GetSignerMnemonicUseCase.Params(
+                        signerId = args.masterSignerId,
+                        passphrase = args.passphrase
+                    )
+                ).onSuccess { mnemonic ->
+                    _state.update { state ->
+                        state.copy(
+                            seeds = mnemonic.toPhrases(),
+                            mnemonic = mnemonic
+                        )
+                    }
+                }
+            }
+        } else if (args.backupHotKeySignerId.isNotEmpty()) {
             viewModelScope.launch {
                 getHotKeyMnemonicUseCase(args.backupHotKeySignerId)
                     .onSuccess { mnemonic ->
@@ -92,7 +110,8 @@ internal class CreateNewSeedViewModel @Inject constructor(
             }
         } else {
             viewModelScope.launch {
-                val isKeyInAssistedWallet = assistedWalletManager.isGroupAssistedWallet(args.groupId)
+                val isKeyInAssistedWallet =
+                    assistedWalletManager.isGroupAssistedWallet(args.groupId)
                 val count = if (isKeyInAssistedWallet) 12 else args.numberOfWords
                 generateMnemonicUseCase(count).onSuccess {
                     _state.update { state ->

@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
@@ -49,6 +50,7 @@ fun NcSelectableBottomSheet(
     val scope = rememberCoroutineScope()
     var selectedIndex by remember { mutableIntStateOf(selectedPos) }
     ModalBottomSheet(
+        containerColor = MaterialTheme.colorScheme.background,
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
         onDismissRequest = onDismiss,
@@ -100,6 +102,7 @@ fun NcSelectableBottomSheetWithIcon(
     val scope = rememberCoroutineScope()
     var selectedIndex by remember { mutableIntStateOf(selectedPos) }
     ModalBottomSheet(
+        containerColor = MaterialTheme.colorScheme.background,
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
         onDismissRequest = onDismiss,
@@ -112,13 +115,12 @@ fun NcSelectableBottomSheetWithIcon(
                     style = NunchukTheme.typography.title
                 )
             }
-            LazyColumn(modifier = Modifier.padding(vertical = 16.dp)) {
+            LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
                 itemsIndexed(items) { index, item ->
-                    val painter = item.resId?.let { painterResource(id = it) }
                     NcSelectableBottomSheetItem(
                         text = item.text,
                         selected = index == selectedIndex && showSelectIndicator,
-                        painter = painter,
+                        painter = painterResource(id = item.resId),
                         onClick = {
                             selectedIndex = index
                             scope.launch {

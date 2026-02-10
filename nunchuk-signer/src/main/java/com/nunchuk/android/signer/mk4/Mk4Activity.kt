@@ -24,7 +24,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.nunchuk.android.core.nfc.BaseNfcActivity
 import com.nunchuk.android.nav.args.SetupMk4Args
@@ -105,12 +104,6 @@ class Mk4Activity : BaseNfcActivity<ActivityNavigationBinding>() {
             ColdcardAction.UPLOAD_BACKUP -> graph.setStartDestination(R.id.coldCardBackUpIntroFragment)
         }
         navHostFragment.navController.setGraph(graph, intent.extras)
-        navHostFragment.navController.addOnDestinationChangedListener { _, destination, _ ->
-            WindowCompat.setDecorFitsSystemWindows(
-                window,
-                destination.id == R.id.addMk4NameFragment
-            )
-        }
     }
 
     companion object {

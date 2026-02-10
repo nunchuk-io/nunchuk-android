@@ -472,7 +472,7 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         val bannerState = state.bannerState
 
         binding.tvWalletWarning.isVisible =
-            state.isClaimWallet || needsBackup || bannerState != null
+            state.isClaimWallet || needsBackup || bannerState != null || viewModel.isInactiveAssistedWallet()
 
         if (binding.tvWalletWarning.isVisible) {
             when {
@@ -486,6 +486,9 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
 
                 bannerState != null -> {
                     handleBannerStateWarning(bannerState)
+                }
+                viewModel.isInactiveAssistedWallet() -> {
+                    handleInactiveAssistedWallet()
                 }
             }
         }
@@ -628,11 +631,6 @@ class WalletDetailsFragment : BaseShareSaveFileFragment<FragmentWalletDetailBind
         binding.toolbar.consumeEdgeToEdge()
         binding.transactionList.layoutManager =
             LinearLayoutManager(context, RecyclerView.VERTICAL, false)
-        binding.tvWalletWarning.isVisible =
-            viewModel.isInactiveAssistedWallet()
-        if (binding.tvWalletWarning.isVisible) {
-            handleInactiveAssistedWallet()
-        }
         binding.transactionList.isNestedScrollingEnabled = false
         binding.transactionList.setHasFixedSize(false)
         binding.transactionList.adapter = adapter

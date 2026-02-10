@@ -147,6 +147,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
         groupId: String?,
         replacedXfp: String?,
         walletId: String,
+        masterSignerId: String,
     ) {
         SoftwareSignerIntroActivity.start(
             activityContext = activityContext,
@@ -155,6 +156,7 @@ interface SignerNavigatorDelegate : SignerNavigator {
             groupId = groupId,
             replacedXfp = replacedXfp,
             walletId = walletId,
+            masterSignerId = masterSignerId,
         )
     }
 
@@ -166,7 +168,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
         groupId: String?,
         replacedXfp: String?,
         numberOfWords: Int,
-        backupHotKeySignerId: String
+        backupHotKeySignerId: String,
+        masterSignerId: String
     ) {
         CreateNewSeedActivity.start(
             activityContext = activityContext,
@@ -176,7 +179,8 @@ interface SignerNavigatorDelegate : SignerNavigator {
             groupId = groupId,
             replacedXfp = replacedXfp,
             numberOfWords = numberOfWords,
-            backupHotKeySignerId = backupHotKeySignerId
+            backupHotKeySignerId = backupHotKeySignerId,
+            masterSignerId = masterSignerId
         )
     }
 

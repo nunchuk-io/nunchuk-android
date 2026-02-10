@@ -11,6 +11,8 @@ import com.nunchuk.android.model.toMembershipPlan
 import com.nunchuk.android.type.WalletType
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupFromCacheUseCase
 import com.nunchuk.android.usecase.GetUserWalletConfigsSetupUseCase
+import com.nunchuk.android.usecase.membership.RestartWizardUseCase
+import com.nunchuk.android.usecase.membership.SyncDraftWalletUseCase
 import com.nunchuk.android.usecase.wallet.InitWalletConfigUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -27,6 +29,8 @@ class InheritancePlanTypeViewModel @Inject constructor(
     private val setLocalMembershipPlanFlowUseCase: SetLocalMembershipPlanFlowUseCase,
     private val getUserWalletConfigsSetupFromCacheUseCase: GetUserWalletConfigsSetupFromCacheUseCase,
     private val getUserWalletConfigsSetupUseCase: GetUserWalletConfigsSetupUseCase,
+    private val restartWizardUseCase: RestartWizardUseCase,
+    private val syncDraftWalletUseCase: SyncDraftWalletUseCase,
     private val applicationScope: CoroutineScope,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -43,13 +47,19 @@ class InheritancePlanTypeViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getUserWalletConfigsSetupFromCacheUseCase(Unit).collect { walletConfigs ->
-                val orderedPlanTypes = walletConfigs.getOrNull()?.walletTypes?.mapNotNull { walletType ->
-                    when (walletType) {
-                        WalletType.MINISCRIPT.name -> InheritancePlanType.ON_CHAIN
-                        WalletType.MULTI_SIG.name -> InheritancePlanType.OFF_CHAIN
-                        else -> null
-                    }
-                } ?: listOf(InheritancePlanType.ON_CHAIN, InheritancePlanType.OFF_CHAIN)
+                // When opened from AddKeyStepFragment with changeTimelockFlow == 1,
+                // always show OFF_CHAIN first and ON_CHAIN second (but ON_CHAIN will be disabled in UI)
+                val orderedPlanTypes = if (args.fromAddKeyStep) {
+                    listOf(InheritancePlanType.OFF_CHAIN, InheritancePlanType.ON_CHAIN)
+                } else {
+                    walletConfigs.getOrNull()?.walletTypes?.mapNotNull { walletType ->
+                        when (walletType) {
+                            WalletType.MINISCRIPT.name -> InheritancePlanType.ON_CHAIN
+                            WalletType.MULTI_SIG.name -> InheritancePlanType.OFF_CHAIN
+                            else -> null
+                        }
+                    } ?: listOf(InheritancePlanType.ON_CHAIN, InheritancePlanType.OFF_CHAIN)
+                }
                 
                 val defaultPlanType = if (args.changeTimelockFlow == -1) {
                     orderedPlanTypes.firstOrNull()
@@ -65,6 +75,7 @@ class InheritancePlanTypeViewModel @Inject constructor(
                     walletId = args.walletId,
                     groupId = args.groupId,
                     changeTimelockFlow = args.changeTimelockFlow,
+                    fromAddKeyStep = args.fromAddKeyStep,
                     orderedPlanTypes = orderedPlanTypes,
                     selectedPlanType = defaultPlanType
                 ))
@@ -109,6 +120,20 @@ class InheritancePlanTypeViewModel @Inject constructor(
                 InheritancePlanType.ON_CHAIN -> WalletType.MINISCRIPT
                 null -> return@launch
             }
+            
+            val result = syncDraftWalletUseCase(_state.value.groupId.orEmpty()).getOrNull()
+            
+            if (result != null) {
+                runCatching {
+                    restartWizardUseCase(
+                        RestartWizardUseCase.Param(
+                            plan = plan,
+                            groupId = _state.value.groupId.orEmpty()
+                        )
+                    )
+                }
+            }
+            
             initWalletConfigUseCase(
                 InitWalletConfigUseCase.Param(
                     walletConfig = WalletConfig(

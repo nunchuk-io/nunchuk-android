@@ -415,6 +415,7 @@
     <string name="nc_change_to_on_chain_timelock_step_two">Transfer funds to the new wallet</string>
     <string name="nc_change_to_on_chain_timelock_step_three">After a successful transfer, the new assisted wallet will be activated. The existing wallet will be downgraded to a free wallet.</string>
     <string name="nc_change_to_on_chain_timelock_hint">You might need new hardware keys for on-chain timelock.</string>
+    <string name="nc_change_to_off_chain_timelock_hint">You might need new hardware keys for off-chain timelock.</string>
     <string name="nc_change_to_off_chain_timelock_title">Change to off-chain timelock</string>
     <string name="nc_change_to_off_chain_timelock_desc">Your current assisted wallet uses an on-chain timelock. To change to an off-chain timelock, here are the steps:</string>
     <string name="nc_change_to_off_chain_timelock_step_one">Create a new assisted wallet and set up a new inheritance plan with an off-chain timelock</string>
@@ -494,6 +495,7 @@
     <!-- No inheritance plan found screen -->
     <string name="nc_no_inheritance_plan_found">No inheritance plan found</string>
     <string name="nc_no_inheritance_plan_found_desc">No matching inheritance plan found for the magic phrase and key you provided. Please try again later.</string>
+    <string name="nc_inheritance_error_title">Timelock is active</string>
     <string name="nc_keep_coin_tags_and_collections">Keep coin tags and collections</string>
     <string name="nc_add_coin_tags_or_collections">Add coin tags or collections</string>
     <string name="nc_coin_control">Coin control</string>

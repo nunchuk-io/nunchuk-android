@@ -210,6 +210,8 @@ class ChangeNfcCvcFragment : BaseFragment<FragmentNfcChangeCvcBinding>() {
         if (isChangeCvcFlow) {
             binding.toolbarTitle.text = getString(R.string.nc_change_cvc)
             binding.btnContinue.text = getString(R.string.nc_confirm_change_cvc)
+            binding.image.isVisible = false
+            binding.tvExistingCvcLabel.text = getString(R.string.nc_existing_pin)
         } else {
             binding.toolbarTitle.text = getString(R.string.nc_set_up_cvc)
             binding.btnContinue.text = getString(R.string.nc_text_continue)

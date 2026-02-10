@@ -58,7 +58,8 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
             groupId: String?,
             replacedXfp: String? = null,
             numberOfWords: Int,
-            backupHotKeySignerId: String
+            backupHotKeySignerId: String,
+            masterSignerId: String
         ) {
             activityContext.startActivity(
                 buildIntent(
@@ -69,7 +70,8 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
                     groupId,
                     replacedXfp,
                     numberOfWords,
-                    backupHotKeySignerId
+                    backupHotKeySignerId,
+                    masterSignerId
                 )
             )
         }
@@ -82,7 +84,8 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
             groupId: String? = null,
             replacedXfp: String? = null,
             numberOfWords: Int = 24,
-            backupHotKeySignerId: String = ""
+            backupHotKeySignerId: String = "",
+            masterSignerId : String = ""
         ): Intent = Intent(
             activityContext,
             CreateNewSeedActivity::class.java
@@ -96,7 +99,8 @@ class CreateNewSeedActivity : BaseActivity<ActivityCreateSeedBinding>() {
                     groupId = groupId,
                     replacedXfp = replacedXfp.orEmpty(),
                     numberOfWords = numberOfWords,
-                    backupHotKeySignerId = backupHotKeySignerId
+                    backupHotKeySignerId = backupHotKeySignerId,
+                    masterSignerId = masterSignerId
                 ).toBundle()
             )
         }
