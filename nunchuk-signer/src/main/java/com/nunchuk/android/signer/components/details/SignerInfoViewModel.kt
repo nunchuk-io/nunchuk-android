@@ -19,6 +19,7 @@
 
 package com.nunchuk.android.signer.components.details
 
+import android.os.SystemClock
 import android.nfc.NdefRecord
 import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
@@ -496,7 +497,7 @@ internal class SignerInfoViewModel @Inject constructor(
 
     fun saveSeedPhraseViewTimestamp(masterFingerprint: String) {
         viewModelScope.launch {
-            val timeStamp = System.currentTimeMillis()
+            val timeStamp = SystemClock.elapsedRealtime()
             saveSeedPhraseViewTimestampUseCase(SaveSeedPhraseViewTimestampUseCase.Param(masterFingerprint, timeStamp))
             _state.update { state -> state.copy(seedPhraseViewTimestamp = timeStamp) }
         }

@@ -1,5 +1,6 @@
 package com.nunchuk.android.signer.components.details
 
+import android.os.SystemClock
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -64,6 +65,7 @@ import com.nunchuk.android.compose.greyDark
 import com.nunchuk.android.compose.latoBold
 import com.nunchuk.android.compose.textPrimary
 import com.nunchuk.android.compose.textSecondary
+import com.nunchuk.android.core.util.formatDurationHoursMinutes
 import com.nunchuk.android.core.util.formatMMMddyyyyDate
 import com.nunchuk.android.core.util.toReadableDrawableResId
 import com.nunchuk.android.core.util.toReadableString
@@ -76,7 +78,6 @@ import com.nunchuk.android.utils.healthCheckLabel
 import com.nunchuk.android.utils.healthCheckTimeColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import java.util.Locale
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 
@@ -120,10 +121,10 @@ fun SignerInfoContent(
     LaunchedEffect(uiState.seedPhraseViewTimestamp) {
         val timestamp = uiState.seedPhraseViewTimestamp
         while (isActive) {
-            if (timestamp == null) {
+            if (timestamp == null || timestamp <= 0L) {
                 remainingTimeMs = 0L
             } else {
-                val currentTime = System.currentTimeMillis()
+                val currentTime = SystemClock.elapsedRealtime()
                 val elapsedTime = currentTime - timestamp
                 val remaining = timeoutDurationMs - elapsedTime
                 remainingTimeMs = if (remaining > 0) remaining else 0L
@@ -316,16 +317,7 @@ fun SignerInfoContent(
                         }
 
                         val buttonText = if (remainingTimeMs > 0) {
-                            val totalMinutes = (remainingTimeMs / (60 * 1000)).toInt()
-                            val hours = totalMinutes / 60
-                            val minutes = totalMinutes % 60
-                            val timeString =
-                                String.Companion.format(
-                                    Locale.getDefault(),
-                                    "%dh:%02dm",
-                                    hours,
-                                    minutes
-                                )
+                            val timeString = remainingTimeMs.formatDurationHoursMinutes()
                             "$viewText in $timeString"
                         } else {
                             viewText

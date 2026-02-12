@@ -20,6 +20,7 @@
 package com.nunchuk.android.core.persistence
 
 import android.content.Context
+import android.os.SystemClock
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -649,7 +650,16 @@ class NcDataStore @Inject constructor(
     }
 
     suspend fun getSeedPhraseViewTimestamp(masterFingerprint: String): Long? {
-        return context.dataStore.data.first()[getSeedPhraseViewTimestampKey(masterFingerprint)]
+        val stored = context.dataStore.data.first()[getSeedPhraseViewTimestampKey(masterFingerprint)]
+        if (stored == null || stored <= 0L) return null
+        val currentElapsed = SystemClock.elapsedRealtime()
+        if (stored > currentElapsed) {
+            context.dataStore.edit {
+                it.remove(getSeedPhraseViewTimestampKey(masterFingerprint))
+            }
+            return null
+        }
+        return stored
     }
 
     suspend fun clear() {
