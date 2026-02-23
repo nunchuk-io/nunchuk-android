@@ -40,11 +40,13 @@ import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.getBTCAmount
 import com.nunchuk.android.core.util.getCurrencyAmount
 import com.nunchuk.android.core.util.hasChangeIndex
+import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.Amount
 import com.nunchuk.android.model.SatsCardSlot
 import com.nunchuk.android.model.SigningPath
 import com.nunchuk.android.model.UnspentOutput
+import com.nunchuk.android.nav.args.ClaimTransactionArgs
 import com.nunchuk.android.share.satscard.SweepSatscardViewModel
 import com.nunchuk.android.share.satscard.observerSweepSatscard
 import com.nunchuk.android.transaction.R
@@ -194,19 +196,32 @@ class TransactionConfirmActivity : BaseNfcActivity<ActivityTransactionConfirmBin
             is CreateTxErrorEvent -> showCreateTransactionError(event.message)
             is CreateTxSuccessEvent -> {
                 navigator.returnToMainScreen(this)
-                val openedWalletId = event.walletId ?: args.walletId
-                openTransactionDetailScreen(
-                    txId = event.transaction.txId,
-                    walletId = openedWalletId,
-                    roomId = sessionHolder.getActiveRoomIdSafe(),
-                    inheritanceClaimTxDetailInfo = takeIf { viewModel.isInheritanceClaimingFlow() }?.let {
-                        InheritanceClaimTxDetailInfo(
-                            changePos = event.transaction.changeIndex,
-                            selectedWalletId = args.walletId.takeIf { event.walletId.isNullOrEmpty() },
+                val transaction = event.transaction
+                if (transaction.isPendingSignatures()) {
+                    navigator.openClaimTransactionScreen(
+                        activityContext = this,
+                        args = ClaimTransactionArgs(
+                            transaction = transaction,
+                            masterSignerIds = args.claimInheritanceTxParam?.masterSignerIds.orEmpty(),
+                            derivationPaths = args.claimInheritanceTxParam?.derivationPaths.orEmpty(),
+                            magic = args.claimInheritanceTxParam?.magicalPhrase.orEmpty(),
                         )
-                    },
-                    transaction = event.transaction.takeIf { event.walletId.isNullOrEmpty() && viewModel.isInheritanceClaimingFlow() }
-                )
+                    )
+                } else {
+                    val openedWalletId = event.walletId ?: args.walletId
+                    openTransactionDetailScreen(
+                        txId = event.transaction.txId,
+                        walletId = openedWalletId,
+                        roomId = sessionHolder.getActiveRoomIdSafe(),
+                        inheritanceClaimTxDetailInfo = takeIf { viewModel.isInheritanceClaimingFlow() }?.let {
+                            InheritanceClaimTxDetailInfo(
+                                changePos = event.transaction.changeIndex,
+                                selectedWalletId = args.walletId.takeIf { event.walletId.isNullOrEmpty() },
+                            )
+                        },
+                        transaction = event.transaction.takeIf { event.walletId.isNullOrEmpty() && viewModel.isInheritanceClaimingFlow() }
+                    )
+                }
             }
 
             is UpdateChangeAddress -> bindChangAddress(event.address, event.amount)
