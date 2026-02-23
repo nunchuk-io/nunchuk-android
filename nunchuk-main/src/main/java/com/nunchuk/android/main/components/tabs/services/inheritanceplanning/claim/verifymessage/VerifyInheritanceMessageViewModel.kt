@@ -7,6 +7,7 @@ import android.nfc.tech.IsoDep
 import android.nfc.tech.Ndef
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nunchuk.android.core.constants.NativeErrorCode
 import com.nunchuk.android.core.data.model.membership.SigningChallengeMessage
 import com.nunchuk.android.core.domain.coldcard.SendDataToMk4UseCase
 import com.nunchuk.android.core.domain.membership.GetInheritanceClaimStateUseCase
@@ -14,6 +15,7 @@ import com.nunchuk.android.core.domain.signer.SignMessageByTapSignerUseCase
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.getFileContentFromUri
 import com.nunchuk.android.core.util.messageOrUnknownError
+import com.nunchuk.android.core.util.nativeErrorCode
 import com.nunchuk.android.core.util.orUnknownError
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.model.InheritanceAdditional
@@ -304,7 +306,11 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
                     )
                 }
             } catch (e: Exception) {
-                _event.emit(VerifyInheritanceMessageEvent.ShowError(e.message.orUnknownError()))
+                if (e.nativeErrorCode() == NativeErrorCode.INVALID_SIGNED_MESSAGE) {
+                    _event.emit(VerifyInheritanceMessageEvent.ShowError("Invalid signature. Please try again."))
+                } else {
+                    _event.emit(VerifyInheritanceMessageEvent.ShowError(e.message.orUnknownError()))
+                }
             }
             _state.update { it.copy(loadingType = null) }
         }
@@ -342,7 +348,11 @@ class VerifyInheritanceMessageViewModel @AssistedInject constructor(
                     }
                 }
                 .onFailure { e ->
-                    _event.emit(VerifyInheritanceMessageEvent.ShowError(e.message.orUnknownError()))
+                    if (e.nativeErrorCode() == NativeErrorCode.INVALID_SIGNED_MESSAGE) {
+                        _event.emit(VerifyInheritanceMessageEvent.ShowError("Invalid signature. Please try again."))
+                    } else {
+                        _event.emit(VerifyInheritanceMessageEvent.ShowError(e.message.orUnknownError()))
+                    }
                 }
             _state.update { it.copy(loadingType = null) }
         }
