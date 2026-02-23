@@ -98,6 +98,7 @@ class ClaimInheritanceViewModel @Inject constructor(
                 requiredKeyCount = init.inheritanceKeyCount,
                 walletType = init.walletType,
                 keyOrigins = init.keyOrigins,
+                challenge = null
             )
         }
     }
