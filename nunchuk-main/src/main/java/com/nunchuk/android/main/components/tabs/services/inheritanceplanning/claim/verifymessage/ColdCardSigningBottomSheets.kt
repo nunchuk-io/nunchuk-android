@@ -39,6 +39,7 @@ data class ColdCardSigningCallbacks(
 @Composable
 fun ColdCardSigningBottomSheets(
     showColdCardOptions: Boolean,
+    isMessage: Boolean = false,
     onDismissColdCardOptions: () -> Unit,
     callbacks: ColdCardSigningCallbacks,
 ) {
@@ -58,7 +59,7 @@ fun ColdCardSigningBottomSheets(
             items = listOf(
                 SelectableItem(
                     resId = WidgetR.drawable.ic_export,
-                    text = stringResource(R.string.nc_transaction_export_transaction)
+                    text = if (isMessage) stringResource(R.string.nc_export_message) else stringResource(R.string.nc_transaction_export_transaction)
                 ),
                 SelectableItem(
                     resId = WidgetR.drawable.ic_import,

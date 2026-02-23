@@ -281,6 +281,7 @@ fun VerifyInheritanceMessageScreen(
     )
 
     ColdCardSigningBottomSheets(
+        isMessage = true,
         showColdCardOptions = showColdCardOptionsSheet,
         onDismissColdCardOptions = {
             showColdCardOptionsSheet = false

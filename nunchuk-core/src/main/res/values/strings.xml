@@ -1080,4 +1080,5 @@
     <string name="nc_replace_key_change_timelock_note">Changing any timelock or replacing any key will create a brand new wallet. You will need to transfer the existing balance to the new wallet afterwards.</string>
     <string name="nc_recover_key_via_xprv">Recover key via XPRV</string>
     <string name="nc_recover_key_via_seed">Recover key via seed</string>
+    <string name="nc_export_message">Export message</string>
 </resources>
