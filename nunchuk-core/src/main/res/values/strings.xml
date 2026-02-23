@@ -148,7 +148,7 @@
     <string name="nc_select_your_key_type">Select your key type:</string>
     <string name="nc_add_inheritance_key_to_nunchuk">Let\'s now add the inheritance key to Nunchuk.</string>
     <string name="nc_export_via_nfc">Export via NFC</string>
-    <string name="nc_export_via_file">Export via file</string>
+    <string name="nc_export_via_file">Export via a file</string>
     <string name="nc_export_via_file_advance">Export via file (Advanced)</string>
     <string name="nc_transaction_exported">Transaction has been exported</string>
     <string name="nc_export_via_qr">Export via QR</string>
@@ -206,7 +206,7 @@
     <string name="nc_cancel">Cancel</string>
     <string name="nc_hide_bip_32_path">Hide BIP 32 path</string>
     <string name="nc_show_bip_32_path">Show BIP 32 path</string>
-    <string name="nc_import_via_file">Import via file</string>
+    <string name="nc_import_via_file">Import via a file</string>
     <string name="nc_recover_from_coldcard">Recover wallet from COLDCARD</string>
     <string name="nc_step">Step</string>
     <string name="nc_add_your_keys">Add your keys</string>
