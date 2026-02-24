@@ -568,7 +568,8 @@ class GroupDashboardFragment : BaseFragment<ViewBinding>(), BottomSheetOptionLis
                         activityContext = requireActivity(),
                         walletId = viewModel.getWallet().id,
                         groupId = viewModel.getGroupId(),
-                        type = UploadConfigurationType.RegisterOnly
+                        type = UploadConfigurationType.RegisterOnly,
+                        isOnChainFlow = true
                     )
                 } else {
                     viewModel.handleRegisterSigners(alert.id, alert.payload.xfps)
