@@ -53,6 +53,7 @@ import com.nunchuk.android.core.nfc.SweepType
 import com.nunchuk.android.core.util.InheritanceClaimTxDetailInfo
 import com.nunchuk.android.core.util.flowObserver
 import com.nunchuk.android.core.util.fromSATtoBTC
+import com.nunchuk.android.core.util.isPendingSignatures
 import com.nunchuk.android.core.util.isTaproot
 import com.nunchuk.android.core.util.pureBTC
 import com.nunchuk.android.model.Amount
@@ -62,6 +63,7 @@ import com.nunchuk.android.model.UnspentOutput
 import com.nunchuk.android.model.defaultRate
 import com.nunchuk.android.nav.args.AddReceiptArgs
 import com.nunchuk.android.nav.args.AddReceiptType
+import com.nunchuk.android.nav.args.ClaimTransactionArgs
 import com.nunchuk.android.nav.args.FeeSettingArgs
 import com.nunchuk.android.nav.args.FeeSettingStartDestination
 import com.nunchuk.android.share.result.GlobalResultKey
@@ -385,7 +387,17 @@ class AddReceiptActivity : BaseComposeNfcActivity() {
                 hideLoading()
                 if (transactionConfirmViewModel.isInheritanceClaimingFlow()) {
                     ActivityManager.popUntilRoot()
-                    if (event.walletId.isNullOrEmpty()) {
+                    if (event.transaction.isPendingSignatures()) {
+                        navigator.openClaimTransactionScreen(
+                            activityContext = this,
+                            args = ClaimTransactionArgs(
+                                transaction = event.transaction,
+                                masterSignerIds = args.claimInheritanceTxParam?.masterSignerIds.orEmpty(),
+                                derivationPaths = args.claimInheritanceTxParam?.derivationPaths.orEmpty(),
+                                magic = args.claimInheritanceTxParam?.magicalPhrase.orEmpty(),
+                            )
+                        )
+                    } else if (event.walletId.isNullOrEmpty()) {
                         navigator.openTransactionDetailsScreen(
                             activityContext = this,
                             walletId = "",
