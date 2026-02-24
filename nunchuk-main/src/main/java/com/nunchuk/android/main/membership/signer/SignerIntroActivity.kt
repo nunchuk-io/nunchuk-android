@@ -414,7 +414,7 @@ class SignerIntroActivity : BaseComposeActivity(), BottomSheetOptionListener {
     private fun openSetupMk4() {
         val args = SetupMk4Args(
             fromMembershipFlow = onChainAddSignerParam != null,
-            isFromAddKey = true,
+            isFromAddKey = onChainAddSignerParam == null,
             groupId = groupId,
             walletId = walletId,
             replacedXfp = onChainAddSignerParam?.replaceInfo?.replacedXfp,
