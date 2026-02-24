@@ -94,7 +94,7 @@ class InheritanceClaimCreateTransactionUseCase @Inject constructor(
             subtractFeeFromAmount = transactionResponse.subtractFeeFromAmount
         )
         if (isDraft) {
-            return if (parameters.bsms.isNullOrEmpty()) {
+            return if (parameters.bsms.isNullOrEmpty() || !parameters.messageId.isNullOrEmpty()) {
                 ExtendTransaction(transaction.copy(changeIndex = transactionResponse.changePos))
             } else {
                 ExtendTransaction(transaction)
