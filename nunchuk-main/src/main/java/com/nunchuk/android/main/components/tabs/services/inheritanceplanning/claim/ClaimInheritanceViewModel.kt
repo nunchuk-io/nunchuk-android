@@ -170,6 +170,23 @@ class ClaimInheritanceViewModel @Inject constructor(
     }
 
     fun addSigner(signer: SignerModel) {
+        val keyOrigins = _claimData.value.keyOrigins
+        val isKeyInOrigins = keyOrigins.isEmpty() || keyOrigins.any {
+            if (signer.isMasterSigner) {
+                it.xfp == signer.fingerPrint
+            } else {
+                it.xfp == signer.fingerPrint && it.derivationPath == signer.derivationPath
+            }
+        }
+        if (!isKeyInOrigins) {
+            _uiState.update {
+                it.copy(
+                    event = ClaimInheritanceEvent.ShowError("Incorrect key. Please add the correct key."),
+                    isLoading = false
+                )
+            }
+            return
+        }
         val hasSigner = _claimData.value.signers.any {
             it.fingerPrint == signer.fingerPrint && it.derivationPath == signer.derivationPath
         }
