@@ -743,7 +743,7 @@ fun InheritanceReviewPlanScreenContent(
                 }
 
                 // Provider Notification Settings (Beneficiary/Trustee Emails)
-                if (setupOrReviewParam.notificationSettings != null && setupOrReviewParam.notificationSettings.perEmailSettings.isNotEmpty()) {
+                if (setupOrReviewParam.notificationSettings != null && isMiniscriptWallet) {
                     // User Notification Settings (Owner Email)
                     item {
                         UserNotificationSettingsContent(
