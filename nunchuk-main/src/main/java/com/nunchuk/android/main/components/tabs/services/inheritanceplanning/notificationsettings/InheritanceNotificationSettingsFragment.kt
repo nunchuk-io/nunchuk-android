@@ -296,14 +296,14 @@ private fun InheritanceNotificationSettingsScreenPreview() {
         emailSettingsList = listOf(
             EmailNotificationSettings(
                 email = "alice@gmail.com",
-                notifyOnTimelockExpiry = true,
-                notifyOnWalletChanges = true,
-                includeWalletConfiguration = true
+                notifyOnTimelockExpiry = false,
+                notifyOnWalletChanges = false,
+                includeWalletConfiguration = false
             ),
             EmailNotificationSettings(
                 email = "bob245@gmail.com",
-                notifyOnTimelockExpiry = true,
-                notifyOnWalletChanges = true,
+                notifyOnTimelockExpiry = false,
+                notifyOnWalletChanges = false,
                 includeWalletConfiguration = true
             )
         ),

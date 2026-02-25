@@ -19,12 +19,18 @@ fun NcSwitch(
     thumbContent: (@Composable () -> Unit)? = null,
     enabled: Boolean = true,
     colors: SwitchColors = SwitchDefaults.colors(
-        uncheckedThumbColor = MaterialTheme.colorScheme.border,
+        uncheckedThumbColor = Color.White,
         checkedThumbColor = Color.White,
         uncheckedTrackColor = Color.Transparent,
         checkedTrackColor = MaterialTheme.colorScheme.controlActivated,
-        uncheckedBorderColor = MaterialTheme.colorScheme.border,
+        uncheckedBorderColor = MaterialTheme.colorScheme.backgroundMidGray,
         checkedBorderColor = MaterialTheme.colorScheme.controlActivated,
+        disabledCheckedThumbColor = Color.White.copy(alpha = 0.4f),
+        disabledCheckedTrackColor = MaterialTheme.colorScheme.controlActivated.copy(alpha = 0.4f),
+        disabledCheckedBorderColor = MaterialTheme.colorScheme.controlActivated.copy(alpha = 0.4f),
+        disabledUncheckedThumbColor = Color.White.copy(alpha = 0.4f),
+        disabledUncheckedTrackColor = Color.Transparent,
+        disabledUncheckedBorderColor = MaterialTheme.colorScheme.backgroundMidGray.copy(alpha = 0.4f),
     ),
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
@@ -52,10 +58,22 @@ fun NcSwitchPreview() {
 
 @Composable
 @PreviewLightDark
+fun NcSwitchDefaultEnablePreview() {
+    NunchukTheme {
+        NcSwitch(
+            checked = false,
+            onCheckedChange = {},
+        )
+    }
+}
+
+@Composable
+@PreviewLightDark
 fun NcSwitchDefaultPreview() {
     NunchukTheme {
         NcSwitch(
             checked = false,
+            enabled = false,
             onCheckedChange = {},
         )
     }
