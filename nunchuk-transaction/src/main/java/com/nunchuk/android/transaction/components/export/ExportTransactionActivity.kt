@@ -38,6 +38,7 @@ import com.nunchuk.android.core.util.ULTRA_DENSITY
 import com.nunchuk.android.core.util.densityToLevel
 import com.nunchuk.android.domain.di.IoDispatcher
 import com.nunchuk.android.share.model.SignFlowType
+import com.nunchuk.android.transaction.R
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.ExportTransactionError
 import com.nunchuk.android.transaction.components.export.ExportTransactionEvent.LoadingEvent
 import com.nunchuk.android.transaction.databinding.ActivityExportTransactionBinding
@@ -121,6 +122,9 @@ class ExportTransactionActivity : BaseActivity<ActivityExportTransactionBinding>
     private fun setupViews() {
         val densities = listOf(LOW_DENSITY, MEDIUM_DENSITY, HIGH_DENSITY, ULTRA_DENSITY)
         binding.sliderGroup.isVisible = args.signFlowType != SignFlowType.ClaimDummy
+        if (args.signFlowType == SignFlowType.ClaimDummy) {
+            binding.toolbarTitle.text = getString(R.string.nc_export_via_qr)
+        }
         binding.slider.addOnChangeListener { _, value, fromUser ->
             if (fromUser) {
                 showQrJob?.cancel()
