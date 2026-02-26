@@ -31,6 +31,7 @@ sealed class InheritanceClaimInputEvent {
         val signers: List<SignerModel>,
         val magic: String,
     ) : InheritanceClaimInputEvent()
+    data class BackupSignersImported(val signers: List<SignerModel>) : InheritanceClaimInputEvent()
 }
 
 data class InheritanceClaimInputState(

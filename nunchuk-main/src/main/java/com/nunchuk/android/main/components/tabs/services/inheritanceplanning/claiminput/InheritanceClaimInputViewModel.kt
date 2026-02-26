@@ -56,7 +56,7 @@ class InheritanceClaimInputViewModel @Inject constructor(
     private val _state = MutableStateFlow(InheritanceClaimInputState())
     val state = _state.asStateFlow()
 
-    fun downloadBackupKey(passphrase: String) = viewModelScope.launch {
+    fun downloadBackupKey(passphrase: String, hasExistingSigners: Boolean) = viewModelScope.launch {
         val stateValue = _state.value
         _event.emit(InheritanceClaimInputEvent.Loading(true))
         val result = inheritanceClaimDownloadBackupUseCase(
@@ -105,7 +105,12 @@ class InheritanceClaimInputViewModel @Inject constructor(
                 )
                 return@launch
             }
-            getStatus(importMasterSigners, passphrase, backupKeys)
+            val signers = importMasterSigners.map { masterSignerMapper(it) }
+            if (hasExistingSigners) {
+                _event.emit(InheritanceClaimInputEvent.BackupSignersImported(signers))
+            } else {
+                getStatus(importMasterSigners, passphrase, backupKeys)
+            }
         } else {
             val e = result.exceptionOrNull()
             if (e is NunchukApiException && e.code == 831) {

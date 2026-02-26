@@ -42,6 +42,7 @@ import com.nunchuk.android.compose.showNunchukSnackbar
 import com.nunchuk.android.core.R
 import com.nunchuk.android.core.signer.SignerModel
 import com.nunchuk.android.core.util.countWords
+import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claim.ClaimData
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claiminput.InheritanceClaimInputEvent
 import com.nunchuk.android.main.components.tabs.services.inheritanceplanning.claiminput.InheritanceClaimInputViewModel
 import com.nunchuk.android.model.InheritanceAdditional
@@ -54,8 +55,7 @@ import com.nunchuk.android.signer.R as SignerR
 fun ClaimBackupPasswordScreen(
     modifier: Modifier = Modifier,
     snackState: SnackbarHostState,
-    magicPhrase: String,
-    requiredKeyCount: Int = 2,
+    claimData: ClaimData,
     onBackPressed: () -> Unit = {},
     onNoInheritancePlanFound: () -> Unit = {},
     onSuccess: (
@@ -63,6 +63,7 @@ fun ClaimBackupPasswordScreen(
         magic: String,
         inheritanceAdditional: InheritanceAdditional,
     ) -> Unit = { _, _, _ -> },
+    onSignersFromBackup: (List<SignerModel>) -> Unit = {},
     viewModel: InheritanceClaimInputViewModel = hiltViewModel(),
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -94,6 +95,10 @@ fun ClaimBackupPasswordScreen(
                         event.inheritanceAdditional,
                     )
                 }
+                is InheritanceClaimInputEvent.BackupSignersImported -> {
+                    isLoading = false
+                    onSignersFromBackup(event.signers)
+                }
             }
         }
     }
@@ -110,19 +115,21 @@ fun ClaimBackupPasswordScreen(
         }
     }
 
+    val backupInputCount = (claimData.requiredKeyCount - claimData.signers.size).coerceIn(1, 2)
+
     ClaimBackupPasswordContent(
         modifier = modifier,
         snackState = snackState,
         onBackPressed = onBackPressed,
         backupPasswords = state.backupPasswords,
-        requiredKeyCount = requiredKeyCount,
+        backupInputCount = backupInputCount,
         isLoading = isLoading,
         onBackupPasswordTextChange = { text, index ->
             viewModel.updateBackupPassword(text, index)
         },
         onContinueClick = {
             keyboardController?.hide()
-            viewModel.downloadBackupKey(magicPhrase)
+            viewModel.downloadBackupKey(claimData.magic, claimData.signers.isNotEmpty())
         },
     )
 }
@@ -133,13 +140,13 @@ private fun ClaimBackupPasswordContent(
     snackState: SnackbarHostState,
     onBackPressed: () -> Unit = {},
     backupPasswords: List<String> = listOf("", ""),
-    requiredKeyCount: Int = 2,
+    backupInputCount: Int = 2,
     isLoading: Boolean = false,
     onContinueClick: () -> Unit = {},
     onBackupPasswordTextChange: (String, Int) -> Unit = { _, _ -> },
 ) {
     val listState = rememberLazyListState()
-    val visiblePasswords = backupPasswords.take(requiredKeyCount.coerceIn(1, 2))
+    val visiblePasswords = backupPasswords.take(backupInputCount.coerceIn(1, 2))
 
     if (isLoading) {
         NcLoadingDialog()
@@ -234,7 +241,7 @@ private fun ClaimBackupPasswordScreenSingleKeyPreview() {
         ClaimBackupPasswordContent(
             snackState = remember { SnackbarHostState() },
             backupPasswords = listOf(""),
-            requiredKeyCount = 1,
+            backupInputCount = 1,
         )
     }
 }

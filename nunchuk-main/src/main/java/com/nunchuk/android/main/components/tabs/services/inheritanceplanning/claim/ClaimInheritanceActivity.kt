@@ -279,7 +279,7 @@ private fun ClaimInheritanceGraph(
                             if (claimData.isOnChainClaim) {
                                 navController.navigateToRecoverInheritanceKey()
                             } else {
-                                navController.navigateToClaimBackupPassword(claimData.magic, claimData.requiredKeyCount)
+                                navController.navigateToClaimBackupPassword()
                             }
                         }
                     }
@@ -345,6 +345,10 @@ private fun ClaimInheritanceGraph(
                         title = context.getString(R.string.nc_no_inheritance_plan_found),
                         message = context.getString(R.string.nc_no_inheritance_plan_found_desc)
                     )
+                },
+                onSignersFromBackup = { signers ->
+                    navController.popBackStack()
+                    signers.forEach { activityViewModel.addSigner(it) }
                 },
                 onSuccess = { signers, magic, inheritanceAdditional ->
                     val bufferPeriodCountdown = inheritanceAdditional.bufferPeriodCountdown
